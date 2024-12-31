@@ -9,3 +9,11 @@ Please write a detailed README-agent.md based on the plan described in the main 
 ```
 
 ![](screenshots/cursor-agent-1.png)
+
+
+```
+Great. Now please write the Agent code and pytest tests for the Agent based on README_agent.md
+```
+
+![](screenshots/cursor-agent-2.png)
+
