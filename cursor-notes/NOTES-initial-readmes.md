@@ -33,11 +33,17 @@ Then had a **chat** with cursor about the Memory Manager - to produce a detailed
 Let's design the Memory Manager, initially focusing on processing and storing the Phase 1 (campaig) data.
 ```
 
+![](screenshots/cursor-memory-manager-readme-1.png)
+
+
 ```
 This is OK. But a better approach would be more data driven so that the code does not need to contain specific details like "world_description" and "inhabitants". It would be better to assume tha the LLM will be able to accept data in any form and come up with its own representations for the structured data and knowledge graph. Then the memory can be accessed and updated via prompting - without the need for hard-coded data-specific classes.
 
 Given this constraint, how would you design the memory mnager?
 ```
+
+![](screenshots/cursor-memory-manager-readme-2.png)
+
 
 ```
 Yes, exactly. Let's imagine an example scenario where Agent prompts the user with a question, asking for the Phase 1 details about the campaign and the user responds with "Campaign Details for Phase 1 - A simple, hello world campaign" from the README. Then the Agent would prompt the LLM to store generate a JSON data structure containing Phase 1 data as well as a knolwedge graph data structure to store the importan relationshipt in the Phase 1 data. This bespoke data format would then be used for the rest of the interactions in the session.
@@ -47,19 +53,31 @@ The agent could access and update the data using prompts for the LLM. A Query Pr
 Please summarize this design using concise, high-level pseudo code and state diagram notation.
 ```
 
+![](screenshots/cursor-memory-manager-readme-3.png)
+
+
 ```
 Yes. Now let's design the memory management prompt template: Create Memory Prompt, Query Memory Prompt, Update Memory Prompt.
 
 First, what should the Create Memory Prompt LLM prompt look like - using `{INPUT_DATA}` as the placeholder for the text data provided by the user?
 ```
 
+![](screenshots/cursor-memory-manager-readme-4.png)
+
+
 ```
 Yes. Sounds great. Now, please write the memory manager code to populate the memory using the approach described above.
 ```
 
+![](screenshots/cursor-memory-manager-readme-5.png)
+
+
 ```
 Great. Please write a detailed README about the memory_manager and the proposed impoementatino approach.
 ```
+
+![](screenshots/cursor-memory-manager-readme-6.png)
+
 
 ### AI (LLM) README
 
@@ -69,3 +87,4 @@ Then continued the **chat** to create a `README-ai.md` for the llm class.
 Great. Please write a README for the ai llm class. It should define a base class used to interface with llm services. The README should also describe a specialized (subclass) llm_openai.py that uses the openai llm api. The README should also describe a specialized (subclass) llm_ollama.py that uses the ollama llm api.
 ```
 
+![](screenshots/cursor-ai-readme-1.png)

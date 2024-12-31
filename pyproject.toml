@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cursor-hello"
+version = "0.1.0"
+authors = [
+    { name = "Andrew Rapo" },
+]
+description = "Cursor Hello Project"
+requires-python = ">=3.8"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*"]
+namespaces = false
+
+[tool.pytest.ini_options]
+markers = [
+    "integration: marks tests as integration tests that require external services",
+]
