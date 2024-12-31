@@ -20,3 +20,4 @@ namespaces = false
 markers = [
     "integration: marks tests as integration tests that require external services",
 ]
+asyncio_mode = "auto"

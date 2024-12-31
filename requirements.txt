@@ -1,7 +1,9 @@
 # requirements.txt
 
 pytest>=7.0.0
+pytest-asyncio>=0.23.0
 openai>=1.0.0  # For OpenAI API integration
 requests>=2.31.0  # For HTTP requests (Ollama API)
-urllib3<2.0.0 # macOS uses LibreSSL. Downgrading to urllib3 1.26.x 
+urllib3<2.0.0 # macOS uses LibreSSL. Downgrading to urllib3 1.26.x
+
 -e .
