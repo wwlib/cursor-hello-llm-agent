@@ -34,7 +34,7 @@ class MemoryManager:
             input_data: Raw input data to be structured
             
         Returns:
-            bool: True if memory was created successfully, False otherwise
+            bool: True if memory was created successfully
         """
         create_memory_prompt = """
 You are a memory management system. Your task is to analyze the provided information and create two organized data structures:
@@ -65,9 +65,7 @@ Return only a valid JSON object with this structure:
         "timestamp": "",
         "version": "1.0"
     }
-}
-
-Important: Return ONLY the JSON object, with no additional explanation or text."""
+}"""
 
         try:
             # Get structured memory from LLM
@@ -82,61 +80,111 @@ Important: Return ONLY the JSON object, with no additional explanation or text."
             self.memory = memory_data
             self.save_memory()
             return True
-        except (json.JSONDecodeError, Exception) as e:
+        except Exception as e:
             print(f"Error creating memory structure: {str(e)}")
             return False
 
-    def query_memory(self, query: str) -> Dict[str, Any]:
-        """Query the memory using LLM to find relevant information.
+    def query_memory(self, query_context: str) -> Dict[str, Any]:
+        """Query the memory using LLM to find relevant information and generate response.
         
         Args:
-            query: The query string to search memory with
+            query_context: JSON string containing query context (phase, history, message)
             
         Returns:
-            Dict containing the query response
+            Dict containing the response, new information, and suggested phase
         """
-        query_prompt = f"""
-Given this memory context: {json.dumps(self.memory)}
-And this query: {query}
-Provide a response using the stored information.
+        try:
+            context = json.loads(query_context)
+            
+            query_prompt = f"""
+Context:
+{json.dumps(self.memory, indent=2)}
 
-Return your response as a JSON object with this structure:
+Current Phase: {context.get('current_phase', 'UNKNOWN')}
+Previous Messages: {json.dumps(context.get('recent_messages', []), indent=2)}
+
+User Message: {context.get('user_message', '')}
+
+Generate a response that:
+1. Uses relevant information from memory
+2. Maintains consistency with previous interactions
+3. Advances the current phase appropriately
+4. Identifies any new information to be stored
+
+Response should be in-character and appropriate for the current phase.
+
+Return your response in JSON format:
 {{
-    "response": "Your detailed response here",
-    "relevant_data": {{
-        // The specific data points used from memory
+    "response": "Your response here",
+    "new_information": {{
+        // Any new information to be stored
     }},
+    "suggested_phase": "current or next phase name",
     "confidence": 0.0 to 1.0
 }}"""
 
-        try:
             llm_response = self.llm.generate(query_prompt)
-            return json.loads(llm_response)
-        except (json.JSONDecodeError, Exception) as e:
+            response_data = json.loads(llm_response)
+            
+            # If there's new information, update memory
+            if response_data.get("new_information"):
+                self.update_memory(json.dumps(response_data["new_information"]))
+            
+            return response_data
+            
+        except Exception as e:
             print(f"Error querying memory: {str(e)}")
             return {
                 "response": "Error processing query",
-                "relevant_data": {},
+                "new_information": {},
+                "suggested_phase": None,
                 "confidence": 0.0
             }
 
-    def update_memory(self, new_data: str) -> bool:
+    def update_memory(self, update_context: str) -> bool:
         """Update memory with new information using LLM.
         
         Args:
-            new_data: New information to incorporate into memory
+            update_context: JSON string containing update context
             
         Returns:
-            bool: True if memory was updated successfully, False otherwise
+            bool: True if memory was updated successfully
         """
-        update_prompt = f"""
-Given this memory context: {json.dumps(self.memory)}
-And this new information: {new_data}
-Return updated JSON structures that incorporate the new information.
-
-Use the same structure as the input memory. Preserve existing information unless it conflicts with new data."""
-
         try:
+            context = json.loads(update_context)
+            
+            # Handle different types of updates
+            if context.get("operation") == "reflect":
+                update_prompt = f"""
+Current Memory State:
+{json.dumps(self.memory, indent=2)}
+
+Recent Interactions:
+{json.dumps(context.get('recent_history', []), indent=2)}
+
+Analyze the current memory state and recent interactions to:
+1. Identify important patterns or relationships
+2. Suggest memory structure optimizations
+3. Highlight key information for future reference
+
+Return analysis and suggested updates in JSON format suitable for memory update."""
+
+            else:  # Standard update or learning
+                update_prompt = f"""
+Current Memory State:
+{json.dumps(self.memory, indent=2)}
+
+Phase: {context.get('phase', 'UNKNOWN')}
+New Information: {context.get('information', '{}')}
+Recent History: {json.dumps(context.get('recent_history', []), indent=2)}
+
+Analyze this information and return a JSON object containing:
+1. Updated structured data
+2. New or modified relationships for the knowledge graph
+3. Any necessary changes to existing memory
+
+Return in JSON format suitable for memory update."""
+
             llm_response = self.llm.generate(update_prompt)
             updated_memory = json.loads(llm_response)
             
@@ -146,7 +194,8 @@ Use the same structure as the input memory. Preserve existing information unless
             self.memory = updated_memory
             self.save_memory()
             return True
-        except (json.JSONDecodeError, Exception) as e:
+            
+        except Exception as e:
             print(f"Error updating memory: {str(e)}")
             return False
 

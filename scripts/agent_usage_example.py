@@ -37,6 +37,7 @@ async def main():
     success = await agent.learn(campaign_details)
     if not success:
         print("Failed to learn campaign details!")
+        print(agent.conversation_history)
         return
     
     # Phase 2: Learn about the party
@@ -80,33 +81,33 @@ async def main():
         # Optional: Print current phase for debugging
         print(f"\n[Current Phase: {agent.get_current_phase().name}]")
 
-async def example_interactions():
-    """Example of typical interactions with the agent."""
-    agent = await setup_agent()
+# async def example_interactions():
+#     """Example of typical interactions with the agent."""
+#     agent = await setup_agent()
     
-    # Example interactions
-    interactions = [
-        "Tell me about the world we're in.",
-        "What do we know about the Mountain Troll?",
-        "What abilities does our party have?",
-        "We approach the village. What do we see?",
-        "We ask the villagers about recent troll sightings."
-    ]
+#     # Example interactions
+#     interactions = [
+#         "Tell me about the world we're in.",
+#         "What do we know about the Mountain Troll?",
+#         "What abilities does our party have?",
+#         "We approach the village. What do we see?",
+#         "We ask the villagers about recent troll sightings."
+#     ]
     
-    for interaction in interactions:
-        print(f"\nPlayer: {interaction}")
-        response = await agent.process_message(interaction)
-        print(f"Dungeon Master: {response}")
-        await asyncio.sleep(1)  # Pause between interactions
+#     for interaction in interactions:
+#         print(f"\nPlayer: {interaction}")
+#         response = await agent.process_message(interaction)
+#         print(f"Dungeon Master: {response}")
+#         await asyncio.sleep(1)  # Pause between interactions
 
-async def setup_agent() -> Agent:
-    """Setup the agent with necessary services."""
-    llm_service = OllamaService({
-        "model": "llama3",
-        "temperature": 0.7
-    })
-    memory_manager = MemoryManager(llm_service, "example_memory.json")
-    return Agent(llm_service, memory_manager)
+# async def setup_agent() -> Agent:
+#     """Setup the agent with necessary services."""
+#     llm_service = OllamaService({
+#         "model": "llama3",
+#         "temperature": 0.7
+#     })
+#     memory_manager = MemoryManager(llm_service, "example_memory.json")
+#     return Agent(llm_service, memory_manager)
 
 if __name__ == "__main__":
     print("D&D Campaign Agent Example")

@@ -11,6 +11,31 @@ import requests
 import json
 from typing import Optional
 
+test_prompt = """
+You are a helpful assistant that communicates using JSON. All your responses should be in JSON format.
+
+Current Memory State:
+{}
+
+New Information to Learn:
+
+    The world is a simple, flat world with a single continent, a single ocean, and a single mountain range.
+    The world is inhabited by a single species of intelligent humanoid creatures.
+    The world is ruled by a single, benevolent monarch.
+    The world is at peace, except for reports of a monster attacking a nearby village from its lair in a mountain cave system.
+    The monster is known as the "Mountain Troll" and has reportedly wandered down from the wilds of the North.
+    The players' quest is to find the monster and kill it.
+    The village has offered a reward of 1000 gold coins for the destruction of the monster and delivery of its head to the village.
+    
+
+Analyze this information and return a JSON object containing:
+1. Structured data to be added to memory
+2. Any new relationships for the knowledge graph
+3. Suggested updates to existing memory
+
+Return in JSON format suitable for memory update.
+"""
+
 def test_ollama_call(prompt: str = "Tell me a short joke", model: str = "llama3") -> Optional[str]:
     """Make a test call to Ollama API.
     
@@ -70,11 +95,12 @@ def main():
         return
     
     # Make the test call
-    response = test_ollama_call()
+    response = test_ollama_call(test_prompt)
     
     if response:
         print("\nFull response received successfully!")
         print("-" * 40)
+        print(response)
     else:
         print("Failed to get response from Ollama")
 

@@ -48,3 +48,26 @@ Would you like me to:
 2. Add additional error handling?
 3. Include more debugging/logging features?
 4. Create a separate script for testing different LLM models?
+
+
+## Revisions
+
+```
+I just tested the script and am noticing some issues that we should address. Most important: The Agent class and the MemoryManager class are both making similar calls to the LLM generate and update data that should be remembered. This is inefficient. Calls to the LLM are relatively slow and expensive. The Agent should be revised to rely more on the MemoryManager to interface with the LLM. What do you think?
+```
+
+![](screenshots/cursor-agent-4.png)
+
+
+```
+Yes, please update the tests to reflect these changes.
+```
+
+![](screenshots/cursor-agent-5.png)
+
+```
+There are 2 failed tests in test_memory_manager.py
+```
+
+![](screenshots/cursor-agent-6.png)
+

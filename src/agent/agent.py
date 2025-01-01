@@ -16,10 +16,10 @@ class Agent:
         """Initialize the agent with required services.
         
         Args:
-            llm_service: Service for LLM operations
-            memory_manager: Service for memory management
+            llm_service: Service for LLM operations (used only for direct interactions)
+            memory_manager: Service for memory management and LLM operations
         """
-        self.llm = llm_service
+        self.llm = llm_service  # Keep for potential direct interactions
         self.memory = memory_manager
         self.current_phase = AgentPhase.INITIALIZATION
         self.conversation_history: List[Dict[str, str]] = []
@@ -33,53 +33,29 @@ class Agent:
         Returns:
             str: The agent's response
         """
-        # Add message to conversation history
-        self.conversation_history.append({
-            "role": "user",
-            "content": message,
-            "timestamp": datetime.now().isoformat()
-        })
-
-        # Get memory context
-        memory_context = self.memory.get_memory_context()
-
-        # Create response prompt
-        response_prompt = f"""
-Context:
-{json.dumps(memory_context, indent=2)}
-
-Current Phase: {self.current_phase.name}
-Previous Messages: {json.dumps(self.conversation_history[-5:], indent=2)}
-
-User Message: {message}
-
-Generate a response that:
-1. Uses relevant information from memory
-2. Maintains consistency with previous interactions
-3. Advances the current phase appropriately
-4. Identifies any new information to be stored
-
-Response should be in-character and appropriate for the current phase.
-
-Return your response in JSON format:
-{{
-    "response": "Your response here",
-    "new_information": {{
-        // Any new information to be stored
-    }},
-    "suggested_phase": "current or next phase name"
-}}
-"""
-
-        # Generate response using LLM
         try:
-            llm_response = self.llm.generate(response_prompt)
-            response_data = json.loads(llm_response)
+            # Add message to conversation history
+            self.conversation_history.append({
+                "role": "user",
+                "content": message,
+                "timestamp": datetime.now().isoformat()
+            })
 
-            # Update memory if there's new information
-            if response_data.get("new_information"):
-                self.memory.update_memory(json.dumps(response_data["new_information"]))
+            # Create query context
+            query_context = {
+                "current_phase": self.current_phase.name,
+                "recent_messages": self.conversation_history[-5:],
+                "user_message": message
+            }
 
+            # Use memory manager to process query and get response
+            query_result = self.memory.query_memory(json.dumps(query_context))
+            
+            if not query_result:
+                raise Exception("Failed to get response from memory manager")
+
+            response_data = query_result
+            
             # Update phase if suggested
             suggested_phase = response_data.get("suggested_phase")
             if suggested_phase and hasattr(AgentPhase, suggested_phase):
@@ -116,28 +92,15 @@ Return your response in JSON format:
             # Set phase to learning
             self.current_phase = AgentPhase.LEARNING
 
-            # Create learning prompt
-            learn_prompt = f"""
-Current Memory State:
-{json.dumps(self.memory.get_memory_context(), indent=2)}
+            # Create learning context
+            learning_context = {
+                "phase": self.current_phase.name,
+                "information": information,
+                "recent_history": self.conversation_history[-5:]
+            }
 
-New Information to Learn:
-{information}
-
-Analyze this information and return a JSON object containing:
-1. Structured data to be added to memory
-2. Any new relationships for the knowledge graph
-3. Suggested updates to existing memory
-
-Return in JSON format suitable for memory update.
-"""
-
-            # Process with LLM
-            llm_response = self.llm.generate(learn_prompt)
-            processed_data = json.loads(llm_response)
-
-            # Update memory
-            success = self.memory.update_memory(json.dumps(processed_data))
+            # Use memory manager to process and store new information
+            success = self.memory.update_memory(json.dumps(learning_context))
 
             # Add to conversation history
             self.conversation_history.append({
@@ -159,33 +122,20 @@ Return in JSON format suitable for memory update.
     async def reflect(self) -> None:
         """Periodic reflection to optimize memory."""
         try:
-            # Create reflection prompt
-            reflection_prompt = f"""
-Current Memory State:
-{json.dumps(self.memory.get_memory_context(), indent=2)}
+            # Create reflection context
+            reflection_context = {
+                "phase": self.current_phase.name,
+                "recent_history": self.conversation_history[-10:],
+                "operation": "reflect"
+            }
 
-Recent Interactions:
-{json.dumps(self.conversation_history[-10:], indent=2)}
-
-Analyze the current memory state and recent interactions to:
-1. Identify important patterns or relationships
-2. Suggest memory structure optimizations
-3. Highlight key information for future reference
-
-Return analysis and suggested updates in JSON format.
-"""
-
-            # Process with LLM
-            llm_response = self.llm.generate(reflection_prompt)
-            reflection_data = json.loads(llm_response)
-
-            # Update memory with reflection insights
-            self.memory.update_memory(json.dumps(reflection_data))
+            # Use memory manager to process reflection
+            success = self.memory.update_memory(json.dumps(reflection_context))
 
             # Add reflection to history
             self.conversation_history.append({
                 "role": "system",
-                "content": "Completed memory reflection and optimization",
+                "content": "Completed memory reflection and optimization" if success else "Failed to complete reflection",
                 "timestamp": datetime.now().isoformat()
             })
 

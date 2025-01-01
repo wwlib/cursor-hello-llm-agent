@@ -57,27 +57,40 @@ def test_query_memory_success(memory_manager, mock_llm_service):
         "knowledge_graph": {}
     }
     
+    # Create test query context
+    query_context = {
+        "current_phase": "INTERACTION",
+        "recent_messages": [
+            {"role": "user", "content": "test message"}
+        ],
+        "user_message": "test query"
+    }
+    
+    # Mock LLM response with new format
     mock_response = {
         "response": "Test response",
-        "relevant_data": {"test": "data"},
+        "new_information": {"test": "new_data"},
+        "suggested_phase": "INTERACTION",
         "confidence": 0.9
     }
     mock_llm_service.generate.return_value = json.dumps(mock_response)
     
-    result = memory_manager.query_memory("test query")
+    result = memory_manager.query_memory(json.dumps(query_context))
     
     assert result == mock_response
     assert "response" in result
-    assert "relevant_data" in result
+    assert "new_information" in result
+    assert "suggested_phase" in result
     assert "confidence" in result
 
 def test_query_memory_failure(memory_manager, mock_llm_service):
     mock_llm_service.generate.return_value = "invalid json"
     
-    result = memory_manager.query_memory("test query")
+    result = memory_manager.query_memory(json.dumps({"user_message": "test"}))
     
     assert result["response"] == "Error processing query"
     assert result["confidence"] == 0.0
+    assert result["suggested_phase"] is None
 
 def test_update_memory_success(memory_manager, mock_llm_service):
     # Setup initial memory
@@ -91,6 +104,16 @@ def test_update_memory_success(memory_manager, mock_llm_service):
     }
     memory_manager.memory = initial_memory
     
+    # Create test update context
+    update_context = {
+        "phase": "LEARNING",
+        "information": "new test data",
+        "recent_history": [
+            {"role": "user", "content": "test message"}
+        ]
+    }
+    
+    # Mock updated memory response
     updated_memory = {
         "structured_data": {"test": "updated"},
         "knowledge_graph": {},
@@ -100,16 +123,46 @@ def test_update_memory_success(memory_manager, mock_llm_service):
     }
     mock_llm_service.generate.return_value = json.dumps(updated_memory)
     
-    result = memory_manager.update_memory("new test data")
+    result = memory_manager.update_memory(json.dumps(update_context))
     
     assert result is True
     assert memory_manager.memory["structured_data"]["test"] == "updated"
     assert "last_updated" in memory_manager.memory["metadata"]
 
+def test_update_memory_reflection(memory_manager, mock_llm_service):
+    """Test memory update with reflection operation"""
+    # Setup initial memory
+    memory_manager.memory = {
+        "structured_data": {"test": "data"},
+        "knowledge_graph": {},
+        "metadata": {"version": "1.0"}
+    }
+    
+    # Create reflection context
+    reflection_context = {
+        "phase": "INTERACTION",
+        "recent_history": [{"role": "user", "content": "test"}],
+        "operation": "reflect"
+    }
+    
+    # Mock reflection response
+    reflection_result = {
+        "structured_data": {"test": "reflected"},
+        "knowledge_graph": {},
+        "metadata": {"version": "1.0"}
+    }
+    mock_llm_service.generate.return_value = json.dumps(reflection_result)
+    
+    result = memory_manager.update_memory(json.dumps(reflection_context))
+    
+    assert result is True
+    assert memory_manager.memory["structured_data"]["test"] == "reflected"
+    assert "last_updated" in memory_manager.memory["metadata"]
+
 def test_update_memory_failure(memory_manager, mock_llm_service):
     mock_llm_service.generate.return_value = "invalid json"
     
-    result = memory_manager.update_memory("new test data")
+    result = memory_manager.update_memory(json.dumps({"information": "test"}))
     
     assert result is False
 
