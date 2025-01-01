@@ -36,8 +36,9 @@ class MemoryManager:
         Returns:
             bool: True if memory was created successfully
         """
-        create_memory_prompt = """
-You are a memory management system. Your task is to analyze the provided information and create two organized data structures:
+        create_memory_prompt = """You are a helpful assistant that communicates using JSON. All your responses should be in strict, parsable JSON format.
+
+Your task is to analyze the provided information and create two organized data structures:
 
 1. A structured_data JSON object to store key facts and details
 2. A knowledge_graph JSON object to map relationships between entities
@@ -52,7 +53,7 @@ Requirements:
 - Use consistent naming and structure that can be extended in future updates
 - Include metadata about data categories to help with future queries
 
-Return only a valid JSON object with this structure:
+Return ONLY a valid JSON object with this structure (no additional text or explanation):
 {
     "structured_data": {
         // Your structured organization of the facts and details
@@ -96,7 +97,8 @@ Return only a valid JSON object with this structure:
         try:
             context = json.loads(query_context)
             
-            query_prompt = f"""
+            query_prompt = f"""You are a helpful assistant that communicates using JSON. All your responses should be in strict, parsable JSON format.
+
 Context:
 {json.dumps(self.memory, indent=2)}
 
@@ -111,9 +113,7 @@ Generate a response that:
 3. Advances the current phase appropriately
 4. Identifies any new information to be stored
 
-Response should be in-character and appropriate for the current phase.
-
-Return your response in JSON format:
+Return ONLY a valid JSON object with this structure (no additional text or explanation):
 {{
     "response": "Your response here",
     "new_information": {{
@@ -155,7 +155,8 @@ Return your response in JSON format:
             
             # Handle different types of updates
             if context.get("operation") == "reflect":
-                update_prompt = f"""
+                update_prompt = f"""You are a helpful assistant that communicates using JSON. All your responses should be in strict, parsable JSON format.
+
 Current Memory State:
 {json.dumps(self.memory, indent=2)}
 
@@ -167,10 +168,11 @@ Analyze the current memory state and recent interactions to:
 2. Suggest memory structure optimizations
 3. Highlight key information for future reference
 
-Return analysis and suggested updates in JSON format suitable for memory update."""
+Return ONLY a valid JSON object matching the current memory structure (no additional text or explanation)."""
 
             else:  # Standard update or learning
-                update_prompt = f"""
+                update_prompt = f"""You are a helpful assistant that communicates using JSON. All your responses should be in strict, parsable JSON format.
+
 Current Memory State:
 {json.dumps(self.memory, indent=2)}
 
@@ -183,7 +185,7 @@ Analyze this information and return a JSON object containing:
 2. New or modified relationships for the knowledge graph
 3. Any necessary changes to existing memory
 
-Return in JSON format suitable for memory update."""
+Return ONLY a valid JSON object matching the current memory structure (no additional text or explanation)."""
 
             llm_response = self.llm.generate(update_prompt)
             updated_memory = json.loads(llm_response)

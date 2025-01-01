@@ -393,6 +393,161 @@ Would you like me to:
 
 ---
 
+_**User**_
+
+Great. Let's focus on the memory manager. Please make a memory_manager_usage_example.py script that exercises the features of the MemoryManager - as thought it was being used by an Agent. The goal is to isolate the complex functionality of the MemoryManager so it is easy to evaluate and troubleshoot.
+
+---
+
+_**Assistant**_
+
+I'll create a comprehensive example script that demonstrates the MemoryManager's functionality in isolation.
+
+---
+
+_**Assistant**_
+
+
+
+---
+
+_**Assistant**_
+
+
+
+I've created a comprehensive example script that demonstrates all key features of the MemoryManager. The script:
+
+1. **Initialization**:
+   - Sets up MemoryManager with Ollama LLM service
+   - Uses a local JSON file for persistence
+
+2. **Phase 1: Initial Memory Creation**:
+   - Creates initial memory with campaign world details
+   - Demonstrates basic memory structure creation
+
+3. **Phase 2: Memory Queries**:
+   - Shows how to query memory with proper context
+   - Demonstrates the query response format
+
+4. **Phase 3: Memory Updates**:
+   - Updates memory with new information about the troll
+   - Shows how to provide context for updates
+
+5. **Phase 4: Memory Reflection**:
+   - Demonstrates the reflection operation
+   - Shows how conversation history affects memory organization
+
+6. **Phase 5: Complex Queries**:
+   - Shows how to make strategy-based queries
+   - Demonstrates using accumulated context
+
+Features:
+- Pretty printing of memory state
+- Error handling
+- Clean section headers
+- Proper cleanup
+
+To run this example:
+```bash
+python scripts/memory_manager_usage_example.py
+```
+
+This will help in:
+1. Testing MemoryManager in isolation
+2. Understanding the memory structure evolution
+3. Debugging LLM interactions
+4. Verifying context handling
+
+Would you like me to:
+1. Add more complex query examples?
+2. Add memory persistence testing?
+3. Add more error case handling?
+
+---
+
+_**User**_
+
+Great. One more thing, the memory manager expects responses from the LLM to be strict, parsable JSON. Sometimes the LLM is returning extra, non-JSON commentary.  For prompts that are expecting JSON, an instruction like this needs to be added:
+
+You are a helpful assistant that communicates using JSON. All your responses should be in strict, parsable JSON format.
+
+---
+
+_**Assistant**_
+
+
+
+Yes, that's a crucial point. Let me update the prompts in the MemoryManager to ensure strict JSON responses.
+
+---
+
+_**Assistant**_
+
+
+
+---
+
+_**Assistant**_
+
+
+
+I've updated all prompts in the MemoryManager to:
+
+1. Start with the explicit JSON instruction:
+```
+You are a helpful assistant that communicates using JSON. All your responses should be in strict, parsable JSON format.
+```
+
+2. End with clear formatting requirements:
+```
+Return ONLY a valid JSON object with this structure (no additional text or explanation):
+```
+
+Changes made to:
+- `create_initial_memory` prompt
+- `query_memory` prompt
+- `update_memory` prompts (both standard and reflection)
+
+The changes should help ensure that:
+1. The LLM understands it must return only JSON
+2. No additional commentary or explanations are included
+3. Responses are consistently parsable
+
+Would you like me to:
+1. Add JSON validation helpers?
+2. Add more specific JSON structure examples in the prompts?
+3. Add error recovery for partially valid JSON responses?
+
+---
+
+_**User**_
+
+For future reference, please use llama3 rather than llama2 when initializing an OllamaService
+
+---
+
+_**Assistant**_
+
+I'll update the example script to use llama3 instead of llama2.
+
+---
+
+_**Assistant**_
+
+
+
+---
+
+_**Assistant**_
+
+
+
+I've updated the script to use `llama3` instead of `llama2` when initializing the OllamaService. This change should be reflected in any future scripts or examples we create that use the Ollama service.
+
+Would you like me to update any other files that might reference the Ollama model selection?
+
+---
+
 
 
 ---

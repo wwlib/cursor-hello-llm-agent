@@ -71,3 +71,25 @@ There are 2 failed tests in test_memory_manager.py
 
 ![](screenshots/cursor-agent-6.png)
 
+
+```
+Great. Let's focus on the memory manager. Please make a memory_manager_usage_example.py script that exercises the features of the MemoryManager - as thought it was being used by an Agent. The goal is to isolate the complex functionality of the MemoryManager so it is easy to evaluate and troubleshoot.
+```
+
+![](screenshots/cursor-agent-7.png)
+
+
+```
+Great. One more thing, the memory manager expects responses from the LLM to be strict, parsable JSON. Sometimes the LLM is returning extra, non-JSON commentary.  For prompts that are expecting JSON, an instruction like this needs to be added:
+
+You are a helpful assistant that communicates using JSON. All your responses should be in strict, parsable JSON format.
+```
+
+![](screenshots/cursor-agent-8.png)
+
+```
+For future reference, please use llama3 rather than llama2 when initializing an OllamaService
+```
+
+![](screenshots/cursor-agent-9.png)
+
