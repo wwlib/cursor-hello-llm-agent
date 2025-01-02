@@ -136,8 +136,8 @@ OK. The memory manager is working well. Now, please update/rewrite the agent_usa
 
 ## First test run of the agent - 1/1/2025 12:47am
 
-See: `cursor-notes/logs/agent_debug_1.log`
-See: `cursor-notes/logs/agent_memory_1.json`
+See: `cursor-notes/logs/agent-usage-example/agent_debug_1.log`
+See: `cursor-notes/data/agent-usage-example/agent_memory_1.json`
 
 ```
 python scripts/agent_usage_example.py

@@ -1,0 +1,1294 @@
+2025-01-02 00:37:22,575 - OllamaService - DEBUG - Initialized LLM service with debug mode
+2025-01-02 00:37:22,576 - OllamaService - DEBUG - Initialized Ollama service with model: llama3
+2025-01-02 00:37:22,576 - OllamaService - DEBUG - 
+================================================================================
+2025-01-02 00:37:22,576 - OllamaService - DEBUG - PROMPT (size: 1,150 bytes):
+2025-01-02 00:37:22,576 - OllamaService - DEBUG - You are a helpful assistant that communicates using JSON. All your responses should be in strict, parsable JSON format.
+
+Current Memory State:
+{}
+
+Phase: LEARNING
+New Information: 
+    Campaign Setting: The Lost Valley
+    
+    World Details:
+    - Hidden valley surrounded by impassable mountains
+    - Ancient ruins scattered throughout
+    - Mysterious magical anomalies
+    - Three main settlements: Haven (central), Riverwatch (east), Mountainkeep (west)
+    
+    Current Situation:
+    - Strange creatures emerging from the ruins
+    - Trade routes between settlements disrupted
+    - Ancient artifacts being discovered
+    - Local guilds seeking adventurers
+    
+    Key NPCs:
+    - Mayor Elena of Haven (quest giver)
+    - Master Scholar Theron (knowledge about ruins)
+    - Captain Sara of Riverwatch (military leader)
+    
+Recent History: []
+
+Analyze this information and return a JSON object containing:
+1. Updated structured data
+2. New or modified relationships for the knowledge graph
+3. Any necessary changes to existing memory
+
+Return ONLY a valid JSON object matching the current memory structure (no additional text or explanation).
+2025-01-02 00:37:22,576 - OllamaService - DEBUG - ================================================================================
+2025-01-02 00:37:22,576 - OllamaService - DEBUG - Making request to Ollama API at http://192.168.1.173:11434
+2025-01-02 00:37:22,576 - OllamaService - DEBUG - Model: llama3, Temperature: 0.7
+2025-01-02 00:37:22,585 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.1.173:11434
+2025-01-02 00:37:26,433 - urllib3.connectionpool - DEBUG - http://192.168.1.173:11434 "POST /api/generate HTTP/1.1" 200 None
+2025-01-02 00:37:26,433 - OllamaService - DEBUG - Ollama API request completed in 3857.19ms
+2025-01-02 00:37:26,433 - OllamaService - DEBUG - Raw response: {"model":"llama3","created_at":"2025-01-02T05:37:42.0407899Z","response":"{\n  \"Current Memory State\": {\n    \"Campaign Setting\": [\"The Lost Valley\"],\n    \"World Details\": {\n      \"Geography\": [\"Hidden valley\", \"impassable mountains\"],\n      \"Landmarks\": [\"Ancient ruins\", \"Mysterious magical anomalies\"],\n      \"Settlements\": [\"Haven\", \"Riverwatch\", \"Mountainkeep\"]\n    },\n    \"Current Situation\": [\n      \"Strange creatures emerging from the ruins\",\n      \"Trade routes between settlements disrupted\",\n      \"Ancient artifacts being discovered\",\n      \"Local guilds seeking adventurers\"\n    ],\n    \"Key NPCs\": {\n      \"Mayor Elena of Haven\": [\"quest giver\"],\n      \"Master Scholar Theron\": [\"knowledge about ruins\"],\n      \"Captain Sara of Riverwatch\": [\"military leader\"]\n    },\n    \"Recent History\": []\n  },\n  \"New Relationships\": {\n    \"Settlements\": {\n      \"Haven\": [\"Riverwatch\", \"Mountainkeep\"],\n      \"Riverwatch\": [\"Haven\", \"Mountainkeep\"],\n      \"Mountainkeep\": [\"Haven\", \"Riverwatch\"]\n    },\n    \"NPCs\": {\n      \"Mayor Elena of Haven\": [\"Master Scholar Theron\"],\n      \"Master Scholar Theron\": [\"Captain Sara of Riverwatch\"],\n      \"Captain Sara of Riverwatch\": [\"Mayor Elena of Haven\"]\n    }\n  }\n}","done":true,"done_reason":"stop","context":[128006,882,128007,271,2675,527,264,11190,18328,430,92606,1701,4823,13,2052,701,14847,1288,387,304,7452,11,10364,481,4823,3645,382,5520,14171,3314,512,32583,31833,25,11396,12918,198,3648,8245,25,720,262,27643,20638,25,578,28351,13345,7361,262,4435,12589,512,262,482,35342,34681,23712,555,96689,481,24405,198,262,482,38050,46762,38067,6957,198,262,482,386,97499,24632,75559,198,262,482,14853,1925,45704,25,42714,320,52911,705,11188,14658,320,61601,705,19149,13397,320,11285,340,1084,262,9303,69478,512,262,482,43693,20566,24084,505,279,46762,198,262,482,17657,11543,1990,45704,69627,198,262,482,38050,36136,1694,11352,198,262,482,8949,27509,82,11125,88813,7361,262,5422,74670,512,262,482,22868,69675,315,42714,320,724,95615,340,262,482,11060,25542,666,20110,320,90153,922,46762,340,262,482,22022,44020,315,11188,14658,320,76,20860,7808,340,1084,26198,11346,25,14941,2127,56956,420,2038,323,471,264,4823,1665,8649,512,16,13,16459,34030,828,198,17,13,1561,477,11041,12135,369,279,6677,4876,198,18,13,5884,5995,4442,311,6484,5044,271,5715,27785,264,2764,4823,1665,12864,279,1510,5044,6070,320,2201,5217,1495,477,16540,570,128009,128006,78191,128007,271,517,220,330,5520,14171,3314,794,341,262,330,63939,20638,794,4482,791,28351,13345,8257,262,330,10343,12589,794,341,415,330,9688,5814,794,4482,17964,34681,498,330,318,6519,481,24405,8257,415,330,43057,15914,794,4482,89167,1188,46762,498,330,44,97499,24632,75559,8257,415,330,1681,45589,82,794,4482,39,5389,498,330,86799,14658,498,330,92269,13397,7171,262,1173,262,330,5520,69478,794,2330,415,330,92434,20566,24084,505,279,46762,761,415,330,40273,11543,1990,45704,69627,761,415,330,89167,1188,36136,1694,11352,761,415,330,7469,27509,82,11125,88813,702,262,3291,262,330,1622,74670,794,341,415,330,86674,69675,315,42714,794,4482,724,95615,8257,415,330,18532,25542,666,20110,794,4482,90153,922,46762,8257,415,330,62158,44020,315,11188,14658,794,4482,76,20860,7808,7171,262,1173,262,330,26198,11346,794,4260,220,1173,220,330,3648,69668,794,341,262,330,1681,45589,82,794,341,415,330,39,5389,794,4482,86799,14658,498,330,92269,13397,8257,415,330,86799,14658,794,4482,39,5389,498,330,92269,13397,8257,415,330,92269,13397,794,4482,39,5389,498,330,86799,14658,7171,262,1173,262,330,64299,82,794,341,415,330,86674,69675,315,42714,794,4482,18532,25542,666,20110,8257,415,330,18532,25542,666,20110,794,4482,62158,44020,315,11188,14658,8257,415,330,62158,44020,315,11188,14658,794,4482,86674,69675,315,42714,7171,262,457,220,457,92],"total_duration":3620938000,"load_duration":118847800,"prompt_eval_count":237,"prompt_eval_duration":5000000,"eval_count":275,"eval_duration":3496000000}
+2025-01-02 00:37:26,434 - OllamaService - DEBUG - 
+--------------------------------------------------------------------------------
+2025-01-02 00:37:26,434 - OllamaService - DEBUG - RESPONSE (time: 3857.88ms, size: 1,135 bytes):
+2025-01-02 00:37:26,434 - OllamaService - DEBUG - {
+  "Current Memory State": {
+    "Campaign Setting": ["The Lost Valley"],
+    "World Details": {
+      "Geography": ["Hidden valley", "impassable mountains"],
+      "Landmarks": ["Ancient ruins", "Mysterious magical anomalies"],
+      "Settlements": ["Haven", "Riverwatch", "Mountainkeep"]
+    },
+    "Current Situation": [
+      "Strange creatures emerging from the ruins",
+      "Trade routes between settlements disrupted",
+      "Ancient artifacts being discovered",
+      "Local guilds seeking adventurers"
+    ],
+    "Key NPCs": {
+      "Mayor Elena of Haven": ["quest giver"],
+      "Master Scholar Theron": ["knowledge about ruins"],
+      "Captain Sara of Riverwatch": ["military leader"]
+    },
+    "Recent History": []
+  },
+  "New Relationships": {
+    "Settlements": {
+      "Haven": ["Riverwatch", "Mountainkeep"],
+      "Riverwatch": ["Haven", "Mountainkeep"],
+      "Mountainkeep": ["Haven", "Riverwatch"]
+    },
+    "NPCs": {
+      "Mayor Elena of Haven": ["Master Scholar Theron"],
+      "Master Scholar Theron": ["Captain Sara of Riverwatch"],
+      "Captain Sara of Riverwatch": ["Mayor Elena of Haven"]
+    }
+  }
+}
+2025-01-02 00:37:26,434 - OllamaService - DEBUG - --------------------------------------------------------------------------------
+2025-01-02 00:41:59,966 - OllamaService - DEBUG - Initialized LLM service with debug mode
+2025-01-02 00:41:59,966 - OllamaService - DEBUG - Initialized Ollama service with model: llama3
+2025-01-02 00:41:59,967 - OllamaService - DEBUG - 
+================================================================================
+2025-01-02 00:41:59,967 - OllamaService - DEBUG - PROMPT (size: 1,367 bytes):
+2025-01-02 00:41:59,967 - OllamaService - DEBUG - You are a helpful assistant that communicates using JSON. All your responses should be in strict, parsable JSON format.
+
+Current Memory State:
+{}
+
+Phase: LEARNING
+New Information: Please structure the following campaign information into a JSON format with structured_data for facts, knowledge_graph for relationships, and appropriate metadata.
+
+Campaign Setting: The Lost Valley
+
+World Details:
+- Hidden valley surrounded by impassable mountains
+- Ancient ruins scattered throughout
+- Mysterious magical anomalies
+- Three main settlements: Haven (central), Riverwatch (east), Mountainkeep (west)
+
+Current Situation:
+- Strange creatures emerging from the ruins
+- Trade routes between settlements disrupted
+- Ancient artifacts being discovered
+- Local guilds seeking adventurers
+
+Key NPCs:
+- Mayor Elena of Haven (quest giver)
+- Master Scholar Theron (knowledge about ruins)
+- Captain Sara of Riverwatch (military leader)
+
+Return ONLY a valid JSON object with structured_data, knowledge_graph, and metadata sections. No additional text or explanation.
+Recent History: []
+
+Analyze this information and return a JSON object containing:
+1. Updated structured data
+2. New or modified relationships for the knowledge graph
+3. Any necessary changes to existing memory
+
+Return ONLY a valid JSON object matching the current memory structure (no additional text or explanation).
+2025-01-02 00:41:59,967 - OllamaService - DEBUG - ================================================================================
+2025-01-02 00:41:59,967 - OllamaService - DEBUG - Making request to Ollama API at http://192.168.1.173:11434
+2025-01-02 00:41:59,967 - OllamaService - DEBUG - Model: llama3, Temperature: 0.7
+2025-01-02 00:41:59,976 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.1.173:11434
+2025-01-02 00:42:07,190 - urllib3.connectionpool - DEBUG - http://192.168.1.173:11434 "POST /api/generate HTTP/1.1" 200 None
+2025-01-02 00:42:07,190 - OllamaService - DEBUG - Ollama API request completed in 7223.13ms
+2025-01-02 00:42:07,190 - OllamaService - DEBUG - Raw response: {"model":"llama3","created_at":"2025-01-02T05:42:22.9985836Z","response":"{\n\"structured_data\": [\n  {\n    \"fact\": \"The Lost Valley\",\n    \"type\": \"campaign setting\"\n  },\n  {\n    \"fact\": \"Hidden valley surrounded by impassable mountains\",\n    \"type\": \"world detail\"\n  },\n  {\n    \"fact\": \"Ancient ruins scattered throughout\",\n    \"type\": \"world detail\"\n  },\n  {\n    \"fact\": \"Mysterious magical anomalies\",\n    \"type\": \"world detail\"\n  },\n  {\n    \"fact\": \"Three main settlements: Haven (central), Riverwatch (east), Mountainkeep (west)\",\n    \"type\": \"world detail\"\n  },\n  {\n    \"fact\": \"Strange creatures emerging from the ruins\",\n    \"type\": \"current situation\"\n  },\n  {\n    \"fact\": \"Trade routes between settlements disrupted\",\n    \"type\": \"current situation\"\n  },\n  {\n    \"fact\": \"Ancient artifacts being discovered\",\n    \"type\": \"current situation\"\n  },\n  {\n    \"fact\": \"Local guilds seeking adventurers\",\n    \"type\": \"current situation\"\n  },\n  {\n    \"fact\": \"Mayor Elena of Haven (quest giver)\",\n    \"type\": \"key NPC\"\n  },\n  {\n    \"fact\": \"Master Scholar Theron (knowledge about ruins)\",\n    \"type\": \"key NPC\"\n  },\n  {\n    \"fact\": \"Captain Sara of Riverwatch (military leader)\",\n    \"type\": \"key NPC\"\n  }\n],\n\"knowledge_graph\": [\n  {\n    \"node\": \"The Lost Valley\",\n    \"relationships\": [\n      {\n        \"type\": \"campaign setting for\",\n        \"target\": \"Strange creatures emerging from the ruins\"\n      },\n      {\n        \"type\": \"campaign setting for\",\n        \"target\": \"Trade routes between settlements disrupted\"\n      },\n      {\n        \"type\": \"campaign setting for\",\n        \"target\": \"Ancient artifacts being discovered\"\n      }\n    ]\n  },\n  {\n    \"node\": \"Mayor Elena of Haven\",\n    \"relationships\": [\n      {\n        \"type\": \"quest giver in\",\n        \"target\": \"The Lost Valley\"\n      }\n    ]\n  },\n  {\n    \"node\": \"Master Scholar Theron\",\n    \"relationships\": [\n      {\n        \"type\": \"knowledge provider about\",\n        \"target\": \"Ancient ruins\"\n      }\n    ]\n  },\n  {\n    \"node\": \"Captain Sara of Riverwatch\",\n    \"relationships\": [\n      {\n        \"type\": \"military leader in\",\n        \"target\": \"The Lost Valley\"\n      }\n    ]\n  }\n],\n\"metadata\": {\n  \"campaign_name\": \"The Lost Valley\",\n  \"phase\": \"LEARNING\",\n  \"recent_history\": []\n}\n}","done":true,"done_reason":"stop","context":[128006,882,128007,271,2675,527,264,11190,18328,430,92606,1701,4823,13,2052,701,14847,1288,387,304,7452,11,10364,481,4823,3645,382,5520,14171,3314,512,32583,31833,25,11396,12918,198,3648,8245,25,5321,6070,279,2768,4901,2038,1139,264,4823,3645,449,34030,1807,369,13363,11,6677,15080,369,12135,11,323,8475,11408,382,63939,20638,25,578,28351,13345,271,10343,12589,512,12,35342,34681,23712,555,96689,481,24405,198,12,38050,46762,38067,6957,198,12,386,97499,24632,75559,198,12,14853,1925,45704,25,42714,320,52911,705,11188,14658,320,61601,705,19149,13397,320,11285,696,5520,69478,512,12,43693,20566,24084,505,279,46762,198,12,17657,11543,1990,45704,69627,198,12,38050,36136,1694,11352,198,12,8949,27509,82,11125,88813,271,1622,74670,512,12,22868,69675,315,42714,320,724,95615,340,12,11060,25542,666,20110,320,90153,922,46762,340,12,22022,44020,315,11188,14658,320,76,20860,7808,696,5715,27785,264,2764,4823,1665,449,34030,1807,11,6677,15080,11,323,11408,14491,13,2360,5217,1495,477,16540,627,26198,11346,25,14941,2127,56956,420,2038,323,471,264,4823,1665,8649,512,16,13,16459,34030,828,198,17,13,1561,477,11041,12135,369,279,6677,4876,198,18,13,5884,5995,4442,311,6484,5044,271,5715,27785,264,2764,4823,1665,12864,279,1510,5044,6070,320,2201,5217,1495,477,16540,570,128009,128006,78191,128007,271,517,1,52243,1807,794,2330,220,341,262,330,34210,794,330,791,28351,13345,761,262,330,1337,794,330,38439,6376,702,220,1173,220,341,262,330,34210,794,330,17964,34681,23712,555,96689,481,24405,761,262,330,1337,794,330,14957,7872,702,220,1173,220,341,262,330,34210,794,330,89167,1188,46762,38067,6957,761,262,330,1337,794,330,14957,7872,702,220,1173,220,341,262,330,34210,794,330,44,97499,24632,75559,761,262,330,1337,794,330,14957,7872,702,220,1173,220,341,262,330,34210,794,330,20215,1925,45704,25,42714,320,52911,705,11188,14658,320,61601,705,19149,13397,320,11285,16129,262,330,1337,794,330,14957,7872,702,220,1173,220,341,262,330,34210,794,330,92434,20566,24084,505,279,46762,761,262,330,1337,794,330,3311,6671,702,220,1173,220,341,262,330,34210,794,330,40273,11543,1990,45704,69627,761,262,330,1337,794,330,3311,6671,702,220,1173,220,341,262,330,34210,794,330,89167,1188,36136,1694,11352,761,262,330,1337,794,330,3311,6671,702,220,1173,220,341,262,330,34210,794,330,7469,27509,82,11125,88813,761,262,330,1337,794,330,3311,6671,702,220,1173,220,341,262,330,34210,794,330,86674,69675,315,42714,320,724,95615,16129,262,330,1337,794,330,798,30817,702,220,1173,220,341,262,330,34210,794,330,18532,25542,666,20110,320,90153,922,46762,16129,262,330,1337,794,330,798,30817,702,220,1173,220,341,262,330,34210,794,330,62158,44020,315,11188,14658,320,76,20860,7808,16129,262,330,1337,794,330,798,30817,702,220,457,1282,1,90153,15080,794,2330,220,341,262,330,3593,794,330,791,28351,13345,761,262,330,86924,794,2330,415,341,286,330,1337,794,330,38439,6376,369,761,286,330,5775,794,330,92434,20566,24084,505,279,46762,702,415,1173,415,341,286,330,1337,794,330,38439,6376,369,761,286,330,5775,794,330,40273,11543,1990,45704,69627,702,415,1173,415,341,286,330,1337,794,330,38439,6376,369,761,286,330,5775,794,330,89167,1188,36136,1694,11352,702,415,457,262,5243,220,1173,220,341,262,330,3593,794,330,86674,69675,315,42714,761,262,330,86924,794,2330,415,341,286,330,1337,794,330,724,95615,304,761,286,330,5775,794,330,791,28351,13345,702,415,457,262,5243,220,1173,220,341,262,330,3593,794,330,18532,25542,666,20110,761,262,330,86924,794,2330,415,341,286,330,1337,794,330,90153,9287,922,761,286,330,5775,794,330,89167,1188,46762,702,415,457,262,5243,220,1173,220,341,262,330,3593,794,330,62158,44020,315,11188,14658,761,262,330,86924,794,2330,415,341,286,330,1337,794,330,76,20860,7808,304,761,286,330,5775,794,330,791,28351,13345,702,415,457,262,5243,220,457,1282,1,18103,794,341,220,330,38439,1292,794,330,791,28351,13345,761,220,330,26199,794,330,877,12918,761,220,330,47743,20389,794,4260,534,92],"total_duration":7198021900,"load_duration":15345000,"prompt_eval_count":267,"prompt_eval_duration":271000000,"eval_count":565,"eval_duration":6911000000}
+2025-01-02 00:42:07,191 - OllamaService - DEBUG - 
+--------------------------------------------------------------------------------
+2025-01-02 00:42:07,191 - OllamaService - DEBUG - RESPONSE (time: 7223.75ms, size: 2,176 bytes):
+2025-01-02 00:42:07,191 - OllamaService - DEBUG - {
+"structured_data": [
+  {
+    "fact": "The Lost Valley",
+    "type": "campaign setting"
+  },
+  {
+    "fact": "Hidden valley surrounded by impassable mountains",
+    "type": "world detail"
+  },
+  {
+    "fact": "Ancient ruins scattered throughout",
+    "type": "world detail"
+  },
+  {
+    "fact": "Mysterious magical anomalies",
+    "type": "world detail"
+  },
+  {
+    "fact": "Three main settlements: Haven (central), Riverwatch (east), Mountainkeep (west)",
+    "type": "world detail"
+  },
+  {
+    "fact": "Strange creatures emerging from the ruins",
+    "type": "current situation"
+  },
+  {
+    "fact": "Trade routes between settlements disrupted",
+    "type": "current situation"
+  },
+  {
+    "fact": "Ancient artifacts being discovered",
+    "type": "current situation"
+  },
+  {
+    "fact": "Local guilds seeking adventurers",
+    "type": "current situation"
+  },
+  {
+    "fact": "Mayor Elena of Haven (quest giver)",
+    "type": "key NPC"
+  },
+  {
+    "fact": "Master Scholar Theron (knowledge about ruins)",
+    "type": "key NPC"
+  },
+  {
+    "fact": "Captain Sara of Riverwatch (military leader)",
+    "type": "key NPC"
+  }
+],
+"knowledge_graph": [
+  {
+    "node": "The Lost Valley",
+    "relationships": [
+      {
+        "type": "campaign setting for",
+        "target": "Strange creatures emerging from the ruins"
+      },
+      {
+        "type": "campaign setting for",
+        "target": "Trade routes between settlements disrupted"
+      },
+      {
+        "type": "campaign setting for",
+        "target": "Ancient artifacts being discovered"
+      }
+    ]
+  },
+  {
+    "node": "Mayor Elena of Haven",
+    "relationships": [
+      {
+        "type": "quest giver in",
+        "target": "The Lost Valley"
+      }
+    ]
+  },
+  {
+    "node": "Master Scholar Theron",
+    "relationships": [
+      {
+        "type": "knowledge provider about",
+        "target": "Ancient ruins"
+      }
+    ]
+  },
+  {
+    "node": "Captain Sara of Riverwatch",
+    "relationships": [
+      {
+        "type": "military leader in",
+        "target": "The Lost Valley"
+      }
+    ]
+  }
+],
+"metadata": {
+  "campaign_name": "The Lost Valley",
+  "phase": "LEARNING",
+  "recent_history": []
+}
+}
+2025-01-02 00:42:07,191 - OllamaService - DEBUG - --------------------------------------------------------------------------------
+2025-01-02 00:44:09,116 - OllamaService - DEBUG - 
+================================================================================
+2025-01-02 00:44:09,116 - OllamaService - DEBUG - PROMPT (size: 3,312 bytes):
+2025-01-02 00:44:09,116 - OllamaService - DEBUG - You are a helpful assistant that communicates using JSON. All your responses should be in strict, parsable JSON format.
+
+Context:
+{
+  "structured_data": [
+    {
+      "fact": "The Lost Valley",
+      "type": "campaign setting"
+    },
+    {
+      "fact": "Hidden valley surrounded by impassable mountains",
+      "type": "world detail"
+    },
+    {
+      "fact": "Ancient ruins scattered throughout",
+      "type": "world detail"
+    },
+    {
+      "fact": "Mysterious magical anomalies",
+      "type": "world detail"
+    },
+    {
+      "fact": "Three main settlements: Haven (central), Riverwatch (east), Mountainkeep (west)",
+      "type": "world detail"
+    },
+    {
+      "fact": "Strange creatures emerging from the ruins",
+      "type": "current situation"
+    },
+    {
+      "fact": "Trade routes between settlements disrupted",
+      "type": "current situation"
+    },
+    {
+      "fact": "Ancient artifacts being discovered",
+      "type": "current situation"
+    },
+    {
+      "fact": "Local guilds seeking adventurers",
+      "type": "current situation"
+    },
+    {
+      "fact": "Mayor Elena of Haven (quest giver)",
+      "type": "key NPC"
+    },
+    {
+      "fact": "Master Scholar Theron (knowledge about ruins)",
+      "type": "key NPC"
+    },
+    {
+      "fact": "Captain Sara of Riverwatch (military leader)",
+      "type": "key NPC"
+    }
+  ],
+  "knowledge_graph": [
+    {
+      "node": "The Lost Valley",
+      "relationships": [
+        {
+          "type": "campaign setting for",
+          "target": "Strange creatures emerging from the ruins"
+        },
+        {
+          "type": "campaign setting for",
+          "target": "Trade routes between settlements disrupted"
+        },
+        {
+          "type": "campaign setting for",
+          "target": "Ancient artifacts being discovered"
+        }
+      ]
+    },
+    {
+      "node": "Mayor Elena of Haven",
+      "relationships": [
+        {
+          "type": "quest giver in",
+          "target": "The Lost Valley"
+        }
+      ]
+    },
+    {
+      "node": "Master Scholar Theron",
+      "relationships": [
+        {
+          "type": "knowledge provider about",
+          "target": "Ancient ruins"
+        }
+      ]
+    },
+    {
+      "node": "Captain Sara of Riverwatch",
+      "relationships": [
+        {
+          "type": "military leader in",
+          "target": "The Lost Valley"
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "campaign_name": "The Lost Valley",
+    "phase": "LEARNING",
+    "recent_history": [],
+    "last_updated": "2025-01-02T00:42:07.191435"
+  }
+}
+
+Current Phase: LEARNING
+Previous Messages: [
+  {
+    "role": "system",
+    "content": "Learned new information successfully",
+    "timestamp": "2025-01-02T00:42:07.192072"
+  }
+]
+
+User Message: What quest could I undertake that would earn me some gold?
+
+Generate a response that:
+1. Uses relevant information from memory
+2. Maintains consistency with previous interactions
+3. Advances the current phase appropriately
+4. Identifies any new information to be stored
+
+Return ONLY a valid JSON object with this structure (no additional text or explanation):
+{
+    "response": "Your response here",
+    "new_information": {
+        // Any new information to be stored
+    },
+    "suggested_phase": "current or next phase name",
+    "confidence": 0.0 to 1.0
+}
+2025-01-02 00:44:09,116 - OllamaService - DEBUG - ================================================================================
+2025-01-02 00:44:09,116 - OllamaService - DEBUG - Making request to Ollama API at http://192.168.1.173:11434
+2025-01-02 00:44:09,116 - OllamaService - DEBUG - Model: llama3, Temperature: 0.7
+2025-01-02 00:44:09,118 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.1.173:11434
+2025-01-02 00:44:11,110 - urllib3.connectionpool - DEBUG - http://192.168.1.173:11434 "POST /api/generate HTTP/1.1" 200 None
+2025-01-02 00:44:11,111 - OllamaService - DEBUG - Ollama API request completed in 1994.90ms
+2025-01-02 00:44:11,111 - OllamaService - DEBUG - Raw response: {"model":"llama3","created_at":"2025-01-02T05:44:26.7759004Z","response":"{\n  \"response\": \"Mayor Elena of Haven is looking for brave adventurers like you to help retrieve a lost artifact from one of the ancient ruins. She's willing to pay a handsome sum in gold and other rewards.\",\n  \"new_information\": {\n    \"quest\": \"Retrieve lost artifact from ancient ruin\",\n    \"rewards\": [\"gold\", \"other rewards\"],\n    \"quest_giver\": \"Mayor Elena of Haven\"\n  },\n  \"suggested_phase\": \"ACTING\",\n  \"confidence\": 0.8\n}","done":true,"done_reason":"stop","context":[128006,882,128007,271,2675,527,264,11190,18328,430,92606,1701,4823,13,2052,701,14847,1288,387,304,7452,11,10364,481,4823,3645,382,2014,512,517,220,330,52243,1807,794,2330,262,341,415,330,34210,794,330,791,28351,13345,761,415,330,1337,794,330,38439,6376,702,262,1173,262,341,415,330,34210,794,330,17964,34681,23712,555,96689,481,24405,761,415,330,1337,794,330,14957,7872,702,262,1173,262,341,415,330,34210,794,330,89167,1188,46762,38067,6957,761,415,330,1337,794,330,14957,7872,702,262,1173,262,341,415,330,34210,794,330,44,97499,24632,75559,761,415,330,1337,794,330,14957,7872,702,262,1173,262,341,415,330,34210,794,330,20215,1925,45704,25,42714,320,52911,705,11188,14658,320,61601,705,19149,13397,320,11285,16129,415,330,1337,794,330,14957,7872,702,262,1173,262,341,415,330,34210,794,330,92434,20566,24084,505,279,46762,761,415,330,1337,794,330,3311,6671,702,262,1173,262,341,415,330,34210,794,330,40273,11543,1990,45704,69627,761,415,330,1337,794,330,3311,6671,702,262,1173,262,341,415,330,34210,794,330,89167,1188,36136,1694,11352,761,415,330,1337,794,330,3311,6671,702,262,1173,262,341,415,330,34210,794,330,7469,27509,82,11125,88813,761,415,330,1337,794,330,3311,6671,702,262,1173,262,341,415,330,34210,794,330,86674,69675,315,42714,320,724,95615,16129,415,330,1337,794,330,798,30817,702,262,1173,262,341,415,330,34210,794,330,18532,25542,666,20110,320,90153,922,46762,16129,415,330,1337,794,330,798,30817,702,262,1173,262,341,415,330,34210,794,330,62158,44020,315,11188,14658,320,76,20860,7808,16129,415,330,1337,794,330,798,30817,702,262,457,220,3291,220,330,90153,15080,794,2330,262,341,415,330,3593,794,330,791,28351,13345,761,415,330,86924,794,2330,286,341,692,330,1337,794,330,38439,6376,369,761,692,330,5775,794,330,92434,20566,24084,505,279,46762,702,286,1173,286,341,692,330,1337,794,330,38439,6376,369,761,692,330,5775,794,330,40273,11543,1990,45704,69627,702,286,1173,286,341,692,330,1337,794,330,38439,6376,369,761,692,330,5775,794,330,89167,1188,36136,1694,11352,702,286,457,415,5243,262,1173,262,341,415,330,3593,794,330,86674,69675,315,42714,761,415,330,86924,794,2330,286,341,692,330,1337,794,330,724,95615,304,761,692,330,5775,794,330,791,28351,13345,702,286,457,415,5243,262,1173,262,341,415,330,3593,794,330,18532,25542,666,20110,761,415,330,86924,794,2330,286,341,692,330,1337,794,330,90153,9287,922,761,692,330,5775,794,330,89167,1188,46762,702,286,457,415,5243,262,1173,262,341,415,330,3593,794,330,62158,44020,315,11188,14658,761,415,330,86924,794,2330,286,341,692,330,1337,794,330,76,20860,7808,304,761,692,330,5775,794,330,791,28351,13345,702,286,457,415,5243,262,457,220,3291,220,330,18103,794,341,262,330,38439,1292,794,330,791,28351,13345,761,262,330,26199,794,330,877,12918,761,262,330,47743,20389,794,10450,262,330,4354,34592,794,330,2366,20,12,1721,12,2437,51,410,25,2983,25,2589,13,7529,19305,702,220,457,633,5520,28673,25,11396,12918,198,21994,27827,25,2330,220,341,262,330,5898,794,330,9125,761,262,330,1834,794,330,24762,291,502,2038,7946,761,262,330,13333,794,330,2366,20,12,1721,12,2437,51,410,25,2983,25,2589,13,5926,23439,702,220,457,2595,1502,4961,25,3639,2271,1436,358,49643,430,1053,7380,757,1063,6761,1980,32215,264,2077,430,512,16,13,39923,9959,2038,505,5044,198,17,13,43987,1771,29237,449,3766,22639,198,18,13,91958,279,1510,10474,36001,198,19,13,23322,9803,904,502,2038,311,387,9967,271,5715,27785,264,2764,4823,1665,449,420,6070,320,2201,5217,1495,477,16540,997,517,262,330,2376,794,330,7927,2077,1618,761,262,330,943,36312,794,341,286,443,5884,502,2038,311,387,9967,198,262,1173,262,330,82,54376,38693,794,330,3311,477,1828,10474,836,761,262,330,83029,794,220,15,13,15,311,220,16,13,15,198,92,128009,128006,78191,128007,271,517,220,330,2376,794,330,86674,69675,315,42714,374,3411,369,34300,88813,1093,499,311,1520,17622,264,5675,37739,505,832,315,279,14154,46762,13,3005,596,10032,311,2343,264,44877,2694,304,6761,323,1023,21845,10560,220,330,943,36312,794,341,262,330,724,794,330,88765,5675,37739,505,14154,38339,761,262,330,265,4102,794,4482,35637,498,330,1605,21845,8257,262,330,724,1928,1553,794,330,86674,69675,315,42714,702,220,1173,220,330,82,54376,38693,794,330,6966,1753,761,220,330,83029,794,220,15,13,23,198,92],"total_duration":1822458300,"load_duration":15498800,"prompt_eval_count":808,"prompt_eval_duration":468000000,"eval_count":109,"eval_duration":1337000000}
+2025-01-02 00:44:11,112 - OllamaService - DEBUG - 
+--------------------------------------------------------------------------------
+2025-01-02 00:44:11,112 - OllamaService - DEBUG - RESPONSE (time: 1995.65ms, size: 430 bytes):
+2025-01-02 00:44:11,112 - OllamaService - DEBUG - {
+  "response": "Mayor Elena of Haven is looking for brave adventurers like you to help retrieve a lost artifact from one of the ancient ruins. She's willing to pay a handsome sum in gold and other rewards.",
+  "new_information": {
+    "quest": "Retrieve lost artifact from ancient ruin",
+    "rewards": ["gold", "other rewards"],
+    "quest_giver": "Mayor Elena of Haven"
+  },
+  "suggested_phase": "ACTING",
+  "confidence": 0.8
+}
+2025-01-02 00:44:11,112 - OllamaService - DEBUG - --------------------------------------------------------------------------------
+2025-01-02 00:44:11,112 - OllamaService - DEBUG - 
+================================================================================
+2025-01-02 00:44:11,112 - OllamaService - DEBUG - PROMPT (size: 2,925 bytes):
+2025-01-02 00:44:11,112 - OllamaService - DEBUG - You are a helpful assistant that communicates using JSON. All your responses should be in strict, parsable JSON format.
+
+Current Memory State:
+{
+  "structured_data": [
+    {
+      "fact": "The Lost Valley",
+      "type": "campaign setting"
+    },
+    {
+      "fact": "Hidden valley surrounded by impassable mountains",
+      "type": "world detail"
+    },
+    {
+      "fact": "Ancient ruins scattered throughout",
+      "type": "world detail"
+    },
+    {
+      "fact": "Mysterious magical anomalies",
+      "type": "world detail"
+    },
+    {
+      "fact": "Three main settlements: Haven (central), Riverwatch (east), Mountainkeep (west)",
+      "type": "world detail"
+    },
+    {
+      "fact": "Strange creatures emerging from the ruins",
+      "type": "current situation"
+    },
+    {
+      "fact": "Trade routes between settlements disrupted",
+      "type": "current situation"
+    },
+    {
+      "fact": "Ancient artifacts being discovered",
+      "type": "current situation"
+    },
+    {
+      "fact": "Local guilds seeking adventurers",
+      "type": "current situation"
+    },
+    {
+      "fact": "Mayor Elena of Haven (quest giver)",
+      "type": "key NPC"
+    },
+    {
+      "fact": "Master Scholar Theron (knowledge about ruins)",
+      "type": "key NPC"
+    },
+    {
+      "fact": "Captain Sara of Riverwatch (military leader)",
+      "type": "key NPC"
+    }
+  ],
+  "knowledge_graph": [
+    {
+      "node": "The Lost Valley",
+      "relationships": [
+        {
+          "type": "campaign setting for",
+          "target": "Strange creatures emerging from the ruins"
+        },
+        {
+          "type": "campaign setting for",
+          "target": "Trade routes between settlements disrupted"
+        },
+        {
+          "type": "campaign setting for",
+          "target": "Ancient artifacts being discovered"
+        }
+      ]
+    },
+    {
+      "node": "Mayor Elena of Haven",
+      "relationships": [
+        {
+          "type": "quest giver in",
+          "target": "The Lost Valley"
+        }
+      ]
+    },
+    {
+      "node": "Master Scholar Theron",
+      "relationships": [
+        {
+          "type": "knowledge provider about",
+          "target": "Ancient ruins"
+        }
+      ]
+    },
+    {
+      "node": "Captain Sara of Riverwatch",
+      "relationships": [
+        {
+          "type": "military leader in",
+          "target": "The Lost Valley"
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "campaign_name": "The Lost Valley",
+    "phase": "LEARNING",
+    "recent_history": [],
+    "last_updated": "2025-01-02T00:42:07.191435"
+  }
+}
+
+Phase: UNKNOWN
+New Information: {}
+Recent History: []
+
+Analyze this information and return a JSON object containing:
+1. Updated structured data
+2. New or modified relationships for the knowledge graph
+3. Any necessary changes to existing memory
+
+Return ONLY a valid JSON object matching the current memory structure (no additional text or explanation).
+2025-01-02 00:44:11,112 - OllamaService - DEBUG - ================================================================================
+2025-01-02 00:44:11,112 - OllamaService - DEBUG - Making request to Ollama API at http://192.168.1.173:11434
+2025-01-02 00:44:11,113 - OllamaService - DEBUG - Model: llama3, Temperature: 0.7
+2025-01-02 00:44:11,114 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.1.173:11434
+2025-01-02 00:44:18,892 - urllib3.connectionpool - DEBUG - http://192.168.1.173:11434 "POST /api/generate HTTP/1.1" 200 None
+2025-01-02 00:44:18,893 - OllamaService - DEBUG - Ollama API request completed in 7780.28ms
+2025-01-02 00:44:18,893 - OllamaService - DEBUG - Raw response: {"model":"llama3","created_at":"2025-01-02T05:44:34.5202308Z","response":"{\n  \"structured_data\": [\n    {\n      \"fact\": \"The Lost Valley\",\n      \"type\": \"campaign setting\"\n    },\n    {\n      \"fact\": \"Hidden valley surrounded by impassable mountains\",\n      \"type\": \"world detail\"\n    },\n    {\n      \"fact\": \"Ancient ruins scattered throughout\",\n      \"type\": \"world detail\"\n    },\n    {\n      \"fact\": \"Mysterious magical anomalies\",\n      \"type\": \"world detail\"\n    },\n    {\n      \"fact\": \"Three main settlements: Haven (central), Riverwatch (east), Mountainkeep (west)\",\n      \"type\": \"world detail\"\n    },\n    {\n      \"fact\": \"Strange creatures emerging from the ruins\",\n      \"type\": \"current situation\"\n    },\n    {\n      \"fact\": \"Trade routes between settlements disrupted\",\n      \"type\": \"current situation\"\n    },\n    {\n      \"fact\": \"Ancient artifacts being discovered\",\n      \"type\": \"current situation\"\n    },\n    {\n      \"fact\": \"Local guilds seeking adventurers\",\n      \"type\": \"current situation\"\n    },\n    {\n      \"fact\": \"Mayor Elena of Haven (quest giver)\",\n      \"type\": \"key NPC\"\n    },\n    {\n      \"fact\": \"Master Scholar Theron (knowledge about ruins and artifacts)\",\n      \"type\": \"key NPC\"\n    },\n    {\n      \"fact\": \"Captain Sara of Riverwatch (military leader)\",\n      \"type\": \"key NPC\"\n    }\n  ],\n  \"knowledge_graph\": [\n    {\n      \"node\": \"The Lost Valley\",\n      \"relationships\": [\n        {\n          \"type\": \"campaign setting for\",\n          \"target\": \"Strange creatures emerging from the ruins\"\n        },\n        {\n          \"type\": \"campaign setting for\",\n          \"target\": \"Trade routes between settlements disrupted\"\n        },\n        {\n          \"type\": \"campaign setting for\",\n          \"target\": \"Ancient artifacts being discovered\"\n        }\n      ]\n    },\n    {\n      \"node\": \"Master Scholar Theron\",\n      \"relationships\": [\n        {\n          \"type\": \"knowledge provider about\",\n          \"target\": \"Ancient ruins\"\n        },\n        {\n          \"type\": \"knowledge provider about\",\n          \"target\": \"Artifacts\"\n        }\n      ]\n    },\n    {\n      \"node\": \"Mayor Elena of Haven\",\n      \"relationships\": [\n        {\n          \"type\": \"quest giver in\",\n          \"target\": \"The Lost Valley\"\n        }\n      ]\n    },\n    {\n      \"node\": \"Captain Sara of Riverwatch\",\n      \"relationships\": [\n        {\n          \"type\": \"military leader in\",\n          \"target\": \"The Lost Valley\"\n        }\n      ]\n    }\n  ],\n  \"metadata\": {\n    \"campaign_name\": \"The Lost Valley\",\n    \"phase\": \"LEARNING\",\n    \"recent_history\": [],\n    \"last_updated\": \"2025-01-02T00:42:07.191435\"\n  }\n}","done":true,"done_reason":"stop","context":[128006,882,128007,271,2675,527,264,11190,18328,430,92606,1701,4823,13,2052,701,14847,1288,387,304,7452,11,10364,481,4823,3645,382,5520,14171,3314,512,517,220,330,52243,1807,794,2330,262,341,415,330,34210,794,330,791,28351,13345,761,415,330,1337,794,330,38439,6376,702,262,1173,262,341,415,330,34210,794,330,17964,34681,23712,555,96689,481,24405,761,415,330,1337,794,330,14957,7872,702,262,1173,262,341,415,330,34210,794,330,89167,1188,46762,38067,6957,761,415,330,1337,794,330,14957,7872,702,262,1173,262,341,415,330,34210,794,330,44,97499,24632,75559,761,415,330,1337,794,330,14957,7872,702,262,1173,262,341,415,330,34210,794,330,20215,1925,45704,25,42714,320,52911,705,11188,14658,320,61601,705,19149,13397,320,11285,16129,415,330,1337,794,330,14957,7872,702,262,1173,262,341,415,330,34210,794,330,92434,20566,24084,505,279,46762,761,415,330,1337,794,330,3311,6671,702,262,1173,262,341,415,330,34210,794,330,40273,11543,1990,45704,69627,761,415,330,1337,794,330,3311,6671,702,262,1173,262,341,415,330,34210,794,330,89167,1188,36136,1694,11352,761,415,330,1337,794,330,3311,6671,702,262,1173,262,341,415,330,34210,794,330,7469,27509,82,11125,88813,761,415,330,1337,794,330,3311,6671,702,262,1173,262,341,415,330,34210,794,330,86674,69675,315,42714,320,724,95615,16129,415,330,1337,794,330,798,30817,702,262,1173,262,341,415,330,34210,794,330,18532,25542,666,20110,320,90153,922,46762,16129,415,330,1337,794,330,798,30817,702,262,1173,262,341,415,330,34210,794,330,62158,44020,315,11188,14658,320,76,20860,7808,16129,415,330,1337,794,330,798,30817,702,262,457,220,3291,220,330,90153,15080,794,2330,262,341,415,330,3593,794,330,791,28351,13345,761,415,330,86924,794,2330,286,341,692,330,1337,794,330,38439,6376,369,761,692,330,5775,794,330,92434,20566,24084,505,279,46762,702,286,1173,286,341,692,330,1337,794,330,38439,6376,369,761,692,330,5775,794,330,40273,11543,1990,45704,69627,702,286,1173,286,341,692,330,1337,794,330,38439,6376,369,761,692,330,5775,794,330,89167,1188,36136,1694,11352,702,286,457,415,5243,262,1173,262,341,415,330,3593,794,330,86674,69675,315,42714,761,415,330,86924,794,2330,286,341,692,330,1337,794,330,724,95615,304,761,692,330,5775,794,330,791,28351,13345,702,286,457,415,5243,262,1173,262,341,415,330,3593,794,330,18532,25542,666,20110,761,415,330,86924,794,2330,286,341,692,330,1337,794,330,90153,9287,922,761,692,330,5775,794,330,89167,1188,46762,702,286,457,415,5243,262,1173,262,341,415,330,3593,794,330,62158,44020,315,11188,14658,761,415,330,86924,794,2330,286,341,692,330,1337,794,330,76,20860,7808,304,761,692,330,5775,794,330,791,28351,13345,702,286,457,415,5243,262,457,220,3291,220,330,18103,794,341,262,330,38439,1292,794,330,791,28351,13345,761,262,330,26199,794,330,877,12918,761,262,330,47743,20389,794,10450,262,330,4354,34592,794,330,2366,20,12,1721,12,2437,51,410,25,2983,25,2589,13,7529,19305,702,220,457,633,31833,25,62495,198,3648,8245,25,5731,26198,11346,25,14941,2127,56956,420,2038,323,471,264,4823,1665,8649,512,16,13,16459,34030,828,198,17,13,1561,477,11041,12135,369,279,6677,4876,198,18,13,5884,5995,4442,311,6484,5044,271,5715,27785,264,2764,4823,1665,12864,279,1510,5044,6070,320,2201,5217,1495,477,16540,570,128009,128006,78191,128007,271,517,220,330,52243,1807,794,2330,262,341,415,330,34210,794,330,791,28351,13345,761,415,330,1337,794,330,38439,6376,702,262,1173,262,341,415,330,34210,794,330,17964,34681,23712,555,96689,481,24405,761,415,330,1337,794,330,14957,7872,702,262,1173,262,341,415,330,34210,794,330,89167,1188,46762,38067,6957,761,415,330,1337,794,330,14957,7872,702,262,1173,262,341,415,330,34210,794,330,44,97499,24632,75559,761,415,330,1337,794,330,14957,7872,702,262,1173,262,341,415,330,34210,794,330,20215,1925,45704,25,42714,320,52911,705,11188,14658,320,61601,705,19149,13397,320,11285,16129,415,330,1337,794,330,14957,7872,702,262,1173,262,341,415,330,34210,794,330,92434,20566,24084,505,279,46762,761,415,330,1337,794,330,3311,6671,702,262,1173,262,341,415,330,34210,794,330,40273,11543,1990,45704,69627,761,415,330,1337,794,330,3311,6671,702,262,1173,262,341,415,330,34210,794,330,89167,1188,36136,1694,11352,761,415,330,1337,794,330,3311,6671,702,262,1173,262,341,415,330,34210,794,330,7469,27509,82,11125,88813,761,415,330,1337,794,330,3311,6671,702,262,1173,262,341,415,330,34210,794,330,86674,69675,315,42714,320,724,95615,16129,415,330,1337,794,330,798,30817,702,262,1173,262,341,415,330,34210,794,330,18532,25542,666,20110,320,90153,922,46762,323,36136,16129,415,330,1337,794,330,798,30817,702,262,1173,262,341,415,330,34210,794,330,62158,44020,315,11188,14658,320,76,20860,7808,16129,415,330,1337,794,330,798,30817,702,262,457,220,3291,220,330,90153,15080,794,2330,262,341,415,330,3593,794,330,791,28351,13345,761,415,330,86924,794,2330,286,341,692,330,1337,794,330,38439,6376,369,761,692,330,5775,794,330,92434,20566,24084,505,279,46762,702,286,1173,286,341,692,330,1337,794,330,38439,6376,369,761,692,330,5775,794,330,40273,11543,1990,45704,69627,702,286,1173,286,341,692,330,1337,794,330,38439,6376,369,761,692,330,5775,794,330,89167,1188,36136,1694,11352,702,286,457,415,5243,262,1173,262,341,415,330,3593,794,330,18532,25542,666,20110,761,415,330,86924,794,2330,286,341,692,330,1337,794,330,90153,9287,922,761,692,330,5775,794,330,89167,1188,46762,702,286,1173,286,341,692,330,1337,794,330,90153,9287,922,761,692,330,5775,794,330,9470,27499,702,286,457,415,5243,262,1173,262,341,415,330,3593,794,330,86674,69675,315,42714,761,415,330,86924,794,2330,286,341,692,330,1337,794,330,724,95615,304,761,692,330,5775,794,330,791,28351,13345,702,286,457,415,5243,262,1173,262,341,415,330,3593,794,330,62158,44020,315,11188,14658,761,415,330,86924,794,2330,286,341,692,330,1337,794,330,76,20860,7808,304,761,692,330,5775,794,330,791,28351,13345,702,286,457,415,5243,262,457,220,3291,220,330,18103,794,341,262,330,38439,1292,794,330,791,28351,13345,761,262,330,26199,794,330,877,12918,761,262,330,47743,20389,794,10450,262,330,4354,34592,794,330,2366,20,12,1721,12,2437,51,410,25,2983,25,2589,13,7529,19305,702,220,457,92],"total_duration":7576922000,"load_duration":16539900,"prompt_eval_count":696,"prompt_eval_duration":119000000,"eval_count":616,"eval_duration":7440000000}
+2025-01-02 00:44:18,894 - OllamaService - DEBUG - 
+--------------------------------------------------------------------------------
+2025-01-02 00:44:18,894 - OllamaService - DEBUG - RESPONSE (time: 7781.04ms, size: 2,541 bytes):
+2025-01-02 00:44:18,894 - OllamaService - DEBUG - {
+  "structured_data": [
+    {
+      "fact": "The Lost Valley",
+      "type": "campaign setting"
+    },
+    {
+      "fact": "Hidden valley surrounded by impassable mountains",
+      "type": "world detail"
+    },
+    {
+      "fact": "Ancient ruins scattered throughout",
+      "type": "world detail"
+    },
+    {
+      "fact": "Mysterious magical anomalies",
+      "type": "world detail"
+    },
+    {
+      "fact": "Three main settlements: Haven (central), Riverwatch (east), Mountainkeep (west)",
+      "type": "world detail"
+    },
+    {
+      "fact": "Strange creatures emerging from the ruins",
+      "type": "current situation"
+    },
+    {
+      "fact": "Trade routes between settlements disrupted",
+      "type": "current situation"
+    },
+    {
+      "fact": "Ancient artifacts being discovered",
+      "type": "current situation"
+    },
+    {
+      "fact": "Local guilds seeking adventurers",
+      "type": "current situation"
+    },
+    {
+      "fact": "Mayor Elena of Haven (quest giver)",
+      "type": "key NPC"
+    },
+    {
+      "fact": "Master Scholar Theron (knowledge about ruins and artifacts)",
+      "type": "key NPC"
+    },
+    {
+      "fact": "Captain Sara of Riverwatch (military leader)",
+      "type": "key NPC"
+    }
+  ],
+  "knowledge_graph": [
+    {
+      "node": "The Lost Valley",
+      "relationships": [
+        {
+          "type": "campaign setting for",
+          "target": "Strange creatures emerging from the ruins"
+        },
+        {
+          "type": "campaign setting for",
+          "target": "Trade routes between settlements disrupted"
+        },
+        {
+          "type": "campaign setting for",
+          "target": "Ancient artifacts being discovered"
+        }
+      ]
+    },
+    {
+      "node": "Master Scholar Theron",
+      "relationships": [
+        {
+          "type": "knowledge provider about",
+          "target": "Ancient ruins"
+        },
+        {
+          "type": "knowledge provider about",
+          "target": "Artifacts"
+        }
+      ]
+    },
+    {
+      "node": "Mayor Elena of Haven",
+      "relationships": [
+        {
+          "type": "quest giver in",
+          "target": "The Lost Valley"
+        }
+      ]
+    },
+    {
+      "node": "Captain Sara of Riverwatch",
+      "relationships": [
+        {
+          "type": "military leader in",
+          "target": "The Lost Valley"
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "campaign_name": "The Lost Valley",
+    "phase": "LEARNING",
+    "recent_history": [],
+    "last_updated": "2025-01-02T00:42:07.191435"
+  }
+}
+2025-01-02 00:44:18,894 - OllamaService - DEBUG - --------------------------------------------------------------------------------
+2025-01-02 00:45:04,549 - OllamaService - DEBUG - 
+================================================================================
+2025-01-02 00:45:04,549 - OllamaService - DEBUG - PROMPT (size: 3,856 bytes):
+2025-01-02 00:45:04,549 - OllamaService - DEBUG - You are a helpful assistant that communicates using JSON. All your responses should be in strict, parsable JSON format.
+
+Context:
+{
+  "structured_data": [
+    {
+      "fact": "The Lost Valley",
+      "type": "campaign setting"
+    },
+    {
+      "fact": "Hidden valley surrounded by impassable mountains",
+      "type": "world detail"
+    },
+    {
+      "fact": "Ancient ruins scattered throughout",
+      "type": "world detail"
+    },
+    {
+      "fact": "Mysterious magical anomalies",
+      "type": "world detail"
+    },
+    {
+      "fact": "Three main settlements: Haven (central), Riverwatch (east), Mountainkeep (west)",
+      "type": "world detail"
+    },
+    {
+      "fact": "Strange creatures emerging from the ruins",
+      "type": "current situation"
+    },
+    {
+      "fact": "Trade routes between settlements disrupted",
+      "type": "current situation"
+    },
+    {
+      "fact": "Ancient artifacts being discovered",
+      "type": "current situation"
+    },
+    {
+      "fact": "Local guilds seeking adventurers",
+      "type": "current situation"
+    },
+    {
+      "fact": "Mayor Elena of Haven (quest giver)",
+      "type": "key NPC"
+    },
+    {
+      "fact": "Master Scholar Theron (knowledge about ruins and artifacts)",
+      "type": "key NPC"
+    },
+    {
+      "fact": "Captain Sara of Riverwatch (military leader)",
+      "type": "key NPC"
+    }
+  ],
+  "knowledge_graph": [
+    {
+      "node": "The Lost Valley",
+      "relationships": [
+        {
+          "type": "campaign setting for",
+          "target": "Strange creatures emerging from the ruins"
+        },
+        {
+          "type": "campaign setting for",
+          "target": "Trade routes between settlements disrupted"
+        },
+        {
+          "type": "campaign setting for",
+          "target": "Ancient artifacts being discovered"
+        }
+      ]
+    },
+    {
+      "node": "Master Scholar Theron",
+      "relationships": [
+        {
+          "type": "knowledge provider about",
+          "target": "Ancient ruins"
+        },
+        {
+          "type": "knowledge provider about",
+          "target": "Artifacts"
+        }
+      ]
+    },
+    {
+      "node": "Mayor Elena of Haven",
+      "relationships": [
+        {
+          "type": "quest giver in",
+          "target": "The Lost Valley"
+        }
+      ]
+    },
+    {
+      "node": "Captain Sara of Riverwatch",
+      "relationships": [
+        {
+          "type": "military leader in",
+          "target": "The Lost Valley"
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "campaign_name": "The Lost Valley",
+    "phase": "LEARNING",
+    "recent_history": [],
+    "last_updated": "2025-01-02T00:44:18.894381"
+  }
+}
+
+Current Phase: LEARNING
+Previous Messages: [
+  {
+    "role": "system",
+    "content": "Learned new information successfully",
+    "timestamp": "2025-01-02T00:42:07.192072"
+  },
+  {
+    "role": "user",
+    "content": "What quest could I undertake that would earn me some gold?",
+    "timestamp": "2025-01-02T00:44:18.895000"
+  },
+  {
+    "role": "assistant",
+    "content": "Mayor Elena of Haven is looking for brave adventurers like you to help retrieve a lost artifact from one of the ancient ruins. She's willing to pay a handsome sum in gold and other rewards.",
+    "timestamp": "2025-01-02T00:44:18.895008"
+  }
+]
+
+User Message: I'm in. Do I have the right equipment to set off?
+
+Generate a response that:
+1. Uses relevant information from memory
+2. Maintains consistency with previous interactions
+3. Advances the current phase appropriately
+4. Identifies any new information to be stored
+
+Return ONLY a valid JSON object with this structure (no additional text or explanation):
+{
+    "response": "Your response here",
+    "new_information": {
+        // Any new information to be stored
+    },
+    "suggested_phase": "current or next phase name",
+    "confidence": 0.0 to 1.0
+}
+2025-01-02 00:45:04,549 - OllamaService - DEBUG - ================================================================================
+2025-01-02 00:45:04,549 - OllamaService - DEBUG - Making request to Ollama API at http://192.168.1.173:11434
+2025-01-02 00:45:04,549 - OllamaService - DEBUG - Model: llama3, Temperature: 0.7
+2025-01-02 00:45:04,551 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.1.173:11434
+2025-01-02 00:45:06,359 - urllib3.connectionpool - DEBUG - http://192.168.1.173:11434 "POST /api/generate HTTP/1.1" 200 None
+2025-01-02 00:45:06,360 - OllamaService - DEBUG - Ollama API request completed in 1810.72ms
+2025-01-02 00:45:06,360 - OllamaService - DEBUG - Raw response: {"model":"llama3","created_at":"2025-01-02T05:45:22.0592356Z","response":"{\n  \"response\": \"You're likely equipped for the journey, but it's always a good idea to check with Master Scholar Theron at Haven before heading out. He might have some valuable insights on what you'll need and how to navigate the ruins safely.\",\n  \"new_information\": {\n    \"fact\": \"Master Scholar Theron can provide equipment guidance\",\n    \"type\": \"world detail\"\n  },\n  \"suggested_phase\": \"EXPLORATION\",\n  \"confidence\": 0.8\n}","done":true,"done_reason":"stop","context":[128006,882,128007,271,2675,527,264,11190,18328,430,92606,1701,4823,13,2052,701,14847,1288,387,304,7452,11,10364,481,4823,3645,382,2014,512,517,220,330,52243,1807,794,2330,262,341,415,330,34210,794,330,791,28351,13345,761,415,330,1337,794,330,38439,6376,702,262,1173,262,341,415,330,34210,794,330,17964,34681,23712,555,96689,481,24405,761,415,330,1337,794,330,14957,7872,702,262,1173,262,341,415,330,34210,794,330,89167,1188,46762,38067,6957,761,415,330,1337,794,330,14957,7872,702,262,1173,262,341,415,330,34210,794,330,44,97499,24632,75559,761,415,330,1337,794,330,14957,7872,702,262,1173,262,341,415,330,34210,794,330,20215,1925,45704,25,42714,320,52911,705,11188,14658,320,61601,705,19149,13397,320,11285,16129,415,330,1337,794,330,14957,7872,702,262,1173,262,341,415,330,34210,794,330,92434,20566,24084,505,279,46762,761,415,330,1337,794,330,3311,6671,702,262,1173,262,341,415,330,34210,794,330,40273,11543,1990,45704,69627,761,415,330,1337,794,330,3311,6671,702,262,1173,262,341,415,330,34210,794,330,89167,1188,36136,1694,11352,761,415,330,1337,794,330,3311,6671,702,262,1173,262,341,415,330,34210,794,330,7469,27509,82,11125,88813,761,415,330,1337,794,330,3311,6671,702,262,1173,262,341,415,330,34210,794,330,86674,69675,315,42714,320,724,95615,16129,415,330,1337,794,330,798,30817,702,262,1173,262,341,415,330,34210,794,330,18532,25542,666,20110,320,90153,922,46762,323,36136,16129,415,330,1337,794,330,798,30817,702,262,1173,262,341,415,330,34210,794,330,62158,44020,315,11188,14658,320,76,20860,7808,16129,415,330,1337,794,330,798,30817,702,262,457,220,3291,220,330,90153,15080,794,2330,262,341,415,330,3593,794,330,791,28351,13345,761,415,330,86924,794,2330,286,341,692,330,1337,794,330,38439,6376,369,761,692,330,5775,794,330,92434,20566,24084,505,279,46762,702,286,1173,286,341,692,330,1337,794,330,38439,6376,369,761,692,330,5775,794,330,40273,11543,1990,45704,69627,702,286,1173,286,341,692,330,1337,794,330,38439,6376,369,761,692,330,5775,794,330,89167,1188,36136,1694,11352,702,286,457,415,5243,262,1173,262,341,415,330,3593,794,330,18532,25542,666,20110,761,415,330,86924,794,2330,286,341,692,330,1337,794,330,90153,9287,922,761,692,330,5775,794,330,89167,1188,46762,702,286,1173,286,341,692,330,1337,794,330,90153,9287,922,761,692,330,5775,794,330,9470,27499,702,286,457,415,5243,262,1173,262,341,415,330,3593,794,330,86674,69675,315,42714,761,415,330,86924,794,2330,286,341,692,330,1337,794,330,724,95615,304,761,692,330,5775,794,330,791,28351,13345,702,286,457,415,5243,262,1173,262,341,415,330,3593,794,330,62158,44020,315,11188,14658,761,415,330,86924,794,2330,286,341,692,330,1337,794,330,76,20860,7808,304,761,692,330,5775,794,330,791,28351,13345,702,286,457,415,5243,262,457,220,3291,220,330,18103,794,341,262,330,38439,1292,794,330,791,28351,13345,761,262,330,26199,794,330,877,12918,761,262,330,47743,20389,794,10450,262,330,4354,34592,794,330,2366,20,12,1721,12,2437,51,410,25,2096,25,972,13,26227,19162,702,220,457,633,5520,28673,25,11396,12918,198,21994,27827,25,2330,220,341,262,330,5898,794,330,9125,761,262,330,1834,794,330,24762,291,502,2038,7946,761,262,330,13333,794,330,2366,20,12,1721,12,2437,51,410,25,2983,25,2589,13,5926,23439,702,220,1173,220,341,262,330,5898,794,330,882,761,262,330,1834,794,330,3923,2271,1436,358,49643,430,1053,7380,757,1063,6761,36818,262,330,13333,794,330,2366,20,12,1721,12,2437,51,410,25,2096,25,972,13,25238,931,702,220,1173,220,341,262,330,5898,794,330,78191,761,262,330,1834,794,330,86674,69675,315,42714,374,3411,369,34300,88813,1093,499,311,1520,17622,264,5675,37739,505,832,315,279,14154,46762,13,3005,596,10032,311,2343,264,44877,2694,304,6761,323,1023,21845,10560,262,330,13333,794,330,2366,20,12,1721,12,2437,51,410,25,2096,25,972,13,25238,11436,702,220,457,2595,1502,4961,25,358,2846,304,13,3234,358,617,279,1314,7241,311,743,1022,1980,32215,264,2077,430,512,16,13,39923,9959,2038,505,5044,198,17,13,43987,1771,29237,449,3766,22639,198,18,13,91958,279,1510,10474,36001,198,19,13,23322,9803,904,502,2038,311,387,9967,271,5715,27785,264,2764,4823,1665,449,420,6070,320,2201,5217,1495,477,16540,997,517,262,330,2376,794,330,7927,2077,1618,761,262,330,943,36312,794,341,286,443,5884,502,2038,311,387,9967,198,262,1173,262,330,82,54376,38693,794,330,3311,477,1828,10474,836,761,262,330,83029,794,220,15,13,15,311,220,16,13,15,198,92,128009,128006,78191,128007,271,517,220,330,2376,794,330,2675,2351,4461,19167,369,279,11879,11,719,433,596,2744,264,1695,4623,311,1817,449,11060,25542,666,20110,520,42714,1603,14836,704,13,1283,2643,617,1063,15525,26793,389,1148,499,3358,1205,323,1268,311,21546,279,46762,21676,10560,220,330,943,36312,794,341,262,330,34210,794,330,18532,25542,666,20110,649,3493,7241,19351,761,262,330,1337,794,330,14957,7872,702,220,1173,220,330,82,54376,38693,794,330,3337,2989,878,3579,761,220,330,83029,794,220,15,13,23,198,92],"total_duration":1676928300,"load_duration":15064800,"prompt_eval_count":957,"prompt_eval_duration":317000000,"eval_count":106,"eval_duration":1343000000}
+2025-01-02 00:45:06,361 - OllamaService - DEBUG - 
+--------------------------------------------------------------------------------
+2025-01-02 00:45:06,361 - OllamaService - DEBUG - RESPONSE (time: 1811.37ms, size: 427 bytes):
+2025-01-02 00:45:06,361 - OllamaService - DEBUG - {
+  "response": "You're likely equipped for the journey, but it's always a good idea to check with Master Scholar Theron at Haven before heading out. He might have some valuable insights on what you'll need and how to navigate the ruins safely.",
+  "new_information": {
+    "fact": "Master Scholar Theron can provide equipment guidance",
+    "type": "world detail"
+  },
+  "suggested_phase": "EXPLORATION",
+  "confidence": 0.8
+}
+2025-01-02 00:45:06,361 - OllamaService - DEBUG - --------------------------------------------------------------------------------
+2025-01-02 00:45:06,361 - OllamaService - DEBUG - 
+================================================================================
+2025-01-02 00:45:06,361 - OllamaService - DEBUG - PROMPT (size: 3,038 bytes):
+2025-01-02 00:45:06,361 - OllamaService - DEBUG - You are a helpful assistant that communicates using JSON. All your responses should be in strict, parsable JSON format.
+
+Current Memory State:
+{
+  "structured_data": [
+    {
+      "fact": "The Lost Valley",
+      "type": "campaign setting"
+    },
+    {
+      "fact": "Hidden valley surrounded by impassable mountains",
+      "type": "world detail"
+    },
+    {
+      "fact": "Ancient ruins scattered throughout",
+      "type": "world detail"
+    },
+    {
+      "fact": "Mysterious magical anomalies",
+      "type": "world detail"
+    },
+    {
+      "fact": "Three main settlements: Haven (central), Riverwatch (east), Mountainkeep (west)",
+      "type": "world detail"
+    },
+    {
+      "fact": "Strange creatures emerging from the ruins",
+      "type": "current situation"
+    },
+    {
+      "fact": "Trade routes between settlements disrupted",
+      "type": "current situation"
+    },
+    {
+      "fact": "Ancient artifacts being discovered",
+      "type": "current situation"
+    },
+    {
+      "fact": "Local guilds seeking adventurers",
+      "type": "current situation"
+    },
+    {
+      "fact": "Mayor Elena of Haven (quest giver)",
+      "type": "key NPC"
+    },
+    {
+      "fact": "Master Scholar Theron (knowledge about ruins and artifacts)",
+      "type": "key NPC"
+    },
+    {
+      "fact": "Captain Sara of Riverwatch (military leader)",
+      "type": "key NPC"
+    }
+  ],
+  "knowledge_graph": [
+    {
+      "node": "The Lost Valley",
+      "relationships": [
+        {
+          "type": "campaign setting for",
+          "target": "Strange creatures emerging from the ruins"
+        },
+        {
+          "type": "campaign setting for",
+          "target": "Trade routes between settlements disrupted"
+        },
+        {
+          "type": "campaign setting for",
+          "target": "Ancient artifacts being discovered"
+        }
+      ]
+    },
+    {
+      "node": "Master Scholar Theron",
+      "relationships": [
+        {
+          "type": "knowledge provider about",
+          "target": "Ancient ruins"
+        },
+        {
+          "type": "knowledge provider about",
+          "target": "Artifacts"
+        }
+      ]
+    },
+    {
+      "node": "Mayor Elena of Haven",
+      "relationships": [
+        {
+          "type": "quest giver in",
+          "target": "The Lost Valley"
+        }
+      ]
+    },
+    {
+      "node": "Captain Sara of Riverwatch",
+      "relationships": [
+        {
+          "type": "military leader in",
+          "target": "The Lost Valley"
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "campaign_name": "The Lost Valley",
+    "phase": "LEARNING",
+    "recent_history": [],
+    "last_updated": "2025-01-02T00:44:18.894381"
+  }
+}
+
+Phase: UNKNOWN
+New Information: {}
+Recent History: []
+
+Analyze this information and return a JSON object containing:
+1. Updated structured data
+2. New or modified relationships for the knowledge graph
+3. Any necessary changes to existing memory
+
+Return ONLY a valid JSON object matching the current memory structure (no additional text or explanation).
+2025-01-02 00:45:06,362 - OllamaService - DEBUG - ================================================================================
+2025-01-02 00:45:06,362 - OllamaService - DEBUG - Making request to Ollama API at http://192.168.1.173:11434
+2025-01-02 00:45:06,362 - OllamaService - DEBUG - Model: llama3, Temperature: 0.7
+2025-01-02 00:45:06,363 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.1.173:11434
+2025-01-02 00:45:14,086 - urllib3.connectionpool - DEBUG - http://192.168.1.173:11434 "POST /api/generate HTTP/1.1" 200 None
+2025-01-02 00:45:14,087 - OllamaService - DEBUG - Ollama API request completed in 7725.45ms
+2025-01-02 00:45:14,087 - OllamaService - DEBUG - Raw response: {"model":"llama3","created_at":"2025-01-02T05:45:29.7782341Z","response":"{\n  \"structured_data\": [\n    {\n      \"fact\": \"The Lost Valley\",\n      \"type\": \"campaign setting\"\n    },\n    {\n      \"fact\": \"Hidden valley surrounded by impassable mountains\",\n      \"type\": \"world detail\"\n    },\n    {\n      \"fact\": \"Ancient ruins scattered throughout\",\n      \"type\": \"world detail\"\n    },\n    {\n      \"fact\": \"Mysterious magical anomalies\",\n      \"type\": \"world detail\"\n    },\n    {\n      \"fact\": \"Three main settlements: Haven (central), Riverwatch (east), Mountainkeep (west)\",\n      \"type\": \"world detail\"\n    },\n    {\n      \"fact\": \"Strange creatures emerging from the ruins\",\n      \"type\": \"current situation\"\n    },\n    {\n      \"fact\": \"Trade routes between settlements disrupted\",\n      \"type\": \"current situation\"\n    },\n    {\n      \"fact\": \"Ancient artifacts being discovered\",\n      \"type\": \"current situation\"\n    },\n    {\n      \"fact\": \"Local guilds seeking adventurers\",\n      \"type\": \"current situation\"\n    },\n    {\n      \"fact\": \"Mayor Elena of Haven (quest giver)\",\n      \"type\": \"key NPC\"\n    },\n    {\n      \"fact\": \"Master Scholar Theron (knowledge about ruins and artifacts)\",\n      \"type\": \"key NPC\"\n    },\n    {\n      \"fact\": \"Captain Sara of Riverwatch (military leader)\",\n      \"type\": \"key NPC\"\n    }\n  ],\n  \"knowledge_graph\": [\n    {\n      \"node\": \"The Lost Valley\",\n      \"relationships\": [\n        {\n          \"type\": \"campaign setting for\",\n          \"target\": \"Strange creatures emerging from the ruins\"\n        },\n        {\n          \"type\": \"campaign setting for\",\n          \"target\": \"Trade routes between settlements disrupted\"\n        },\n        {\n          \"type\": \"campaign setting for\",\n          \"target\": \"Ancient artifacts being discovered\"\n        }\n      ]\n    },\n    {\n      \"node\": \"Master Scholar Theron\",\n      \"relationships\": [\n        {\n          \"type\": \"knowledge provider about\",\n          \"target\": \"Ancient ruins\"\n        },\n        {\n          \"type\": \"knowledge provider about\",\n          \"target\": \"Artifacts\"\n        }\n      ]\n    },\n    {\n      \"node\": \"Mayor Elena of Haven\",\n      \"relationships\": [\n        {\n          \"type\": \"quest giver in\",\n          \"target\": \"The Lost Valley\"\n        }\n      ]\n    },\n    {\n      \"node\": \"Captain Sara of Riverwatch\",\n      \"relationships\": [\n        {\n          \"type\": \"military leader in\",\n          \"target\": \"The Lost Valley\"\n        }\n      ]\n    }\n  ],\n  \"metadata\": {\n    \"campaign_name\": \"The Lost Valley\",\n    \"phase\": \"LEARNING\",\n    \"recent_history\": [],\n    \"last_updated\": \"2025-01-02T00:44:18.894381\"\n  }\n}","done":true,"done_reason":"stop","context":[128006,882,128007,271,2675,527,264,11190,18328,430,92606,1701,4823,13,2052,701,14847,1288,387,304,7452,11,10364,481,4823,3645,382,5520,14171,3314,512,517,220,330,52243,1807,794,2330,262,341,415,330,34210,794,330,791,28351,13345,761,415,330,1337,794,330,38439,6376,702,262,1173,262,341,415,330,34210,794,330,17964,34681,23712,555,96689,481,24405,761,415,330,1337,794,330,14957,7872,702,262,1173,262,341,415,330,34210,794,330,89167,1188,46762,38067,6957,761,415,330,1337,794,330,14957,7872,702,262,1173,262,341,415,330,34210,794,330,44,97499,24632,75559,761,415,330,1337,794,330,14957,7872,702,262,1173,262,341,415,330,34210,794,330,20215,1925,45704,25,42714,320,52911,705,11188,14658,320,61601,705,19149,13397,320,11285,16129,415,330,1337,794,330,14957,7872,702,262,1173,262,341,415,330,34210,794,330,92434,20566,24084,505,279,46762,761,415,330,1337,794,330,3311,6671,702,262,1173,262,341,415,330,34210,794,330,40273,11543,1990,45704,69627,761,415,330,1337,794,330,3311,6671,702,262,1173,262,341,415,330,34210,794,330,89167,1188,36136,1694,11352,761,415,330,1337,794,330,3311,6671,702,262,1173,262,341,415,330,34210,794,330,7469,27509,82,11125,88813,761,415,330,1337,794,330,3311,6671,702,262,1173,262,341,415,330,34210,794,330,86674,69675,315,42714,320,724,95615,16129,415,330,1337,794,330,798,30817,702,262,1173,262,341,415,330,34210,794,330,18532,25542,666,20110,320,90153,922,46762,323,36136,16129,415,330,1337,794,330,798,30817,702,262,1173,262,341,415,330,34210,794,330,62158,44020,315,11188,14658,320,76,20860,7808,16129,415,330,1337,794,330,798,30817,702,262,457,220,3291,220,330,90153,15080,794,2330,262,341,415,330,3593,794,330,791,28351,13345,761,415,330,86924,794,2330,286,341,692,330,1337,794,330,38439,6376,369,761,692,330,5775,794,330,92434,20566,24084,505,279,46762,702,286,1173,286,341,692,330,1337,794,330,38439,6376,369,761,692,330,5775,794,330,40273,11543,1990,45704,69627,702,286,1173,286,341,692,330,1337,794,330,38439,6376,369,761,692,330,5775,794,330,89167,1188,36136,1694,11352,702,286,457,415,5243,262,1173,262,341,415,330,3593,794,330,18532,25542,666,20110,761,415,330,86924,794,2330,286,341,692,330,1337,794,330,90153,9287,922,761,692,330,5775,794,330,89167,1188,46762,702,286,1173,286,341,692,330,1337,794,330,90153,9287,922,761,692,330,5775,794,330,9470,27499,702,286,457,415,5243,262,1173,262,341,415,330,3593,794,330,86674,69675,315,42714,761,415,330,86924,794,2330,286,341,692,330,1337,794,330,724,95615,304,761,692,330,5775,794,330,791,28351,13345,702,286,457,415,5243,262,1173,262,341,415,330,3593,794,330,62158,44020,315,11188,14658,761,415,330,86924,794,2330,286,341,692,330,1337,794,330,76,20860,7808,304,761,692,330,5775,794,330,791,28351,13345,702,286,457,415,5243,262,457,220,3291,220,330,18103,794,341,262,330,38439,1292,794,330,791,28351,13345,761,262,330,26199,794,330,877,12918,761,262,330,47743,20389,794,10450,262,330,4354,34592,794,330,2366,20,12,1721,12,2437,51,410,25,2096,25,972,13,26227,19162,702,220,457,633,31833,25,62495,198,3648,8245,25,5731,26198,11346,25,14941,2127,56956,420,2038,323,471,264,4823,1665,8649,512,16,13,16459,34030,828,198,17,13,1561,477,11041,12135,369,279,6677,4876,198,18,13,5884,5995,4442,311,6484,5044,271,5715,27785,264,2764,4823,1665,12864,279,1510,5044,6070,320,2201,5217,1495,477,16540,570,128009,128006,78191,128007,271,517,220,330,52243,1807,794,2330,262,341,415,330,34210,794,330,791,28351,13345,761,415,330,1337,794,330,38439,6376,702,262,1173,262,341,415,330,34210,794,330,17964,34681,23712,555,96689,481,24405,761,415,330,1337,794,330,14957,7872,702,262,1173,262,341,415,330,34210,794,330,89167,1188,46762,38067,6957,761,415,330,1337,794,330,14957,7872,702,262,1173,262,341,415,330,34210,794,330,44,97499,24632,75559,761,415,330,1337,794,330,14957,7872,702,262,1173,262,341,415,330,34210,794,330,20215,1925,45704,25,42714,320,52911,705,11188,14658,320,61601,705,19149,13397,320,11285,16129,415,330,1337,794,330,14957,7872,702,262,1173,262,341,415,330,34210,794,330,92434,20566,24084,505,279,46762,761,415,330,1337,794,330,3311,6671,702,262,1173,262,341,415,330,34210,794,330,40273,11543,1990,45704,69627,761,415,330,1337,794,330,3311,6671,702,262,1173,262,341,415,330,34210,794,330,89167,1188,36136,1694,11352,761,415,330,1337,794,330,3311,6671,702,262,1173,262,341,415,330,34210,794,330,7469,27509,82,11125,88813,761,415,330,1337,794,330,3311,6671,702,262,1173,262,341,415,330,34210,794,330,86674,69675,315,42714,320,724,95615,16129,415,330,1337,794,330,798,30817,702,262,1173,262,341,415,330,34210,794,330,18532,25542,666,20110,320,90153,922,46762,323,36136,16129,415,330,1337,794,330,798,30817,702,262,1173,262,341,415,330,34210,794,330,62158,44020,315,11188,14658,320,76,20860,7808,16129,415,330,1337,794,330,798,30817,702,262,457,220,3291,220,330,90153,15080,794,2330,262,341,415,330,3593,794,330,791,28351,13345,761,415,330,86924,794,2330,286,341,692,330,1337,794,330,38439,6376,369,761,692,330,5775,794,330,92434,20566,24084,505,279,46762,702,286,1173,286,341,692,330,1337,794,330,38439,6376,369,761,692,330,5775,794,330,40273,11543,1990,45704,69627,702,286,1173,286,341,692,330,1337,794,330,38439,6376,369,761,692,330,5775,794,330,89167,1188,36136,1694,11352,702,286,457,415,5243,262,1173,262,341,415,330,3593,794,330,18532,25542,666,20110,761,415,330,86924,794,2330,286,341,692,330,1337,794,330,90153,9287,922,761,692,330,5775,794,330,89167,1188,46762,702,286,1173,286,341,692,330,1337,794,330,90153,9287,922,761,692,330,5775,794,330,9470,27499,702,286,457,415,5243,262,1173,262,341,415,330,3593,794,330,86674,69675,315,42714,761,415,330,86924,794,2330,286,341,692,330,1337,794,330,724,95615,304,761,692,330,5775,794,330,791,28351,13345,702,286,457,415,5243,262,1173,262,341,415,330,3593,794,330,62158,44020,315,11188,14658,761,415,330,86924,794,2330,286,341,692,330,1337,794,330,76,20860,7808,304,761,692,330,5775,794,330,791,28351,13345,702,286,457,415,5243,262,457,220,3291,220,330,18103,794,341,262,330,38439,1292,794,330,791,28351,13345,761,262,330,26199,794,330,877,12918,761,262,330,47743,20389,794,10450,262,330,4354,34592,794,330,2366,20,12,1721,12,2437,51,410,25,2096,25,972,13,26227,19162,702,220,457,92],"total_duration":7586456000,"load_duration":18231900,"prompt_eval_count":719,"prompt_eval_duration":116000000,"eval_count":616,"eval_duration":7451000000}
+2025-01-02 00:45:14,088 - OllamaService - DEBUG - 
+--------------------------------------------------------------------------------
+2025-01-02 00:45:14,088 - OllamaService - DEBUG - RESPONSE (time: 7726.17ms, size: 2,541 bytes):
+2025-01-02 00:45:14,088 - OllamaService - DEBUG - {
+  "structured_data": [
+    {
+      "fact": "The Lost Valley",
+      "type": "campaign setting"
+    },
+    {
+      "fact": "Hidden valley surrounded by impassable mountains",
+      "type": "world detail"
+    },
+    {
+      "fact": "Ancient ruins scattered throughout",
+      "type": "world detail"
+    },
+    {
+      "fact": "Mysterious magical anomalies",
+      "type": "world detail"
+    },
+    {
+      "fact": "Three main settlements: Haven (central), Riverwatch (east), Mountainkeep (west)",
+      "type": "world detail"
+    },
+    {
+      "fact": "Strange creatures emerging from the ruins",
+      "type": "current situation"
+    },
+    {
+      "fact": "Trade routes between settlements disrupted",
+      "type": "current situation"
+    },
+    {
+      "fact": "Ancient artifacts being discovered",
+      "type": "current situation"
+    },
+    {
+      "fact": "Local guilds seeking adventurers",
+      "type": "current situation"
+    },
+    {
+      "fact": "Mayor Elena of Haven (quest giver)",
+      "type": "key NPC"
+    },
+    {
+      "fact": "Master Scholar Theron (knowledge about ruins and artifacts)",
+      "type": "key NPC"
+    },
+    {
+      "fact": "Captain Sara of Riverwatch (military leader)",
+      "type": "key NPC"
+    }
+  ],
+  "knowledge_graph": [
+    {
+      "node": "The Lost Valley",
+      "relationships": [
+        {
+          "type": "campaign setting for",
+          "target": "Strange creatures emerging from the ruins"
+        },
+        {
+          "type": "campaign setting for",
+          "target": "Trade routes between settlements disrupted"
+        },
+        {
+          "type": "campaign setting for",
+          "target": "Ancient artifacts being discovered"
+        }
+      ]
+    },
+    {
+      "node": "Master Scholar Theron",
+      "relationships": [
+        {
+          "type": "knowledge provider about",
+          "target": "Ancient ruins"
+        },
+        {
+          "type": "knowledge provider about",
+          "target": "Artifacts"
+        }
+      ]
+    },
+    {
+      "node": "Mayor Elena of Haven",
+      "relationships": [
+        {
+          "type": "quest giver in",
+          "target": "The Lost Valley"
+        }
+      ]
+    },
+    {
+      "node": "Captain Sara of Riverwatch",
+      "relationships": [
+        {
+          "type": "military leader in",
+          "target": "The Lost Valley"
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "campaign_name": "The Lost Valley",
+    "phase": "LEARNING",
+    "recent_history": [],
+    "last_updated": "2025-01-02T00:44:18.894381"
+  }
+}
+2025-01-02 00:45:14,088 - OllamaService - DEBUG - --------------------------------------------------------------------------------
+2025-01-02 00:47:07,401 - OllamaService - DEBUG - 
+================================================================================
+2025-01-02 00:47:07,401 - OllamaService - DEBUG - PROMPT (size: 4,060 bytes):
+2025-01-02 00:47:07,401 - OllamaService - DEBUG - You are a helpful assistant that communicates using JSON. All your responses should be in strict, parsable JSON format.
+
+Current Memory State:
+{
+  "structured_data": [
+    {
+      "fact": "The Lost Valley",
+      "type": "campaign setting"
+    },
+    {
+      "fact": "Hidden valley surrounded by impassable mountains",
+      "type": "world detail"
+    },
+    {
+      "fact": "Ancient ruins scattered throughout",
+      "type": "world detail"
+    },
+    {
+      "fact": "Mysterious magical anomalies",
+      "type": "world detail"
+    },
+    {
+      "fact": "Three main settlements: Haven (central), Riverwatch (east), Mountainkeep (west)",
+      "type": "world detail"
+    },
+    {
+      "fact": "Strange creatures emerging from the ruins",
+      "type": "current situation"
+    },
+    {
+      "fact": "Trade routes between settlements disrupted",
+      "type": "current situation"
+    },
+    {
+      "fact": "Ancient artifacts being discovered",
+      "type": "current situation"
+    },
+    {
+      "fact": "Local guilds seeking adventurers",
+      "type": "current situation"
+    },
+    {
+      "fact": "Mayor Elena of Haven (quest giver)",
+      "type": "key NPC"
+    },
+    {
+      "fact": "Master Scholar Theron (knowledge about ruins and artifacts)",
+      "type": "key NPC"
+    },
+    {
+      "fact": "Captain Sara of Riverwatch (military leader)",
+      "type": "key NPC"
+    }
+  ],
+  "knowledge_graph": [
+    {
+      "node": "The Lost Valley",
+      "relationships": [
+        {
+          "type": "campaign setting for",
+          "target": "Strange creatures emerging from the ruins"
+        },
+        {
+          "type": "campaign setting for",
+          "target": "Trade routes between settlements disrupted"
+        },
+        {
+          "type": "campaign setting for",
+          "target": "Ancient artifacts being discovered"
+        }
+      ]
+    },
+    {
+      "node": "Master Scholar Theron",
+      "relationships": [
+        {
+          "type": "knowledge provider about",
+          "target": "Ancient ruins"
+        },
+        {
+          "type": "knowledge provider about",
+          "target": "Artifacts"
+        }
+      ]
+    },
+    {
+      "node": "Mayor Elena of Haven",
+      "relationships": [
+        {
+          "type": "quest giver in",
+          "target": "The Lost Valley"
+        }
+      ]
+    },
+    {
+      "node": "Captain Sara of Riverwatch",
+      "relationships": [
+        {
+          "type": "military leader in",
+          "target": "The Lost Valley"
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "campaign_name": "The Lost Valley",
+    "phase": "LEARNING",
+    "recent_history": [],
+    "last_updated": "2025-01-02T00:45:14.088539"
+  }
+}
+
+Recent Interactions:
+[
+  {
+    "role": "system",
+    "content": "Learned new information successfully",
+    "timestamp": "2025-01-02T00:42:07.192072"
+  },
+  {
+    "role": "user",
+    "content": "What quest could I undertake that would earn me some gold?",
+    "timestamp": "2025-01-02T00:44:18.895000"
+  },
+  {
+    "role": "assistant",
+    "content": "Mayor Elena of Haven is looking for brave adventurers like you to help retrieve a lost artifact from one of the ancient ruins. She's willing to pay a handsome sum in gold and other rewards.",
+    "timestamp": "2025-01-02T00:44:18.895008"
+  },
+  {
+    "role": "user",
+    "content": "I'm in. Do I have the right equipment to set off?",
+    "timestamp": "2025-01-02T00:45:14.089139"
+  },
+  {
+    "role": "assistant",
+    "content": "You're likely equipped for the journey, but it's always a good idea to check with Master Scholar Theron at Haven before heading out. He might have some valuable insights on what you'll need and how to navigate the ruins safely.",
+    "timestamp": "2025-01-02T00:45:14.089148"
+  }
+]
+
+Analyze the current memory state and recent interactions to:
+1. Identify important patterns or relationships
+2. Suggest memory structure optimizations
+3. Highlight key information for future reference
+
+Return ONLY a valid JSON object matching the current memory structure (no additional text or explanation).
+2025-01-02 00:47:07,401 - OllamaService - DEBUG - ================================================================================
+2025-01-02 00:47:07,401 - OllamaService - DEBUG - Making request to Ollama API at http://192.168.1.173:11434
+2025-01-02 00:47:07,401 - OllamaService - DEBUG - Model: llama3, Temperature: 0.7
+2025-01-02 00:47:07,403 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.1.173:11434
+2025-01-02 00:47:15,318 - urllib3.connectionpool - DEBUG - http://192.168.1.173:11434 "POST /api/generate HTTP/1.1" 200 None
+2025-01-02 00:47:15,374 - OllamaService - DEBUG - Ollama API request completed in 7972.63ms
+2025-01-02 00:47:15,374 - OllamaService - DEBUG - Raw response: {"model":"llama3","created_at":"2025-01-02T05:47:31.1280893Z","response":"{\n  \"structured_data\": [\n    {\n      \"fact\": \"Mayor Elena of Haven is willing to pay gold and other rewards\",\n      \"type\": \"quest\"\n    },\n    {\n      \"fact\": \"Master Scholar Theron at Haven has valuable insights on ruins navigation\",\n      \"type\": \"tip\"\n    }\n  ],\n  \"knowledge_graph\": [\n    {\n      \"node\": \"The Lost Valley\",\n      \"relationships\": [\n        {\n          \"type\": \"campaign setting for\",\n          \"target\": \"Strange creatures emerging from the ruins\"\n        },\n        {\n          \"type\": \"campaign setting for\",\n          \"target\": \"Trade routes between settlements disrupted\"\n        },\n        {\n          \"type\": \"campaign setting for\",\n          \"target\": \"Ancient artifacts being discovered\"\n        }\n      ]\n    },\n    {\n      \"node\": \"Master Scholar Theron\",\n      \"relationships\": [\n        {\n          \"type\": \"knowledge provider about\",\n          \"target\": \"Ruins navigation\"\n        }\n      ]\n    },\n    {\n      \"node\": \"Mayor Elena of Haven\",\n      \"relationships\": [\n        {\n          \"type\": \"quest giver in\",\n          \"target\": \"The Lost Valley\"\n        }\n      ]\n    }\n  ],\n  \"metadata\": {\n    \"campaign_name\": \"The Lost Valley\",\n    \"phase\": \"EXECUTING\",\n    \"recent_history\": [\n      {\n        \"role\": \"system\",\n        \"content\": \"Learned new information successfully\",\n        \"timestamp\": \"2025-01-02T00:42:07.192072\"\n      },\n      {\n        \"role\": \"user\",\n        \"content\": \"What quest could I undertake that would earn me some gold?\",\n        \"timestamp\": \"2025-01-02T00:44:18.895000\"\n      },\n      {\n        \"role\": \"assistant\",\n        \"content\": \"Mayor Elena of Haven is looking for brave adventurers like you to help retrieve a lost artifact from one of the ancient ruins. She's willing to pay a handsome sum in gold and other rewards.\",\n        \"timestamp\": \"2025-01-02T00:44:18.895008\"\n      },\n      {\n        \"role\": \"user\",\n        \"content\": \"I'm in. Do I have the right equipment to set off?\",\n        \"timestamp\": \"2025-01-02T00:45:14.089139\"\n      },\n      {\n        \"role\": \"assistant\",\n        \"content\": \"You're likely equipped for the journey, but it's always a good idea to check with Master Scholar Theron at Haven before heading out. He might have some valuable insights on what you'll need and how to navigate the ruins safely.\",\n        \"timestamp\": \"2025-01-02T00:45:14.089148\"\n      }\n    ],\n    \"last_updated\": \"2025-01-02T00:45:14.088539\"\n  }\n}","done":true,"done_reason":"stop","context":[128006,882,128007,271,2675,527,264,11190,18328,430,92606,1701,4823,13,2052,701,14847,1288,387,304,7452,11,10364,481,4823,3645,382,5520,14171,3314,512,517,220,330,52243,1807,794,2330,262,341,415,330,34210,794,330,791,28351,13345,761,415,330,1337,794,330,38439,6376,702,262,1173,262,341,415,330,34210,794,330,17964,34681,23712,555,96689,481,24405,761,415,330,1337,794,330,14957,7872,702,262,1173,262,341,415,330,34210,794,330,89167,1188,46762,38067,6957,761,415,330,1337,794,330,14957,7872,702,262,1173,262,341,415,330,34210,794,330,44,97499,24632,75559,761,415,330,1337,794,330,14957,7872,702,262,1173,262,341,415,330,34210,794,330,20215,1925,45704,25,42714,320,52911,705,11188,14658,320,61601,705,19149,13397,320,11285,16129,415,330,1337,794,330,14957,7872,702,262,1173,262,341,415,330,34210,794,330,92434,20566,24084,505,279,46762,761,415,330,1337,794,330,3311,6671,702,262,1173,262,341,415,330,34210,794,330,40273,11543,1990,45704,69627,761,415,330,1337,794,330,3311,6671,702,262,1173,262,341,415,330,34210,794,330,89167,1188,36136,1694,11352,761,415,330,1337,794,330,3311,6671,702,262,1173,262,341,415,330,34210,794,330,7469,27509,82,11125,88813,761,415,330,1337,794,330,3311,6671,702,262,1173,262,341,415,330,34210,794,330,86674,69675,315,42714,320,724,95615,16129,415,330,1337,794,330,798,30817,702,262,1173,262,341,415,330,34210,794,330,18532,25542,666,20110,320,90153,922,46762,323,36136,16129,415,330,1337,794,330,798,30817,702,262,1173,262,341,415,330,34210,794,330,62158,44020,315,11188,14658,320,76,20860,7808,16129,415,330,1337,794,330,798,30817,702,262,457,220,3291,220,330,90153,15080,794,2330,262,341,415,330,3593,794,330,791,28351,13345,761,415,330,86924,794,2330,286,341,692,330,1337,794,330,38439,6376,369,761,692,330,5775,794,330,92434,20566,24084,505,279,46762,702,286,1173,286,341,692,330,1337,794,330,38439,6376,369,761,692,330,5775,794,330,40273,11543,1990,45704,69627,702,286,1173,286,341,692,330,1337,794,330,38439,6376,369,761,692,330,5775,794,330,89167,1188,36136,1694,11352,702,286,457,415,5243,262,1173,262,341,415,330,3593,794,330,18532,25542,666,20110,761,415,330,86924,794,2330,286,341,692,330,1337,794,330,90153,9287,922,761,692,330,5775,794,330,89167,1188,46762,702,286,1173,286,341,692,330,1337,794,330,90153,9287,922,761,692,330,5775,794,330,9470,27499,702,286,457,415,5243,262,1173,262,341,415,330,3593,794,330,86674,69675,315,42714,761,415,330,86924,794,2330,286,341,692,330,1337,794,330,724,95615,304,761,692,330,5775,794,330,791,28351,13345,702,286,457,415,5243,262,1173,262,341,415,330,3593,794,330,62158,44020,315,11188,14658,761,415,330,86924,794,2330,286,341,692,330,1337,794,330,76,20860,7808,304,761,692,330,5775,794,330,791,28351,13345,702,286,457,415,5243,262,457,220,3291,220,330,18103,794,341,262,330,38439,1292,794,330,791,28351,13345,761,262,330,26199,794,330,877,12918,761,262,330,47743,20389,794,10450,262,330,4354,34592,794,330,2366,20,12,1721,12,2437,51,410,25,1774,25,975,13,25620,23033,702,220,457,633,26198,5783,4109,512,9837,220,341,262,330,5898,794,330,9125,761,262,330,1834,794,330,24762,291,502,2038,7946,761,262,330,13333,794,330,2366,20,12,1721,12,2437,51,410,25,2983,25,2589,13,5926,23439,702,220,1173,220,341,262,330,5898,794,330,882,761,262,330,1834,794,330,3923,2271,1436,358,49643,430,1053,7380,757,1063,6761,36818,262,330,13333,794,330,2366,20,12,1721,12,2437,51,410,25,2096,25,972,13,25238,931,702,220,1173,220,341,262,330,5898,794,330,78191,761,262,330,1834,794,330,86674,69675,315,42714,374,3411,369,34300,88813,1093,499,311,1520,17622,264,5675,37739,505,832,315,279,14154,46762,13,3005,596,10032,311,2343,264,44877,2694,304,6761,323,1023,21845,10560,262,330,13333,794,330,2366,20,12,1721,12,2437,51,410,25,2096,25,972,13,25238,11436,702,220,1173,220,341,262,330,5898,794,330,882,761,262,330,1834,794,330,40,2846,304,13,3234,358,617,279,1314,7241,311,743,1022,36818,262,330,13333,794,330,2366,20,12,1721,12,2437,51,410,25,1774,25,975,13,25867,10125,702,220,1173,220,341,262,330,5898,794,330,78191,761,262,330,1834,794,330,2675,2351,4461,19167,369,279,11879,11,719,433,596,2744,264,1695,4623,311,1817,449,11060,25542,666,20110,520,42714,1603,14836,704,13,1283,2643,617,1063,15525,26793,389,1148,499,3358,1205,323,1268,311,21546,279,46762,21676,10560,262,330,13333,794,330,2366,20,12,1721,12,2437,51,410,25,1774,25,975,13,25867,10410,702,220,457,2595,2127,56956,279,1510,5044,1614,323,3293,22639,311,512,16,13,65647,3062,12912,477,12135,198,17,13,328,3884,5044,6070,82278,198,18,13,57094,1401,2038,369,3938,5905,271,5715,27785,264,2764,4823,1665,12864,279,1510,5044,6070,320,2201,5217,1495,477,16540,570,128009,128006,78191,128007,271,517,220,330,52243,1807,794,2330,262,341,415,330,34210,794,330,86674,69675,315,42714,374,10032,311,2343,6761,323,1023,21845,761,415,330,1337,794,330,724,702,262,1173,262,341,415,330,34210,794,330,18532,25542,666,20110,520,42714,706,15525,26793,389,46762,10873,761,415,330,1337,794,330,13446,702,262,457,220,3291,220,330,90153,15080,794,2330,262,341,415,330,3593,794,330,791,28351,13345,761,415,330,86924,794,2330,286,341,692,330,1337,794,330,38439,6376,369,761,692,330,5775,794,330,92434,20566,24084,505,279,46762,702,286,1173,286,341,692,330,1337,794,330,38439,6376,369,761,692,330,5775,794,330,40273,11543,1990,45704,69627,702,286,1173,286,341,692,330,1337,794,330,38439,6376,369,761,692,330,5775,794,330,89167,1188,36136,1694,11352,702,286,457,415,5243,262,1173,262,341,415,330,3593,794,330,18532,25542,666,20110,761,415,330,86924,794,2330,286,341,692,330,1337,794,330,90153,9287,922,761,692,330,5775,794,330,99725,1354,10873,702,286,457,415,5243,262,1173,262,341,415,330,3593,794,330,86674,69675,315,42714,761,415,330,86924,794,2330,286,341,692,330,1337,794,330,724,95615,304,761,692,330,5775,794,330,791,28351,13345,702,286,457,415,5243,262,457,220,3291,220,330,18103,794,341,262,330,38439,1292,794,330,791,28351,13345,761,262,330,26199,794,330,47440,1406,1753,761,262,330,47743,20389,794,2330,415,341,286,330,5898,794,330,9125,761,286,330,1834,794,330,24762,291,502,2038,7946,761,286,330,13333,794,330,2366,20,12,1721,12,2437,51,410,25,2983,25,2589,13,5926,23439,702,415,1173,415,341,286,330,5898,794,330,882,761,286,330,1834,794,330,3923,2271,1436,358,49643,430,1053,7380,757,1063,6761,36818,286,330,13333,794,330,2366,20,12,1721,12,2437,51,410,25,2096,25,972,13,25238,931,702,415,1173,415,341,286,330,5898,794,330,78191,761,286,330,1834,794,330,86674,69675,315,42714,374,3411,369,34300,88813,1093,499,311,1520,17622,264,5675,37739,505,832,315,279,14154,46762,13,3005,596,10032,311,2343,264,44877,2694,304,6761,323,1023,21845,10560,286,330,13333,794,330,2366,20,12,1721,12,2437,51,410,25,2096,25,972,13,25238,11436,702,415,1173,415,341,286,330,5898,794,330,882,761,286,330,1834,794,330,40,2846,304,13,3234,358,617,279,1314,7241,311,743,1022,36818,286,330,13333,794,330,2366,20,12,1721,12,2437,51,410,25,1774,25,975,13,25867,10125,702,415,1173,415,341,286,330,5898,794,330,78191,761,286,330,1834,794,330,2675,2351,4461,19167,369,279,11879,11,719,433,596,2744,264,1695,4623,311,1817,449,11060,25542,666,20110,520,42714,1603,14836,704,13,1283,2643,617,1063,15525,26793,389,1148,499,3358,1205,323,1268,311,21546,279,46762,21676,10560,286,330,13333,794,330,2366,20,12,1721,12,2437,51,410,25,1774,25,975,13,25867,10410,702,415,457,262,3291,262,330,4354,34592,794,330,2366,20,12,1721,12,2437,51,410,25,1774,25,975,13,25620,23033,702,220,457,92],"total_duration":7884160400,"load_duration":15900500,"prompt_eval_count":1014,"prompt_eval_duration":320000000,"eval_count":614,"eval_duration":7547000000}
+2025-01-02 00:47:15,391 - OllamaService - DEBUG - 
+--------------------------------------------------------------------------------
+2025-01-02 00:47:15,391 - OllamaService - DEBUG - RESPONSE (time: 7989.76ms, size: 2,421 bytes):
+2025-01-02 00:47:15,391 - OllamaService - DEBUG - {
+  "structured_data": [
+    {
+      "fact": "Mayor Elena of Haven is willing to pay gold and other rewards",
+      "type": "quest"
+    },
+    {
+      "fact": "Master Scholar Theron at Haven has valuable insights on ruins navigation",
+      "type": "tip"
+    }
+  ],
+  "knowledge_graph": [
+    {
+      "node": "The Lost Valley",
+      "relationships": [
+        {
+          "type": "campaign setting for",
+          "target": "Strange creatures emerging from the ruins"
+        },
+        {
+          "type": "campaign setting for",
+          "target": "Trade routes between settlements disrupted"
+        },
+        {
+          "type": "campaign setting for",
+          "target": "Ancient artifacts being discovered"
+        }
+      ]
+    },
+    {
+      "node": "Master Scholar Theron",
+      "relationships": [
+        {
+          "type": "knowledge provider about",
+          "target": "Ruins navigation"
+        }
+      ]
+    },
+    {
+      "node": "Mayor Elena of Haven",
+      "relationships": [
+        {
+          "type": "quest giver in",
+          "target": "The Lost Valley"
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "campaign_name": "The Lost Valley",
+    "phase": "EXECUTING",
+    "recent_history": [
+      {
+        "role": "system",
+        "content": "Learned new information successfully",
+        "timestamp": "2025-01-02T00:42:07.192072"
+      },
+      {
+        "role": "user",
+        "content": "What quest could I undertake that would earn me some gold?",
+        "timestamp": "2025-01-02T00:44:18.895000"
+      },
+      {
+        "role": "assistant",
+        "content": "Mayor Elena of Haven is looking for brave adventurers like you to help retrieve a lost artifact from one of the ancient ruins. She's willing to pay a handsome sum in gold and other rewards.",
+        "timestamp": "2025-01-02T00:44:18.895008"
+      },
+      {
+        "role": "user",
+        "content": "I'm in. Do I have the right equipment to set off?",
+        "timestamp": "2025-01-02T00:45:14.089139"
+      },
+      {
+        "role": "assistant",
+        "content": "You're likely equipped for the journey, but it's always a good idea to check with Master Scholar Theron at Haven before heading out. He might have some valuable insights on what you'll need and how to navigate the ruins safely.",
+        "timestamp": "2025-01-02T00:45:14.089148"
+      }
+    ],
+    "last_updated": "2025-01-02T00:45:14.088539"
+  }
+}
+2025-01-02 00:47:15,393 - OllamaService - DEBUG - --------------------------------------------------------------------------------
