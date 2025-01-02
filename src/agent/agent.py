@@ -24,52 +24,59 @@ class Agent:
         self.current_phase = AgentPhase.INITIALIZATION
         self.conversation_history: List[Dict[str, str]] = []
 
+    def get_current_phase(self) -> AgentPhase:
+        """Get the current phase of the agent"""
+        return self.current_phase
+
+    def get_conversation_history(self) -> List[Dict[str, str]]:
+        """Get the conversation history"""
+        return self.conversation_history
+
     async def process_message(self, message: str) -> str:
         """Process a user message and return a response.
         
         Args:
-            message: The user's input message
+            message: The user's message
             
         Returns:
             str: The agent's response
         """
         try:
-            # Add message to conversation history
-            self.conversation_history.append({
-                "role": "user",
-                "content": message,
-                "timestamp": datetime.now().isoformat()
-            })
-
             # Create query context
             query_context = {
                 "current_phase": self.current_phase.name,
                 "recent_messages": self.conversation_history[-5:],
                 "user_message": message
             }
-
-            # Use memory manager to process query and get response
-            query_result = self.memory.query_memory(json.dumps(query_context))
             
-            if not query_result:
-                raise Exception("Failed to get response from memory manager")
-
-            response_data = query_result
+            # Query memory for response
+            result = self.memory.query_memory(json.dumps(query_context))
             
-            # Update phase if suggested
-            suggested_phase = response_data.get("suggested_phase")
-            if suggested_phase and hasattr(AgentPhase, suggested_phase):
-                self.current_phase = getattr(AgentPhase, suggested_phase)
-
-            # Add response to conversation history
+            if not result:
+                raise Exception("Failed to get response from memory")
+            
+            # Update conversation history
             self.conversation_history.append({
-                "role": "assistant",
-                "content": response_data["response"],
+                "role": "user",
+                "content": message,
                 "timestamp": datetime.now().isoformat()
             })
-
-            return response_data["response"]
-
+            
+            self.conversation_history.append({
+                "role": "assistant",
+                "content": result["response"],
+                "timestamp": datetime.now().isoformat()
+            })
+            
+            # Update phase if suggested
+            if result.get("suggested_phase"):
+                try:
+                    self.current_phase = AgentPhase[result["suggested_phase"]]
+                except (KeyError, ValueError):
+                    pass  # Keep current phase if suggestion is invalid
+            
+            return result["response"]
+            
         except Exception as e:
             error_msg = f"Error processing message: {str(e)}"
             self.conversation_history.append({
@@ -119,45 +126,35 @@ class Agent:
             })
             return False
 
-    async def reflect(self) -> None:
-        """Periodic reflection to optimize memory."""
+    async def reflect(self) -> bool:
+        """Reflect on recent interactions to optimize memory.
+        
+        Returns:
+            bool: True if reflection was successful
+        """
         try:
             # Create reflection context
             reflection_context = {
-                "phase": self.current_phase.name,
-                "recent_history": self.conversation_history[-10:],
-                "operation": "reflect"
+                "operation": "reflect",
+                "recent_history": self.conversation_history[-10:]  # Use last 10 messages for reflection
             }
-
+            
             # Use memory manager to process reflection
             success = self.memory.update_memory(json.dumps(reflection_context))
-
-            # Add reflection to history
+            
+            # Add to conversation history
             self.conversation_history.append({
                 "role": "system",
-                "content": "Completed memory reflection and optimization" if success else "Failed to complete reflection",
+                "content": "Completed memory reflection" if success else "Failed to complete reflection",
                 "timestamp": datetime.now().isoformat()
             })
-
+            
+            return success
+            
         except Exception as e:
             self.conversation_history.append({
                 "role": "error",
                 "content": f"Error during reflection: {str(e)}",
                 "timestamp": datetime.now().isoformat()
             })
-
-    def get_conversation_history(self) -> List[Dict[str, str]]:
-        """Get the conversation history.
-        
-        Returns:
-            List[Dict[str, str]]: List of conversation messages
-        """
-        return self.conversation_history
-
-    def get_current_phase(self) -> AgentPhase:
-        """Get the current phase of the agent.
-        
-        Returns:
-            AgentPhase: Current phase enum value
-        """
-        return self.current_phase
+            return False

@@ -1020,6 +1020,159 @@ _**Assistant**_
 
 ---
 
+_**User**_
+
+OK. The memory manager is working well. Now, please update/rewrite the agent_usage_exampe.py so we can see how the memory manager works in a real, ineractive session.
+
+---
+
+_**Assistant**_
+
+
+
+---
+
+_**Assistant**_
+
+I'll create an interactive version of `agent_usage_example.py` that demonstrates real-time interaction with the agent using the memory manager.
+
+---
+
+_**Assistant**_
+
+
+
+---
+
+_**Assistant**_
+
+
+
+I've created a new version of `agent_usage_example.py` that provides a more interactive and robust experience. The key features include:
+
+1. **Better Setup and Organization**:
+   - Separated functionality into clear functions
+   - Added proper error handling throughout
+   - Improved logging and debug output
+
+2. **New Campaign Setting**:
+   - Created "The Lost Valley" setting with more depth
+   - Added multiple locations and NPCs
+   - Included ongoing situations and mysteries
+
+3. **Enhanced Interactive Features**:
+   - Added 'memory' command to view current memory state
+   - Improved 'reflect' command with success feedback
+   - Better formatted output and section headers
+
+4. **Real-time Memory Management**:
+   - Shows memory state after initialization
+   - Displays memory updates after reflection
+   - Better error handling for memory operations
+
+To use the script:
+1. Start with `python scripts/agent_usage_example.py`
+2. The agent will initialize with "The Lost Valley" campaign setting
+3. You can then interact with the agent using natural language
+4. Use special commands:
+   - Type 'memory' to see current memory state
+   - Type 'reflect' to trigger memory reflection
+   - Type 'quit' to end the session
+
+Would you like me to run the script now to test it?
+
+---
+
+_**User**_
+
+Getting this error:
+
+
+
+---
+
+_**Assistant**_
+
+I see the issue. The error is coming from the `learn` method in the Agent class when it tries to update the memory. Let's check the Agent implementation and fix the error.
+
+---
+
+_**Assistant**_
+
+
+
+---
+
+_**Assistant**_
+
+
+
+Let me update the Agent class to properly delegate memory operations to the MemoryManager.
+
+---
+
+_**Assistant**_
+
+
+
+---
+
+_**Assistant**_
+
+
+
+Now let's update the example script to enable console output for debugging and add more error handling.
+
+---
+
+_**Assistant**_
+
+
+
+---
+
+_**Assistant**_
+
+
+
+
+
+
+
+Let's also update the initialization prompt to be more explicit about requiring JSON responses.
+
+---
+
+_**Assistant**_
+
+
+
+---
+
+_**Assistant**_
+
+
+
+
+
+
+
+Let's try running the updated script now:
+
+---
+
+_**Assistant**_
+
+
+
+---
+
+_**Assistant**_
+
+
+
+---
+
 
 
 ---

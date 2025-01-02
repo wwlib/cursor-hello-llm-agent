@@ -2,122 +2,139 @@
 
 import asyncio
 import json
+from datetime import datetime
 from pathlib import Path
 
 from src.ai.llm_ollama import OllamaService
 from src.memory.memory_manager import MemoryManager
-from src.agent.agent import Agent
+from src.agent.agent import Agent, AgentPhase
 
-async def main():
-    """Example of using the Agent with Ollama for a D&D campaign."""
-    
-    print("Initializing D&D Campaign Agent...")
-    
-    # Initialize services
+def print_section_header(title):
+    """Print a formatted section header"""
+    print(f"\n{'='*80}")
+    print(f"  {title}")
+    print(f"{'='*80}\n")
+
+def print_memory_state(memory_manager, title="Current Memory State"):
+    """Helper to print memory state in a readable format"""
+    print(f"\n{title}")
+    print("=" * len(title))
+    print(json.dumps(memory_manager.get_memory_context(), indent=2))
+
+async def setup_services():
+    """Initialize the LLM service and memory manager"""
     llm_service = OllamaService({
-        "model": "llama3",  # or another model you have installed
-        "temperature": 0.7
+        "base_url": "http://192.168.1.173:11434",
+        "model": "llama3",
+        "temperature": 0.7,
+        "stream": False,
+        "debug": True,
+        "debug_file": "agent_debug.log",
+        "console_output": False
     })
     
-    memory_manager = MemoryManager(llm_service, "campaign_memory.json")
-    agent = Agent(llm_service, memory_manager)
+    try:
+        memory_manager = MemoryManager(llm_service, "agent_memory.json")
+        agent = Agent(llm_service, memory_manager)
+        return agent, memory_manager
+    except Exception as e:
+        print(f"Error initializing services: {str(e)}")
+        raise
+
+async def initialize_campaign(agent, memory_manager):
+    """Set up initial campaign state"""
+    print("\nInitializing campaign world...")
     
-    # Phase 1: Learn about the campaign world
-    print("\nPhase 1: Learning Campaign Details...")
-    campaign_details = """
-    The world is a simple, flat world with a single continent, a single ocean, and a single mountain range.
-    The world is inhabited by a single species of intelligent humanoid creatures.
-    The world is ruled by a single, benevolent monarch.
-    The world is at peace, except for reports of a monster attacking a nearby village from its lair in a mountain cave system.
-    The monster is known as the "Mountain Troll" and has reportedly wandered down from the wilds of the North.
-    The players' quest is to find the monster and kill it.
-    The village has offered a reward of 1000 gold coins for the destruction of the monster and delivery of its head to the village.
-    """
+    campaign_data = """Please structure the following campaign information into a JSON format with structured_data for facts, knowledge_graph for relationships, and appropriate metadata.
+
+Campaign Setting: The Lost Valley
+
+World Details:
+- Hidden valley surrounded by impassable mountains
+- Ancient ruins scattered throughout
+- Mysterious magical anomalies
+- Three main settlements: Haven (central), Riverwatch (east), Mountainkeep (west)
+
+Current Situation:
+- Strange creatures emerging from the ruins
+- Trade routes between settlements disrupted
+- Ancient artifacts being discovered
+- Local guilds seeking adventurers
+
+Key NPCs:
+- Mayor Elena of Haven (quest giver)
+- Master Scholar Theron (knowledge about ruins)
+- Captain Sara of Riverwatch (military leader)
+
+Return ONLY a valid JSON object with structured_data, knowledge_graph, and metadata sections. No additional text or explanation."""
     
-    success = await agent.learn(campaign_details)
+    success = await agent.learn(campaign_data)
     if not success:
-        print("Failed to learn campaign details!")
-        print(agent.conversation_history)
-        return
+        print("Failed to initialize campaign!")
+        return False
     
-    # Phase 2: Learn about the party
-    print("\nPhase 2: Learning Party Details...")
-    party_details = """
-    The party consists of 4 players:
-    1. The Wizard (Arcane Master) - High intelligence (18), skilled spellcaster
-    2. The Fighter (Battle Master) - High strength (18), melee combat specialist
-    3. The Cleric (Healer) - High wisdom (18), divine magic and healing
-    4. The Thief (Shadow Master) - High dexterity (18), stealth and skills
-    
-    They are inexperienced adventurers but skilled in their respective areas.
-    They have basic equipment appropriate for their classes.
-    """
-    
-    success = await agent.learn(party_details)
-    if not success:
-        print("Failed to learn party details!")
-        return
-    
-    # Phase 3: Interactive Campaign Session
-    print("\nPhase 3: Starting Campaign Session...")
-    print("(Type 'quit' to end the session, 'reflect' to trigger agent reflection)")
+    print("\nCampaign world initialized successfully!")
+    print_memory_state(memory_manager, "Initial Campaign State")
+    return True
+
+async def interactive_session(agent, memory_manager):
+    """Run an interactive session with the agent"""
+    print("\nStarting interactive session...")
+    print("Type 'memory' to see current memory state")
+    print("Type 'reflect' to trigger memory reflection")
+    print("Type 'quit' to end session")
     
     while True:
-        # Get user input
-        user_input = input("\nWhat would you like to do? > ")
-        
-        if user_input.lower() == 'quit':
+        try:
+            user_input = input("\nYou: ").strip()
+            
+            if user_input.lower() == 'quit':
+                break
+            elif user_input.lower() == 'memory':
+                print_memory_state(memory_manager)
+                continue
+            elif user_input.lower() == 'reflect':
+                print("\nReflecting on recent interactions...")
+                success = await agent.reflect()
+                if success:
+                    print("Reflection completed successfully!")
+                    print_memory_state(memory_manager, "Memory After Reflection")
+                else:
+                    print("Reflection failed!")
+                continue
+            
+            response = await agent.process_message(user_input)
+            print(f"\nAgent: {response}")
+            
+        except KeyboardInterrupt:
+            print("\nSession interrupted by user.")
             break
-        
-        if user_input.lower() == 'reflect':
-            print("\nAgent is reflecting on the session...")
-            await agent.reflect()
+        except Exception as e:
+            print(f"\nError during interaction: {str(e)}")
             continue
-        
-        # Process message and get response
-        response = await agent.process_message(user_input)
-        print(f"\nDungeon Master: {response}")
-        
-        # Optional: Print current phase for debugging
-        print(f"\n[Current Phase: {agent.get_current_phase().name}]")
 
-# async def example_interactions():
-#     """Example of typical interactions with the agent."""
-#     agent = await setup_agent()
+async def main():
+    """Main function to run the agent example"""
+    print_section_header("D&D Campaign Agent Example")
     
-#     # Example interactions
-#     interactions = [
-#         "Tell me about the world we're in.",
-#         "What do we know about the Mountain Troll?",
-#         "What abilities does our party have?",
-#         "We approach the village. What do we see?",
-#         "We ask the villagers about recent troll sightings."
-#     ]
-    
-#     for interaction in interactions:
-#         print(f"\nPlayer: {interaction}")
-#         response = await agent.process_message(interaction)
-#         print(f"Dungeon Master: {response}")
-#         await asyncio.sleep(1)  # Pause between interactions
-
-# async def setup_agent() -> Agent:
-#     """Setup the agent with necessary services."""
-#     llm_service = OllamaService({
-#         "model": "llama3",
-#         "temperature": 0.7
-#     })
-#     memory_manager = MemoryManager(llm_service, "example_memory.json")
-#     return Agent(llm_service, memory_manager)
+    try:
+        # Setup
+        agent, memory_manager = await setup_services()
+        
+        # Initialize campaign
+        if not await initialize_campaign(agent, memory_manager):
+            return
+        
+        # Interactive session
+        await interactive_session(agent, memory_manager)
+        
+    except Exception as e:
+        print(f"\nError during example: {str(e)}")
+    finally:
+        print("\nExample completed.")
 
 if __name__ == "__main__":
-    print("D&D Campaign Agent Example")
-    print("=========================")
-    
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
-        print("\nSession ended by user.")
-    except Exception as e:
-        print(f"\nError during session: {str(e)}")
-    finally:
-        print("\nSession ended. Thank you for playing!")
+        print("\nExample ended by user.")

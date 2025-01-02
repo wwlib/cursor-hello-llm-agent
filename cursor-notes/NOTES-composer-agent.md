@@ -128,4 +128,257 @@ When running memory_manager_usage_example.py let's use the non-streaming api for
 Yes, please add timing information to see response latency and response size logging.
 ```
 
+```
+OK. The memory manager is working well. Now, please update/rewrite the agent_usage_exampe.py so we can see how the memory manager works in a real, ineractive session.
+```
+
+
+
+## First test run of the agent - 1/1/2025 12:47am
+
+See: `cursor-notes/logs/agent_debug_1.log`
+See: `cursor-notes/logs/agent_memory_1.json`
+
+```
+python scripts/agent_usage_example.py
+```
+
+
+```
+(.venv) (base) AndrewsMacBookPro16b:cursor-hello andrewrapo$ python scripts/agent_usage_example.py
+
+================================================================================
+  D&D Campaign Agent Example
+================================================================================
+
+
+Initializing campaign world...
+Error updating memory: 'metadata'
+Failed to initialize campaign!
+
+Example completed.
+(.venv) (base) AndrewsMacBookPro16b:cursor-hello andrewrapo$ python scripts/agent_usage_example.py
+
+================================================================================
+  D&D Campaign Agent Example
+================================================================================
+
+
+Initializing campaign world...
+
+Campaign world initialized successfully!
+
+Initial Campaign State
+======================
+{
+  "structured_data": [
+    {
+      "fact": "The Lost Valley",
+      "type": "campaign setting"
+    },
+    {
+      "fact": "Hidden valley surrounded by impassable mountains",
+      "type": "world detail"
+    },
+    {
+      "fact": "Ancient ruins scattered throughout",
+      "type": "world detail"
+    },
+    {
+      "fact": "Mysterious magical anomalies",
+      "type": "world detail"
+    },
+    {
+      "fact": "Three main settlements: Haven (central), Riverwatch (east), Mountainkeep (west)",
+      "type": "world detail"
+    },
+    {
+      "fact": "Strange creatures emerging from the ruins",
+      "type": "current situation"
+    },
+    {
+      "fact": "Trade routes between settlements disrupted",
+      "type": "current situation"
+    },
+    {
+      "fact": "Ancient artifacts being discovered",
+      "type": "current situation"
+    },
+    {
+      "fact": "Local guilds seeking adventurers",
+      "type": "current situation"
+    },
+    {
+      "fact": "Mayor Elena of Haven (quest giver)",
+      "type": "key NPC"
+    },
+    {
+      "fact": "Master Scholar Theron (knowledge about ruins)",
+      "type": "key NPC"
+    },
+    {
+      "fact": "Captain Sara of Riverwatch (military leader)",
+      "type": "key NPC"
+    }
+  ],
+  "knowledge_graph": [
+    {
+      "node": "The Lost Valley",
+      "relationships": [
+        {
+          "type": "campaign setting for",
+          "target": "Strange creatures emerging from the ruins"
+        },
+        {
+          "type": "campaign setting for",
+          "target": "Trade routes between settlements disrupted"
+        },
+        {
+          "type": "campaign setting for",
+          "target": "Ancient artifacts being discovered"
+        }
+      ]
+    },
+    {
+      "node": "Mayor Elena of Haven",
+      "relationships": [
+        {
+          "type": "quest giver in",
+          "target": "The Lost Valley"
+        }
+      ]
+    },
+    {
+      "node": "Master Scholar Theron",
+      "relationships": [
+        {
+          "type": "knowledge provider about",
+          "target": "Ancient ruins"
+        }
+      ]
+    },
+    {
+      "node": "Captain Sara of Riverwatch",
+      "relationships": [
+        {
+          "type": "military leader in",
+          "target": "The Lost Valley"
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "campaign_name": "The Lost Valley",
+    "phase": "LEARNING",
+    "recent_history": [],
+    "last_updated": "2025-01-02T00:42:07.191435"
+  }
+}
+
+Starting interactive session...
+Type 'memory' to see current memory state
+Type 'reflect' to trigger memory reflection
+Type 'quit' to end session
+
+You: What quest could I undertake that would earn me some gold?
+
+Agent: Mayor Elena of Haven is looking for brave adventurers like you to help retrieve a lost artifact from one of the ancient ruins. She's willing to pay a handsome sum in gold and other rewards.
+
+You: I'm in. Do I have the right equipment to set off?
+
+Agent: You're likely equipped for the journey, but it's always a good idea to check with Master Scholar Theron at Haven before heading out. He might have some valuable insights on what you'll need and how to navigate the ruins safely.
+
+You: reflect
+
+Reflecting on recent interactions...
+Reflection completed successfully!
+
+Memory After Reflection
+=======================
+{
+  "structured_data": [
+    {
+      "fact": "Mayor Elena of Haven is willing to pay gold and other rewards",
+      "type": "quest"
+    },
+    {
+      "fact": "Master Scholar Theron at Haven has valuable insights on ruins navigation",
+      "type": "tip"
+    }
+  ],
+  "knowledge_graph": [
+    {
+      "node": "The Lost Valley",
+      "relationships": [
+        {
+          "type": "campaign setting for",
+          "target": "Strange creatures emerging from the ruins"
+        },
+        {
+          "type": "campaign setting for",
+          "target": "Trade routes between settlements disrupted"
+        },
+        {
+          "type": "campaign setting for",
+          "target": "Ancient artifacts being discovered"
+        }
+      ]
+    },
+    {
+      "node": "Master Scholar Theron",
+      "relationships": [
+        {
+          "type": "knowledge provider about",
+          "target": "Ruins navigation"
+        }
+      ]
+    },
+    {
+      "node": "Mayor Elena of Haven",
+      "relationships": [
+        {
+          "type": "quest giver in",
+          "target": "The Lost Valley"
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "campaign_name": "The Lost Valley",
+    "phase": "EXECUTING",
+    "recent_history": [
+      {
+        "role": "system",
+        "content": "Learned new information successfully",
+        "timestamp": "2025-01-02T00:42:07.192072"
+      },
+      {
+        "role": "user",
+        "content": "What quest could I undertake that would earn me some gold?",
+        "timestamp": "2025-01-02T00:44:18.895000"
+      },
+      {
+        "role": "assistant",
+        "content": "Mayor Elena of Haven is looking for brave adventurers like you to help retrieve a lost artifact from one of the ancient ruins. She's willing to pay a handsome sum in gold and other rewards.",
+        "timestamp": "2025-01-02T00:44:18.895008"
+      },
+      {
+        "role": "user",
+        "content": "I'm in. Do I have the right equipment to set off?",
+        "timestamp": "2025-01-02T00:45:14.089139"
+      },
+      {
+        "role": "assistant",
+        "content": "You're likely equipped for the journey, but it's always a good idea to check with Master Scholar Theron at Haven before heading out. He might have some valuable insights on what you'll need and how to navigate the ruins safely.",
+        "timestamp": "2025-01-02T00:45:14.089148"
+      }
+    ],
+    "last_updated": "2025-01-02T00:47:15.393223"
+  }
+}
+
+You: 
+```
+
+Wow. It works! That's pretty cool.
 
