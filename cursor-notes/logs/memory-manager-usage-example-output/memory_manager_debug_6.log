@@ -1,0 +1,950 @@
+2025-01-02 00:19:27,326 - OllamaService - DEBUG - Initialized LLM service with debug mode
+2025-01-02 00:19:27,326 - OllamaService - DEBUG - Initialized Ollama service with model: llama3
+2025-01-02 00:19:27,326 - OllamaService - DEBUG - 
+================================================================================
+2025-01-02 00:19:27,326 - OllamaService - DEBUG - PROMPT (size: 1,744 bytes):
+2025-01-02 00:19:27,327 - OllamaService - DEBUG - You are a helpful assistant that communicates using JSON. All your responses should be in strict, parsable JSON format.
+
+Your task is to analyze the provided information and create two organized data structures:
+
+1. A structured_data JSON object to store key facts and details
+2. A knowledge_graph JSON object to map relationships between entities
+
+Input Data:
+
+    
+This is a D&D campaign world with the following details:
+    
+World Structure:
+- Type: Flat world
+- Geography: Single continent with one ocean and mountain range
+- Scale: Medium-sized continent with varied terrain
+
+Population:
+- Primary Inhabitants: Humanoid creatures
+- Government: Benevolent monarchy
+- Current State: Generally peaceful
+
+Current Conflict:
+- Threat: Mountain Troll
+- Location: Mountain cave near village
+- Impact: Attacking local village
+- Quest Reward: 1000 gold coins for troll elimination
+
+Please structure this information into a JSON format with structured_data for facts, knowledge_graph for relationships, and appropriate metadata.
+
+Requirements:
+- Structure the data in a way that will be useful for the specific domain
+- Include all relevant information from the input
+- Create meaningful relationships in the knowledge graph
+- Use consistent naming and structure that can be extended in future updates
+- Include metadata about data categories to help with future queries
+
+Return ONLY a valid JSON object with this structure (no additional text or explanation):
+{
+    "structured_data": {
+        // Your structured organization of the facts and details
+    },
+    "knowledge_graph": {
+        // Your graph of relationships between entities
+    },
+    "metadata": {
+        "categories": [],
+        "timestamp": "",
+        "version": "1.0"
+    }
+}
+2025-01-02 00:19:27,327 - OllamaService - DEBUG - ================================================================================
+2025-01-02 00:19:27,327 - OllamaService - DEBUG - Making request to Ollama API at http://192.168.1.173:11434
+2025-01-02 00:19:27,327 - OllamaService - DEBUG - Model: llama3, Temperature: 0.7
+2025-01-02 00:19:27,335 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.1.173:11434
+2025-01-02 00:19:33,004 - urllib3.connectionpool - DEBUG - http://192.168.1.173:11434 "POST /api/generate HTTP/1.1" 200 None
+2025-01-02 00:19:33,005 - OllamaService - DEBUG - Ollama API request completed in 5678.06ms
+2025-01-02 00:19:33,005 - OllamaService - DEBUG - Raw response: {"model":"llama3","created_at":"2025-01-02T05:19:47.997891Z","response":"Here is the output in JSON format:\n\n{\n    \"structured_data\": {\n        \"world_structure\": {\n            \"type\": \"Flat world\",\n            \"geography\": {\n                \"ocean\": true,\n                \"mountain_range\": true\n            },\n            \"scale\": \"Medium-sized\"\n        },\n        \"population\": {\n            \"primary_inhabitants\": \"Humanoid creatures\",\n            \"government\": \"Benevolent monarchy\",\n            \"current_state\": \"Generally peaceful\"\n        },\n        \"current_conflict\": {\n            \"threat\": \"Mountain Troll\",\n            \"location\": {\n                \"type\": \"Mountain cave\",\n                \"near\": \"Village\"\n            },\n            \"impact\": \"Attacking local village\",\n            \"quest_reward\": 1000\n        }\n    },\n    \"knowledge_graph\": {\n        \"world_structure_geography\": {\n            \"ocean\": {\n                \"related_to\": [\"World Structure\"]\n            },\n            \"mountain_range\": {\n                \"related_to\": [\"World Structure\", \"Current Conflict\"]\n            }\n        },\n        \"population_government\": {\n            \"Benevolent monarchy\": {\n                \"related_to\": [\"Population\"],\n                \"government_type\": \"Monarchy\"\n            }\n        },\n        \"current_conflict_location\": {\n            \"Village\": {\n                \"related_to\": [\"Current Conflict\", \"Location\"]\n            },\n            \"Mountain cave\": {\n                \"related_to\": [\"Current Conflict\", \"Location\"]\n            }\n        },\n        \"quest_reward_conflict\": {\n            \"1000 gold coins\": {\n                \"related_to\": [\"Quest Reward\"],\n                \"reward_value\": 1000\n            },\n            \"Current Conflict\": {\n                \"related_to\": [\"Quest Reward\"],\n                \"quest_type\": \"Troll elimination\"\n            }\n        }\n    },\n    \"metadata\": {\n        \"categories\": [\"World\", \"Population\", \"Conflict\", \"Geography\", \"Government\", \"Quests\"],\n        \"timestamp\": \"2023-02-20T14:30:00Z\",\n        \"version\": \"1.0\"\n    }\n}","done":true,"done_reason":"stop","context":[128006,882,128007,271,2675,527,264,11190,18328,430,92606,1701,4823,13,2052,701,14847,1288,387,304,7452,11,10364,481,4823,3645,382,7927,3465,374,311,24564,279,3984,2038,323,1893,1403,17057,828,14726,1473,16,13,362,34030,1807,4823,1665,311,3637,1401,13363,323,3649,198,17,13,362,6677,15080,4823,1665,311,2472,12135,1990,15086,271,2566,2956,1473,1084,2028,374,264,423,33465,4901,1917,449,279,2768,3649,512,1084,10343,29696,512,12,4078,25,24492,1917,198,12,84425,25,11579,32843,449,832,18435,323,16700,2134,198,12,25635,25,25352,28935,32843,449,28830,25911,271,54471,512,12,26150,763,97802,1821,25,11344,590,20566,198,12,10423,25,87691,72137,87149,198,12,9303,3314,25,44493,26733,271,5520,59685,512,12,53435,25,19149,93737,198,12,10067,25,19149,26457,3221,14458,198,12,29680,25,7867,9162,2254,14458,198,12,15403,56900,25,220,1041,15,6761,19289,369,58534,44032,271,5618,6070,420,2038,1139,264,4823,3645,449,34030,1807,369,13363,11,6677,15080,369,12135,11,323,8475,11408,382,60302,512,12,29696,279,828,304,264,1648,430,690,387,5505,369,279,3230,8106,198,12,30834,682,9959,2038,505,279,1988,198,12,4324,23222,12135,304,279,6677,4876,198,12,5560,13263,36048,323,6070,430,649,387,11838,304,3938,9013,198,12,30834,11408,922,828,11306,311,1520,449,3938,20126,271,5715,27785,264,2764,4823,1665,449,420,6070,320,2201,5217,1495,477,16540,997,517,262,330,52243,1807,794,341,286,443,4718,34030,7471,315,279,13363,323,3649,198,262,1173,262,330,90153,15080,794,341,286,443,4718,4876,315,12135,1990,15086,198,262,1173,262,330,18103,794,341,286,330,15865,794,10450,286,330,13333,794,8488,286,330,4464,794,330,16,13,15,702,262,457,92,128009,128006,78191,128007,271,8586,374,279,2612,304,4823,3645,1473,517,262,330,52243,1807,794,341,286,330,14957,39383,794,341,310,330,1337,794,330,32119,1917,761,310,330,713,5814,794,341,394,330,78,11455,794,837,345,394,330,16966,467,9897,794,837,198,310,1173,310,330,12727,794,330,42094,28935,702,286,1173,286,330,45541,794,341,310,330,6682,1265,97802,1821,794,330,35075,590,20566,761,310,330,87863,794,330,33,1994,72137,87149,761,310,330,3311,4486,794,330,77641,26733,702,286,1173,286,330,3311,16445,21937,794,341,310,330,97229,794,330,92269,93737,761,310,330,2588,794,341,394,330,1337,794,330,92269,26457,761,394,330,52759,794,330,53,48164,702,310,1173,310,330,58400,794,330,10673,9162,2254,14458,761,310,330,724,39360,794,220,1041,15,198,286,457,262,1173,262,330,90153,15080,794,341,286,330,14957,39383,34033,5814,794,341,310,330,78,11455,794,341,394,330,9920,2401,794,4482,10343,29696,7171,310,1173,310,330,16966,467,9897,794,341,394,330,9920,2401,794,4482,10343,29696,498,330,5520,59685,7171,310,457,286,1173,286,330,45541,1928,26112,794,341,310,330,33,1994,72137,87149,794,341,394,330,9920,2401,794,4482,54471,8257,394,330,87863,1857,794,330,11342,15630,702,310,457,286,1173,286,330,3311,16445,21937,13427,794,341,310,330,53,48164,794,341,394,330,9920,2401,794,4482,5520,59685,498,330,4812,7171,310,1173,310,330,92269,26457,794,341,394,330,9920,2401,794,4482,5520,59685,498,330,4812,7171,310,457,286,1173,286,330,724,39360,16445,21937,794,341,310,330,1041,15,6761,19289,794,341,394,330,9920,2401,794,4482,20368,56900,8257,394,330,50107,3220,794,220,1041,15,198,310,1173,310,330,5520,59685,794,341,394,330,9920,2401,794,4482,20368,56900,8257,394,330,724,1857,794,330,51,1119,44032,702,310,457,286,457,262,1173,262,330,18103,794,341,286,330,15865,794,4482,10343,498,330,54471,498,330,59074,498,330,9688,5814,498,330,62569,498,330,20368,82,8257,286,330,13333,794,330,2366,18,12,2437,12,508,51,975,25,966,25,410,57,761,286,330,4464,794,330,16,13,15,702,262,457,92],"total_duration":5547891500,"load_duration":15811400,"prompt_eval_count":352,"prompt_eval_duration":278000000,"eval_count":430,"eval_duration":5252000000}
+2025-01-02 00:19:33,006 - OllamaService - DEBUG - 
+--------------------------------------------------------------------------------
+2025-01-02 00:19:33,006 - OllamaService - DEBUG - RESPONSE (time: 5679.51ms, size: 2,012 bytes):
+2025-01-02 00:19:33,006 - OllamaService - DEBUG - Here is the output in JSON format:
+
+{
+    "structured_data": {
+        "world_structure": {
+            "type": "Flat world",
+            "geography": {
+                "ocean": true,
+                "mountain_range": true
+            },
+            "scale": "Medium-sized"
+        },
+        "population": {
+            "primary_inhabitants": "Humanoid creatures",
+            "government": "Benevolent monarchy",
+            "current_state": "Generally peaceful"
+        },
+        "current_conflict": {
+            "threat": "Mountain Troll",
+            "location": {
+                "type": "Mountain cave",
+                "near": "Village"
+            },
+            "impact": "Attacking local village",
+            "quest_reward": 1000
+        }
+    },
+    "knowledge_graph": {
+        "world_structure_geography": {
+            "ocean": {
+                "related_to": ["World Structure"]
+            },
+            "mountain_range": {
+                "related_to": ["World Structure", "Current Conflict"]
+            }
+        },
+        "population_government": {
+            "Benevolent monarchy": {
+                "related_to": ["Population"],
+                "government_type": "Monarchy"
+            }
+        },
+        "current_conflict_location": {
+            "Village": {
+                "related_to": ["Current Conflict", "Location"]
+            },
+            "Mountain cave": {
+                "related_to": ["Current Conflict", "Location"]
+            }
+        },
+        "quest_reward_conflict": {
+            "1000 gold coins": {
+                "related_to": ["Quest Reward"],
+                "reward_value": 1000
+            },
+            "Current Conflict": {
+                "related_to": ["Quest Reward"],
+                "quest_type": "Troll elimination"
+            }
+        }
+    },
+    "metadata": {
+        "categories": ["World", "Population", "Conflict", "Geography", "Government", "Quests"],
+        "timestamp": "2023-02-20T14:30:00Z",
+        "version": "1.0"
+    }
+}
+2025-01-02 00:19:33,007 - OllamaService - DEBUG - --------------------------------------------------------------------------------
+2025-01-02 00:19:33,008 - OllamaService - DEBUG - 
+================================================================================
+2025-01-02 00:19:33,008 - OllamaService - DEBUG - PROMPT (size: 2,774 bytes):
+2025-01-02 00:19:33,008 - OllamaService - DEBUG - You are a helpful assistant that communicates using JSON. All your responses should be in strict, parsable JSON format.
+
+Context:
+{
+  "structured_data": {
+    "world_structure": {
+      "type": "Flat world",
+      "geography": {
+        "ocean": true,
+        "mountain_range": true
+      },
+      "scale": "Medium-sized"
+    },
+    "population": {
+      "primary_inhabitants": "Humanoid creatures",
+      "government": "Benevolent monarchy",
+      "current_state": "Generally peaceful"
+    },
+    "current_conflict": {
+      "threat": "Mountain Troll",
+      "location": {
+        "type": "Mountain cave",
+        "near": "Village"
+      },
+      "impact": "Attacking local village",
+      "quest_reward": 1000
+    }
+  },
+  "knowledge_graph": {
+    "world_structure_geography": {
+      "ocean": {
+        "related_to": [
+          "World Structure"
+        ]
+      },
+      "mountain_range": {
+        "related_to": [
+          "World Structure",
+          "Current Conflict"
+        ]
+      }
+    },
+    "population_government": {
+      "Benevolent monarchy": {
+        "related_to": [
+          "Population"
+        ],
+        "government_type": "Monarchy"
+      }
+    },
+    "current_conflict_location": {
+      "Village": {
+        "related_to": [
+          "Current Conflict",
+          "Location"
+        ]
+      },
+      "Mountain cave": {
+        "related_to": [
+          "Current Conflict",
+          "Location"
+        ]
+      }
+    },
+    "quest_reward_conflict": {
+      "1000 gold coins": {
+        "related_to": [
+          "Quest Reward"
+        ],
+        "reward_value": 1000
+      },
+      "Current Conflict": {
+        "related_to": [
+          "Quest Reward"
+        ],
+        "quest_type": "Troll elimination"
+      }
+    }
+  },
+  "metadata": {
+    "categories": [
+      "World",
+      "Population",
+      "Conflict",
+      "Geography",
+      "Government",
+      "Quests"
+    ],
+    "timestamp": "2023-02-20T14:30:00Z",
+    "version": "1.0",
+    "created_at": "2025-01-02T00:19:33.007519",
+    "last_updated": "2025-01-02T00:19:33.007530"
+  }
+}
+
+Current Phase: LEARNING
+Previous Messages: [
+  {
+    "role": "user",
+    "content": "Tell me about the world.",
+    "timestamp": "2025-01-02T00:19:33.008393"
+  }
+]
+
+User Message: Tell me about the world.
+
+Generate a response that:
+1. Uses relevant information from memory
+2. Maintains consistency with previous interactions
+3. Advances the current phase appropriately
+4. Identifies any new information to be stored
+
+Return ONLY a valid JSON object with this structure (no additional text or explanation):
+{
+    "response": "Your response here",
+    "new_information": {
+        // Any new information to be stored
+    },
+    "suggested_phase": "current or next phase name",
+    "confidence": 0.0 to 1.0
+}
+2025-01-02 00:19:33,008 - OllamaService - DEBUG - ================================================================================
+2025-01-02 00:19:33,009 - OllamaService - DEBUG - Making request to Ollama API at http://192.168.1.173:11434
+2025-01-02 00:19:33,009 - OllamaService - DEBUG - Model: llama3, Temperature: 0.7
+2025-01-02 00:19:33,010 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.1.173:11434
+2025-01-02 00:19:33,925 - urllib3.connectionpool - DEBUG - http://192.168.1.173:11434 "POST /api/generate HTTP/1.1" 200 None
+2025-01-02 00:19:33,926 - OllamaService - DEBUG - Ollama API request completed in 917.08ms
+2025-01-02 00:19:33,926 - OllamaService - DEBUG - Raw response: {"model":"llama3","created_at":"2025-01-02T05:19:49.0242Z","response":"{\n  \"response\": \"The world is a flat, medium-sized one with an ocean and mountain range. The primary inhabitants are humanoid creatures governed by a benevolent monarchy.\",\n  \"new_information\": {},\n  \"suggested_phase\": \"INVESTIGATION\",\n  \"confidence\": 0.8\n}","done":true,"done_reason":"stop","context":[128006,882,128007,271,2675,527,264,11190,18328,430,92606,1701,4823,13,2052,701,14847,1288,387,304,7452,11,10364,481,4823,3645,382,2014,512,517,220,330,52243,1807,794,341,262,330,14957,39383,794,341,415,330,1337,794,330,32119,1917,761,415,330,713,5814,794,341,286,330,78,11455,794,837,345,286,330,16966,467,9897,794,837,198,415,1173,415,330,12727,794,330,42094,28935,702,262,1173,262,330,45541,794,341,415,330,6682,1265,97802,1821,794,330,35075,590,20566,761,415,330,87863,794,330,33,1994,72137,87149,761,415,330,3311,4486,794,330,77641,26733,702,262,1173,262,330,3311,16445,21937,794,341,415,330,97229,794,330,92269,93737,761,415,330,2588,794,341,286,330,1337,794,330,92269,26457,761,286,330,52759,794,330,53,48164,702,415,1173,415,330,58400,794,330,10673,9162,2254,14458,761,415,330,724,39360,794,220,1041,15,198,262,457,220,1173,220,330,90153,15080,794,341,262,330,14957,39383,34033,5814,794,341,415,330,78,11455,794,341,286,330,9920,2401,794,2330,692,330,10343,29696,702,286,5243,415,1173,415,330,16966,467,9897,794,341,286,330,9920,2401,794,2330,692,330,10343,29696,761,692,330,5520,59685,702,286,5243,415,457,262,1173,262,330,45541,1928,26112,794,341,415,330,33,1994,72137,87149,794,341,286,330,9920,2401,794,2330,692,330,54471,702,286,3291,286,330,87863,1857,794,330,11342,15630,702,415,457,262,1173,262,330,3311,16445,21937,13427,794,341,415,330,53,48164,794,341,286,330,9920,2401,794,2330,692,330,5520,59685,761,692,330,4812,702,286,5243,415,1173,415,330,92269,26457,794,341,286,330,9920,2401,794,2330,692,330,5520,59685,761,692,330,4812,702,286,5243,415,457,262,1173,262,330,724,39360,16445,21937,794,341,415,330,1041,15,6761,19289,794,341,286,330,9920,2401,794,2330,692,330,20368,56900,702,286,3291,286,330,50107,3220,794,220,1041,15,198,415,1173,415,330,5520,59685,794,341,286,330,9920,2401,794,2330,692,330,20368,56900,702,286,3291,286,330,724,1857,794,330,51,1119,44032,702,415,457,262,457,220,1173,220,330,18103,794,341,262,330,15865,794,2330,415,330,10343,761,415,330,54471,761,415,330,59074,761,415,330,9688,5814,761,415,330,62569,761,415,330,20368,82,702,262,3291,262,330,13333,794,330,2366,18,12,2437,12,508,51,975,25,966,25,410,57,761,262,330,4464,794,330,16,13,15,761,262,330,7266,3837,794,330,2366,20,12,1721,12,2437,51,410,25,777,25,1644,13,11194,21851,761,262,330,4354,34592,794,330,2366,20,12,1721,12,2437,51,410,25,777,25,1644,13,11194,17252,702,220,457,633,5520,28673,25,11396,12918,198,21994,27827,25,2330,220,341,262,330,5898,794,330,882,761,262,330,1834,794,330,41551,757,922,279,1917,10560,262,330,13333,794,330,2366,20,12,1721,12,2437,51,410,25,777,25,1644,13,11436,18252,702,220,457,2595,1502,4961,25,25672,757,922,279,1917,382,32215,264,2077,430,512,16,13,39923,9959,2038,505,5044,198,17,13,43987,1771,29237,449,3766,22639,198,18,13,91958,279,1510,10474,36001,198,19,13,23322,9803,904,502,2038,311,387,9967,271,5715,27785,264,2764,4823,1665,449,420,6070,320,2201,5217,1495,477,16540,997,517,262,330,2376,794,330,7927,2077,1618,761,262,330,943,36312,794,341,286,443,5884,502,2038,311,387,9967,198,262,1173,262,330,82,54376,38693,794,330,3311,477,1828,10474,836,761,262,330,83029,794,220,15,13,15,311,220,16,13,15,198,92,128009,128006,78191,128007,271,517,220,330,2376,794,330,791,1917,374,264,10269,11,11298,28935,832,449,459,18435,323,16700,2134,13,578,6156,40771,527,93209,20566,27800,555,264,20331,72137,87149,10560,220,330,943,36312,794,14915,220,330,82,54376,38693,794,330,691,71302,66792,761,220,330,83029,794,220,15,13,23,198,92],"total_duration":902577800,"load_duration":16498800,"prompt_eval_count":715,"prompt_eval_duration":122000000,"eval_count":63,"eval_duration":763000000}
+2025-01-02 00:19:33,927 - OllamaService - DEBUG - 
+--------------------------------------------------------------------------------
+2025-01-02 00:19:33,927 - OllamaService - DEBUG - RESPONSE (time: 918.03ms, size: 257 bytes):
+2025-01-02 00:19:33,927 - OllamaService - DEBUG - {
+  "response": "The world is a flat, medium-sized one with an ocean and mountain range. The primary inhabitants are humanoid creatures governed by a benevolent monarchy.",
+  "new_information": {},
+  "suggested_phase": "INVESTIGATION",
+  "confidence": 0.8
+}
+2025-01-02 00:19:33,927 - OllamaService - DEBUG - --------------------------------------------------------------------------------
+2025-01-02 00:19:33,927 - OllamaService - DEBUG - 
+================================================================================
+2025-01-02 00:19:33,927 - OllamaService - DEBUG - PROMPT (size: 2,827 bytes):
+2025-01-02 00:19:33,927 - OllamaService - DEBUG - You are a helpful assistant that communicates using JSON. All your responses should be in strict, parsable JSON format.
+
+Current Memory State:
+{
+  "structured_data": {
+    "world_structure": {
+      "type": "Flat world",
+      "geography": {
+        "ocean": true,
+        "mountain_range": true
+      },
+      "scale": "Medium-sized"
+    },
+    "population": {
+      "primary_inhabitants": "Humanoid creatures",
+      "government": "Benevolent monarchy",
+      "current_state": "Generally peaceful"
+    },
+    "current_conflict": {
+      "threat": "Mountain Troll",
+      "location": {
+        "type": "Mountain cave",
+        "near": "Village"
+      },
+      "impact": "Attacking local village",
+      "quest_reward": 1000
+    }
+  },
+  "knowledge_graph": {
+    "world_structure_geography": {
+      "ocean": {
+        "related_to": [
+          "World Structure"
+        ]
+      },
+      "mountain_range": {
+        "related_to": [
+          "World Structure",
+          "Current Conflict"
+        ]
+      }
+    },
+    "population_government": {
+      "Benevolent monarchy": {
+        "related_to": [
+          "Population"
+        ],
+        "government_type": "Monarchy"
+      }
+    },
+    "current_conflict_location": {
+      "Village": {
+        "related_to": [
+          "Current Conflict",
+          "Location"
+        ]
+      },
+      "Mountain cave": {
+        "related_to": [
+          "Current Conflict",
+          "Location"
+        ]
+      }
+    },
+    "quest_reward_conflict": {
+      "1000 gold coins": {
+        "related_to": [
+          "Quest Reward"
+        ],
+        "reward_value": 1000
+      },
+      "Current Conflict": {
+        "related_to": [
+          "Quest Reward"
+        ],
+        "quest_type": "Troll elimination"
+      }
+    }
+  },
+  "metadata": {
+    "categories": [
+      "World",
+      "Population",
+      "Conflict",
+      "Geography",
+      "Government",
+      "Quests"
+    ],
+    "timestamp": "2023-02-20T14:30:00Z",
+    "version": "1.0",
+    "created_at": "2025-01-02T00:19:33.007519",
+    "last_updated": "2025-01-02T00:19:33.007530"
+  }
+}
+
+Phase: LEARNING
+New Information: 
+        New information about the Mountain Troll:
+        - Recently seen near the village's eastern farms
+        - Described as 12 feet tall with grey skin
+        - Known to be afraid of fire
+        - Has been stealing livestock at night
+        
+Recent History: [
+  {
+    "role": "user",
+    "content": "What have the villagers learned about the troll?",
+    "timestamp": "2025-01-02T00:19:33.927531"
+  }
+]
+
+Analyze this information and return a JSON object containing:
+1. Updated structured data
+2. New or modified relationships for the knowledge graph
+3. Any necessary changes to existing memory
+
+Return ONLY a valid JSON object matching the current memory structure (no additional text or explanation).
+2025-01-02 00:19:33,928 - OllamaService - DEBUG - ================================================================================
+2025-01-02 00:19:33,928 - OllamaService - DEBUG - Making request to Ollama API at http://192.168.1.173:11434
+2025-01-02 00:19:33,928 - OllamaService - DEBUG - Model: llama3, Temperature: 0.7
+2025-01-02 00:19:33,929 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.1.173:11434
+2025-01-02 00:19:41,259 - urllib3.connectionpool - DEBUG - http://192.168.1.173:11434 "POST /api/generate HTTP/1.1" 200 None
+2025-01-02 00:19:41,260 - OllamaService - DEBUG - Ollama API request completed in 7331.58ms
+2025-01-02 00:19:41,260 - OllamaService - DEBUG - Raw response: {"model":"llama3","created_at":"2025-01-02T05:19:56.1555609Z","response":"{\n  \"structured_data\": {\n    \"current_conflict\": {\n      \"threat\": \"Mountain Troll\",\n      \"location\": {\n        \"type\": \"Mountain cave\",\n        \"near\": [\"Village\", \"Eastern farms\"]\n      },\n      \"impact\": \"Attacking local village, stealing livestock at night\",\n      \"quest_reward\": 1000\n    }\n  },\n  \"knowledge_graph\": {\n    \"world_structure_geography\": {\n      \"ocean\": {\n        \"related_to\": [\n          \"World Structure\"\n        ]\n      },\n      \"mountain_range\": {\n        \"related_to\": [\n          \"World Structure\",\n          \"Current Conflict\"\n        ]\n      }\n    },\n    \"population_government\": {\n      \"Benevolent monarchy\": {\n        \"related_to\": [\n          \"Population\"\n        ],\n        \"government_type\": \"Monarchy\"\n      }\n    },\n    \"current_conflict_location\": {\n      \"Village\": {\n        \"related_to\": [\n          \"Current Conflict\",\n          \"Location\"\n        ]\n      },\n      \"Eastern farms\": {\n        \"related_to\": [\n          \"Current Conflict\",\n          \"Location\"\n        ]\n      },\n      \"Mountain cave\": {\n        \"related_to\": [\n          \"Current Conflict\",\n          \"Location\"\n        ]\n      }\n    },\n    \"troll_characteristics\": {\n      \"grey skin\": {\n        \"related_to\": [\n          \"Mountain Troll\"\n        ],\n        \"characteristic_type\": \"Physical appearance\"\n      },\n      \"12 feet tall\": {\n        \"related_to\": [\n          \"Mountain Troll\"\n        ],\n        \"characteristic_type\": \"Physical size\"\n      },\n      \"Afraid of fire\": {\n        \"related_to\": [\n          \"Mountain Troll\"\n        ],\n        \"characteristic_type\": \"Personality trait\"\n      }\n    },\n    \"quest_reward_conflict\": {\n      \"1000 gold coins\": {\n        \"related_to\": [\n          \"Quest Reward\"\n        ],\n        \"reward_value\": 1000\n      },\n      \"Current Conflict\": {\n        \"related_to\": [\n          \"Quest Reward\"\n        ],\n        \"quest_type\": \"Troll elimination\"\n      }\n    }\n  },\n  \"metadata\": {\n    \"categories\": [\n      \"World\",\n      \"Population\",\n      \"Conflict\",\n      \"Geography\",\n      \"Government\",\n      \"Quests\",\n      \"Characteristics\"\n    ],\n    \"timestamp\": \"2023-02-20T14:30:00Z\",\n    \"version\": \"1.0\",\n    \"created_at\": \"2025-01-02T00:19:33.007519\",\n    \"last_updated\": \"2025-01-03T12:45:10.000012\"\n  }\n}","done":true,"done_reason":"stop","context":[128006,882,128007,271,2675,527,264,11190,18328,430,92606,1701,4823,13,2052,701,14847,1288,387,304,7452,11,10364,481,4823,3645,382,5520,14171,3314,512,517,220,330,52243,1807,794,341,262,330,14957,39383,794,341,415,330,1337,794,330,32119,1917,761,415,330,713,5814,794,341,286,330,78,11455,794,837,345,286,330,16966,467,9897,794,837,198,415,1173,415,330,12727,794,330,42094,28935,702,262,1173,262,330,45541,794,341,415,330,6682,1265,97802,1821,794,330,35075,590,20566,761,415,330,87863,794,330,33,1994,72137,87149,761,415,330,3311,4486,794,330,77641,26733,702,262,1173,262,330,3311,16445,21937,794,341,415,330,97229,794,330,92269,93737,761,415,330,2588,794,341,286,330,1337,794,330,92269,26457,761,286,330,52759,794,330,53,48164,702,415,1173,415,330,58400,794,330,10673,9162,2254,14458,761,415,330,724,39360,794,220,1041,15,198,262,457,220,1173,220,330,90153,15080,794,341,262,330,14957,39383,34033,5814,794,341,415,330,78,11455,794,341,286,330,9920,2401,794,2330,692,330,10343,29696,702,286,5243,415,1173,415,330,16966,467,9897,794,341,286,330,9920,2401,794,2330,692,330,10343,29696,761,692,330,5520,59685,702,286,5243,415,457,262,1173,262,330,45541,1928,26112,794,341,415,330,33,1994,72137,87149,794,341,286,330,9920,2401,794,2330,692,330,54471,702,286,3291,286,330,87863,1857,794,330,11342,15630,702,415,457,262,1173,262,330,3311,16445,21937,13427,794,341,415,330,53,48164,794,341,286,330,9920,2401,794,2330,692,330,5520,59685,761,692,330,4812,702,286,5243,415,1173,415,330,92269,26457,794,341,286,330,9920,2401,794,2330,692,330,5520,59685,761,692,330,4812,702,286,5243,415,457,262,1173,262,330,724,39360,16445,21937,794,341,415,330,1041,15,6761,19289,794,341,286,330,9920,2401,794,2330,692,330,20368,56900,702,286,3291,286,330,50107,3220,794,220,1041,15,198,415,1173,415,330,5520,59685,794,341,286,330,9920,2401,794,2330,692,330,20368,56900,702,286,3291,286,330,724,1857,794,330,51,1119,44032,702,415,457,262,457,220,1173,220,330,18103,794,341,262,330,15865,794,2330,415,330,10343,761,415,330,54471,761,415,330,59074,761,415,330,9688,5814,761,415,330,62569,761,415,330,20368,82,702,262,3291,262,330,13333,794,330,2366,18,12,2437,12,508,51,975,25,966,25,410,57,761,262,330,4464,794,330,16,13,15,761,262,330,7266,3837,794,330,2366,20,12,1721,12,2437,51,410,25,777,25,1644,13,11194,21851,761,262,330,4354,34592,794,330,2366,20,12,1721,12,2437,51,410,25,777,25,1644,13,11194,17252,702,220,457,633,31833,25,11396,12918,198,3648,8245,25,720,286,1561,2038,922,279,19149,93737,512,286,482,42096,3970,3221,279,14458,596,24024,34324,198,286,482,3959,17890,439,220,717,7693,16615,449,20366,6930,198,286,482,49386,311,387,16984,315,4027,198,286,482,11697,1027,39098,51876,520,3814,9122,26198,11346,25,2330,220,341,262,330,5898,794,330,882,761,262,330,1834,794,330,3923,617,279,61921,9687,922,279,58534,36818,262,330,13333,794,330,2366,20,12,1721,12,2437,51,410,25,777,25,1644,13,26437,20823,702,220,457,2595,2127,56956,420,2038,323,471,264,4823,1665,8649,512,16,13,16459,34030,828,198,17,13,1561,477,11041,12135,369,279,6677,4876,198,18,13,5884,5995,4442,311,6484,5044,271,5715,27785,264,2764,4823,1665,12864,279,1510,5044,6070,320,2201,5217,1495,477,16540,570,128009,128006,78191,128007,271,517,220,330,52243,1807,794,341,262,330,3311,16445,21937,794,341,415,330,97229,794,330,92269,93737,761,415,330,2588,794,341,286,330,1337,794,330,92269,26457,761,286,330,52759,794,4482,53,48164,498,330,97488,34324,7171,415,1173,415,330,58400,794,330,10673,9162,2254,14458,11,39098,51876,520,3814,761,415,330,724,39360,794,220,1041,15,198,262,457,220,1173,220,330,90153,15080,794,341,262,330,14957,39383,34033,5814,794,341,415,330,78,11455,794,341,286,330,9920,2401,794,2330,692,330,10343,29696,702,286,5243,415,1173,415,330,16966,467,9897,794,341,286,330,9920,2401,794,2330,692,330,10343,29696,761,692,330,5520,59685,702,286,5243,415,457,262,1173,262,330,45541,1928,26112,794,341,415,330,33,1994,72137,87149,794,341,286,330,9920,2401,794,2330,692,330,54471,702,286,3291,286,330,87863,1857,794,330,11342,15630,702,415,457,262,1173,262,330,3311,16445,21937,13427,794,341,415,330,53,48164,794,341,286,330,9920,2401,794,2330,692,330,5520,59685,761,692,330,4812,702,286,5243,415,1173,415,330,97488,34324,794,341,286,330,9920,2401,794,2330,692,330,5520,59685,761,692,330,4812,702,286,5243,415,1173,415,330,92269,26457,794,341,286,330,9920,2401,794,2330,692,330,5520,59685,761,692,330,4812,702,286,5243,415,457,262,1173,262,330,83,1119,42088,5706,794,341,415,330,35671,6930,794,341,286,330,9920,2401,794,2330,692,330,92269,93737,702,286,3291,286,330,19740,4633,1857,794,330,40353,11341,702,415,1173,415,330,717,7693,16615,794,341,286,330,9920,2401,794,2330,692,330,92269,93737,702,286,3291,286,330,19740,4633,1857,794,330,40353,1404,702,415,1173,415,330,55439,14152,315,4027,794,341,286,330,9920,2401,794,2330,692,330,92269,93737,702,286,3291,286,330,19740,4633,1857,794,330,10909,2786,18027,702,415,457,262,1173,262,330,724,39360,16445,21937,794,341,415,330,1041,15,6761,19289,794,341,286,330,9920,2401,794,2330,692,330,20368,56900,702,286,3291,286,330,50107,3220,794,220,1041,15,198,415,1173,415,330,5520,59685,794,341,286,330,9920,2401,794,2330,692,330,20368,56900,702,286,3291,286,330,724,1857,794,330,51,1119,44032,702,415,457,262,457,220,1173,220,330,18103,794,341,262,330,15865,794,2330,415,330,10343,761,415,330,54471,761,415,330,59074,761,415,330,9688,5814,761,415,330,62569,761,415,330,20368,82,761,415,330,12686,5706,702,262,3291,262,330,13333,794,330,2366,18,12,2437,12,508,51,975,25,966,25,410,57,761,262,330,4464,794,330,16,13,15,761,262,330,7266,3837,794,330,2366,20,12,1721,12,2437,51,410,25,777,25,1644,13,11194,21851,761,262,330,4354,34592,794,330,2366,20,12,1721,12,2839,51,717,25,1774,25,605,13,931,11531,702,220,457,92],"total_duration":7115232200,"load_duration":121794300,"prompt_eval_count":707,"prompt_eval_duration":121000000,"eval_count":567,"eval_duration":6870000000}
+2025-01-02 00:19:41,261 - OllamaService - DEBUG - 
+--------------------------------------------------------------------------------
+2025-01-02 00:19:41,261 - OllamaService - DEBUG - RESPONSE (time: 7333.19ms, size: 2,263 bytes):
+2025-01-02 00:19:41,261 - OllamaService - DEBUG - {
+  "structured_data": {
+    "current_conflict": {
+      "threat": "Mountain Troll",
+      "location": {
+        "type": "Mountain cave",
+        "near": ["Village", "Eastern farms"]
+      },
+      "impact": "Attacking local village, stealing livestock at night",
+      "quest_reward": 1000
+    }
+  },
+  "knowledge_graph": {
+    "world_structure_geography": {
+      "ocean": {
+        "related_to": [
+          "World Structure"
+        ]
+      },
+      "mountain_range": {
+        "related_to": [
+          "World Structure",
+          "Current Conflict"
+        ]
+      }
+    },
+    "population_government": {
+      "Benevolent monarchy": {
+        "related_to": [
+          "Population"
+        ],
+        "government_type": "Monarchy"
+      }
+    },
+    "current_conflict_location": {
+      "Village": {
+        "related_to": [
+          "Current Conflict",
+          "Location"
+        ]
+      },
+      "Eastern farms": {
+        "related_to": [
+          "Current Conflict",
+          "Location"
+        ]
+      },
+      "Mountain cave": {
+        "related_to": [
+          "Current Conflict",
+          "Location"
+        ]
+      }
+    },
+    "troll_characteristics": {
+      "grey skin": {
+        "related_to": [
+          "Mountain Troll"
+        ],
+        "characteristic_type": "Physical appearance"
+      },
+      "12 feet tall": {
+        "related_to": [
+          "Mountain Troll"
+        ],
+        "characteristic_type": "Physical size"
+      },
+      "Afraid of fire": {
+        "related_to": [
+          "Mountain Troll"
+        ],
+        "characteristic_type": "Personality trait"
+      }
+    },
+    "quest_reward_conflict": {
+      "1000 gold coins": {
+        "related_to": [
+          "Quest Reward"
+        ],
+        "reward_value": 1000
+      },
+      "Current Conflict": {
+        "related_to": [
+          "Quest Reward"
+        ],
+        "quest_type": "Troll elimination"
+      }
+    }
+  },
+  "metadata": {
+    "categories": [
+      "World",
+      "Population",
+      "Conflict",
+      "Geography",
+      "Government",
+      "Quests",
+      "Characteristics"
+    ],
+    "timestamp": "2023-02-20T14:30:00Z",
+    "version": "1.0",
+    "created_at": "2025-01-02T00:19:33.007519",
+    "last_updated": "2025-01-03T12:45:10.000012"
+  }
+}
+2025-01-02 00:19:41,261 - OllamaService - DEBUG - --------------------------------------------------------------------------------
+2025-01-02 00:19:41,263 - OllamaService - DEBUG - 
+================================================================================
+2025-01-02 00:19:41,263 - OllamaService - DEBUG - PROMPT (size: 3,289 bytes):
+2025-01-02 00:19:41,263 - OllamaService - DEBUG - You are a helpful assistant that communicates using JSON. All your responses should be in strict, parsable JSON format.
+
+Current Memory State:
+{
+  "structured_data": {
+    "current_conflict": {
+      "threat": "Mountain Troll",
+      "location": {
+        "type": "Mountain cave",
+        "near": [
+          "Village",
+          "Eastern farms"
+        ]
+      },
+      "impact": "Attacking local village, stealing livestock at night",
+      "quest_reward": 1000
+    }
+  },
+  "knowledge_graph": {
+    "world_structure_geography": {
+      "ocean": {
+        "related_to": [
+          "World Structure"
+        ]
+      },
+      "mountain_range": {
+        "related_to": [
+          "World Structure",
+          "Current Conflict"
+        ]
+      }
+    },
+    "population_government": {
+      "Benevolent monarchy": {
+        "related_to": [
+          "Population"
+        ],
+        "government_type": "Monarchy"
+      }
+    },
+    "current_conflict_location": {
+      "Village": {
+        "related_to": [
+          "Current Conflict",
+          "Location"
+        ]
+      },
+      "Eastern farms": {
+        "related_to": [
+          "Current Conflict",
+          "Location"
+        ]
+      },
+      "Mountain cave": {
+        "related_to": [
+          "Current Conflict",
+          "Location"
+        ]
+      }
+    },
+    "troll_characteristics": {
+      "grey skin": {
+        "related_to": [
+          "Mountain Troll"
+        ],
+        "characteristic_type": "Physical appearance"
+      },
+      "12 feet tall": {
+        "related_to": [
+          "Mountain Troll"
+        ],
+        "characteristic_type": "Physical size"
+      },
+      "Afraid of fire": {
+        "related_to": [
+          "Mountain Troll"
+        ],
+        "characteristic_type": "Personality trait"
+      }
+    },
+    "quest_reward_conflict": {
+      "1000 gold coins": {
+        "related_to": [
+          "Quest Reward"
+        ],
+        "reward_value": 1000
+      },
+      "Current Conflict": {
+        "related_to": [
+          "Quest Reward"
+        ],
+        "quest_type": "Troll elimination"
+      }
+    }
+  },
+  "metadata": {
+    "categories": [
+      "World",
+      "Population",
+      "Conflict",
+      "Geography",
+      "Government",
+      "Quests",
+      "Characteristics"
+    ],
+    "timestamp": "2023-02-20T14:30:00Z",
+    "version": "1.0",
+    "created_at": "2025-01-02T00:19:33.007519",
+    "last_updated": "2025-01-02T00:19:41.262081"
+  }
+}
+
+Recent Interactions:
+[
+  {
+    "role": "user",
+    "content": "Tell me about the world.",
+    "timestamp": "2025-01-02T00:19:41.263047"
+  },
+  {
+    "role": "assistant",
+    "content": "It's a flat world with a single continent...",
+    "timestamp": "2025-01-02T00:19:41.263055"
+  },
+  {
+    "role": "user",
+    "content": "What about the troll?",
+    "timestamp": "2025-01-02T00:19:41.263059"
+  },
+  {
+    "role": "assistant",
+    "content": "The troll is 12 feet tall with grey skin...",
+    "timestamp": "2025-01-02T00:19:41.263061"
+  }
+]
+
+Analyze the current memory state and recent interactions to:
+1. Identify important patterns or relationships
+2. Suggest memory structure optimizations
+3. Highlight key information for future reference
+
+Return ONLY a valid JSON object matching the current memory structure (no additional text or explanation).
+2025-01-02 00:19:41,263 - OllamaService - DEBUG - ================================================================================
+2025-01-02 00:19:41,264 - OllamaService - DEBUG - Making request to Ollama API at http://192.168.1.173:11434
+2025-01-02 00:19:41,264 - OllamaService - DEBUG - Model: llama3, Temperature: 0.7
+2025-01-02 00:19:41,265 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.1.173:11434
+2025-01-02 00:19:48,428 - urllib3.connectionpool - DEBUG - http://192.168.1.173:11434 "POST /api/generate HTTP/1.1" 200 None
+2025-01-02 00:19:48,429 - OllamaService - DEBUG - Ollama API request completed in 7165.64ms
+2025-01-02 00:19:48,430 - OllamaService - DEBUG - Raw response: {"model":"llama3","created_at":"2025-01-02T05:20:03.3200622Z","response":"{\n  \"structured_data\": {\n    \"world_structure_geography\": {\n      \"ocean\": {\n        \"related_to\": [\n          \"World Structure\"\n        ]\n      },\n      \"mountain_range\": {\n        \"related_to\": [\n          \"World Structure\",\n          \"Current Conflict\"\n        ]\n      }\n    }\n  },\n  \"knowledge_graph\": {\n    \"world_structure_geography\": {\n      \"ocean\": {\n        \"related_to\": [\n          \"World Structure\"\n        ]\n      },\n      \"mountain_range\": {\n        \"related_to\": [\n          \"World Structure\",\n          \"Current Conflict\"\n        ]\n      }\n    },\n    \"population_government\": {\n      \"Benevolent monarchy\": {\n        \"related_to\": [\n          \"Population\"\n        ],\n        \"government_type\": \"Monarchy\"\n      }\n    },\n    \"current_conflict_location\": {\n      \"Village\": {\n        \"related_to\": [\n          \"Current Conflict\",\n          \"Location\"\n        ]\n      },\n      \"Eastern farms\": {\n        \"related_to\": [\n          \"Current Conflict\",\n          \"Location\"\n        ]\n      },\n      \"Mountain cave\": {\n        \"related_to\": [\n          \"Current Conflict\",\n          \"Location\"\n        ]\n      }\n    },\n    \"troll_characteristics\": {\n      \"grey skin\": {\n        \"related_to\": [\n          \"Mountain Troll\"\n        ],\n        \"characteristic_type\": \"Physical appearance\"\n      },\n      \"12 feet tall\": {\n        \"related_to\": [\n          \"Mountain Troll\"\n        ],\n        \"characteristic_type\": \"Physical size\"\n      },\n      \"Afraid of fire\": {\n        \"related_to\": [\n          \"Mountain Troll\"\n        ],\n        \"characteristic_type\": \"Personality trait\"\n      }\n    },\n    \"quest_reward_conflict\": {\n      \"1000 gold coins\": {\n        \"related_to\": [\n          \"Quest Reward\"\n        ],\n        \"reward_value\": 1000\n      },\n      \"Current Conflict\": {\n        \"related_to\": [\n          \"Quest Reward\"\n        ],\n        \"quest_type\": \"Troll elimination\"\n      }\n    }\n  },\n  \"metadata\": {\n    \"categories\": [\n      \"World\",\n      \"Population\",\n      \"Conflict\",\n      \"Geography\",\n      \"Government\",\n      \"Quests\",\n      \"Characteristics\"\n    ],\n    \"timestamp\": \"2023-02-20T14:30:00Z\",\n    \"version\": \"1.0\",\n    \"created_at\": \"2025-01-02T00:19:33.007519\",\n    \"last_updated\": \"2025-01-02T00:19:41.262081\"\n  }\n}","done":true,"done_reason":"stop","context":[128006,882,128007,271,2675,527,264,11190,18328,430,92606,1701,4823,13,2052,701,14847,1288,387,304,7452,11,10364,481,4823,3645,382,5520,14171,3314,512,517,220,330,52243,1807,794,341,262,330,3311,16445,21937,794,341,415,330,97229,794,330,92269,93737,761,415,330,2588,794,341,286,330,1337,794,330,92269,26457,761,286,330,52759,794,2330,692,330,53,48164,761,692,330,97488,34324,702,286,5243,415,1173,415,330,58400,794,330,10673,9162,2254,14458,11,39098,51876,520,3814,761,415,330,724,39360,794,220,1041,15,198,262,457,220,1173,220,330,90153,15080,794,341,262,330,14957,39383,34033,5814,794,341,415,330,78,11455,794,341,286,330,9920,2401,794,2330,692,330,10343,29696,702,286,5243,415,1173,415,330,16966,467,9897,794,341,286,330,9920,2401,794,2330,692,330,10343,29696,761,692,330,5520,59685,702,286,5243,415,457,262,1173,262,330,45541,1928,26112,794,341,415,330,33,1994,72137,87149,794,341,286,330,9920,2401,794,2330,692,330,54471,702,286,3291,286,330,87863,1857,794,330,11342,15630,702,415,457,262,1173,262,330,3311,16445,21937,13427,794,341,415,330,53,48164,794,341,286,330,9920,2401,794,2330,692,330,5520,59685,761,692,330,4812,702,286,5243,415,1173,415,330,97488,34324,794,341,286,330,9920,2401,794,2330,692,330,5520,59685,761,692,330,4812,702,286,5243,415,1173,415,330,92269,26457,794,341,286,330,9920,2401,794,2330,692,330,5520,59685,761,692,330,4812,702,286,5243,415,457,262,1173,262,330,83,1119,42088,5706,794,341,415,330,35671,6930,794,341,286,330,9920,2401,794,2330,692,330,92269,93737,702,286,3291,286,330,19740,4633,1857,794,330,40353,11341,702,415,1173,415,330,717,7693,16615,794,341,286,330,9920,2401,794,2330,692,330,92269,93737,702,286,3291,286,330,19740,4633,1857,794,330,40353,1404,702,415,1173,415,330,55439,14152,315,4027,794,341,286,330,9920,2401,794,2330,692,330,92269,93737,702,286,3291,286,330,19740,4633,1857,794,330,10909,2786,18027,702,415,457,262,1173,262,330,724,39360,16445,21937,794,341,415,330,1041,15,6761,19289,794,341,286,330,9920,2401,794,2330,692,330,20368,56900,702,286,3291,286,330,50107,3220,794,220,1041,15,198,415,1173,415,330,5520,59685,794,341,286,330,9920,2401,794,2330,692,330,20368,56900,702,286,3291,286,330,724,1857,794,330,51,1119,44032,702,415,457,262,457,220,1173,220,330,18103,794,341,262,330,15865,794,2330,415,330,10343,761,415,330,54471,761,415,330,59074,761,415,330,9688,5814,761,415,330,62569,761,415,330,20368,82,761,415,330,12686,5706,702,262,3291,262,330,13333,794,330,2366,18,12,2437,12,508,51,975,25,966,25,410,57,761,262,330,4464,794,330,16,13,15,761,262,330,7266,3837,794,330,2366,20,12,1721,12,2437,51,410,25,777,25,1644,13,11194,21851,761,262,330,4354,34592,794,330,2366,20,12,1721,12,2437,51,410,25,777,25,3174,13,14274,22534,702,220,457,633,26198,5783,4109,512,9837,220,341,262,330,5898,794,330,882,761,262,330,1834,794,330,41551,757,922,279,1917,10560,262,330,13333,794,330,2366,20,12,1721,12,2437,51,410,25,777,25,3174,13,15666,24970,702,220,1173,220,341,262,330,5898,794,330,78191,761,262,330,1834,794,330,2181,596,264,10269,1917,449,264,3254,32843,74003,262,330,13333,794,330,2366,20,12,1721,12,2437,51,410,25,777,25,3174,13,15666,22913,702,220,1173,220,341,262,330,5898,794,330,882,761,262,330,1834,794,330,3923,922,279,58534,36818,262,330,13333,794,330,2366,20,12,1721,12,2437,51,410,25,777,25,3174,13,15666,27033,702,220,1173,220,341,262,330,5898,794,330,78191,761,262,330,1834,794,330,791,58534,374,220,717,7693,16615,449,20366,6930,74003,262,330,13333,794,330,2366,20,12,1721,12,2437,51,410,25,777,25,3174,13,15666,23324,702,220,457,2595,2127,56956,279,1510,5044,1614,323,3293,22639,311,512,16,13,65647,3062,12912,477,12135,198,17,13,328,3884,5044,6070,82278,198,18,13,57094,1401,2038,369,3938,5905,271,5715,27785,264,2764,4823,1665,12864,279,1510,5044,6070,320,2201,5217,1495,477,16540,570,128009,128006,78191,128007,271,517,220,330,52243,1807,794,341,262,330,14957,39383,34033,5814,794,341,415,330,78,11455,794,341,286,330,9920,2401,794,2330,692,330,10343,29696,702,286,5243,415,1173,415,330,16966,467,9897,794,341,286,330,9920,2401,794,2330,692,330,10343,29696,761,692,330,5520,59685,702,286,5243,415,457,262,457,220,1173,220,330,90153,15080,794,341,262,330,14957,39383,34033,5814,794,341,415,330,78,11455,794,341,286,330,9920,2401,794,2330,692,330,10343,29696,702,286,5243,415,1173,415,330,16966,467,9897,794,341,286,330,9920,2401,794,2330,692,330,10343,29696,761,692,330,5520,59685,702,286,5243,415,457,262,1173,262,330,45541,1928,26112,794,341,415,330,33,1994,72137,87149,794,341,286,330,9920,2401,794,2330,692,330,54471,702,286,3291,286,330,87863,1857,794,330,11342,15630,702,415,457,262,1173,262,330,3311,16445,21937,13427,794,341,415,330,53,48164,794,341,286,330,9920,2401,794,2330,692,330,5520,59685,761,692,330,4812,702,286,5243,415,1173,415,330,97488,34324,794,341,286,330,9920,2401,794,2330,692,330,5520,59685,761,692,330,4812,702,286,5243,415,1173,415,330,92269,26457,794,341,286,330,9920,2401,794,2330,692,330,5520,59685,761,692,330,4812,702,286,5243,415,457,262,1173,262,330,83,1119,42088,5706,794,341,415,330,35671,6930,794,341,286,330,9920,2401,794,2330,692,330,92269,93737,702,286,3291,286,330,19740,4633,1857,794,330,40353,11341,702,415,1173,415,330,717,7693,16615,794,341,286,330,9920,2401,794,2330,692,330,92269,93737,702,286,3291,286,330,19740,4633,1857,794,330,40353,1404,702,415,1173,415,330,55439,14152,315,4027,794,341,286,330,9920,2401,794,2330,692,330,92269,93737,702,286,3291,286,330,19740,4633,1857,794,330,10909,2786,18027,702,415,457,262,1173,262,330,724,39360,16445,21937,794,341,415,330,1041,15,6761,19289,794,341,286,330,9920,2401,794,2330,692,330,20368,56900,702,286,3291,286,330,50107,3220,794,220,1041,15,198,415,1173,415,330,5520,59685,794,341,286,330,9920,2401,794,2330,692,330,20368,56900,702,286,3291,286,330,724,1857,794,330,51,1119,44032,702,415,457,262,457,220,1173,220,330,18103,794,341,262,330,15865,794,2330,415,330,10343,761,415,330,54471,761,415,330,59074,761,415,330,9688,5814,761,415,330,62569,761,415,330,20368,82,761,415,330,12686,5706,702,262,3291,262,330,13333,794,330,2366,18,12,2437,12,508,51,975,25,966,25,410,57,761,262,330,4464,794,330,16,13,15,761,262,330,7266,3837,794,330,2366,20,12,1721,12,2437,51,410,25,777,25,1644,13,11194,21851,761,262,330,4354,34592,794,330,2366,20,12,1721,12,2437,51,410,25,777,25,3174,13,14274,22534,702,220,457,92],"total_duration":6943163200,"load_duration":15705000,"prompt_eval_count":848,"prompt_eval_duration":125000000,"eval_count":557,"eval_duration":6801000000}
+2025-01-02 00:19:48,431 - OllamaService - DEBUG - 
+--------------------------------------------------------------------------------
+2025-01-02 00:19:48,431 - OllamaService - DEBUG - RESPONSE (time: 7167.16ms, size: 2,246 bytes):
+2025-01-02 00:19:48,431 - OllamaService - DEBUG - {
+  "structured_data": {
+    "world_structure_geography": {
+      "ocean": {
+        "related_to": [
+          "World Structure"
+        ]
+      },
+      "mountain_range": {
+        "related_to": [
+          "World Structure",
+          "Current Conflict"
+        ]
+      }
+    }
+  },
+  "knowledge_graph": {
+    "world_structure_geography": {
+      "ocean": {
+        "related_to": [
+          "World Structure"
+        ]
+      },
+      "mountain_range": {
+        "related_to": [
+          "World Structure",
+          "Current Conflict"
+        ]
+      }
+    },
+    "population_government": {
+      "Benevolent monarchy": {
+        "related_to": [
+          "Population"
+        ],
+        "government_type": "Monarchy"
+      }
+    },
+    "current_conflict_location": {
+      "Village": {
+        "related_to": [
+          "Current Conflict",
+          "Location"
+        ]
+      },
+      "Eastern farms": {
+        "related_to": [
+          "Current Conflict",
+          "Location"
+        ]
+      },
+      "Mountain cave": {
+        "related_to": [
+          "Current Conflict",
+          "Location"
+        ]
+      }
+    },
+    "troll_characteristics": {
+      "grey skin": {
+        "related_to": [
+          "Mountain Troll"
+        ],
+        "characteristic_type": "Physical appearance"
+      },
+      "12 feet tall": {
+        "related_to": [
+          "Mountain Troll"
+        ],
+        "characteristic_type": "Physical size"
+      },
+      "Afraid of fire": {
+        "related_to": [
+          "Mountain Troll"
+        ],
+        "characteristic_type": "Personality trait"
+      }
+    },
+    "quest_reward_conflict": {
+      "1000 gold coins": {
+        "related_to": [
+          "Quest Reward"
+        ],
+        "reward_value": 1000
+      },
+      "Current Conflict": {
+        "related_to": [
+          "Quest Reward"
+        ],
+        "quest_type": "Troll elimination"
+      }
+    }
+  },
+  "metadata": {
+    "categories": [
+      "World",
+      "Population",
+      "Conflict",
+      "Geography",
+      "Government",
+      "Quests",
+      "Characteristics"
+    ],
+    "timestamp": "2023-02-20T14:30:00Z",
+    "version": "1.0",
+    "created_at": "2025-01-02T00:19:33.007519",
+    "last_updated": "2025-01-02T00:19:41.262081"
+  }
+}
+2025-01-02 00:19:48,431 - OllamaService - DEBUG - --------------------------------------------------------------------------------
+2025-01-02 00:19:48,433 - OllamaService - DEBUG - 
+================================================================================
+2025-01-02 00:19:48,433 - OllamaService - DEBUG - PROMPT (size: 3,535 bytes):
+2025-01-02 00:19:48,433 - OllamaService - DEBUG - You are a helpful assistant that communicates using JSON. All your responses should be in strict, parsable JSON format.
+
+Context:
+{
+  "structured_data": {
+    "world_structure_geography": {
+      "ocean": {
+        "related_to": [
+          "World Structure"
+        ]
+      },
+      "mountain_range": {
+        "related_to": [
+          "World Structure",
+          "Current Conflict"
+        ]
+      }
+    }
+  },
+  "knowledge_graph": {
+    "world_structure_geography": {
+      "ocean": {
+        "related_to": [
+          "World Structure"
+        ]
+      },
+      "mountain_range": {
+        "related_to": [
+          "World Structure",
+          "Current Conflict"
+        ]
+      }
+    },
+    "population_government": {
+      "Benevolent monarchy": {
+        "related_to": [
+          "Population"
+        ],
+        "government_type": "Monarchy"
+      }
+    },
+    "current_conflict_location": {
+      "Village": {
+        "related_to": [
+          "Current Conflict",
+          "Location"
+        ]
+      },
+      "Eastern farms": {
+        "related_to": [
+          "Current Conflict",
+          "Location"
+        ]
+      },
+      "Mountain cave": {
+        "related_to": [
+          "Current Conflict",
+          "Location"
+        ]
+      }
+    },
+    "troll_characteristics": {
+      "grey skin": {
+        "related_to": [
+          "Mountain Troll"
+        ],
+        "characteristic_type": "Physical appearance"
+      },
+      "12 feet tall": {
+        "related_to": [
+          "Mountain Troll"
+        ],
+        "characteristic_type": "Physical size"
+      },
+      "Afraid of fire": {
+        "related_to": [
+          "Mountain Troll"
+        ],
+        "characteristic_type": "Personality trait"
+      }
+    },
+    "quest_reward_conflict": {
+      "1000 gold coins": {
+        "related_to": [
+          "Quest Reward"
+        ],
+        "reward_value": 1000
+      },
+      "Current Conflict": {
+        "related_to": [
+          "Quest Reward"
+        ],
+        "quest_type": "Troll elimination"
+      }
+    }
+  },
+  "metadata": {
+    "categories": [
+      "World",
+      "Population",
+      "Conflict",
+      "Geography",
+      "Government",
+      "Quests",
+      "Characteristics"
+    ],
+    "timestamp": "2023-02-20T14:30:00Z",
+    "version": "1.0",
+    "created_at": "2025-01-02T00:19:33.007519",
+    "last_updated": "2025-01-02T00:19:48.431785"
+  }
+}
+
+Current Phase: INTERACTION
+Previous Messages: [
+  {
+    "role": "user",
+    "content": "Tell me about the world.",
+    "timestamp": "2025-01-02T00:19:41.263047"
+  },
+  {
+    "role": "assistant",
+    "content": "It's a flat world with a single continent...",
+    "timestamp": "2025-01-02T00:19:41.263055"
+  },
+  {
+    "role": "user",
+    "content": "What about the troll?",
+    "timestamp": "2025-01-02T00:19:41.263059"
+  },
+  {
+    "role": "assistant",
+    "content": "The troll is 12 feet tall with grey skin...",
+    "timestamp": "2025-01-02T00:19:41.263061"
+  }
+]
+
+User Message: What's the best strategy for dealing with the troll based on what we know?
+
+Generate a response that:
+1. Uses relevant information from memory
+2. Maintains consistency with previous interactions
+3. Advances the current phase appropriately
+4. Identifies any new information to be stored
+
+Return ONLY a valid JSON object with this structure (no additional text or explanation):
+{
+    "response": "Your response here",
+    "new_information": {
+        // Any new information to be stored
+    },
+    "suggested_phase": "current or next phase name",
+    "confidence": 0.0 to 1.0
+}
+2025-01-02 00:19:48,434 - OllamaService - DEBUG - ================================================================================
+2025-01-02 00:19:48,434 - OllamaService - DEBUG - Making request to Ollama API at http://192.168.1.173:11434
+2025-01-02 00:19:48,434 - OllamaService - DEBUG - Model: llama3, Temperature: 0.7
+2025-01-02 00:19:48,436 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.1.173:11434
+2025-01-02 00:19:49,564 - urllib3.connectionpool - DEBUG - http://192.168.1.173:11434 "POST /api/generate HTTP/1.1" 200 None
+2025-01-02 00:19:49,564 - OllamaService - DEBUG - Ollama API request completed in 1130.30ms
+2025-01-02 00:19:49,565 - OllamaService - DEBUG - Raw response: {"model":"llama3","created_at":"2025-01-02T05:20:04.6626876Z","response":"{\n  \"response\": \"Based on what we know, it seems that fire is a key factor in dealing with the troll. Considering its afraid of fire, using fire-based attacks could be an effective strategy.\",\n  \"new_information\": {},\n  \"suggested_phase\": \"Conflict Resolution\",\n  \"confidence\": 0.8\n}","done":true,"done_reason":"stop","context":[128006,882,128007,271,2675,527,264,11190,18328,430,92606,1701,4823,13,2052,701,14847,1288,387,304,7452,11,10364,481,4823,3645,382,2014,512,517,220,330,52243,1807,794,341,262,330,14957,39383,34033,5814,794,341,415,330,78,11455,794,341,286,330,9920,2401,794,2330,692,330,10343,29696,702,286,5243,415,1173,415,330,16966,467,9897,794,341,286,330,9920,2401,794,2330,692,330,10343,29696,761,692,330,5520,59685,702,286,5243,415,457,262,457,220,1173,220,330,90153,15080,794,341,262,330,14957,39383,34033,5814,794,341,415,330,78,11455,794,341,286,330,9920,2401,794,2330,692,330,10343,29696,702,286,5243,415,1173,415,330,16966,467,9897,794,341,286,330,9920,2401,794,2330,692,330,10343,29696,761,692,330,5520,59685,702,286,5243,415,457,262,1173,262,330,45541,1928,26112,794,341,415,330,33,1994,72137,87149,794,341,286,330,9920,2401,794,2330,692,330,54471,702,286,3291,286,330,87863,1857,794,330,11342,15630,702,415,457,262,1173,262,330,3311,16445,21937,13427,794,341,415,330,53,48164,794,341,286,330,9920,2401,794,2330,692,330,5520,59685,761,692,330,4812,702,286,5243,415,1173,415,330,97488,34324,794,341,286,330,9920,2401,794,2330,692,330,5520,59685,761,692,330,4812,702,286,5243,415,1173,415,330,92269,26457,794,341,286,330,9920,2401,794,2330,692,330,5520,59685,761,692,330,4812,702,286,5243,415,457,262,1173,262,330,83,1119,42088,5706,794,341,415,330,35671,6930,794,341,286,330,9920,2401,794,2330,692,330,92269,93737,702,286,3291,286,330,19740,4633,1857,794,330,40353,11341,702,415,1173,415,330,717,7693,16615,794,341,286,330,9920,2401,794,2330,692,330,92269,93737,702,286,3291,286,330,19740,4633,1857,794,330,40353,1404,702,415,1173,415,330,55439,14152,315,4027,794,341,286,330,9920,2401,794,2330,692,330,92269,93737,702,286,3291,286,330,19740,4633,1857,794,330,10909,2786,18027,702,415,457,262,1173,262,330,724,39360,16445,21937,794,341,415,330,1041,15,6761,19289,794,341,286,330,9920,2401,794,2330,692,330,20368,56900,702,286,3291,286,330,50107,3220,794,220,1041,15,198,415,1173,415,330,5520,59685,794,341,286,330,9920,2401,794,2330,692,330,20368,56900,702,286,3291,286,330,724,1857,794,330,51,1119,44032,702,415,457,262,457,220,1173,220,330,18103,794,341,262,330,15865,794,2330,415,330,10343,761,415,330,54471,761,415,330,59074,761,415,330,9688,5814,761,415,330,62569,761,415,330,20368,82,761,415,330,12686,5706,702,262,3291,262,330,13333,794,330,2366,18,12,2437,12,508,51,975,25,966,25,410,57,761,262,330,4464,794,330,16,13,15,761,262,330,7266,3837,794,330,2366,20,12,1721,12,2437,51,410,25,777,25,1644,13,11194,21851,761,262,330,4354,34592,794,330,2366,20,12,1721,12,2437,51,410,25,777,25,2166,13,19852,22539,702,220,457,633,5520,28673,25,30442,42995,198,21994,27827,25,2330,220,341,262,330,5898,794,330,882,761,262,330,1834,794,330,41551,757,922,279,1917,10560,262,330,13333,794,330,2366,20,12,1721,12,2437,51,410,25,777,25,3174,13,15666,24970,702,220,1173,220,341,262,330,5898,794,330,78191,761,262,330,1834,794,330,2181,596,264,10269,1917,449,264,3254,32843,74003,262,330,13333,794,330,2366,20,12,1721,12,2437,51,410,25,777,25,3174,13,15666,22913,702,220,1173,220,341,262,330,5898,794,330,882,761,262,330,1834,794,330,3923,922,279,58534,36818,262,330,13333,794,330,2366,20,12,1721,12,2437,51,410,25,777,25,3174,13,15666,27033,702,220,1173,220,341,262,330,5898,794,330,78191,761,262,330,1834,794,330,791,58534,374,220,717,7693,16615,449,20366,6930,74003,262,330,13333,794,330,2366,20,12,1721,12,2437,51,410,25,777,25,3174,13,15666,23324,702,220,457,2595,1502,4961,25,3639,596,279,1888,8446,369,14892,449,279,58534,3196,389,1148,584,1440,1980,32215,264,2077,430,512,16,13,39923,9959,2038,505,5044,198,17,13,43987,1771,29237,449,3766,22639,198,18,13,91958,279,1510,10474,36001,198,19,13,23322,9803,904,502,2038,311,387,9967,271,5715,27785,264,2764,4823,1665,449,420,6070,320,2201,5217,1495,477,16540,997,517,262,330,2376,794,330,7927,2077,1618,761,262,330,943,36312,794,341,286,443,5884,502,2038,311,387,9967,198,262,1173,262,330,82,54376,38693,794,330,3311,477,1828,10474,836,761,262,330,83029,794,220,15,13,15,311,220,16,13,15,198,92,128009,128006,78191,128007,271,517,220,330,2376,794,330,29815,389,1148,584,1440,11,433,5084,430,4027,374,264,1401,8331,304,14892,449,279,58534,13,56877,1202,16984,315,4027,11,1701,4027,6108,8951,1436,387,459,7524,8446,10560,220,330,943,36312,794,14915,220,330,82,54376,38693,794,330,59074,38216,761,220,330,83029,794,220,15,13,23,198,92],"total_duration":1116304500,"load_duration":113831700,"prompt_eval_count":913,"prompt_eval_duration":126000000,"eval_count":69,"eval_duration":875000000}
+2025-01-02 00:19:49,566 - OllamaService - DEBUG - 
+--------------------------------------------------------------------------------
+2025-01-02 00:19:49,566 - OllamaService - DEBUG - RESPONSE (time: 1132.13ms, size: 283 bytes):
+2025-01-02 00:19:49,566 - OllamaService - DEBUG - {
+  "response": "Based on what we know, it seems that fire is a key factor in dealing with the troll. Considering its afraid of fire, using fire-based attacks could be an effective strategy.",
+  "new_information": {},
+  "suggested_phase": "Conflict Resolution",
+  "confidence": 0.8
+}
+2025-01-02 00:19:49,566 - OllamaService - DEBUG - --------------------------------------------------------------------------------

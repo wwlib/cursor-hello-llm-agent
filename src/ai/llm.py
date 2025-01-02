@@ -1,6 +1,7 @@
 from typing import Dict, Any, Optional
 import json
 import logging
+import time
 
 class LLMServiceError(Exception):
     """Custom exception for LLM service errors"""
@@ -52,18 +53,31 @@ class LLMService:
             NotImplementedError: If not implemented by subclass
         """
         if self.debug:
-            self.logger.debug(f"\n{'='*80}\nPROMPT:\n{prompt}\n{'='*80}")
+            prompt_size = len(prompt.encode('utf-8'))
+            self.logger.debug(f"\n{'='*80}")
+            self.logger.debug(f"PROMPT (size: {prompt_size:,} bytes):")
+            self.logger.debug(f"{prompt}")
+            self.logger.debug(f"{'='*80}")
         
         try:
+            start_time = time.time()
             response = self._generate_impl(prompt)
+            end_time = time.time()
             
             if self.debug:
-                self.logger.debug(f"\n{'-'*80}\nRESPONSE:\n{response}\n{'-'*80}")
+                duration_ms = (end_time - start_time) * 1000
+                response_size = len(response.encode('utf-8'))
+                self.logger.debug(f"\n{'-'*80}")
+                self.logger.debug(f"RESPONSE (time: {duration_ms:.2f}ms, size: {response_size:,} bytes):")
+                self.logger.debug(f"{response}")
+                self.logger.debug(f"{'-'*80}")
             
             return response
         except Exception as e:
             if self.debug:
-                self.logger.error(f"Error generating response: {str(e)}")
+                end_time = time.time()
+                duration_ms = (end_time - start_time) * 1000
+                self.logger.error(f"Error generating response after {duration_ms:.2f}ms: {str(e)}")
             raise
     
     def _generate_impl(self, prompt: str) -> str:

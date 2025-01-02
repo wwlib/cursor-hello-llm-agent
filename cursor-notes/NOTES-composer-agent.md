@@ -119,3 +119,13 @@ Really great. Now that I see the log, I think that logging each ollama stream ch
 Great. Let's also add a control to determine if logs should be printed to the console. Often the log file will be sufficient.
 ```
 
+```
+When running memory_manager_usage_example.py let's use the non-streaming api for ollama.
+```
+
+
+```
+Yes, please add timing information to see response latency and response size logging.
+```
+
+

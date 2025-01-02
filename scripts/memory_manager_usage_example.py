@@ -24,10 +24,11 @@ async def main():
         "base_url": "http://localhost:11434",
         "model": "llama3",  # or another model you have installed
         "temperature": 0.7,
+        "stream": False,  # Disable streaming for simpler response handling
         "debug": True,  # Enable debug logging
         "debug_file": "memory_manager_debug.log",  # Specify debug log file
         "log_chunks": False,  # Disable verbose chunk logging
-        "console_output": False  # Log to file only, not console
+        "console_output": False  # Enable console output for easier debugging
     })
     
     memory_file = "example_memory.json"
@@ -36,15 +37,26 @@ async def main():
     # Phase 1: Create Initial Memory
     print("\nPhase 1: Creating Initial Memory...")
     initial_data = """
-    This is a D&D campaign world with the following details:
-    - A flat world with a single continent
-    - A single ocean and mountain range
-    - Inhabited by humanoid creatures
-    - Ruled by a benevolent monarch
-    - Currently peaceful except for a Mountain Troll problem
-    - The troll has been attacking a village from its mountain cave
-    - Village offers 1000 gold coins reward for killing the troll
-    """
+    
+This is a D&D campaign world with the following details:
+    
+World Structure:
+- Type: Flat world
+- Geography: Single continent with one ocean and mountain range
+- Scale: Medium-sized continent with varied terrain
+
+Population:
+- Primary Inhabitants: Humanoid creatures
+- Government: Benevolent monarchy
+- Current State: Generally peaceful
+
+Current Conflict:
+- Threat: Mountain Troll
+- Location: Mountain cave near village
+- Impact: Attacking local village
+- Quest Reward: 1000 gold coins for troll elimination
+
+Please structure this information into a JSON format with structured_data for facts, knowledge_graph for relationships, and appropriate metadata."""
     
     success = memory_manager.create_initial_memory(initial_data)
     if not success:

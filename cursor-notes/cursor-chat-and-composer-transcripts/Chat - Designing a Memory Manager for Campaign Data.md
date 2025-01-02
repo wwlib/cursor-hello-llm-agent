@@ -1,145 +1,268 @@
-## Creating Detailed README for Agent (12/31/2024, 9:23:15 AM)
+## Designing a Memory Manager for Campaign Data (12/25/2024, 2:53:57 PM)
 
 _**User**_
 
-Please write a detailed README-agent.md based on the plan described in the main README.md and the MemoryManager implementation.
+Let's design the Memory Manager, initially focusing on processing and storing the Phase 1 (campaig) data.
 
 ---
 
 _**Assistant**_
 
-I'll help write a detailed README for the agent component. Let me first analyze the existing documentation and implementation.
+I'll help you design the Memory Manager class that will handle the campaign data storage. Based on the requirements, we'll need to store both structured data and a knowledge graph. Let's create this in `memory/memory_manager.py`.
 
----
+````python:memory/memory_manager.py
+from dataclasses import dataclass, asdict
+from typing import Dict, List, Optional
+import json
+import os
 
-_**Assistant**_
+@dataclass
+class CampaignData:
+    world_description: str
+    inhabitants: List[str]
+    government: str
+    current_state: str
+    quest_details: Dict[str, str]
+    rewards: Dict[str, int]
 
+class MemoryManager:
+    def __init__(self, memory_file: str = "campaign_memory.json"):
+        self.memory_file = memory_file
+        self.campaign_data: Optional[CampaignData] = None
+        self.knowledge_graph: Dict = {}  # Will expand this in future
+        self._load_memory()
 
+    def _load_memory(self) -> None:
+        """Load memory from JSON file if it exists"""
+        if os.path.exists(self.memory_file):
+            with open(self.memory_file, 'r') as f:
+                data = json.load(f)
+                self.campaign_data = CampaignData(**data.get('campaign_data', {}))
+                self.knowledge_graph = data.get('knowledge_graph', {})
 
----
+    def save_memory(self) -> None:
+        """Save current memory state to JSON file"""
+        memory_data = {
+            'campaign_data': asdict(self.campaign_data) if self.campaign_data else {},
+            'knowledge_graph': self.knowledge_graph
+        }
+        with open(self.memory_file, 'w') as f:
+            json.dump(memory_data, f, indent=2)
 
-_**Assistant**_
+    def store_campaign_details(self, 
+        world_description: str,
+        inhabitants: List[str],
+        government: str,
+        current_state: str,
+        quest_details: Dict[str, str],
+        rewards: Dict[str, int]
+    ) -> None:
+        """Store initial campaign details"""
+        self.campaign_data = CampaignData(
+            world_description=world_description,
+            inhabitants=inhabitants,
+            government=government,
+            current_state=current_state,
+            quest_details=quest_details,
+            rewards=rewards
+        )
+        self.save_memory()
 
+    def clear_memory(self) -> None:
+        """Clear all stored memory"""
+        self.campaign_data = None
+        self.knowledge_graph = {}
+        if os.path.exists(self.memory_file):
+            os.remove(self.memory_file)
 
+    def get_campaign_summary(self) -> str:
+        """Return a formatted summary of the campaign details"""
+        if not self.campaign_data:
+            return "No campaign data stored."
+        
+        return f"""World: {self.campaign_data.world_description}
+Inhabitants: {', '.join(self.campaign_data.inhabitants)}
+Government: {self.campaign_data.government}
+Current State: {self.campaign_data.current_state}
+Quest: {self.campaign_data.quest_details.get('description', 'No quest details')}
+Reward: {self.campaign_data.rewards.get('gold', 0)} gold coins"""
+````
 
-Based on the codebase search results and the existing implementation, I'll create a detailed README for the agent component. I'll write it to the `src/agent/README-agent.md` file.
+This initial implementation:
 
----
+1. Uses a `CampaignData` dataclass to store structured campaign information
+2. Provides methods to:
+   - Load/save memory from/to a JSON file
+   - Store campaign details
+   - Clear memory
+   - Get a formatted campaign summary
 
-_**Assistant**_
+Example usage:
 
+````python
+# Initialize memory manager
+memory_manager = MemoryManager()
 
+# Store campaign details
+memory_manager.store_campaign_details(
+    world_description="A simple, flat world with a single continent, ocean, and mountain range",
+    inhabitants=["humanoid creatures"],
+    government="Single benevolent monarch",
+    current_state="At peace, except for monster attacks",
+    quest_details={
+        "description": "Find and kill the Mountain Troll",
+        "location": "mountain cave system",
+        "monster": "Mountain Troll"
+    },
+    rewards={"gold": 1000}
+)
+````
 
----
+This is a basic implementation that we can expand upon. Next steps could include:
+1. Adding knowledge graph functionality
+2. Implementing relationship tracking between entities
+3. Adding methods for updating existing data
+4. Adding validation and error handling
+5. Adding methods for Phase 2 (character data) storage
 
-_**Assistant**_
-
-
-
-I've created a comprehensive README for the agent component that:
-
-1. Follows the style and structure of the existing READMEs
-2. Incorporates the requirements from the main README
-3. Provides detailed information about:
-   - Architecture and components
-   - Implementation approach
-   - Usage examples
-   - LLM prompt templates
-   - Best practices
-   - Future enhancements
-
-The README specifically addresses the D&D campaign use case while maintaining a general-purpose design that can be adapted to other domains. It includes practical code examples and detailed explanations of the agent's phases and states.
-
-Would you like me to make any adjustments to the README or proceed with implementing the agent code?
+Would you like me to implement any of these next steps?
 
 ---
 
 _**User**_
 
-Great. Now please write the Agent code and pytest tests for the Agent based on README_agent.md
+This is OK. But a better approach would be more data driven so that the code does not need to contain specific details like "world_description" and "inhabitants". It would be better to assume tha the LLM will be able to accept data in any form and come up with its own representations for the structured data and knowledge graph. Then the memory can be accessed and updated via prompting - without the need for hard-coded data-specific classes.
+
+Given this constraint, how would you design the memory mnager?
 
 ---
 
 _**Assistant**_
 
-I'll help create the agent implementation and tests. Let me break this down into steps:
+Ah, excellent point! Let's create a more flexible, data-driven memory manager that doesn't make assumptions about the structure of the data. This approach will be more adaptable to any type of information the LLM wants to store or retrieve.
 
-1. First, I'll create the main agent implementation
-2. Then, I'll create the test file with comprehensive tests
+````python:memory/memory_manager.py
+from typing import Any, Dict, Optional
+import json
+import os
+from datetime import datetime
 
----
+class MemoryManager:
+    def __init__(self, memory_file: str = "memory.json"):
+        self.memory_file = memory_file
+        self.memory: Dict[str, Any] = {
+            'structured_data': {},
+            'knowledge_graph': {},
+            'conversation_history': [],
+            'metadata': {
+                'created_at': datetime.now().isoformat(),
+                'last_updated': datetime.now().isoformat()
+            }
+        }
+        self._load_memory()
 
-_**Assistant**_
+    def _load_memory(self) -> None:
+        """Load memory from JSON file if it exists"""
+        if os.path.exists(self.memory_file):
+            with open(self.memory_file, 'r') as f:
+                self.memory = json.load(f)
 
+    def save_memory(self) -> None:
+        """Save current memory state to JSON file"""
+        self.memory['metadata']['last_updated'] = datetime.now().isoformat()
+        with open(self.memory_file, 'w') as f:
+            json.dump(self.memory, f, indent=2)
 
+    def update_memory(self, data: Dict[str, Any], section: str = 'structured_data') -> None:
+        """
+        Update memory with new data in the specified section
+        Let the LLM decide how to structure and merge the data
+        """
+        if section not in self.memory:
+            self.memory[section] = {}
+        
+        # Simply store the data as provided - structure determined by LLM
+        self.memory[section].update(data)
+        self.save_memory()
 
----
+    def get_memory_context(self, query: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Return the entire memory state or a subset based on a query
+        The query interpretation would be handled by the LLM
+        """
+        return self.memory
 
-_**Assistant**_
+    def clear_memory(self) -> None:
+        """Clear all stored memory"""
+        self.memory = {
+            'structured_data': {},
+            'knowledge_graph': {},
+            'conversation_history': [],
+            'metadata': {
+                'created_at': datetime.now().isoformat(),
+                'last_updated': datetime.now().isoformat()
+            }
+        }
+        if os.path.exists(self.memory_file):
+            os.remove(self.memory_file)
+````
 
+This new design:
 
+1. Is completely data-agnostic - no assumptions about the structure of campaign/character data
+2. Provides a simple key-value store that can be organized however the LLM sees fit
+3. Lets the LLM decide how to:
+   - Structure the data
+   - Represent relationships in the knowledge graph
+   - Determine what information is relevant to store
+   - Format the data for different use cases
 
-Now I'll create the test file for the Agent implementation.
+Example usage with LLM:
 
----
+````python
+# Initialize memory manager
+memory_manager = MemoryManager()
 
-_**Assistant**_
+# When the LLM wants to store information, it can structure it however it wants
+llm_structured_data = {
+    "world": {
+        "physical_features": {...},
+        "social_structure": {...}
+    },
+    "current_quest": {...}
+}
+memory_manager.update_memory(llm_structured_data)
 
+# When the LLM wants to store relationships, it can define its own graph structure
+llm_knowledge_graph = {
+    "relationships": {
+        "monster_location": {...},
+        "character_relationships": {...}
+    }
+}
+memory_manager.update_memory(llm_knowledge_graph, section='knowledge_graph')
 
+# When querying, the LLM gets the full context and can decide what's relevant
+context = memory_manager.get_memory_context()
+````
 
----
+This approach has several advantages:
+1. More flexible - can handle any type of data or structure
+2. Future-proof - no need to modify code as requirements change
+3. Lets the LLM use its intelligence to organize and structure the data
+4. Simpler code base - fewer assumptions and hard-coded structures
 
-_**Assistant**_
-
-
-
-I've created both the Agent implementation and comprehensive tests. Here's a summary of what I've done:
-
-1. **Agent Implementation (`src/agent/agent.py`)**:
-   - Implemented `AgentPhase` enum for state management
-   - Created core `Agent` class with all required methods
-   - Added robust error handling and logging
-   - Implemented JSON-based prompt templates
-   - Added conversation history management
-   - Made all methods async for better performance
-
-2. **Tests (`tests/agent/test_agent.py`)**:
-   - Created fixtures for mocking dependencies
-   - Added tests for all main functionalities:
-     - Initialization
-     - Message processing (success and error cases)
-     - Learning (success and error cases)
-     - Reflection (success and error cases)
-     - Phase transitions
-     - Conversation history management
-   - Used pytest's async support for testing async methods
-   - Added comprehensive assertions and error checks
-
-The implementation follows the design specified in the README and integrates well with the existing Memory Manager and LLM services.
-
-Would you like me to:
-1. Add any additional test cases?
-2. Enhance any specific part of the implementation?
-3. Add more documentation or comments?
-4. Create an example usage script?
+The actual structure and organization of the data would emerge from the LLM's understanding of the domain and requirements, rather than being predetermined in the code.
 
 ---
 
 _**User**_
 
-Yes. Please write example code in agent_usage_example.py that demonstrates interactions with the Agent using the OllamaService to communicate with an LLM.
+Yes, exactly. Let's imagine an example scenario where Agent prompts the user with a question, asking for the Phase 1 details about the campaign and the user responds with "Campaign Details for Phase 1 - A simple, hello world campaign" from the README. Then the Agent would prompt the LLM to store generate a JSON data structure containing Phase 1 data as well as a knolwedge graph data structure to store the importan relationshipt in the Phase 1 data. This bespoke data format would then be used for the rest of the interactions in the session.
 
----
+The agent could access and update the data using prompts for the LLM. A Query Prompt would include the accumulated data and ask for a response that uses the data. An Update Prompt would include the accumulated data and as well as new data and ask the LLM to return updated data structures to replace the existing memory.
 
-_**Assistant**_
-
-I'll create an example script that demonstrates using the Agent with Ollama, focusing on the D&D campaign use case from the README.
-
----
-
-_**Assistant**_
-
-
+Please summarize this design using concise, high-level pseudo code and state diagram notation.
 
 ---
 
@@ -147,137 +270,75 @@ _**Assistant**_
 
 
 
-I've created a comprehensive example script that demonstrates using the Agent with Ollama for the D&D campaign use case. The script includes:
+Here's a high-level design using pseudo code and state transitions:
 
-1. **Main Interactive Session**:
-   - Initializes the Ollama service and Memory Manager
-   - Goes through all three phases of the campaign
-   - Provides an interactive command loop for player input
+````python
+# High-level flow
+class Agent:
+    def process_user_input(input_text: str, current_state: str) -> str:
+        match current_state:
+            case "INIT":
+                if is_phase_1_data(input_text):
+                    # Ask LLM to structure the initial data
+                    memory = prompt_llm(
+                        template="structure_initial_data",
+                        input=input_text
+                    )
+                    memory_manager.update_memory(memory)
+                    return "READY"
+                
+            case "READY":
+                # Include memory context in every prompt
+                response = prompt_llm(
+                    template="query_or_update",
+                    memory=memory_manager.get_memory_context(),
+                    input=input_text
+                )
+                if response.has_updates:
+                    memory_manager.update_memory(response.memory_updates)
+                return "READY"
+````
 
-2. **Example Interactions**:
-   - Shows typical campaign interactions
-   - Demonstrates memory usage and context retention
-   - Includes reflection capabilities
-
-3. **Error Handling**:
-   - Graceful handling of setup failures
-   - Keyboard interrupt handling
-   - General error catching
-
-To run this example:
-
-1. Make sure Ollama is running locally
-2. Have the llama2 model installed (or modify the script to use another model)
-3. Run the script:
-```bash
-python scripts/agent_usage_example.py
+State Diagram:
+```mermaid
+stateDiagram-v2
+    [*] --> INIT
+    INIT --> READY: Phase 1 data received\nLLM structures initial memory
+    READY --> READY: User input received\nLLM queries/updates memory
 ```
 
-The script allows for two modes of interaction:
-1. Interactive mode (main function) - Real-time interaction with the agent
-2. Example mode (example_interactions function) - Demonstrates preset interactions
+Example LLM Prompts:
+````text
+# Structure Initial Data Prompt
+Given this campaign information, create two JSON structures:
+1. structured_data: Organize the key facts and details
+2. knowledge_graph: Map important relationships between entities
+Return only valid JSON.
 
-Would you like me to:
-1. Add more example interactions?
-2. Add additional error handling?
-3. Include more debugging/logging features?
-4. Create a separate script for testing different LLM models?
+# Query Memory Prompt
+Given this memory context: <memory_json>
+And this user query: <user_input>
+Provide a response using the stored information.
 
----
+# Update Memory Prompt
+Given this memory context: <memory_json>
+And this new information: <user_input>
+Return updated JSON structures that incorporate the new information.
+````
 
-_**User**_
-
-I just tested the script and am noticing some issues that we should address. Most important: The Agent class and the MemoryManager class are both making similar calls to the LLM generate and update data that should be remembered. This is inefficient. Calls to the LLM are relatively slow and expensive. The Agent should be revised to rely more on the MemoryManager to interface with the LLM. What do you think?
-
----
-
-_**Assistant**_
-
-You make an excellent point. Currently, there's redundancy in LLM calls between the Agent and MemoryManager, which is inefficient. Let's refactor the Agent class to delegate all memory-related LLM operations to the MemoryManager.
-
-Here's how we can improve this:
-
-1. The Agent should use MemoryManager's methods for:
-   - Querying memory
-   - Updating memory
-   - Processing new information
-
-2. The MemoryManager should handle all LLM interactions for:
-   - Structuring data
-   - Maintaining knowledge graphs
-   - Processing queries
-   - Handling updates
-
-Let me refactor the Agent class to be more efficient:
-
----
-
-_**Assistant**_
-
-
-
----
-
-_**Assistant**_
-
-
-
-Now we need to update the MemoryManager to handle these new responsibilities. Let me modify the MemoryManager class:
-
----
-
-_**Assistant**_
-
-
-
----
-
-_**Assistant**_
-
-
-
-The key changes I've made:
-
-1. **Agent Class**:
-   - Removed direct LLM interactions
-   - Now delegates all LLM operations to MemoryManager
-   - Sends structured context to MemoryManager methods
-   - Focuses on managing conversation flow and phase transitions
-
-2. **MemoryManager Class**:
-   - Enhanced `query_memory` to handle response generation
-   - Updated `update_memory` to handle different types of updates (learning, reflection)
-   - Added more sophisticated prompts that were previously in Agent
-   - Handles all LLM interactions and memory updates
-
-Benefits of this refactoring:
-1. **Efficiency**: Single point of LLM interaction in MemoryManager
-2. **Consistency**: Memory updates are handled in one place
-3. **Separation of Concerns**: Agent focuses on conversation flow, MemoryManager on data management
-4. **Reduced Redundancy**: No duplicate LLM calls or prompt processing
-
-Would you like me to:
-1. Update the tests to reflect these changes?
-2. Add more error handling or logging?
-3. Modify the example script to better demonstrate the new structure?
+The key insight is that the LLM:
+1. Defines its own data structure based on initial input
+2. Uses that same structure throughout the session
+3. Both queries and updates are handled through prompts
+4. Memory manager just stores/retrieves JSON without knowing its structure
 
 ---
 
 _**User**_
 
-Yes, please update the tests to reflect these changes.
+Yes. Now let's design the memory management prompt template: Create Memory Prompt, Query Memory Prompt, Update Memory Prompt.
 
----
-
-_**Assistant**_
-
-I'll update the tests to reflect the new architecture where the Agent delegates LLM operations to the MemoryManager.
-
----
-
-_**Assistant**_
-
-
+First, what should the Create Memory Prompt LLM prompt look like - using `{INPUT_DATA}` as the placeholder for the text data provided by the user?
 
 ---
 
@@ -285,50 +346,56 @@ _**Assistant**_
 
 
 
-Key changes to the tests:
+Here's a proposed Create Memory Prompt template that guides the LLM to establish the initial memory structures:
 
-1. **Mock Setup**:
-   - Removed LLM-specific mocking since Agent no longer calls LLM directly
-   - Updated MemoryManager mock to return appropriate responses for new interface
+````text
+You are a memory management system. Your task is to analyze the provided campaign information and create two organized data structures:
 
-2. **Test Cases**:
-   - Renamed error tests to reflect MemoryManager errors instead of LLM errors
-   - Added validation of context data passed to MemoryManager methods
-   - Added new test `test_memory_manager_context_format` to verify correct context structure
+1. A structured_data JSON object to store key facts and details
+2. A knowledge_graph JSON object to map relationships between entities
 
-3. **Assertions**:
-   - Removed LLM-specific assertions
-   - Added checks for proper context formatting
-   - Added validation of conversation history management
-   - Enhanced phase transition testing
+Input Data:
+{INPUT_DATA}
 
-4. **Error Handling**:
-   - Updated error scenarios to test MemoryManager failures
-   - Added more specific assertions for error messages
+Requirements:
+- Structure the data in a way that will be useful for a D&D campaign management system
+- Include all relevant information from the input
+- Create meaningful relationships in the knowledge graph
+- Use consistent naming and structure that can be extended in future updates
+- Include metadata about data categories to help with future queries
 
-The tests now properly reflect the new architecture where:
-1. Agent focuses on conversation management and phase transitions
-2. All LLM operations are delegated to MemoryManager
-3. Context is properly formatted and passed between components
+Return only a valid JSON object with this structure:
+{
+    "structured_data": {
+        // Your structured organization of the facts and details
+    },
+    "knowledge_graph": {
+        // Your graph of relationships between entities
+    },
+    "metadata": {
+        "categories": [],
+        "timestamp": "",
+        "version": "1.0"
+    }
+}
 
-Would you like me to:
-1. Add more test cases for specific scenarios?
-2. Add integration tests between Agent and MemoryManager?
-3. Add more detailed error case testing?
+Important: Return ONLY the JSON object, with no additional explanation or text.
+````
+
+This prompt:
+1. Clearly defines the task and expected output format
+2. Emphasizes the need for extensible, consistent structure
+3. Requests metadata to help with future operations
+4. Explicitly asks for JSON-only response to make parsing easier
+5. Gives the LLM freedom to organize the data in the most logical way
+
+Would you like to see the Query and Update prompt templates next?
 
 ---
 
 _**User**_
 
-There are 2 failed tests in test_memory_manager.py
-
----
-
-_**Assistant**_
-
-Could you share the test failures from `test_memory_manager.py`? Without seeing the actual error messages, I can't determine exactly what's failing. 
-
-However, given that we just refactored the interaction between Agent and MemoryManager, it's likely that the MemoryManager tests need to be updated to match the new interface. Let me see the current MemoryManager tests:
+Yes. Sounds great. Now, please write the memory manager code to populate the memory using the approach described above.
 
 ---
 
@@ -336,72 +403,133 @@ _**Assistant**_
 
 
 
----
+Here's the updated memory manager implementation that uses LLM prompts to structure and manage the data:
 
-_**Assistant**_
+````python:memory/memory_manager.py
+from typing import Any, Dict, Optional
+import json
+import os
+from datetime import datetime
 
+class MemoryManager:
+    def __init__(self, llm_service, memory_file: str = "memory.json"):
+        self.memory_file = memory_file
+        self.llm = llm_service
+        self.memory: Dict[str, Any] = {}
+        self._load_memory()
 
+    def _load_memory(self) -> None:
+        """Load memory from JSON file if it exists"""
+        if os.path.exists(self.memory_file):
+            with open(self.memory_file, 'r') as f:
+                self.memory = json.load(f)
 
-Looking at the test implementation, I can see that we need to update two tests in `test_memory_manager.py` to match our new interface:
+    def save_memory(self) -> None:
+        """Save current memory state to JSON file"""
+        with open(self.memory_file, 'w') as f:
+            json.dump(self.memory, f, indent=2)
 
-1. `test_query_memory_success`: The response format has changed to include `new_information` and `suggested_phase` instead of `relevant_data`
-2. `test_update_memory_success`: The update method now expects a context object instead of raw data
+    def create_initial_memory(self, input_data: str) -> None:
+        """Use LLM to structure initial input data into memory format"""
+        create_memory_prompt = """
+You are a memory management system. Your task is to analyze the provided campaign information and create two organized data structures:
 
-Let me update these tests:
+1. A structured_data JSON object to store key facts and details
+2. A knowledge_graph JSON object to map relationships between entities
 
----
+Input Data:
+{INPUT_DATA}
 
-_**Assistant**_
+Requirements:
+- Structure the data in a way that will be useful for a D&D campaign management system
+- Include all relevant information from the input
+- Create meaningful relationships in the knowledge graph
+- Use consistent naming and structure that can be extended in future updates
+- Include metadata about data categories to help with future queries
 
+Return only a valid JSON object with this structure:
+{
+    "structured_data": {
+        // Your structured organization of the facts and details
+    },
+    "knowledge_graph": {
+        // Your graph of relationships between entities
+    },
+    "metadata": {
+        "categories": [],
+        "timestamp": "",
+        "version": "1.0"
+    }
+}
 
+Important: Return ONLY the JSON object, with no additional explanation or text."""
 
----
+        # Get structured memory from LLM
+        prompt = create_memory_prompt.replace("{INPUT_DATA}", input_data)
+        try:
+            llm_response = self.llm.generate(prompt)
+            memory_data = json.loads(llm_response)
+            
+            # Add system metadata
+            memory_data["metadata"]["created_at"] = datetime.now().isoformat()
+            memory_data["metadata"]["last_updated"] = datetime.now().isoformat()
+            
+            self.memory = memory_data
+            self.save_memory()
+            return True
+        except (json.JSONDecodeError, Exception) as e:
+            print(f"Error creating memory structure: {str(e)}")
+            return False
 
-_**Assistant**_
+    def get_memory_context(self) -> Dict[str, Any]:
+        """Return the entire memory state"""
+        return self.memory
 
+    def clear_memory(self) -> None:
+        """Clear all stored memory"""
+        self.memory = {}
+        if os.path.exists(self.memory_file):
+            os.remove(self.memory_file)
+````
 
+Example usage:
 
-Key changes to the tests:
+````python
+# Example usage with a hypothetical LLM service
+from ai.llm import LLMService
 
-1. **Query Memory Tests**:
-   - Updated to use new context-based interface
-   - Added test for `suggested_phase` in response
-   - Updated mock response format to match new structure
-   - Added proper context object in test input
+# Initialize
+llm_service = LLMService()  # Your LLM implementation
+memory_manager = MemoryManager(llm_service)
 
-2. **Update Memory Tests**:
-   - Changed to use context-based interface
-   - Added test for reflection operation
-   - Updated mock data to match new format
-   - Added proper context objects for both learning and reflection
+# When receiving Phase 1 campaign data
+phase1_data = """
+Campaign Details for Phase 1 - A simple, hello world campaign
+- The world is a simple, flat world with a single continent...
+[rest of the campaign details]
+"""
 
-3. **Added New Test**:
-   - `test_update_memory_reflection`: Tests the reflection operation specifically
-   - Verifies that reflection context is handled correctly
-   - Checks that memory is updated properly after reflection
+# Create initial memory structure
+memory_manager.create_initial_memory(phase1_data)
 
-The tests now properly reflect the new architecture where:
-1. All operations use structured context objects
-2. Memory updates handle both learning and reflection
-3. Query responses include phase suggestions
-4. All data is properly JSON-encoded
+# Access memory context
+context = memory_manager.get_memory_context()
+````
 
-Would you like me to:
-1. Add more test cases for specific scenarios?
-2. Add more error case testing?
-3. Add integration tests between MemoryManager and LLM service?
+Key features:
+1. Uses LLM to structure the initial data
+2. Stores the LLM-generated structure without imposing our own format
+3. Maintains metadata about the memory state
+4. Provides simple interface for saving/loading memory
+5. Ready for extension with query and update capabilities
+
+Would you like me to add the query and update memory methods next?
 
 ---
 
 _**User**_
 
-Great. Let's focus on the memory manager. Please make a memory_manager_usage_example.py script that exercises the features of the MemoryManager - as thought it was being used by an Agent. The goal is to isolate the complex functionality of the MemoryManager so it is easy to evaluate and troubleshoot.
-
----
-
-_**Assistant**_
-
-I'll create a comprehensive example script that demonstrates the MemoryManager's functionality in isolation.
+Great. Please write a detailed README about the memory_manager and the proposed impoementatino approach.
 
 ---
 
@@ -409,162 +537,412 @@ _**Assistant**_
 
 
 
----
+Here's a detailed README for the memory management system:
 
-_**Assistant**_
+````markdown:memory/README.md
+# Memory Manager for LLM-Driven Agent
 
+A flexible, LLM-driven approach to managing structured data and knowledge graphs for conversational agents.
 
+## Overview
 
-I've created a comprehensive example script that demonstrates all key features of the MemoryManager. The script:
+The Memory Manager uses LLM prompts to structure, query, and update memory without imposing predefined data schemas. Instead of hard-coding data structures, it allows the LLM to determine the most appropriate way to organize information based on the context and requirements.
 
-1. **Initialization**:
-   - Sets up MemoryManager with Ollama LLM service
-   - Uses a local JSON file for persistence
+### Key Features
 
-2. **Phase 1: Initial Memory Creation**:
-   - Creates initial memory with campaign world details
-   - Demonstrates basic memory structure creation
+- **Dynamic Data Structuring**: LLM determines optimal data organization
+- **Flexible Knowledge Representation**: Adapts to any domain or use case
+- **Prompt-Driven Operations**: All memory operations handled via LLM prompts
+- **Persistent Storage**: Automatic JSON-based file storage
+- **Session Management**: Maintains context across conversations
 
-3. **Phase 2: Memory Queries**:
-   - Shows how to query memory with proper context
-   - Demonstrates the query response format
+## Architecture
 
-4. **Phase 3: Memory Updates**:
-   - Updates memory with new information about the troll
-   - Shows how to provide context for updates
+### Components
 
-5. **Phase 4: Memory Reflection**:
-   - Demonstrates the reflection operation
-   - Shows how conversation history affects memory organization
-
-6. **Phase 5: Complex Queries**:
-   - Shows how to make strategy-based queries
-   - Demonstrates using accumulated context
-
-Features:
-- Pretty printing of memory state
-- Error handling
-- Clean section headers
-- Proper cleanup
-
-To run this example:
-```bash
-python scripts/memory_manager_usage_example.py
+```
+memory/
+├── memory_manager.py     # Core memory management functionality
+├── README.md            # This documentation
+└── prompts/            # LLM prompt templates
+    ├── create.txt      # Initial memory structure prompt
+    ├── query.txt       # Memory query prompt
+    └── update.txt      # Memory update prompt
 ```
 
-This will help in:
-1. Testing MemoryManager in isolation
-2. Understanding the memory structure evolution
-3. Debugging LLM interactions
-4. Verifying context handling
+### Memory Structure
 
-Would you like me to:
-1. Add more complex query examples?
-2. Add memory persistence testing?
-3. Add more error case handling?
+The memory is stored as a JSON object with three main sections:
 
----
-
-_**User**_
-
-Great. One more thing, the memory manager expects responses from the LLM to be strict, parsable JSON. Sometimes the LLM is returning extra, non-JSON commentary.  For prompts that are expecting JSON, an instruction like this needs to be added:
-
-You are a helpful assistant that communicates using JSON. All your responses should be in strict, parsable JSON format.
-
----
-
-_**Assistant**_
-
-
-
-Yes, that's a crucial point. Let me update the prompts in the MemoryManager to ensure strict JSON responses.
-
----
-
-_**Assistant**_
-
-
-
----
-
-_**Assistant**_
-
-
-
-I've updated all prompts in the MemoryManager to:
-
-1. Start with the explicit JSON instruction:
-```
-You are a helpful assistant that communicates using JSON. All your responses should be in strict, parsable JSON format.
+```json
+{
+    "structured_data": {
+        // LLM-defined structure for facts and details
+    },
+    "knowledge_graph": {
+        // LLM-defined structure for relationships
+    },
+    "metadata": {
+        "categories": [],
+        "timestamp": "",
+        "version": "1.0",
+        "created_at": "",
+        "last_updated": ""
+    }
+}
 ```
 
-2. End with clear formatting requirements:
+## Usage
+
+### Initialization
+
+```python
+from memory.memory_manager import MemoryManager
+from ai.llm import LLMService
+
+llm_service = LLMService()
+memory_manager = MemoryManager(llm_service)
 ```
-Return ONLY a valid JSON object with this structure (no additional text or explanation):
+
+### Creating Initial Memory
+
+```python
+# Provide initial data
+initial_data = """
+[Your campaign or domain data here]
+"""
+
+# LLM will structure this into appropriate memory format
+memory_manager.create_initial_memory(initial_data)
 ```
 
-Changes made to:
-- `create_initial_memory` prompt
-- `query_memory` prompt
-- `update_memory` prompts (both standard and reflection)
+### Accessing Memory
 
-The changes should help ensure that:
-1. The LLM understands it must return only JSON
-2. No additional commentary or explanations are included
-3. Responses are consistently parsable
+```python
+# Get full memory context
+context = memory_manager.get_memory_context()
+```
 
-Would you like me to:
-1. Add JSON validation helpers?
-2. Add more specific JSON structure examples in the prompts?
-3. Add error recovery for partially valid JSON responses?
+## LLM Prompts
+
+### Create Memory Prompt
+
+Used to establish initial memory structure:
+
+```text
+You are a memory management system. Your task is to analyze the provided information 
+and create two organized data structures:
+
+1. A structured_data JSON object to store key facts and details
+2. A knowledge_graph JSON object to map relationships between entities
+
+Input Data:
+{INPUT_DATA}
+
+Requirements:
+- Structure the data in a way that will be useful for the specific domain
+- Include all relevant information from the input
+- Create meaningful relationships in the knowledge graph
+- Use consistent naming and structure that can be extended in future updates
+- Include metadata about data categories to help with future queries
+
+Return only a valid JSON object...
+```
+
+### Query Memory Prompt (Planned)
+
+Used to retrieve relevant information:
+
+```text
+Given this memory context: {MEMORY_JSON}
+And this query: {QUERY}
+Provide a response using the stored information.
+```
+
+### Update Memory Prompt (Planned)
+
+Used to incorporate new information:
+
+```text
+Given this memory context: {MEMORY_JSON}
+And this new information: {NEW_DATA}
+Return updated JSON structures that incorporate the new information.
+```
+
+## Implementation Approach
+
+1. **Initial Memory Creation**
+   - Receive raw input data
+   - Use LLM to structure into JSON format
+   - Store structured data and relationships
+   - Maintain metadata about the structure
+
+2. **Memory Queries**
+   - Include full memory context in prompt
+   - Let LLM determine relevant information
+   - Return formatted response
+
+3. **Memory Updates**
+   - Include current memory and new data in prompt
+   - LLM determines how to merge/update information
+   - Save updated structure
+
+## Best Practices
+
+1. **Prompt Design**
+   - Be explicit about expected output format
+   - Include examples where helpful
+   - Specify requirements clearly
+
+2. **Error Handling**
+   - Validate LLM responses
+   - Handle JSON parsing errors
+   - Maintain data consistency
+
+3. **Performance**
+   - Only include relevant context in prompts
+   - Cache frequently accessed data
+   - Optimize file I/O operations
+
+## Future Enhancements
+
+1. **Memory Pruning**
+   - LLM-driven relevance assessment
+   - Automatic cleanup of outdated information
+
+2. **Version Control**
+   - Track memory changes over time
+   - Ability to rollback to previous states
+
+3. **Multi-Session Support**
+   - Handle multiple concurrent conversations
+   - Session isolation and management
+
+## Contributing
+
+Guidelines for contributing to the memory management system...
+
+## License
+
+[Your license information here]
+````
+
+This README provides a comprehensive overview of the memory management system, its design philosophy, and implementation details. Would you like me to expand on any particular section?
 
 ---
 
 _**User**_
 
-For future reference, please use llama3 rather than llama2 when initializing an OllamaService
+Great. Please write a README for the ai llm class. It should define a base class used to interface with llm services. The README should also describe a specialized (subclass) llm_openai.py that uses the openai llm api. The README should also describe a specialized (subclass) llm_ollama.py that uses the ollama llm api.
 
 ---
 
 _**Assistant**_
 
-I'll update the example script to use llama3 instead of llama2.
+Here's a README for the AI/LLM service architecture:
 
----
+````markdown:src/ai/README.md
+# LLM Service Interface
 
-_**Assistant**_
+Provides a standardized interface for interacting with different LLM providers (OpenAI, Ollama, etc.).
 
+## Overview
 
+The LLM service architecture uses a base class that defines the common interface, with specialized implementations for different LLM providers. This allows the rest of the application to work with any LLM service transparently.
 
----
+### Key Features
 
-_**Assistant**_
+- **Provider Agnostic**: Common interface for all LLM providers
+- **Easy Integration**: Simple to add new LLM providers
+- **Consistent Error Handling**: Standardized error handling across providers
+- **Configuration Management**: Provider-specific settings handled in subclasses
+- **Response Formatting**: Consistent response format regardless of provider
 
+## Architecture
 
+### Components
 
-I've updated the script to use `llama3` instead of `llama2` when initializing the OllamaService. This change should be reflected in any future scripts or examples we create that use the Ollama service.
+```
+ai/
+├── llm.py              # Base LLM interface
+├── llm_openai.py       # OpenAI implementation
+├── llm_ollama.py       # Ollama implementation
+└── README.md           # This documentation
+```
 
-Would you like me to update any other files that might reference the Ollama model selection?
+## Base LLM Interface
+
+```python
+from typing import Dict, Any, Optional
+
+class LLMService:
+    """Base class for LLM service providers"""
+    
+    def __init__(self, config: Optional[Dict[str, Any]] = None):
+        self.config = config or {}
+    
+    def generate(self, prompt: str) -> str:
+        """Generate a response from the LLM"""
+        raise NotImplementedError
+    
+    def validate_response(self, response: str) -> bool:
+        """Validate LLM response format"""
+        raise NotImplementedError
+```
+
+## OpenAI Implementation
+
+The OpenAI implementation (`llm_openai.py`) provides integration with OpenAI's API:
+
+```python
+from .llm import LLMService
+import openai
+
+class OpenAIService(LLMService):
+    def __init__(self, config: Optional[Dict[str, Any]] = None):
+        super().__init__(config)
+        self.api_key = config.get('api_key') or os.getenv('OPENAI_API_KEY')
+        self.model = config.get('model', 'gpt-4')
+        openai.api_key = self.api_key
+
+    def generate(self, prompt: str) -> str:
+        try:
+            response = openai.ChatCompletion.create(
+                model=self.model,
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.7
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            raise LLMServiceError(f"OpenAI API error: {str(e)}")
+```
+
+### OpenAI Configuration
+
+```python
+config = {
+    "api_key": "your-api-key",  # Optional if using env var
+    "model": "gpt-4",           # Or other OpenAI model
+    "temperature": 0.7,
+    "max_tokens": 1000
+}
+```
+
+## Ollama Implementation
+
+The Ollama implementation (`llm_ollama.py`) provides integration with local Ollama models:
+
+```python
+from .llm import LLMService
+import requests
+
+class OllamaService(LLMService):
+    def __init__(self, config: Optional[Dict[str, Any]] = None):
+        super().__init__(config)
+        self.base_url = config.get('base_url', 'http://localhost:11434')
+        self.model = config.get('model', 'llama2')
+
+    def generate(self, prompt: str) -> str:
+        try:
+            response = requests.post(
+                f"{self.base_url}/api/generate",
+                json={
+                    "model": self.model,
+                    "prompt": prompt
+                }
+            )
+            return response.json()['response']
+        except Exception as e:
+            raise LLMServiceError(f"Ollama API error: {str(e)}")
+```
+
+### Ollama Configuration
+
+```python
+config = {
+    "base_url": "http://localhost:11434",  # Ollama API endpoint
+    "model": "llama2",                     # Or other installed model
+    "temperature": 0.7
+}
+```
+
+## Usage
+
+### Basic Usage
+
+```python
+# Using OpenAI
+from ai.llm_openai import OpenAIService
+
+llm = OpenAIService({
+    "model": "gpt-4",
+    "temperature": 0.7
+})
+
+response = llm.generate("Your prompt here")
+
+# Using Ollama
+from ai.llm_ollama import OllamaService
+
+llm = OllamaService({
+    "model": "llama2"
+})
+
+response = llm.generate("Your prompt here")
+```
+
+### Error Handling
+
+```python
+from ai.exceptions import LLMServiceError
+
+try:
+    response = llm.generate("Your prompt")
+except LLMServiceError as e:
+    print(f"LLM error: {str(e)}")
+```
+
+## Best Practices
+
+1. **Configuration Management**
+   - Use environment variables for sensitive data
+   - Provide sensible defaults
+   - Allow runtime configuration
+
+2. **Error Handling**
+   - Catch and wrap provider-specific errors
+   - Provide meaningful error messages
+   - Include retry logic for transient failures
+
+3. **Response Validation**
+   - Verify response format
+   - Handle incomplete or malformed responses
+   - Implement timeout handling
+
+## Future Enhancements
+
+1. **Additional Providers**
+   - Add support for other LLM providers
+   - Implement provider-specific optimizations
+
+2. **Advanced Features**
+   - Streaming responses
+   - Token counting
+   - Cost tracking
+
+3. **Performance Optimization**
+   - Response caching
+   - Request batching
+   - Connection pooling
+````
+
+This README provides a comprehensive overview of the LLM service architecture, including base interface and specific implementations for OpenAI and Ollama. Would you like me to expand on any particular aspect?
 
 ---
 
 _**User**_
 
-Things are looking good! There was an error in Phase 4 when running the memory manager usage example:
-
-It could be that the LLM did not return strict, parsable JSON. But it is hard to know. It would be helpful if the LLMService (i.e. OllamaService) had a debug mode so that prompts and responses could be logged to make troubleshooting easier.
-
----
-
-_**Assistant**_
-
-
-
-Yes, adding debug logging would be very helpful for troubleshooting LLM interactions. Let me add debug support to the LLM service classes.
-
----
-
-_**Assistant**_
+Can you explain how Mock makes this test work?
 
 
 
@@ -572,228 +950,72 @@ _**Assistant**_
 
 _**Assistant**_
 
-
-
-Now let me update the OllamaService to use the new debug functionality:
-
----
-
-_**Assistant**_
-
-
-
----
-
-_**Assistant**_
-
-
-
-
-
-
-
-Now let's update the example script to use debug mode:
-
----
-
-_**Assistant**_
-
-
-
----
-
-_**Assistant**_
-
-
-
-
-
-
-
-I've added comprehensive debug support:
-
-1. **Base LLMService Class**:
-   - Added debug mode configuration
-   - Added logging setup
-   - Added detailed logging of prompts and responses
-   - Split `generate` into public method and protected `_generate_impl`
-
-2. **OllamaService Implementation**:
-   - Added debug logging for initialization
-   - Added request details logging
-   - Added response chunk logging for streaming
-   - Enhanced error logging
-   - Added response validation logging
-
-3. **Example Script**:
-   - Enabled debug mode
-   - Specified custom debug log file
-
-Now when running the example, you'll get detailed logs in `memory_manager_debug.log` showing:
-- All prompts sent to the LLM
-- All responses received
-- Any errors or validation issues
-- API request details
-
-To troubleshoot the reflection error, you can:
-1. Run the example
-2. Check `memory_manager_debug.log`
-3. Look for the exact response from Ollama during the reflection phase
-4. Identify if the response is not proper JSON or is missing required fields
-
-Would you like me to:
-1. Add more detailed logging?
-2. Add JSON validation helpers?
-3. Add response sanitization?
-
----
-
-_**User**_
-
-Really great. Now that I see the log, I think that logging each ollama stream chunk will often be too verbose. Let's have a way to disable that.
-
----
-
-_**Assistant**_
-
-
-
-I'll add a `log_chunks` configuration option to control the verbosity of stream chunk logging.
-
----
-
-_**Assistant**_
-
-
-
----
-
-_**Assistant**_
-
-
-
-
-
-
-
-Now let's update the example script to use the new configuration:
-
----
-
-_**Assistant**_
-
-
-
----
-
-_**Assistant**_
-
-
-
-
-
-
-
-I've made the following changes:
-
-1. **Added `log_chunks` Configuration**:
-   - New optional config parameter
-   - Defaults to `False` to reduce log verbosity
-   - Can be enabled when detailed chunk debugging is needed
-
-2. **Updated Logging Logic**:
-   - Only logs chunks when both `debug` and `log_chunks` are `True`
-   - Added initialization log message when chunk logging is enabled
-   - Keeps other debug logging intact
-
-3. **Updated Example Script**:
-   - Explicitly disables chunk logging
-   - Still maintains high-level debug logging
-
-Now the debug log will be cleaner and more focused on important information like:
-- Full prompts
-- Complete responses
-- Errors and warnings
-- API request details
-
-Would you like me to:
-1. Add more granular logging controls?
-2. Add response size/token count logging?
-3. Add timing information to the logs?
-
----
-
-_**User**_
-
-Great. Let's also add a control to determine if logs should be printed to the console. Often the log file will be sufficient.
-
----
-
-_**Assistant**_
-
-
-
-I'll add a `console_output` configuration option to control whether logs are also sent to the console.
-
----
-
-_**Assistant**_
-
-
-
----
-
-_**Assistant**_
-
-
-
-
-
-
-
-Now let's update the example script to use the new configuration:
-
----
-
-_**Assistant**_
-
-
-
----
-
-_**Assistant**_
-
-
-
-
-
-
-
-I've made the following changes:
-
-1. **Added `console_output` Configuration**:
-   - New optional config parameter
-   - Defaults to `False` to keep console clean
-   - When `True`, logs will be sent to both file and console
-
-2. **Updated Logging Setup**:
-   - Always writes to log file when debug is enabled
-   - Only adds console handler if `console_output` is `True`
-   - Maintains same log format and level for both outputs
-
-3. **Updated Example Script**:
-   - Explicitly sets `console_output` to `False`
-   - All debug output will go to `memory_manager_debug.log` only
-
-Now you can:
-1. Keep detailed logs in the file for debugging
-2. Keep the console clean for user interaction
-3. Enable console output temporarily when needed for development
-
-Would you like me to:
-1. Add log rotation support?
-2. Add different log levels for file vs console?
-3. Add log formatting options?
+Let me break down how Mock works in this test:
+
+````python
+@patch('openai.ChatCompletion.create')
+def test_openai_generate_success(mock_create):
+    # 1. Create a mock response structure
+    mock_create.return_value.choices = [
+        Mock(message=Mock(content="test response"))
+    ]
+````
+
+This test uses Mock to create a fake version of the OpenAI API response. Let's break it down:
+
+1. `@patch('openai.ChatCompletion.create')` 
+   - Temporarily replaces the real OpenAI API call with a mock
+   - The mock is passed as `mock_create` to the test function
+
+2. The real OpenAI API would return something like:
+````python
+{
+    "choices": [
+        {
+            "message": {
+                "content": "actual API response"
+            }
+        }
+    ]
+}
+````
+
+3. The mock recreates this structure:
+````python
+# This line:
+mock_create.return_value.choices = [Mock(message=Mock(content="test response"))]
+
+# Creates this fake structure:
+mock_create.return_value = Mock()
+mock_create.return_value.choices = [
+    Mock(
+        message=Mock(
+            content="test response"
+        )
+    )
+]
+````
+
+4. Then the test verifies:
+````python
+# When service.generate() calls openai.ChatCompletion.create()
+# it gets our mock instead of calling the real API
+response = service.generate("test prompt")
+
+# Verify we got the mock response
+assert response == "test response"
+
+# Verify the API was called exactly once
+mock_create.assert_called_once()
+````
+
+Benefits:
+1. No real API calls during testing
+2. Tests run faster and don't cost money
+3. Can test error conditions easily
+4. Consistent test behavior
+
+Would you like to see examples of testing other scenarios like API errors or different response structures?
 
 ---
 

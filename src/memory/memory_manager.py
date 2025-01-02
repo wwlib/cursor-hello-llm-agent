@@ -72,7 +72,42 @@ Return ONLY a valid JSON object with this structure (no additional text or expla
             # Get structured memory from LLM
             prompt = create_memory_prompt.replace("{INPUT_DATA}", input_data)
             llm_response = self.llm.generate(prompt)
-            memory_data = json.loads(llm_response)
+            
+            # Try to extract JSON if there's any extra text
+            try:
+                # First try direct JSON parsing
+                memory_data = json.loads(llm_response)
+            except json.JSONDecodeError:
+                # If that fails, try to find JSON-like structure
+                import re
+                json_match = re.search(r'\{[\s\S]*\}', llm_response)
+                if json_match:
+                    try:
+                        memory_data = json.loads(json_match.group(0))
+                    except json.JSONDecodeError as e:
+                        print(f"Error parsing extracted JSON structure: {str(e)}")
+                        print(f"Extracted structure: {json_match.group(0)}")
+                        return False
+                else:
+                    print("Could not find JSON structure in LLM response")
+                    print(f"Raw response: {llm_response}")
+                    return False
+            
+            # Validate required fields
+            required_fields = ["structured_data", "knowledge_graph", "metadata"]
+            for field in required_fields:
+                if field not in memory_data:
+                    print(f"Missing required field '{field}' in memory data")
+                    print(f"Received data: {json.dumps(memory_data, indent=2)}")
+                    return False
+            
+            # Validate metadata structure
+            required_metadata = ["categories", "timestamp", "version"]
+            for field in required_metadata:
+                if field not in memory_data["metadata"]:
+                    print(f"Missing required metadata field '{field}'")
+                    print(f"Received metadata: {json.dumps(memory_data['metadata'], indent=2)}")
+                    return False
             
             # Add system metadata
             memory_data["metadata"]["created_at"] = datetime.now().isoformat()
@@ -81,8 +116,10 @@ Return ONLY a valid JSON object with this structure (no additional text or expla
             self.memory = memory_data
             self.save_memory()
             return True
+            
         except Exception as e:
             print(f"Error creating memory structure: {str(e)}")
+            print(f"Full error details: {type(e).__name__}: {str(e)}")
             return False
 
     def query_memory(self, query_context: str) -> Dict[str, Any]:
