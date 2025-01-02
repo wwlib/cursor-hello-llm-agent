@@ -1,0 +1,1424 @@
+2025-01-01 23:31:45,198 - OllamaService - DEBUG - Initialized LLM service with debug mode
+2025-01-01 23:31:45,198 - OllamaService - DEBUG - Initialized Ollama service with model: llama3
+2025-01-01 23:31:45,198 - OllamaService - DEBUG - 
+================================================================================
+PROMPT:
+You are a helpful assistant that communicates using JSON. All your responses should be in strict, parsable JSON format.
+
+Your task is to analyze the provided information and create two organized data structures:
+
+1. A structured_data JSON object to store key facts and details
+2. A knowledge_graph JSON object to map relationships between entities
+
+Input Data:
+
+    This is a D&D campaign world with the following details:
+    - A flat world with a single continent
+    - A single ocean and mountain range
+    - Inhabited by humanoid creatures
+    - Ruled by a benevolent monarch
+    - Currently peaceful except for a Mountain Troll problem
+    - The troll has been attacking a village from its mountain cave
+    - Village offers 1000 gold coins reward for killing the troll
+    
+
+Requirements:
+- Structure the data in a way that will be useful for the specific domain
+- Include all relevant information from the input
+- Create meaningful relationships in the knowledge graph
+- Use consistent naming and structure that can be extended in future updates
+- Include metadata about data categories to help with future queries
+
+Return ONLY a valid JSON object with this structure (no additional text or explanation):
+{
+    "structured_data": {
+        // Your structured organization of the facts and details
+    },
+    "knowledge_graph": {
+        // Your graph of relationships between entities
+    },
+    "metadata": {
+        "categories": [],
+        "timestamp": "",
+        "version": "1.0"
+    }
+}
+================================================================================
+2025-01-01 23:31:45,198 - OllamaService - DEBUG - Making request to Ollama API at http://192.168.1.173:11434
+2025-01-01 23:31:45,199 - OllamaService - DEBUG - Model: llama3, Temperature: 0.7
+2025-01-01 23:31:45,207 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.1.173:11434
+2025-01-01 23:32:00,600 - urllib3.connectionpool - DEBUG - http://192.168.1.173:11434 "POST /api/generate HTTP/1.1" 200 None
+2025-01-01 23:32:05,921 - OllamaService - DEBUG - 
+--------------------------------------------------------------------------------
+RESPONSE:
+{
+    "structured_data": {
+        "world_details": {
+            "continents": [
+                {"name": "Single Continent", "type": "flat"}
+            ],
+            "bodies_of_water": [
+                {"name": "Ocean", "type": "single ocean"},
+                {"name": "Mountain Range", "type": "mountain range"}
+            ]
+        },
+        "inhabitants": {
+            "races": ["humanoid creatures"]
+        },
+        "government": {
+            "monarchy": true,
+            "ruler_type": "benevolent"
+        },
+        "conflict": {
+            "status": "peaceful",
+            "problem": {"name": "Mountain Troll", "location": "mountain cave"}
+        },
+        "rewards": [
+            {"amount": 1000, "currency": "gold coins", "target": "killing the troll"}
+        ]
+    },
+    "knowledge_graph": {
+        "entities": {
+            "World": {"details": "Single Continent"},
+            "Ocean": {},
+            "Mountain Range": {},
+            "Humanoid Creatures": {},
+            "Benevolent Monarch": {},
+            "Mountain Troll": {"location": "mountain cave", "problem": true},
+            "Village": {}
+        },
+        "relationships": [
+            {"type": "inhabits", "entities": ["World", "Humanoid Creatures"]},
+            {"type": "ruler_of", "entities": ["Benevolent Monarch", "World"]},
+            {"type": "attacks", "entities": ["Mountain Troll", "Village"]},
+            {"type": "problem_in", "entities": ["Mountain Troll", "World"]}
+        ]
+    },
+    "metadata": {
+        "categories": ["world", "inhabitants", "government", "conflict", "rewards"],
+        "timestamp": "2023-02-20T14:30:00Z",
+        "version": "1.0"
+    }
+}
+--------------------------------------------------------------------------------
+2025-01-01 23:32:05,923 - OllamaService - DEBUG - 
+================================================================================
+PROMPT:
+You are a helpful assistant that communicates using JSON. All your responses should be in strict, parsable JSON format.
+
+Context:
+{
+  "structured_data": {
+    "world_details": {
+      "continents": [
+        {
+          "name": "Single Continent",
+          "type": "flat"
+        }
+      ],
+      "bodies_of_water": [
+        {
+          "name": "Ocean",
+          "type": "single ocean"
+        },
+        {
+          "name": "Mountain Range",
+          "type": "mountain range"
+        }
+      ]
+    },
+    "inhabitants": {
+      "races": [
+        "humanoid creatures"
+      ]
+    },
+    "government": {
+      "monarchy": true,
+      "ruler_type": "benevolent"
+    },
+    "conflict": {
+      "status": "peaceful",
+      "problem": {
+        "name": "Mountain Troll",
+        "location": "mountain cave"
+      }
+    },
+    "rewards": [
+      {
+        "amount": 1000,
+        "currency": "gold coins",
+        "target": "killing the troll"
+      }
+    ]
+  },
+  "knowledge_graph": {
+    "entities": {
+      "World": {
+        "details": "Single Continent"
+      },
+      "Ocean": {},
+      "Mountain Range": {},
+      "Humanoid Creatures": {},
+      "Benevolent Monarch": {},
+      "Mountain Troll": {
+        "location": "mountain cave",
+        "problem": true
+      },
+      "Village": {}
+    },
+    "relationships": [
+      {
+        "type": "inhabits",
+        "entities": [
+          "World",
+          "Humanoid Creatures"
+        ]
+      },
+      {
+        "type": "ruler_of",
+        "entities": [
+          "Benevolent Monarch",
+          "World"
+        ]
+      },
+      {
+        "type": "attacks",
+        "entities": [
+          "Mountain Troll",
+          "Village"
+        ]
+      },
+      {
+        "type": "problem_in",
+        "entities": [
+          "Mountain Troll",
+          "World"
+        ]
+      }
+    ]
+  },
+  "metadata": {
+    "categories": [
+      "world",
+      "inhabitants",
+      "government",
+      "conflict",
+      "rewards"
+    ],
+    "timestamp": "2023-02-20T14:30:00Z",
+    "version": "1.0",
+    "created_at": "2025-01-01T23:32:05.921467",
+    "last_updated": "2025-01-01T23:32:05.921530"
+  }
+}
+
+Current Phase: LEARNING
+Previous Messages: [
+  {
+    "role": "user",
+    "content": "Tell me about the world.",
+    "timestamp": "2025-01-01T23:32:05.922847"
+  }
+]
+
+User Message: Tell me about the world.
+
+Generate a response that:
+1. Uses relevant information from memory
+2. Maintains consistency with previous interactions
+3. Advances the current phase appropriately
+4. Identifies any new information to be stored
+
+Return ONLY a valid JSON object with this structure (no additional text or explanation):
+{
+    "response": "Your response here",
+    "new_information": {
+        // Any new information to be stored
+    },
+    "suggested_phase": "current or next phase name",
+    "confidence": 0.0 to 1.0
+}
+================================================================================
+2025-01-01 23:32:05,923 - OllamaService - DEBUG - Making request to Ollama API at http://192.168.1.173:11434
+2025-01-01 23:32:05,923 - OllamaService - DEBUG - Model: llama3, Temperature: 0.7
+2025-01-01 23:32:05,925 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.1.173:11434
+2025-01-01 23:32:06,130 - urllib3.connectionpool - DEBUG - http://192.168.1.173:11434 "POST /api/generate HTTP/1.1" 200 None
+2025-01-01 23:32:06,901 - OllamaService - DEBUG - 
+--------------------------------------------------------------------------------
+RESPONSE:
+{
+  "response": "The world, known as Single Continent, is a flat landmass that is home to humanoid creatures. It has an Ocean and a Mountain Range.",
+  "new_information": {},
+  "suggested_phase": "EXPLORATION",
+  "confidence": 0.8
+}
+--------------------------------------------------------------------------------
+2025-01-01 23:32:06,901 - OllamaService - DEBUG - 
+================================================================================
+PROMPT:
+You are a helpful assistant that communicates using JSON. All your responses should be in strict, parsable JSON format.
+
+Current Memory State:
+{
+  "structured_data": {
+    "world_details": {
+      "continents": [
+        {
+          "name": "Single Continent",
+          "type": "flat"
+        }
+      ],
+      "bodies_of_water": [
+        {
+          "name": "Ocean",
+          "type": "single ocean"
+        },
+        {
+          "name": "Mountain Range",
+          "type": "mountain range"
+        }
+      ]
+    },
+    "inhabitants": {
+      "races": [
+        "humanoid creatures"
+      ]
+    },
+    "government": {
+      "monarchy": true,
+      "ruler_type": "benevolent"
+    },
+    "conflict": {
+      "status": "peaceful",
+      "problem": {
+        "name": "Mountain Troll",
+        "location": "mountain cave"
+      }
+    },
+    "rewards": [
+      {
+        "amount": 1000,
+        "currency": "gold coins",
+        "target": "killing the troll"
+      }
+    ]
+  },
+  "knowledge_graph": {
+    "entities": {
+      "World": {
+        "details": "Single Continent"
+      },
+      "Ocean": {},
+      "Mountain Range": {},
+      "Humanoid Creatures": {},
+      "Benevolent Monarch": {},
+      "Mountain Troll": {
+        "location": "mountain cave",
+        "problem": true
+      },
+      "Village": {}
+    },
+    "relationships": [
+      {
+        "type": "inhabits",
+        "entities": [
+          "World",
+          "Humanoid Creatures"
+        ]
+      },
+      {
+        "type": "ruler_of",
+        "entities": [
+          "Benevolent Monarch",
+          "World"
+        ]
+      },
+      {
+        "type": "attacks",
+        "entities": [
+          "Mountain Troll",
+          "Village"
+        ]
+      },
+      {
+        "type": "problem_in",
+        "entities": [
+          "Mountain Troll",
+          "World"
+        ]
+      }
+    ]
+  },
+  "metadata": {
+    "categories": [
+      "world",
+      "inhabitants",
+      "government",
+      "conflict",
+      "rewards"
+    ],
+    "timestamp": "2023-02-20T14:30:00Z",
+    "version": "1.0",
+    "created_at": "2025-01-01T23:32:05.921467",
+    "last_updated": "2025-01-01T23:32:05.921530"
+  }
+}
+
+Phase: LEARNING
+New Information: 
+        New information about the Mountain Troll:
+        - Recently seen near the village's eastern farms
+        - Described as 12 feet tall with grey skin
+        - Known to be afraid of fire
+        - Has been stealing livestock at night
+        
+Recent History: [
+  {
+    "role": "user",
+    "content": "What have the villagers learned about the troll?",
+    "timestamp": "2025-01-01T23:32:06.901374"
+  }
+]
+
+Analyze this information and return a JSON object containing:
+1. Updated structured data
+2. New or modified relationships for the knowledge graph
+3. Any necessary changes to existing memory
+
+Return ONLY a valid JSON object matching the current memory structure (no additional text or explanation).
+================================================================================
+2025-01-01 23:32:06,901 - OllamaService - DEBUG - Making request to Ollama API at http://192.168.1.173:11434
+2025-01-01 23:32:06,901 - OllamaService - DEBUG - Model: llama3, Temperature: 0.7
+2025-01-01 23:32:06,903 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.1.173:11434
+2025-01-01 23:32:07,105 - urllib3.connectionpool - DEBUG - http://192.168.1.173:11434 "POST /api/generate HTTP/1.1" 200 None
+2025-01-01 23:32:15,657 - OllamaService - DEBUG - 
+--------------------------------------------------------------------------------
+RESPONSE:
+{
+  "structured_data": {
+    "world_details": {
+      "continents": [
+        {
+          "name": "Single Continent",
+          "type": "flat"
+        }
+      ],
+      "bodies_of_water": [
+        {
+          "name": "Ocean",
+          "type": "single ocean"
+        },
+        {
+          "name": "Mountain Range",
+          "type": "mountain range"
+        }
+      ]
+    },
+    "inhabitants": {
+      "races": [
+        "humanoid creatures"
+      ],
+      "villagers_knowledge": {
+        "trolls": {
+          "Mountain Troll": {
+            "height": 12,
+            "skin_color": "grey",
+            "fears": ["fire"],
+            "behavior": "steals livestock at night"
+          }
+        }
+      }
+    },
+    "government": {
+      "monarchy": true,
+      "ruler_type": "benevolent"
+    },
+    "conflict": {
+      "status": "peaceful",
+      "problem": {
+        "name": "Mountain Troll",
+        "location": "mountain cave",
+        "recent_sightings": [
+          {
+            "location": "village's eastern farms"
+          }
+        ]
+      }
+    },
+    "rewards": [
+      {
+        "amount": 1000,
+        "currency": "gold coins",
+        "target": "killing the troll"
+      }
+    ]
+  },
+  "knowledge_graph": {
+    "entities": {
+      "World": {
+        "details": "Single Continent"
+      },
+      "Ocean": {},
+      "Mountain Range": {},
+      "Humanoid Creatures": {},
+      "Benevolent Monarch": {},
+      "Mountain Troll": {
+        "location": "mountain cave",
+        "problem": true,
+        "height": 12,
+        "skin_color": "grey",
+        "fears": ["fire"],
+        "behavior": "steals livestock at night"
+      },
+      "Village": {}
+    },
+    "relationships": [
+      {
+        "type": "inhabits",
+        "entities": [
+          "World",
+          "Humanoid Creatures"
+        ]
+      },
+      {
+        "type": "ruler_of",
+        "entities": [
+          "Benevolent Monarch",
+          "World"
+        ]
+      },
+      {
+        "type": "attacks",
+        "entities": [
+          "Mountain Troll",
+          "Village"
+        ]
+      },
+      {
+        "type": "problem_in",
+        "entities": [
+          "Mountain Troll",
+          "World"
+        ]
+      },
+      {
+        "type": "sighted_at",
+        "entities": [
+          "Mountain Troll",
+          "village's eastern farms"
+        ]
+      }
+    ]
+  },
+  "metadata": {
+    "categories": [
+      "world",
+      "inhabitants",
+      "government",
+      "conflict",
+      "rewards"
+    ],
+    "timestamp": "2023-02-20T14:30:00Z",
+    "version": "1.0",
+    "created_at": "2025-01-01T23:32:05.921467",
+    "last_updated": "2025-01-01T23:33:06.901374"
+  }
+}
+--------------------------------------------------------------------------------
+2025-01-01 23:32:15,659 - OllamaService - DEBUG - 
+================================================================================
+PROMPT:
+You are a helpful assistant that communicates using JSON. All your responses should be in strict, parsable JSON format.
+
+Current Memory State:
+{
+  "structured_data": {
+    "world_details": {
+      "continents": [
+        {
+          "name": "Single Continent",
+          "type": "flat"
+        }
+      ],
+      "bodies_of_water": [
+        {
+          "name": "Ocean",
+          "type": "single ocean"
+        },
+        {
+          "name": "Mountain Range",
+          "type": "mountain range"
+        }
+      ]
+    },
+    "inhabitants": {
+      "races": [
+        "humanoid creatures"
+      ],
+      "villagers_knowledge": {
+        "trolls": {
+          "Mountain Troll": {
+            "height": 12,
+            "skin_color": "grey",
+            "fears": [
+              "fire"
+            ],
+            "behavior": "steals livestock at night"
+          }
+        }
+      }
+    },
+    "government": {
+      "monarchy": true,
+      "ruler_type": "benevolent"
+    },
+    "conflict": {
+      "status": "peaceful",
+      "problem": {
+        "name": "Mountain Troll",
+        "location": "mountain cave",
+        "recent_sightings": [
+          {
+            "location": "village's eastern farms"
+          }
+        ]
+      }
+    },
+    "rewards": [
+      {
+        "amount": 1000,
+        "currency": "gold coins",
+        "target": "killing the troll"
+      }
+    ]
+  },
+  "knowledge_graph": {
+    "entities": {
+      "World": {
+        "details": "Single Continent"
+      },
+      "Ocean": {},
+      "Mountain Range": {},
+      "Humanoid Creatures": {},
+      "Benevolent Monarch": {},
+      "Mountain Troll": {
+        "location": "mountain cave",
+        "problem": true,
+        "height": 12,
+        "skin_color": "grey",
+        "fears": [
+          "fire"
+        ],
+        "behavior": "steals livestock at night"
+      },
+      "Village": {}
+    },
+    "relationships": [
+      {
+        "type": "inhabits",
+        "entities": [
+          "World",
+          "Humanoid Creatures"
+        ]
+      },
+      {
+        "type": "ruler_of",
+        "entities": [
+          "Benevolent Monarch",
+          "World"
+        ]
+      },
+      {
+        "type": "attacks",
+        "entities": [
+          "Mountain Troll",
+          "Village"
+        ]
+      },
+      {
+        "type": "problem_in",
+        "entities": [
+          "Mountain Troll",
+          "World"
+        ]
+      },
+      {
+        "type": "sighted_at",
+        "entities": [
+          "Mountain Troll",
+          "village's eastern farms"
+        ]
+      }
+    ]
+  },
+  "metadata": {
+    "categories": [
+      "world",
+      "inhabitants",
+      "government",
+      "conflict",
+      "rewards"
+    ],
+    "timestamp": "2023-02-20T14:30:00Z",
+    "version": "1.0",
+    "created_at": "2025-01-01T23:32:05.921467",
+    "last_updated": "2025-01-01T23:32:15.657725"
+  }
+}
+
+Recent Interactions:
+[
+  {
+    "role": "user",
+    "content": "Tell me about the world.",
+    "timestamp": "2025-01-01T23:32:15.658732"
+  },
+  {
+    "role": "assistant",
+    "content": "It's a flat world with a single continent...",
+    "timestamp": "2025-01-01T23:32:15.658742"
+  },
+  {
+    "role": "user",
+    "content": "What about the troll?",
+    "timestamp": "2025-01-01T23:32:15.658744"
+  },
+  {
+    "role": "assistant",
+    "content": "The troll is 12 feet tall with grey skin...",
+    "timestamp": "2025-01-01T23:32:15.658747"
+  }
+]
+
+Analyze the current memory state and recent interactions to:
+1. Identify important patterns or relationships
+2. Suggest memory structure optimizations
+3. Highlight key information for future reference
+
+Return ONLY a valid JSON object matching the current memory structure (no additional text or explanation).
+================================================================================
+2025-01-01 23:32:15,659 - OllamaService - DEBUG - Making request to Ollama API at http://192.168.1.173:11434
+2025-01-01 23:32:15,659 - OllamaService - DEBUG - Model: llama3, Temperature: 0.7
+2025-01-01 23:32:15,660 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.1.173:11434
+2025-01-01 23:32:16,052 - urllib3.connectionpool - DEBUG - http://192.168.1.173:11434 "POST /api/generate HTTP/1.1" 200 None
+2025-01-01 23:32:27,028 - OllamaService - DEBUG - 
+--------------------------------------------------------------------------------
+RESPONSE:
+{
+  "structured_data": {
+    "world_details": {
+      "continents": [
+        {
+          "name": "Single Continent",
+          "type": "flat"
+        }
+      ],
+      "bodies_of_water": [
+        {
+          "name": "Ocean",
+          "type": "single ocean"
+        },
+        {
+          "name": "Mountain Range",
+          "type": "mountain range"
+        }
+      ]
+    },
+    "inhabitants": {
+      "races": [
+        "humanoid creatures"
+      ],
+      "villagers_knowledge": {
+        "trolls": {
+          "Mountain Troll": {
+            "height": 12,
+            "skin_color": "grey",
+            "fears": [
+              "fire"
+            ],
+            "behavior": "steals livestock at night"
+          }
+        }
+      }
+    },
+    "government": {
+      "monarchy": true,
+      "ruler_type": "benevolent"
+    },
+    "conflict": {
+      "status": "peaceful",
+      "problem": {
+        "name": "Mountain Troll",
+        "location": "mountain cave",
+        "recent_sightings": [
+          {
+            "location": "village's eastern farms"
+          }
+        ]
+      }
+    },
+    "rewards": [
+      {
+        "amount": 1000,
+        "currency": "gold coins",
+        "target": "killing the troll"
+      }
+    ],
+    "recent_interactions": [
+      {
+        "role": "user",
+        "content": "Tell me about the world.",
+        "timestamp": "2025-01-01T23:32:15.658732"
+      },
+      {
+        "role": "assistant",
+        "content": "It's a flat world with a single continent...",
+        "timestamp": "2025-01-01T23:32:15.658742"
+      },
+      {
+        "role": "user",
+        "content": "What about the troll?",
+        "timestamp": "2025-01-01T23:32:15.658744"
+      },
+      {
+        "role": "assistant",
+        "content": "The troll is 12 feet tall with grey skin...",
+        "timestamp": "2025-01-01T23:32:15.658747"
+      }
+    ]
+  },
+  "knowledge_graph": {
+    "entities": {
+      "World": {
+        "details": "Single Continent"
+      },
+      "Ocean": {},
+      "Mountain Range": {},
+      "Humanoid Creatures": {},
+      "Benevolent Monarch": {},
+      "Mountain Troll": {
+        "location": "mountain cave",
+        "problem": true,
+        "height": 12,
+        "skin_color": "grey",
+        "fears": [
+          "fire"
+        ],
+        "behavior": "steals livestock at night"
+      },
+      "Village": {}
+    },
+    "relationships": [
+      {
+        "type": "inhabits",
+        "entities": [
+          "World",
+          "Humanoid Creatures"
+        ]
+      },
+      {
+        "type": "ruler_of",
+        "entities": [
+          "Benevolent Monarch",
+          "World"
+        ]
+      },
+      {
+        "type": "attacks",
+        "entities": [
+          "Mountain Troll",
+          "Village"
+        ]
+      },
+      {
+        "type": "problem_in",
+        "entities": [
+          "Mountain Troll",
+          "World"
+        ]
+      },
+      {
+        "type": "sighted_at",
+        "entities": [
+          "Mountain Troll",
+          "village's eastern farms"
+        ]
+      }
+    ]
+  },
+  "metadata": {
+    "categories": [
+      "world",
+      "inhabitants",
+      "government",
+      "conflict",
+      "rewards"
+    ],
+    "timestamp": "2023-02-20T14:30:00Z",
+    "version": "1.0",
+    "created_at": "2025-01-01T23:32:05.921467",
+    "last_updated": "2025-01-01T23:32:15.657725"
+  }
+}
+--------------------------------------------------------------------------------
+2025-01-01 23:32:27,030 - OllamaService - DEBUG - 
+================================================================================
+PROMPT:
+You are a helpful assistant that communicates using JSON. All your responses should be in strict, parsable JSON format.
+
+Context:
+{
+  "structured_data": {
+    "world_details": {
+      "continents": [
+        {
+          "name": "Single Continent",
+          "type": "flat"
+        }
+      ],
+      "bodies_of_water": [
+        {
+          "name": "Ocean",
+          "type": "single ocean"
+        },
+        {
+          "name": "Mountain Range",
+          "type": "mountain range"
+        }
+      ]
+    },
+    "inhabitants": {
+      "races": [
+        "humanoid creatures"
+      ],
+      "villagers_knowledge": {
+        "trolls": {
+          "Mountain Troll": {
+            "height": 12,
+            "skin_color": "grey",
+            "fears": [
+              "fire"
+            ],
+            "behavior": "steals livestock at night"
+          }
+        }
+      }
+    },
+    "government": {
+      "monarchy": true,
+      "ruler_type": "benevolent"
+    },
+    "conflict": {
+      "status": "peaceful",
+      "problem": {
+        "name": "Mountain Troll",
+        "location": "mountain cave",
+        "recent_sightings": [
+          {
+            "location": "village's eastern farms"
+          }
+        ]
+      }
+    },
+    "rewards": [
+      {
+        "amount": 1000,
+        "currency": "gold coins",
+        "target": "killing the troll"
+      }
+    ],
+    "recent_interactions": [
+      {
+        "role": "user",
+        "content": "Tell me about the world.",
+        "timestamp": "2025-01-01T23:32:15.658732"
+      },
+      {
+        "role": "assistant",
+        "content": "It's a flat world with a single continent...",
+        "timestamp": "2025-01-01T23:32:15.658742"
+      },
+      {
+        "role": "user",
+        "content": "What about the troll?",
+        "timestamp": "2025-01-01T23:32:15.658744"
+      },
+      {
+        "role": "assistant",
+        "content": "The troll is 12 feet tall with grey skin...",
+        "timestamp": "2025-01-01T23:32:15.658747"
+      }
+    ]
+  },
+  "knowledge_graph": {
+    "entities": {
+      "World": {
+        "details": "Single Continent"
+      },
+      "Ocean": {},
+      "Mountain Range": {},
+      "Humanoid Creatures": {},
+      "Benevolent Monarch": {},
+      "Mountain Troll": {
+        "location": "mountain cave",
+        "problem": true,
+        "height": 12,
+        "skin_color": "grey",
+        "fears": [
+          "fire"
+        ],
+        "behavior": "steals livestock at night"
+      },
+      "Village": {}
+    },
+    "relationships": [
+      {
+        "type": "inhabits",
+        "entities": [
+          "World",
+          "Humanoid Creatures"
+        ]
+      },
+      {
+        "type": "ruler_of",
+        "entities": [
+          "Benevolent Monarch",
+          "World"
+        ]
+      },
+      {
+        "type": "attacks",
+        "entities": [
+          "Mountain Troll",
+          "Village"
+        ]
+      },
+      {
+        "type": "problem_in",
+        "entities": [
+          "Mountain Troll",
+          "World"
+        ]
+      },
+      {
+        "type": "sighted_at",
+        "entities": [
+          "Mountain Troll",
+          "village's eastern farms"
+        ]
+      }
+    ]
+  },
+  "metadata": {
+    "categories": [
+      "world",
+      "inhabitants",
+      "government",
+      "conflict",
+      "rewards"
+    ],
+    "timestamp": "2023-02-20T14:30:00Z",
+    "version": "1.0",
+    "created_at": "2025-01-01T23:32:05.921467",
+    "last_updated": "2025-01-01T23:32:27.028309"
+  }
+}
+
+Current Phase: INTERACTION
+Previous Messages: [
+  {
+    "role": "user",
+    "content": "Tell me about the world.",
+    "timestamp": "2025-01-01T23:32:15.658732"
+  },
+  {
+    "role": "assistant",
+    "content": "It's a flat world with a single continent...",
+    "timestamp": "2025-01-01T23:32:15.658742"
+  },
+  {
+    "role": "user",
+    "content": "What about the troll?",
+    "timestamp": "2025-01-01T23:32:15.658744"
+  },
+  {
+    "role": "assistant",
+    "content": "The troll is 12 feet tall with grey skin...",
+    "timestamp": "2025-01-01T23:32:15.658747"
+  }
+]
+
+User Message: What's the best strategy for dealing with the troll based on what we know?
+
+Generate a response that:
+1. Uses relevant information from memory
+2. Maintains consistency with previous interactions
+3. Advances the current phase appropriately
+4. Identifies any new information to be stored
+
+Return ONLY a valid JSON object with this structure (no additional text or explanation):
+{
+    "response": "Your response here",
+    "new_information": {
+        // Any new information to be stored
+    },
+    "suggested_phase": "current or next phase name",
+    "confidence": 0.0 to 1.0
+}
+================================================================================
+2025-01-01 23:32:27,030 - OllamaService - DEBUG - Making request to Ollama API at http://192.168.1.173:11434
+2025-01-01 23:32:27,030 - OllamaService - DEBUG - Model: llama3, Temperature: 0.7
+2025-01-01 23:32:27,032 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.1.173:11434
+2025-01-01 23:32:27,519 - urllib3.connectionpool - DEBUG - http://192.168.1.173:11434 "POST /api/generate HTTP/1.1" 200 None
+2025-01-01 23:32:28,947 - OllamaService - DEBUG - 
+--------------------------------------------------------------------------------
+RESPONSE:
+{
+  "response": "Based on the troll's fear of fire and its behavior of stealing livestock at night, a possible strategy could be to use fire as a deterrent. Additionally, considering it's been sighted near the village's eastern farms, it might be beneficial to increase vigilance in that area.",
+  "new_information": {
+    "potential_strategy": [
+      {
+        "name": "Fire Deterrent",
+        "description": "Use fire as a deterrent to keep the troll at bay"
+      }
+    ]
+  },
+  "suggested_phase": "INVESTIGATION",
+  "confidence": 0.7
+}
+--------------------------------------------------------------------------------
+2025-01-01 23:32:28,947 - OllamaService - DEBUG - 
+================================================================================
+PROMPT:
+You are a helpful assistant that communicates using JSON. All your responses should be in strict, parsable JSON format.
+
+Current Memory State:
+{
+  "structured_data": {
+    "world_details": {
+      "continents": [
+        {
+          "name": "Single Continent",
+          "type": "flat"
+        }
+      ],
+      "bodies_of_water": [
+        {
+          "name": "Ocean",
+          "type": "single ocean"
+        },
+        {
+          "name": "Mountain Range",
+          "type": "mountain range"
+        }
+      ]
+    },
+    "inhabitants": {
+      "races": [
+        "humanoid creatures"
+      ],
+      "villagers_knowledge": {
+        "trolls": {
+          "Mountain Troll": {
+            "height": 12,
+            "skin_color": "grey",
+            "fears": [
+              "fire"
+            ],
+            "behavior": "steals livestock at night"
+          }
+        }
+      }
+    },
+    "government": {
+      "monarchy": true,
+      "ruler_type": "benevolent"
+    },
+    "conflict": {
+      "status": "peaceful",
+      "problem": {
+        "name": "Mountain Troll",
+        "location": "mountain cave",
+        "recent_sightings": [
+          {
+            "location": "village's eastern farms"
+          }
+        ]
+      }
+    },
+    "rewards": [
+      {
+        "amount": 1000,
+        "currency": "gold coins",
+        "target": "killing the troll"
+      }
+    ],
+    "recent_interactions": [
+      {
+        "role": "user",
+        "content": "Tell me about the world.",
+        "timestamp": "2025-01-01T23:32:15.658732"
+      },
+      {
+        "role": "assistant",
+        "content": "It's a flat world with a single continent...",
+        "timestamp": "2025-01-01T23:32:15.658742"
+      },
+      {
+        "role": "user",
+        "content": "What about the troll?",
+        "timestamp": "2025-01-01T23:32:15.658744"
+      },
+      {
+        "role": "assistant",
+        "content": "The troll is 12 feet tall with grey skin...",
+        "timestamp": "2025-01-01T23:32:15.658747"
+      }
+    ]
+  },
+  "knowledge_graph": {
+    "entities": {
+      "World": {
+        "details": "Single Continent"
+      },
+      "Ocean": {},
+      "Mountain Range": {},
+      "Humanoid Creatures": {},
+      "Benevolent Monarch": {},
+      "Mountain Troll": {
+        "location": "mountain cave",
+        "problem": true,
+        "height": 12,
+        "skin_color": "grey",
+        "fears": [
+          "fire"
+        ],
+        "behavior": "steals livestock at night"
+      },
+      "Village": {}
+    },
+    "relationships": [
+      {
+        "type": "inhabits",
+        "entities": [
+          "World",
+          "Humanoid Creatures"
+        ]
+      },
+      {
+        "type": "ruler_of",
+        "entities": [
+          "Benevolent Monarch",
+          "World"
+        ]
+      },
+      {
+        "type": "attacks",
+        "entities": [
+          "Mountain Troll",
+          "Village"
+        ]
+      },
+      {
+        "type": "problem_in",
+        "entities": [
+          "Mountain Troll",
+          "World"
+        ]
+      },
+      {
+        "type": "sighted_at",
+        "entities": [
+          "Mountain Troll",
+          "village's eastern farms"
+        ]
+      }
+    ]
+  },
+  "metadata": {
+    "categories": [
+      "world",
+      "inhabitants",
+      "government",
+      "conflict",
+      "rewards"
+    ],
+    "timestamp": "2023-02-20T14:30:00Z",
+    "version": "1.0",
+    "created_at": "2025-01-01T23:32:05.921467",
+    "last_updated": "2025-01-01T23:32:27.028309"
+  }
+}
+
+Phase: UNKNOWN
+New Information: {}
+Recent History: []
+
+Analyze this information and return a JSON object containing:
+1. Updated structured data
+2. New or modified relationships for the knowledge graph
+3. Any necessary changes to existing memory
+
+Return ONLY a valid JSON object matching the current memory structure (no additional text or explanation).
+================================================================================
+2025-01-01 23:32:28,947 - OllamaService - DEBUG - Making request to Ollama API at http://192.168.1.173:11434
+2025-01-01 23:32:28,948 - OllamaService - DEBUG - Model: llama3, Temperature: 0.7
+2025-01-01 23:32:28,950 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): 192.168.1.173:11434
+2025-01-01 23:32:29,367 - urllib3.connectionpool - DEBUG - http://192.168.1.173:11434 "POST /api/generate HTTP/1.1" 200 None
+2025-01-01 23:32:39,605 - OllamaService - DEBUG - 
+--------------------------------------------------------------------------------
+RESPONSE:
+{
+  "structured_data": {
+    "world_details": {
+      "continents": [
+        {
+          "name": "Single Continent",
+          "type": "flat"
+        }
+      ],
+      "bodies_of_water": [
+        {
+          "name": "Ocean",
+          "type": "single ocean"
+        },
+        {
+          "name": "Mountain Range",
+          "type": "mountain range"
+        }
+      ]
+    },
+    "inhabitants": {
+      "races": [
+        "humanoid creatures"
+      ],
+      "villagers_knowledge": {
+        "trolls": {
+          "Mountain Troll": {
+            "height": 12,
+            "skin_color": "grey",
+            "fears": [
+              "fire"
+            ],
+            "behavior": "steals livestock at night"
+          }
+        }
+      }
+    },
+    "government": {
+      "monarchy": true,
+      "ruler_type": "benevolent"
+    },
+    "conflict": {
+      "status": "peaceful",
+      "problem": {
+        "name": "Mountain Troll",
+        "location": "mountain cave",
+        "recent_sightings": [
+          {
+            "location": "village's eastern farms"
+          }
+        ]
+      }
+    },
+    "rewards": [
+      {
+        "amount": 1000,
+        "currency": "gold coins",
+        "target": "killing the troll"
+      }
+    ],
+    "recent_interactions": [
+      {
+        "role": "user",
+        "content": "What about the troll's location?",
+        "timestamp": "2025-01-01T23:32:15.658748"
+      },
+      {
+        "role": "assistant",
+        "content": "The Mountain Troll is located in a mountain cave.",
+        "timestamp": "2025-01-01T23:32:15.658750"
+      }
+    ]
+  },
+  "knowledge_graph": {
+    "entities": {
+      "World": {
+        "details": "Single Continent"
+      },
+      "Ocean": {},
+      "Mountain Range": {},
+      "Humanoid Creatures": {},
+      "Benevolent Monarch": {},
+      "Mountain Troll": {
+        "location": "mountain cave",
+        "problem": true,
+        "height": 12,
+        "skin_color": "grey",
+        "fears": [
+          "fire"
+        ],
+        "behavior": "steals livestock at night"
+      },
+      "Village": {}
+    },
+    "relationships": [
+      {
+        "type": "inhabits",
+        "entities": [
+          "World",
+          "Humanoid Creatures"
+        ]
+      },
+      {
+        "type": "ruler_of",
+        "entities": [
+          "Benevolent Monarch",
+          "World"
+        ]
+      },
+      {
+        "type": "attacks",
+        "entities": [
+          "Mountain Troll",
+          "Village"
+        ]
+      },
+      {
+        "type": "problem_in",
+        "entities": [
+          "Mountain Troll",
+          "World"
+        ]
+      },
+      {
+        "type": "sighted_at",
+        "entities": [
+          "Mountain Troll",
+          "village's eastern farms"
+        ]
+      },
+      {
+        "type": "located_at",
+        "entities": [
+          "Mountain Troll",
+          "mountain cave"
+        ]
+      }
+    ]
+  },
+  "metadata": {
+    "categories": [
+      "world",
+      "inhabitants",
+      "government",
+      "conflict",
+      "rewards"
+    ],
+    "timestamp": "2023-02-20T14:30:00Z",
+    "version": "1.0",
+    "created_at": "2025-01-01T23:32:05.921467",
+    "last_updated": "2025-01-01T23:32:27.028309"
+  }
+}
+--------------------------------------------------------------------------------

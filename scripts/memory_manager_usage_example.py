@@ -21,8 +21,13 @@ async def main():
     
     # Initialize services
     llm_service = OllamaService({
+        "base_url": "http://localhost:11434",
         "model": "llama3",  # or another model you have installed
-        "temperature": 0.7
+        "temperature": 0.7,
+        "debug": True,  # Enable debug logging
+        "debug_file": "memory_manager_debug.log",  # Specify debug log file
+        "log_chunks": False,  # Disable verbose chunk logging
+        "console_output": False  # Log to file only, not console
     })
     
     memory_file = "example_memory.json"

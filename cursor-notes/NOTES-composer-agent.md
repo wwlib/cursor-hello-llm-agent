@@ -93,3 +93,29 @@ For future reference, please use llama3 rather than llama2 when initializing an 
 
 ![](screenshots/cursor-agent-9.png)
 
+
+
+```
+Things are looking good! There was an error in Phase 4 when running the memory manager usage example:
+
+Phase 4: Testing Memory Reflection...
+
+Performing memory reflection...
+Error updating memory: 'metadata'
+Failed to complete reflection!
+
+It could be that the LLM did not return strict, parsable JSON. But it is hard to know. It would be helpful if the LLMService (i.e. OllamaService) had a debug mode so that prompts and responses could be logged to make troubleshooting easier.
+```
+
+![](screenshots/cursor-agent-10.png)
+
+
+```
+Really great. Now that I see the log, I think that logging each ollama stream chunk will often be too verbose. Let's have a way to disable that.
+```
+
+
+```
+Great. Let's also add a control to determine if logs should be printed to the console. Often the log file will be sufficient.
+```
+

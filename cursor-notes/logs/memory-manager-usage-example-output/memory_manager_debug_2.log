@@ -1,0 +1,752 @@
+2025-01-01 11:37:59,394 - OllamaService - DEBUG - Initialized LLM service with debug mode
+2025-01-01 11:37:59,394 - OllamaService - DEBUG - Initialized Ollama service with model: llama3
+2025-01-01 11:37:59,394 - OllamaService - DEBUG - 
+================================================================================
+PROMPT:
+You are a helpful assistant that communicates using JSON. All your responses should be in strict, parsable JSON format.
+
+Your task is to analyze the provided information and create two organized data structures:
+
+1. A structured_data JSON object to store key facts and details
+2. A knowledge_graph JSON object to map relationships between entities
+
+Input Data:
+
+    This is a D&D campaign world with the following details:
+    - A flat world with a single continent
+    - A single ocean and mountain range
+    - Inhabited by humanoid creatures
+    - Ruled by a benevolent monarch
+    - Currently peaceful except for a Mountain Troll problem
+    - The troll has been attacking a village from its mountain cave
+    - Village offers 1000 gold coins reward for killing the troll
+    
+
+Requirements:
+- Structure the data in a way that will be useful for the specific domain
+- Include all relevant information from the input
+- Create meaningful relationships in the knowledge graph
+- Use consistent naming and structure that can be extended in future updates
+- Include metadata about data categories to help with future queries
+
+Return ONLY a valid JSON object with this structure (no additional text or explanation):
+{
+    "structured_data": {
+        // Your structured organization of the facts and details
+    },
+    "knowledge_graph": {
+        // Your graph of relationships between entities
+    },
+    "metadata": {
+        "categories": [],
+        "timestamp": "",
+        "version": "1.0"
+    }
+}
+================================================================================
+2025-01-01 11:37:59,394 - OllamaService - DEBUG - Making request to Ollama API at http://localhost:11434
+2025-01-01 11:37:59,394 - OllamaService - DEBUG - Model: llama3, Temperature: 0.7
+2025-01-01 11:37:59,405 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): localhost:11434
+2025-01-01 11:38:11,431 - urllib3.connectionpool - DEBUG - http://localhost:11434 "POST /api/generate HTTP/1.1" 200 None
+2025-01-01 11:39:33,207 - OllamaService - DEBUG - 
+--------------------------------------------------------------------------------
+RESPONSE:
+{
+    "structured_data": {
+        "world": {
+            "type": "flat",
+            "continent": true,
+            "ocean": true,
+            "mountain_range": true
+        },
+        "inhabitants": {
+            "type": "humanoid"
+        },
+        "ruler": {
+            "type": "monarch",
+            "benevolence": true
+        },
+        "conflict": {
+            "type": " Mountain Troll problem",
+            "location": "mountain cave",
+            "target": "village",
+            "reward": 1000,
+            "status": "active"
+        }
+    },
+    "knowledge_graph": {
+        "entities": {
+            "World": {
+                "continent": {"rel": "part_of", "type": "single"},
+                "ocean": {"rel": "part_of", "type": "single"},
+                "mountain_range": {"rel": "part_of", "type": "single"}
+            },
+            "Inhabitants": {"rel": "inhabits", "type": "humanoid"},
+            "Ruler": {"rel": "rules", "type": "monarch"},
+            "Mountain Troll": {"rel": "attacker", "target": "village"},
+            "Village": {"rel": "target_of_attack", "defender": "players"}
+        },
+        "relations": [
+            {"subject": "Ruler", "predicate": "has_policy", "object": "peaceful"},
+            {"subject": "Inhabitants", "predicate": "inhabits", "object": "World"},
+            {"subject": "Mountain Troll", "predicate": "attacks", "object": "Village"},
+            {"subject": "Village", "predicate": "requests_help", "object": "players"}
+        ]
+    },
+    "metadata": {
+        "categories": ["campaign world", "D&D"],
+        "timestamp": "2023-02-15T14:30:00Z",
+        "version": "1.0"
+    }
+}
+--------------------------------------------------------------------------------
+2025-01-01 11:39:33,209 - OllamaService - DEBUG - 
+================================================================================
+PROMPT:
+You are a helpful assistant that communicates using JSON. All your responses should be in strict, parsable JSON format.
+
+Context:
+{
+  "structured_data": {
+    "world": {
+      "type": "flat",
+      "continent": true,
+      "ocean": true,
+      "mountain_range": true
+    },
+    "inhabitants": {
+      "type": "humanoid"
+    },
+    "ruler": {
+      "type": "monarch",
+      "benevolence": true
+    },
+    "conflict": {
+      "type": " Mountain Troll problem",
+      "location": "mountain cave",
+      "target": "village",
+      "reward": 1000,
+      "status": "active"
+    }
+  },
+  "knowledge_graph": {
+    "entities": {
+      "World": {
+        "continent": {
+          "rel": "part_of",
+          "type": "single"
+        },
+        "ocean": {
+          "rel": "part_of",
+          "type": "single"
+        },
+        "mountain_range": {
+          "rel": "part_of",
+          "type": "single"
+        }
+      },
+      "Inhabitants": {
+        "rel": "inhabits",
+        "type": "humanoid"
+      },
+      "Ruler": {
+        "rel": "rules",
+        "type": "monarch"
+      },
+      "Mountain Troll": {
+        "rel": "attacker",
+        "target": "village"
+      },
+      "Village": {
+        "rel": "target_of_attack",
+        "defender": "players"
+      }
+    },
+    "relations": [
+      {
+        "subject": "Ruler",
+        "predicate": "has_policy",
+        "object": "peaceful"
+      },
+      {
+        "subject": "Inhabitants",
+        "predicate": "inhabits",
+        "object": "World"
+      },
+      {
+        "subject": "Mountain Troll",
+        "predicate": "attacks",
+        "object": "Village"
+      },
+      {
+        "subject": "Village",
+        "predicate": "requests_help",
+        "object": "players"
+      }
+    ]
+  },
+  "metadata": {
+    "categories": [
+      "campaign world",
+      "D&D"
+    ],
+    "timestamp": "2023-02-15T14:30:00Z",
+    "version": "1.0",
+    "created_at": "2025-01-01T11:39:33.207664",
+    "last_updated": "2025-01-01T11:39:33.207683"
+  }
+}
+
+Current Phase: LEARNING
+Previous Messages: [
+  {
+    "role": "user",
+    "content": "Tell me about the world.",
+    "timestamp": "2025-01-01T11:39:33.208864"
+  }
+]
+
+User Message: Tell me about the world.
+
+Generate a response that:
+1. Uses relevant information from memory
+2. Maintains consistency with previous interactions
+3. Advances the current phase appropriately
+4. Identifies any new information to be stored
+
+Return ONLY a valid JSON object with this structure (no additional text or explanation):
+{
+    "response": "Your response here",
+    "new_information": {
+        // Any new information to be stored
+    },
+    "suggested_phase": "current or next phase name",
+    "confidence": 0.0 to 1.0
+}
+================================================================================
+2025-01-01 11:39:33,209 - OllamaService - DEBUG - Making request to Ollama API at http://localhost:11434
+2025-01-01 11:39:33,209 - OllamaService - DEBUG - Model: llama3, Temperature: 0.7
+2025-01-01 11:39:33,213 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): localhost:11434
+2025-01-01 11:40:11,724 - urllib3.connectionpool - DEBUG - http://localhost:11434 "POST /api/generate HTTP/1.1" 200 None
+2025-01-01 11:40:21,673 - OllamaService - DEBUG - 
+--------------------------------------------------------------------------------
+RESPONSE:
+{
+    "response": "The world you are referring to is a flat continent with an ocean surrounding it, featuring a mountain range in the center.",
+    "new_information": {},
+    "suggested_phase": "LEARNING",
+    "confidence": 1.0
+}
+--------------------------------------------------------------------------------
+2025-01-01 11:40:21,674 - OllamaService - DEBUG - 
+================================================================================
+PROMPT:
+You are a helpful assistant that communicates using JSON. All your responses should be in strict, parsable JSON format.
+
+Current Memory State:
+{
+  "structured_data": {
+    "world": {
+      "type": "flat",
+      "continent": true,
+      "ocean": true,
+      "mountain_range": true
+    },
+    "inhabitants": {
+      "type": "humanoid"
+    },
+    "ruler": {
+      "type": "monarch",
+      "benevolence": true
+    },
+    "conflict": {
+      "type": " Mountain Troll problem",
+      "location": "mountain cave",
+      "target": "village",
+      "reward": 1000,
+      "status": "active"
+    }
+  },
+  "knowledge_graph": {
+    "entities": {
+      "World": {
+        "continent": {
+          "rel": "part_of",
+          "type": "single"
+        },
+        "ocean": {
+          "rel": "part_of",
+          "type": "single"
+        },
+        "mountain_range": {
+          "rel": "part_of",
+          "type": "single"
+        }
+      },
+      "Inhabitants": {
+        "rel": "inhabits",
+        "type": "humanoid"
+      },
+      "Ruler": {
+        "rel": "rules",
+        "type": "monarch"
+      },
+      "Mountain Troll": {
+        "rel": "attacker",
+        "target": "village"
+      },
+      "Village": {
+        "rel": "target_of_attack",
+        "defender": "players"
+      }
+    },
+    "relations": [
+      {
+        "subject": "Ruler",
+        "predicate": "has_policy",
+        "object": "peaceful"
+      },
+      {
+        "subject": "Inhabitants",
+        "predicate": "inhabits",
+        "object": "World"
+      },
+      {
+        "subject": "Mountain Troll",
+        "predicate": "attacks",
+        "object": "Village"
+      },
+      {
+        "subject": "Village",
+        "predicate": "requests_help",
+        "object": "players"
+      }
+    ]
+  },
+  "metadata": {
+    "categories": [
+      "campaign world",
+      "D&D"
+    ],
+    "timestamp": "2023-02-15T14:30:00Z",
+    "version": "1.0",
+    "created_at": "2025-01-01T11:39:33.207664",
+    "last_updated": "2025-01-01T11:39:33.207683"
+  }
+}
+
+Phase: LEARNING
+New Information: 
+        New information about the Mountain Troll:
+        - Recently seen near the village's eastern farms
+        - Described as 12 feet tall with grey skin
+        - Known to be afraid of fire
+        - Has been stealing livestock at night
+        
+Recent History: [
+  {
+    "role": "user",
+    "content": "What have the villagers learned about the troll?",
+    "timestamp": "2025-01-01T11:40:21.673824"
+  }
+]
+
+Analyze this information and return a JSON object containing:
+1. Updated structured data
+2. New or modified relationships for the knowledge graph
+3. Any necessary changes to existing memory
+
+Return ONLY a valid JSON object matching the current memory structure (no additional text or explanation).
+================================================================================
+2025-01-01 11:40:21,674 - OllamaService - DEBUG - Making request to Ollama API at http://localhost:11434
+2025-01-01 11:40:21,674 - OllamaService - DEBUG - Model: llama3, Temperature: 0.7
+2025-01-01 11:40:21,676 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): localhost:11434
+2025-01-01 11:41:04,176 - urllib3.connectionpool - DEBUG - http://localhost:11434 "POST /api/generate HTTP/1.1" 200 None
+2025-01-01 11:43:01,783 - OllamaService - DEBUG - 
+--------------------------------------------------------------------------------
+RESPONSE:
+{
+    "structured_data": {
+        "world": {
+            "type": "flat",
+            "continent": true,
+            "ocean": true,
+            "mountain_range": true,
+            "eastern_farms": true
+        },
+        "inhabitants": {
+            "type": "humanoid"
+        },
+        "ruler": {
+            "type": "monarch",
+            "benevolence": true
+        },
+        "conflict": {
+            "type": "Mountain Troll problem",
+            "location": "mountain cave",
+            "target": "village",
+            "reward": 1000,
+            "status": "active"
+        }
+    },
+    "knowledge_graph": {
+        "entities": {
+            "World": {
+                "continent": {
+                    "rel": "part_of",
+                    "type": "single"
+                },
+                "ocean": {
+                    "rel": "part_of",
+                    "type": "single"
+                },
+                "mountain_range": {
+                    "rel": "part_of",
+                    "type": "single"
+                },
+                "Eastern Farms": {
+                    "rel": "part_of",
+                    "type": "single"
+                }
+            },
+            "Inhabitants": {
+                "rel": "inhabits",
+                "type": "humanoid"
+            },
+            "Ruler": {
+                "rel": "rules",
+                "type": "monarch"
+            },
+            "Mountain Troll": {
+                "rel": "attacker",
+                "target": "village"
+            },
+            "Village": {
+                "rel": "target_of_attack",
+                "defender": "players"
+            }
+        },
+        "relations": [
+            {
+                "subject": "Ruler",
+                "predicate": "has_policy",
+                "object": "peaceful"
+            },
+            {
+                "subject": "Inhabitants",
+                "predicate": "inhabits",
+                "object": "World"
+            },
+            {
+                "subject": "Mountain Troll",
+                "predicate": "attacks",
+                "object": "Village"
+            },
+            {
+                "subject": "Village",
+                "predicate": "requests_help",
+                "object": "players"
+            },
+            {
+                "subject": "Inhabitants",
+                "predicate": "has_seen",
+                "object": "Mountain Troll"
+            },
+            {
+                "subject": "Mountain Troll",
+                "predicate": "described_as",
+                "object": {"height": 12, "skin": "grey"}
+            },
+            {
+                "subject": "Inhabitants",
+                "predicate": "known_to_be_afraid_of",
+                "object": "fire"
+            }
+        ]
+    },
+    "metadata": {
+        "categories": [
+            "campaign world",
+            "D&D"
+        ],
+        "timestamp": "2023-02-15T14:30:00Z",
+        "version": "1.0",
+        "created_at": "2025-01-01T11:39:33.207664",
+        "last_updated": "2025-01-01T12:41:21.673824"
+    }
+}
+--------------------------------------------------------------------------------
+2025-01-01 11:43:01,785 - OllamaService - DEBUG - 
+================================================================================
+PROMPT:
+You are a helpful assistant that communicates using JSON. All your responses should be in strict, parsable JSON format.
+
+Current Memory State:
+{
+  "structured_data": {
+    "world": {
+      "type": "flat",
+      "continent": true,
+      "ocean": true,
+      "mountain_range": true,
+      "eastern_farms": true
+    },
+    "inhabitants": {
+      "type": "humanoid"
+    },
+    "ruler": {
+      "type": "monarch",
+      "benevolence": true
+    },
+    "conflict": {
+      "type": "Mountain Troll problem",
+      "location": "mountain cave",
+      "target": "village",
+      "reward": 1000,
+      "status": "active"
+    }
+  },
+  "knowledge_graph": {
+    "entities": {
+      "World": {
+        "continent": {
+          "rel": "part_of",
+          "type": "single"
+        },
+        "ocean": {
+          "rel": "part_of",
+          "type": "single"
+        },
+        "mountain_range": {
+          "rel": "part_of",
+          "type": "single"
+        },
+        "Eastern Farms": {
+          "rel": "part_of",
+          "type": "single"
+        }
+      },
+      "Inhabitants": {
+        "rel": "inhabits",
+        "type": "humanoid"
+      },
+      "Ruler": {
+        "rel": "rules",
+        "type": "monarch"
+      },
+      "Mountain Troll": {
+        "rel": "attacker",
+        "target": "village"
+      },
+      "Village": {
+        "rel": "target_of_attack",
+        "defender": "players"
+      }
+    },
+    "relations": [
+      {
+        "subject": "Ruler",
+        "predicate": "has_policy",
+        "object": "peaceful"
+      },
+      {
+        "subject": "Inhabitants",
+        "predicate": "inhabits",
+        "object": "World"
+      },
+      {
+        "subject": "Mountain Troll",
+        "predicate": "attacks",
+        "object": "Village"
+      },
+      {
+        "subject": "Village",
+        "predicate": "requests_help",
+        "object": "players"
+      },
+      {
+        "subject": "Inhabitants",
+        "predicate": "has_seen",
+        "object": "Mountain Troll"
+      },
+      {
+        "subject": "Mountain Troll",
+        "predicate": "described_as",
+        "object": {
+          "height": 12,
+          "skin": "grey"
+        }
+      },
+      {
+        "subject": "Inhabitants",
+        "predicate": "known_to_be_afraid_of",
+        "object": "fire"
+      }
+    ]
+  },
+  "metadata": {
+    "categories": [
+      "campaign world",
+      "D&D"
+    ],
+    "timestamp": "2023-02-15T14:30:00Z",
+    "version": "1.0",
+    "created_at": "2025-01-01T11:39:33.207664",
+    "last_updated": "2025-01-01T11:43:01.783836"
+  }
+}
+
+Recent Interactions:
+[
+  {
+    "role": "user",
+    "content": "Tell me about the world.",
+    "timestamp": "2025-01-01T11:43:01.785127"
+  },
+  {
+    "role": "assistant",
+    "content": "It's a flat world with a single continent...",
+    "timestamp": "2025-01-01T11:43:01.785134"
+  },
+  {
+    "role": "user",
+    "content": "What about the troll?",
+    "timestamp": "2025-01-01T11:43:01.785136"
+  },
+  {
+    "role": "assistant",
+    "content": "The troll is 12 feet tall with grey skin...",
+    "timestamp": "2025-01-01T11:43:01.785138"
+  }
+]
+
+Analyze the current memory state and recent interactions to:
+1. Identify important patterns or relationships
+2. Suggest memory structure optimizations
+3. Highlight key information for future reference
+
+Return ONLY a valid JSON object matching the current memory structure (no additional text or explanation).
+================================================================================
+2025-01-01 11:43:01,785 - OllamaService - DEBUG - Making request to Ollama API at http://localhost:11434
+2025-01-01 11:43:01,785 - OllamaService - DEBUG - Model: llama3, Temperature: 0.7
+2025-01-01 11:43:01,787 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): localhost:11434
+2025-01-01 11:43:52,613 - urllib3.connectionpool - DEBUG - http://localhost:11434 "POST /api/generate HTTP/1.1" 200 None
+2025-01-01 11:44:14,660 - OllamaService - DEBUG - 
+--------------------------------------------------------------------------------
+RESPONSE:
+{
+"structured_data": {
+  "conflict_type": "Mountain Troll problem",
+  "ruler_benevolence": true,
+  "village_targeted": true
+},
+"knowledge_graph": {
+  "entities": {
+    "World": {}
+  },
+  "relations": [
+    {
+      "subject": "Ruler",
+      "predicate": "has_policy",
+      "object": "peaceful"
+    },
+    {
+      "subject": "Inhabitants",
+      "predicate": "inhabits",
+      "object": "World"
+    }
+  ]
+},
+"metadata": {}
+}
+--------------------------------------------------------------------------------
+2025-01-01 11:44:14,661 - OllamaService - DEBUG - 
+================================================================================
+PROMPT:
+You are a helpful assistant that communicates using JSON. All your responses should be in strict, parsable JSON format.
+
+Context:
+{
+  "structured_data": {
+    "conflict_type": "Mountain Troll problem",
+    "ruler_benevolence": true,
+    "village_targeted": true
+  },
+  "knowledge_graph": {
+    "entities": {
+      "World": {}
+    },
+    "relations": [
+      {
+        "subject": "Ruler",
+        "predicate": "has_policy",
+        "object": "peaceful"
+      },
+      {
+        "subject": "Inhabitants",
+        "predicate": "inhabits",
+        "object": "World"
+      }
+    ]
+  },
+  "metadata": {
+    "last_updated": "2025-01-01T11:44:14.661118"
+  }
+}
+
+Current Phase: INTERACTION
+Previous Messages: [
+  {
+    "role": "user",
+    "content": "Tell me about the world.",
+    "timestamp": "2025-01-01T11:43:01.785127"
+  },
+  {
+    "role": "assistant",
+    "content": "It's a flat world with a single continent...",
+    "timestamp": "2025-01-01T11:43:01.785134"
+  },
+  {
+    "role": "user",
+    "content": "What about the troll?",
+    "timestamp": "2025-01-01T11:43:01.785136"
+  },
+  {
+    "role": "assistant",
+    "content": "The troll is 12 feet tall with grey skin...",
+    "timestamp": "2025-01-01T11:43:01.785138"
+  }
+]
+
+User Message: What's the best strategy for dealing with the troll based on what we know?
+
+Generate a response that:
+1. Uses relevant information from memory
+2. Maintains consistency with previous interactions
+3. Advances the current phase appropriately
+4. Identifies any new information to be stored
+
+Return ONLY a valid JSON object with this structure (no additional text or explanation):
+{
+    "response": "Your response here",
+    "new_information": {
+        // Any new information to be stored
+    },
+    "suggested_phase": "current or next phase name",
+    "confidence": 0.0 to 1.0
+}
+================================================================================
+2025-01-01 11:44:14,661 - OllamaService - DEBUG - Making request to Ollama API at http://localhost:11434
+2025-01-01 11:44:14,661 - OllamaService - DEBUG - Model: llama3, Temperature: 0.7
+2025-01-01 11:44:14,663 - urllib3.connectionpool - DEBUG - Starting new HTTP connection (1): localhost:11434
+2025-01-01 11:44:40,578 - urllib3.connectionpool - DEBUG - http://localhost:11434 "POST /api/generate HTTP/1.1" 200 None
+2025-01-01 11:44:56,840 - OllamaService - DEBUG - 
+--------------------------------------------------------------------------------
+RESPONSE:
+{
+    "response": "Considering the troll's size and grey skin, it seems that a peaceful policy towards it might not be effective. Given the ruler's benevolence and the village being targeted, a more aggressive approach might be necessary. Perhaps attempting to distract or outmaneuver the troll could be a viable strategy.",
+    "new_information": {},
+    "suggested_phase": "TACTICAL_ANALYSIS",
+    "confidence": 0.8
+}
+--------------------------------------------------------------------------------
