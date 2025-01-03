@@ -10,89 +10,90 @@ class LLMServiceError(Exception):
 class LLMService:
     """Base class for LLM service providers"""
     
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
-        """Initialize the LLM service with optional configuration.
+    def __init__(self, config: Dict[str, Any]):
+        """Initialize the LLM service with configuration.
         
         Args:
-            config: Optional configuration dictionary with possible keys:
-                - debug: bool, Enable debug logging (default: False)
-                - debug_file: str, Path to debug log file (default: llm_debug.log)
-                - console_output: bool, Print logs to console (default: False)
+            config: Configuration dictionary with service settings
+                   Required fields depend on specific implementation
+                   Optional fields:
+                   - debug: bool - Enable debug logging
+                   - debug_file: str - Path to debug log file
+                   - debug_scope: str - Scope identifier for debug logs
+                   - console_output: bool - Whether to also log to console
         """
-        self.config = config or {}
-        self.debug = self.config.get('debug', False)
+        self.config = config
+        self.debug = config.get('debug', False)
+        self.debug_scope = config.get('debug_scope', '')
         
         if self.debug:
-            # Setup debug logging
-            debug_file = self.config.get('debug_file', 'llm_debug.log')
-            handlers = [logging.FileHandler(debug_file)]
+            import logging
+            
+            # Create logger
+            self.logger = logging.getLogger(f'llm_service{self.debug_scope}')
+            self.logger.setLevel(logging.DEBUG)
+            
+            # Create formatters
+            scope_prefix = f'[{self.debug_scope}] ' if self.debug_scope else ''
+            file_formatter = logging.Formatter(f'{scope_prefix}%(asctime)s - %(levelname)s - %(message)s')
+            console_formatter = logging.Formatter(f'{scope_prefix}%(levelname)s - %(message)s')
+            
+            # Add file handler if debug_file specified
+            if 'debug_file' in config:
+                file_handler = logging.FileHandler(config['debug_file'])
+                file_handler.setLevel(logging.DEBUG)
+                file_handler.setFormatter(file_formatter)
+                self.logger.addHandler(file_handler)
             
             # Add console handler if requested
-            if self.config.get('console_output', False):
-                handlers.append(logging.StreamHandler())
+            if config.get('console_output', False):
+                console_handler = logging.StreamHandler()
+                console_handler.setLevel(logging.DEBUG)
+                console_handler.setFormatter(console_formatter)
+                self.logger.addHandler(console_handler)
             
-            logging.basicConfig(
-                level=logging.DEBUG,
-                format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                handlers=handlers
-            )
-            self.logger = logging.getLogger(self.__class__.__name__)
-            self.logger.debug("Initialized LLM service with debug mode")
+            self.logger.debug("LLM service initialized with debug logging")
     
-    def generate(self, prompt: str) -> str:
-        """Generate a response from the LLM.
+    def generate(self, prompt: str, debug_generate_scope: str = "") -> str:
+        """Generate a response for the given prompt.
         
         Args:
-            prompt: The input prompt for the LLM
+            prompt: The input prompt
+            debug_generate_scope: Optional scope identifier for this specific generate call
             
         Returns:
             str: The generated response
-            
-        Raises:
-            LLMServiceError: If generation fails
-            NotImplementedError: If not implemented by subclass
         """
         if self.debug:
-            prompt_size = len(prompt.encode('utf-8'))
-            self.logger.debug(f"\n{'='*80}")
-            self.logger.debug(f"PROMPT (size: {prompt_size:,} bytes):")
-            self.logger.debug(f"{prompt}")
-            self.logger.debug(f"{'='*80}")
+            scope_prefix = f"[{debug_generate_scope}] " if debug_generate_scope else ""
+            self.logger.debug(f"{scope_prefix}Generating response for prompt:\n{prompt}")
         
         try:
-            start_time = time.time()
             response = self._generate_impl(prompt)
-            end_time = time.time()
             
             if self.debug:
-                duration_ms = (end_time - start_time) * 1000
-                response_size = len(response.encode('utf-8'))
-                self.logger.debug(f"\n{'-'*80}")
-                self.logger.debug(f"RESPONSE (time: {duration_ms:.2f}ms, size: {response_size:,} bytes):")
-                self.logger.debug(f"{response}")
-                self.logger.debug(f"{'-'*80}")
+                scope_prefix = f"[{debug_generate_scope}] " if debug_generate_scope else ""
+                self.logger.debug(f"{scope_prefix}Generated response:\n{response}")
             
             return response
+            
         except Exception as e:
             if self.debug:
-                end_time = time.time()
-                duration_ms = (end_time - start_time) * 1000
-                self.logger.error(f"Error generating response after {duration_ms:.2f}ms: {str(e)}")
+                scope_prefix = f"[{debug_generate_scope}] " if debug_generate_scope else ""
+                self.logger.error(f"{scope_prefix}Error generating response: {str(e)}")
             raise
     
     def _generate_impl(self, prompt: str) -> str:
-        """Implementation of generate to be provided by subclasses.
+        """Implementation specific generation logic.
+        Must be implemented by derived classes.
         
         Args:
-            prompt: The input prompt for the LLM
+            prompt: The input prompt
             
         Returns:
             str: The generated response
-            
-        Raises:
-            NotImplementedError: Must be implemented by subclass
         """
-        raise NotImplementedError
+        raise NotImplementedError("_generate_impl must be implemented by derived class")
     
     def validate_response(self, response: str) -> bool:
         """Validate LLM response format.

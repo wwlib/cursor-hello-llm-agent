@@ -14,23 +14,25 @@ def test_base_llm_init():
     assert service.config == config
 
 def test_base_llm_init_no_config():
-    service = LLMService()
+    config = {}  # Empty but not None
+    service = LLMService(config)
     assert service.config == {}
 
 def test_base_llm_generate():
-    service = LLMService()
+    service = LLMService({})
     with pytest.raises(NotImplementedError):
         service.generate("test prompt")
 
 def test_base_llm_validate():
-    service = LLMService()
+    service = LLMService({})
     with pytest.raises(NotImplementedError):
         service.validate_response("test response")
 
 # OpenAI Service Tests
 def test_openai_init():
     with patch.dict(os.environ, {'OPENAI_API_KEY': 'test-key'}):
-        service = OpenAIService()
+        config = {'api_key': 'test-key'}
+        service = OpenAIService(config)
         assert service.api_key == 'test-key'
         assert service.model == 'gpt-4'
         assert service.temperature == 0.7
@@ -49,7 +51,7 @@ def test_openai_init_with_config():
 def test_openai_init_no_api_key():
     with patch.dict(os.environ, {}, clear=True):
         with pytest.raises(LLMServiceError):
-            OpenAIService()
+            OpenAIService({})
 
 @patch('openai.ChatCompletion.create')
 def test_openai_generate_success(mock_create):
@@ -57,21 +59,21 @@ def test_openai_generate_success(mock_create):
         Mock(message=Mock(content="test response"))
     ]
     
-    with patch.dict(os.environ, {'OPENAI_API_KEY': 'test-key'}):
-        service = OpenAIService()
-        response = service.generate("test prompt")
-        
-        assert response == "test response"
-        mock_create.assert_called_once()
+    config = {'api_key': 'test-key'}
+    service = OpenAIService(config)
+    response = service.generate("test prompt")
+    
+    assert response == "test response"
+    mock_create.assert_called_once()
 
 @patch('openai.ChatCompletion.create')
 def test_openai_generate_failure(mock_create):
     mock_create.side_effect = Exception("API error")
     
-    with patch.dict(os.environ, {'OPENAI_API_KEY': 'test-key'}):
-        service = OpenAIService()
-        with pytest.raises(LLMServiceError):
-            service.generate("test prompt")
+    config = {'api_key': 'test-key'}
+    service = OpenAIService(config)
+    with pytest.raises(LLMServiceError):
+        service.generate("test prompt")
 
 def test_openai_validate_response():
     service = OpenAIService({'api_key': 'test-key'})
@@ -82,7 +84,11 @@ def test_openai_validate_response():
 
 # Ollama Service Tests
 def test_ollama_init():
-    service = OllamaService()
+    config = {
+        'base_url': 'http://localhost:11434',
+        'model': 'llama3'
+    }
+    service = OllamaService(config)
     assert service.base_url == 'http://localhost:11434'
     assert service.model == 'llama3'
     assert service.temperature == 0.7
@@ -100,16 +106,16 @@ def test_ollama_init_with_config():
 
 @patch('requests.post')
 def test_ollama_generate_success(mock_post):
-    # Create a Mock response object with proper structure
     mock_response = Mock()
-    # Make the response iterable by setting the iter method
-    mock_response.iter_lines.return_value = [
-        b'{"response": "test response"}'
-    ]
+    mock_response.json.return_value = {"response": "test response"}
     mock_response.raise_for_status = Mock()
     mock_post.return_value = mock_response
     
-    service = OllamaService()
+    config = {
+        'base_url': 'http://localhost:11434',
+        'model': 'llama3'
+    }
+    service = OllamaService(config)
     response = service.generate("test prompt")
     
     assert response == "test response"
@@ -119,26 +125,35 @@ def test_ollama_generate_success(mock_post):
 def test_ollama_generate_request_failure(mock_post):
     mock_post.side_effect = requests.exceptions.RequestException("Connection error")
     
-    service = OllamaService()
+    config = {
+        'base_url': 'http://localhost:11434',
+        'model': 'llama3'
+    }
+    service = OllamaService(config)
     with pytest.raises(LLMServiceError):
         service.generate("test prompt")
 
 @patch('requests.post')
 def test_ollama_generate_invalid_response(mock_post):
     mock_response = Mock()
-    # Return an invalid JSON string that will cause a JSON decode error
-    mock_response.iter_lines.return_value = [
-        b'{"invalid json'
-    ]
+    mock_response.json.side_effect = json.JSONDecodeError("Invalid JSON", "", 0)
     mock_response.raise_for_status = Mock()
     mock_post.return_value = mock_response
     
-    service = OllamaService()
+    config = {
+        'base_url': 'http://localhost:11434',
+        'model': 'llama3'
+    }
+    service = OllamaService(config)
     with pytest.raises(LLMServiceError):
         service.generate("test prompt")
 
 def test_ollama_validate_response():
-    service = OllamaService()
+    config = {
+        'base_url': 'http://localhost:11434',
+        'model': 'llama3'
+    }
+    service = OllamaService(config)
     assert service.validate_response("valid response") is True
     assert service.validate_response("") is False
     assert service.validate_response("  ") is False

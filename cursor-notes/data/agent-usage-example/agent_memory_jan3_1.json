@@ -1,0 +1,130 @@
+{
+  "metadata": {
+    "created_at": "2025-01-03T13:25:23.646300",
+    "last_updated": "2025-01-03T13:25:23.646300",
+    "version": "1.0"
+  },
+  "structured_data": {
+    "world_settlements": [
+      {
+        "name": "Haven",
+        "location": "central"
+      },
+      {
+        "name": "Riverwatch",
+        "location": "east"
+      },
+      {
+        "name": "Mountainkeep",
+        "location": "west"
+      }
+    ],
+    "key_npcs": [
+      {
+        "name": "Mayor Elena",
+        "role": "quest giver",
+        "location": "Haven"
+      },
+      {
+        "name": "Master Scholar Theron",
+        "role": "expert",
+        "location": "Haven"
+      },
+      {
+        "name": "Captain Sara",
+        "role": "military leader",
+        "location": "Riverwatch"
+      }
+    ]
+  },
+  "knowledge_graph": {
+    "npcs": {
+      "Mayor Elena": {
+        "quest_giver": true,
+        "settlement": "Haven",
+        "connections": [
+          {
+            "target": "Master Scholar Theron",
+            "relation": "expert"
+          },
+          {
+            "target": "Captain Sara",
+            "relation": "ally"
+          }
+        ]
+      },
+      "Master Scholar Theron": {
+        "expertise": [
+          "ancient ruins"
+        ],
+        "settlement": "Haven",
+        "connections": [
+          {
+            "target": "Mayor Elena",
+            "relation": "quest_giver"
+          },
+          {
+            "target": "Captain Sara",
+            "relation": "information_source"
+          }
+        ]
+      },
+      "Captain Sara": {
+        "military_leader": true,
+        "settlement": "Riverwatch",
+        "connections": [
+          {
+            "target": "Mayor Elena",
+            "relation": "ally"
+          },
+          {
+            "target": "Master Scholar Theron",
+            "relation": "information_source"
+          }
+        ]
+      }
+    },
+    "settlements": {
+      "Haven": {
+        "location": "central",
+        "connections": [
+          {
+            "target": "Riverwatch",
+            "relation": "trade_route"
+          },
+          {
+            "target": "Mountainkeep",
+            "relation": "trade_route"
+          }
+        ]
+      },
+      "Riverwatch": {
+        "location": "east",
+        "connections": [
+          {
+            "target": "Haven",
+            "relation": "trade_route"
+          },
+          {
+            "target": "Mountainkeep",
+            "relation": "trade_route"
+          }
+        ]
+      },
+      "Mountainkeep": {
+        "location": "west",
+        "connections": [
+          {
+            "target": "Haven",
+            "relation": "trade_route"
+          },
+          {
+            "target": "Riverwatch",
+            "relation": "trade_route"
+          }
+        ]
+      }
+    }
+  },
+  "conversation_history": []
+}

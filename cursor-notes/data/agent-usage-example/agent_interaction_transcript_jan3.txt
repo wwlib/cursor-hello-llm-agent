@@ -1,0 +1,340 @@
+================================================================================
+  D&D Campaign Agent Example
+================================================================================
+
+
+Setting up services...
+Initializing LLM service (Ollama)...
+Creating MemoryManager and Agent instances...
+
+Initializing MemoryManager with file: agent_memory.json
+No existing memory file found
+Agent initialized in AgentPhase.INITIALIZATION phase
+Services initialized successfully
+
+Initializing campaign world...
+Current phase: INITIALIZATION
+Creating new campaign memory...
+Phase before learning: INITIALIZATION
+
+Learning new information (Current phase: AgentPhase.INITIALIZATION)
+
+Creating initial memory structure...
+Generating memory structure using LLM...
+Failed to parse direct JSON, attempting to extract JSON structure...
+
+Saving memory to agent_memory.json
+Memory saved successfully with backup: agent_memory_bak_34.json
+Initial memory created and saved successfully
+Initial memory created, transitioning to LEARNING phase
+Transitioning to INTERACTION phase
+Phase after learning: INTERACTION
+
+Campaign world initialized successfully!
+
+Initial Campaign State
+======================
+{
+  "metadata": {
+    "created_at": "2025-01-03T13:25:23.646300",
+    "last_updated": "2025-01-03T13:25:23.646300",
+    "version": "1.0"
+  },
+  "structured_data": {
+    "world_settlements": [
+      {
+        "name": "Haven",
+        "location": "central"
+      },
+      {
+        "name": "Riverwatch",
+        "location": "east"
+      },
+      {
+        "name": "Mountainkeep",
+        "location": "west"
+      }
+    ],
+    "key_npcs": [
+      {
+        "name": "Mayor Elena",
+        "role": "quest giver",
+        "location": "Haven"
+      },
+      {
+        "name": "Master Scholar Theron",
+        "role": "expert",
+        "location": "Haven"
+      },
+      {
+        "name": "Captain Sara",
+        "role": "military leader",
+        "location": "Riverwatch"
+      }
+    ]
+  },
+  "knowledge_graph": {
+    "npcs": {
+      "Mayor Elena": {
+        "quest_giver": true,
+        "settlement": "Haven",
+        "connections": [
+          {
+            "target": "Master Scholar Theron",
+            "relation": "expert"
+          },
+          {
+            "target": "Captain Sara",
+            "relation": "ally"
+          }
+        ]
+      },
+      "Master Scholar Theron": {
+        "expertise": [
+          "ancient ruins"
+        ],
+        "settlement": "Haven",
+        "connections": [
+          {
+            "target": "Mayor Elena",
+            "relation": "quest_giver"
+          },
+          {
+            "target": "Captain Sara",
+            "relation": "information_source"
+          }
+        ]
+      },
+      "Captain Sara": {
+        "military_leader": true,
+        "settlement": "Riverwatch",
+        "connections": [
+          {
+            "target": "Mayor Elena",
+            "relation": "ally"
+          },
+          {
+            "target": "Master Scholar Theron",
+            "relation": "information_source"
+          }
+        ]
+      }
+    },
+    "settlements": {
+      "Haven": {
+        "location": "central",
+        "connections": [
+          {
+            "target": "Riverwatch",
+            "relation": "trade_route"
+          },
+          {
+            "target": "Mountainkeep",
+            "relation": "trade_route"
+          }
+        ]
+      },
+      "Riverwatch": {
+        "location": "east",
+        "connections": [
+          {
+            "target": "Haven",
+            "relation": "trade_route"
+          },
+          {
+            "target": "Mountainkeep",
+            "relation": "trade_route"
+          }
+        ]
+      },
+      "Mountainkeep": {
+        "location": "west",
+        "connections": [
+          {
+            "target": "Haven",
+            "relation": "trade_route"
+          },
+          {
+            "target": "Riverwatch",
+            "relation": "trade_route"
+          }
+        ]
+      }
+    }
+  },
+  "conversation_history": []
+}
+Final phase: INTERACTION
+
+Starting interactive session...
+Current phase: INTERACTION
+Type "help" to see available commands
+
+You: tell me about the world
+
+Processing message (Phase: INTERACTION)...
+
+Processing message (Current phase: AgentPhase.INTERACTION)
+
+Processing memory query...
+Current phase: INTERACTION
+Added user message to history: tell me about the world
+Generating response and memory update using LLM...
+Added agent response to history
+Memory updated with new information
+
+Saving memory to agent_memory.json
+Memory saved successfully with backup: agent_memory_bak_35.json
+
+Agent: The world is divided into three main regions: central, east, and west. The central region is home to the Haven settlement, where you can find Mayor Elena and Master Scholar Theron. The eastern region features the Riverwatch settlement, led by Captain Sara. In the western region, there's the Mountainkeep settlement.
+Current phase: INTERACTION
+
+You: Where can I get a quest that will earn me some treasure
+
+Processing message (Phase: INTERACTION)...
+
+Processing message (Current phase: AgentPhase.INTERACTION)
+
+Processing memory query...
+Current phase: INTERACTION
+Added user message to history: where can i get a quest that will earn me some treasure
+Generating response and memory update using LLM...
+Added agent response to history
+Memory updated with new information
+
+Saving memory to agent_memory.json
+Memory saved successfully with backup: agent_memory_bak_36.json
+
+Agent: You can try talking to Mayor Elena in Haven, she is known for having various quests and missions that reward treasure. Alternatively, you could visit Master Scholar Theron and ask about any ongoing research projects he might be working on, as these often lead to valuable discoveries.
+Current phase: INTERACTION
+
+You: got to Haven and get a quest from Mayor Helena
+
+Processing message (Phase: INTERACTION)...
+
+Processing message (Current phase: AgentPhase.INTERACTION)
+
+Processing memory query...
+Current phase: INTERACTION
+Added user message to history: got to haven and get a quest from mayor helena
+Generating response and memory update using LLM...
+Added agent response to history
+Memory updated with new information
+
+Saving memory to agent_memory.json
+Memory saved successfully with backup: agent_memory_bak_37.json
+
+Agent: Ah, you've obtained a quest from Mayor Elena! She usually has some challenging and rewarding missions. What's the quest about? Is it related to the ancient ruins or perhaps helping Captain Sara with her military endeavors?
+Current phase: INTERACTION
+
+You: please tell me the details of the quest
+
+Processing message (Phase: INTERACTION)...
+
+Processing message (Current phase: AgentPhase.INTERACTION)
+
+Processing memory query...
+Current phase: INTERACTION
+Added user message to history: please tell me the details of the quest
+
+Triggering reflection...
+
+Reflecting on 10 messages...
+Generating reflection updates using LLM...
+Failed to parse direct JSON, attempting to extract JSON structure...
+Raw LLM response:
+Here is the JSON response:
+
+{
+  "memory_update": {
+    "structured_data": {
+      "world": {
+        "geography": [],
+        "settlements": [
+          {
+            "name": "Haven",
+            "location": "central",
+            "type": "settlement"
+          }
+        ]
+      },
+      "npcs": [
+        {
+          "name": "Mayor Elena",
+          "title/role/specialty": "mayor"
+        },
+        {
+          "name": "Master Scholar Theron",
+          "title/role/specialty": "master scholar"
+        },
+        {
+          "name": "Captain Sara",
+          "title/role/specialty": "captain"
+        }
+      ],
+      "events": [
+        {
+          "event description": "User obtained a quest from Mayor Elena",
+          "status": "complete"
+        }
+      ]
+    },
+    "knowledge_graph": {
+      "npcs": {
+        "Mayor Elena": {
+          "quest giver": true
+        },
+        "Master Scholar Theron": {
+          "researcher": true
+        },
+        "Captain Sara": {
+          "leader": true
+        }
+      },
+      "settlements": {
+        "Haven": {
+          "location": "central"
+        }
+      },
+      "events": {
+        "User obtained a quest from Mayor Elena": {}
+      }
+    }
+  }
+}
+Successfully extracted JSON structure
+
+Saving memory to agent_memory.json
+Memory saved successfully with backup: agent_memory_bak_38.json
+Reflection completed and memory updated successfully
+Cleared processed messages after successful reflection
+Generating response and memory update using LLM...
+Added agent response to history
+Memory updated with new information
+
+Saving memory to agent_memory.json
+Memory saved successfully with backup: agent_memory_bak_39.json
+
+Agent: Mayor Elena's quest is to investigate strange occurrences in the central settlement, Haven. She believes it may be related to an ancient artifact hidden deep within the city.
+Current phase: INTERACTION
+
+You: start the investigation and explore deep within the city
+
+Processing message (Phase: INTERACTION)...
+
+Processing message (Current phase: AgentPhase.INTERACTION)
+
+Processing memory query...
+Current phase: INTERACTION
+Added user message to history: start the investigation and explore deep within the city
+Generating response and memory update using LLM...
+Added agent response to history
+Memory updated with new information
+
+Saving memory to agent_memory.json
+Memory saved successfully with backup: agent_memory_bak_40.json
+
+Agent: The streets of Haven are bustling with activity as you begin your investigation. Mayor Elena's eyes gleam with determination, 'Find the source of these strange occurrences and uncover what lies beneath our city.' She hands you a crude map, pointing out several locations where anomalies have been reported.
+Current phase: INTERACTION
+
+You: 

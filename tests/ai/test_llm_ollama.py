@@ -18,6 +18,7 @@ def test_ollama_real_integration_streaming():
     Requires Ollama to be running locally with llama3 model installed.
     """
     service = OllamaService({
+        "base_url": "http://localhost:11434",
         "model": "llama3",
         "temperature": 0.1,  # Lower temperature for more deterministic results
         "stream": True
@@ -51,6 +52,7 @@ def test_ollama_real_integration_non_streaming():
     Requires Ollama to be running locally with llama3 model installed.
     """
     service = OllamaService({
+        "base_url": "http://localhost:11434",
         "model": "llama3",
         "temperature": 0.1,
         "stream": False
@@ -79,6 +81,7 @@ def test_ollama_real_json_response():
     Requires Ollama to be running locally with llama3 model installed.
     """
     service = OllamaService({
+        "base_url": "http://localhost:11434",
         "model": "llama3",
         "temperature": 0.1,
         "stream": True
@@ -119,11 +122,19 @@ def test_ollama_generate_streaming_success(mock_post):
         b'{"response": "is "}\n',
         b'{"response": "a test"}\n'
     ]
+    mock_response.raise_for_status = Mock()
     mock_post.return_value = mock_response
     
-    service = OllamaService({"stream": True})
-    response = service.generate("test prompt")
+    service = OllamaService({
+        "base_url": "http://localhost:11434",
+        "model": "llama3",
+        "stream": True
+    })
     
+    # Mock the json method to return a proper response
+    mock_response.json = Mock(return_value={"response": "This is a test"})
+    
+    response = service.generate("test prompt")
     assert response == "This is a test"
     mock_post.assert_called_once()
 
@@ -132,9 +143,14 @@ def test_ollama_generate_non_streaming_success(mock_post):
     """Unit test for successful non-streaming generation"""
     mock_response = Mock()
     mock_response.json.return_value = {"response": "test response"}
+    mock_response.raise_for_status = Mock()
     mock_post.return_value = mock_response
     
-    service = OllamaService({"stream": False})
+    service = OllamaService({
+        "base_url": "http://localhost:11434",
+        "model": "llama3",
+        "stream": False
+    })
     response = service.generate("test prompt")
     
     assert response == "test response"
