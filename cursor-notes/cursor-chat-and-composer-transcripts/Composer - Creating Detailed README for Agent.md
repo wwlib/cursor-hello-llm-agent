@@ -3120,6 +3120,261 @@ These changes have resolved all test failures and improved the robustness of the
 
 ---
 
+_**User**_
+
+Oh, no. The INTERACTION phase prompt is generating an error because of invalid JSON in response to "where can i get a quest to earn some gold?"
+
+
+
+---
+
+_**Assistant**_
+
+I'll help fix the issue with the INTERACTION phase prompt that's causing invalid JSON responses. Let me check the current implementation and make the necessary changes.
+
+---
+
+_**Assistant**_
+
+
+
+---
+
+_**Assistant**_
+
+
+
+I've updated the `_create_query_prompt` method to provide clearer instructions to the LLM. The key changes include:
+
+1. Added explicit instructions that the response must be ONLY a valid JSON object with no additional text
+2. Provided a clear template of the expected JSON structure
+3. Included the current memory state, user message, and phase in a more structured way
+4. Added specific tasks for the LLM to:
+   - Generate a natural response
+   - Suggest the next phase
+   - Update memory with new information
+
+The prompt now emphasizes that the response must be strictly JSON and provides a clear example of the expected format. This should help prevent the LLM from adding explanatory text or non-JSON content in its response.
+
+Would you like to test this change by running the script again with the question "where can i get a quest to earn some gold?"?
+
+---
+
+_**User**_
+
+Still getting an error - before making an LLM call, it seems.
+
+
+
+---
+
+_**Assistant**_
+
+I see the issue. The error `Error in query_memory: '\n    "response"'` suggests there's a problem with the prompt template. Let me fix the JSON template in the `_create_query_prompt` method:
+
+---
+
+_**Assistant**_
+
+
+
+---
+
+_**Assistant**_
+
+
+
+---
+
+_**Assistant**_
+
+
+
+I've made two key changes to fix the prompt generation:
+
+1. Changed the prompt structure to use a proper JSON template that will be serialized using `json.dumps()` instead of string formatting
+2. Included the expected response format in the instructions to ensure the LLM knows exactly what structure to return
+
+This should resolve the error you were seeing. The prompt is now properly formatted JSON that includes:
+- The current memory state
+- The user's message
+- The current phase
+- Clear instructions with the expected response format
+
+Would you like to try running the script again with your question "Tell me about the world"?
+
+---
+
+_**User**_
+
+Still getting an error. Here is the debug log:
+
+And the interaction output:
+
+
+
+---
+
+_**Assistant**_
+
+I see the issue now. The LLM is returning an empty response. Let me modify the prompt to be more explicit and include the example response structure in a way that's easier for the LLM to follow:
+
+---
+
+_**Assistant**_
+
+
+
+---
+
+_**Assistant**_
+
+
+
+---
+
+_**Assistant**_
+
+
+
+I've made several key changes to fix the prompt generation:
+
+1. Separated the memory state, user message, and current phase into variables to avoid deep nesting in f-strings
+2. Created a separate `example_response` string with the expected JSON structure
+3. Made the prompt clearer about returning ONLY JSON
+4. Emphasized that INTERACTION should be the default phase
+5. Removed the nested JSON template from the f-string to avoid formatting issues
+
+The prompt is now cleaner and should be easier for the LLM to understand and follow. Would you like to try running the script again with your question "Tell me about the world"?
+
+---
+
+_**User**_
+
+Now agent and system message are not being added to the conversation history.
+
+---
+
+_**Assistant**_
+
+I see the issue. We need to add the agent's response and any system messages to the conversation history in the `query_memory` method. Let me fix that:
+
+---
+
+_**Assistant**_
+
+
+
+---
+
+_**Assistant**_
+
+
+
+I've updated the `query_memory` method to properly handle all message types in the conversation history:
+
+1. Added agent responses:
+   - After successful LLM response parsing
+   - Includes role "assistant", response content, and timestamp
+
+2. Added system messages for:
+   - Memory update confirmations
+   - Error messages (both for JSON parsing and general errors)
+   - Each with role "system", appropriate content, and timestamp
+
+3. Improved error handling:
+   - All error cases now add an error message to the conversation history
+   - Errors include more detailed information about what went wrong
+
+Would you like to try running the script again to verify that all message types are now being properly added to the conversation history?
+
+---
+
+_**User**_
+
+OK. Messages are getting added to the conversation history correctly. BUT ... the query memory phase is deleting a lot of good data again. See agent_memory.json compared to the initial memory agent_memory_bak_28.json
+
+---
+
+_**Assistant**_
+
+
+
+Ah, I see the issue. The `query_memory` method is completely replacing the `structured_data` and `knowledge_graph` with what comes back in the `memory_update`, instead of preserving the existing data. Let me fix this:
+
+---
+
+_**Assistant**_
+
+
+
+---
+
+_**Assistant**_
+
+
+
+I've made two key changes:
+
+1. Added a new `_merge_memory_update` method that:
+   - Preserves existing data while adding new information
+   - Handles both lists and dictionaries appropriately
+   - Avoids duplicates when merging lists
+   - Recursively merges dictionaries
+
+2. Updated `query_memory` to use the new merge method instead of replacing the entire memory structure.
+
+This should now:
+- Keep all existing data in both `structured_data` and `knowledge_graph`
+- Only add new information without removing old data
+- Properly merge nested structures
+
+Would you like to try running the script again to verify that the memory is now being preserved correctly?
+
+---
+
+_**User**_
+
+Had some good interactions but then got an error in the reflect phase:
+
+
+
+---
+
+_**Assistant**_
+
+
+
+Ah, I see the issue. In the `query_memory` method, we're calling `self._perform_reflection()` without providing the required `messages_to_process` argument. Let me fix that:
+
+---
+
+_**Assistant**_
+
+
+
+---
+
+_**Assistant**_
+
+
+
+I've updated the `query_memory` method to:
+
+1. Properly handle reflection by:
+   - Getting the last 10 messages from conversation history
+   - Passing them to `_perform_reflection`
+   - Clearing processed messages only after successful reflection
+
+2. Added better error handling and logging:
+   - Safely accessing conversation history with `get()`
+   - Printing confirmation when messages are cleared
+   - Preserving older messages after reflection
+
+Would you like to try running the script again to verify that reflection now works correctly?
+
+---
+
 
 
 ---
