@@ -1,6 +1,6 @@
 # llm-driven-agent-with-session-memory
 
-This is a simple example of a LLM-driven agent with session memory.
+This is a domain-agnostic implementation of a LLM-driven agent with session memory.
 
 All of the code in this repo was written by cursor using instructions from the `README-initial-cursor-instructions.md` file.
 
@@ -46,6 +46,7 @@ Development and testing has been done using ollama running either on a local mac
     })
 ```
 
+
 ## Usage
 
 Start ollama and have it serve a `llama3` model (or similar)
@@ -63,18 +64,24 @@ If necessary...
 python3 -m pip install --upgrade pip
 ```
 
-Example usage
+Example usage:
 
 ```bash
+# D&D Campaign Example
 python examples/agent_usage_example.py
+
+# User Story Generation Example
+python examples/user_story_example.py
+
+# Memory Manager Example
+python examples/memory_manager_usage_example.py
 ```
 
 See: `cursor-notes/data/agent-usage-example/agent_interaction_transcript_jan3.txt` for a transcript of an example interaction.
 
-
 ## Architecture Overview
 
-The project implements a LLM-driven agent with persistent memory, designed around three main components:
+The project implements a domain-agnostic LLM-driven agent with persistent memory, designed around three main components:
 
 ### 1. LLM Service Layer (`src/ai/`)
 - Base `LLMService` class defining the interface for LLM interactions
@@ -84,25 +91,36 @@ The project implements a LLM-driven agent with persistent memory, designed aroun
 - Error handling and response validation
 
 ### 2. Memory Management (`src/memory/`)
-- `MemoryManager` class handling persistent memory in JSON format
-- Memory structure includes:
-  - `structured_data`: Organized facts about the world/campaign
-  - `knowledge_graph`: Relationships between entities
+- Domain-agnostic `MemoryManager` class handling persistent memory in JSON format
+- Configurable memory structure through domain configurations:
+  - `structured_data`: Domain-specific data organization
+  - `knowledge_graph`: Domain-specific relationships
   - `conversation_history`: Complete interaction history
   - `metadata`: Phase tracking and timestamps
 - Automatic memory reflection after every 10 messages
 - Memory backups created on each save operation
 
 ### 3. Agent Layer (`src/agent/`)
-- Main `Agent` class orchestrating interactions
+- Domain-agnostic `Agent` class orchestrating interactions
 - Manages conversation phases:
-  - INITIALIZATION: Setting up the world/campaign
-  - LEARNING: Acquiring new information
+  - INITIALIZATION: Setting up initial domain knowledge
+  - LEARNING: Acquiring new domain information
   - INTERACTION: Regular conversation
 - Delegates memory operations to MemoryManager
 - Handles phase transitions and message processing
 
+### Domain Configuration
+The system supports different domains through configuration:
+- Schema definition for structured data
+- Knowledge graph relationship types
+- Domain-specific prompt templates
+- Example configurations provided:
+  - D&D Campaign (`DND_CONFIG`)
+  - User Story Generation (`USER_STORY_CONFIG`)
+  - Default generic configuration
+
 ### Key Features
+- Domain-agnostic design
 - Persistent memory across sessions
 - Automatic memory consolidation through reflection
 - Graceful error handling and recovery
@@ -110,12 +128,21 @@ The project implements a LLM-driven agent with persistent memory, designed aroun
 - Memory backups for troubleshooting
 - Efficient LLM usage (combined query/update operations)
 
-### Example Implementation
-The repository includes a D&D campaign example that demonstrates:
-- Campaign world initialization
-- NPC and quest management
-- Interactive storytelling
-- Memory persistence and reflection
-- Natural conversation handling
+### Example Implementations
+The repository includes examples for different domains:
+1. D&D Campaign:
+   - Campaign world initialization
+   - NPC and quest management
+   - Interactive storytelling
 
-The system is designed to be extensible for other use cases beyond D&D campaigns, with the core components providing a general framework for LLM-driven agents with memory.
+2. User Story Generation:
+   - Project requirements gathering
+   - Feature relationship tracking
+   - Stakeholder management
+
+3. Memory Manager Usage:
+   - Direct memory operations
+   - Reflection process demonstration
+   - Memory structure exploration
+
+The system is designed to be easily extended to new domains by providing appropriate domain configurations.
