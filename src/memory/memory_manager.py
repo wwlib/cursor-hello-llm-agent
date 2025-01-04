@@ -4,6 +4,40 @@ import os
 from datetime import datetime
 
 class MemoryManager:
+    # Core prompts that don't change with domain
+    QUERY_PROMPT = """You are a memory management system. Your task is to answer queries about the current memory state.
+
+Current Memory State:
+{memory_state}
+
+User Query:
+{query}
+
+IMPORTANT: You must return ONLY a JSON object with this exact structure:
+{{
+    "response": "Your natural language response here as a single string"
+}}
+
+DO NOT include any other fields or structures in your response.
+DO NOT return the memory state or any complex objects.
+ONLY return the response object with a single string value."""
+
+    UPDATE_PROMPT = """You are a memory management system. Your task is to incorporate new information into the memory state.
+
+Current Memory State:
+{memory_state}
+
+New Information:
+{new_data}
+
+Requirements:
+1. Preserve existing information unless explicitly contradicted
+2. Add new entities and relationships as needed
+3. Update existing entities and relationships if new information is provided
+4. Maintain consistency with existing data
+
+Return ONLY a valid JSON object with the same structure as the current memory state."""
+
     def __init__(self, llm_service, memory_file: str = "memory.json", domain_config: dict = None):
         """Initialize the MemoryManager with an LLM service and domain configuration.
         
@@ -11,7 +45,8 @@ class MemoryManager:
             llm_service: Service for LLM operations
             memory_file: Path to the JSON file for persistent storage
             domain_config: Dictionary containing domain-specific configuration:
-                         - schema: The structure for domain-specific data
+                         - schema: Domain-specific entity types and properties
+                         - relationships: Domain-specific relationship types
                          - prompts: Domain-specific prompt templates
         """
         print(f"\nInitializing MemoryManager with file: {memory_file}")
@@ -24,55 +59,17 @@ class MemoryManager:
     def _get_default_config(self) -> dict:
         """Get the default domain configuration if none provided."""
         return {
-            "schema": {
-                "structured_data": {
-                    "entities": [],     # Generic entities
-                    "locations": [],    # Generic locations
-                    "activities": []    # Generic activities
-                },
-                "knowledge_graph": {
-                    "entity_relationships": {},
-                    "location_relationships": {},
-                    "activity_relationships": {}
-                }
-            },
-            "prompts": {
-                "create_memory": """You are a helpful assistant that communicates using JSON. 
-                Create a structured memory for the following domain information:
-                {input_data}
-                
-                Use this schema:
-                {schema}
-                
-                Return ONLY a valid JSON object with no additional text.""",
-                
-                "query": """You are a helpful assistant that communicates using JSON.
-                Process this query using the current memory state and schema:
-                
-                Memory State:
-                {memory_state}
-                
-                Schema:
-                {schema}
-                
-                User Query:
-                {query}
-                
-                Return ONLY a valid JSON object with no additional text.""",
-                
-                "reflect": """You are a helpful assistant that communicates using JSON.
-                Analyze these recent interactions and update the knowledge state:
-                
-                Current State:
-                {memory_state}
-                
-                Recent Messages:
-                {messages}
-                
-                Schema:
-                {schema}
-                
-                Return ONLY a valid JSON object with no additional text."""
+            "domain_instructions": {
+                "entity_suggestions": [
+                    "Consider organizing entities by type (e.g., characters, locations, items)",
+                    "Include relevant attributes for each entity type",
+                    "Use descriptive names and IDs"
+                ],
+                "relationship_suggestions": [
+                    "Consider key interactions between entities",
+                    "Use clear and consistent relationship types",
+                    "Track important state changes"
+                ]
             }
         }
 
@@ -133,18 +130,51 @@ class MemoryManager:
             return True
 
         print("\nCreating initial memory structure...")
-        create_memory_prompt = self.domain_config["prompts"]["create_memory"].format(
-            input_data=input_data,
-            schema=json.dumps(self.domain_config["schema"], indent=2)
-        )
+        
+        # Include domain-specific instructions if available
+        domain_guidance = ""
+        if self.domain_config and "domain_instructions" in self.domain_config:
+            domain_guidance = "\nDomain-Specific Guidance:\n"
+            if "entity_suggestions" in self.domain_config["domain_instructions"]:
+                domain_guidance += "\nEntity Organization:\n- " + "\n- ".join(self.domain_config["domain_instructions"]["entity_suggestions"])
+            if "relationship_suggestions" in self.domain_config["domain_instructions"]:
+                domain_guidance += "\nRelationship Organization:\n- " + "\n- ".join(self.domain_config["domain_instructions"]["relationship_suggestions"])
+
+        create_memory_prompt = f"""You are a memory management system. Your task is to analyze the provided information and create two distinct data structures:
+
+1. structured_data: A catalog of entities (nouns) and their properties
+2. knowledge_graph: A collection of relationships (verbs) between entities
+
+Input Data:
+{input_data}
+{domain_guidance}
+
+Requirements for structured_data:
+- Store facts and properties about entities
+- Organize entities in a way that makes sense for the domain
+- Include all relevant attributes and metadata
+
+Requirements for knowledge_graph:
+- Store relationships between entities
+- Use clear and consistent relationship types
+- Capture important connections and dependencies
+
+Return ONLY a valid JSON object with this structure:
+{{
+    "structured_data": {{
+        // Your organization of entities and their properties
+        "entities": []
+    }},
+    "knowledge_graph": {{
+        // Your organization of relationships
+        "relationships": []
+    }}
+}}"""
 
         try:
             print("Generating memory structure using LLM...")
-            # Get structured memory from LLM
-            prompt = create_memory_prompt
-            llm_response = self.llm.generate(prompt, debug_generate_scope="init_memory")
+            llm_response = self.llm.generate(prompt=create_memory_prompt, debug_generate_scope="init_memory")
             
-            # Try to extract JSON if there's any extra text
             try:
                 # First try direct JSON parsing
                 memory_data = json.loads(llm_response)
@@ -155,14 +185,20 @@ class MemoryManager:
                 json_match = re.search(r'\{[\s\S]*\}', llm_response)
                 if json_match:
                     try:
-                        memory_data = json.loads(json_match.group(0))
+                        json_str = json_match.group(0)
+                        # Count opening and closing braces
+                        open_count = json_str.count('{')
+                        close_count = json_str.count('}')
+                        # Add missing closing braces if needed
+                        if open_count > close_count:
+                            json_str += '}' * (open_count - close_count)
+                        memory_data = json.loads(json_str)
+                        print("Successfully extracted and fixed JSON structure")
                     except json.JSONDecodeError as e:
                         print(f"Error parsing extracted JSON structure: {str(e)}")
-                        print(f"Extracted structure: {json_match.group(0)}")
                         return False
                 else:
                     print("Could not find JSON structure in LLM response")
-                    print(f"Raw response: {llm_response}")
                     return False
             
             # Validate required fields
@@ -170,7 +206,6 @@ class MemoryManager:
             for field in required_fields:
                 if field not in memory_data:
                     print(f"Missing required field '{field}' in memory data")
-                    print(f"Received data: {json.dumps(memory_data, indent=2)}")
                     return False
             
             # Initialize metadata and conversation history
@@ -189,73 +224,7 @@ class MemoryManager:
             
         except Exception as e:
             print(f"Error creating memory structure: {str(e)}")
-            print(f"Full error details: {type(e).__name__}: {str(e)}")
             return False
-
-    def _create_query_prompt(self, context: dict) -> str:
-        """Create a prompt for querying memory.
-
-        Args:
-            context: The query context containing user message and current phase
-
-        Returns:
-            str: The formatted prompt for the LLM
-        """
-        memory_state = json.dumps(self.memory, indent=2)
-        user_message = context.get('user_message', '')
-        
-        example_response = '''{
-    "response": "Your natural response to the user's question about the world",
-    "confidence": 0.9
-}'''
-
-        prompt = f"""You are a helpful assistant that communicates using JSON. Your response must be ONLY a valid JSON object with no preamble, explanation, or additional text.
-
-Current Memory State:
-{memory_state}
-
-User Message: "{user_message}"
-
-Your task is to:
-1. Generate a natural response to the user's message based on the memory state
-2. Set a confidence score for your response
-
-IMPORTANT: Return ONLY a JSON object with this exact structure - no other text or explanation:
-
-{example_response}"""
-
-        return prompt
-
-    def _merge_memory_update(self, memory_update: dict) -> None:
-        """Merge memory update with existing memory, preserving existing data.
-        
-        Args:
-            memory_update: New memory data to merge
-        """
-        if "structured_data" in memory_update:
-            # Merge each section of structured data, preserving existing data
-            for key in memory_update["structured_data"]:
-                if key not in self.memory["structured_data"]:
-                    self.memory["structured_data"][key] = memory_update["structured_data"][key]
-                elif isinstance(self.memory["structured_data"][key], list):
-                    # For lists, append new items avoiding duplicates
-                    existing_items = self.memory["structured_data"][key]
-                    new_items = memory_update["structured_data"][key]
-                    for item in new_items:
-                        if item not in existing_items:
-                            existing_items.append(item)
-                elif isinstance(self.memory["structured_data"][key], dict):
-                    # For dictionaries, recursively merge
-                    self.memory["structured_data"][key].update(memory_update["structured_data"][key])
-
-        if "knowledge_graph" in memory_update:
-            # Merge knowledge graph data, preserving existing relationships
-            for key in memory_update["knowledge_graph"]:
-                if key not in self.memory["knowledge_graph"]:
-                    self.memory["knowledge_graph"][key] = memory_update["knowledge_graph"][key]
-                elif isinstance(self.memory["knowledge_graph"][key], dict):
-                    # For dictionaries, recursively merge
-                    self.memory["knowledge_graph"][key].update(memory_update["knowledge_graph"][key])
 
     def query_memory(self, query_context: str) -> dict:
         """Query memory with the given context and update memory with the response.
@@ -264,7 +233,7 @@ IMPORTANT: Return ONLY a JSON object with this exact structure - no other text o
             query_context: A JSON string containing the query context
 
         Returns:
-            dict: The query response including confidence
+            dict: The query response
         """
         print("\nProcessing memory query...")
         
@@ -299,23 +268,28 @@ IMPORTANT: Return ONLY a JSON object with this exact structure - no other text o
 
             # Generate response
             print("Generating response using LLM...")
-            prompt = self._create_query_prompt(context)
-            response = self.llm.generate(prompt)
+            query_prompt = self.QUERY_PROMPT.format(
+                memory_state=json.dumps(self.memory, indent=2),
+                query=user_message
+            )
+            
+            response = self.llm.generate(query_prompt)
             
             try:
                 result = json.loads(response)
             except json.JSONDecodeError as e:
                 print(f"Error parsing LLM response: {str(e)}")
                 error_response = {
-                    "response": "Error processing query",
-                    "confidence": 0.0
+                    "response": "Error processing query"
                 }
-                # Add error message to conversation history
-                self.memory["conversation_history"].append({
-                    "role": "system",
-                    "content": f"Error processing query: {str(e)}",
-                    "timestamp": datetime.now().isoformat()
-                })
+                return error_response
+
+            # Validate response structure
+            if not isinstance(result, dict) or "response" not in result or not isinstance(result["response"], str):
+                print("Invalid response structure - must have 'response' property with string value")
+                error_response = {
+                    "response": "Error: Invalid response structure from LLM"
+                }
                 return error_response
 
             # Add agent's response to conversation history
@@ -326,39 +300,22 @@ IMPORTANT: Return ONLY a JSON object with this exact structure - no other text o
                     "timestamp": datetime.now().isoformat()
                 })
                 print("Added agent response to history")
-                # Add system message about memory update
-                self.memory["conversation_history"].append({
-                    "role": "system",
-                    "content": "Memory updated with new information",
-                    "timestamp": datetime.now().isoformat()
-                })
 
             # Save memory after update
             self.save_memory()
             
             return {
-                "response": result.get("response", ""),
-                "confidence": result.get("confidence", 0.0)
+                "response": result.get("response", "")
             }
 
         except Exception as e:
             print(f"Error in query_memory: {str(e)}")
-            error_response = {
-                "response": "Error processing query",
-                "confidence": 0.0
+            return {
+                "response": f"Error processing query: {str(e)}"
             }
-            # Add error message to conversation history
-            self.memory["conversation_history"].append({
-                "role": "system",
-                "content": f"Error in query_memory: {str(e)}",
-                "timestamp": datetime.now().isoformat()
-            })
-            return error_response
 
     def update_memory(self, update_context: str) -> bool:
         """Update memory with new information using LLM.
-        Note: This method is now only used for reflection operations.
-        Regular updates are handled directly in query_memory.
         
         Args:
             update_context: JSON string containing update context
@@ -370,156 +327,186 @@ IMPORTANT: Return ONLY a JSON object with this exact structure - no other text o
             print("\nUpdating memory...")
             context = json.loads(update_context)
             
-            # Store existing conversation history and metadata
-            existing_history = self.memory.get("conversation_history", [])
-            
-            # Add new messages if any
-            new_message = context.get('message')
-            if new_message:
-                # Skip updates for system messages that don't contain meaningful information
-                if new_message.get('role') == 'system' and new_message.get('content') in [
-                    "Learned new information successfully",
-                    "Memory updated successfully"
-                ]:
-                    print("Skipping update for system status message")
-                    existing_history.append(new_message)
-                    self.memory["conversation_history"] = existing_history
-                    return True
+            # Handle reflection operations
+            if context.get("operation") == "reflect":
+                print("\nProcessing reflection operation...")
+                messages_to_process = context.get("messages", [])
+                reflection_success = self._perform_reflection(messages_to_process)
+                if reflection_success:
+                    # Clear only the processed messages from history
+                    remaining_messages = [msg for msg in self.memory.get("conversation_history", []) 
+                                       if msg not in messages_to_process]
+                    self.memory["conversation_history"] = remaining_messages
+                    print(f"Cleared processed messages. Remaining: {len(remaining_messages)}")
+                return reflection_success
 
-                # Only handle reflection operations
-                if context.get("operation") == "reflect":
-                    print("\nProcessing reflection operation...")
-                    recent_messages = existing_history[-10:] if len(existing_history) > 10 else existing_history
-                    reflection_success = self._perform_reflection(recent_messages)
-                    if reflection_success:
-                        # Clear the processed messages
-                        existing_history = existing_history[:-len(recent_messages)]
-                        print(f"Cleared {len(recent_messages)} messages. Remaining: {len(existing_history)}")
-                    return reflection_success
-                
-                print("Regular updates are now handled in query_memory")
-                return True
+            # Regular memory update
+            update_prompt = self.UPDATE_PROMPT.format(
+                memory_state=json.dumps(self.memory, indent=2),
+                new_data=json.dumps(context, indent=2)
+            )
+
+            print("Generating memory update using LLM...")
+            llm_response = self.llm.generate(update_prompt, debug_generate_scope="update_memory")
             
+            try:
+                updated_memory = json.loads(llm_response)
+            except json.JSONDecodeError:
+                print("Failed to parse LLM response as JSON")
+                return False
+            
+            # Validate required fields
+            if not all(field in updated_memory for field in ["structured_data", "knowledge_graph"]):
+                print("Missing required fields in updated memory")
+                return False
+            
+            # Preserve conversation history
+            conversation_history = self.memory.get("conversation_history", [])
+            
+            # Update memory with validated data
+            self.memory.update(updated_memory)
+            self.memory["metadata"]["last_updated"] = datetime.now().isoformat()
+            
+            # Restore conversation history
+            self.memory["conversation_history"] = conversation_history
+            
+            # Save the updated memory
+            self.save_memory()
+            print("Memory updated successfully")
             return True
             
         except Exception as e:
             print(f"Error updating memory: {str(e)}")
-            if 'llm_response' in locals():
-                print(f"Raw LLM response:\n{llm_response}")
             return False
 
-    def _perform_reflection(self, messages_to_process: list) -> bool:
-        """Internal method to perform reflection on a set of messages.
+    def _extract_schema(self, data: dict) -> dict:
+        """Extract schema from existing memory structure."""
+        schema = {}
         
-        Args:
-            messages_to_process: List of messages to reflect on
+        if isinstance(data, dict):
+            schema = {k: self._extract_schema(v) for k, v in data.items()}
+        elif isinstance(data, list):
+            if data:  # If list is not empty, use first item as example
+                schema = [self._extract_schema(data[0])]
+            else:
+                schema = []
+        else:
+            # For primitive values, store their type
+            schema = type(data).__name__
             
-        Returns:
-            bool: True if reflection was successful
-        """
+        return schema
+
+    def _perform_reflection(self, messages_to_process: list) -> bool:
+        """Internal method to perform reflection on a set of messages."""
         print(f"\nReflecting on {len(messages_to_process)} messages...")
         
-        reflection_prompt = f"""You are a helpful assistant that communicates using JSON. Your response must be ONLY a valid JSON object with no preamble, explanation, or additional text.
+        # Extract current schema
+        current_schema = {
+            "structured_data": self._extract_schema(self.memory.get("structured_data", {})),
+            "knowledge_graph": self._extract_schema(self.memory.get("knowledge_graph", {}))
+        }
 
-Current Memory State (for context):
-{json.dumps(self.memory, indent=2)}
+        # Extract just the core memory structures
+        core_memory = {
+            "structured_data": self.memory.get("structured_data", {}),
+            "knowledge_graph": self.memory.get("knowledge_graph", {})
+        }
+        
+        reflection_prompt = """You are a memory management system. Your task is to analyze conversations and update the core memory structures with any new information discovered.
 
-Recent Messages to Process:
-{json.dumps(messages_to_process, indent=2)}
+Current Memory State (core structures only):
+{memory_state}
 
-Your task is to consolidate and update the memory state:
-1. PRESERVE ALL existing information unless explicitly contradicted
-2. EXTRACT important facts and information from recent messages
-3. UPDATE existing information only if there's clear new information
-4. MAINTAIN all important relationships between entities
-5. MERGE redundant information while preserving details
+Recent Conversations to Process:
+{messages_to_process}
 
-RESPOND WITH ONLY THIS JSON STRUCTURE - NO OTHER TEXT:
-{{
-    "memory_update": {{
-        "structured_data": {{
-            "world": {{
-                "geography": [
-                    // Preserve ALL existing geography entries and add new ones
-                    // Each entry should have: name, type
-                ],
-                "settlements": [
-                    // Preserve ALL existing settlements and add new ones
-                    // Each entry should have: name, location, type
-                ]
-            }},
-            "npcs": [
-                // Preserve ALL existing NPCs and add new ones
-                // Each entry should have: name, title/role/specialty
-            ],
-            "events": [
-                // Preserve ALL existing events and add new ones
-                // Each entry should have: event description and status
-            ]
-        }},
-        "knowledge_graph": {{
-            "npcs": {{
-                // Preserve ALL existing NPC relationships
-                // Add new relationships only for new information
-            }},
-            "settlements": {{
-                // Preserve ALL existing settlement relationships
-                // Add new relationships only for new information
-            }},
-            "events": {{
-                // Preserve ALL existing event relationships
-                // Add new relationships only for new information
-            }}
-        }}
-    }}
-}}"""
+IMPORTANT: Your task is to:
+1. Analyze the conversations above for any new information about entities or relationships
+2. Add this information to the appropriate core memory structure while preserving the exact schema:
+{schema}
+
+Example entity format must match:
+{entity_example}
+
+Example relationship format must match:
+{relationship_example}
+
+Rules:
+1. PRESERVE all existing data in structured_data and knowledge_graph
+2. ADD new information found in conversations while maintaining the schema
+3. DO NOT change the structure or format of existing data
+4. DO NOT remove or replace existing information unless explicitly contradicted
+5. DO NOT include conversation_history or metadata in your response
+
+IMPORTANT: Return ONLY a valid JSON object with structured_data and knowledge_graph.
+The response must contain ALL existing entities and relationships PLUS any new ones discovered in conversations."""
 
         try:
-            print("Generating reflection updates using LLM...")
-            llm_response = self.llm.generate(reflection_prompt, debug_generate_scope="reflect")
+            # Get example entity and relationship from current memory
+            entity_example = next(iter(self.memory.get("structured_data", {}).get("entities", [])), None)
+            relationship_example = next(iter(self.memory.get("knowledge_graph", {}).get("relationships", [])), None)
             
-            # Try to extract JSON if there's any extra text
+            # Format the reflection prompt
+            prompt = reflection_prompt.format(
+                memory_state=json.dumps(core_memory, indent=2),
+                messages_to_process=json.dumps(messages_to_process, indent=2),
+                schema=json.dumps(current_schema, indent=2),
+                entity_example=json.dumps(entity_example, indent=2) if entity_example else "{}",
+                relationship_example=json.dumps(relationship_example, indent=2) if relationship_example else "{}"
+            )
+            
+            # Generate reflection update
+            print("Generating reflection update using LLM...")
+            llm_response = self.llm.generate(prompt, debug_generate_scope="reflect")
+            
             try:
-                llm_updates = json.loads(llm_response)
+                # First try direct JSON parsing
+                reflected_memory = json.loads(llm_response)
             except json.JSONDecodeError:
+                # If that fails, try to find JSON-like structure
                 import re
                 print("Failed to parse direct JSON, attempting to extract JSON structure...")
-                print(f"Raw LLM response:\n{llm_response}")
                 json_match = re.search(r'\{[\s\S]*\}', llm_response)
                 if json_match:
                     try:
-                        llm_updates = json.loads(json_match.group(0))
-                        print("Successfully extracted JSON structure")
+                        json_str = json_match.group(0)
+                        # Count opening and closing braces
+                        open_count = json_str.count('{')
+                        close_count = json_str.count('}')
+                        # Add missing closing braces if needed
+                        if open_count > close_count:
+                            json_str += '}' * (open_count - close_count)
+                        reflected_memory = json.loads(json_str)
+                        print("Successfully extracted and fixed JSON structure")
                     except json.JSONDecodeError as e:
                         print(f"Error parsing extracted JSON structure: {str(e)}")
                         return False
                 else:
                     print("Could not find JSON structure in LLM response")
                     return False
-            
-            # Handle case where memory_update is at top level
-            memory_update = llm_updates.get("memory_update", llm_updates)
-            
+                
             # Validate required fields
-            if "structured_data" not in memory_update or "knowledge_graph" not in memory_update:
-                print("Error: Missing required fields in memory update")
-                print(f"Received update: {json.dumps(memory_update, indent=2)}")
+            if not all(field in reflected_memory for field in ["structured_data", "knowledge_graph"]):
+                print("Missing required fields in reflection update")
                 return False
+                
+            # Preserve conversation history
+            conversation_history = self.memory.get("conversation_history", [])
             
-            # Update memory with validated data
-            self.memory["structured_data"] = memory_update["structured_data"]
-            self.memory["knowledge_graph"] = memory_update["knowledge_graph"]
+            # Update memory with reflection results
+            self.memory.update(reflected_memory)
             self.memory["metadata"]["last_updated"] = datetime.now().isoformat()
+            
+            # Restore conversation history
+            self.memory["conversation_history"] = conversation_history
             
             # Save the updated memory
             self.save_memory()
-            print("Reflection completed and memory updated successfully")
+            print("Reflection completed successfully")
             return True
             
         except Exception as e:
             print(f"Error during reflection: {str(e)}")
-            if 'llm_response' in locals():
-                print(f"Raw LLM response:\n{llm_response}")
             return False
 
     def get_memory_context(self) -> Dict[str, Any]:

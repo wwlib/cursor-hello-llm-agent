@@ -114,28 +114,65 @@ async def initialize_campaign(agent, memory_manager):
         return True
     
     print("Creating new campaign memory...")
-    campaign_data = """Please structure the following campaign information into a JSON format with structured_data for facts, knowledge_graph for relationships, and appropriate metadata.
+    campaign_data = """Please structure the following campaign information into appropriate data structures.
 
-Campaign Setting: The Lost Valley
+The memory should have two main sections:
+1. structured_data: For storing facts and properties about entities
+2. knowledge_graph: For storing relationships between entities
 
-World Details:
-- Hidden valley surrounded by impassable mountains
-- Ancient ruins scattered throughout
-- Mysterious magical anomalies
-- Three main settlements: Haven (central), Riverwatch (east), Mountainkeep (west)
+Here's a suggested way to structure the data (but feel free to adapt as needed):
+{
+    "structured_data": {
+        // Organize entities and their properties in whatever way makes most sense
+        // Example:
+        "entities": [
+            {
+                "identifier": "valley_1",
+                "type": "region",
+                "name": "The Lost Valley",
+                "features": ["hidden valley", "impassable mountains"],
+                "description": "A hidden valley with ancient ruins and magical anomalies."
+            ]
+        }
+    },
+    "knowledge_graph": {
+        // Organize relationships in whatever way makes most sense
+        // Example:
+        "relationships": [
+            {
+                "subjectIdentifier": "settlement_1",
+                "predicate": "LOCATED_IN",
+                "objectIdentifier": "valley_1"
+            }
+        ]
+    }
+}
 
-Current Situation:
-- Strange creatures emerging from the ruins
-- Trade routes between settlements disrupted
-- Ancient artifacts being discovered
-- Local guilds seeking adventurers
+Information to structure:
 
-Key NPCs:
-- Mayor Elena of Haven (quest giver)
-- Master Scholar Theron (knowledge about ruins)
-- Captain Sara of Riverwatch (military leader)
+Entities:
+1. The Lost Valley
+   - Type: region
+   - Features: Hidden valley, impassable mountains, ancient ruins, magical anomalies
 
-Return ONLY a valid JSON object with structured_data and knowledge_graph sections. No additional text or explanation."""
+2. Settlements:
+   - Haven (central settlement)
+   - Riverwatch (eastern settlement)
+   - Mountainkeep (western settlement)
+
+3. Key NPCs:
+   - Elena (Mayor of Haven, quest giver)
+   - Theron (Master Scholar, ruins expert)
+   - Sara (Captain of Riverwatch, military leader)
+
+4. Current Issues:
+   - Strange creatures
+   - Disrupted trade
+   - Ancient artifacts
+   - Guild recruitment
+
+Structure this information in whatever way will be most useful for the campaign.
+The only requirement is to return a valid JSON object with 'structured_data' and 'knowledge_graph' sections."""
     
     print(f"Phase before learning: {agent.get_current_phase().name}")
     success = await agent.learn(campaign_data)
