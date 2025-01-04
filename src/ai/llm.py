@@ -34,9 +34,9 @@ class LLMService:
             self.logger.setLevel(logging.DEBUG)
             
             # Create formatters
-            scope_prefix = f'[{self.debug_scope}] ' if self.debug_scope else ''
-            file_formatter = logging.Formatter(f'{scope_prefix}%(asctime)s - %(levelname)s - %(message)s')
-            console_formatter = logging.Formatter(f'{scope_prefix}%(levelname)s - %(message)s')
+            scope_prefix = f'[{self.debug_scope}]' if self.debug_scope else ''
+            file_formatter = logging.Formatter(f'{scope_prefix}:[%(funcName)s]:%(message)s')
+            console_formatter = logging.Formatter(f'{scope_prefix}:[%(funcName)s]:%(message)s')
             
             # Add file handler if debug_file specified
             if 'debug_file' in config:
@@ -52,7 +52,7 @@ class LLMService:
                 console_handler.setFormatter(console_formatter)
                 self.logger.addHandler(console_handler)
             
-            self.logger.debug("LLM service initialized with debug logging")
+            self.logger.debug(f":[init]:LLM service initialized with debug logging")
     
     def generate(self, prompt: str, debug_generate_scope: str = "") -> str:
         """Generate a response for the given prompt.
@@ -65,30 +65,28 @@ class LLMService:
             str: The generated response
         """
         if self.debug:
-            scope_prefix = f"[{debug_generate_scope}] " if debug_generate_scope else ""
-            self.logger.debug(f"{scope_prefix}Generating response for prompt:\n{prompt}")
+            self.logger.debug(f":[{debug_generate_scope}]:Generating response for prompt:\n{prompt}")
         
         try:
-            response = self._generate_impl(prompt)
+            response = self._generate_impl(prompt, debug_generate_scope)
             
             if self.debug:
-                scope_prefix = f"[{debug_generate_scope}] " if debug_generate_scope else ""
-                self.logger.debug(f"{scope_prefix}Generated response:\n{response}")
+                self.logger.debug(f":[{debug_generate_scope}]:Generated response:\n{response}\n\n\n\n\n")
             
             return response
             
         except Exception as e:
             if self.debug:
-                scope_prefix = f"[{debug_generate_scope}] " if debug_generate_scope else ""
-                self.logger.error(f"{scope_prefix}Error generating response: {str(e)}")
+                self.logger.debug(f":[{debug_generate_scope}]:Error generating response: {str(e)}")
             raise
     
-    def _generate_impl(self, prompt: str) -> str:
+    def _generate_impl(self, prompt: str, debug_generate_scope: str = "") -> str:
         """Implementation specific generation logic.
         Must be implemented by derived classes.
         
         Args:
             prompt: The input prompt
+            debug_generate_scope: Optional scope identifier for debugging
             
         Returns:
             str: The generated response

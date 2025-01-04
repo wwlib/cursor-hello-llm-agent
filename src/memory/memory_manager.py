@@ -203,27 +203,10 @@ class MemoryManager:
         """
         memory_state = json.dumps(self.memory, indent=2)
         user_message = context.get('user_message', '')
-        current_phase = context.get('current_phase', 'INTERACTION')
         
         example_response = '''{
     "response": "Your natural response to the user's question about the world",
-    "suggested_phase": "INTERACTION",
-    "confidence": 0.9,
-    "memory_update": {
-        "structured_data": {
-            "world": {
-                "geography": [],
-                "settlements": []
-            },
-            "npcs": [],
-            "events": []
-        },
-        "knowledge_graph": {
-            "npcs": {},
-            "settlements": {},
-            "events": {}
-        }
-    }
+    "confidence": 0.9
 }'''
 
         prompt = f"""You are a helpful assistant that communicates using JSON. Your response must be ONLY a valid JSON object with no preamble, explanation, or additional text.
@@ -232,12 +215,10 @@ Current Memory State:
 {memory_state}
 
 User Message: "{user_message}"
-Current Phase: {current_phase}
 
 Your task is to:
 1. Generate a natural response to the user's message based on the memory state
-2. Suggest the next conversation phase (use "INTERACTION" unless there's a clear reason for another phase)
-3. Update the memory with any new information from this interaction
+2. Set a confidence score for your response
 
 IMPORTANT: Return ONLY a JSON object with this exact structure - no other text or explanation:
 
@@ -283,17 +264,14 @@ IMPORTANT: Return ONLY a JSON object with this exact structure - no other text o
             query_context: A JSON string containing the query context
 
         Returns:
-            dict: The query response including suggested phase and confidence
+            dict: The query response including confidence
         """
         print("\nProcessing memory query...")
         
         try:
             # Parse query context
             context = json.loads(query_context)
-            current_phase = context.get("current_phase", "INTERACTION")
             user_message = context.get("user_message", "")
-            
-            print(f"Current phase: {current_phase}")
             
             # Initialize conversation history if not present
             if "conversation_history" not in self.memory:
@@ -312,15 +290,15 @@ IMPORTANT: Return ONLY a JSON object with this exact structure - no other text o
             history = self.memory.get("conversation_history", [])
             if len(history) >= 10:
                 print("\nTriggering reflection...")
-                messages_to_process = history[-10:]  # Get the last 10 messages
+                messages_to_process = history  # Process all messages
                 reflection_success = self._perform_reflection(messages_to_process)
                 if reflection_success:
-                    # Clear the processed messages
-                    self.memory["conversation_history"] = history[:-10]
-                    print("Cleared processed messages after successful reflection")
+                    # Clear all processed messages
+                    self.memory["conversation_history"] = []
+                    print("Cleared all messages after successful reflection")
 
-            # Generate response and memory update
-            print("Generating response and memory update using LLM...")
+            # Generate response
+            print("Generating response using LLM...")
             prompt = self._create_query_prompt(context)
             response = self.llm.generate(prompt)
             
@@ -330,7 +308,6 @@ IMPORTANT: Return ONLY a JSON object with this exact structure - no other text o
                 print(f"Error parsing LLM response: {str(e)}")
                 error_response = {
                     "response": "Error processing query",
-                    "suggested_phase": "INTERACTION",
                     "confidence": 0.0
                 }
                 # Add error message to conversation history
@@ -349,11 +326,6 @@ IMPORTANT: Return ONLY a JSON object with this exact structure - no other text o
                     "timestamp": datetime.now().isoformat()
                 })
                 print("Added agent response to history")
-
-            # Update memory with new information
-            if "memory_update" in result:
-                self._merge_memory_update(result["memory_update"])
-                print("Memory updated with new information")
                 # Add system message about memory update
                 self.memory["conversation_history"].append({
                     "role": "system",
@@ -366,7 +338,6 @@ IMPORTANT: Return ONLY a JSON object with this exact structure - no other text o
             
             return {
                 "response": result.get("response", ""),
-                "suggested_phase": result.get("suggested_phase", "INTERACTION"),
                 "confidence": result.get("confidence", 0.0)
             }
 
@@ -374,7 +345,6 @@ IMPORTANT: Return ONLY a JSON object with this exact structure - no other text o
             print(f"Error in query_memory: {str(e)}")
             error_response = {
                 "response": "Error processing query",
-                "suggested_phase": "INTERACTION",
                 "confidence": 0.0
             }
             # Add error message to conversation history

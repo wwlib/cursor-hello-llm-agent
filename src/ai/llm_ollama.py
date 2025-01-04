@@ -35,13 +35,14 @@ class OllamaService(LLMService):
         self.temperature = config.get('temperature', 0.7)
         
         if self.debug:
-            self.logger.debug(f"Initialized Ollama service with model: {self.model}")
+            self.logger.debug(f":[init]:Initialized Ollama service with model: {self.model}")
     
-    def _generate_impl(self, prompt: str) -> str:
+    def _generate_impl(self, prompt: str, debug_generate_scope: str = "") -> str:
         """Generate a response using Ollama.
         
         Args:
             prompt: The input prompt
+            debug_generate_scope: Optional scope identifier for debugging
             
         Returns:
             str: The generated response
@@ -62,7 +63,7 @@ class OllamaService(LLMService):
             }
             
             if self.debug:
-                self.logger.debug(f"Sending request to Ollama API:\nURL: {url}\nData: {json.dumps(data, indent=2)}")
+                self.logger.debug(f":[{debug_generate_scope}]:Sending request to Ollama API:\nURL: {url}\nData: {json.dumps(data, indent=2)}")
             
             # Make request
             try:
@@ -78,7 +79,11 @@ class OllamaService(LLMService):
                 raise LLMServiceError(f"Failed to parse Ollama API response: {str(e)}")
             
             if self.debug:
-                self.logger.debug(f"Received response from Ollama API:\n{json.dumps(result, indent=2)}")
+                # Clean up context data before logging
+                debug_result = result.copy()
+                if 'context' in debug_result:
+                    del debug_result['context']
+                self.logger.debug(f":[{debug_generate_scope}]:Received response from Ollama API:\n{json.dumps(debug_result, indent=2)}")
             
             if not isinstance(result, dict) or 'response' not in result:
                 raise LLMServiceError("Invalid response format from Ollama API")

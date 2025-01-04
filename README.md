@@ -24,6 +24,7 @@ Complete transcripts of the cursor chat and composer sessions are in the `cursor
 - Composer - Update Memory Manager Usage Example.md
 - Composer - Updating README.md Architecture Overview.md
 - Composer - Generalizing Agent and MemoryManager Classes.md
+- Composer - Enhancing LLM Debug Logging Format.md
 
 Cursor wrote the subsystem readmes and then wrote the code for the `LLMService`, `MemoryManager` and `Agent` classes:
 
