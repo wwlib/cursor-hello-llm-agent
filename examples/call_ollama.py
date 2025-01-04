@@ -46,7 +46,7 @@ def test_ollama_call(prompt: str = "Tell me a short joke", model: str = "llama3"
     Returns:
         The response text if successful, None if failed
     """
-    url = "http://localhost:11434/api/generate"
+    url = "http://192.168.1.173:11434/api/generate"
     
     try:
         print("Sending request to Ollama...")

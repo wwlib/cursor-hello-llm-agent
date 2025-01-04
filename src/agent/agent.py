@@ -9,17 +9,19 @@ class AgentPhase(Enum):
     INTERACTION = "INTERACTION"
 
 class Agent:
-    def __init__(self, llm_service, memory_manager):
+    def __init__(self, llm_service, memory_manager, domain_name: str = "general"):
         """Initialize the agent with required services.
         
         Args:
             llm_service: Service for LLM operations
             memory_manager: Service for memory operations
+            domain_name: Name of the domain (e.g., "dnd_campaign", "user_stories")
         """
         self.llm = llm_service
         self.memory = memory_manager
+        self.domain_name = domain_name
         self.current_phase = AgentPhase.INITIALIZATION
-        print(f"Agent initialized in {self.current_phase} phase")
+        print(f"Agent initialized for domain: {domain_name}")
 
     def get_current_phase(self) -> AgentPhase:
         """Get the current agent phase"""

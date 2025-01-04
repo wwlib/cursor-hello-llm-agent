@@ -21,6 +21,9 @@ Complete transcripts of the cursor chat and composer sessions are in the `cursor
 - Composer - MemoryManager Code and Testing Implementation.md
 - Composer - Fixing ModuleNotFoundError in pytest.md
 - Composer - Creating Detailed README for Agent.md
+- Composer - Update Memory Manager Usage Example.md
+- Composer - Updating README.md Architecture Overview.md
+- Composer - Generalizing Agent and MemoryManager Classes.md
 
 Cursor wrote the subsystem readmes and then wrote the code for the `LLMService`, `MemoryManager` and `Agent` classes:
 
@@ -63,7 +66,7 @@ python3 -m pip install --upgrade pip
 Example usage
 
 ```bash
-python scripts/agent_usage_example.py
+python examples/agent_usage_example.py
 ```
 
 See: `cursor-notes/data/agent-usage-example/agent_interaction_transcript_jan3.txt` for a transcript of an example interaction.

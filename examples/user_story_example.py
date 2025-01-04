@@ -4,10 +4,17 @@ import asyncio
 import json
 from datetime import datetime
 from pathlib import Path
+import sys
+
+# Add the project root to the Python path
+project_root = str(Path(__file__).parent.parent)
+if project_root not in sys.path:
+    sys.path.append(project_root)
 
 from src.ai.llm_ollama import OllamaService
 from src.memory.memory_manager import MemoryManager
 from src.agent.agent import Agent, AgentPhase
+from examples.domain_configs import USER_STORY_CONFIG
 
 def print_section_header(title):
     """Print a formatted section header"""
@@ -20,21 +27,6 @@ def print_memory_state(memory_manager, title="Current Memory State"):
     print(f"\n{title}")
     print("=" * len(title))
     print(json.dumps(memory_manager.get_memory_context(), indent=2))
-
-def print_messages(memory_manager, title="Current Messages"):
-    """Print the accumulated messages in memory"""
-    print(f"\n{title}")
-    print("=" * len(title))
-    messages = memory_manager.memory.get("conversation_history", [])
-    if not messages:
-        print("No messages in memory")
-        return
-    for msg in messages:
-        role = msg.get("role", "unknown")
-        content = msg.get("content", "")
-        timestamp = msg.get("timestamp", "")
-        print(f"\n[{role.upper()}] {timestamp}")
-        print(f"{content}")
 
 def print_conversation_history(memory_manager, title="Conversation History"):
     """Print the accumulated conversation history from memory"""
@@ -87,70 +79,85 @@ async def setup_services():
         "temperature": 0.7,
         "stream": False,
         "debug": True,
-        "debug_file": "agent_debug.log",
-        "debug_scope": "agent_example",
+        "debug_file": "user_story_debug.log",
+        "debug_scope": "user_story_example",
         "console_output": False
     })
     
     try:
         print("Creating MemoryManager and Agent instances...")
-        memory_manager = MemoryManager(llm_service, "agent_memory.json")
-        agent = Agent(llm_service, memory_manager)
+        memory_manager = MemoryManager(
+            llm_service, 
+            "user_story_memory.json",
+            domain_config=USER_STORY_CONFIG
+        )
+        agent = Agent(llm_service, memory_manager, domain_name="user_stories")
         print("Services initialized successfully")
         return agent, memory_manager
     except Exception as e:
         print(f"Error initializing services: {str(e)}")
         raise
 
-async def initialize_campaign(agent, memory_manager):
-    """Set up initial campaign state"""
-    print("\nInitializing campaign world...")
+async def initialize_project(agent, memory_manager):
+    """Set up initial project state"""
+    print("\nInitializing project...")
     print(f"Current phase: {agent.get_current_phase().name}")
     
     # First check if memory already exists
     if memory_manager.memory:
-        print("Campaign already initialized, using existing memory")
-        print_memory_state(memory_manager, "Existing Campaign State")
+        print("Project already initialized, using existing memory")
+        print_memory_state(memory_manager, "Existing Project State")
         # Ensure we're in INTERACTION phase
         if agent.get_current_phase() == AgentPhase.INITIALIZATION:
-            print("Moving to INTERACTION phase for existing campaign")
+            print("Moving to INTERACTION phase for existing project")
             agent.current_phase = AgentPhase.INTERACTION
         return True
     
-    print("Creating new campaign memory...")
-    campaign_data = """Please structure the following campaign information into a JSON format with structured_data for facts, knowledge_graph for relationships, and appropriate metadata.
+    print("Creating new project memory...")
+    project_data = """Please structure the following project information into a JSON format with structured_data for facts, knowledge_graph for relationships, and appropriate metadata.
 
-Campaign Setting: The Lost Valley
+Project: Task Management System
 
-World Details:
-- Hidden valley surrounded by impassable mountains
-- Ancient ruins scattered throughout
-- Mysterious magical anomalies
-- Three main settlements: Haven (central), Riverwatch (east), Mountainkeep (west)
+Overview:
+- Web-based task management application
+- Multiple user support with different roles
+- Task organization with projects and tags
+- Due date tracking and notifications
 
-Current Situation:
-- Strange creatures emerging from the ruins
-- Trade routes between settlements disrupted
-- Ancient artifacts being discovered
-- Local guilds seeking adventurers
+Key Features:
+- User authentication and authorization
+- Task creation and management
+- Project organization
+- Tag system
+- Due date reminders
+- Activity tracking
 
-Key NPCs:
-- Mayor Elena of Haven (quest giver)
-- Master Scholar Theron (knowledge about ruins)
-- Captain Sara of Riverwatch (military leader)
+Stakeholders:
+- Project Manager (primary user)
+- Team Members (task executors)
+- Team Leads (task reviewers)
+- System Administrator
 
-Return ONLY a valid JSON object with structured_data, knowledge_graph, and metadata sections. No additional text or explanation."""
+Requirements:
+- Secure user authentication
+- Intuitive task creation interface
+- Project hierarchy support
+- Tag-based task filtering
+- Email notifications for due dates
+- Activity history and audit logs
+
+Return ONLY a valid JSON object with structured_data and knowledge_graph sections. No additional text or explanation."""
     
     print(f"Phase before learning: {agent.get_current_phase().name}")
-    success = await agent.learn(campaign_data)
+    success = await agent.learn(project_data)
     print(f"Phase after learning: {agent.get_current_phase().name}")
     
     if not success:
-        print("Failed to initialize campaign!")
+        print("Failed to initialize project!")
         return False
     
-    print("\nCampaign world initialized successfully!")
-    print_memory_state(memory_manager, "Initial Campaign State")
+    print("\nProject initialized successfully!")
+    print_memory_state(memory_manager, "Initial Project State")
     
     # Double check we're in INTERACTION phase
     if agent.get_current_phase() != AgentPhase.INTERACTION:
@@ -208,15 +215,15 @@ async def interactive_session(agent, memory_manager):
             continue
 
 async def main():
-    """Main function to run the agent example"""
-    print_section_header("D&D Campaign Agent Example")
+    """Main function to run the user story example"""
+    print_section_header("User Story Generation Agent Example")
     
     try:
         # Setup
         agent, memory_manager = await setup_services()
         
-        # Initialize campaign
-        if not await initialize_campaign(agent, memory_manager):
+        # Initialize project
+        if not await initialize_project(agent, memory_manager):
             return
         
         # Interactive session
@@ -231,4 +238,4 @@ if __name__ == "__main__":
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
-        print("\nExample ended by user.")
+        print("\nExample ended by user.") 

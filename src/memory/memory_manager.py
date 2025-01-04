@@ -4,18 +4,77 @@ import os
 from datetime import datetime
 
 class MemoryManager:
-    def __init__(self, llm_service, memory_file: str = "memory.json"):
-        """Initialize the MemoryManager with an LLM service and optional memory file path.
+    def __init__(self, llm_service, memory_file: str = "memory.json", domain_config: dict = None):
+        """Initialize the MemoryManager with an LLM service and domain configuration.
         
         Args:
             llm_service: Service for LLM operations
             memory_file: Path to the JSON file for persistent storage
+            domain_config: Dictionary containing domain-specific configuration:
+                         - schema: The structure for domain-specific data
+                         - prompts: Domain-specific prompt templates
         """
         print(f"\nInitializing MemoryManager with file: {memory_file}")
         self.memory_file = memory_file
         self.llm = llm_service
+        self.domain_config = domain_config or self._get_default_config()
         self.memory: Dict[str, Any] = {}
         self._load_memory()
+
+    def _get_default_config(self) -> dict:
+        """Get the default domain configuration if none provided."""
+        return {
+            "schema": {
+                "structured_data": {
+                    "entities": [],     # Generic entities
+                    "locations": [],    # Generic locations
+                    "activities": []    # Generic activities
+                },
+                "knowledge_graph": {
+                    "entity_relationships": {},
+                    "location_relationships": {},
+                    "activity_relationships": {}
+                }
+            },
+            "prompts": {
+                "create_memory": """You are a helpful assistant that communicates using JSON. 
+                Create a structured memory for the following domain information:
+                {input_data}
+                
+                Use this schema:
+                {schema}
+                
+                Return ONLY a valid JSON object with no additional text.""",
+                
+                "query": """You are a helpful assistant that communicates using JSON.
+                Process this query using the current memory state and schema:
+                
+                Memory State:
+                {memory_state}
+                
+                Schema:
+                {schema}
+                
+                User Query:
+                {query}
+                
+                Return ONLY a valid JSON object with no additional text.""",
+                
+                "reflect": """You are a helpful assistant that communicates using JSON.
+                Analyze these recent interactions and update the knowledge state:
+                
+                Current State:
+                {memory_state}
+                
+                Recent Messages:
+                {messages}
+                
+                Schema:
+                {schema}
+                
+                Return ONLY a valid JSON object with no additional text."""
+            }
+        }
 
     def _load_memory(self) -> None:
         """Load memory from JSON file if it exists"""
@@ -74,36 +133,15 @@ class MemoryManager:
             return True
 
         print("\nCreating initial memory structure...")
-        create_memory_prompt = """You are a helpful assistant that communicates using JSON. All your responses should be in strict, parsable JSON format.
-
-Your task is to analyze the provided information and create two organized data structures:
-
-1. A structured_data JSON object to store key facts and details
-2. A knowledge_graph JSON object to map relationships between entities
-
-Input Data:
-{INPUT_DATA}
-
-Requirements:
-- Structure the data in a way that will be useful for the specific domain
-- Include all relevant information from the input
-- Create meaningful relationships in the knowledge graph
-- Use consistent naming and structure that can be extended in future updates
-
-Return ONLY a valid JSON object with these sections (no additional text):
-{
-    "structured_data": {
-        // Your structured organization of the facts and details
-    },
-    "knowledge_graph": {
-        // Your graph of relationships between entities
-    }
-}"""
+        create_memory_prompt = self.domain_config["prompts"]["create_memory"].format(
+            input_data=input_data,
+            schema=json.dumps(self.domain_config["schema"], indent=2)
+        )
 
         try:
             print("Generating memory structure using LLM...")
             # Get structured memory from LLM
-            prompt = create_memory_prompt.replace("{INPUT_DATA}", input_data)
+            prompt = create_memory_prompt
             llm_response = self.llm.generate(prompt, debug_generate_scope="init_memory")
             
             # Try to extract JSON if there's any extra text

@@ -6,3 +6,4 @@ hide
 /*.log
 /agent_memory*
 /example_memory*
+/user_story_memory*
