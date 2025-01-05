@@ -33,44 +33,27 @@ class Agent:
         return memory_context.get("conversation_history", [])
 
     async def process_message(self, message: str) -> str:
-        """Process a user message and update agent state.
-        
-        Args:
-            message: The user's message
-            
-        Returns:
-            str: The agent's response
-        """
+        """Process a user message and return a response."""
         try:
-            print(f"\nProcessing message (Current phase: {self.current_phase})")
-            
             # Create query context
             context = {
                 "current_phase": self.current_phase.name,
                 "user_message": message
             }
             
-            # Query memory and get response
+            # Query memory for response
             result = self.memory.query_memory(json.dumps(context))
-            if not result:
-                print("Failed to generate response")
-                return None
+            response = result.get("response", "Error processing message")
             
-            # Handle phase transition if suggested
-            suggested_phase = result.get("suggested_phase", "INTERACTION")
-            if suggested_phase not in AgentPhase.__members__:
-                print(f"Invalid phase suggestion: {suggested_phase}, defaulting to INTERACTION")
-                suggested_phase = "INTERACTION"
-            
-            if suggested_phase != self.current_phase.name:
-                print(f"Transitioning from {self.current_phase} to {suggested_phase}")
-                self.current_phase = AgentPhase[suggested_phase]
-            
-            return result["response"]
+            # Check if we need reflection
+            if len(self.get_conversation_history()) >= 3:
+                await self.reflect()
+                
+            return response
             
         except Exception as e:
             print(f"Error processing message: {str(e)}")
-            return f"Error processing message: {str(e)}"
+            return "Error processing message"
 
     async def learn(self, information: str) -> bool:
         """Learn new information and update memory.
@@ -94,11 +77,16 @@ class Agent:
                     self.current_phase = AgentPhase.INTERACTION
                 return success
             
-            # Update existing memory
+            # Update existing memory with new information
             context = {
-                "phase": self.current_phase.name,
+                "operation": "learn",
+                "current_phase": self.current_phase.name,
                 "information": information,
-                "recent_history": self.get_conversation_history()
+                "message": {
+                    "role": "system",
+                    "content": information,
+                    "timestamp": datetime.now().isoformat()
+                }
             }
             
             success = self.memory.update_memory(json.dumps(context))
@@ -117,9 +105,14 @@ class Agent:
         try:
             print(f"\nReflecting on recent interactions (Current phase: {self.current_phase})")
             
+            # Get recent conversation history
+            conversation_history = self.get_conversation_history()
+            
             # Create reflection context
             context = {
                 "operation": "reflect",
+                "current_phase": self.current_phase.name,
+                "conversation_history": conversation_history,
                 "message": {
                     "role": "system",
                     "content": "Reflection triggered",

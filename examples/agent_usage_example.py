@@ -26,13 +26,34 @@ def print_memory_state(memory_manager, title="Current Memory State"):
     """Helper to print memory state in a readable format"""
     print(f"\n{title}")
     print("=" * len(title))
-    print(json.dumps(memory_manager.get_memory_context(), indent=2))
+    memory_context = memory_manager.get_memory_context()
+    
+    # Print static memory
+    print("\nStatic Memory (Read-Only):")
+    print("-" * 30)
+    if "static_memory" in memory_context:
+        print(json.dumps(memory_context["static_memory"], indent=2))
+    else:
+        print("No static memory")
+    
+    # Print working memory
+    print("\nWorking Memory:")
+    print("-" * 30)
+    if "working_memory" in memory_context:
+        print(json.dumps(memory_context["working_memory"], indent=2))
+    else:
+        print("No working memory")
+    
+    # Print conversation history length
+    if "conversation_history" in memory_context:
+        print(f"\nConversation History: {len(memory_context['conversation_history'])} messages")
 
 def print_conversation_history(memory_manager, title="Conversation History"):
     """Print the accumulated conversation history from memory"""
     print(f"\n{title}")
     print("=" * len(title))
-    messages = memory_manager.memory.get("conversation_history", [])
+    memory_context = memory_manager.get_memory_context()
+    messages = memory_context.get("conversation_history", [])
     if not messages:
         print("No conversation history in memory")
         return
@@ -104,7 +125,8 @@ async def initialize_campaign(agent, memory_manager):
     print(f"Current phase: {agent.get_current_phase().name}")
     
     # First check if memory already exists
-    if memory_manager.memory:
+    memory_context = memory_manager.get_memory_context()
+    if memory_context and memory_context.get("static_memory"):
         print("Campaign already initialized, using existing memory")
         print_memory_state(memory_manager, "Existing Campaign State")
         # Ensure we're in INTERACTION phase
@@ -115,27 +137,45 @@ async def initialize_campaign(agent, memory_manager):
     
     print("Creating new campaign memory...")
     campaign_data = """
-Entities:
-1. The Lost Valley
-   - Type: region
-   - Features: Hidden valley, impassable mountains, ancient ruins, magical anomalies
+Campaign Setting: The Lost Valley
 
-2. Settlements:
-   - Haven (central settlement)
-   - Riverwatch (eastern settlement)
-   - Mountainkeep (western settlement)
+World Details:
+- Hidden valley surrounded by impassable mountains
+- Ancient ruins scattered throughout
+- Mysterious magical anomalies
+- Three main settlements: Haven (central), Riverwatch (east), Mountainkeep (west)
 
-3. Key NPCs:
-   - Elena (Mayor of Haven, quest giver)
-   - Theron (Master Scholar, ruins expert)
-   - Sara (Captain of Riverwatch, military leader)
+Key NPCs:
+1. Elena
+   - Role: Mayor of Haven
+   - Motivation: Protect the valley's inhabitants
+   - Current Quest: Investigate strange occurrences in Haven
 
-4. Current Issues:
-   - Strange creatures
-   - Disrupted trade
-   - Ancient artifacts
-   - Guild recruitment
-"""
+2. Theron
+   - Role: Master Scholar
+   - Expertise: Ancient ruins and artifacts
+   - Current Research: Decoding ruin inscriptions
+
+3. Sara
+   - Role: Captain of Riverwatch
+   - Responsibility: Valley's defense
+   - Current Concern: Increased monster activity
+
+Current Situations:
+1. Trade Routes
+   - Main road between settlements disrupted
+   - Merchants seeking protection
+   - Alternative routes needed
+
+2. Ancient Ruins
+   - New chambers discovered
+   - Strange energy emanations
+   - Valuable artifacts found
+
+3. Magical Anomalies
+   - Random magical effects
+   - Affecting local wildlife
+   - Possible connection to ruins"""
     
     print(f"Phase before learning: {agent.get_current_phase().name}")
     success = await agent.learn(campaign_data)

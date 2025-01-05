@@ -13,9 +13,10 @@ IMPORTANT: You must return ONLY a JSON object with this exact structure:
 
 Example valid response:
 {{
-    "response": "The Lost Valley is a hidden region surrounded by impassable mountains. It contains three settlements: Haven in the center, Riverwatch in the east, and Mountainkeep in the west."
+    "response": "The Lost Valley contains three main settlements: Haven in the center, Riverwatch to the east, and Mountainkeep to the west."
 }}
 
 DO NOT include any other fields or structures in your response.
 DO NOT return the memory state or any complex objects.
-ONLY return the response object with a single string value. 
+ONLY return the response object with a single string value.
+Your response MUST be valid JSON that can be parsed. 

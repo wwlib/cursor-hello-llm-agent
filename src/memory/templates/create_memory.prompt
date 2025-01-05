@@ -1,43 +1,63 @@
-You are a memory management system. Your task is to analyze the provided information and create two distinct data structures:
-
-1. structured_data: A catalog of entities (nouns) and their properties
-2. knowledge_graph: A collection of relationships (verbs) between entities
+You are a memory management system. Your task is to analyze the provided information and create an initial memory structure that is appropriate for the domain.
 
 Input Data:
 {input_data}
 
 {domain_guidance}
 
-Requirements for structured_data:
-- Store facts and properties about entities
-- Organize entities in a way that makes sense for the domain
-- Include all relevant attributes and metadata
+Requirements:
+1. Return a JSON object with a top-level "static_memory" field
+2. static_memory must contain:
+   - structured_data: Organize domain entities in a way that makes sense for this use case
+   - knowledge_graph: Represent relationships between entities in a way that fits the domain
+3. Choose data structures that best represent the domain's needs
+4. Use consistent field names and types within your chosen structure
+5. Make sure all JSON is properly formatted and closed
 
-Requirements for knowledge_graph:
-- Store relationships between entities
-- Use clear and consistent relationship types
-- Capture important connections and dependencies
+The internal structure of structured_data and knowledge_graph should be determined by what makes sense for the domain.
+Use the domain guidance provided to inform your choices about:
+- What entities and properties to track
+- How to represent relationships
+- What naming conventions to use
+- What data structures will be most useful
 
-IMPORTANT: Return ONLY a valid JSON object with a structure like this. The structure can be agumented as needed:
+Example Response (This is just one possible structure - yours should fit the domain):
 {{
-    "structured_data": {{
-        "entities": [
-            {{
-                "identifier": "entity_id",
-                "type": "entity_type",
-                "name": "Entity Name",
-                "features": ["feature1", "feature2"],
-                "description": "Entity description"
+    "static_memory": {{
+        "structured_data": {{
+            // Your domain-appropriate structure here
+            // This is just an example:
+            "locations": [
+                {{
+                    "name": "Haven",
+                    "type": "settlement",
+                    "region": "central",
+                    "description": "Main settlement"
+                }}
+            ],
+            "characters": [
+                {{
+                    "name": "Elena",
+                    "role": "mayor",
+                    "affiliation": "Haven Council"
+                }}
+            ]
+        }},
+        "knowledge_graph": {{
+            // Your domain-appropriate structure here
+            // This is just an example:
+            "leadership": {{
+                "Haven": {{
+                    "leader": "Elena",
+                    "title": "Mayor"
+                }}
+            }},
+            "locations": {{
+                "Haven": {{
+                    "region": "central",
+                    "connected_to": ["Riverwatch", "Mountainkeep"]
+                }}
             }}
-        ]
-    }},
-    "knowledge_graph": {{
-        "relationships": [
-            {{
-                "subjectIdentifier": "entity_id",
-                "predicate": "RELATION_TYPE",
-                "objectIdentifier": "other_entity_id"
-            }}
-        ]
+        }}
     }}
 }}
