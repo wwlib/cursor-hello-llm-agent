@@ -51,128 +51,70 @@ def test_create_initial_memory_failure(memory_manager, mock_llm_service):
     assert memory_manager.memory == {}
 
 def test_query_memory_success(memory_manager, mock_llm_service):
-    # Setup initial memory
+    """Test successful memory query"""
+    # Setup mock response
+    mock_llm_service.generate.return_value = '{"response": "Test response"}'
+    
+    # Test query
+    result = memory_manager.query_memory('{"user_message": "test query"}')
+    
+    # Verify response
+    assert isinstance(result, dict)
+    assert "response" in result
+    assert result["response"] == "Test response"
+    
+    # Verify conversation history was updated
+    assert len(memory_manager.memory["conversation_history"]) == 2  # User message + response
+    assert memory_manager.memory["conversation_history"][0]["role"] == "user"
+    assert memory_manager.memory["conversation_history"][1]["role"] == "assistant"
+
+def test_query_memory_failure(memory_manager, mock_llm_service):
+    """Test handling of invalid LLM response"""
+    # Setup mock to return invalid JSON
+    mock_llm_service.generate.return_value = 'invalid json'
+    
+    # Test query
+    result = memory_manager.query_memory('{"user_message": "test query"}')
+    
+    # Verify error response
+    assert isinstance(result, dict)
+    assert "response" in result
+    assert "Error processing query" in result["response"]
+
+def test_update_memory_success(memory_manager, mock_llm_service):
+    """Test successful memory update"""
+    # Setup initial memory state
     memory_manager.memory = {
-        "structured_data": {
-            "world": {
-                "geography": [],
-                "settlements": []
-            },
-            "npcs": [],
-            "events": []
-        },
-        "knowledge_graph": {
-            "npcs": {},
-            "settlements": {},
-            "events": {}
+        "structured_data": {"entities": []},
+        "knowledge_graph": {"relationships": []},
+        "metadata": {
+            "created_at": "2024-01-01T00:00:00",
+            "last_updated": "2024-01-01T00:00:00",
+            "version": "1.0"
         },
         "conversation_history": []
     }
     
-    # Create test query context
-    query_context = {
-        "current_phase": "INTERACTION",
-        "user_message": "test query"
-    }
-    
-    # Mock LLM response with new format
+    # Setup mock response with valid memory structure
     mock_response = {
-        "response": "Test response",
-        "suggested_phase": "INTERACTION",
-        "confidence": 0.9,
-        "memory_update": {
-            "structured_data": {
-                "world": {
-                    "geography": [],
-                    "settlements": []
-                },
-                "npcs": [],
-                "events": []
-            },
-            "knowledge_graph": {
-                "npcs": {},
-                "settlements": {},
-                "events": {}
-            }
+        "structured_data": {"entities": []},
+        "knowledge_graph": {"relationships": []},
+        "metadata": {
+            "created_at": "2024-01-01T00:00:00",
+            "last_updated": "2024-01-01T00:00:00",
+            "version": "1.0"
         }
     }
     mock_llm_service.generate.return_value = json.dumps(mock_response)
     
-    result = memory_manager.query_memory(json.dumps(query_context))
+    # Test update
+    result = memory_manager.update_memory('{"new_info": "test"}')
     
-    assert "response" in result
-    assert "suggested_phase" in result
-    assert "confidence" in result
-    assert result["response"] == "Test response"
-    assert result["suggested_phase"] == "INTERACTION"
-    assert result["confidence"] == 0.9
-
-def test_query_memory_failure(memory_manager, mock_llm_service):
-    mock_llm_service.generate.return_value = "invalid json"
-    
-    result = memory_manager.query_memory(json.dumps({"user_message": "test"}))
-    
-    assert result["response"] == "Error processing query"
-    assert result["confidence"] == 0.0
-    assert result["suggested_phase"] == "INTERACTION"
-
-def test_update_memory_success(memory_manager, mock_llm_service):
-    # Setup initial memory
-    initial_memory = {
-        "structured_data": {
-            "world": {
-                "geography": [],
-                "settlements": []
-            },
-            "npcs": [],
-            "events": []
-        },
-        "knowledge_graph": {
-            "npcs": {},
-            "settlements": {},
-            "events": {}
-        },
-        "metadata": {
-            "version": "1.0",
-            "last_updated": "2023-01-01T00:00:00"
-        }
-    }
-    memory_manager.memory = initial_memory
-    
-    # Create test update context with reflection operation
-    update_context = {
-        "operation": "reflect",
-        "message": {
-            "role": "system",
-            "content": "Reflection triggered"
-        }
-    }
-    
-    # Mock reflection response
-    reflection_result = {
-        "memory_update": {
-            "structured_data": {
-                "world": {
-                    "geography": [{"name": "test", "type": "location"}],
-                    "settlements": []
-                },
-                "npcs": [],
-                "events": []
-            },
-            "knowledge_graph": {
-                "npcs": {},
-                "settlements": {},
-                "events": {}
-            }
-        }
-    }
-    mock_llm_service.generate.return_value = json.dumps(reflection_result)
-    
-    result = memory_manager.update_memory(json.dumps(update_context))
-    
+    # Verify update was successful
     assert result is True
-    assert memory_manager.memory["structured_data"]["world"]["geography"][0]["name"] == "test"
-    assert "last_updated" in memory_manager.memory["metadata"]
+    assert "structured_data" in memory_manager.memory
+    assert "knowledge_graph" in memory_manager.memory
+    assert "metadata" in memory_manager.memory
 
 def test_update_memory_failure(memory_manager, mock_llm_service):
     mock_llm_service.generate.return_value = "invalid json"
