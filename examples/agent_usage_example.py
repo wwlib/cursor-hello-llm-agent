@@ -114,42 +114,7 @@ async def initialize_campaign(agent, memory_manager):
         return True
     
     print("Creating new campaign memory...")
-    campaign_data = """Please structure the following campaign information into appropriate data structures.
-
-The memory should have two main sections:
-1. structured_data: For storing facts and properties about entities
-2. knowledge_graph: For storing relationships between entities
-
-Here's a suggested way to structure the data (but feel free to adapt as needed):
-{
-    "structured_data": {
-        // Organize entities and their properties in whatever way makes most sense
-        // Example:
-        "entities": [
-            {
-                "identifier": "valley_1",
-                "type": "region",
-                "name": "The Lost Valley",
-                "features": ["hidden valley", "impassable mountains"],
-                "description": "A hidden valley with ancient ruins and magical anomalies."
-            ]
-        }
-    },
-    "knowledge_graph": {
-        // Organize relationships in whatever way makes most sense
-        // Example:
-        "relationships": [
-            {
-                "subjectIdentifier": "settlement_1",
-                "predicate": "LOCATED_IN",
-                "objectIdentifier": "valley_1"
-            }
-        ]
-    }
-}
-
-Information to structure:
-
+    campaign_data = """
 Entities:
 1. The Lost Valley
    - Type: region
@@ -170,9 +135,7 @@ Entities:
    - Disrupted trade
    - Ancient artifacts
    - Guild recruitment
-
-Structure this information in whatever way will be most useful for the campaign.
-The only requirement is to return a valid JSON object with 'structured_data' and 'knowledge_graph' sections."""
+"""
     
     print(f"Phase before learning: {agent.get_current_phase().name}")
     success = await agent.learn(campaign_data)
