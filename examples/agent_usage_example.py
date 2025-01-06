@@ -32,7 +32,11 @@ def print_memory_state(memory_manager, title="Current Memory State"):
     print("\nStatic Memory (Read-Only):")
     print("-" * 30)
     if "static_memory" in memory_context:
-        print(json.dumps(memory_context["static_memory"], indent=2))
+        static_mem = memory_context["static_memory"]
+        print("\nStructured Data:")
+        print(json.dumps(static_mem.get("structured_data", {}), indent=2))
+        print("\nKnowledge Graph:")
+        print(json.dumps(static_mem.get("knowledge_graph", {}), indent=2))
     else:
         print("No static memory")
     
@@ -40,9 +44,19 @@ def print_memory_state(memory_manager, title="Current Memory State"):
     print("\nWorking Memory:")
     print("-" * 30)
     if "working_memory" in memory_context:
-        print(json.dumps(memory_context["working_memory"], indent=2))
+        working_mem = memory_context["working_memory"]
+        print("\nStructured Data:")
+        print(json.dumps(working_mem.get("structured_data", {}), indent=2))
+        print("\nKnowledge Graph:")
+        print(json.dumps(working_mem.get("knowledge_graph", {}), indent=2))
     else:
         print("No working memory")
+    
+    # Print metadata
+    if "metadata" in memory_context:
+        print("\nMetadata:")
+        print("-" * 30)
+        print(json.dumps(memory_context["metadata"], indent=2))
     
     # Print conversation history length
     if "conversation_history" in memory_context:
@@ -177,23 +191,14 @@ Current Situations:
    - Affecting local wildlife
    - Possible connection to ruins"""
     
-    print(f"Phase before learning: {agent.get_current_phase().name}")
     success = await agent.learn(campaign_data)
-    print(f"Phase after learning: {agent.get_current_phase().name}")
-    
     if not success:
         print("Failed to initialize campaign!")
         return False
     
     print("\nCampaign world initialized successfully!")
     print_memory_state(memory_manager, "Initial Campaign State")
-    
-    # Double check we're in INTERACTION phase
-    if agent.get_current_phase() != AgentPhase.INTERACTION:
-        print("Ensuring transition to INTERACTION phase")
-        agent.current_phase = AgentPhase.INTERACTION
-    
-    print(f"Final phase: {agent.get_current_phase().name}")
+    print(f"Current phase: {agent.get_current_phase().name}")
     return True
 
 async def interactive_session(agent, memory_manager):
@@ -222,19 +227,15 @@ async def interactive_session(agent, memory_manager):
                 print_recent_history(agent)
                 continue
             elif user_input == 'reflect':
-                print("\nReflecting on recent interactions...")
-                success = await agent.reflect()
-                if success:
-                    print("Reflection completed successfully!")
-                    print_memory_state(memory_manager, "Memory After Reflection")
-                else:
-                    print("Reflection failed!")
+                print("\nTriggering memory reflection...")
+                await agent.reflect()
+                print("Reflection completed")
+                print_memory_state(memory_manager, "Memory After Reflection")
                 continue
             
-            print(f"\nProcessing message (Phase: {agent.get_current_phase().name})...")
+            print(f"\nProcessing message...")
             response = await agent.process_message(user_input)
             print(f"\nAgent: {response}")
-            print(f"Current phase: {agent.get_current_phase().name}")
             
         except KeyboardInterrupt:
             print("\nSession interrupted by user.")
