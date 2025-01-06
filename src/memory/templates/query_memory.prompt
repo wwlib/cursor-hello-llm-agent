@@ -24,19 +24,4 @@ Required JSON Structure:
     }}
 }}
 
-Example (ONLY return JSON like this, with NO other text):
-{{
-    "response": "The Lost Valley contains three main settlements: Haven in the center, Riverwatch to the east, and Mountainkeep to the west.",
-    "digest": {{
-        "topic": "valley_geography",
-        "key_points": [
-            "Haven - central settlement",
-            "Riverwatch - eastern settlement",
-            "Mountainkeep - western settlement"
-        ],
-        "context": "Describing basic valley layout",
-        "importance": "high"
-    }}
-}}
-
 REMEMBER: Assume you are in JSON protocol mode and only respond in strict, parsable JSON including the response to this interaction. If there is anything in the response that is not parsable JSON, the interaction will fail.

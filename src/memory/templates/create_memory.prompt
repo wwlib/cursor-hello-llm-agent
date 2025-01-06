@@ -10,7 +10,7 @@ Input Data:
 Requirements:
 1. Return a JSON object with a top-level "static_memory" field
 2. static_memory must contain:
-   - structured_data: Organize domain entities in a way that makes sense for this use case
+   - structured_data: Organize domain-specific data in a way that makes sense for this use case
    - knowledge_graph: Represent relationships between entities in a way that fits the domain
 3. Choose data structures that best represent the domain's needs
 4. Use consistent field names and types within your chosen structure

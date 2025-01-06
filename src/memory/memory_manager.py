@@ -191,7 +191,10 @@ class MemoryManager:
                 "static_memory": static_memory,
                 "working_memory": {
                     "structured_data": {},  # Empty but matching structure will be filled by LLM
-                    "knowledge_graph": {}   # Empty but matching structure will be filled by LLM
+                    "knowledge_graph": {
+                        "entities": [],  # Initialize with empty entities array
+                        "relationships": []  # Initialize with empty relationships array
+                    }
                 },
                 "metadata": {
                     "created_at": now,
@@ -328,16 +331,9 @@ class MemoryManager:
         print(f"\nUpdating memory with {len(messages_to_process)} messages...")
         
         try:
-            # Get examples from current memory if available
-            entity_example = next(iter(self.memory.get("static_memory", {}).get("structured_data", {}).get("entities", [])), {})
-            relationship_example = next(iter(self.memory.get("static_memory", {}).get("knowledge_graph", {}).get("relationships", [])), {})
-            
             # Prepare updating memory prompt
             prompt = self.templates["update"].format(
-                memory_state=json.dumps(self.memory, indent=2),
-                messages_to_process=json.dumps(messages_to_process, indent=2),
-                entity_example=json.dumps(entity_example, indent=2),
-                relationship_example=json.dumps(relationship_example, indent=2)
+                memory_state=json.dumps(self.memory, indent=2)
             )
             
             print("Generating updated memory using LLM...")
@@ -378,6 +374,9 @@ class MemoryManager:
                 
             # Update only the working memory section
             self.memory["working_memory"] = working_memory
+            
+            # Clear the conversation history after successful update
+            self.memory["conversation_history"] = []
             
             # Update metadata timestamp
             self.memory["metadata"]["last_updated"] = datetime.now().isoformat()
