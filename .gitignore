@@ -7,3 +7,4 @@ hide
 /agent_memory*
 /example_memory*
 /user_story_memory*
+/test_memory*

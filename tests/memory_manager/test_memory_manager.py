@@ -67,7 +67,8 @@ def test_create_initial_memory_success(memory_manager, mock_llm_service):
     working_memory = memory_manager.memory["working_memory"]
     assert "structured_data" in working_memory
     assert "knowledge_graph" in working_memory
-    assert "entities" in working_memory["structured_data"]
+    assert isinstance(working_memory["structured_data"], dict)  # Structure determined by LLM
+    assert "entities" in working_memory["knowledge_graph"]
     assert "relationships" in working_memory["knowledge_graph"]
     
     # Verify metadata
@@ -117,7 +118,16 @@ def test_query_memory_success(memory_manager, mock_llm_service):
     }
     
     # Setup mock response
-    mock_llm_service.generate.return_value = '{"response": "Test response"}'
+    mock_response = {
+        "response": "Test response",
+        "digest": {
+            "topic": "test_topic",
+            "key_points": ["point1", "point2"],
+            "context": "test context",
+            "importance": "high"
+        }
+    }
+    mock_llm_service.generate.return_value = json.dumps(mock_response)
     
     # Test query
     result = memory_manager.query_memory('{"user_message": "test query"}')
@@ -146,7 +156,7 @@ def test_query_memory_failure(memory_manager, mock_llm_service):
     assert "Error processing query" in result["response"]
 
 def test_update_memory_success(memory_manager, mock_llm_service):
-    """Test successful memory update through reflection"""
+    """Test successful memory update"""
     # Setup initial memory state with both static and working memory
     initial_memory = {
         "static_memory": {
@@ -230,9 +240,9 @@ def test_update_memory_success(memory_manager, mock_llm_service):
     }
     mock_llm_service.generate.return_value = json.dumps(mock_response)
 
-    # Test reflection update
-    reflection_context = {
-        "operation": "reflect",
+    # Test memory update
+    update_context = {
+        "operation": "update",
         "messages": [
             {
                 "role": "user",
@@ -246,7 +256,7 @@ def test_update_memory_success(memory_manager, mock_llm_service):
             }
         ]
     }
-    result = memory_manager.update_memory(json.dumps(reflection_context))
+    result = memory_manager.update_memory(json.dumps(update_context))
 
     # Verify update was successful
     assert result is True
@@ -275,12 +285,12 @@ def test_update_memory_success(memory_manager, mock_llm_service):
 def test_update_memory_failure(memory_manager, mock_llm_service):
     mock_llm_service.generate.return_value = "invalid json"
     
-    # Test with reflection operation
+    # Test with update operation
     update_context = {
-        "operation": "reflect",
+        "operation": "update",
         "message": {
             "role": "system",
-            "content": "Reflection triggered"
+            "content": "Update triggered"
         }
     }
     
@@ -355,8 +365,8 @@ def test_save_and_load_memory(memory_manager):
     assert len(working_memory["structured_data"]["entities"]) == 0
     assert len(working_memory["knowledge_graph"]["relationships"]) == 0
 
-def test_reflection_process(memory_manager, mock_llm_service):
-    """Test the complete reflection process with real data"""
+def test_memory_update_process(memory_manager, mock_llm_service):
+    """Test the complete memory update process with real data"""
     # Setup initial memory state from test_memory.json
     initial_memory = {
         "static_memory": {
@@ -416,7 +426,7 @@ def test_reflection_process(memory_manager, mock_llm_service):
     }
     memory_manager.memory = initial_memory
 
-    # Setup mock response for reflection - this should create new entities and relationships in working memory
+    # Setup mock response for memory update - this should create new entities and relationships in working memory
     mock_response = {
         "working_memory": {
             "structured_data": {
@@ -455,14 +465,14 @@ def test_reflection_process(memory_manager, mock_llm_service):
     }
     mock_llm_service.generate.return_value = json.dumps(mock_response)
 
-    # Trigger reflection
-    reflection_context = {
-        "operation": "reflect",
+    # Trigger memory update
+    update_context = {
+        "operation": "update",
         "messages": memory_manager.memory["conversation_history"]
     }
-    result = memory_manager.update_memory(json.dumps(reflection_context))
+    result = memory_manager.update_memory(json.dumps(update_context))
 
-    # Verify reflection was successful
+    # Verify update was successful
     assert result is True
 
     # Verify static memory was not modified
@@ -491,8 +501,8 @@ def test_reflection_process(memory_manager, mock_llm_service):
     assert memory_manager.memory["metadata"]["version"] == "1.0"
 
 @pytest.mark.integration
-def test_reflection_integration_with_llm():
-    """Integration test using real LLM to verify reflection behavior"""
+def test_memory_update_integration_with_llm():
+    """Integration test using real LLM to verify memory update behavior"""
     # Setup real LLM service
     llm_service = OllamaService({
         "base_url": "http://192.168.1.173:11434",
@@ -500,13 +510,13 @@ def test_reflection_integration_with_llm():
         "temperature": 0.7,
         "stream": False,
         "debug": True,
-        "debug_file": "test_reflection_debug.log",
-        "debug_scope": "test_reflection",
+        "debug_file": "test_memory_update_debug.log",
+        "debug_scope": "test_memory_update",
         "console_output": False
     })
     
     # Create memory manager with temp file
-    memory_file = "test_reflection_memory.json"
+    memory_file = "test_memory_update.json"
     memory_manager = MemoryManager(llm_service, memory_file)
     
     try:
@@ -572,14 +582,14 @@ def test_reflection_integration_with_llm():
         # Save initial state
         memory_manager.save_memory()
         
-        # Trigger reflection with real LLM
-        reflection_context = {
-            "operation": "reflect",
+        # Trigger memory update with real LLM
+        update_context = {
+            "operation": "update",
             "messages": memory_manager.memory["conversation_history"]
         }
-        result = memory_manager.update_memory(json.dumps(reflection_context))
+        result = memory_manager.update_memory(json.dumps(update_context))
         
-        # Verify reflection was successful
+        # Verify update was successful
         assert result is True
         
         # Verify static memory was not modified
@@ -600,7 +610,7 @@ def test_reflection_integration_with_llm():
         assert len(memory_manager.memory["conversation_history"]) == 0
         
         # Print the actual working memory for inspection
-        print("\nWorking memory after reflection:")
+        print("\nWorking memory after update:")
         print(json.dumps(working_memory, indent=2))
         
     finally:

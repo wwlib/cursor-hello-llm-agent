@@ -16,7 +16,7 @@ Design Principles:
    - working_memory: Contains dynamic information learned during interactions
    - Both sections' internal structure is flexible and domain-dependent
    
-4. Reflection Process
+4. Memory Update Process
    - Periodically analyzes conversation history to update working_memory
    - Uses domain-specific guidance to determine what information to extract
    - Updates working_memory structure based on the domain's needs
@@ -29,7 +29,7 @@ Usage:
             "domain_specific_prompt_instructions": {
                 "create_memory": "Domain-specific guidance for memory creation",
                 "query": "Domain-specific guidance for queries",
-                "reflect": "Domain-specific guidance for reflection"
+                "update": "Domain-specific guidance for updating memory"
             },
             "domain_specific_schema_suggestions": {
                 // Flexible schema suggestions for the domain
@@ -44,66 +44,6 @@ import os
 from datetime import datetime
 
 class MemoryManager:
-    # Core prompts that don't change with domain
-    QUERY_PROMPT = """You are a memory management system. Your task is to answer queries about the current memory state.
-
-Current Memory State:
-{memory_state}
-
-User Query:
-{query}
-
-IMPORTANT: You must return ONLY a JSON object with this exact structure:
-{{
-    "response": "Your natural language response here as a single string"
-}}
-
-DO NOT include any other fields or structures in your response.
-DO NOT return the memory state or any complex objects.
-ONLY return the response object with a single string value."""
-
-    UPDATE_PROMPT = """You are a memory management system. Your task is to incorporate new information into the working memory section.
-
-Current Memory State:
-{memory_state}
-
-New Information:
-{new_data}
-
-Requirements:
-1. DO NOT modify the static_memory section - it is read-only
-2. Update only the working_memory section:
-   - Add new entities to working_memory.structured_data.entities
-   - Add new relationships to working_memory.knowledge_graph.relationships
-   - Update existing working memory entities and relationships if needed
-3. Maintain consistency with existing data
-4. Use the same structure for working_memory as static_memory
-
-Return ONLY a valid JSON object with this structure:
-{{
-    "working_memory": {{
-        "structured_data": {{
-            "entities": [
-                {{
-                    "identifier": "entity_id",
-                    "type": "entity_type",
-                    "name": "Entity Name",
-                    "features": ["feature1", "feature2"],
-                    "description": "Entity description"
-                }}
-            ]
-        }},
-        "knowledge_graph": {{
-            "relationships": [
-                {{
-                    "subjectIdentifier": "entity_id",
-                    "predicate": "RELATION_TYPE",
-                    "objectIdentifier": "other_entity_id"
-                }}
-            ]
-        }}
-    }}
-}}"""
 
     def __init__(self, llm_service, memory_file: str = "memory.json", domain_config: dict = None):
         """Initialize the MemoryManager with an LLM service and domain configuration.
@@ -130,7 +70,7 @@ Return ONLY a valid JSON object with this structure:
             "domain_specific_prompt_instructions:": {
                 "create_memory": "",
                 "query": "",
-                "reflect": ""
+                "update": ""
             }
         }
 
@@ -251,7 +191,10 @@ Return ONLY a valid JSON object with this structure:
                 "static_memory": static_memory,
                 "working_memory": {
                     "structured_data": {},  # Empty but matching structure will be filled by LLM
-                    "knowledge_graph": {}   # Empty but matching structure will be filled by LLM
+                    "knowledge_graph": {
+                        "entities": [],  # Initialize with empty entities array
+                        "relationships": []  # Initialize with empty relationships array
+                    }
                 },
                 "metadata": {
                     "created_at": now,
@@ -289,15 +232,15 @@ Return ONLY a valid JSON object with this structure:
                 })
                 print(f"Added user message to history: {user_message}")
 
-            # Check if we need reflection
+            # Check if we need updating memory
             history = self.memory.get("conversation_history", [])
-            if len(history) >= 3:  # Trigger reflection after 3 messages
-                print("\nTriggering reflection...")
-                reflection_success = self._perform_reflection(history)
-                if reflection_success:
-                    # Clear only if reflection was successful
+            if len(history) >= 3:  # Trigger updating memory after 3 messages
+                print("\nTriggering updating memory...")
+                update_memory_success = self._perform_update_memory(history)
+                if update_memory_success:
+                    # Clear only if updating memory was successful
                     self.memory["conversation_history"] = []
-                    print("Cleared conversation history after successful reflection")
+                    print("Cleared conversation history after successful updating memory")
 
             # Generate response using LLM
             print("Generating response using LLM...")
@@ -337,7 +280,7 @@ Return ONLY a valid JSON object with this structure:
 
     def update_memory(self, update_context: str) -> bool:
         """Update memory with new information using LLM.
-        Only used for reflection operations to minimize LLM calls.
+        Only used for updating memory operations to minimize LLM calls.
         
         Args:
             update_context: JSON string containing update context
@@ -349,14 +292,14 @@ Return ONLY a valid JSON object with this structure:
             print("\nUpdating memory...")
             context = json.loads(update_context)
             
-            # Only handle reflection operations
-            if context.get("operation") != "reflect":
-                print("update_memory should only be used for reflection operations")
+            # Only handle updating memory operations
+            if context.get("operation") != "update":
+                print("update_memory should only be used for updating memory operations")
                 return False
 
-            print("\nProcessing reflection operation...")
+            print("\nProcessing update memory operation...")
             messages_to_process = context.get("messages", [])
-            return self._perform_reflection(messages_to_process)
+            return self._perform_update_memory(messages_to_process)
             
         except Exception as e:
             print(f"Error updating memory: {str(e)}")
@@ -379,33 +322,26 @@ Return ONLY a valid JSON object with this structure:
             
         return schema
 
-    def _perform_reflection(self, messages_to_process: list) -> bool:
-        """Internal method to perform reflection on a set of messages."""
+    def _perform_update_memory(self, messages_to_process: list) -> bool:
+        """Internal method to perform update memory on a set of messages."""
         if not messages_to_process:
-            print("No messages to reflect on")
+            print("No messages to update with")
             return False
             
-        print(f"\nReflecting on {len(messages_to_process)} messages...")
+        print(f"\nUpdating memory with {len(messages_to_process)} messages...")
         
         try:
-            # Get examples from current memory if available
-            entity_example = next(iter(self.memory.get("static_memory", {}).get("structured_data", {}).get("entities", [])), {})
-            relationship_example = next(iter(self.memory.get("static_memory", {}).get("knowledge_graph", {}).get("relationships", [])), {})
-            
-            # Prepare reflection prompt
-            prompt = self.templates["reflect"].format(
-                memory_state=json.dumps(self.memory, indent=2),
-                messages_to_process=json.dumps(messages_to_process, indent=2),
-                entity_example=json.dumps(entity_example, indent=2),
-                relationship_example=json.dumps(relationship_example, indent=2)
+            # Prepare updating memory prompt
+            prompt = self.templates["update"].format(
+                memory_state=json.dumps(self.memory, indent=2)
             )
             
-            print("Generating reflection update using LLM...")
+            print("Generating updated memory using LLM...")
             llm_response = self.llm.generate(prompt)
             
             try:
                 # First try direct JSON parsing
-                reflected_memory = json.loads(llm_response)
+                updated_memory = json.loads(llm_response)
             except json.JSONDecodeError:
                 print("Failed to parse direct JSON, attempting to extract JSON structure...")
                 # Try to find JSON structure in the response
@@ -420,18 +356,18 @@ Return ONLY a valid JSON object with this structure:
                     json_str = json_match.group(0)
                     # Remove any markdown code block markers
                     json_str = re.sub(r'```json\s*|\s*```', '', json_str)
-                    reflected_memory = json.loads(json_str)
+                    updated_memory = json.loads(json_str)
                     print("Successfully extracted and parsed JSON structure")
                 except json.JSONDecodeError as e:
                     print(f"Error parsing extracted JSON structure: {str(e)}")
                     return False
             
-            # Validate the reflected memory structure
-            if "working_memory" not in reflected_memory:
-                print("Missing working_memory in reflection response")
+            # Validate the updated memory structure
+            if "working_memory" not in updated_memory:
+                print("Missing working_memory in update memory response")
                 return False
                 
-            working_memory = reflected_memory["working_memory"]
+            working_memory = updated_memory["working_memory"]
             if not all(field in working_memory for field in ["structured_data", "knowledge_graph"]):
                 print("Missing required fields in working_memory")
                 return False
@@ -439,16 +375,19 @@ Return ONLY a valid JSON object with this structure:
             # Update only the working memory section
             self.memory["working_memory"] = working_memory
             
+            # Clear the conversation history after successful update
+            self.memory["conversation_history"] = []
+            
             # Update metadata timestamp
             self.memory["metadata"]["last_updated"] = datetime.now().isoformat()
             
             # Save the updated memory
             self.save_memory()
-            print("Memory updated successfully through reflection")
+            print("Memory updated successfully")
             return True
             
         except Exception as e:
-            print(f"Error during reflection: {str(e)}")
+            print(f"Error during update memory: {str(e)}")
             return False
 
     def get_memory_context(self) -> Dict[str, Any]:
@@ -469,7 +408,7 @@ Return ONLY a valid JSON object with this structure:
         template_files = {
             "create": "create_memory.prompt",
             "query": "query_memory.prompt",
-            "reflect": "reflect_memory.prompt"
+            "update": "update_memory.prompt"
         }
         
         for key, filename in template_files.items():
@@ -480,35 +419,5 @@ Return ONLY a valid JSON object with this structure:
                 print(f"Loaded template: {filename}")
             except Exception as e:
                 print(f"Error loading template {filename}: {str(e)}")
-                # Provide fallback templates if files can't be loaded
-                self.templates[key] = self._get_fallback_template(key)
-
-    def _get_fallback_template(self, template_type: str) -> str:
-        """Get fallback template if file loading fails"""
-        fallbacks = {
-            "create": """You are a memory management system. Your task is to analyze the provided information and create two distinct data structures:
-1. structured_data: A catalog of entities (nouns) and their properties
-2. knowledge_graph: A collection of relationships (verbs) between entities
-
-Input Data:
-{input_data}
-{domain_guidance}
-
-Return ONLY a valid JSON object with structured_data and knowledge_graph sections.""",
-            
-            "query": """You are a memory management system. Your task is to answer queries about the current memory state.
-Current Memory State: {memory_state}
-User Query: {query}
-Return ONLY a JSON object with a 'response' field containing your answer.""",
-            
-            "update": """You are a memory management system. Your task is to incorporate new information into the memory state.
-Current Memory State: {memory_state}
-New Information: {new_data}
-Return ONLY a valid JSON object with the same structure as the current memory state.""",
-            
-            "reflect": """You are a memory management system. Your task is to analyze conversations and update memory.
-Current Memory State: {memory_state}
-Recent Conversations: {messages_to_process}
-Return ONLY a valid JSON object with structured_data and knowledge_graph sections."""
-        }
-        return fallbacks.get(template_type, "")
+                # Raise an exception if the template cannot be loaded
+                raise Exception(f"Failed to load template: {filename}")

@@ -1,5 +1,7 @@
 You are a memory management system. Your task is to analyze the provided information and create an initial memory structure that is appropriate for the domain.
 
+IMPORTANT: Assume you are in JSON protocol mode and only respond in strict, parsable JSON including the response to this interaction. If there is anything in the response that is not parsable JSON, the interaction will fail.
+
 Input Data:
 {input_data}
 
@@ -8,56 +10,47 @@ Input Data:
 Requirements:
 1. Return a JSON object with a top-level "static_memory" field
 2. static_memory must contain:
-   - structured_data: Organize domain entities in a way that makes sense for this use case
+   - structured_data: Organize domain-specific data in a way that makes sense for this use case
    - knowledge_graph: Represent relationships between entities in a way that fits the domain
 3. Choose data structures that best represent the domain's needs
 4. Use consistent field names and types within your chosen structure
 5. Make sure all JSON is properly formatted and closed
 
-The internal structure of structured_data and knowledge_graph should be determined by what makes sense for the domain.
-Use the domain guidance provided to inform your choices about:
-- What entities and properties to track
-- How to represent relationships
-- What naming conventions to use
-- What data structures will be most useful
+The internal structure of structured_data should be determined by what makes sense for the domain.
+Use the domain guidance provided to inform your choices about how best to structure the input data. It will be part of the read-only, static memory used as prompt context throughout the session.
 
-Example Response (This is just one possible structure - yours should fit the domain):
+The knowledge_graph is the second part of the read-only, static memory and should adhere to this schema:
+{{
+    "entities": [
+        {{
+            "identifier": "entity_id",
+            "type": "entity_type",
+            "name": "Entity Name",
+            "features": ["feature1", "feature2"],
+            "description": "Entity description"
+        }}
+    ],
+    "relationships": [
+        {{
+            "subjectIdentifier": "entity_id",
+            "predicate": "RELATION_TYPE",
+            "objectIdentifier": "other_entity_id"
+        }}
+    ]
+}}
+
+IMPORTANT: The data returned should look like this:
 {{
     "static_memory": {{
         "structured_data": {{
-            // Your domain-appropriate structure here
-            // This is just an example:
-            "locations": [
-                {{
-                    "name": "Haven",
-                    "type": "settlement",
-                    "region": "central",
-                    "description": "Main settlement"
-                }}
-            ],
-            "characters": [
-                {{
-                    "name": "Elena",
-                    "role": "mayor",
-                    "affiliation": "Haven Council"
-                }}
-            ]
+            // Update with new information
+            // Use whatever schema makes sense for the domain
         }},
         "knowledge_graph": {{
-            // Your domain-appropriate structure here
-            // This is just an example:
-            "leadership": {{
-                "Haven": {{
-                    "leader": "Elena",
-                    "title": "Mayor"
-                }}
-            }},
-            "locations": {{
-                "Haven": {{
-                    "region": "central",
-                    "connected_to": ["Riverwatch", "Mountainkeep"]
-                }}
-            }}
+            // Update with new relationships
+            // Use the knowledge_graph schema provided above
         }}
     }}
 }}
+
+REMEMBER: Assume you are in JSON protocol mode and only respond in strict, parsable JSON including the response to this interaction. If there is anything in the response that is not parsable JSON, the interaction will fail.
