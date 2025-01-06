@@ -37,13 +37,16 @@ class Agent:
         try:
             # Create query context
             context = {
-                "current_phase": self.current_phase.name,
                 "user_message": message
             }
             
             # Query memory for response
             result = self.memory.query_memory(json.dumps(context))
             response = result.get("response", "Error processing message")
+            
+            # After first message, transition to INTERACTION phase
+            if self.current_phase == AgentPhase.INITIALIZATION:
+                self.current_phase = AgentPhase.INTERACTION
             
             # Check if we need reflection
             if len(self.get_conversation_history()) >= 3:
@@ -71,22 +74,18 @@ class Agent:
             if self.current_phase == AgentPhase.INITIALIZATION:
                 success = self.memory.create_initial_memory(information)
                 if success:
-                    print("Initial memory created, transitioning to LEARNING phase")
-                    self.current_phase = AgentPhase.LEARNING
-                    print("Transitioning to INTERACTION phase")
+                    print("Initial memory created")
                     self.current_phase = AgentPhase.INTERACTION
                 return success
             
             # Update existing memory with new information
             context = {
-                "operation": "learn",
-                "current_phase": self.current_phase.name,
-                "information": information,
-                "message": {
+                "operation": "update",
+                "messages": [{
                     "role": "system",
                     "content": information,
                     "timestamp": datetime.now().isoformat()
-                }
+                }]
             }
             
             success = self.memory.update_memory(json.dumps(context))
@@ -110,14 +109,12 @@ class Agent:
             
             # Create reflection context
             context = {
-                "operation": "reflect",
-                "current_phase": self.current_phase.name,
-                "conversation_history": conversation_history,
-                "message": {
+                "operation": "update",
+                "messages": conversation_history + [{
                     "role": "system",
                     "content": "Reflection triggered",
                     "timestamp": datetime.now().isoformat()
-                }
+                }]
             }
             
             success = self.memory.update_memory(json.dumps(context))
