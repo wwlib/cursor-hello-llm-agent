@@ -14,19 +14,19 @@ The process - so far - is documented in the `cursor-notes/` directory:
 
 Complete transcripts of the cursor chat and composer sessions are in the `cursor-notes/cursor-chat-and-composer-transcripts/` directory. These transcripts were exported using the [SpecStory](https://specstory.com/) extension for cursor:
 
-- Chat - Designing a Memory Manager for Campaign Data.md
-- Chat - Fixing AssertionError in Python Test.md
-- Chat - Resolving Skipped Asyncio Tests.md
+- [Chat - Designing a Memory Manager for Campaign Data](cursor-notes/cursor-chat-and-composer-transcripts/Chat%20-%20Designing%20a%20Memory%20Manager%20for%20Campaign%20Data.md)
+- [Chat - Fixing AssertionError in Python Test](cursor-notes/cursor-chat-and-composer-transcripts/Chat%20-%20Fixing%20AssertionError%20in%20Python%20Test.md)
+- [Chat - Resolving Skipped Asyncio Tests](cursor-notes/cursor-chat-and-composer-transcripts/Chat%20-%20Resolving%20Skipped%20Asyncio%20Tests.md)
 
-- Composer - MemoryManager Code and Testing Implementation.md
-- Composer - Fixing ModuleNotFoundError in pytest.md
-- Composer - Creating Detailed README for Agent.md
-- Composer - Update Memory Manager Usage Example.md
-- Composer - Updating README.md Architecture Overview.md
-- Composer - Generalizing Agent and MemoryManager Classes.md
-- Composer - Enhancing LLM Debug Logging Format.md
-- Composer - Optimizing Memory Management for D&D.md
-- Composer - Fixing Errors in Memory Manager Tests.md
+- [Composer - MemoryManager Code and Testing Implementation](cursor-notes/cursor-chat-and-composer-transcripts/Composer%20-%20MemoryManager%20Code%20and%20Testing%20Implementation.md)
+- [Composer - Fixing ModuleNotFoundError in pytest](cursor-notes/cursor-chat-and-composer-transcripts/Composer%20-%20Fixing%20ModuleNotFoundError%20in%20pytest.md)
+- [Composer - Creating Detailed README for Agent](cursor-notes/cursor-chat-and-composer-transcripts/Composer%20-%20Creating%20Detailed%20README%20for%20Agent.md)
+- [Composer - Update Memory Manager Usage Example](cursor-notes/cursor-chat-and-composer-transcripts/Composer%20-%20Update%20Memory%20Manager%20Usage%20Example.md)
+- [Composer - Updating README.md Architecture Overview](cursor-notes/cursor-chat-and-composer-transcripts/Composer%20-%20Updating%20README.md%20Architecture%20Overview.md)
+- [Composer - Generalizing Agent and MemoryManager Classes](cursor-notes/cursor-chat-and-composer-transcripts/Composer%20-%20Generalizing%20Agent%20and%20MemoryManager%20Classes.md)
+- [Composer - Enhancing LLM Debug Logging Format](cursor-notes/cursor-chat-and-composer-transcripts/Composer%20-%20Enhancing%20LLM%20Debug%20Logging%20Format.md)
+- [Composer - Optimizing Memory Management for D&D](cursor-notes/cursor-chat-and-composer-transcripts/Composer%20-%20Optimizing%20Memory%20Management%20for%20D%26D.md)
+- [Composer - Fixing Errors in Memory Manager Tests](cursor-notes/cursor-chat-and-composer-transcripts/Composer%20-%20Fixing%20Errors%20in%20Memory%20Manager%20Tests.md)
 
 Cursor wrote the subsystem readmes and then wrote the code for the `LLMService`, `MemoryManager` and `Agent` classes:
 
