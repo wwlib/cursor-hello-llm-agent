@@ -42,26 +42,31 @@ from typing import Any, Dict, Optional
 import json
 import os
 from datetime import datetime
+from .base_memory_manager import BaseMemoryManager
 
-class MemoryManager:
+class MemoryManager(BaseMemoryManager):
+    """LLM-driven memory manager implementation.
+    
+    Extends BaseMemoryManager to provide LLM-driven memory operations with domain-specific configuration.
+    """
 
-    def __init__(self, llm_service, memory_file: str = "memory.json", domain_config: dict = None):
+    def __init__(self, memory_file: str = "memory.json", domain_config: Optional[Dict[str, Any]] = None, llm_service = None):
         """Initialize the MemoryManager with an LLM service and domain configuration.
         
         Args:
-            llm_service: Service for LLM operations
             memory_file: Path to the JSON file for persistent storage
             domain_config: Dictionary containing domain-specific configuration:
                          - schema: Domain-specific entity types and properties
                          - relationships: Domain-specific relationship types
                          - prompts: Domain-specific prompt templates
+            llm_service: Service for LLM operations (required for this implementation)
         """
+        if llm_service is None:
+            raise ValueError("llm_service is required for MemoryManager")
+            
+        super().__init__(memory_file, domain_config)
         print(f"\nInitializing MemoryManager with file: {memory_file}")
-        self.memory_file = memory_file
         self.llm = llm_service
-        self.domain_config = domain_config or self._get_default_config()
-        self.memory: Dict[str, Any] = {}
-        self._load_memory()
         self._load_templates()
 
     def _get_default_config(self) -> dict:
@@ -74,46 +79,27 @@ class MemoryManager:
             }
         }
 
-    def _load_memory(self) -> None:
-        """Load memory from JSON file if it exists"""
-        if os.path.exists(self.memory_file):
-            print(f"Loading existing memory from {self.memory_file}")
-            with open(self.memory_file, 'r') as f:
-                self.memory = json.load(f)
-            print("Memory loaded successfully")
-        else:
-            print("No existing memory file found")
-
-    def save_memory(self) -> None:
-        """Save current memory state to JSON file and create a backup.
-        Backups are created with incrementing numbers (e.g. memory_bak_1.json)."""
-        print(f"\nSaving memory to {self.memory_file}")
+    def _load_templates(self) -> None:
+        """Load prompt templates from files"""
+        template_dir = os.path.join(os.path.dirname(__file__), "templates")
+        self.templates = {}
         
-        try:
-            # Create backup with incrementing number
-            base_path = os.path.splitext(self.memory_file)[0]
-            backup_num = 1
-            while os.path.exists(f"{base_path}_bak_{backup_num}.json"):
-                backup_num += 1
-            backup_file = f"{base_path}_bak_{backup_num}.json"
-            
-            # Save current memory to both files
-            for file_path in [self.memory_file, backup_file]:
-                with open(file_path, 'w') as f:
-                    json.dump(self.memory, f, indent=2)
-            
-            print(f"Memory saved successfully with backup: {backup_file}")
-            
-        except Exception as e:
-            print(f"Error saving memory: {str(e)}")
-            # Try to at least save the main file
+        template_files = {
+            "create": "create_memory.prompt",
+            "query": "query_memory.prompt",
+            "update": "update_memory.prompt"
+        }
+        
+        for key, filename in template_files.items():
+            path = os.path.join(template_dir, filename)
             try:
-                with open(self.memory_file, 'w') as f:
-                    json.dump(self.memory, f, indent=2)
-                print("Memory saved to main file despite backup error")
-            except Exception as e2:
-                print(f"Critical error: Failed to save memory: {str(e2)}")
-                raise
+                with open(path, 'r') as f:
+                    self.templates[key] = f.read().strip()
+                print(f"Loaded template: {filename}")
+            except Exception as e:
+                print(f"Error loading template {filename}: {str(e)}")
+                # Raise an exception if the template cannot be loaded
+                raise Exception(f"Failed to load template: {filename}")
 
     def create_initial_memory(self, input_data: str) -> bool:
         """Use LLM to structure initial input data into memory format.
@@ -305,23 +291,6 @@ class MemoryManager:
             print(f"Error updating memory: {str(e)}")
             return False
 
-    def _extract_schema(self, data: dict) -> dict:
-        """Extract schema from existing memory structure."""
-        schema = {}
-        
-        if isinstance(data, dict):
-            schema = {k: self._extract_schema(v) for k, v in data.items()}
-        elif isinstance(data, list):
-            if data:  # If list is not empty, use first item as example
-                schema = [self._extract_schema(data[0])]
-            else:
-                schema = []
-        else:
-            # For primitive values, store their type
-            schema = type(data).__name__
-            
-        return schema
-
     def _perform_update_memory(self, messages_to_process: list) -> bool:
         """Internal method to perform update memory on a set of messages."""
         if not messages_to_process:
@@ -390,34 +359,3 @@ class MemoryManager:
             print(f"Error during update memory: {str(e)}")
             return False
 
-    def get_memory_context(self) -> Dict[str, Any]:
-        """Return the entire memory state"""
-        return self.memory
-
-    def clear_memory(self) -> None:
-        """Clear all stored memory"""
-        self.memory = {}
-        if os.path.exists(self.memory_file):
-            os.remove(self.memory_file)
-
-    def _load_templates(self) -> None:
-        """Load prompt templates from files"""
-        template_dir = os.path.join(os.path.dirname(__file__), "templates")
-        self.templates = {}
-        
-        template_files = {
-            "create": "create_memory.prompt",
-            "query": "query_memory.prompt",
-            "update": "update_memory.prompt"
-        }
-        
-        for key, filename in template_files.items():
-            path = os.path.join(template_dir, filename)
-            try:
-                with open(path, 'r') as f:
-                    self.templates[key] = f.read().strip()
-                print(f"Loaded template: {filename}")
-            except Exception as e:
-                print(f"Error loading template {filename}: {str(e)}")
-                # Raise an exception if the template cannot be loaded
-                raise Exception(f"Failed to load template: {filename}")

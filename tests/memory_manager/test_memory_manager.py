@@ -9,20 +9,9 @@ from src.ai.llm_ollama import OllamaService
 
 @pytest.fixture
 def mock_llm_service():
-    return Mock()
-
-@pytest.fixture
-def memory_manager(mock_llm_service, tmp_path):
-    memory_file = tmp_path / "test_memory.json"
-    return MemoryManager(mock_llm_service, str(memory_file))
-
-def test_init(memory_manager):
-    assert memory_manager.memory == {}
-    assert isinstance(memory_manager.llm, Mock)
-
-def test_create_initial_memory_success(memory_manager, mock_llm_service):
-    # Mock response from LLM with new memory structure
-    mock_memory = {
+    """Fixture to provide a mock LLM service."""
+    mock = Mock()
+    mock.generate.return_value = json.dumps({
         "static_memory": {
             "structured_data": {
                 "entities": [
@@ -36,18 +25,37 @@ def test_create_initial_memory_success(memory_manager, mock_llm_service):
                 ]
             },
             "knowledge_graph": {
-                "relationships": [
-                    {
-                        "subjectIdentifier": "test_entity_1",
-                        "predicate": "TEST_RELATION",
-                        "objectIdentifier": "test_entity_2"
-                    }
-                ]
+                "relationships": []
             }
         }
-    }
-    mock_llm_service.generate.return_value = json.dumps(mock_memory)
-    
+    })
+    return mock
+
+@pytest.fixture
+def memory_file(tmp_path):
+    """Fixture to provide a temporary memory file path."""
+    return str(tmp_path / "test_memory.json")
+
+@pytest.fixture
+def memory_manager(memory_file, mock_llm_service):
+    """Fixture to provide a MemoryManager instance."""
+    return MemoryManager(memory_file=memory_file, llm_service=mock_llm_service)
+
+def test_initialization_requires_llm(memory_file):
+    """Test that MemoryManager requires an LLM service."""
+    with pytest.raises(ValueError, match="llm_service is required"):
+        MemoryManager(memory_file=memory_file)
+
+def test_initialization_with_llm(memory_file, mock_llm_service):
+    """Test basic initialization of MemoryManager."""
+    manager = MemoryManager(memory_file=memory_file, llm_service=mock_llm_service)
+    assert manager.memory == {}
+    assert manager.memory_file == memory_file
+    assert isinstance(manager.domain_config, dict)
+    assert manager.llm == mock_llm_service
+
+def test_create_initial_memory_success(memory_manager, mock_llm_service):
+    """Test creating initial memory structure."""
     result = memory_manager.create_initial_memory("test input")
     
     assert result is True
@@ -67,7 +75,7 @@ def test_create_initial_memory_success(memory_manager, mock_llm_service):
     working_memory = memory_manager.memory["working_memory"]
     assert "structured_data" in working_memory
     assert "knowledge_graph" in working_memory
-    assert isinstance(working_memory["structured_data"], dict)  # Structure determined by LLM
+    assert isinstance(working_memory["structured_data"], dict)
     assert "entities" in working_memory["knowledge_graph"]
     assert "relationships" in working_memory["knowledge_graph"]
     
@@ -77,7 +85,7 @@ def test_create_initial_memory_success(memory_manager, mock_llm_service):
     assert "version" in memory_manager.memory["metadata"]
 
 def test_create_initial_memory_failure(memory_manager, mock_llm_service):
-    # Mock LLM returning invalid JSON
+    """Test handling of invalid LLM response during memory creation."""
     mock_llm_service.generate.return_value = "invalid json"
     
     result = memory_manager.create_initial_memory("test input")
@@ -86,7 +94,7 @@ def test_create_initial_memory_failure(memory_manager, mock_llm_service):
     assert memory_manager.memory == {}
 
 def test_query_memory_success(memory_manager, mock_llm_service):
-    """Test successful memory query"""
+    """Test successful memory query."""
     # Setup initial memory state
     memory_manager.memory = {
         "static_memory": {
@@ -299,6 +307,7 @@ def test_update_memory_failure(memory_manager, mock_llm_service):
     assert result is False
 
 def test_clear_memory(memory_manager):
+    """Test clearing memory and file removal."""
     # Setup initial memory and file
     memory_manager.memory = {"test": "data"}
     memory_manager.save_memory()
@@ -308,7 +317,10 @@ def test_clear_memory(memory_manager):
     assert memory_manager.memory == {}
     assert not os.path.exists(memory_manager.memory_file)
 
-def test_save_and_load_memory(memory_manager):
+def test_save_and_load_memory(memory_file, mock_llm_service):
+    """Test memory persistence between instances."""
+    # Create and setup first instance
+    manager1 = MemoryManager(memory_file=memory_file, llm_service=mock_llm_service)
     test_memory = {
         "static_memory": {
             "structured_data": {
@@ -337,29 +349,25 @@ def test_save_and_load_memory(memory_manager):
         },
         "conversation_history": []
     }
-    memory_manager.memory = test_memory
+    manager1.memory = test_memory
+    manager1.save_memory()
     
-    # Save memory
-    memory_manager.save_memory()
-    
-    # Create new instance with same file
-    new_manager = MemoryManager(Mock(), memory_manager.memory_file)
-    
-    # Verify all sections of memory
-    assert "static_memory" in new_manager.memory
-    assert "working_memory" in new_manager.memory
-    assert "metadata" in new_manager.memory
-    assert "conversation_history" in new_manager.memory
+    # Create second instance and verify data
+    manager2 = MemoryManager(memory_file=memory_file, llm_service=mock_llm_service)
+    assert "static_memory" in manager2.memory
+    assert "working_memory" in manager2.memory
+    assert "metadata" in manager2.memory
+    assert "conversation_history" in manager2.memory
     
     # Verify static_memory structure
-    static_memory = new_manager.memory["static_memory"]
+    static_memory = manager2.memory["static_memory"]
     assert "structured_data" in static_memory
     assert "knowledge_graph" in static_memory
     assert len(static_memory["structured_data"]["entities"]) == 1
     assert len(static_memory["knowledge_graph"]["relationships"]) == 0
     
     # Verify working_memory structure
-    working_memory = new_manager.memory["working_memory"]
+    working_memory = manager2.memory["working_memory"]
     assert "structured_data" in working_memory
     assert "knowledge_graph" in working_memory
     assert len(working_memory["structured_data"]["entities"]) == 0
@@ -517,7 +525,7 @@ def test_memory_update_integration_with_llm():
     
     # Create memory manager with temp file
     memory_file = "test_memory_update.json"
-    memory_manager = MemoryManager(llm_service, memory_file)
+    memory_manager = MemoryManager(memory_file=memory_file, llm_service=llm_service)
     
     try:
         # Setup initial memory state

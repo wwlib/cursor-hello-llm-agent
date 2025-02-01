@@ -27,6 +27,7 @@ Complete transcripts of the cursor chat and composer sessions are in the `cursor
 - [Composer - Enhancing LLM Debug Logging Format](cursor-notes/cursor-chat-and-composer-transcripts/Composer%20-%20Enhancing%20LLM%20Debug%20Logging%20Format.md)
 - [Composer - Optimizing Memory Management for D&D](cursor-notes/cursor-chat-and-composer-transcripts/Composer%20-%20Optimizing%20Memory%20Management%20for%20D%26D.md)
 - [Composer - Fixing Errors in Memory Manager Tests](cursor-notes/cursor-chat-and-composer-transcripts/Composer%20-%20Fixing%20Errors%20in%20Memory%20Manager%20Tests.md)
+- [Composer - Designing a Base Memory Manager](cursor-notes/cursor-chat-and-composer-transcripts/Composer%20-%20Designing%20a%20Base%20Memory%20Manager.md)
 
 Cursor wrote the subsystem readmes and then wrote the code for the `LLMService`, `MemoryManager` and `Agent` classes:
 
