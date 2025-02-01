@@ -3248,6 +3248,879 @@ Would you like me to make any additional changes to the tests?
 
 ---
 
+_**User**_
+
+It seems that when the agent_usage_example starts up it does not load agent_memory.json even if it exists. Instead it creates a new memory file - losing the previous history.
+
+---
+
+_**Assistant**_
+
+Let me check the memory loading behavior in both `MemoryManager` and `SimpleMemoryManager` to identify and fix this issue.
+
+---
+
+_**Assistant**_
+
+
+
+---
+
+_**Assistant**_
+
+
+
+I see the issue. In the `create_initial_memory` method of both `MemoryManager` and `SimpleMemoryManager`, there's a check that skips initialization if memory already exists:
+
+```python
+if self.memory:
+    print("Memory already exists, skipping initialization")
+    return True
+```
+
+However, this check is problematic because it assumes that if `self.memory` is not empty, it means we have valid memory. But in the case of `SimpleMemoryManager`, we need to verify that the memory has the correct structure (i.e., has `initial_data`, `conversation_history`, etc.).
+
+Let me fix this by updating both memory managers:
+
+---
+
+_**Assistant**_
+
+```
+def create_initial_memory(self, input_data: str) -> bool:
+        """Store initial input data.
+        
+        Args:
+            input_data: Initial data to store
+            
+        Returns:
+            bool: True if memory was created successfully
+        """
+        try:
+            # Check if we have valid existing memory
+            if self.memory and all(key in self.memory for key in ["initial_data", "conversation_history", "last_updated"]):
+                print("Valid memory structure already exists, skipping initialization")
+                return True
+                
+            # Initialize the simplified memory structure
+            now = datetime.now().isoformat()
+            self.memory = {
+                "initial_data": input_data,
+                "conversation_history": [],
+                "last_updated": now
+            }
+            
+            self.save_memory()
+            print("Initial memory created successfully")
+            return True
+            
+        except Exception as e:
+            print(f"Error creating memory: {str(e)}")
+            return False
+```
+
+---
+
+_**Assistant**_
+
+```
+def create_initial_memory(self, input_data: str) -> bool:
+        """Use LLM to structure initial input data into memory format.
+        
+        The LLM is free to choose the internal structure of static_memory and working_memory
+        based on what makes sense for the domain. We only validate the top-level structure.
+        """
+        # Check if we have valid existing memory
+        if self.memory and all(key in self.memory for key in ["static_memory", "working_memory", "metadata", "conversation_history"]):
+            print("Valid memory structure already exists, skipping initialization")
+            return True
+
+        print("\nCreating initial memory structure...")
+    
+        # Include domain-specific instructions if available
+        domain_guidance = ""
+        if self.domain_config and "domain_specific_prompt_instructions" in self.domain_config:
+            domain_guidance = "\nDomain-Specific Guidance:\n"
+            create_memory_instructions = self.domain_config["domain_specific_prompt_instructions"]["create_memory"]
+            domain_guidance += create_memory_instructions
+
+        if self.domain_config and "domain_specific_schema_suggestions" in self.domain_config:
+            domain_guidance += "\n\nDomain-Specific Schema Suggestions:\n"
+            schema_suggestions = self.domain_config["domain_specific_schema_suggestions"]
+            domain_guidance += json.dumps(schema_suggestions, indent=2)
+            
+        try:
+            print("Generating memory structure using LLM...")
+            prompt = self.templates["create"].format(
+                input_data=input_data,
+                domain_guidance=domain_guidance
+            )
+            llm_response = self.llm.generate(prompt)
+            
+            try:
+                memory_data = json.loads(llm_response)
+            except json.JSONDecodeError:
+                import re
+                print("Failed to parse direct JSON, attempting to extract JSON structure...")
+                json_match = re.search(r'\{[\s\S]*\}', llm_response)
+                if json_match:
+                    try:
+                        json_str = json_match.group(0)
+                        # Remove any markdown code block markers
+                        json_str = re.sub(r'```json\s*|\s*```', '', json_str)
+                        memory_data = json.loads(json_str)
+                        print("Successfully extracted and fixed JSON structure")
+                    except json.JSONDecodeError as e:
+                        print(f"Error parsing extracted JSON structure: {str(e)}")
+                        return False
+                else:
+                    print("Could not find JSON structure in LLM response")
+                    return False
+            
+            # Validate only the top-level structure
+            if "static_memory" not in memory_data:
+                print("Missing static_memory in LLM response")
+                return False
+                
+            static_memory = memory_data["static_memory"]
+            if not isinstance(static_memory, dict):
+                print("static_memory must be a dictionary")
+                return False
+                
+            if "structured_data" not in static_memory or "knowledge_graph" not in static_memory:
+                print("static_memory must contain structured_data and knowledge_graph")
+                return False
+                
+            if not isinstance(static_memory["structured_data"], dict) or not isinstance(static_memory["knowledge_graph"], dict):
+                print("structured_data and knowledge_graph must be dictionaries")
+                return False
+            
+            # Initialize complete memory structure
+            now = datetime.now().isoformat()
+            self.memory = {
+                "static_memory": static_memory,
+                "working_memory": {
+                    "structured_data": {},  # Empty but matching structure will be filled by LLM
+                    "knowledge_graph": {
+                        "entities": [],  # Initialize with empty entities array
+                        "relationships": []  # Initialize with empty relationships array
+                    }
+                },
+                "metadata": {
+                    "created_at": now,
+                    "last_updated": now,
+                    "version": "1.0"
+                },
+                "conversation_history": []
+            }
+            
+            self.save_memory()
+            print("Initial memory created and saved successfully")
+            return True
+            
+        except Exception as e:
+            print(f"Error creating memory structure: {str(e)}")
+            return False
+```
+
+---
+
+_**Assistant**_
+
+
+
+Now both memory managers will:
+
+1. Check for valid memory structure before skipping initialization
+2. Only skip if ALL required fields are present
+3. Create new memory if the structure is invalid or incomplete
+
+For `SimpleMemoryManager`:
+- Required fields: `initial_data`, `conversation_history`, `last_updated`
+
+For `MemoryManager`:
+- Required fields: `static_memory`, `working_memory`, `metadata`, `conversation_history`
+
+This should fix the issue where the agent_usage_example wasn't loading the existing memory file. The memory manager will now properly validate the memory structure and only create new memory if the existing one is invalid or missing required fields.
+
+Would you like me to add tests to verify this behavior?
+
+---
+
+_**User**_
+
+Yes. please.
+
+---
+
+_**Assistant**_
+
+I'll add tests to verify the memory loading behavior for both `SimpleMemoryManager` and `MemoryManager`. Let me add these tests:
+
+---
+
+_**Assistant**_
+
+```
+def test_load_existing_valid_memory(memory_file, mock_llm):
+    """Test that existing valid memory is loaded and not overwritten."""
+    # Create initial memory file
+    initial_memory = {
+        "initial_data": "test data",
+        "conversation_history": [
+            {
+                "role": "user",
+                "content": "test message",
+                "timestamp": "2024-01-01T00:00:00"
+            }
+        ],
+        "last_updated": "2024-01-01T00:00:00"
+    }
+    
+    with open(memory_file, 'w') as f:
+        json.dump(initial_memory, f)
+    
+    # Create new manager instance
+    manager = SimpleMemoryManager(memory_file=memory_file, llm_service=mock_llm)
+    
+    # Try to create new memory - should not overwrite
+    result = manager.create_initial_memory("new data")
+    
+    assert result is True
+    assert manager.memory["initial_data"] == "test data"  # Should keep original data
+    assert len(manager.memory["conversation_history"]) == 1
+    assert manager.memory["conversation_history"][0]["content"] == "test message"
+
+def test_load_existing_invalid_memory(memory_file, mock_llm):
+    """Test that invalid memory structure is replaced with new memory."""
+    # Create initial memory file with invalid structure
+    invalid_memory = {
+        "initial_data": "test data",
+        # Missing conversation_history and last_updated
+    }
+    
+    with open(memory_file, 'w') as f:
+        json.dump(invalid_memory, f)
+    
+    # Create new manager instance
+    manager = SimpleMemoryManager(memory_file=memory_file, llm_service=mock_llm)
+    
+    # Try to create new memory - should replace invalid memory
+    result = manager.create_initial_memory("new data")
+    
+    assert result is True
+    assert manager.memory["initial_data"] == "new data"  # Should use new data
+    assert "conversation_history" in manager.memory
+    assert "last_updated" in manager.memory
+    assert len(manager.memory["conversation_history"]) == 0
+
+def test_load_existing_partial_memory(memory_file, mock_llm):
+    """Test that partially complete memory structure is replaced with new memory."""
+    # Create initial memory file with partial structure
+    partial_memory = {
+        "initial_data": "test data",
+        "conversation_history": [],
+        # Missing last_updated
+    }
+    
+    with open(memory_file, 'w') as f:
+        json.dump(partial_memory, f)
+    
+    # Create new manager instance
+    manager = SimpleMemoryManager(memory_file=memory_file, llm_service=mock_llm)
+    
+    # Try to create new memory - should replace partial memory
+    result = manager.create_initial_memory("new data")
+    
+    assert result is True
+    assert manager.memory["initial_data"] == "new data"  # Should use new data
+    assert "conversation_history" in manager.memory
+    assert "last_updated" in manager.memory
+    assert len(manager.memory["conversation_history"]) == 0
+
+// ... existing code ...
+```
+
+---
+
+_**Assistant**_
+
+```
+def test_load_existing_valid_memory(memory_file, mock_llm_service):
+    """Test that existing valid memory is loaded and not overwritten."""
+    # Create initial memory file
+    initial_memory = {
+        "static_memory": {
+            "structured_data": {
+                "entities": [
+                    {
+                        "identifier": "test_entity",
+                        "type": "test",
+                        "name": "Test Entity",
+                        "features": ["test"],
+                        "description": "Test description"
+                    }
+                ]
+            },
+            "knowledge_graph": {
+                "relationships": []
+            }
+        },
+        "working_memory": {
+            "structured_data": {},
+            "knowledge_graph": {
+                "entities": [],
+                "relationships": []
+            }
+        },
+        "metadata": {
+            "created_at": "2024-01-01T00:00:00",
+            "last_updated": "2024-01-01T00:00:00",
+            "version": "1.0"
+        },
+        "conversation_history": [
+            {
+                "role": "user",
+                "content": "test message",
+                "timestamp": "2024-01-01T00:00:00"
+            }
+        ]
+    }
+    
+    with open(memory_file, 'w') as f:
+        json.dump(initial_memory, f)
+    
+    # Create new manager instance
+    manager = MemoryManager(memory_file=memory_file, llm_service=mock_llm_service)
+    
+    # Try to create new memory - should not overwrite
+    result = manager.create_initial_memory("new data")
+    
+    assert result is True
+    # Verify original memory was preserved
+    assert manager.memory["static_memory"]["structured_data"]["entities"][0]["identifier"] == "test_entity"
+    assert len(manager.memory["conversation_history"]) == 1
+    assert manager.memory["conversation_history"][0]["content"] == "test message"
+
+def test_load_existing_invalid_memory(memory_file, mock_llm_service):
+    """Test that invalid memory structure is replaced with new memory."""
+    # Create initial memory file with invalid structure
+    invalid_memory = {
+        "static_memory": {
+            "structured_data": {
+                "entities": []
+            }
+            # Missing knowledge_graph
+        }
+        # Missing working_memory, metadata, conversation_history
+    }
+    
+    with open(memory_file, 'w') as f:
+        json.dump(invalid_memory, f)
+    
+    # Create new manager instance
+    manager = MemoryManager(memory_file=memory_file, llm_service=mock_llm_service)
+    
+    # Try to create new memory - should replace invalid memory
+    result = manager.create_initial_memory("new data")
+    
+    assert result is True
+    # Verify new memory structure was created
+    assert "static_memory" in manager.memory
+    assert "working_memory" in manager.memory
+    assert "metadata" in manager.memory
+    assert "conversation_history" in manager.memory
+    assert len(manager.memory["conversation_history"]) == 0
+
+def test_load_existing_partial_memory(memory_file, mock_llm_service):
+    """Test that partially complete memory structure is replaced with new memory."""
+    # Create initial memory file with partial structure
+    partial_memory = {
+        "static_memory": {
+            "structured_data": {
+                "entities": []
+            },
+            "knowledge_graph": {
+                "relationships": []
+            }
+        },
+        "working_memory": {
+            "structured_data": {},
+            "knowledge_graph": {
+                "entities": [],
+                "relationships": []
+            }
+        }
+        # Missing metadata and conversation_history
+    }
+    
+    with open(memory_file, 'w') as f:
+        json.dump(partial_memory, f)
+    
+    # Create new manager instance
+    manager = MemoryManager(memory_file=memory_file, llm_service=mock_llm_service)
+    
+    # Try to create new memory - should replace partial memory
+    result = manager.create_initial_memory("new data")
+    
+    assert result is True
+    # Verify complete memory structure was created
+    assert "static_memory" in manager.memory
+    assert "working_memory" in manager.memory
+    assert "metadata" in manager.memory
+    assert "conversation_history" in manager.memory
+    assert len(manager.memory["conversation_history"]) == 0
+
+// ... existing code ...
+```
+
+---
+
+_**Assistant**_
+
+
+
+Let's run the tests to verify the new behavior:
+
+---
+
+_**Assistant**_
+
+```
+python -m pytest tests/memory_manager/test_simple_memory_manager.py tests/memory_manager/test_memory_manager.py -v
+```
+
+---
+
+_**Assistant**_
+
+
+
+Great! All tests passed successfully. The new tests verify that both memory managers:
+
+1. For `SimpleMemoryManager`:
+   - Loads and preserves valid existing memory
+   - Replaces invalid memory structure with new memory
+   - Replaces partial memory structure with new memory
+   - Validates required fields: `initial_data`, `conversation_history`, `last_updated`
+
+2. For `MemoryManager`:
+   - Loads and preserves valid existing memory
+   - Replaces invalid memory structure with new memory
+   - Replaces partial memory structure with new memory
+   - Validates required fields: `static_memory`, `working_memory`, `metadata`, `conversation_history`
+
+The tests confirm that both managers will:
+1. Keep existing memory if it has a valid structure
+2. Create new memory if the structure is invalid or incomplete
+3. Properly validate all required fields before accepting existing memory
+
+This should fix the issue where the agent_usage_example wasn't loading the existing memory file. The memory managers will now properly load and validate existing memory files.
+
+Would you like me to make any adjustments to the tests or add additional test cases?
+
+---
+
+_**User**_
+
+Let's add a feature. When loading existing memory, lets display the last few messages so the use knows where things stand.
+
+---
+
+_**Assistant**_
+
+I'll add this feature to both memory managers to show the last few messages when loading existing memory. I'll update both classes to add this functionality:
+
+---
+
+_**Assistant**_
+
+```
+def _load_memory(self) -> None:
+        """Load memory from JSON file if it exists"""
+        if os.path.exists(self.memory_file):
+            print(f"Loading existing memory from {self.memory_file}")
+            with open(self.memory_file, 'r') as f:
+                self.memory = json.load(f)
+            print("Memory loaded successfully")
+            
+            # Display recent conversation history if available
+            if self.memory and "conversation_history" in self.memory:
+                history = self.memory["conversation_history"]
+                if history:
+                    print("\nRecent conversation history:")
+                    # Show last 3 messages
+                    for msg in history[-3:]:
+                        role = msg["role"].upper()
+                        content = msg["content"].split('\n')[0][:100] + ('...' if len(msg["content"]) > 100 else '')
+                        print(f"[{role}] {content}")
+                    print()  # Add blank line after history
+        else:
+            print("No existing memory file found")
+```
+
+---
+
+_**Assistant**_
+
+
+
+Let's add a test to verify this new functionality:
+
+---
+
+_**Assistant**_
+
+```
+def test_load_memory_displays_history(memory_file, mock_llm, capsys):
+    """Test that loading memory displays recent conversation history."""
+    # Create initial memory file with multiple messages
+    initial_memory = {
+        "initial_data": "test data",
+        "conversation_history": [
+            {
+                "role": "user",
+                "content": "first message",
+                "timestamp": "2024-01-01T00:00:00"
+            },
+            {
+                "role": "assistant",
+                "content": "first response",
+                "timestamp": "2024-01-01T00:00:01"
+            },
+            {
+                "role": "user",
+                "content": "second message",
+                "timestamp": "2024-01-01T00:00:02"
+            },
+            {
+                "role": "assistant",
+                "content": "second response",
+                "timestamp": "2024-01-01T00:00:03"
+            }
+        ],
+        "last_updated": "2024-01-01T00:00:03"
+    }
+    
+    with open(memory_file, 'w') as f:
+        json.dump(initial_memory, f)
+    
+    # Create new manager instance which will load the memory
+    SimpleMemoryManager(memory_file=memory_file, llm_service=mock_llm)
+    
+    # Capture the output
+    captured = capsys.readouterr()
+    
+    # Verify the last 3 messages were displayed
+    assert "Recent conversation history:" in captured.out
+    assert "[USER] second message" in captured.out
+    assert "[ASSISTANT] second response" in captured.out
+    assert "[ASSISTANT] first response" not in captured.out  # Should not show older messages
+
+// ... existing code ...
+```
+
+---
+
+_**Assistant**_
+
+```
+def test_load_memory_displays_history(memory_file, mock_llm_service, capsys):
+    """Test that loading memory displays recent conversation history."""
+    # Create initial memory file with multiple messages
+    initial_memory = {
+        "static_memory": {
+            "structured_data": {"entities": []},
+            "knowledge_graph": {"relationships": []}
+        },
+        "working_memory": {
+            "structured_data": {},
+            "knowledge_graph": {
+                "entities": [],
+                "relationships": []
+            }
+        },
+        "metadata": {
+            "created_at": "2024-01-01T00:00:00",
+            "last_updated": "2024-01-01T00:00:00",
+            "version": "1.0"
+        },
+        "conversation_history": [
+            {
+                "role": "user",
+                "content": "first message",
+                "timestamp": "2024-01-01T00:00:00"
+            },
+            {
+                "role": "assistant",
+                "content": "first response",
+                "timestamp": "2024-01-01T00:00:01"
+            },
+            {
+                "role": "user",
+                "content": "second message",
+                "timestamp": "2024-01-01T00:00:02"
+            },
+            {
+                "role": "assistant",
+                "content": "second response that is very long and should be truncated because it exceeds the maximum length we want to display in the history summary",
+                "timestamp": "2024-01-01T00:00:03"
+            }
+        ]
+    }
+    
+    with open(memory_file, 'w') as f:
+        json.dump(initial_memory, f)
+    
+    # Create new manager instance which will load the memory
+    MemoryManager(memory_file=memory_file, llm_service=mock_llm_service)
+    
+    # Capture the output
+    captured = capsys.readouterr()
+    
+    # Verify the last 3 messages were displayed
+    assert "Recent conversation history:" in captured.out
+    assert "[USER] second message" in captured.out
+    assert "[ASSISTANT] second response that is very long" in captured.out
+    assert "..." in captured.out  # Should show truncation
+    assert "[ASSISTANT] first response" not in captured.out  # Should not show older messages
+
+// ... existing code ...
+```
+
+---
+
+_**Assistant**_
+
+
+
+
+
+
+
+Let's run the tests to verify the new functionality:
+
+---
+
+_**Assistant**_
+
+```
+python -m pytest tests/memory_manager/test_simple_memory_manager.py tests/memory_manager/test_memory_manager.py -v
+```
+
+---
+
+_**Assistant**_
+
+
+
+---
+
+_**User**_
+
+Actually. Let's not do it that way. The memory is fine. But the agent_usage_example.py needs to display the last couple of messages in the memory.
+
+---
+
+_**Assistant**_
+
+Ah, I understand. Instead of modifying the memory managers, we should update the agent_usage_example.py to display the conversation history when it starts up. Let me check the current agent_usage_example.py:
+
+---
+
+_**Assistant**_
+
+
+
+---
+
+_**Assistant**_
+
+
+
+I see that the agent_usage_example.py already has functions to display conversation history, but we need to show it when loading existing memory. Let me modify the `initialize_campaign` function to display recent history when loading existing memory:
+
+---
+
+_**Assistant**_
+
+```
+async def initialize_campaign(agent, memory_manager):
+    """Set up initial campaign state"""
+    print("\nInitializing campaign...")
+    print(f"Current phase: {agent.get_current_phase().name}")
+    
+    # First check if memory already exists
+    memory_context = memory_manager.get_memory_context()
+    if memory_context and memory_context.get("static_memory"):
+        print("Campaign already initialized, using existing memory")
+        print_memory_state(memory_manager, "Existing Campaign State")
+        
+        # Display recent conversation history
+        if "conversation_history" in memory_context:
+            messages = memory_context["conversation_history"]
+            if messages:
+                print("\nRecent Conversation History:")
+                print("-" * 30)
+                # Show last 3 messages
+                for msg in messages[-3:]:
+                    role = msg.get("role", "unknown")
+                    content = msg.get("content", "")
+                    timestamp = msg.get("timestamp", "")
+                    print(f"\n[{role.upper()}] {timestamp}")
+                    print(f"{content}")
+        
+        # Ensure we're in INTERACTION phase
+        if agent.get_current_phase() == AgentPhase.INITIALIZATION:
+            print("\nMoving to INTERACTION phase for existing campaign")
+            agent.current_phase = AgentPhase.INTERACTION
+        return True
+    
+// ... existing code ...
+```
+
+---
+
+_**Assistant**_
+
+
+
+I've updated the `initialize_campaign` function to display the last 3 messages from the conversation history when loading an existing memory file. This will help users understand the current state of the conversation when they restart the agent.
+
+The changes:
+1. After loading existing memory and displaying the memory state, we check if there's conversation history
+2. If there is history, we display the last 3 messages with their roles, timestamps, and content
+3. Each message shows who said it (USER or ASSISTANT) and when
+4. Added some formatting to make the output more readable
+
+Now when you start the agent and it loads existing memory, you'll see the recent conversation context right away. Would you like me to make any adjustments to this implementation?
+
+---
+
+_**User**_
+
+Actually that did not work. It looks like the logic in initialize_campaign is not right. For one thing, t is checking for "static_memory" which won't exist if the SimpleMemoryManager is used. Also, it seems that it will learn the campaig data even if it was loaded.
+
+---
+
+_**Assistant**_
+
+Ah, you're right. Let me fix those issues in the `initialize_campaign` function:
+
+1. We should check for existing memory in a way that works for both memory manager types
+2. We should only learn campaign data if we're creating new memory
+
+---
+
+_**Assistant**_
+
+```
+async def initialize_campaign(agent, memory_manager):
+    """Set up initial campaign state"""
+    print("\nInitializing campaign...")
+    print(f"Current phase: {agent.get_current_phase().name}")
+    
+    # First check if memory already exists and has content
+    memory_context = memory_manager.get_memory_context()
+    if memory_context and memory_context.get("conversation_history"):
+        print("Campaign already initialized, using existing memory")
+        
+        # Display recent conversation history
+        messages = memory_context["conversation_history"]
+        if messages:
+            print("\nRecent Conversation History:")
+            print("-" * 30)
+            # Show last 3 messages
+            for msg in messages[-3:]:
+                role = msg.get("role", "unknown")
+                content = msg.get("content", "")
+                timestamp = msg.get("timestamp", "")
+                print(f"\n[{role.upper()}] {timestamp}")
+                print(f"{content}")
+        
+        # Ensure we're in INTERACTION phase
+        if agent.get_current_phase() == AgentPhase.INITIALIZATION:
+            print("\nMoving to INTERACTION phase for existing campaign")
+            agent.current_phase = AgentPhase.INTERACTION
+        return True
+    
+    # If no existing memory, create new campaign
+    print("Creating new campaign memory...")
+    campaign_data = """
+Campaign Setting: The Lost Valley
+
+World Details:
+- Hidden valley surrounded by impassable mountains
+- Ancient ruins scattered throughout
+- Mysterious magical anomalies
+- Three main settlements: Haven (central), Riverwatch (east), Mountainkeep (west)
+
+Key NPCs:
+1. Elena
+   - Role: Mayor of Haven
+   - Motivation: Protect the valley's inhabitants
+   - Current Quest: Investigate strange occurrences in Haven
+
+2. Theron
+   - Role: Master Scholar
+   - Expertise: Ancient ruins and artifacts
+   - Current Research: Decoding ruin inscriptions
+
+3. Sara
+   - Role: Captain of Riverwatch
+   - Responsibility: Valley's defense
+   - Current Concern: Increased monster activity
+
+Current Situations:
+1. Trade Routes
+   - Main road between settlements disrupted
+   - Merchants seeking protection
+   - Alternative routes needed
+
+2. Ancient Ruins
+   - New chambers discovered
+   - Strange energy emanations
+   - Valuable artifacts found
+
+3. Magical Anomalies
+   - Random magical effects
+   - Affecting local wildlife
+   - Possible connection to ruins"""
+
+    success = await agent.learn(campaign_data)
+    if not success:
+        print("Failed to initialize campaign!")
+        return False
+    
+    print("\nCampaign world initialized successfully!")
+    print_memory_state(memory_manager, "Initial Campaign State")
+    print(f"Current phase: {agent.get_current_phase().name}")
+    return True
+```
+
+---
+
+_**Assistant**_
+
+
+
+The key changes I made:
+
+1. Changed the memory existence check from `static_memory` to `conversation_history` since that's a better indicator of whether we have existing memory content
+2. Removed the `print_memory_state` call when loading existing memory since it's quite verbose and we're more interested in the recent conversation
+3. Moved the conversation history display logic to happen right after we detect existing memory
+4. Added a comment to clarify that we only create new campaign memory if no existing memory is found
+
+Now the script should:
+1. Properly detect existing memory by checking for conversation history
+2. Only show the last 3 messages when loading existing memory
+3. Only learn campaign data when creating new memory
+4. Correctly transition to INTERACTION phase in both cases
+
+Would you like me to make any other adjustments to this implementation?
+
+---
+
 
 
 ---

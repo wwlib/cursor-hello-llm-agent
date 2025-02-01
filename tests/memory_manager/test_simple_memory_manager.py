@@ -169,4 +169,80 @@ def test_invalid_json_update(memory_manager):
     memory_manager.create_initial_memory("Test data")
     
     success = memory_manager.update_memory("invalid json")
-    assert not success 
+    assert not success
+
+def test_load_existing_valid_memory(memory_file, mock_llm):
+    """Test that existing valid memory is loaded and not overwritten."""
+    # Create initial memory file
+    initial_memory = {
+        "initial_data": "test data",
+        "conversation_history": [
+            {
+                "role": "user",
+                "content": "test message",
+                "timestamp": "2024-01-01T00:00:00"
+            }
+        ],
+        "last_updated": "2024-01-01T00:00:00"
+    }
+    
+    with open(memory_file, 'w') as f:
+        json.dump(initial_memory, f)
+    
+    # Create new manager instance
+    manager = SimpleMemoryManager(memory_file=memory_file, llm_service=mock_llm)
+    
+    # Try to create new memory - should not overwrite
+    result = manager.create_initial_memory("new data")
+    
+    assert result is True
+    assert manager.memory["initial_data"] == "test data"  # Should keep original data
+    assert len(manager.memory["conversation_history"]) == 1
+    assert manager.memory["conversation_history"][0]["content"] == "test message"
+
+def test_load_existing_invalid_memory(memory_file, mock_llm):
+    """Test that invalid memory structure is replaced with new memory."""
+    # Create initial memory file with invalid structure
+    invalid_memory = {
+        "initial_data": "test data",
+        # Missing conversation_history and last_updated
+    }
+    
+    with open(memory_file, 'w') as f:
+        json.dump(invalid_memory, f)
+    
+    # Create new manager instance
+    manager = SimpleMemoryManager(memory_file=memory_file, llm_service=mock_llm)
+    
+    # Try to create new memory - should replace invalid memory
+    result = manager.create_initial_memory("new data")
+    
+    assert result is True
+    assert manager.memory["initial_data"] == "new data"  # Should use new data
+    assert "conversation_history" in manager.memory
+    assert "last_updated" in manager.memory
+    assert len(manager.memory["conversation_history"]) == 0
+
+def test_load_existing_partial_memory(memory_file, mock_llm):
+    """Test that partially complete memory structure is replaced with new memory."""
+    # Create initial memory file with partial structure
+    partial_memory = {
+        "initial_data": "test data",
+        "conversation_history": [],
+        # Missing last_updated
+    }
+    
+    with open(memory_file, 'w') as f:
+        json.dump(partial_memory, f)
+    
+    # Create new manager instance
+    manager = SimpleMemoryManager(memory_file=memory_file, llm_service=mock_llm)
+    
+    # Try to create new memory - should replace partial memory
+    result = manager.create_initial_memory("new data")
+    
+    assert result is True
+    assert manager.memory["initial_data"] == "new data"  # Should use new data
+    assert "conversation_history" in manager.memory
+    assert "last_updated" in manager.memory
+    assert len(manager.memory["conversation_history"]) == 0 

@@ -107,8 +107,9 @@ class MemoryManager(BaseMemoryManager):
         The LLM is free to choose the internal structure of static_memory and working_memory
         based on what makes sense for the domain. We only validate the top-level structure.
         """
-        if self.memory:
-            print("Memory already exists, skipping initialization")
+        # Check if we have valid existing memory
+        if self.memory and all(key in self.memory for key in ["static_memory", "working_memory", "metadata", "conversation_history"]):
+            print("Valid memory structure already exists, skipping initialization")
             return True
 
         print("\nCreating initial memory structure...")
@@ -152,7 +153,7 @@ class MemoryManager(BaseMemoryManager):
                 else:
                     print("Could not find JSON structure in LLM response")
                     return False
-
+            
             # Validate only the top-level structure
             if "static_memory" not in memory_data:
                 print("Missing static_memory in LLM response")

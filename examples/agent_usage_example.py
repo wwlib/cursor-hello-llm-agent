@@ -139,17 +139,31 @@ async def initialize_campaign(agent, memory_manager):
     print("\nInitializing campaign...")
     print(f"Current phase: {agent.get_current_phase().name}")
     
-    # First check if memory already exists
+    # First check if memory already exists and has content
     memory_context = memory_manager.get_memory_context()
-    if memory_context and memory_context.get("static_memory"):
+    if memory_context and memory_context.get("conversation_history"):
         print("Campaign already initialized, using existing memory")
-        print_memory_state(memory_manager, "Existing Campaign State")
+        
+        # Display recent conversation history
+        messages = memory_context["conversation_history"]
+        if messages:
+            print("\nRecent Conversation History:")
+            print("-" * 30)
+            # Show last 3 messages
+            for msg in messages[-3:]:
+                role = msg.get("role", "unknown")
+                content = msg.get("content", "")
+                timestamp = msg.get("timestamp", "")
+                print(f"\n[{role.upper()}] {timestamp}")
+                print(f"{content}")
+        
         # Ensure we're in INTERACTION phase
         if agent.get_current_phase() == AgentPhase.INITIALIZATION:
-            print("Moving to INTERACTION phase for existing campaign")
+            print("\nMoving to INTERACTION phase for existing campaign")
             agent.current_phase = AgentPhase.INTERACTION
         return True
     
+    # If no existing memory, create new campaign
     print("Creating new campaign memory...")
     campaign_data = """
 Campaign Setting: The Lost Valley
@@ -191,7 +205,7 @@ Current Situations:
    - Random magical effects
    - Affecting local wildlife
    - Possible connection to ruins"""
-    
+
     success = await agent.learn(campaign_data)
     if not success:
         print("Failed to initialize campaign!")

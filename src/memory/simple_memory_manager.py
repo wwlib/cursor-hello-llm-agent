@@ -51,6 +51,11 @@ class SimpleMemoryManager(BaseMemoryManager):
             bool: True if memory was created successfully
         """
         try:
+            # Check if we have valid existing memory
+            if self.memory and all(key in self.memory for key in ["initial_data", "conversation_history", "last_updated"]):
+                print("Valid memory structure already exists, skipping initialization")
+                return True
+                
             # Initialize the simplified memory structure
             now = datetime.now().isoformat()
             self.memory = {

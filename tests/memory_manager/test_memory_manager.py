@@ -629,3 +629,128 @@ def test_memory_update_integration_with_llm():
         for f in os.listdir():
             if f.startswith(backup_pattern):
                 os.remove(f)
+
+def test_load_existing_valid_memory(memory_file, mock_llm_service):
+    """Test that existing valid memory is loaded and not overwritten."""
+    # Create initial memory file
+    initial_memory = {
+        "static_memory": {
+            "structured_data": {
+                "entities": [
+                    {
+                        "identifier": "test_entity",
+                        "type": "test",
+                        "name": "Test Entity",
+                        "features": ["test"],
+                        "description": "Test description"
+                    }
+                ]
+            },
+            "knowledge_graph": {
+                "relationships": []
+            }
+        },
+        "working_memory": {
+            "structured_data": {},
+            "knowledge_graph": {
+                "entities": [],
+                "relationships": []
+            }
+        },
+        "metadata": {
+            "created_at": "2024-01-01T00:00:00",
+            "last_updated": "2024-01-01T00:00:00",
+            "version": "1.0"
+        },
+        "conversation_history": [
+            {
+                "role": "user",
+                "content": "test message",
+                "timestamp": "2024-01-01T00:00:00"
+            }
+        ]
+    }
+    
+    with open(memory_file, 'w') as f:
+        json.dump(initial_memory, f)
+    
+    # Create new manager instance
+    manager = MemoryManager(memory_file=memory_file, llm_service=mock_llm_service)
+    
+    # Try to create new memory - should not overwrite
+    result = manager.create_initial_memory("new data")
+    
+    assert result is True
+    # Verify original memory was preserved
+    assert manager.memory["static_memory"]["structured_data"]["entities"][0]["identifier"] == "test_entity"
+    assert len(manager.memory["conversation_history"]) == 1
+    assert manager.memory["conversation_history"][0]["content"] == "test message"
+
+def test_load_existing_invalid_memory(memory_file, mock_llm_service):
+    """Test that invalid memory structure is replaced with new memory."""
+    # Create initial memory file with invalid structure
+    invalid_memory = {
+        "static_memory": {
+            "structured_data": {
+                "entities": []
+            }
+            # Missing knowledge_graph
+        }
+        # Missing working_memory, metadata, conversation_history
+    }
+    
+    with open(memory_file, 'w') as f:
+        json.dump(invalid_memory, f)
+    
+    # Create new manager instance
+    manager = MemoryManager(memory_file=memory_file, llm_service=mock_llm_service)
+    
+    # Try to create new memory - should replace invalid memory
+    result = manager.create_initial_memory("new data")
+    
+    assert result is True
+    # Verify new memory structure was created
+    assert "static_memory" in manager.memory
+    assert "working_memory" in manager.memory
+    assert "metadata" in manager.memory
+    assert "conversation_history" in manager.memory
+    assert len(manager.memory["conversation_history"]) == 0
+
+def test_load_existing_partial_memory(memory_file, mock_llm_service):
+    """Test that partially complete memory structure is replaced with new memory."""
+    # Create initial memory file with partial structure
+    partial_memory = {
+        "static_memory": {
+            "structured_data": {
+                "entities": []
+            },
+            "knowledge_graph": {
+                "relationships": []
+            }
+        },
+        "working_memory": {
+            "structured_data": {},
+            "knowledge_graph": {
+                "entities": [],
+                "relationships": []
+            }
+        }
+        # Missing metadata and conversation_history
+    }
+    
+    with open(memory_file, 'w') as f:
+        json.dump(partial_memory, f)
+    
+    # Create new manager instance
+    manager = MemoryManager(memory_file=memory_file, llm_service=mock_llm_service)
+    
+    # Try to create new memory - should replace partial memory
+    result = manager.create_initial_memory("new data")
+    
+    assert result is True
+    # Verify complete memory structure was created
+    assert "static_memory" in manager.memory
+    assert "working_memory" in manager.memory
+    assert "metadata" in manager.memory
+    assert "conversation_history" in manager.memory
+    assert len(manager.memory["conversation_history"]) == 0
