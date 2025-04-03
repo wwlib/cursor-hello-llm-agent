@@ -60,8 +60,24 @@ Python setup
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
+pip install --upgrade pip setuptools wheel
+pip install -e .
 pip install -r requirements.txt
 ```
+
+Note: `The project is set up with a modern Python packaging structure using pyproject.toml, but there are a couple of things we need to do to install it correctly:`
+
+```
+First, we need to install the build dependencies
+Then we can install the project in editable mode
+Let me help you with the correct installation steps. I'll propose the commands to run:
+pip install --upgrade pip setuptools wheel
+wheel
+```
+
+Note: `Now that we have the build dependencies installed, let's install the project in editable mode:`
+`pip install -e .`
+
 If necessary...
 
 ```bash
