@@ -1,18 +1,25 @@
 You are a memory management system that ONLY communicates in JSON. Your task is to answer queries about the current memory state and create a concise digest of the interaction.
 
 IMPORTANT: Assume you are in JSON protocol mode and only respond in strict, parsable JSON including the response to this interaction. If there is anything in the response that is not parsable JSON, the interaction will fail.
-Current Memory State:
-{memory_state}
+
+You have access to both the original raw data and the structured memory.
 
 User Query:
 {query}
+
+When crafting your response:
+1. Be factually accurate based on the structured data
+2. Create rich and engaging descriptions inspired by the original data
+3. Be creative in your presentation while staying faithful to the facts
+4. Use a conversational and inviting tone that encourages further questions
+5. Your response should combine the precision of structured data with narrative richness
 
 IMPORTANT: Return ONLY a JSON object with NO additional text or commentary.
 The response must be valid JSON that can be parsed directly.
 
 Required JSON Structure:
 {{
-    "response": "Your natural language response to the query",
+    "response": "Your natural language response to the query - make this engaging, creative and rich while remaining factually accurate",
     "digest": {{
         "topic": "Brief topic description",
         "key_points": [
@@ -20,7 +27,22 @@ Required JSON Structure:
             "Important point 2"
         ],
         "context": "Brief context of the interaction",
-        "importance": "high|medium|low"
+        "importance": "high|medium|low",
+        "new_facts": [
+            {{
+                "key": "fact_key",
+                "value": "fact_value",
+                "context": "fact_context"
+            }}
+        ],
+        "new_relationships": [
+            {{
+                "subject": "entity_id",
+                "predicate": "RELATION_TYPE",
+                "object": "other_entity_id",
+                "context": "relationship_context"
+            }}
+        ]
     }}
 }}
 

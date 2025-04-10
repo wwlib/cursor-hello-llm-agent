@@ -9,19 +9,22 @@ class AgentPhase(Enum):
     INTERACTION = "INTERACTION"
 
 class Agent:
-    def __init__(self, llm_service, memory_manager, domain_name: str = "general"):
+    def __init__(self, llm_service, memory_manager, domain_name: str = "general", reflection_threshold: int = 10):
         """Initialize the agent with required services.
         
         Args:
             llm_service: Service for LLM operations
             memory_manager: Service for memory operations
             domain_name: Name of the domain (e.g., "dnd_campaign", "user_stories")
+            reflection_threshold: Number of conversation turns before triggering reflection (default: 10)
         """
         self.llm = llm_service
         self.memory = memory_manager
         self.domain_name = domain_name
         self.current_phase = AgentPhase.INITIALIZATION
+        self.reflection_threshold = reflection_threshold
         print(f"Agent initialized for domain: {domain_name}")
+        print(f"Reflection will occur every {reflection_threshold} turns")
 
     def get_current_phase(self) -> AgentPhase:
         """Get the current agent phase"""
@@ -49,7 +52,7 @@ class Agent:
                 self.current_phase = AgentPhase.INTERACTION
             
             # Check if we need reflection
-            if len(self.get_conversation_history()) >= 3:
+            if len(self.get_conversation_history()) >= self.reflection_threshold:
                 await self.reflect()
                 
             return response

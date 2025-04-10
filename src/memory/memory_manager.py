@@ -132,7 +132,15 @@ class MemoryManager(BaseMemoryManager):
                 input_data=input_data,
                 domain_guidance=domain_guidance
             )
+            
+            # Print the prompt to debug format placeholders
+            print(f"DEBUG - FORMATTED PROMPT (first 200 chars):\n{prompt[:200]}...")
+            print(f"DEBUG - FORMATTED PROMPT (last 200 chars):\n{prompt[-200:]}...")
+            
             llm_response = self.llm.generate(prompt)
+            
+            # Print the response to debug
+            print(f"DEBUG - LLM RESPONSE (first 200 chars):\n{llm_response[:200]}...")
             
             try:
                 memory_data = json.loads(llm_response)
@@ -171,16 +179,49 @@ class MemoryManager(BaseMemoryManager):
             if not isinstance(static_memory["structured_data"], dict) or not isinstance(static_memory["knowledge_graph"], dict):
                 print("structured_data and knowledge_graph must be dictionaries")
                 return False
+
+            # Validate knowledge_graph structure
+            knowledge_graph = static_memory["knowledge_graph"]
+            if "simple_facts" not in knowledge_graph or "relationships" not in knowledge_graph:
+                print("knowledge_graph must contain simple_facts and relationships")
+                return False
+
+            if not isinstance(knowledge_graph["simple_facts"], list) or not isinstance(knowledge_graph["relationships"], list):
+                print("simple_facts and relationships must be lists")
+                return False
+
+            # Validate simple_facts structure
+            for fact in knowledge_graph["simple_facts"]:
+                if not isinstance(fact, dict):
+                    print("Each fact must be a dictionary")
+                    return False
+                required_fields = ["key", "value", "context"]
+                if not all(field in fact for field in required_fields):
+                    print(f"Fact missing required fields: {required_fields}")
+                    return False
+
+            # Validate relationship structure
+            for relationship in knowledge_graph["relationships"]:
+                if not isinstance(relationship, dict):
+                    print("Each relationship must be a dictionary")
+                    return False
+                required_fields = ["subject", "predicate", "object", "context"]
+                if not all(field in relationship for field in required_fields):
+                    print(f"Relationship missing required fields: {required_fields}")
+                    return False
             
             # Initialize complete memory structure
             now = datetime.now().isoformat()
             self.memory = {
+                "original_data": input_data,  # Store the original raw input data
                 "static_memory": static_memory,
                 "working_memory": {
-                    "structured_data": {},  # Empty but matching structure will be filled by LLM
+                    "structured_data": {
+                        "entities": []  # Empty list for entities
+                    },
                     "knowledge_graph": {
-                        "entities": [],  # Initialize with empty entities array
-                        "relationships": []  # Initialize with empty relationships array
+                        "simple_facts": [],  # For natural language facts
+                        "relationships": []  # For explicit subject-predicate-object relationships
                     }
                 },
                 "metadata": {
@@ -219,21 +260,16 @@ class MemoryManager(BaseMemoryManager):
                 })
                 print(f"Added user message to history: {user_message}")
 
-            # Check if we need updating memory
-            history = self.memory.get("conversation_history", [])
-            if len(history) >= 3:  # Trigger updating memory after 3 messages
-                print("\nTriggering updating memory...")
-                update_memory_success = self._perform_update_memory(history)
-                if update_memory_success:
-                    # Clear only if updating memory was successful
-                    self.memory["conversation_history"] = []
-                    print("Cleared conversation history after successful updating memory")
-
             # Generate response using LLM
             print("Generating response using LLM...")
+            
+            # Extract original data for the template
+            original_data = self.memory.get("original_data", "")
+            
             prompt = self.templates["query"].format(
                 memory_state=json.dumps(self.memory, indent=2),
-                query=user_message
+                query=user_message,
+                original_data=original_data
             )
             
             response = self.llm.generate(prompt)
@@ -303,11 +339,19 @@ class MemoryManager(BaseMemoryManager):
         try:
             # Prepare updating memory prompt
             prompt = self.templates["update"].format(
-                memory_state=json.dumps(self.memory, indent=2)
+                memory_state=json.dumps(self.memory, indent=2),
+                messages_to_process=json.dumps(messages_to_process, indent=2)
             )
+            
+            # Print the prompt to debug format placeholders
+            print(f"DEBUG - UPDATE PROMPT (first 200 chars):\n{prompt[:200]}...")
+            print(f"DEBUG - UPDATE PROMPT (last 200 chars):\n{prompt[-200:]}...")
             
             print("Generating updated memory using LLM...")
             llm_response = self.llm.generate(prompt)
+            
+            # Print the response to debug
+            print(f"DEBUG - UPDATE RESPONSE (first 200 chars):\n{llm_response[:200]}...")
             
             try:
                 # First try direct JSON parsing
@@ -338,22 +382,60 @@ class MemoryManager(BaseMemoryManager):
                 return False
                 
             working_memory = updated_memory["working_memory"]
-            if not all(field in working_memory for field in ["structured_data", "knowledge_graph"]):
-                print("Missing required fields in working_memory")
+            
+            # Validate working_memory structure
+            if not isinstance(working_memory, dict):
+                print("working_memory must be a dictionary")
                 return False
                 
-            # Update only the working memory section
+            if "structured_data" not in working_memory or "knowledge_graph" not in working_memory:
+                print("working_memory must contain structured_data and knowledge_graph")
+                return False
+
+            # Validate knowledge_graph structure
+            knowledge_graph = working_memory["knowledge_graph"]
+            if not isinstance(knowledge_graph, dict):
+                print("knowledge_graph must be a dictionary")
+                return False
+
+            if "simple_facts" not in knowledge_graph or "relationships" not in knowledge_graph:
+                print("knowledge_graph must contain simple_facts and relationships")
+                return False
+
+            if not isinstance(knowledge_graph["simple_facts"], list) or not isinstance(knowledge_graph["relationships"], list):
+                print("simple_facts and relationships must be lists")
+                return False
+
+            # Validate simple_facts structure
+            for fact in knowledge_graph["simple_facts"]:
+                if not isinstance(fact, dict):
+                    print("Each fact must be a dictionary")
+                    return False
+                required_fields = ["key", "value", "context"]
+                if not all(field in fact for field in required_fields):
+                    print(f"Fact missing required fields: {required_fields}")
+                    return False
+
+            # Validate relationship structure
+            for relationship in knowledge_graph["relationships"]:
+                if not isinstance(relationship, dict):
+                    print("Each relationship must be a dictionary")
+                    return False
+                required_fields = ["subject", "predicate", "object", "context"]
+                if not all(field in relationship for field in required_fields):
+                    print(f"Relationship missing required fields: {required_fields}")
+                    return False
+
+            # Update working memory
             self.memory["working_memory"] = working_memory
-            
-            # Clear the conversation history after successful update
-            self.memory["conversation_history"] = []
-            
-            # Update metadata timestamp
             self.memory["metadata"]["last_updated"] = datetime.now().isoformat()
+            
+            # Clear conversation history after successful update
+            self.memory["conversation_history"] = []
             
             # Save the updated memory
             self.save_memory()
-            print("Memory updated successfully")
+            print("Memory updated and saved successfully")
             return True
             
         except Exception as e:

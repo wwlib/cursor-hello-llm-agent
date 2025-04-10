@@ -286,7 +286,7 @@ async def test_memory_reflection_trigger(agent, mock_memory_manager):
     """Test that reflection is triggered after accumulating messages"""
     # Setup memory manager to simulate conversation history
     conversation_history = []
-    for i in range(3):  # Add enough messages to trigger reflection
+    for i in range(10):  # Add enough messages to trigger reflection (new threshold is 10)
         conversation_history.append({
             "role": "user" if i % 2 == 0 else "assistant",
             "content": f"Message {i}",
