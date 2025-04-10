@@ -12,8 +12,8 @@ if project_root not in sys.path:
     sys.path.append(project_root)
 
 from src.ai.llm_ollama import OllamaService
-from src.memory.memory_manager import MemoryManager
-# from src.memory.simple_memory_manager import SimpleMemoryManager
+# from src.memory.memory_manager import MemoryManager
+from src.memory.simple_memory_manager import SimpleMemoryManager
 from src.agent.agent import Agent, AgentPhase
 from examples.domain_configs import DND_CONFIG
 
@@ -121,9 +121,9 @@ async def setup_services():
     })
     
     try:
-        print("Creating MemoryManager and Agent instances...")
-        memory_manager = MemoryManager(
-            memory_file="agent_memory.json",
+        print("Creating SimpleMemoryManager and Agent instances...")
+        memory_manager = SimpleMemoryManager(
+            memory_file="agent_memory_simple.json",
             domain_config=DND_CONFIG,
             llm_service=llm_service
         )

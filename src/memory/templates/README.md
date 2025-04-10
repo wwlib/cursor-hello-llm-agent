@@ -1,0 +1,1 @@
+When using Python's string .format() method, curly braces are interpreted as format placeholders. In the prompt templates, we need to escape the JSON syntax by doubling the curly braces.

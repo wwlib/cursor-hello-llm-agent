@@ -8,33 +8,33 @@ Input Data:
 {domain_guidance}
 
 Requirements:
-1. Return a JSON object with a top-level "static_memory" field
+1. Return a JSON object with a top-level "static_memory" and "working_memory" fields
 2. static_memory must contain:
    - structured_data: Organize domain-specific data in a way that makes sense for this use case
    - knowledge_graph: Represent relationships between entities in a way that fits the domain
-3. Choose data structures that best represent the domain's needs
-4. Use consistent field names and types within your chosen structure
-5. Make sure all JSON is properly formatted and closed
+3. working_memory must have the same structure as static_memory but start empty
+4. Choose data structures that best represent the domain's needs
+5. Use consistent field names and types within your chosen structure
+6. Make sure all JSON is properly formatted and closed
 
 The internal structure of structured_data should be determined by what makes sense for the domain.
-Use the domain guidance provided to inform your choices about how best to structure the input data. It will be part of the read-only, static memory used as prompt context throughout the session.
+Use the domain guidance provided to inform your choices about how best to structure the input data.
 
-The knowledge_graph is the second part of the read-only, static memory and should adhere to this schema:
+The knowledge_graph should adhere to this schema:
 {{
-    "entities": [
+    "simple_facts": [
         {{
-            "identifier": "entity_id",
-            "type": "entity_type",
-            "name": "Entity Name",
-            "features": ["feature1", "feature2"],
-            "description": "Entity description"
+            "key": "fact_key",
+            "value": "fact_value",
+            "context": "fact_context"
         }}
     ],
     "relationships": [
         {{
-            "subjectIdentifier": "entity_id",
+            "subject": "entity_id",
             "predicate": "RELATION_TYPE",
-            "objectIdentifier": "other_entity_id"
+            "object": "other_entity_id",
+            "context": "relationship_context"
         }}
     ]
 }}
@@ -47,9 +47,23 @@ IMPORTANT: The data returned should look like this:
             // Use whatever schema makes sense for the domain
         }},
         "knowledge_graph": {{
-            // Update with new relationships
-            // Use the knowledge_graph schema provided above
+            "simple_facts": [],
+            "relationships": []
         }}
+    }},
+    "working_memory": {{
+        "structured_data": {{
+            "entities": []
+        }},
+        "knowledge_graph": {{
+            "simple_facts": [],
+            "relationships": []
+        }}
+    }},
+    "metadata": {{
+        "created_at": "",
+        "last_updated": "",
+        "version": "1.0"
     }}
 }}
 
