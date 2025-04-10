@@ -165,48 +165,7 @@ async def initialize_campaign(agent, memory_manager):
     
     # If no existing memory, create new campaign
     print("Creating new campaign memory...")
-    campaign_data = """
-Campaign Setting: The Lost Valley
-
-World Details:
-- Hidden valley surrounded by impassable mountains
-- Ancient ruins scattered throughout
-- Mysterious magical anomalies
-- Three main settlements: Haven (central), Riverwatch (east), Mountainkeep (west)
-
-Key NPCs:
-1. Elena
-   - Role: Mayor of Haven
-   - Motivation: Protect the valley's inhabitants
-   - Current Quest: Investigate strange occurrences in Haven
-
-2. Theron
-   - Role: Master Scholar
-   - Expertise: Ancient ruins and artifacts
-   - Current Research: Decoding ruin inscriptions
-
-3. Sara
-   - Role: Captain of Riverwatch
-   - Responsibility: Valley's defense
-   - Current Concern: Increased monster activity
-
-Current Situations:
-1. Trade Routes
-   - Main road between settlements disrupted
-   - Merchants seeking protection
-   - Alternative routes needed
-
-2. Ancient Ruins
-   - New chambers discovered
-   - Strange energy emanations
-   - Valuable artifacts found
-
-3. Magical Anomalies
-   - Random magical effects
-   - Affecting local wildlife
-   - Possible connection to ruins"""
-
-    success = await agent.learn(campaign_data)
+    success = await agent.learn(DND_CONFIG["initial_data"])
     if not success:
         print("Failed to initialize campaign!")
         return False

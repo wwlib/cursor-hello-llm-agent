@@ -47,3 +47,4 @@ Required JSON Structure:
 }}
 
 REMEMBER: Assume you are in JSON protocol mode and only respond in strict, parsable JSON including the response to this interaction. If there is anything in the response that is not parsable JSON, the interaction will fail.
+Make sure that all parentheses, braces, brackets, etc. are balanced. For the reponse to be valid, it must be complete, parsable JSON.
