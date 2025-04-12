@@ -72,19 +72,18 @@ class SimpleMemoryManager(BaseMemoryManager):
             print(f"Error creating memory: {str(e)}")
             return False
 
-    def query_memory(self, query_context: str) -> dict:
+    def query_memory(self, query_context: Dict[str, Any]) -> dict:
         """Process query using LLM to generate response.
         
         Args:
-            query_context: JSON string containing query context with user_message
+            query_context: Dictionary containing query context with user_message
             
         Returns:
             dict: Response from LLM
         """
         try:
-            # Parse the query context
-            context = json.loads(query_context)
-            user_message = context.get("user_message", "")
+            # Get user message from context
+            user_message = query_context.get("user_message", "")
             
             # Add user message to history
             if user_message:
@@ -135,24 +134,21 @@ Please provide a helpful response based on all available context."""
             formatted += f"\n[{msg['role']}] {msg['content']}"
         return formatted
 
-    def update_memory(self, update_context: str) -> bool:
+    def update_memory(self, update_context: Dict[str, Any]) -> bool:
         """Update memory with new information.
         
         In this simple implementation, we just add the messages to history.
         Reflection is not needed since we don't transform memory structure.
         
         Args:
-            update_context: JSON string containing update context with messages
+            update_context: Dictionary containing update context
             
         Returns:
             bool: True if memory was updated successfully
         """
         try:
-            # Parse the update context
-            context = json.loads(update_context)
-            
             # Only handle update operations
-            if context.get("operation") != "update":
+            if update_context.get("operation") != "update":
                 print("update_memory should only be used for update operations")
                 return False
             

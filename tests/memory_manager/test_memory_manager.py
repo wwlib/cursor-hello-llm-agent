@@ -224,7 +224,8 @@ def test_update_memory_success(memory_manager, mock_llm_service):
                     {
                         "key": "static_fact",
                         "value": "Static fact value",
-                        "context": "Static fact context"
+                        "context": "Static fact context",
+                        "source": "initial_setup"
                     }
                 ],
                 "relationships": [
@@ -232,7 +233,8 @@ def test_update_memory_success(memory_manager, mock_llm_service):
                         "subject": "static_entity_1",
                         "predicate": "STATIC_RELATION",
                         "object": "static_entity_2",
-                        "context": "Static relationship context"
+                        "context": "Static relationship context",
+                        "source": "initial_setup"
                     }
                 ]
             }
@@ -254,7 +256,8 @@ def test_update_memory_success(memory_manager, mock_llm_service):
                     {
                         "key": "working_fact",
                         "value": "Working fact value",
-                        "context": "Working fact context"
+                        "context": "Working fact context",
+                        "source": "previous_update"
                     }
                 ],
                 "relationships": []
@@ -265,12 +268,23 @@ def test_update_memory_success(memory_manager, mock_llm_service):
             "last_updated": "2024-01-01T00:00:00",
             "version": "1.0"
         },
-        "conversation_history": []
+        "conversation_history": [
+            {
+                "role": "user",
+                "content": "Test message 1",
+                "timestamp": "2024-01-01T00:00:01"
+            },
+            {
+                "role": "assistant",
+                "content": "Test response 1",
+                "timestamp": "2024-01-01T00:00:02"
+            }
+        ]
     }
     memory_manager.memory = initial_memory
 
     # Setup mock response with updated working memory
-    mock_response = json.dumps({
+    mock_response = {
         "working_memory": {
             "structured_data": {
                 "entities": [
@@ -295,12 +309,14 @@ def test_update_memory_success(memory_manager, mock_llm_service):
                     {
                         "key": "working_fact",
                         "value": "Working fact value",
-                        "context": "Working fact context"
+                        "context": "Working fact context",
+                        "source": "previous_update"
                     },
                     {
                         "key": "new_fact",
                         "value": "New fact value",
-                        "context": "New fact context"
+                        "context": "New fact context",
+                        "source": "current_update"
                     }
                 ],
                 "relationships": [
@@ -308,31 +324,20 @@ def test_update_memory_success(memory_manager, mock_llm_service):
                         "subject": "working_entity_1",
                         "predicate": "TEST_RELATION",
                         "object": "working_entity_2",
-                        "context": "Test relationship context"
+                        "context": "Test relationship context",
+                        "source": "current_update"
                     }
                 ]
             }
         }
-    })
-    mock_llm_service.generate.return_value = mock_response
-
-    # Test memory update
-    update_context = {
-        "operation": "update",
-        "messages": [
-            {
-                "role": "user",
-                "content": "Test message 1",
-                "timestamp": "2024-01-01T00:00:01"
-            },
-            {
-                "role": "assistant",
-                "content": "Test response 1",
-                "timestamp": "2024-01-01T00:00:02"
-            }
-        ]
     }
-    result = memory_manager.update_memory(json.dumps(update_context))
+    mock_llm_service.generate.return_value = json.dumps(mock_response)
+
+    # Test memory update with dictionary context
+    update_context = {
+        "operation": "update"
+    }
+    result = memory_manager.update_memory(update_context)
 
     # Verify update was successful
     assert result is True
@@ -358,25 +363,33 @@ def test_update_memory_success(memory_manager, mock_llm_service):
     assert working_memory["knowledge_graph"]["relationships"][0]["subject"] == "working_entity_1"
     assert working_memory["knowledge_graph"]["relationships"][0]["predicate"] == "TEST_RELATION"
 
+    # Verify conversation history was cleared
+    assert len(memory_manager.memory["conversation_history"]) == 0
+
     # Verify metadata was preserved and updated
     assert "created_at" in memory_manager.memory["metadata"]
     assert "last_updated" in memory_manager.memory["metadata"]
     assert memory_manager.memory["metadata"]["version"] == "1.0"
 
 def test_update_memory_failure(memory_manager, mock_llm_service):
+    """Test handling of invalid LLM response during memory update."""
     mock_llm_service.generate.return_value = "invalid json"
     
     # Test with update operation
     update_context = {
-        "operation": "update",
-        "message": {
-            "role": "system",
-            "content": "Update triggered"
-        }
+        "operation": "update"
     }
     
-    result = memory_manager.update_memory(json.dumps(update_context))
+    result = memory_manager.update_memory(update_context)
+    assert result is False
+
+def test_update_memory_invalid_operation(memory_manager, mock_llm_service):
+    """Test that update fails with invalid operation type."""
+    update_context = {
+        "operation": "invalid"
+    }
     
+    result = memory_manager.update_memory(update_context)
     assert result is False
 
 def test_clear_memory(memory_manager):
@@ -953,3 +966,76 @@ def test_load_existing_partial_memory(memory_file, mock_llm_service):
     result = manager.create_initial_memory("new data")
 
     assert result is True
+
+def test_query_memory_adds_messages(memory_manager, mock_llm):
+    """Test that querying memory properly adds messages to history."""
+    # Setup initial memory
+    memory_manager.create_initial_memory("Initial test data")
+    
+    # Create a query
+    query = {"user_message": "Test question"}
+    response = memory_manager.query_memory(query)
+    
+    # Verify LLM was called with correct prompt
+    mock_llm.generate.assert_called_once()
+    prompt_arg = mock_llm.generate.call_args[0][0]
+    assert "Initial test data" in prompt_arg
+    assert "Test question" in prompt_arg
+    
+    # Check that both user message and response were added
+    history = memory_manager.memory["conversation_history"]
+    assert len(history) == 2  # User message + response
+    assert history[0]["role"] == "user"
+    assert history[0]["content"] == "Test question"
+    assert history[1]["role"] == "assistant"
+    assert history[1]["content"] == "Test response from LLM"
+
+def test_query_memory_saves_after_response(memory_manager, memory_file):
+    """Test that memory is saved after each query."""
+    memory_manager.create_initial_memory("Initial test data")
+    query = {"user_message": "Test question"}
+    memory_manager.query_memory(query)
+    
+    # Read the file directly
+    with open(memory_file, 'r') as f:
+        saved_data = json.load(f)
+    
+    assert len(saved_data["conversation_history"]) == 2
+    assert saved_data["conversation_history"][0]["content"] == "Test question"
+    assert saved_data["conversation_history"][1]["content"] == "Test response from LLM"
+
+def test_update_memory_no_reflection(memory_manager):
+    """Test that update_memory doesn't process reflection updates."""
+    memory_manager.create_initial_memory("Initial test data")
+    
+    # Create update context with reflection
+    update_context = {
+        "operation": "update",
+        "messages": [
+            {
+                "role": "system",
+                "content": "Reflection update",
+                "timestamp": datetime.now().isoformat()
+            }
+        ]
+    }
+    
+    success = memory_manager.update_memory(update_context)
+    assert success
+    # Verify no changes to conversation history
+    assert len(memory_manager.memory["conversation_history"]) == 0
+
+def test_invalid_query_context(memory_manager):
+    """Test handling of invalid query context."""
+    memory_manager.create_initial_memory("Test data")
+    
+    response = memory_manager.query_memory({"invalid": "context"})
+    assert "response" in response
+    assert "Error" in response["response"]
+
+def test_invalid_update_context(memory_manager):
+    """Test handling of invalid update context."""
+    memory_manager.create_initial_memory("Test data")
+    
+    success = memory_manager.update_memory({"invalid": "context"})
+    assert not success

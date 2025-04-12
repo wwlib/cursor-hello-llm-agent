@@ -124,11 +124,11 @@ class BaseMemoryManager(ABC):
         pass
 
     @abstractmethod
-    def query_memory(self, query_context: str) -> dict:
+    def query_memory(self, query_context: Dict[str, Any]) -> dict:
         """Query memory with the given context.
         
         Args:
-            query_context: Context for the memory query
+            query_context: Dictionary containing query context
             
         Returns:
             dict: Query response
@@ -136,11 +136,11 @@ class BaseMemoryManager(ABC):
         pass
 
     @abstractmethod
-    def update_memory(self, update_context: str) -> bool:
+    def update_memory(self, update_context: Dict[str, Any]) -> bool:
         """Update memory with new information.
         
         Args:
-            update_context: Context containing update information
+            update_context: Dictionary containing update information
             
         Returns:
             bool: True if memory was updated successfully

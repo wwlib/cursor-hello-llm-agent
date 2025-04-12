@@ -1,20 +1,19 @@
-You are a memory management system. Your task is to analyze the conversation history and update the working memory with any new information.
+You are a memory management system. Your task is to analyze the CURRENT_MEMORY_STATE and update the working_memory with any new information.
 
-Current Memory State:
+CURRENT_MEMORY_STATE:
 {memory_state}
 
-Messages to Process:
-{messages_to_process}
-
 Instructions:
-1. Analyze the current memory state and messages for new information
-2. Add any new entities to working_memory.structured_data.entities
-3. Add new facts to working_memory.knowledge_graph.simple_facts
-4. Add new relationships to working_memory.knowledge_graph.relationships
-5. DO NOT modify static_memory
-6. DO NOT modify the schema or structure of existing data
-7. DO NOT remove any existing information
-8. Return ONLY the updated working_memory section as a valid JSON object
+1. Analyze the CURRENT_MEMORY_STATE, paying special attention to the digest information in the conversation history
+2. Use the structured "new_facts" and "new_relationships" from digests to update working memory
+3. Consider the "importance" level when deciding what information to retain
+4. Add any new entities to working_memory.structured_data.entities
+5. Add new facts to working_memory.knowledge_graph.simple_facts
+6. Add new relationships to working_memory.knowledge_graph.relationships
+7. DO NOT modify static_memory
+8. DO NOT modify the schema or structure of existing data
+9. DO NOT remove any existing information
+10. Return ONLY the updated working_memory section as a valid JSON object
 
 The knowledge_graph should adhere to this schema:
 {{
@@ -22,7 +21,8 @@ The knowledge_graph should adhere to this schema:
         {{
             "key": "fact_key",
             "value": "fact_value",
-            "context": "fact_context"
+            "context": "fact_context",
+            "source": "user|assistant|inferred"
         }}
     ],
     "relationships": [
@@ -30,7 +30,8 @@ The knowledge_graph should adhere to this schema:
             "subject": "entity_id",
             "predicate": "RELATION_TYPE",
             "object": "other_entity_id",
-            "context": "relationship_context"
+            "context": "relationship_context",
+            "source": "user|assistant|inferred"
         }}
     ]
 }}
@@ -56,7 +57,8 @@ Example response format:
                 {{
                     "key": "fact_key",
                     "value": "fact_value",
-                    "context": "fact_context"
+                    "context": "fact_context",
+                    "source": "user|assistant|inferred"
                 }}
             ],
             "relationships": [
@@ -64,7 +66,8 @@ Example response format:
                     "subject": "entity_id",
                     "predicate": "RELATION_TYPE",
                     "object": "other_entity_id",
-                    "context": "relationship_context"
+                    "context": "relationship_context",
+                    "source": "user|assistant|inferred"
                 }}
             ]
         }}

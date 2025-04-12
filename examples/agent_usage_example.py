@@ -111,7 +111,7 @@ async def setup_services():
     print("Initializing LLM service (Ollama)...")
     llm_service = OllamaService({
         "base_url": "http://192.168.1.173:11434",
-        "model": "llama3",
+        "model": "gemma3",
         "temperature": 0.7,
         "stream": False,
         "debug": True,
@@ -127,7 +127,7 @@ async def setup_services():
             domain_config=DND_CONFIG,
             llm_service=llm_service
         )
-        agent = Agent(llm_service, memory_manager, domain_name="dnd_campaign")
+        agent = Agent(llm_service, memory_manager, domain_name="dnd_campaign", reflection_threshold=4)
         print("Services initialized successfully")
         return agent, memory_manager
     except Exception as e:

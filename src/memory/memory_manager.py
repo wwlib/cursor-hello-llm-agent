@@ -141,6 +141,7 @@ class MemoryManager(BaseMemoryManager):
             
             # Print the response to debug
             print(f"DEBUG - LLM RESPONSE (first 200 chars):\n{llm_response[:200]}...")
+            print(f"DEBUG - LLM RESPONSE (last 200 chars):\n{llm_response[-200:]}...")
             
             try:
                 memory_data = json.loads(llm_response)
@@ -181,17 +182,17 @@ class MemoryManager(BaseMemoryManager):
                 return False
 
             # Validate knowledge_graph structure
-            knowledge_graph = static_memory["knowledge_graph"]
-            if "simple_facts" not in knowledge_graph or "relationships" not in knowledge_graph:
+            static_knowledge_graph = static_memory["knowledge_graph"]
+            if "simple_facts" not in static_knowledge_graph or "relationships" not in static_knowledge_graph:
                 print("knowledge_graph must contain simple_facts and relationships")
                 return False
 
-            if not isinstance(knowledge_graph["simple_facts"], list) or not isinstance(knowledge_graph["relationships"], list):
+            if not isinstance(static_knowledge_graph["simple_facts"], list) or not isinstance(static_knowledge_graph["relationships"], list):
                 print("simple_facts and relationships must be lists")
                 return False
 
             # Validate simple_facts structure
-            for fact in knowledge_graph["simple_facts"]:
+            for fact in static_knowledge_graph["simple_facts"]:
                 if not isinstance(fact, dict):
                     print("Each fact must be a dictionary")
                     return False
@@ -201,7 +202,7 @@ class MemoryManager(BaseMemoryManager):
                     return False
 
             # Validate relationship structure
-            for relationship in knowledge_graph["relationships"]:
+            for relationship in static_knowledge_graph["relationships"]:
                 if not isinstance(relationship, dict):
                     print("Each relationship must be a dictionary")
                     return False
@@ -238,20 +239,17 @@ class MemoryManager(BaseMemoryManager):
             
         except Exception as e:
             print(f"Error creating memory structure: {str(e)}")
+            print(f"Full error: {repr(e)}")
             return False
 
-    def query_memory(self, query_context: str) -> dict:
+    def query_memory(self, query_context: Dict[str, Any]) -> dict:
         """Query memory with the given context."""
-        print("\nProcessing memory query...")
-        
         try:
-            context = json.loads(query_context)
-            user_message = context.get("user_message", "")
-            
-            if "conversation_history" not in self.memory:
-                self.memory["conversation_history"] = []
+            print("\nQuerying memory...")
+            print(query_context)
             
             # Add user message to history
+            user_message = query_context.get("user_message", "")
             if user_message:
                 self.memory["conversation_history"].append({
                     "role": "user",
@@ -259,9 +257,6 @@ class MemoryManager(BaseMemoryManager):
                     "timestamp": datetime.now().isoformat()
                 })
                 print(f"Added user message to history: {user_message}")
-
-            # Generate response using LLM
-            print("Generating response using LLM...")
             
             # Extract original data for the template
             original_data = self.memory.get("original_data", "")
@@ -272,22 +267,39 @@ class MemoryManager(BaseMemoryManager):
                 original_data=original_data
             )
             
-            response = self.llm.generate(prompt)
+            # Get response from LLM
+            print("Generating response using LLM...")
+            llm_response = self.llm.generate(prompt)
             
             try:
-                result = json.loads(response)
-            except json.JSONDecodeError as e:
-                print(f"Error parsing LLM response: {str(e)}")
-                return {"response": "Error processing query"}
+                result = json.loads(llm_response)
+            except json.JSONDecodeError:
+                import re
+                print("Failed to parse direct JSON, attempting to extract JSON structure...")
+                json_match = re.search(r'\{[\s\S]*\}', llm_response)
+                if json_match:
+                    try:
+                        json_str = json_match.group(0)
+                        # Remove any markdown code block markers
+                        json_str = re.sub(r'```json\s*|\s*```', '', json_str)
+                        result = json.loads(json_str)
+                        print("Successfully extracted and fixed JSON structure")
+                    except json.JSONDecodeError as e:
+                        print(f"Error parsing extracted JSON structure: {str(e)}")
+                        return False
+                else:
+                    print("Could not find JSON structure in LLM response")
+                    return False
 
             if not isinstance(result, dict) or "response" not in result:
                 print("Invalid response structure - must have 'response' property")
                 return {"response": "Error: Invalid response structure from LLM"}
 
-            # Add assistant response to history
+            # Add assistant response to history with digest information
             self.memory["conversation_history"].append({
                 "role": "assistant",
                 "content": result["response"],
+                "digest": result.get("digest", {}),  # Store the digest information
                 "timestamp": datetime.now().isoformat()
             })
             print("Added assistant response to history")
@@ -301,99 +313,97 @@ class MemoryManager(BaseMemoryManager):
             print(f"Error in query_memory: {str(e)}")
             return {"response": f"Error processing query: {str(e)}"}
 
-    def update_memory(self, update_context: str) -> bool:
+    def update_memory(self, update_context: Dict[str, Any]) -> bool:
         """Update memory with new information using LLM.
         Only used for updating memory operations to minimize LLM calls.
         
         Args:
-            update_context: JSON string containing update context
+            update_context: Dictionary containing update context
             
         Returns:
             bool: True if memory was updated successfully
         """
         try:
             print("\nUpdating memory...")
-            context = json.loads(update_context)
             
             # Only handle updating memory operations
-            if context.get("operation") != "update":
+            if update_context.get("operation") != "update":
                 print("update_memory should only be used for updating memory operations")
                 return False
 
-            print("\nProcessing update memory operation...")
-            messages_to_process = context.get("messages", [])
-            return self._perform_update_memory(messages_to_process)
+            print("\nProcessing update memory operation...")            
+            return self._perform_update_memory()
             
         except Exception as e:
             print(f"Error updating memory: {str(e)}")
             return False
 
-    def _perform_update_memory(self, messages_to_process: list) -> bool:
+    def _perform_update_memory(self) -> bool:
         """Internal method to perform update memory on a set of messages."""
-        if not messages_to_process:
-            print("No messages to update with")
-            return False
-            
-        print(f"\nUpdating memory with {len(messages_to_process)} messages...")
-        
         try:
-            # Prepare updating memory prompt
+            print("\nProcessing messages for memory update...")
+                        
+            # Generate prompt for memory update
             prompt = self.templates["update"].format(
-                memory_state=json.dumps(self.memory, indent=2),
-                messages_to_process=json.dumps(messages_to_process, indent=2)
+                memory_state=json.dumps(self.memory, indent=2)
             )
             
-            # Print the prompt to debug format placeholders
-            print(f"DEBUG - UPDATE PROMPT (first 200 chars):\n{prompt[:200]}...")
-            print(f"DEBUG - UPDATE PROMPT (last 200 chars):\n{prompt[-200:]}...")
-            
-            print("Generating updated memory using LLM...")
+            # Get response from LLM
+            print("Generating memory update using LLM...")
             llm_response = self.llm.generate(prompt)
             
-            # Print the response to debug
-            print(f"DEBUG - UPDATE RESPONSE (first 200 chars):\n{llm_response[:200]}...")
-            
             try:
-                # First try direct JSON parsing
-                updated_memory = json.loads(llm_response)
+                result = json.loads(llm_response)
             except json.JSONDecodeError:
-                print("Failed to parse direct JSON, attempting to extract JSON structure...")
-                # Try to find JSON structure in the response
                 import re
+                print("Failed to parse direct JSON, attempting to extract JSON structure...")
                 json_match = re.search(r'\{[\s\S]*\}', llm_response)
-                if not json_match:
+                if json_match:
+                    try:
+                        json_str = json_match.group(0)
+                        # Remove any markdown code block markers
+                        json_str = re.sub(r'```json\s*|\s*```', '', json_str)
+                        result = json.loads(json_str)
+                        print("Successfully extracted and fixed JSON structure")
+                    except json.JSONDecodeError as e:
+                        print(f"Error parsing extracted JSON structure: {str(e)}")
+                        return False
+                else:
                     print("Could not find JSON structure in LLM response")
                     return False
-                    
-                try:
-                    # Clean up and parse the extracted JSON
-                    json_str = json_match.group(0)
-                    # Remove any markdown code block markers
-                    json_str = re.sub(r'```json\s*|\s*```', '', json_str)
-                    updated_memory = json.loads(json_str)
-                    print("Successfully extracted and parsed JSON structure")
-                except json.JSONDecodeError as e:
-                    print(f"Error parsing extracted JSON structure: {str(e)}")
-                    return False
-            
-            # Validate the updated memory structure
-            if "working_memory" not in updated_memory:
-                print("Missing working_memory in update memory response")
+
+            if not isinstance(result, dict) or "working_memory" not in result:
+                print("Invalid response structure - must have 'working_memory' property")
                 return False
-                
-            working_memory = updated_memory["working_memory"]
+
+            # Extract and validate working memory
+            working_memory = result["working_memory"]
             
-            # Validate working_memory structure
             if not isinstance(working_memory, dict):
                 print("working_memory must be a dictionary")
                 return False
-                
+
             if "structured_data" not in working_memory or "knowledge_graph" not in working_memory:
                 print("working_memory must contain structured_data and knowledge_graph")
                 return False
 
-            # Validate knowledge_graph structure
+            # Validate structured_data
+            structured_data = working_memory["structured_data"]
+            if not isinstance(structured_data, dict):
+                print("structured_data must be a dictionary")
+                return False
+
+            if "entities" not in structured_data:
+                print("structured_data must contain entities")
+                return False
+
+            if not isinstance(structured_data["entities"], list):
+                print("entities must be a list")
+                return False
+
+            # Validate knowledge_graph
             knowledge_graph = working_memory["knowledge_graph"]
+            
             if not isinstance(knowledge_graph, dict):
                 print("knowledge_graph must be a dictionary")
                 return False
@@ -411,7 +421,7 @@ class MemoryManager(BaseMemoryManager):
                 if not isinstance(fact, dict):
                     print("Each fact must be a dictionary")
                     return False
-                required_fields = ["key", "value", "context"]
+                required_fields = ["key", "value", "context", "source"]
                 if not all(field in fact for field in required_fields):
                     print(f"Fact missing required fields: {required_fields}")
                     return False
@@ -421,7 +431,7 @@ class MemoryManager(BaseMemoryManager):
                 if not isinstance(relationship, dict):
                     print("Each relationship must be a dictionary")
                     return False
-                required_fields = ["subject", "predicate", "object", "context"]
+                required_fields = ["subject", "predicate", "object", "context", "source"]
                 if not all(field in relationship for field in required_fields):
                     print(f"Relationship missing required fields: {required_fields}")
                     return False
@@ -439,6 +449,6 @@ class MemoryManager(BaseMemoryManager):
             return True
             
         except Exception as e:
-            print(f"Error during update memory: {str(e)}")
+            print(f"Error in _perform_update_memory: {str(e)}")
             return False
 
