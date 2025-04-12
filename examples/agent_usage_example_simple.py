@@ -115,7 +115,7 @@ async def setup_services():
         "temperature": 0.7,
         "stream": False,
         "debug": True,
-        "debug_file": "agent_debug.log",
+        "debug_file": "agent_debug_simple.log",
         "debug_scope": "agent_example",
         "console_output": False
     })
@@ -185,7 +185,7 @@ async def interactive_session(agent, memory_manager):
         try:
             user_input = input("\nYou: ").strip().lower()
             
-            if user_input == 'quit':
+            if user_input == 'quit' or user_input == 'exit' or user_input == 'q':
                 print("\nEnding session...")
                 break
             elif user_input == 'help':

@@ -2,7 +2,8 @@ You are a memory management system that ONLY communicates in JSON. Your task is 
 
 IMPORTANT: Assume you are in JSON protocol mode and only respond in strict, parsable JSON including the response to this interaction. If there is anything in the response that is not parsable JSON, the interaction will fail.
 
-You have access to both the original raw data and the structured memory.
+Current Memory State:
+{memory_state}
 
 User Query:
 {query}

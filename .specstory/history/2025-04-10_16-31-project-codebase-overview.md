@@ -498,6 +498,222 @@ Would you like me to elaborate on any of these aspects or help implement a speci
 
 ---
 
+_**User**_
+
+We need to make some careful, surgical fixes. I just noticed that the memory_state is no longer included in the query_memory.prompt. It was inadvertently removed in the last commit. We need to put it back.
+
+---
+
+_**Assistant**_
+
+Let me help you fix this issue. First, I'll check the current state of the query memory prompt template.
+
+---
+
+<details>
+            <summary>Listed directory src/memory/templates • **4** results</summary>
+        
+| Name |
+|-------|
+| 📄 `query_memory.prompt` |
+| 📄 `README.md` |
+| 📄 `update_memory.prompt` |
+| 📄 `create_memory.prompt` |
+
+</details>
+
+---
+
+Let me examine the current content of the query memory prompt:
+
+---
+
+Read file: src/memory/templates/query_memory.prompt
+
+---
+
+You're right - the memory state is missing from the query prompt. Let me check the git history to see what the previous version looked like.
+
+---
+
+<details>
+            <summary>Searched codebase "memory_state in query_memory.prompt" • **25** results</summary>
+        
+| File | Lines |
+|------|-------|
+| `examples/memory_manager_usage_example.py` | L83-99 |
+| `src/memory/templates/query_memory.prompt` | L1-51 |
+| `cursor-notes/cursor-chat-and-composer-transcripts/Composer - Designing a Base Memory Manager.md` | L2517-2574 |
+| `src/memory/memory_manager.py` | L241-292 |
+| `cursor-notes/cursor-chat-and-composer-transcripts/Composer - Designing a Base Memory Manager.md` | L2319-2380 |
+| `src/memory/simple_memory_manager.py` | L73-129 |
+| `src/memory/templates/update_memory.prompt` | L1-41 |
+| `examples/agent_usage_example.py` | L24-64 |
+| `examples/agent_usage_example_simple.py` | L24-64 |
+| `examples/memory_manager_usage_example.py` | L22-28 |
+| `.specstory/history/2025-04-05_19-37-memory-manager-vs-simple-memory-manager-analysis.md` | L606-679 |
+| `cursor-notes/cursor-chat-and-composer-transcripts/Composer - Designing a Base Memory Manager.md` | L2027-2086 |
+| `cursor-notes/cursor-chat-and-composer-transcripts/Composer - Designing a Base Memory Manager.md` | L604-645 |
+| `src/memory/templates/create_memory.prompt` | L1-43 |
+| `cursor-notes/cursor-chat-and-composer-transcripts/Composer - Designing a Base Memory Manager.md` | L514-537 |
+| `cursor-notes/cursor-chat-and-composer-transcripts/Composer - Designing a Base Memory Manager.md` | L3339-3362 |
+| `src/memory/README-memory-manager.md` | L239-267 |
+| `src/memory/memory_manager.py` | L329-354 |
+| `cursor-notes/cursor-chat-and-composer-transcripts/Composer - Designing a Base Memory Manager.md` | L575-604 |
+| `cursor-notes/cursor-chat-and-composer-transcripts/Composer - Designing a Base Memory Manager.md` | L471-514 |
+| `examples/user_story_example.py` | L23-29 |
+| `examples/memory_manager_usage_example.py` | L118-145 |
+| `cursor-notes/cursor-chat-and-composer-transcripts/Composer - Optimizing Memory Management for D&D.md` | L227-307 |
+| `src/memory/templates/create_memory.prompt` | L43-71 |
+| `cursor-notes/cursor-chat-and-composer-transcripts/Chat - Designing a Memory Manager for Campaign Data.md` | L368-451 |
+
+</details>
+
+---
+
+Looking at the code and search results, I can see that:
+
+1. The memory state is used in the `MemoryManager.query_memory()` method where it formats the prompt with:
+```python
+prompt = self.templates["query"].format(
+    memory_state=json.dumps(self.memory, indent=2),
+    query=user_message,
+    original_data=original_data
+)
+```
+
+2. However, in the current `query_memory.prompt` template, there's no `{memory_state}` placeholder, which explains why the memory state isn't being included in the prompt.
+
+Let's fix the `query_memory.prompt` template. Here's what it should look like:
+
+```python
+You are a memory management system that ONLY communicates in JSON. Your task is to answer queries about the current memory state and create a concise digest of the interaction.
+
+IMPORTANT: Assume you are in JSON protocol mode and only respond in strict, parsable JSON including the response to this interaction. If there is anything in the response that is not parsable JSON, the interaction will fail.
+
+Current Memory State:
+{memory_state}
+
+User Query:
+{query}
+
+When crafting your response:
+1. Be factually accurate based on the structured data
+2. Create rich and engaging descriptions inspired by the original data
+3. Be creative in your presentation while staying faithful to the facts
+4. Use a conversational and inviting tone that encourages further questions
+5. Your response should combine the precision of structured data with narrative richness
+
+IMPORTANT: Return ONLY a JSON object with NO additional text or commentary.
+The response must be valid JSON that can be parsed directly.
+
+Required JSON Structure:
+{
+    "response": "Your natural language response to the query - make this engaging, creative and rich while remaining factually accurate",
+    "digest": {
+        "topic": "Brief topic description",
+        "key_points": [
+            "Important point 1",
+            "Important point 2"
+        ],
+        "context": "Brief context of the interaction",
+        "importance": "high|medium|low",
+        "new_facts": [
+            {
+                "key": "fact_key",
+                "value": "fact_value",
+                "context": "fact_context"
+            }
+        ],
+        "new_relationships": [
+            {
+                "subject": "entity_id",
+                "predicate": "RELATION_TYPE",
+                "object": "other_entity_id",
+                "context": "relationship_context"
+            }
+        ]
+    }
+}
+
+REMEMBER: Assume you are in JSON protocol mode and only respond in strict, parsable JSON including the response to this interaction. If there is anything in the response that is not parsable JSON, the interaction will fail.
+Make sure that all parentheses, braces, brackets, etc. are balanced. For the reponse to be valid, it must be complete, parsable JSON.
+```
+
+This update:
+1. Adds the missing `{memory_state}` placeholder
+2. Maintains the existing format and requirements
+3. Ensures the LLM has access to the full memory state when generating responses
+
+Would you like me to make this change to the file?
+
+---
+
+_**User**_
+
+Yes. Please make the changes you suggested.
+
+---
+
+_**Assistant**_
+
+I'll edit the query memory prompt template to include the memory state.
+
+
+---
+
+```diff
+  IMPORTANT: Assume you are in JSON protocol mode and only respond in strict, parsable JSON including the response to this interaction. If there is anything in the response that is not parsable JSON, the interaction will fail.
+  
+- You have access to both the original raw data and the structured memory.
++ Current Memory State:
++ {memory_state}
+  
+  User Query:
+```
+
+---
+
+The changes have been made successfully. The key changes were:
+1. Removed the generic statement about having access to data
+2. Added the `Current Memory State:` section with the `{memory_state}` placeholder
+3. Maintained all other aspects of the prompt
+
+This change will ensure that the LLM has access to the full memory state when generating responses, which should improve the quality and accuracy of the responses. The memory state will be properly formatted and included in the prompt when the `query_memory` method is called.
+
+Would you like me to verify that the changes are working correctly by testing the memory manager with a query?
+
+---
+
+_**User**_
+
+Please write a commit message for the recent changes.
+
+---
+
+_**Assistant**_
+
+Here's a clear and descriptive commit message for the changes:
+
+```
+fix: Restore memory_state placeholder in query_memory.prompt
+
+The memory_state placeholder was inadvertently removed from the query_memory.prompt 
+template in a previous commit. This change restores it to ensure the LLM has access 
+to the full memory context when generating responses.
+
+- Removed generic statement about data access
+- Added explicit "Current Memory State:" section with {memory_state} placeholder
+- Maintained existing prompt structure and requirements
+
+This fix ensures that query responses will be properly contextualized with the 
+current memory state, improving response quality and accuracy.
+```
+
+The message follows conventional commit format, clearly states what was changed and why, and explains the impact of the fix. Would you like me to make any adjustments to the commit message?
+
+---
+
 
 
 ---

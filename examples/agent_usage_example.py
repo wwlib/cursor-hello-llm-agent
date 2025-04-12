@@ -185,7 +185,7 @@ async def interactive_session(agent, memory_manager):
         try:
             user_input = input("\nYou: ").strip().lower()
             
-            if user_input == 'quit':
+            if user_input == 'quit' or user_input == 'exit' or user_input == 'q':
                 print("\nEnding session...")
                 break
             elif user_input == 'help':

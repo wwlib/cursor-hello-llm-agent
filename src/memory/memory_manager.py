@@ -108,7 +108,7 @@ class MemoryManager(BaseMemoryManager):
         based on what makes sense for the domain. We only validate the top-level structure.
         """
         # Check if we have valid existing memory
-        if self.memory and all(key in self.memory for key in ["static_memory", "working_memory", "metadata", "conversation_history"]):
+        if self.memory and all(key in self.memory for key in ["original_data", "static_memory", "working_memory", "metadata", "conversation_history"]):
             print("Valid memory structure already exists, skipping initialization")
             return True
 

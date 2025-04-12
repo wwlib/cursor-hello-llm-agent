@@ -59,11 +59,6 @@ IMPORTANT: The data returned should look like this:
             "simple_facts": [],
             "relationships": []
         }}
-    }},
-    "metadata": {{
-        "created_at": "",
-        "last_updated": "",
-        "version": "1.0"
     }}
 }}
 
