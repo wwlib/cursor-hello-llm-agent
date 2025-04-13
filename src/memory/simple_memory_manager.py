@@ -12,6 +12,7 @@ Key Features:
 
 from typing import Any, Dict, Optional
 import json
+import uuid
 from datetime import datetime
 from .base_memory_manager import BaseMemoryManager
 
@@ -25,7 +26,7 @@ class SimpleMemoryManager(BaseMemoryManager):
     - Uses simplified memory structure
     """
     
-    def __init__(self, memory_file: str = "memory.json", domain_config: Optional[Dict[str, Any]] = None, llm_service = None):
+    def __init__(self, memory_file: str = "memory.json", domain_config: Optional[Dict[str, Any]] = None, llm_service = None, memory_guid: str = None):
         """Initialize the SimpleMemoryManager.
         
         Args:
@@ -33,13 +34,44 @@ class SimpleMemoryManager(BaseMemoryManager):
             domain_config: Optional configuration for domain-specific behavior
                          (not used in this implementation but kept for interface consistency)
             llm_service: Service for LLM operations (required for generating responses)
+            memory_guid: Optional GUID to identify this memory instance. If not provided, 
+                       a new one will be generated or loaded from existing file.
         """
         if llm_service is None:
             raise ValueError("llm_service is required for SimpleMemoryManager")
+        
+        # Store memory_guid if provided
+        self.memory_guid = memory_guid
             
         super().__init__(memory_file, domain_config)
         print(f"\nInitializing SimpleMemoryManager with file: {memory_file}")
         self.llm = llm_service
+        
+        # Ensure memory has a GUID
+        self._ensure_memory_guid()
+        
+    def _ensure_memory_guid(self):
+        """Ensure that the memory has a GUID, generating one if needed."""
+        # If memory doesn't exist yet or doesn't have a guid, we'll set it later in create_initial_memory
+        if not self.memory:
+            return
+            
+        # If memory exists but no guid was found during load and none was provided
+        if "guid" not in self.memory and not self.memory_guid:
+            # Generate a new GUID
+            self.memory_guid = str(uuid.uuid4())
+            self.memory["guid"] = self.memory_guid
+            print(f"Generated new GUID for existing memory: {self.memory_guid}")
+            self.save_memory()
+        elif "guid" in self.memory:
+            # Store the loaded GUID
+            self.memory_guid = self.memory["guid"]
+            print(f"Using existing memory GUID: {self.memory_guid}")
+        else:
+            # Use the provided GUID
+            self.memory["guid"] = self.memory_guid
+            print(f"Applied provided GUID to memory: {self.memory_guid}")
+            self.save_memory()
 
     def create_initial_memory(self, input_data: str) -> bool:
         """Store initial input data.
@@ -54,11 +86,19 @@ class SimpleMemoryManager(BaseMemoryManager):
             # Check if we have valid existing memory
             if self.memory and all(key in self.memory for key in ["initial_data", "conversation_history", "last_updated"]):
                 print("Valid memory structure already exists, skipping initialization")
+                # Ensure GUID exists even for pre-existing memories
+                self._ensure_memory_guid()
                 return True
+            
+            # Generate a new GUID if one wasn't provided
+            if not self.memory_guid:
+                self.memory_guid = str(uuid.uuid4())
+                print(f"Generated new GUID for memory: {self.memory_guid}")
                 
             # Initialize the simplified memory structure
             now = datetime.now().isoformat()
             self.memory = {
+                "guid": self.memory_guid,  # Add GUID to memory structure
                 "initial_data": input_data,
                 "conversation_history": [],
                 "last_updated": now

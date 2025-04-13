@@ -41,6 +41,7 @@ Usage:
 from typing import Any, Dict, Optional
 import json
 import os
+import uuid
 from datetime import datetime
 from .base_memory_manager import BaseMemoryManager
 
@@ -50,7 +51,7 @@ class MemoryManager(BaseMemoryManager):
     Extends BaseMemoryManager to provide LLM-driven memory operations with domain-specific configuration.
     """
 
-    def __init__(self, memory_file: str = "memory.json", domain_config: Optional[Dict[str, Any]] = None, llm_service = None):
+    def __init__(self, memory_file: str = "memory.json", domain_config: Optional[Dict[str, Any]] = None, llm_service = None, memory_guid: str = None):
         """Initialize the MemoryManager with an LLM service and domain configuration.
         
         Args:
@@ -60,14 +61,45 @@ class MemoryManager(BaseMemoryManager):
                          - relationships: Domain-specific relationship types
                          - prompts: Domain-specific prompt templates
             llm_service: Service for LLM operations (required for this implementation)
+            memory_guid: Optional GUID to identify this memory instance. If not provided, 
+                       a new one will be generated or loaded from existing file.
         """
         if llm_service is None:
             raise ValueError("llm_service is required for MemoryManager")
+            
+        # Store memory_guid if provided
+        self.memory_guid = memory_guid
             
         super().__init__(memory_file, domain_config)
         print(f"\nInitializing MemoryManager with file: {memory_file}")
         self.llm = llm_service
         self._load_templates()
+        
+        # Ensure memory has a GUID
+        self._ensure_memory_guid()
+
+    def _ensure_memory_guid(self):
+        """Ensure that the memory has a GUID, generating one if needed."""
+        # If memory doesn't exist yet or doesn't have a guid, we'll set it later in create_initial_memory
+        if not self.memory:
+            return
+            
+        # If memory exists but no guid was found during load and none was provided
+        if "guid" not in self.memory and not self.memory_guid:
+            # Generate a new GUID
+            self.memory_guid = str(uuid.uuid4())
+            self.memory["guid"] = self.memory_guid
+            print(f"Generated new GUID for existing memory: {self.memory_guid}")
+            self.save_memory()
+        elif "guid" in self.memory:
+            # Store the loaded GUID
+            self.memory_guid = self.memory["guid"]
+            print(f"Using existing memory GUID: {self.memory_guid}")
+        else:
+            # Use the provided GUID
+            self.memory["guid"] = self.memory_guid
+            print(f"Applied provided GUID to memory: {self.memory_guid}")
+            self.save_memory()
 
     def _get_default_config(self) -> dict:
         """Get the default domain configuration if none provided."""
@@ -110,6 +142,8 @@ class MemoryManager(BaseMemoryManager):
         # Check if we have valid existing memory
         if self.memory and all(key in self.memory for key in ["original_data", "static_memory", "working_memory", "metadata", "conversation_history"]):
             print("Valid memory structure already exists, skipping initialization")
+            # Ensure GUID exists even for pre-existing memories
+            self._ensure_memory_guid()
             return True
 
         print("\nCreating initial memory structure...")
@@ -211,9 +245,15 @@ class MemoryManager(BaseMemoryManager):
                     print(f"Relationship missing required fields: {required_fields}")
                     return False
             
+            # Generate a new GUID if one wasn't provided
+            if not self.memory_guid:
+                self.memory_guid = str(uuid.uuid4())
+                print(f"Generated new GUID for memory: {self.memory_guid}")
+            
             # Initialize complete memory structure
             now = datetime.now().isoformat()
             self.memory = {
+                "guid": self.memory_guid,  # Add GUID to memory structure
                 "original_data": input_data,  # Store the original raw input data
                 "static_memory": static_memory,
                 "working_memory": {

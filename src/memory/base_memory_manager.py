@@ -19,6 +19,7 @@ from typing import Any, Dict, Optional
 from abc import ABC, abstractmethod
 import json
 import os
+import uuid
 from datetime import datetime
 
 class BaseMemoryManager(ABC):
@@ -41,6 +42,8 @@ class BaseMemoryManager(ABC):
         self.memory_file = memory_file
         self.domain_config = domain_config or {}
         self.memory: Dict[str, Any] = {}
+        # The memory_guid attribute will be set by implementations
+        self.memory_guid = None
         self._load_memory()
 
     def _load_memory(self) -> None:
@@ -146,3 +149,11 @@ class BaseMemoryManager(ABC):
             bool: True if memory was updated successfully
         """
         pass
+
+    def get_memory_guid(self) -> Optional[str]:
+        """Get the GUID of the current memory file.
+        
+        Returns:
+            str: The memory GUID if available, None otherwise
+        """
+        return self.memory_guid
