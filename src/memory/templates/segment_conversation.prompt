@@ -1,0 +1,23 @@
+You are a text analysis system. Your task is to segment the provided content into meaningful phrases, each containing a single idea or piece of information.
+
+CONTENT:
+{content}
+
+INSTRUCTIONS:
+1. Divide the content into distinct segments, each representing one coherent idea, fact, or piece of information
+2. Each segment should be a complete phrase or sentence
+3. Preserve the original meaning and context
+4. Don't omit any significant information
+5. Avoid creating segments that are too long or that contain multiple separate ideas
+
+For example, given:
+"Captain Sara patrols the eastern border with her squad of ten guards. She's concerned about recent monster sightings and has requested additional resources."
+
+The segmentation would be:
+[
+  "Captain Sara patrols the eastern border with her squad of ten guards.",
+  "She's concerned about recent monster sightings.",
+  "She has requested additional resources."
+]
+
+Return ONLY a JSON array of strings, with each string being a distinct segment. The response should be valid JSON that can be directly parsed. 

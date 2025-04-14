@@ -7,7 +7,9 @@
   - Including acting as the project ProjewctManager/ScrumMaster
 - Use the Agent Framework to create an Agent that can act like a "Jarvis" in a home workshop to assist with projects and preserve project details - like a voice-driven lab notebook
 - Use the Agent Framework to create a DND Dungeon Master
-
+- Future
+  - Create a RAG DB of all of the ideas and info in the conversation history
+  - Should be able to identify where in the converstation timeline the info/ideas came from
 
 ## AI Summary of this README by the Cursor Agent using claude-3.7-sonnet
 
@@ -57,27 +59,48 @@ Successfully implemented several key features from our Phase 2 roadmap:
 The agent example now supports loading specific memory files by GUID and switching between memory manager types, providing a foundation for the conversation history separation in the next implementation phase.
 
 
+## Phase 2 Update - April 15, 2025 - DigestGenerator Implementation
+
+Successfully implemented the DigestGenerator component, a key part of our enhanced memory management system:
+
+1. **Two-Step Digest Generation Process**: 
+   - Segmentation: Breaks down conversation content into meaningful chunks using LLM
+   - Extraction: Derives structured facts and relationships from these segments using LLM
+   - This approach provides better traceability between raw conversation text and extracted knowledge
+
+2. **Structured Digest Format**:
+   - Each digest includes segments, context summary, facts, and relationships
+   - Facts include metadata like importance, topic, and source segments
+   - Relationships follow subject-predicate-object format with similar metadata
+   - Each digest is linked to its source conversation entry via GUID
+
+3. **Robust Error Handling**:
+   - Fallback mechanisms for LLM response parsing
+   - Graceful degradation when segmentation fails
+   - Comprehensive validation of extract information structure
+
+4. **Integration with Memory System**:
+   - Integration tests verify compatibility with existing memory components
+   - Example script demonstrates real-world usage in conversation analysis
+
+These changes enable more sophisticated information extraction from conversations, supporting our goal of having agents that can effectively learn from interactions. The DigestGenerator will serve as the foundation for upcoming conversation history separation and RAG-based memory retrieval features.
+
+Next steps include fully integrating the DigestGenerator into the memory update process and implementing separate conversation history storage with efficient cross-referencing.
+
+
 ## TODO
 
-
-
-### Improve the generation of query digests
+### Integrate the DigestGenerator with the MemoryManager
 
 - Each digest should include the GUID of the conversation history entry from which it was generated
-- Generation of digests should be a separate step, making its own LLM calls
-  - Step 1: Segment the query/response into phrases, each of which contains one idea and/or piece of distinct information
-  - Step 2: Extract the data from each segment into structured data that is included in the digest
-- Implement a general orchestrator to handle the multiple LLM calls
-   - Future
-     - Create a RAG DB of all of the ideas and info
-     - Should be able to identify where in the converstation timeline the info/ideas came from
 
 Example Digest JSON
 
 ```json
 "digest": 
     {
-        "conversationHistoryGuid": "519b036c-a652-4849-a037-cae3fd9ee767",
+        "conversation_history_entry_guid": "519b036c-a652-4849-a037-cae3fd9ee767",
+        "role": "assistant",
         "segments": [
             "The air hangs heavy with the scent of pine and damp earth as you recall the recent events.",
             "Just yesterday, Captain Silas, a grizzled veteran of the Merchant Guard, approached you with a proposition.",
@@ -86,7 +109,7 @@ Example Digest JSON
             "You accepted, eager for adventure and a bit of coin.",
             "The task: track down these venomous spiders and eliminate the threat to the surrounding settlements.",
             "The caves themselves are known to be a labyrinthine network, riddled with traps and, as Silas ominously warned, the spiders themselves."
-        ]
+        ],
         "context": "Reviewing the current situation following Silas's approach and offer.",
         "new_facts": [
           {
@@ -134,7 +157,7 @@ Example Conversation History File JSON
 
 ```json
 {
-    "memoryFileGuid": "596ab0a4-2ad8-4370-8919-6d34288200c8",
+    "memory_file_guid": "596ab0a4-2ad8-4370-8919-6d34288200c8",
     "entries": []
 }
 

@@ -1,0 +1,44 @@
+You are a knowledge extraction system. Your task is to analyze the segmented content and extract structured information into a digest.
+
+SEGMENTED CONTENT:
+{segments}
+
+INSTRUCTIONS:
+1. Analyze each segment for distinct information
+2. Extract specific facts and relationships
+3. Organize the extracted information according to the required JSON structure
+4. Include segment indexes in the "segmentIndexes" field to trace facts back to source segments
+5. Be selective - focus on extracting only meaningful, non-obvious information
+6. Assign importance levels (high/medium/low) based on the significance of the information
+7. Provide a brief "context" field explaining the information
+8. Specify the "source" as either "user", "assistant", or "inferred"
+9. Assign a relevant topic to each fact and relationship
+
+Return ONLY a JSON object with the structure below. The response must be valid JSON that can be directly parsed.
+
+{{
+  "context": "Brief description of what this conversation was about",
+  "new_facts": [
+    {{
+      "segmentIndexes": [0, 1],
+      "key": "fact_key",
+      "value": "fact_value",
+      "context": "fact_context",
+      "source": "user|assistant|inferred",
+      "importance": "high|medium|low",
+      "topic": "Brief topic description"
+    }}
+  ],
+  "new_relationships": [
+    {{
+      "segmentIndexes": [1, 2],
+      "subject": "entity_id",
+      "predicate": "RELATION_TYPE",
+      "object": "other_entity_id",
+      "context": "relationship_context",
+      "source": "user|assistant|inferred",
+      "importance": "high|medium|low",
+      "topic": "Brief topic description"
+    }}
+  ]
+}} 
