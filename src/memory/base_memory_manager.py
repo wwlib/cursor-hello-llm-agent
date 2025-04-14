@@ -29,7 +29,7 @@ class BaseMemoryManager(ABC):
     for memory operations. Concrete implementations must implement all abstract methods.
     """
     
-    def __init__(self, memory_file: str = "memory.json", domain_config: Optional[Dict[str, Any]] = None):
+    def __init__(self, memory_file: str = "memory.json", domain_config: Optional[Dict[str, Any]] = None, memory_guid: Optional[str] = None):
         """Initialize the base memory manager.
         
         Args:
@@ -38,12 +38,13 @@ class BaseMemoryManager(ABC):
                          - schema: Domain-specific entity types and properties
                          - relationships: Domain-specific relationship types
                          - prompts: Domain-specific prompt templates
+            memory_guid: Optional GUID to identify this memory instance
         """
         self.memory_file = memory_file
         self.domain_config = domain_config or {}
         self.memory: Dict[str, Any] = {}
-        # The memory_guid attribute will be set by implementations
-        self.memory_guid = None
+        # Store the provided memory_guid (may be None)
+        self.memory_guid = memory_guid
         self._load_memory()
 
     def _load_memory(self) -> None:
@@ -56,10 +57,10 @@ class BaseMemoryManager(ABC):
         else:
             print("No existing memory file found")
 
-    def save_memory(self) -> None:
+    def save_memory(self, phase: str) -> None:
         """Save current memory state to JSON file and create a backup.
         Backups are created with incrementing numbers (e.g. memory_bak_1.json)."""
-        print(f"\nSaving memory to {self.memory_file}")
+        print(f"\nSaving memory during {phase} phase to {self.memory_file}")
         
         try:
             # Create backup with incrementing number
@@ -70,6 +71,7 @@ class BaseMemoryManager(ABC):
             backup_file = f"{base_path}_bak_{backup_num}.json"
             
             # Save current memory to both files
+            self.memory["saved_during_phase"] = phase
             for file_path in [self.memory_file, backup_file]:
                 with open(file_path, 'w') as f:
                     json.dump(self.memory, f, indent=2)

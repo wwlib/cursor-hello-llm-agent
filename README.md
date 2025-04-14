@@ -147,11 +147,11 @@ python3 -m pip install --upgrade pip
 Example usage:
 
 ```bash
-# D&D Campaign Example
+# D&D Campaign Example - usinf the default, LLM-driven "standard" MemoryManager
 python examples/agent_usage_example.py
 
 # D&D Campaign Example - using the simple memory manager
-python examples/agent_usage_example_simple.py
+python examples/agent_usage_example.py --type simple
 
 # User Story Generation Example
 python examples/user_story_example.py

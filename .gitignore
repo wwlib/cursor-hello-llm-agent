@@ -5,7 +5,7 @@ __pycache__
 hide
 
 /*.log
-/agent_memory*
+/agent_memories
 /example_memory*
 /user_story_memory*
 /test_memory*

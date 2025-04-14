@@ -38,9 +38,10 @@ Usage:
     )
 """
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, List
 import json
 import os
+import re
 import uuid
 from datetime import datetime
 from .base_memory_manager import BaseMemoryManager
@@ -67,10 +68,8 @@ class MemoryManager(BaseMemoryManager):
         if llm_service is None:
             raise ValueError("llm_service is required for MemoryManager")
             
-        # Store memory_guid if provided
-        self.memory_guid = memory_guid
-            
-        super().__init__(memory_file, domain_config)
+        # Pass memory_guid to the parent constructor
+        super().__init__(memory_file, domain_config, memory_guid)
         print(f"\nInitializing MemoryManager with file: {memory_file}")
         self.llm = llm_service
         self._load_templates()
@@ -79,27 +78,40 @@ class MemoryManager(BaseMemoryManager):
         self._ensure_memory_guid()
 
     def _ensure_memory_guid(self):
-        """Ensure that the memory has a GUID, generating one if needed."""
-        # If memory doesn't exist yet or doesn't have a guid, we'll set it later in create_initial_memory
+        """Ensure that the memory has a GUID, prioritizing the provided GUID if available."""
+        # If memory doesn't exist yet, we'll handle this when creating memory
         if not self.memory:
+            # Make sure we have a GUID, generating one if needed
+            if not self.memory_guid:
+                self.memory_guid = str(uuid.uuid4())
+                print(f"Generated new GUID: {self.memory_guid} for memory file that will be created")
             return
             
-        # If memory exists but no guid was found during load and none was provided
-        if "guid" not in self.memory and not self.memory_guid:
-            # Generate a new GUID
-            self.memory_guid = str(uuid.uuid4())
+        # Priority order for GUID:
+        # 1. GUID provided at initialization (self.memory_guid from constructor)
+        # 2. GUID in existing memory file (self.memory["guid"])
+        # 3. Generate a new GUID if neither exists
+        
+        # If we already have a GUID from initialization, use it
+        if self.memory_guid:
+            # Force the memory to use our provided GUID, overriding any existing GUID
+            if "guid" in self.memory and self.memory["guid"] != self.memory_guid:
+                print(f"Replacing existing memory GUID: {self.memory['guid']} with provided GUID: {self.memory_guid}")
+            
+            # Set the GUID in memory
             self.memory["guid"] = self.memory_guid
-            print(f"Generated new GUID for existing memory: {self.memory_guid}")
-            self.save_memory()
+            print(f"Using provided GUID for memory: {self.memory_guid}")
+            # self.save_memory()
+        # If no GUID was provided but one exists in memory, use that
         elif "guid" in self.memory:
-            # Store the loaded GUID
             self.memory_guid = self.memory["guid"]
             print(f"Using existing memory GUID: {self.memory_guid}")
+        # If no GUID was provided and none exists in memory, generate a new one
         else:
-            # Use the provided GUID
+            self.memory_guid = str(uuid.uuid4())
             self.memory["guid"] = self.memory_guid
-            print(f"Applied provided GUID to memory: {self.memory_guid}")
-            self.save_memory()
+            print(f"Generated new GUID for memory: {self.memory_guid}")
+            # self.save_memory()
 
     def _get_default_config(self) -> dict:
         """Get the default domain configuration if none provided."""
@@ -147,7 +159,7 @@ class MemoryManager(BaseMemoryManager):
             return True
 
         print("\nCreating initial memory structure...")
-    
+
         # Include domain-specific instructions if available
         domain_guidance = ""
         if self.domain_config and "domain_specific_prompt_instructions" in self.domain_config:
@@ -159,7 +171,7 @@ class MemoryManager(BaseMemoryManager):
             domain_guidance += "\n\nDomain-Specific Schema Suggestions:\n"
             schema_suggestions = self.domain_config["domain_specific_schema_suggestions"]
             domain_guidance += json.dumps(schema_suggestions, indent=2)
-            
+        
         try:
             print("Generating memory structure using LLM...")
             prompt = self.templates["create"].format(
@@ -201,16 +213,16 @@ class MemoryManager(BaseMemoryManager):
             if "static_memory" not in memory_data:
                 print("Missing static_memory in LLM response")
                 return False
-                
+            
             static_memory = memory_data["static_memory"]
             if not isinstance(static_memory, dict):
                 print("static_memory must be a dictionary")
                 return False
-                
+            
             if "structured_data" not in static_memory or "knowledge_graph" not in static_memory:
                 print("static_memory must contain structured_data and knowledge_graph")
                 return False
-                
+            
             if not isinstance(static_memory["structured_data"], dict) or not isinstance(static_memory["knowledge_graph"], dict):
                 print("structured_data and knowledge_graph must be dictionaries")
                 return False
@@ -245,16 +257,19 @@ class MemoryManager(BaseMemoryManager):
                     print(f"Relationship missing required fields: {required_fields}")
                     return False
             
-            # Generate a new GUID if one wasn't provided
+            # Use existing GUID if it was provided or already generated, only generate a new one as a last resort
             if not self.memory_guid:
                 self.memory_guid = str(uuid.uuid4())
                 print(f"Generated new GUID for memory: {self.memory_guid}")
+            else:
+                print(f"Using existing GUID for memory: {self.memory_guid}")
             
             # Initialize complete memory structure
             now = datetime.now().isoformat()
             self.memory = {
-                "guid": self.memory_guid,  # Add GUID to memory structure
-                "original_data": input_data,  # Store the original raw input data
+                "guid": self.memory_guid,            # Use the GUID we already have or just generated
+                "memory_type": "standard",           # Explicitly mark this as a standard memory type
+                "original_data": input_data,         # Store the original raw input data
                 "static_memory": static_memory,
                 "working_memory": {
                     "structured_data": {
@@ -273,8 +288,8 @@ class MemoryManager(BaseMemoryManager):
                 "conversation_history": []
             }
             
-            self.save_memory()
-            print("Initial memory created and saved successfully")
+            self.save_memory("create_initial_memory")
+            print(f"Initial memory created with GUID: {self.memory_guid} and type: standard")
             return True
             
         except Exception as e:
@@ -345,7 +360,7 @@ class MemoryManager(BaseMemoryManager):
             print("Added assistant response to history")
 
             # Save to persist conversation history
-            self.save_memory()
+            self.save_memory("query_memory")
             
             return {"response": result["response"]}
 
@@ -395,7 +410,6 @@ class MemoryManager(BaseMemoryManager):
             try:
                 result = json.loads(llm_response)
             except json.JSONDecodeError:
-                import re
                 print("Failed to parse direct JSON, attempting to extract JSON structure...")
                 json_match = re.search(r'\{[\s\S]*\}', llm_response)
                 if json_match:
@@ -484,11 +498,10 @@ class MemoryManager(BaseMemoryManager):
             self.memory["conversation_history"] = []
             
             # Save the updated memory
-            self.save_memory()
+            self.save_memory("update_memory")
             print("Memory updated and saved successfully")
             return True
             
         except Exception as e:
             print(f"Error in _perform_update_memory: {str(e)}")
             return False
-
