@@ -1,44 +1,49 @@
-You are a knowledge extraction system. Your task is to analyze the segmented content and extract structured information into a digest.
+You are a knowledge extraction system. Your task is to analyze the SEGMENTED_CONTENT in the context of the CURRENT_MEMORY_STATE and extract structured data into a DIGEST.
 
-SEGMENTED CONTENT:
+CURRENT_MEMORY_STATE:
+[CURRENT_MEMORY_STATE_START]
+
+{memory_state}
+
+[CURRENT_MEMORY_STATE_END]
+
+SEGMENTED_CONTENT:
 {segments}
 
+
+
 INSTRUCTIONS:
-1. Analyze each segment for distinct information
+1. Analyze each segment in the SEGMENTED_CONTENT array for distinct information
+2. You are only interested in new information that is not already in the CURRENT_MEMORY_STATE
 2. Extract specific facts and relationships
 3. Organize the extracted information according to the required JSON structure
 4. Include segment indexes in the "segmentIndexes" field to trace facts back to source segments
 5. Be selective - focus on extracting only meaningful, non-obvious information
 6. Assign importance levels (high/medium/low) based on the significance of the information
-7. Provide a brief "context" field explaining the information
-8. Specify the "source" as either "user", "assistant", or "inferred"
-9. Assign a relevant topic to each fact and relationship
+7. Specify the "source" as either "user", "assistant", or "inferred"
 
 Return ONLY a JSON object with the structure below. The response must be valid JSON that can be directly parsed.
 
 {{
-  "context": "Brief description of what this conversation was about",
   "new_facts": [
     {{
       "segmentIndexes": [0, 1],
-      "key": "fact_key",
-      "value": "fact_value",
-      "context": "fact_context",
+      "subject": "subject description",
+      "fact": "fact about the suject",
       "source": "user|assistant|inferred",
-      "importance": "high|medium|low",
-      "topic": "Brief topic description"
+      "importance": "high|medium|low"
     }}
   ],
   "new_relationships": [
     {{
       "segmentIndexes": [1, 2],
-      "subject": "entity_id",
+      "subject": "subject description",
       "predicate": "RELATION_TYPE",
-      "object": "other_entity_id",
-      "context": "relationship_context",
+      "object": "object description",
       "source": "user|assistant|inferred",
-      "importance": "high|medium|low",
-      "topic": "Brief topic description"
+      "importance": "high|medium|low"
     }}
   ]
-}} 
+}}
+
+REMEMBER: ONLY include information that is NEW and relevant, and NOT already present in the CURRENT_MEMORY_STATE

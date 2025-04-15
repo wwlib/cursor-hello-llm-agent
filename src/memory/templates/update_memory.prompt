@@ -19,18 +19,16 @@ The knowledge_graph should adhere to this schema:
 {{
     "simple_facts": [
         {{
-            "key": "fact_key",
-            "value": "fact_value",
-            "context": "fact_context",
+            "subject": "subject description or entity_name",
+            "fact": "fact about the subject",
             "source": "user|assistant|inferred"
         }}
     ],
     "relationships": [
         {{
-            "subject": "entity_id",
+            "subject": "subject description or entity_name",
             "predicate": "RELATION_TYPE",
-            "object": "other_entity_id",
-            "context": "relationship_context",
+            "object": "object description",
             "source": "user|assistant|inferred"
         }}
     ]
@@ -44,32 +42,16 @@ Example response format:
         "structured_data": {{
             "entities": [
                 {{
-                    "identifier": "entity_id",
-                    "type": "entity_type",
-                    "name": "Entity Name",
+                    "entity_name": "entity name",
+                    "description": "subject description",
+                    "type": "subject_type",
                     "features": ["feature1", "feature2"],
-                    "description": "Entity description"
                 }}
             ]
         }},
         "knowledge_graph": {{
-            "simple_facts": [
-                {{
-                    "key": "fact_key",
-                    "value": "fact_value",
-                    "context": "fact_context",
-                    "source": "user|assistant|inferred"
-                }}
-            ],
-            "relationships": [
-                {{
-                    "subject": "entity_id",
-                    "predicate": "RELATION_TYPE",
-                    "object": "other_entity_id",
-                    "context": "relationship_context",
-                    "source": "user|assistant|inferred"
-                }}
-            ]
+            "simple_facts": [],
+            "relationships": []
         }}
     }}
 }}

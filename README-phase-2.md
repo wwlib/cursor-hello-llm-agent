@@ -59,7 +59,7 @@ Successfully implemented several key features from our Phase 2 roadmap:
 The agent example now supports loading specific memory files by GUID and switching between memory manager types, providing a foundation for the conversation history separation in the next implementation phase.
 
 
-## Phase 2 Update - April 15, 2025 - DigestGenerator Implementation
+## Phase 2 Update - April 13, 2025 - DigestGenerator Implementation
 
 Successfully implemented the DigestGenerator component, a key part of our enhanced memory management system:
 
@@ -88,63 +88,39 @@ These changes enable more sophisticated information extraction from conversation
 Next steps include fully integrating the DigestGenerator into the memory update process and implementing separate conversation history storage with efficient cross-referencing.
 
 
+Here's an update for the Phase-2 README about the latest changes:
+
+## Phase 2 Update - April 14, 2025 - Memory Structure Refinements & Improved Digest Integration
+
+We've completed several important refinements to the memory system and digest extraction process:
+
+1. **Streamlined Memory Structure**:
+   - Simplified the knowledge graph schema to focus on the most essential data
+   - Standardized facts to use "subject" and "fact" fields for more consistent extraction
+   - Refined relationship requirements to focus on the core subject-predicate-object pattern
+
+2. **Enhanced Context-Aware Digest Generation**:
+   - DigestGenerator now analyzes content in the context of existing memory state
+   - Extraction process prioritizes new information not already present in memory
+   - Improved formatting of memory state in prompts for better LLM comprehension
+
+3. **Optimized Prompt Templates**:
+   - Removed redundant digest generation from query_memory prompt
+   - Updated extract_digest prompt with clearer instructions and emphasis on novelty
+   - Added explicit memory state boundaries for improved parsing
+
+4. **Comprehensive Testing Framework**:
+   - Added integration tests to verify DigestGenerator and MemoryManager interaction
+   - Tests validate proper GUID linkage between conversation entries and digests
+   - Automatic test environment setup and cleanup with temporary test files
+
+These improvements create a more efficient and accurate memory system that properly contextualizes new information against existing knowledge. The separation of concerns between memory management and digest generation is now complete, with each component having a clearly defined responsibility and interface.
+
+The DigestGenerator can now intelligently prioritize what information to extract from conversation, focusing only on novel facts and relationships not already captured in the memory state, which will reduce redundancy and make the system more scalable for long-running conversations.
+
+
 ## TODO
 
-### Integrate the DigestGenerator with the MemoryManager
-
-- Each digest should include the GUID of the conversation history entry from which it was generated
-
-Example Digest JSON
-
-```json
-"digest": 
-    {
-        "conversation_history_entry_guid": "519b036c-a652-4849-a037-cae3fd9ee767",
-        "role": "assistant",
-        "segments": [
-            "The air hangs heavy with the scent of pine and damp earth as you recall the recent events.",
-            "Just yesterday, Captain Silas, a grizzled veteran of the Merchant Guard, approached you with a proposition.",
-            "He'd detected unusual activity near the Blackwood Caves \u2013 whispers of monstrous spiders weaving webs of shadow and venom.",
-            "He offered a reward of 50 gold pieces plus a share of any recovered goods, a considerable sum considering the dangers.",
-            "You accepted, eager for adventure and a bit of coin.",
-            "The task: track down these venomous spiders and eliminate the threat to the surrounding settlements.",
-            "The caves themselves are known to be a labyrinthine network, riddled with traps and, as Silas ominously warned, the spiders themselves."
-        ],
-        "context": "Reviewing the current situation following Silas's approach and offer.",
-        "new_facts": [
-          {
-            "segmentIndexes": [ 6 ],
-            "key": "spider_type",
-            "value": "Venomous spiders",
-            "context": "The specific type of spiders involved in the task.",
-            "source": "assistant|inferred",
-            "importance": "high",
-            "topic": "Creature Threat"
-          },
-          {
-            "segmentIndexes": [ 3 ],
-            "key": "reward_details",
-            "value": "50 gold pieces + share of recovered goods",
-            "context": "The terms of the reward offered by Silas.",
-            "source": "assistant|inferred",
-            "importance": "high",
-            "topic": "Financial Incentive"
-          }
-        ],
-        "new_relationships": [
-          {
-            "segmentIndexes": [ 1, 3, 4, 5 ],
-            "subject": "user",
-            "predicate": "task_assigned",
-            "object": "spider_quest",
-            "context": "The user has been assigned the task of dealing with the spiders.",
-            "source": "assistant|inferred",
-            "importance": "high",
-            "topic": "Mission Objective"
-          }
-        ]
-    }
-```
 
 ### Save the Conversation History in a separate file to preserve all conversation information
 

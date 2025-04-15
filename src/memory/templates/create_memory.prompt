@@ -24,17 +24,15 @@ The knowledge_graph should adhere to this schema:
 {{
     "simple_facts": [
         {{
-            "key": "fact_key",
-            "value": "fact_value",
-            "context": "fact_context"
+            "subject": "subject description",
+            "fact": "fact about the subject",
         }}
     ],
     "relationships": [
         {{
-            "subject": "entity_id",
+            "subject": "subject description",
             "predicate": "RELATION_TYPE",
-            "object": "other_entity_id",
-            "context": "relationship_context"
+            "object": "object description",
         }}
     ]
 }}

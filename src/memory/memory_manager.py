@@ -45,6 +45,7 @@ import re
 import uuid
 from datetime import datetime
 from .base_memory_manager import BaseMemoryManager
+from .digest_generator import DigestGenerator
 
 class MemoryManager(BaseMemoryManager):
     """LLM-driven memory manager implementation.
@@ -73,6 +74,10 @@ class MemoryManager(BaseMemoryManager):
         print(f"\nInitializing MemoryManager with file: {memory_file}")
         self.llm = llm_service
         self._load_templates()
+        
+        # Initialize DigestGenerator
+        self.digest_generator = DigestGenerator(llm_service)
+        print("Initialized DigestGenerator")
         
         # Ensure memory has a GUID
         self._ensure_memory_guid()
@@ -242,7 +247,7 @@ class MemoryManager(BaseMemoryManager):
                 if not isinstance(fact, dict):
                     print("Each fact must be a dictionary")
                     return False
-                required_fields = ["key", "value", "context"]
+                required_fields = ["subject", "fact"]
                 if not all(field in fact for field in required_fields):
                     print(f"Fact missing required fields: {required_fields}")
                     return False
@@ -252,7 +257,7 @@ class MemoryManager(BaseMemoryManager):
                 if not isinstance(relationship, dict):
                     print("Each relationship must be a dictionary")
                     return False
-                required_fields = ["subject", "predicate", "object", "context"]
+                required_fields = ["subject", "predicate", "object"]
                 if not all(field in relationship for field in required_fields):
                     print(f"Relationship missing required fields: {required_fields}")
                     return False
@@ -306,12 +311,22 @@ class MemoryManager(BaseMemoryManager):
             # Add user message to history
             user_message = query_context.get("user_message", "")
             if user_message:
-                self.memory["conversation_history"].append({
+                # Create user message entry with GUID
+                user_entry = {
+                    "guid": str(uuid.uuid4()),
                     "role": "user",
                     "content": user_message,
                     "timestamp": datetime.now().isoformat()
-                })
-                print(f"Added user message to history: {user_message}")
+                }
+                
+                # Generate digest for user message
+                print("Generating digest for user message...")
+                user_digest = self.digest_generator.generate_digest(user_entry, self.memory)
+                user_entry["digest"] = user_digest
+                
+                # Add to conversation history
+                self.memory["conversation_history"].append(user_entry)
+                print(f"Added user message to history with digest: {user_message}")
             
             # Extract original data for the template
             original_data = self.memory.get("original_data", "")
@@ -341,23 +356,31 @@ class MemoryManager(BaseMemoryManager):
                         print("Successfully extracted and fixed JSON structure")
                     except json.JSONDecodeError as e:
                         print(f"Error parsing extracted JSON structure: {str(e)}")
-                        return False
+                        return {"response": f"Error parsing LLM response: {str(e)}"}
                 else:
                     print("Could not find JSON structure in LLM response")
-                    return False
+                    return {"response": "Error: Invalid response format from LLM"}
 
             if not isinstance(result, dict) or "response" not in result:
                 print("Invalid response structure - must have 'response' property")
                 return {"response": "Error: Invalid response structure from LLM"}
 
-            # Add assistant response to history with digest information
-            self.memory["conversation_history"].append({
+            # Create assistant entry with GUID
+            assistant_entry = {
+                "guid": str(uuid.uuid4()),
                 "role": "assistant",
                 "content": result["response"],
-                "digest": result.get("digest", {}),  # Store the digest information
                 "timestamp": datetime.now().isoformat()
-            })
-            print("Added assistant response to history")
+            }
+            
+            # Generate digest for assistant response
+            print("Generating digest for assistant response...")
+            assistant_digest = self.digest_generator.generate_digest(assistant_entry, self.memory)
+            assistant_entry["digest"] = assistant_digest
+            
+            # Add to conversation history
+            self.memory["conversation_history"].append(assistant_entry)
+            print("Added assistant response to history with digest")
 
             # Save to persist conversation history
             self.save_memory("query_memory")
@@ -475,7 +498,7 @@ class MemoryManager(BaseMemoryManager):
                 if not isinstance(fact, dict):
                     print("Each fact must be a dictionary")
                     return False
-                required_fields = ["key", "value", "context", "source"]
+                required_fields = ["subject", "fact"]
                 if not all(field in fact for field in required_fields):
                     print(f"Fact missing required fields: {required_fields}")
                     return False
@@ -485,7 +508,7 @@ class MemoryManager(BaseMemoryManager):
                 if not isinstance(relationship, dict):
                     print("Each relationship must be a dictionary")
                     return False
-                required_fields = ["subject", "predicate", "object", "context", "source"]
+                required_fields = ["subject", "predicate", "object"]
                 if not all(field in relationship for field in required_fields):
                     print(f"Relationship missing required fields: {required_fields}")
                     return False

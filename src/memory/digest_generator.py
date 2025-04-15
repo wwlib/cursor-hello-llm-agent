@@ -46,11 +46,12 @@ class DigestGenerator:
                 # Raise an exception if the template cannot be loaded
                 raise Exception(f"Failed to load template: {filename}")
     
-    def generate_digest(self, conversation_entry: Dict[str, Any]) -> Dict[str, Any]:
+    def generate_digest(self, conversation_entry: Dict[str, Any], memory_state: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """Generate a structured digest from a conversation entry using a two-step process.
         
         Args:
             conversation_entry: Dictionary containing the conversation entry with role, content, etc.
+            memory_state: Optional current memory state for context
             
         Returns:
             dict: A digest containing segmented content and extracted information
@@ -59,23 +60,24 @@ class DigestGenerator:
             entry_guid = conversation_entry.get("guid")
             if not entry_guid:
                 # Generate a GUID if not present
-                entry_guid = str(uuid.uuid4())
+                entry_guid = "na"
                 conversation_entry["guid"] = entry_guid
             
             content = conversation_entry.get("content", "")
             if not content.strip():
                 print("Warning: Empty content in conversation entry")
-                return self._create_empty_digest(entry_guid)
+                return self._create_empty_digest(entry_guid, conversation_entry.get("role", "unknown"))
             
             # Step 1: Segment the content
             segments = self._segment_content(content)
             
             # Step 2: Extract structured information from segments
-            extracted_info = self._extract_information(segments)
+            extracted_info = self._extract_information(segments, memory_state)
             
             # Combine into final digest
             digest = {
-                "conversationHistoryGuid": entry_guid,
+                "conversation_history_entry_guid": entry_guid,
+                "role": conversation_entry.get("role", "unknown"),
                 "segments": segments,
                 "context": extracted_info.get("context", ""),
                 "new_facts": extracted_info.get("new_facts", []),
@@ -86,7 +88,8 @@ class DigestGenerator:
             
         except Exception as e:
             print(f"Error generating digest: {str(e)}")
-            return self._create_empty_digest(entry_guid if entry_guid else str(uuid.uuid4()))
+            return self._create_empty_digest(entry_guid if entry_guid else str(uuid.uuid4()), 
+                                            conversation_entry.get("role", "unknown"))
     
     def _segment_content(self, content: str) -> List[str]:
         """Segment the content into meaningful phrases using LLM.
@@ -129,18 +132,23 @@ class DigestGenerator:
             print(f"Error in content segmentation: {str(e)}")
             return [content]  # Fall back to using the entire content as a single segment
     
-    def _extract_information(self, segments: List[str]) -> Dict[str, Any]:
+    def _extract_information(self, segments: List[str], memory_state: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """Extract structured information from segments using LLM.
         
         Args:
             segments: List of segmented phrases
+            memory_state: Optional current memory state for context
             
         Returns:
             dict: Structured information extract from segments
         """
         try:
-            # Format the prompt with the segments
-            prompt = self.templates["extract"].format(segments=json.dumps(segments))
+            # Format the prompt with the segments and memory state
+            memory_state_json = json.dumps({}) if memory_state is None else json.dumps(memory_state, indent=2)
+            prompt = self.templates["extract"].format(
+                segments=json.dumps(segments),
+                memory_state=memory_state_json
+            )
             
             # Call LLM to extract information
             llm_response = self.llm.generate(prompt)
@@ -192,10 +200,11 @@ class DigestGenerator:
             print(f"Error in information extraction: {str(e)}")
             return self._create_empty_extracted_info()
     
-    def _create_empty_digest(self, entry_guid: str) -> Dict[str, Any]:
+    def _create_empty_digest(self, entry_guid: str, role: str) -> Dict[str, Any]:
         """Create an empty digest structure with the given entry GUID."""
         return {
-            "conversationHistoryGuid": entry_guid,
+            "conversation_history_entry_guid": entry_guid,
+            "role": role,
             "segments": [],
             "context": "",
             "new_facts": [],
