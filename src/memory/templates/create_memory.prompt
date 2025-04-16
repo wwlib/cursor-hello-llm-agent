@@ -1,63 +1,25 @@
-You are a memory management system. Your task is to analyze the provided information and create an initial memory structure that is appropriate for the domain.
+You are tasked with creating an initial memory structure for an AI agent based on the provided input data.
 
-IMPORTANT: Assume you are in JSON protocol mode and only respond in strict, parsable JSON including the response to this interaction. If there is anything in the response that is not parsable JSON, the interaction will fail.
-
-Input Data:
+INPUT DATA:
 {input_data}
 
+DOMAIN-SPECIFIC GUIDANCE:
 {domain_guidance}
 
-Requirements:
-1. Return a JSON object with a top-level "static_memory" and "working_memory" fields
-2. static_memory must contain:
-   - structured_data: Organize domain-specific data in a way that makes sense for this use case
-   - knowledge_graph: Represent relationships between entities in a way that fits the domain
-3. working_memory must have the same structure as static_memory but start empty
-4. Choose data structures that best represent the domain's needs
-5. Use consistent field names and types within your chosen structure
-6. Make sure all JSON is properly formatted and closed
+Your goal is to organize the input data into a clear, structured format that will serve as the foundation for the agent's memory. Focus on extracting the core concepts, entities, and relationships from the input data.
 
-The internal structure of structured_data should be determined by what makes sense for the domain.
-Use the domain guidance provided to inform your choices about how best to structure the input data.
+Create a memory structure with these components:
+1. Static Memory: Essential, unchanging information about the domain
 
-The knowledge_graph should adhere to this schema:
+For the static memory, organize information in a way that makes sense for this specific domain. Use a structure that best represents the input data and will be useful for the agent.
+
+Return your response as a JSON object with this structure:
 {{
-    "simple_facts": [
-        {{
-            "subject": "subject description",
-            "fact": "fact about the subject",
-        }}
-    ],
-    "relationships": [
-        {{
-            "subject": "subject description",
-            "predicate": "RELATION_TYPE",
-            "object": "object description",
-        }}
-    ]
+  "static_memory": {{
+    // Organize domain knowledge here in a way that makes sense for this domain
+    // You can use nested objects, arrays, or any structure that effectively 
+    // represents the information
+  }}
 }}
 
-IMPORTANT: The data returned should look like this:
-{{
-    "static_memory": {{
-        "structured_data": {{
-            // Update with new information
-            // Use whatever schema makes sense for the domain
-        }},
-        "knowledge_graph": {{
-            "simple_facts": [],
-            "relationships": []
-        }}
-    }},
-    "working_memory": {{
-        "structured_data": {{
-            "entities": []
-        }},
-        "knowledge_graph": {{
-            "simple_facts": [],
-            "relationships": []
-        }}
-    }}
-}}
-
-REMEMBER: Assume you are in JSON protocol mode and only respond in strict, parsable JSON including the response to this interaction. If there is anything in the response that is not parsable JSON, the interaction will fail.
+Be comprehensive but concise. Include all important information from the input data, but organize it in a structured way that will be easy for the agent to access and use.

@@ -1,59 +1,34 @@
-You are a memory management system. Your task is to analyze the CURRENT_MEMORY_STATE and update the working_memory with any new information.
+You are an AI memory system tasked with compressing conversation history into organized topics.
 
-CURRENT_MEMORY_STATE:
+CURRENT MEMORY STATE:
 {memory_state}
 
-Instructions:
-1. Analyze the CURRENT_MEMORY_STATE, paying special attention to the digest information in the conversation history
-2. Use the structured "new_facts" and "new_relationships" from digests to update working memory
-3. Consider the "importance" level when deciding what information to retain
-4. Add any new entities to working_memory.structured_data.entities
-5. Add new facts to working_memory.knowledge_graph.simple_facts
-6. Add new relationships to working_memory.knowledge_graph.relationships
-7. DO NOT modify static_memory
-8. DO NOT modify the schema or structure of existing data
-9. DO NOT remove any existing information
-10. Return ONLY the updated working_memory section as a valid JSON object
+Your task is to analyze the conversation history and organize important information by topic.
 
-The knowledge_graph should adhere to this schema:
+For each topic, identify:
+1. Core facts and information
+2. Key decisions and outcomes
+3. Significant character or entity details
+4. Important relationships
+
+For each piece of information, include:
+- The original phrasing where possible
+- Attribution (who provided the information)
+- Relative importance (on a scale from 1-5)
+
+Return your response as a JSON object where:
+- Top-level keys are topic names
+- Each topic contains an array of important information items
+- Each information item has text, source, and importance
+
+For example:
 {{
-    "simple_facts": [
-        {{
-            "subject": "subject description or entity_name",
-            "fact": "fact about the subject",
-            "source": "user|assistant|inferred"
-        }}
-    ],
-    "relationships": [
-        {{
-            "subject": "subject description or entity_name",
-            "predicate": "RELATION_TYPE",
-            "object": "object description",
-            "source": "user|assistant|inferred"
-        }}
-    ]
+  "world_geography": [
+    {{"text": "The Forest of Shadows lies to the north of the village", "attribution": "assistant", "importance": 4}}
+  ],
+  "character_relationships": [
+    {{"text": "The blacksmith and the innkeeper are siblings", "attribution": "user", "importance": 3}}
+  ]
 }}
 
-IMPORTANT: Your response must be a valid JSON object containing ONLY the working_memory section. Do not include any other text or explanation. The response should start with {{ and end with }}.
-
-Example response format:
-{{
-    "working_memory": {{
-        "structured_data": {{
-            "entities": [
-                {{
-                    "entity_name": "entity name",
-                    "description": "subject description",
-                    "type": "subject_type",
-                    "features": ["feature1", "feature2"],
-                }}
-            ]
-        }},
-        "knowledge_graph": {{
-            "simple_facts": [],
-            "relationships": []
-        }}
-    }}
-}}
-
-REMEMBER: Your response must be ONLY a JSON object with no additional text, comments, or explanations.
+Focus on quality over quantity. Include only information that would be important to remember for future conversations.

@@ -1,25 +1,23 @@
 """Memory Manager for Agent System
 
 Design Principles:
-1. Flexible Schema Design
-   - Only the top-level structure (static_memory, working_memory, metadata, conversation_history) is fixed
-   - The internal structure of static_memory and working_memory should be determined by the LLM based on the domain
-   - Domain-specific schemas are provided as suggestions, not requirements
+1. Flexible Memory Design
+   - Maintains conversation history with importance-rated segments
+   - Uses these rated segments for memory compression over time
    
 2. Domain-Driven Design
    - Domain-specific guidance is provided through domain_config
-   - This includes both prompt instructions and schema suggestions
-   - The LLM should use these as guidance to create an appropriate structure for the domain
+   - The LLM should use these as guidance to remember important information
    
 3. Memory Organization
    - static_memory: Contains foundational, unchanging information about the domain
-   - working_memory: Contains dynamic information learned during interactions
-   - Both sections' internal structure is flexible and domain-dependent
+   - conversation_history: Contains full conversation with important segments rated
+   - context: Contains compressed important information organized by topic
    
 4. Memory Update Process
-   - Periodically analyzes conversation history to update working_memory
-   - Uses domain-specific guidance to determine what information to extract
-   - Updates working_memory structure based on the domain's needs
+   - Periodically compresses conversation history to retain only important segments
+   - Organizes important information by topics for better retrieval
+   - Balances completeness with efficiency
 
 Usage:
     memory_manager = MemoryManager(
@@ -81,6 +79,12 @@ class MemoryManager(BaseMemoryManager):
         
         # Ensure memory has a GUID
         self._ensure_memory_guid()
+        
+        # Maximum number of full conversations to keep before compression
+        self.max_recent_conversations = 10
+        
+        # Importance threshold for keeping segments during compression (1-5 scale)
+        self.importance_threshold = 3
 
     def _ensure_memory_guid(self):
         """Ensure that the memory has a GUID, prioritizing the provided GUID if available."""
@@ -136,7 +140,8 @@ class MemoryManager(BaseMemoryManager):
         template_files = {
             "create": "create_memory.prompt",
             "query": "query_memory.prompt",
-            "update": "update_memory.prompt"
+            "update": "update_memory.prompt",
+            "compress": "compress_memory.prompt"
         }
         
         for key, filename in template_files.items():
@@ -153,11 +158,11 @@ class MemoryManager(BaseMemoryManager):
     def create_initial_memory(self, input_data: str) -> bool:
         """Use LLM to structure initial input data into memory format.
         
-        The LLM is free to choose the internal structure of static_memory and working_memory
-        based on what makes sense for the domain. We only validate the top-level structure.
+        The LLM is free to choose the internal structure of static_memory
+        based on what makes sense for the domain.
         """
         # Check if we have valid existing memory
-        if self.memory and all(key in self.memory for key in ["original_data", "static_memory", "working_memory", "metadata", "conversation_history"]):
+        if self.memory and all(key in self.memory for key in ["original_data", "static_memory", "context", "conversation_history"]):
             print("Valid memory structure already exists, skipping initialization")
             # Ensure GUID exists even for pre-existing memories
             self._ensure_memory_guid()
@@ -219,49 +224,6 @@ class MemoryManager(BaseMemoryManager):
                 print("Missing static_memory in LLM response")
                 return False
             
-            static_memory = memory_data["static_memory"]
-            if not isinstance(static_memory, dict):
-                print("static_memory must be a dictionary")
-                return False
-            
-            if "structured_data" not in static_memory or "knowledge_graph" not in static_memory:
-                print("static_memory must contain structured_data and knowledge_graph")
-                return False
-            
-            if not isinstance(static_memory["structured_data"], dict) or not isinstance(static_memory["knowledge_graph"], dict):
-                print("structured_data and knowledge_graph must be dictionaries")
-                return False
-
-            # Validate knowledge_graph structure
-            static_knowledge_graph = static_memory["knowledge_graph"]
-            if "simple_facts" not in static_knowledge_graph or "relationships" not in static_knowledge_graph:
-                print("knowledge_graph must contain simple_facts and relationships")
-                return False
-
-            if not isinstance(static_knowledge_graph["simple_facts"], list) or not isinstance(static_knowledge_graph["relationships"], list):
-                print("simple_facts and relationships must be lists")
-                return False
-
-            # Validate simple_facts structure
-            for fact in static_knowledge_graph["simple_facts"]:
-                if not isinstance(fact, dict):
-                    print("Each fact must be a dictionary")
-                    return False
-                required_fields = ["subject", "fact"]
-                if not all(field in fact for field in required_fields):
-                    print(f"Fact missing required fields: {required_fields}")
-                    return False
-
-            # Validate relationship structure
-            for relationship in static_knowledge_graph["relationships"]:
-                if not isinstance(relationship, dict):
-                    print("Each relationship must be a dictionary")
-                    return False
-                required_fields = ["subject", "predicate", "object"]
-                if not all(field in relationship for field in required_fields):
-                    print(f"Relationship missing required fields: {required_fields}")
-                    return False
-            
             # Use existing GUID if it was provided or already generated, only generate a new one as a last resort
             if not self.memory_guid:
                 self.memory_guid = str(uuid.uuid4())
@@ -275,16 +237,8 @@ class MemoryManager(BaseMemoryManager):
                 "guid": self.memory_guid,            # Use the GUID we already have or just generated
                 "memory_type": "standard",           # Explicitly mark this as a standard memory type
                 "original_data": input_data,         # Store the original raw input data
-                "static_memory": static_memory,
-                "working_memory": {
-                    "structured_data": {
-                        "entities": []  # Empty list for entities
-                    },
-                    "knowledge_graph": {
-                        "simple_facts": [],  # For natural language facts
-                        "relationships": []  # For explicit subject-predicate-object relationships
-                    }
-                },
+                "static_memory": memory_data["static_memory"],
+                "context": {},                       # Organized important information by topic
                 "metadata": {
                     "created_at": now,
                     "last_updated": now,
@@ -385,6 +339,12 @@ class MemoryManager(BaseMemoryManager):
             # Save to persist conversation history
             self.save_memory("query_memory")
             
+            # Check if we should compress memory based on number of conversations
+            conversation_count = len(self.memory["conversation_history"]) // 2  # Each conversation is a user-assistant pair
+            if conversation_count > self.max_recent_conversations:
+                print(f"Memory has {conversation_count} conversations, compressing...")
+                self.update_memory({"operation": "update"})
+            
             return {"response": result["response"]}
 
         except Exception as e:
@@ -392,8 +352,7 @@ class MemoryManager(BaseMemoryManager):
             return {"response": f"Error processing query: {str(e)}"}
 
     def update_memory(self, update_context: Dict[str, Any]) -> bool:
-        """Update memory with new information using LLM.
-        Only used for updating memory operations to minimize LLM calls.
+        """Update memory by compressing conversation history to keep only important segments.
         
         Args:
             update_context: Dictionary containing update context
@@ -409,122 +368,103 @@ class MemoryManager(BaseMemoryManager):
                 print("update_memory should only be used for updating memory operations")
                 return False
 
-            print("\nProcessing update memory operation...")            
-            return self._perform_update_memory()
+            print("\nCompressing conversation history...")            
+            return self._compress_conversation_history()
             
         except Exception as e:
             print(f"Error updating memory: {str(e)}")
             return False
 
-    def _perform_update_memory(self) -> bool:
-        """Internal method to perform update memory on a set of messages."""
+    def _compress_conversation_history(self) -> bool:
+        """Compress conversation history by keeping only important segments and updating context."""
         try:
-            print("\nProcessing messages for memory update...")
-                        
-            # Generate prompt for memory update
-            prompt = self.templates["update"].format(
-                memory_state=json.dumps(self.memory, indent=2)
-            )
+            # Check if we have enough conversations to compress
+            if len(self.memory["conversation_history"]) < (self.max_recent_conversations * 2):
+                print(f"Not enough conversations to compress (need {self.max_recent_conversations * 2}, have {len(self.memory['conversation_history'])})")
+                return False
             
-            # Get response from LLM
-            print("Generating memory update using LLM...")
-            llm_response = self.llm.generate(prompt)
+            # Find conversation entries to compress (all except most recent MAX_RECENT_CONVERSATIONS)
+            keep_recent = self.max_recent_conversations * 2  # Each conversation has user and assistant messages
+            entries_to_compress = self.memory["conversation_history"][:-keep_recent]
             
-            try:
-                result = json.loads(llm_response)
-            except json.JSONDecodeError:
-                print("Failed to parse direct JSON, attempting to extract JSON structure...")
-                json_match = re.search(r'\{[\s\S]*\}', llm_response)
-                if json_match:
-                    try:
-                        json_str = json_match.group(0)
-                        # Remove any markdown code block markers
-                        json_str = re.sub(r'```json\s*|\s*```', '', json_str)
-                        result = json.loads(json_str)
-                        print("Successfully extracted and fixed JSON structure")
-                    except json.JSONDecodeError as e:
-                        print(f"Error parsing extracted JSON structure: {str(e)}")
+            if not entries_to_compress:
+                print("No entries to compress")
+                return False
+            
+            # Extract important segments from entries to compress
+            important_segments = []
+            for entry in entries_to_compress:
+                if "digest" in entry and "rated_segments" in entry["digest"]:
+                    # Filter segments by importance
+                    for segment in entry["digest"]["rated_segments"]:
+                        if segment.get("importance", 0) >= self.importance_threshold:
+                            # Include role and timestamp with the segment
+                            important_segments.append({
+                                "text": segment["text"],
+                                "importance": segment["importance"],
+                                "topics": segment.get("topics", []),
+                                "role": entry["role"],
+                                "timestamp": entry["timestamp"]
+                            })
+            
+            print(f"Extracted {len(important_segments)} important segments from {len(entries_to_compress)} entries")
+            
+            # If we have important segments, update the context
+            if important_segments:
+                # Use LLM to organize important segments by topic
+                prompt = self.templates["compress"].format(
+                    important_segments=json.dumps(important_segments, indent=2),
+                    existing_context=json.dumps(self.memory.get("context", {}), indent=2)
+                )
+                
+                # Call LLM to organize segments
+                llm_response = self.llm.generate(prompt)
+                
+                try:
+                    updated_context = json.loads(llm_response)
+                    if not isinstance(updated_context, dict):
+                        print("Invalid context format returned from LLM, must be a dictionary")
                         return False
-                else:
-                    print("Could not find JSON structure in LLM response")
-                    return False
-
-            if not isinstance(result, dict) or "working_memory" not in result:
-                print("Invalid response structure - must have 'working_memory' property")
-                return False
-
-            # Extract and validate working memory
-            working_memory = result["working_memory"]
+                    
+                    # Update the context
+                    self.memory["context"] = updated_context
+                    print("Updated memory context with organized important segments")
+                except json.JSONDecodeError:
+                    # Try to extract JSON if it's embedded in markdown or other text
+                    json_match = re.search(r'\{[\s\S]*\}', llm_response)
+                    if json_match:
+                        try:
+                            json_str = json_match.group(0)
+                            # Remove any markdown code block markers
+                            json_str = re.sub(r'```json\s*|\s*```', '', json_str)
+                            updated_context = json.loads(json_str)
+                            
+                            if not isinstance(updated_context, dict):
+                                print("Invalid context format returned from LLM, must be a dictionary")
+                                return False
+                            
+                            # Update the context
+                            self.memory["context"] = updated_context
+                            print("Updated memory context with organized important segments")
+                        except json.JSONDecodeError as e:
+                            print(f"Error parsing extracted JSON context: {str(e)}")
+                            return False
+                    else:
+                        print("Could not extract context JSON from LLM response")
+                        return False
             
-            if not isinstance(working_memory, dict):
-                print("working_memory must be a dictionary")
-                return False
-
-            if "structured_data" not in working_memory or "knowledge_graph" not in working_memory:
-                print("working_memory must contain structured_data and knowledge_graph")
-                return False
-
-            # Validate structured_data
-            structured_data = working_memory["structured_data"]
-            if not isinstance(structured_data, dict):
-                print("structured_data must be a dictionary")
-                return False
-
-            if "entities" not in structured_data:
-                print("structured_data must contain entities")
-                return False
-
-            if not isinstance(structured_data["entities"], list):
-                print("entities must be a list")
-                return False
-
-            # Validate knowledge_graph
-            knowledge_graph = working_memory["knowledge_graph"]
+            # Keep only the most recent conversations
+            self.memory["conversation_history"] = self.memory["conversation_history"][-keep_recent:]
+            print(f"Compressed memory to keep {keep_recent} recent messages")
             
-            if not isinstance(knowledge_graph, dict):
-                print("knowledge_graph must be a dictionary")
-                return False
-
-            if "simple_facts" not in knowledge_graph or "relationships" not in knowledge_graph:
-                print("knowledge_graph must contain simple_facts and relationships")
-                return False
-
-            if not isinstance(knowledge_graph["simple_facts"], list) or not isinstance(knowledge_graph["relationships"], list):
-                print("simple_facts and relationships must be lists")
-                return False
-
-            # Validate simple_facts structure
-            for fact in knowledge_graph["simple_facts"]:
-                if not isinstance(fact, dict):
-                    print("Each fact must be a dictionary")
-                    return False
-                required_fields = ["subject", "fact"]
-                if not all(field in fact for field in required_fields):
-                    print(f"Fact missing required fields: {required_fields}")
-                    return False
-
-            # Validate relationship structure
-            for relationship in knowledge_graph["relationships"]:
-                if not isinstance(relationship, dict):
-                    print("Each relationship must be a dictionary")
-                    return False
-                required_fields = ["subject", "predicate", "object"]
-                if not all(field in relationship for field in required_fields):
-                    print(f"Relationship missing required fields: {required_fields}")
-                    return False
-
-            # Update working memory
-            self.memory["working_memory"] = working_memory
+            # Update metadata
             self.memory["metadata"]["last_updated"] = datetime.now().isoformat()
             
-            # Clear conversation history after successful update
-            self.memory["conversation_history"] = []
-            
             # Save the updated memory
-            self.save_memory("update_memory")
-            print("Memory updated and saved successfully")
+            self.save_memory("compress_memory")
+            print("Memory compressed and saved successfully")
             return True
             
         except Exception as e:
-            print(f"Error in _perform_update_memory: {str(e)}")
+            print(f"Error in _compress_conversation_history: {str(e)}")
             return False

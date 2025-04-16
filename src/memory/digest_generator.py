@@ -10,10 +10,10 @@ class DigestGenerator:
     
     The DigestGenerator implements a two-step process:
     1. Segment the conversation content into meaningful chunks
-    2. Extract structured data (facts and relationships) from segments
+    2. Rate each segment's importance and assign topics
     
-    This allows for more precise information extraction and better traceability
-    between digests and the conversation entries they were derived from.
+    This allows for memory compression while maintaining text in a format 
+    natural for LLMs to process.
     """
     
     def __init__(self, llm_service):
@@ -32,7 +32,7 @@ class DigestGenerator:
         
         template_files = {
             "segment": "segment_conversation.prompt",
-            "extract": "extract_digest.prompt"
+            "rate": "rate_segments.prompt"
         }
         
         for key, filename in template_files.items():
@@ -47,20 +47,20 @@ class DigestGenerator:
                 raise Exception(f"Failed to load template: {filename}")
     
     def generate_digest(self, conversation_entry: Dict[str, Any], memory_state: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-        """Generate a structured digest from a conversation entry using a two-step process.
+        """Generate a digest from a conversation entry by segmenting and rating importance.
         
         Args:
             conversation_entry: Dictionary containing the conversation entry with role, content, etc.
             memory_state: Optional current memory state for context
             
         Returns:
-            dict: A digest containing segmented content and extracted information
+            dict: A digest containing rated and topically organized text segments
         """
         try:
             entry_guid = conversation_entry.get("guid")
             if not entry_guid:
                 # Generate a GUID if not present
-                entry_guid = "na"
+                entry_guid = str(uuid.uuid4())
                 conversation_entry["guid"] = entry_guid
             
             content = conversation_entry.get("content", "")
@@ -71,17 +71,20 @@ class DigestGenerator:
             # Step 1: Segment the content
             segments = self._segment_content(content)
             
-            # Step 2: Extract structured information from segments
-            extracted_info = self._extract_information(segments, memory_state)
+            print(f"\n\ngenerate_digest: Segments:")
+            for segment in segments:
+                print(segment)
+            print(f"\n\n")
+            
+            # Step 2: Rate segments and assign topics
+            rated_segments = self._rate_segments(segments, memory_state)
             
             # Combine into final digest
             digest = {
                 "conversation_history_entry_guid": entry_guid,
                 "role": conversation_entry.get("role", "unknown"),
-                "segments": segments,
-                "context": extracted_info.get("context", ""),
-                "new_facts": extracted_info.get("new_facts", []),
-                "new_relationships": extracted_info.get("new_relationships", [])
+                "rated_segments": rated_segments,
+                "timestamp": datetime.now().isoformat()
             }
             
             return digest
@@ -132,89 +135,108 @@ class DigestGenerator:
             print(f"Error in content segmentation: {str(e)}")
             return [content]  # Fall back to using the entire content as a single segment
     
-    def _extract_information(self, segments: List[str], memory_state: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-        """Extract structured information from segments using LLM.
+    def _rate_segments(self, segments: List[str], memory_state: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
+        """Rate segments for importance and assign topics using LLM.
         
         Args:
             segments: List of segmented phrases
             memory_state: Optional current memory state for context
             
         Returns:
-            dict: Structured information extract from segments
+            list: List of rated segments with importance and topics
         """
         try:
             # Format the prompt with the segments and memory state
-            memory_state_json = json.dumps({}) if memory_state is None else json.dumps(memory_state, indent=2)
-            prompt = self.templates["extract"].format(
+            memory_context = "" if memory_state is None else json.dumps(memory_state.get("context", ""), indent=2)
+            prompt = self.templates["rate"].format(
                 segments=json.dumps(segments),
-                memory_state=memory_state_json
+                memory_context=memory_context
             )
             
-            # Call LLM to extract information
+            # Call LLM to rate segments
             llm_response = self.llm.generate(prompt)
             
             # Parse the response as JSON
             try:
-                extracted_info = json.loads(llm_response)
+                rated_segments = json.loads(llm_response)
                 # Validate the structure
-                if not isinstance(extracted_info, dict):
-                    print("Extraction failed: Response is not a dictionary")
-                    return self._create_empty_extracted_info()
+                if not isinstance(rated_segments, list):
+                    print("Rating failed: Response is not a list")
+                    return self._create_default_rated_segments(segments)
                 
-                # Ensure required fields exist
-                if "new_facts" not in extracted_info:
-                    extracted_info["new_facts"] = []
-                if "new_relationships" not in extracted_info:
-                    extracted_info["new_relationships"] = []
-                if "context" not in extracted_info:
-                    extracted_info["context"] = ""
+                # Validate each rated segment
+                for i, segment in enumerate(rated_segments):
+                    if not isinstance(segment, dict):
+                        print(f"Segment {i} is not a dictionary, using default")
+                        rated_segments[i] = {
+                            "text": segments[i] if i < len(segments) else "",
+                            "importance": 3,
+                            "topics": []
+                        }
+                    elif "text" not in segment:
+                        print(f"Segment {i} missing text, using original")
+                        segment["text"] = segments[i] if i < len(segments) else ""
+                    elif "importance" not in segment:
+                        print(f"Segment {i} missing importance, using default")
+                        segment["importance"] = 3
+                    elif "topics" not in segment:
+                        print(f"Segment {i} missing topics, using empty list")
+                        segment["topics"] = []
                 
-                return extracted_info
+                return rated_segments
             except json.JSONDecodeError:
                 # Try to extract JSON if it's embedded in markdown or other text
-                json_match = re.search(r'\{[\s\S]*\}', llm_response)
+                json_match = re.search(r'\[[\s\S]*\]', llm_response)
                 if json_match:
                     try:
                         json_str = json_match.group(0)
                         # Remove any markdown code block markers
                         json_str = re.sub(r'```json\s*|\s*```', '', json_str)
-                        extracted_info = json.loads(json_str)
+                        rated_segments = json.loads(json_str)
                         
-                        # Ensure required fields exist
-                        if "new_facts" not in extracted_info:
-                            extracted_info["new_facts"] = []
-                        if "new_relationships" not in extracted_info:
-                            extracted_info["new_relationships"] = []
-                        if "context" not in extracted_info:
-                            extracted_info["context"] = ""
+                        # Do basic validation
+                        if not isinstance(rated_segments, list):
+                            print("Extracted rating is not a list")
+                            return self._create_default_rated_segments(segments)
                         
-                        return extracted_info
+                        # Validate each segment has required fields
+                        for i, segment in enumerate(rated_segments):
+                            if not isinstance(segment, dict) or "text" not in segment:
+                                print(f"Segment {i} invalid, using default")
+                                rated_segments[i] = {
+                                    "text": segments[i] if i < len(segments) else "",
+                                    "importance": 3,
+                                    "topics": []
+                                }
+                        
+                        return rated_segments
                     except json.JSONDecodeError:
                         pass
                 
-                # Fall back to empty response
-                print("Failed to parse extracted information")
-                return self._create_empty_extracted_info()
+                # Fall back to default rating
+                print("Failed to parse rated segments, using defaults")
+                return self._create_default_rated_segments(segments)
                 
         except Exception as e:
-            print(f"Error in information extraction: {str(e)}")
-            return self._create_empty_extracted_info()
+            print(f"Error in segment rating: {str(e)}")
+            return self._create_default_rated_segments(segments)
     
     def _create_empty_digest(self, entry_guid: str, role: str) -> Dict[str, Any]:
         """Create an empty digest structure with the given entry GUID."""
         return {
             "conversation_history_entry_guid": entry_guid,
             "role": role,
-            "segments": [],
-            "context": "",
-            "new_facts": [],
-            "new_relationships": []
+            "rated_segments": [],
+            "timestamp": datetime.now().isoformat()
         }
     
-    def _create_empty_extracted_info(self) -> Dict[str, Any]:
-        """Create an empty extracted information structure."""
-        return {
-            "context": "",
-            "new_facts": [],
-            "new_relationships": []
-        } 
+    def _create_default_rated_segments(self, segments: List[str]) -> List[Dict[str, Any]]:
+        """Create default rated segments with medium importance."""
+        return [
+            {
+                "text": segment,
+                "importance": 3,  # Medium importance by default
+                "topics": []
+            }
+            for segment in segments
+        ] 

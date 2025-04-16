@@ -24,6 +24,8 @@ INSTRUCTIONS:
 
 Return ONLY a JSON object with the structure below. The response must be valid JSON that can be directly parsed.
 
+Note: If a segment is just a simple command or question please exclude it. Only consider segments that contain information worth remembering.
+
 {{
   "new_facts": [
     {{

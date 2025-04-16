@@ -119,6 +119,39 @@ These improvements create a more efficient and accurate memory system that prope
 The DigestGenerator can now intelligently prioritize what information to extract from conversation, focusing only on novel facts and relationships not already captured in the memory state, which will reduce redundancy and make the system more scalable for long-running conversations.
 
 
+## Phase 2 Update - April 16, 2025 - Text-Based Memory Compression & Segment Importance
+
+We've implemented a significant redesign of the memory system to better leverage the strengths of LLMs:
+
+1. **Text-Based Memory Approach**:
+   - Moved from rigid JSON fact structures to a more natural text representation
+   - Segments are now preserved in their original form with importance ratings
+   - Information is organized by topics rather than formal knowledge graphs
+
+2. **Importance-Based Memory Compression**:
+   - DigestGenerator now rates segment importance on a 1-5 scale
+   - High-importance segments are retained while low-importance ones are filtered
+   - Automatic compression process preserves only valuable information
+
+3. **Progressive Memory Summarization**:
+   - Recent conversations are kept in full
+   - Older conversations are compressed to important segments only
+   - Topics are used to organize important information for better retrieval
+
+4. **Technical Improvements**:
+   - Added configurable importance threshold (default: 3)
+   - Implemented conversation limit parameters to control memory size
+   - Created dedicated templates for rating and compressing information
+
+This approach solves several key challenges from our previous implementation:
+- Better leverages how LLMs naturally process information
+- Prevents information loss during extraction by keeping original wording
+- Reduces redundancy through intelligent filtering and compression
+- Maintains traceability back to original conversations
+
+The system now strikes a balance between completeness (retaining important information) and efficiency (managing memory size), while using a format that's more conducive to how LLMs understand and generate text.
+
+
 ## TODO
 
 
