@@ -162,7 +162,7 @@ class MemoryManager(BaseMemoryManager):
         based on what makes sense for the domain.
         """
         # Check if we have valid existing memory
-        if self.memory and all(key in self.memory for key in ["original_data", "static_memory", "context", "conversation_history"]):
+        if self.memory and all(key in self.memory for key in ["initial_data", "static_memory", "context", "conversation_history"]):
             print("Valid memory structure already exists, skipping initialization")
             # Ensure GUID exists even for pre-existing memories
             self._ensure_memory_guid()
@@ -236,7 +236,7 @@ class MemoryManager(BaseMemoryManager):
             self.memory = {
                 "guid": self.memory_guid,            # Use the GUID we already have or just generated
                 "memory_type": "standard",           # Explicitly mark this as a standard memory type
-                "original_data": input_data,         # Store the original raw input data
+                "initial_data": input_data,         # Store the initial raw input data
                 "static_memory": memory_data["static_memory"],
                 "context": {},                       # Organized important information by topic
                 "metadata": {
@@ -282,48 +282,35 @@ class MemoryManager(BaseMemoryManager):
                 self.memory["conversation_history"].append(user_entry)
                 print(f"Added user message to history with digest: {user_message}")
             
-            # Extract original data for the template
-            original_data = self.memory.get("original_data", "")
+            # Format static memory as text
+            static_memory_text = self._format_static_memory_as_text()
             
+            # Format context as text
+            context_text = self._format_context_as_text()
+            
+            # Format recent conversation history as text
+            conversation_history_text = self._format_conversation_history_as_text()
+            
+            # Create prompt with formatted text
             prompt = self.templates["query"].format(
-                memory_state=json.dumps(self.memory, indent=2),
-                query=user_message,
-                original_data=original_data
+                static_memory_text=static_memory_text,
+                context_text=context_text,
+                conversation_history_text=conversation_history_text,
+                query=user_message
             )
             
             # Get response from LLM
             print("Generating response using LLM...")
             llm_response = self.llm.generate(prompt)
             
-            try:
-                result = json.loads(llm_response)
-            except json.JSONDecodeError:
-                import re
-                print("Failed to parse direct JSON, attempting to extract JSON structure...")
-                json_match = re.search(r'\{[\s\S]*\}', llm_response)
-                if json_match:
-                    try:
-                        json_str = json_match.group(0)
-                        # Remove any markdown code block markers
-                        json_str = re.sub(r'```json\s*|\s*```', '', json_str)
-                        result = json.loads(json_str)
-                        print("Successfully extracted and fixed JSON structure")
-                    except json.JSONDecodeError as e:
-                        print(f"Error parsing extracted JSON structure: {str(e)}")
-                        return {"response": f"Error parsing LLM response: {str(e)}"}
-                else:
-                    print("Could not find JSON structure in LLM response")
-                    return {"response": "Error: Invalid response format from LLM"}
+           
 
-            if not isinstance(result, dict) or "response" not in result:
-                print("Invalid response structure - must have 'response' property")
-                return {"response": "Error: Invalid response structure from LLM"}
 
             # Create assistant entry with GUID
             assistant_entry = {
                 "guid": str(uuid.uuid4()),
                 "role": "assistant",
-                "content": result["response"],
+                "content": llm_response,
                 "timestamp": datetime.now().isoformat()
             }
             
@@ -345,11 +332,68 @@ class MemoryManager(BaseMemoryManager):
                 print(f"Memory has {conversation_count} conversations, compressing...")
                 self.update_memory({"operation": "update"})
             
-            return {"response": result["response"]}
+            return llm_response
 
         except Exception as e:
             print(f"Error in query_memory: {str(e)}")
-            return {"response": f"Error processing query: {str(e)}"}
+            return f"Error processing query: {str(e)}"
+
+    def _format_static_memory_as_text(self) -> str:
+        """Format static memory as readable text instead of JSON."""
+        if "static_memory" not in self.memory:
+            return "No static memory available."
+            
+        static_memory = self.memory["static_memory"]
+        if "topics" not in static_memory:
+            return f"Static memory available but not in topic format: {json.dumps(static_memory, indent=2)}"
+        
+        result = []
+        for topic_name, segments in static_memory["topics"].items():
+            result.append(f"TOPIC: {topic_name}")
+            for segment in segments:
+                importance = segment.get("importance", 3)
+                importance_str = "*" * importance  # Visualize importance with asterisks
+                text = segment.get("text", "")
+                result.append(f"{importance_str} {text}")
+            result.append("")  # Empty line between topics
+        
+        return "\n".join(result)
+    
+    def _format_context_as_text(self) -> str:
+        """Format context as readable text instead of JSON."""
+        if "context" not in self.memory or not self.memory["context"]:
+            return "No context information available yet."
+        
+        result = []
+        for topic_name, items in self.memory["context"].items():
+            result.append(f"TOPIC: {topic_name}")
+            for item in items:
+                text = item.get("text", "")
+                attribution = item.get("attribution", "")
+                importance = item.get("importance", 3)
+                importance_str = "*" * importance  # Visualize importance with asterisks
+                result.append(f"{importance_str} {text} [{attribution}]")
+            result.append("")  # Empty line between topics
+        
+        return "\n".join(result)
+    
+    def _format_conversation_history_as_text(self) -> str:
+        """Format recent conversation history as readable text."""
+        if "conversation_history" not in self.memory or not self.memory["conversation_history"]:
+            return "No conversation history available."
+        
+        # Get only the most recent conversation entries
+        recent_count = min(4, len(self.memory["conversation_history"]))  # Last 2 exchanges
+        recent_entries = self.memory["conversation_history"][-recent_count:]
+        
+        result = []
+        for entry in recent_entries:
+            role = entry.get("role", "unknown").upper()
+            content = entry.get("content", "")
+            result.append(f"[{role}]: {content}")
+            result.append("")  # Empty line between entries
+        
+        return "\n".join(result)
 
     def update_memory(self, update_context: Dict[str, Any]) -> bool:
         """Update memory by compressing conversation history to keep only important segments.

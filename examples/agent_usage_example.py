@@ -132,7 +132,6 @@ def print_help():
     print("memory      - View current memory state")
     print("conversation- View full conversation history")
     print("history     - View recent session history")
-    print("reflect     - Trigger memory reflection")
     print("guid        - Show the current memory GUID")
     print("type        - Show memory manager type")
     print("list        - List available memory files")
@@ -366,7 +365,7 @@ async def setup_services(memory_guid=None, memory_type="standard"):
             memory_guid=guid
         )
         
-        agent = Agent(llm_service, memory_manager, domain_name="dnd_campaign", reflection_threshold=4)
+        agent = Agent(llm_service, memory_manager, domain_name="dnd_campaign")
         print("Services initialized successfully")
         return agent, memory_manager
     except Exception as e:
@@ -442,12 +441,6 @@ async def interactive_session(agent, memory_manager):
                 continue
             elif user_input == 'history':
                 print_recent_history(agent)
-                continue
-            elif user_input == 'reflect':
-                print("\nTriggering memory reflection...")
-                await agent.reflect()
-                print("Reflection completed")
-                print_memory_state(memory_manager, "Memory After Reflection")
                 continue
             elif user_input == 'guid':
                 print(f"\nCurrent memory GUID: {memory_manager.get_memory_guid()}")

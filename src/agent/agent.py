@@ -9,22 +9,20 @@ class AgentPhase(Enum):
     INTERACTION = "INTERACTION"
 
 class Agent:
-    def __init__(self, llm_service, memory_manager, domain_name: str = "general", reflection_threshold: int = 10):
+    def __init__(self, llm_service, memory_manager, domain_name: str = "general"):
         """Initialize the agent with required services.
         
         Args:
             llm_service: Service for LLM operations
             memory_manager: Service for memory operations
             domain_name: Name of the domain (e.g., "dnd_campaign", "user_stories")
-            reflection_threshold: Number of conversation turns before triggering reflection (default: 10)
         """
         self.llm = llm_service
         self.memory = memory_manager
         self.domain_name = domain_name
         self.current_phase = AgentPhase.INITIALIZATION
-        self.reflection_threshold = reflection_threshold
         print(f"Agent initialized for domain: {domain_name}")
-        print(f"Reflection will occur every {reflection_threshold} turns")
+        print(f"Memory management is handled transparently by the MemoryManager")
 
     def get_current_phase(self) -> AgentPhase:
         """Get the current agent phase"""
@@ -36,7 +34,10 @@ class Agent:
         return memory_context.get("conversation_history", [])
 
     async def process_message(self, message: str) -> str:
-        """Process a user message and return a response."""
+        """Process a user message and return a response.
+        
+        Memory management (compression, etc.) is automatically handled by the MemoryManager.
+        """
         try:
             # Create query context
             context = {
@@ -44,17 +45,12 @@ class Agent:
             }
             
             # Query memory for response
-            result = self.memory.query_memory(context)
-            response = result.get("response", "Error processing message")
+            response = self.memory.query_memory(context)
             
             # After first message, transition to INTERACTION phase
             if self.current_phase == AgentPhase.INITIALIZATION:
                 self.current_phase = AgentPhase.INTERACTION
             
-            # Check if we need reflection
-            if len(self.get_conversation_history()) >= self.reflection_threshold:
-                await self.reflect()
-                
             return response
             
         except Exception as e:
@@ -109,20 +105,3 @@ class Agent:
         except Exception as e:
             print(f"Error learning information: {str(e)}")
             return False
-
-    async def reflect(self) -> None:
-        """Reflect on recent interactions and update memory accordingly."""
-        try:
-            print(f"\nReflecting on recent interactions (Current phase: {self.current_phase})")
-            
-            # Add reflection trigger to conversation history
-            context = {
-                "operation": "update"
-            }
-            
-            success = self.memory.update_memory(context)
-            if not success:
-                print("Failed to complete reflection")
-            
-        except Exception as e:
-            print(f"Error during reflection: {str(e)}")

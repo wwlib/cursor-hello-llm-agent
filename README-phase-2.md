@@ -152,8 +152,45 @@ This approach solves several key challenges from our previous implementation:
 The system now strikes a balance between completeness (retaining important information) and efficiency (managing memory size), while using a format that's more conducive to how LLMs understand and generate text.
 
 
+## Phase 2 Update - April 17, 2025 - Improved Separation of Concerns
+
+We've implemented a cleaner architectural separation between the Agent and MemoryManager components:
+
+1. **Complete Memory Management Encapsulation**:
+   - Removed Agent's reflection mechanism completely
+   - All memory operations now handled exclusively by the MemoryManager
+   - Memory compression occurs automatically and transparently
+
+2. **Natural Language Prompt Format**:
+   - Replaced JSON memory representation with formatted text in prompts
+   - Uses visual importance indicators (asterisks) instead of numeric ratings
+   - Organizes information clearly by topics with proper spacing
+
+3. **More Efficient Token Usage**:
+   - Memory content presented in natural language format
+   - Removed redundant JSON structure from prompts
+   - Highlighted importance visually for better LLM processing
+
+4. **Cleaner Agent Interface**:
+   - Agent now focuses solely on domain reasoning and responses
+   - No need to track conversation count or trigger compression
+   - Simpler, more focused implementation with less redundancy
+
+This separation of concerns creates a more maintainable and modular system:
+- The Agent doesn't need to know implementation details of memory management
+- The MemoryManager can evolve independently without affecting Agent behavior
+- New memory optimization strategies can be implemented without Agent changes
+- Lower token usage in prompts allows for more efficient processing
+
+The system now follows solid architectural principles with each component having a single responsibility, making the entire framework more robust and easier to extend.
+
+
 ## TODO
 
+- use text for the context memory
+- no need for the static memory object
+- digests can be compressed into text - retain source and importance as text
+- make compression threshold configurable
 
 ### Save the Conversation History in a separate file to preserve all conversation information
 
