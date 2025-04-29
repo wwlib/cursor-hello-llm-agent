@@ -901,6 +901,116 @@ only know what they need to know, making the system more modular and easier to e
 
 ---
 
+_**User**_
+
+Let's update the MemoryManager and query_memory.prompt to use the domain_specific_prompt_instructions for the query prompt.
+
+---
+
+_**Assistant**_
+
+I'll update the MemoryManager and query_memory.prompt to use the domain-specific prompt instructions. This will make the system more flexible and domain-aware.
+
+
+---
+
+```diff
+  2. CONTEXT - organized important information from previous conversations by topic
+  3. RECENT_CONVERSATION_HISTORY
++ 
++ DOMAIN-SPECIFIC INSTRUCTIONS:
++ {domain_instructions}
+  
+  The information below has been extracted from memory to help you answer this query.
+  3. Formulate a helpful, accurate response
+  4. Only mention information that's relevant to the query
++ 5. Follow the domain-specific instructions provided above
+  
+  Your response should be conversational and natural. Provide the most relevant information without unnecessarily mentioning the memory system unless asked about it directly.
+```
+
+---
+
+Now let's update the MemoryManager to pass the domain-specific instructions to the query prompt:
+
+
+
+---
+
+```diff
+              conversation_history_text = self._format_conversation_history_as_text()
+              
++             # Get domain-specific instructions
++             domain_instructions = ""
++             if self.domain_config and "domain_specific_prompt_instructions" in self.domain_config:
++                 domain_instructions = self.domain_config["domain_specific_prompt_instructions"].get("query", "")
++             
+              # Create prompt with formatted text
+              prompt = self.templates["query"].format(
+                  static_memory_text=static_memory_text,
+                  context_text=context_text,
+                  conversation_history_text=conversation_history_text,
+-                 query=user_message
++                 query=user_message,
++                 domain_instructions=domain_instructions
+              )
+              
+```
+
+---
+
+These changes accomplish the following:
+
+1. **Updated query_memory.prompt template**:
+   - Added a new section for domain-specific instructions
+   - Added a new instruction to follow the domain-specific guidance
+   - Maintained the existing structure while making it more flexible
+
+2. **Updated MemoryManager.query_memory method**:
+   - Added logic to extract domain-specific instructions from the domain_config
+   - Passes these instructions to the query prompt template
+   - Maintains backward compatibility by using an empty string if no instructions are found
+
+This implementation allows the system to be more domain-aware by:
+- Using domain-specific instructions to guide the LLM's responses
+- Maintaining flexibility for different use cases (D&D, workshop assistant, etc.)
+- Preserving the existing memory and conversation history functionality
+
+For example, with the DND_CONFIG, the LLM will now receive instructions to "act as a DM for a D&D campaign" and "move the gameplay forward and add details and richness to the story." This makes the responses more appropriate for the specific domain.
+
+The changes are backward compatible and won't affect existing functionality if no domain-specific instructions are provided.
+
+---
+
+_**User**_
+
+Great. Please write a git commit message for these changes
+
+---
+
+_**Assistant**_
+
+Here's a git commit message for the changes:
+
+```
+feat(memory): Add domain-specific instructions to query prompt
+
+This commit enhances the memory system to be more domain-aware by:
+
+- Update query_memory.prompt template to include domain-specific instructions
+- Modify MemoryManager to extract and pass domain instructions from domain_config
+- Maintain backward compatibility for cases without domain instructions
+
+The changes allow the system to provide more contextually appropriate responses
+based on the specific domain (e.g., D&D DM, workshop assistant) while preserving
+all existing memory and conversation history functionality.
+
+This is part of the ongoing effort to make the memory system more flexible and
+adaptable to different use cases.
+```
+
+---
+
 
 
 ---

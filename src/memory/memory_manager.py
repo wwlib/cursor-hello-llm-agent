@@ -294,12 +294,18 @@ class MemoryManager(BaseMemoryManager):
             # Format recent conversation history as text
             conversation_history_text = self._format_conversation_history_as_text()
             
+            # Get domain-specific instructions
+            domain_instructions = ""
+            if self.domain_config and "domain_specific_prompt_instructions" in self.domain_config:
+                domain_instructions = self.domain_config["domain_specific_prompt_instructions"].get("query", "")
+            
             # Create prompt with formatted text
             prompt = self.templates["query"].format(
                 static_memory_text=static_memory_text,
                 context_text=context_text,
                 conversation_history_text=conversation_history_text,
-                query=user_message
+                query=user_message,
+                domain_instructions=domain_instructions
             )
             
             # Get response from LLM

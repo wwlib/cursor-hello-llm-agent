@@ -3,7 +3,7 @@ You are tasked with creating an initial memory structure for an AI agent based o
 INPUT_DATA:
 {input_data}
 
-DOMAIN-SPECIFIC GUIDANCE:
+DOMAIN_SPECIFIC_GUIDANCE:
 {domain_guidance}
 
 Your goal is to organize the initial INPUT_DATA into segments, rate their importance, and arrange them by topic. This will form the foundation for the agent's memory system.
