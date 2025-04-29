@@ -184,38 +184,48 @@ This separation of concerns creates a more maintainable and modular system:
 
 The system now follows solid architectural principles with each component having a single responsibility, making the entire framework more robust and easier to extend.
 
+## Phase 2 Update - April 18, 2025 - Separate Conversation History Storage & Configurable Compression
+
+We've implemented key improvements to make the memory system more scalable and configurable:
+
+1. **Separate Conversation History Storage**:
+   - Conversations are now stored in a separate JSON file from the memory state
+   - Each memory file has a corresponding conversation history file
+   - Full conversation history is preserved even after compression
+   - References to original conversation entries are maintained by GUIDs
+
+2. **Configurable Memory Compression**:
+   - Added configurable parameters for compression in MemoryManager:
+     - `max_recent_conversations`: Number of recent conversations to keep in memory (default: 10)
+     - `importance_threshold`: Minimum importance score (1-5) to keep segments (default: 3)
+   - Parameters can be adjusted during initialization to tune memory behavior
+
+3. **Enhanced Compression Tracking**:
+   - Added `compressed_entries` section to memory to track which conversations were compressed
+   - Each compression operation records timestamps and GUIDs of compressed entries
+   - Source GUIDs are preserved in context entries for traceability
+
+4. **Complete Separation of Responsibilities**:
+   - All memory operations now handled exclusively by the MemoryManager
+   - Agent completely unaware of memory implementation details
+   - Memory compression happens transparently without agent involvement
+
+These changes significantly improve the scalability of the system:
+- Conversations can grow indefinitely without performance impact on memory operations
+- Memory size remains manageable by focusing only on important information
+- Complete conversation history is preserved for future reference or analysis
+- System can be fine-tuned for different domains with different memory requirements
+
+The implementation follows the "principle of least knowledge" where components only know what they need to know, making the system more modular and easier to extend.
 
 ## TODO
 
-- use text for the context memory
-- no need for the static memory object
+- use text for the context memory - instead of JSON
+- remove the static memory object - it only contains redundant data from the initial_data
+- use the domain_specific_prompt_instructions in examples/domain_configs.py to provide the query_memory.prompt with its system prompt instructions
 - digests can be compressed into text - retain source and importance as text
 - make compression threshold configurable
-
-### Save the Conversation History in a separate file to preserve all conversation information
-
-- Continually append queries and responses to the Conversation History file
-- The Conversation History should include the GUID of the associated memory file
-- Each conversation entry should have a GUID
-  - To be used to map entryies to associated digests
-
-Example Conversation History File JSON
-
-```json
-{
-    "memory_file_guid": "596ab0a4-2ad8-4370-8919-6d34288200c8",
-    "entries": []
-}
-
-```
-
-Example Conversation History entry JSON
-
-```json
-{
-    "guid": "519b036c-a652-4849-a037-cae3fd9ee767",
-    "role": "assistant",
-    "content": "The air hangs heavy with the scent of pine and damp earth as you recall the recent events. Just yesterday, Captain Silas, a grizzled veteran of the Merchant Guard, approached you with a proposition. He'd detected unusual activity near the Blackwood Caves \u2013 whispers of monstrous spiders weaving webs of shadow and venom. He offered a reward of 50 gold pieces plus a share of any recovered goods, a considerable sum considering the dangers. You accepted, eager for adventure and a bit of coin. The task: track down these venomous spiders and eliminate the threat to the surrounding settlements. The caves themselves are known to be a labyrinthine network, riddled with traps and, as Silas ominously warned, the spiders themselves.",
-    "digest": {}
-}
-```
+- Implement search functions to retrieve information from both memory and conversation history
+- Add metadata to track memory usage statistics and performance
+- Develop tools for memory visualization and analysis
+- Consider separating memory files by conversation session for multi-user scenarios

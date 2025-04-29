@@ -44,9 +44,9 @@ Current Situations:
 
 DND_CONFIG = {
     "domain_specific_prompt_instructions": {
-        "create_memory": "You are creating a memory for a D&D campaign. You are given a all of the information needed to run the campaign. Keep in mind that the memory data structure you are creating will be included in subsequent prompts as context. The memory will be used to inform the agent's behavior and decision-making.",
-        "query": "You are analyzing conversational interactions between the player and the agent and returning an apppriate response. Please also include structured data that captures the important data in the conversation.",
-        "update": "You are analyzing the conversation history and updating the memory to incorporate the important information learned during the session."
+        "create_memory": "You are creating a memory for a D&D campaign. You are given all of the information needed to start the campaign. Keep in mind that the memory data you are creating will be included in subsequent prompts as context. The memory will be used to inform the agent's behavior and decision-making.",
+        "query": "You are an agent acting as a DM for a D&D campaign. You should respond in a way that moves the gameplay forward and adds details and richness to the story.",
+        "update": "You are analyzing the input from both the user and the agent and extracting and classifying the important information into the conversation history data structure."
     },
     "initial_data": dnd_initial_data
 }

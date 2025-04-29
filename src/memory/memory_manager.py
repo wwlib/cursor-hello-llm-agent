@@ -51,7 +51,9 @@ class MemoryManager(BaseMemoryManager):
     Extends BaseMemoryManager to provide LLM-driven memory operations with domain-specific configuration.
     """
 
-    def __init__(self, memory_file: str = "memory.json", domain_config: Optional[Dict[str, Any]] = None, llm_service = None, memory_guid: str = None):
+    def __init__(self, memory_file: str = "memory.json", domain_config: Optional[Dict[str, Any]] = None, 
+                 llm_service = None, memory_guid: str = None, max_recent_conversations: int = 10, 
+                 importance_threshold: int = 3):
         """Initialize the MemoryManager with an LLM service and domain configuration.
         
         Args:
@@ -63,6 +65,8 @@ class MemoryManager(BaseMemoryManager):
             llm_service: Service for LLM operations (required for this implementation)
             memory_guid: Optional GUID to identify this memory instance. If not provided, 
                        a new one will be generated or loaded from existing file.
+            max_recent_conversations: Maximum number of recent conversations to keep before compression
+            importance_threshold: Threshold for segment importance (1-5 scale) to keep during compression
         """
         if llm_service is None:
             raise ValueError("llm_service is required for MemoryManager")
@@ -80,11 +84,10 @@ class MemoryManager(BaseMemoryManager):
         # Ensure memory has a GUID
         self._ensure_memory_guid()
         
-        # Maximum number of full conversations to keep before compression
-        self.max_recent_conversations = 10
-        
-        # Importance threshold for keeping segments during compression (1-5 scale)
-        self.importance_threshold = 3
+        # Configurable memory parameters
+        self.max_recent_conversations = max_recent_conversations
+        self.importance_threshold = importance_threshold
+        print(f"Memory configuration: max_recent_conversations={max_recent_conversations}, importance_threshold={importance_threshold}")
 
     def _ensure_memory_guid(self):
         """Ensure that the memory has a GUID, prioritizing the provided GUID if available."""
@@ -256,11 +259,10 @@ class MemoryManager(BaseMemoryManager):
             print(f"Full error: {repr(e)}")
             return False
 
-    def query_memory(self, query_context: Dict[str, Any]) -> dict:
+    def query_memory(self, query_context: Dict[str, Any]) -> str:
         """Query memory with the given context."""
         try:
             print("\nQuerying memory...")
-            print(query_context)
             
             # Add user message to history
             user_message = query_context.get("user_message", "")
@@ -278,7 +280,8 @@ class MemoryManager(BaseMemoryManager):
                 user_digest = self.digest_generator.generate_digest(user_entry, self.memory)
                 user_entry["digest"] = user_digest
                 
-                # Add to conversation history
+                # Add to both conversation history file and memory
+                self.add_to_conversation_history(user_entry)
                 self.memory["conversation_history"].append(user_entry)
                 print(f"Added user message to history with digest: {user_message}")
             
@@ -303,9 +306,6 @@ class MemoryManager(BaseMemoryManager):
             print("Generating response using LLM...")
             llm_response = self.llm.generate(prompt)
             
-           
-
-
             # Create assistant entry with GUID
             assistant_entry = {
                 "guid": str(uuid.uuid4()),
@@ -319,11 +319,12 @@ class MemoryManager(BaseMemoryManager):
             assistant_digest = self.digest_generator.generate_digest(assistant_entry, self.memory)
             assistant_entry["digest"] = assistant_digest
             
-            # Add to conversation history
+            # Add to both conversation history file and memory
+            self.add_to_conversation_history(assistant_entry)
             self.memory["conversation_history"].append(assistant_entry)
             print("Added assistant response to history with digest")
 
-            # Save to persist conversation history
+            # Save to persist memory updates
             self.save_memory("query_memory")
             
             # Check if we should compress memory based on number of conversations
@@ -437,7 +438,15 @@ class MemoryManager(BaseMemoryManager):
             
             # Extract important segments from entries to compress
             important_segments = []
+            compressed_guids = []  # Keep track of compressed entry GUIDs
+            
             for entry in entries_to_compress:
+                # Store GUID of compressed entry for reference
+                entry_guid = entry.get("guid")
+                if entry_guid:
+                    compressed_guids.append(entry_guid)
+                    
+                # Process digest if available
                 if "digest" in entry and "rated_segments" in entry["digest"]:
                     # Filter segments by importance
                     for segment in entry["digest"]["rated_segments"]:
@@ -448,7 +457,8 @@ class MemoryManager(BaseMemoryManager):
                                 "importance": segment["importance"],
                                 "topics": segment.get("topics", []),
                                 "role": entry["role"],
-                                "timestamp": entry["timestamp"]
+                                "timestamp": entry["timestamp"],
+                                "source_guid": entry_guid  # Link back to original entry
                             })
             
             print(f"Extracted {len(important_segments)} important segments from {len(entries_to_compress)} entries")
@@ -497,8 +507,20 @@ class MemoryManager(BaseMemoryManager):
                         print("Could not extract context JSON from LLM response")
                         return False
             
-            # Keep only the most recent conversations
+            # Keep only the most recent conversations in memory
             self.memory["conversation_history"] = self.memory["conversation_history"][-keep_recent:]
+            
+            # Add a record of compressed entries
+            if "compressed_entries" not in self.memory:
+                self.memory["compressed_entries"] = []
+            
+            # Record this compression operation
+            self.memory["compressed_entries"].append({
+                "timestamp": datetime.now().isoformat(),
+                "entry_guids": compressed_guids,
+                "count": len(compressed_guids)
+            })
+            
             print(f"Compressed memory to keep {keep_recent} recent messages")
             
             # Update metadata

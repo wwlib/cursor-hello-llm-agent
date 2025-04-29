@@ -15,7 +15,7 @@ Design Principles:
    - Makes memory managers interchangeable in the agent system
 """
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, List
 from abc import ABC, abstractmethod
 import json
 import os
@@ -46,48 +46,151 @@ class BaseMemoryManager(ABC):
         # Store the provided memory_guid (may be None)
         self.memory_guid = memory_guid
         self._load_memory()
-
-    def _load_memory(self) -> None:
-        """Load memory from JSON file if it exists"""
-        if os.path.exists(self.memory_file):
-            print(f"Loading existing memory from {self.memory_file}")
-            with open(self.memory_file, 'r') as f:
-                self.memory = json.load(f)
-            print("Memory loaded successfully")
-        else:
-            print("No existing memory file found")
-
-    def save_memory(self, phase: str) -> None:
-        """Save current memory state to JSON file and create a backup.
-        Backups are created with incrementing numbers (e.g. memory_bak_1.json)."""
-        print(f"\nSaving memory during {phase} phase to {self.memory_file}")
         
+        # Initialize conversation history file path based on memory file
+        self._init_conversation_history_file()
+
+    def _init_conversation_history_file(self):
+        """Initialize the conversation history file path based on memory file."""
+        # Determine memory directory and base filename
+        memory_dir = os.path.dirname(self.memory_file) or "."
+        memory_base = os.path.basename(self.memory_file).split(".")[0]
+        
+        # Create conversation history file name based on memory file
+        self.conversation_history_file = os.path.join(memory_dir, f"{memory_base}_conversations.json")
+        print(f"Conversation history file: {self.conversation_history_file}")
+        
+        # Initialize conversation history structure if it doesn't exist
+        if not os.path.exists(self.conversation_history_file):
+            self._initialize_conversation_history()
+        
+    def _initialize_conversation_history(self):
+        """Create initial conversation history file structure."""
+        # Create initial structure with memory GUID
+        conversation_data = {
+            "memory_file_guid": self.memory_guid or "",  # Will be updated when memory GUID is set
+            "entries": []
+        }
+        
+        # Save to file
         try:
-            # Create backup with incrementing number
-            base_path = os.path.splitext(self.memory_file)[0]
-            backup_num = 1
-            while os.path.exists(f"{base_path}_bak_{backup_num}.json"):
-                backup_num += 1
-            backup_file = f"{base_path}_bak_{backup_num}.json"
+            with open(self.conversation_history_file, 'w') as f:
+                json.dump(conversation_data, f, indent=2)
+            print(f"Created new conversation history file: {self.conversation_history_file}")
+        except Exception as e:
+            print(f"Error creating conversation history file: {str(e)}")
             
-            # Save current memory to both files
-            self.memory["saved_during_phase"] = phase
-            for file_path in [self.memory_file, backup_file]:
-                with open(file_path, 'w') as f:
-                    json.dump(self.memory, f, indent=2)
+    def _load_conversation_history(self) -> Dict[str, Any]:
+        """Load conversation history from file."""
+        try:
+            if os.path.exists(self.conversation_history_file):
+                with open(self.conversation_history_file, 'r') as f:
+                    conversation_data = json.load(f)
+                    
+                # Ensure the memory GUID matches
+                if self.memory_guid and conversation_data.get("memory_file_guid") != self.memory_guid:
+                    print(f"Warning: Conversation history GUID mismatch. Expected {self.memory_guid}, found {conversation_data.get('memory_file_guid')}")
+                    # Update the GUID to match current memory
+                    conversation_data["memory_file_guid"] = self.memory_guid
+                    self._save_conversation_history(conversation_data)
+                    
+                return conversation_data
+            else:
+                return self._initialize_conversation_history()
+        except Exception as e:
+            print(f"Error loading conversation history: {str(e)}")
+            return {"memory_file_guid": self.memory_guid or "", "entries": []}
             
-            print(f"Memory saved successfully with backup: {backup_file}")
+    def _save_conversation_history(self, conversation_data: Dict[str, Any]) -> bool:
+        """Save conversation history to file."""
+        try:
+            # Ensure memory GUID is set in conversation history
+            if self.memory_guid:
+                conversation_data["memory_file_guid"] = self.memory_guid
+                
+            with open(self.conversation_history_file, 'w') as f:
+                json.dump(conversation_data, f, indent=2)
+            return True
+        except Exception as e:
+            print(f"Error saving conversation history: {str(e)}")
+            return False
             
+    def add_to_conversation_history(self, entry: Dict[str, Any]) -> bool:
+        """Add an entry to the conversation history.
+        
+        Args:
+            entry: Dictionary containing the conversation entry with role, content, etc.
+            
+        Returns:
+            bool: True if entry was added successfully
+        """
+        try:
+            # Load current conversation history
+            conversation_data = self._load_conversation_history()
+            
+            # Add entry to history
+            conversation_data["entries"].append(entry)
+            
+            # Save updated history
+            return self._save_conversation_history(conversation_data)
+        except Exception as e:
+            print(f"Error adding to conversation history: {str(e)}")
+            return False
+            
+    def get_conversation_history(self) -> List[Dict[str, Any]]:
+        """Get the full conversation history.
+        
+        Returns:
+            list: List of conversation entries
+        """
+        try:
+            conversation_data = self._load_conversation_history()
+            return conversation_data.get("entries", [])
+        except Exception as e:
+            print(f"Error getting conversation history: {str(e)}")
+            return []
+
+    def _load_memory(self) -> Dict[str, Any]:
+        """Load memory from file."""
+        try:
+            if os.path.exists(self.memory_file):
+                with open(self.memory_file, 'r') as f:
+                    memory_data = json.load(f)
+                    # If memory already has a GUID and we weren't given one
+                    if "guid" in memory_data and not self.memory_guid:
+                        self.memory_guid = memory_data["guid"]
+                        print(f"Loaded memory with existing GUID: {self.memory_guid}")
+                print("Memory loaded from file")
+                return memory_data
+            else:
+                print("Memory file not found, will create new memory")
+                return {}
+        except Exception as e:
+            print(f"Error loading memory: {str(e)}")
+            return {}
+
+    def save_memory(self, operation_name: str = "unknown") -> bool:
+        """Save memory to file."""
+        try:
+            # Backup existing file if it exists
+            if os.path.exists(self.memory_file):
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                backup_file = f"{os.path.splitext(self.memory_file)[0]}_bak_{timestamp}{os.path.splitext(self.memory_file)[1]}"
+                os.rename(self.memory_file, backup_file)
+                print(f"Backup created: {backup_file}")
+            
+            # Ensure memory has current GUID
+            if self.memory_guid and self.memory:
+                self.memory["guid"] = self.memory_guid
+            
+            # Write updated memory to file
+            with open(self.memory_file, 'w') as f:
+                json.dump(self.memory, f, indent=2)
+            print(f"Memory saved after '{operation_name}' operation")
+            return True
         except Exception as e:
             print(f"Error saving memory: {str(e)}")
-            # Try to at least save the main file
-            try:
-                with open(self.memory_file, 'w') as f:
-                    json.dump(self.memory, f, indent=2)
-                print("Memory saved to main file despite backup error")
-            except Exception as e2:
-                print(f"Critical error: Failed to save memory: {str(e2)}")
-                raise
+            return False
 
     def get_memory_context(self) -> Dict[str, Any]:
         """Return the entire memory state"""

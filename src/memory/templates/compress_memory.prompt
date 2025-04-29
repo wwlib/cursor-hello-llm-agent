@@ -17,19 +17,21 @@ For each topic, you should:
 Organize the information as a JSON dictionary where:
 - Top level keys are topic names
 - Values are lists of important information points related to that topic
-- Each information point should include the original text and attribution (who said it)
+- Each information point should include the original text, attribution (who said it), timestamp, and source_guid
 
 For example:
 {{
   "characters": [
-    {{"text": "Gandalf is a powerful wizard", "attribution": "user", "timestamp": "2023-05-01T10:30:00"}},
-    {{"text": "Frodo is the ring-bearer", "attribution": "assistant", "timestamp": "2023-05-01T10:32:00"}}
+    {{"text": "Gandalf is a powerful wizard", "attribution": "user", "timestamp": "2023-05-01T10:30:00", "source_guid": "abc-123-def-456"}},
+    {{"text": "Frodo is the ring-bearer", "attribution": "assistant", "timestamp": "2023-05-01T10:32:00", "source_guid": "def-456-ghi-789"}}
   ],
   "plot_points": [
-    {{"text": "The fellowship was formed in Rivendell", "attribution": "user", "timestamp": "2023-05-01T10:35:00"}}
+    {{"text": "The fellowship was formed in Rivendell", "attribution": "user", "timestamp": "2023-05-01T10:35:00", "source_guid": "ghi-789-jkl-012"}}
   ]
 }}
 
 If you're creating a new topic, choose a descriptive name. If a topic exists in the current context, update it by integrating new information and removing redundancies.
+
+The source_guid field allows tracing back to the original conversation entry and should be preserved in all entries.
 
 Return your response as a JSON object with topics as keys and lists of information as values. 
