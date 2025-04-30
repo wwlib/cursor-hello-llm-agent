@@ -1011,6 +1011,36 @@ adaptable to different use cases.
 
 ---
 
+_**User**_
+
+Great. Now let's tackle a few more items from the TODO list in the phase-2 README.
+
+Let's use the digest process to segment and classify the initial_data and then transform it into a better version of the static data. It does not need to be JSON anyymore. Instead it could be markdown text and/or yaml
+
+The initial data does not need to stay in the memory. Instead it should be included as the first entry in the conversation history. It can be attributed to the "system" (vs user or assistant)
+
+---
+
+_**Assistant**_
+
+I'll help implement these changes to improve the memory structure. Let's break this down into steps:
+
+1. First, let's modify the create_initial_memory method to use the DigestGenerator for processing initial data
+2. Then update the memory structure to store static data as markdown/YAML
+3. Finally, move the initial data to conversation history
+
+
+
+---
+
+Cancelled
+
+---
+
+
+
+---
+
 
 
 ---

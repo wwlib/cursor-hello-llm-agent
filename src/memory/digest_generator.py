@@ -75,6 +75,11 @@ class DigestGenerator:
             for segment in segments:
                 print(segment)
             print(f"\n\n")
+
+            print(f"\n\ngenerate_digest: Memory state: static_memory")
+            static_memory = "" if memory_state is None else memory_state.get("static_memory", "")
+            print(static_memory)
+            print(f"\n\n")
             
             # Step 2: Rate segments and assign topics
             rated_segments = self._rate_segments(segments, memory_state)
@@ -147,9 +152,11 @@ class DigestGenerator:
         """
         try:
             # Format the prompt with the segments and memory state
+            static_memory = "" if memory_state is None else memory_state.get("static_memory", "")
             memory_context = "" if memory_state is None else json.dumps(memory_state.get("context", ""), indent=2)
             prompt = self.templates["rate"].format(
                 segments=json.dumps(segments),
+                static_memory=static_memory,
                 memory_context=memory_context
             )
             

@@ -4,15 +4,21 @@ The segments below are from a conversation. For each segment:
 1. Assign an importance rating from 1-5 (where 5 is extremely important and 1 is not important)
 2. Identify relevant topics that the segment relates to
 
-Use these criteria to determine importance:
-- Higher importance (4-5): New information, key decisions, significant events, core concepts
-- Medium importance (3): Clarifications, details about important topics, context
-- Lower importance (1-2): Repetitions, greetings, filler, already known information
+Use this IMPORTANCE_SCALE to determine importance:
 
-Existing memory context:
+IMPORTANCE_SCALE
+5: Essential Information - essential details about the domain, status, actions, inventory
+4: Important Information - important details that will inform decisions
+3: Extra Information - non-essential informatino that adds richness
+2: Unimportant Information - information that need not be retained
+1: Redundant Information - information already in the EXISTING_MEMORY_CONTEXT
+
+EXISTING_MEMORY_CONTEXT:
+{static_memory}
+
 {memory_context}
 
-Segments to rate:
+SEGMENTS_TO_RATE:
 {segments}
 
 Provide your response as a JSON array of objects with "text", "importance", and "topics" fields:
@@ -23,4 +29,6 @@ Provide your response as a JSON array of objects with "text", "importance", and 
     "topics": ["topic1", "topic2"]
   }},
   ...
-] 
+]
+
+

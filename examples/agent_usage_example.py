@@ -62,14 +62,9 @@ def print_memory_state(memory_manager, title="Current Memory State"):
         print("\nStatic Memory (Read-Only):")
         print("-" * 30)
         static_mem = memory_context["static_memory"]
-        print("\nStructured Data:")
-        print(json.dumps(static_mem.get("structured_data", {}), indent=2))
-        print("\nKnowledge Graph:")
-        print(json.dumps(static_mem.get("knowledge_graph", {}), indent=2))
-    elif "initial_data" in memory_context:  # SimpleMemoryManager format
-        print("\nInitial Data:")
-        print("-" * 30)
-        print(memory_context.get("initial_data", "No initial data"))
+        if isinstance(static_mem, str):
+            # New markdown format
+            print(static_mem)
     else:
         print("No static memory")
     

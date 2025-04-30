@@ -218,13 +218,47 @@ These changes significantly improve the scalability of the system:
 
 The implementation follows the "principle of least knowledge" where components only know what they need to know, making the system more modular and easier to extend.
 
+## Phase 2 Update - April 29, 2025 - Streamlined Memory Format & Improved Digest Generation
+
+We've implemented significant improvements to the memory system's digest generation and storage format:
+
+1. **Programmatic Digest Generation**:
+   - Replaced LLM-based markdown generation with deterministic programmatic conversion
+   - Digest format now consistently organizes information by importance levels
+   - Added comprehensive topics index for better information retrieval
+   - Maintained all important information while reducing redundancy
+
+2. **Enhanced Memory Structure**:
+   - Static memory now stored as clean, well-formatted markdown
+   - Information organized by importance levels (5 to 1)
+   - Each segment includes topic annotations for better context
+   - Clear visual indicators for importance levels (e.g., [!5] for critical information)
+
+3. **Improved Information Organization**:
+   - Topics are collected and sorted alphabetically
+   - Segments are grouped by importance level
+   - Each segment maintains its original wording while adding metadata
+   - Clear separation between different types of information
+
+4. **Technical Improvements**:
+   - Removed dependency on LLM for markdown generation
+   - More efficient memory storage format
+   - Better handling of topic metadata
+   - Cleaner separation between conversation history and memory state
+
+These changes provide several key benefits:
+- More consistent and reliable memory format
+- Better information organization and retrieval
+- Reduced token usage in prompts
+- Clearer importance indicators for different types of information
+- More efficient memory operations
+
+The new format makes it easier for both humans and LLMs to understand and work with the memory content, while maintaining all the important information from the original data. This represents a significant step forward in making the memory system more efficient and user-friendly.
+
 ## TODO
 
-- use text for the context memory - instead of JSON
-- remove the static memory object - it only contains redundant data from the initial_data
-- use the domain_specific_prompt_instructions in examples/domain_configs.py to provide the query_memory.prompt with its system prompt instructions
-- digests can be compressed into text - retain source and importance as text
-- make compression threshold configurable
+- Compression should transform important information from the conversation history digests into entries in the memory context dictionary
+- Context entries should retain conversation history guid(s) to allow future search to find the source in the full conversation history file
 - Implement search functions to retrieve information from both memory and conversation history
 - Add metadata to track memory usage statistics and performance
 - Develop tools for memory visualization and analysis

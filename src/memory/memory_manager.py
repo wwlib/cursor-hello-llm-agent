@@ -143,7 +143,6 @@ class MemoryManager(BaseMemoryManager):
         template_files = {
             "create": "create_memory.prompt",
             "query": "query_memory.prompt",
-            "update": "update_memory.prompt",
             "compress": "compress_memory.prompt"
         }
         
@@ -161,94 +160,53 @@ class MemoryManager(BaseMemoryManager):
     def create_initial_memory(self, input_data: str) -> bool:
         """Use LLM to structure initial input data into memory format.
         
-        The LLM is free to choose the internal structure of static_memory
-        based on what makes sense for the domain.
+        The initial data is processed through the DigestGenerator to create a structured
+        markdown representation of the static knowledge.
         """
-        # Check if we have valid existing memory
-        if self.memory and all(key in self.memory for key in ["initial_data", "static_memory", "context", "conversation_history"]):
-            print("Valid memory structure already exists, skipping initialization")
-            # Ensure GUID exists even for pre-existing memories
-            self._ensure_memory_guid()
-            return True
-
-        print("\nCreating initial memory structure...")
-
-        # Include domain-specific instructions if available
-        domain_guidance = ""
-        if self.domain_config and "domain_specific_prompt_instructions" in self.domain_config:
-            domain_guidance = "\nDomain-Specific Guidance:\n"
-            create_memory_instructions = self.domain_config["domain_specific_prompt_instructions"]["create_memory"]
-            domain_guidance += create_memory_instructions
-
-        if self.domain_config and "domain_specific_schema_suggestions" in self.domain_config:
-            domain_guidance += "\n\nDomain-Specific Schema Suggestions:\n"
-            schema_suggestions = self.domain_config["domain_specific_schema_suggestions"]
-            domain_guidance += json.dumps(schema_suggestions, indent=2)
-        
         try:
-            print("Generating memory structure using LLM...")
-            prompt = self.templates["create"].format(
-                input_data=input_data,
-                domain_guidance=domain_guidance
-            )
+            # Check if we have valid existing memory
+            if self.memory and all(key in self.memory for key in ["static_memory", "context", "conversation_history"]):
+                print("Valid memory structure already exists, skipping initialization")
+                # Ensure GUID exists even for pre-existing memories
+                self._ensure_memory_guid()
+                return True
+
+            print("\nCreating initial memory structure...")
+
+            # Create system entry for initial data
+            system_entry = {
+                "guid": str(uuid.uuid4()),
+                "role": "system",
+                "content": input_data,
+                "timestamp": datetime.now().isoformat()
+            }
             
-            # Print the prompt to debug format placeholders
-            print(f"DEBUG - FORMATTED PROMPT (first 200 chars):\n{prompt[:200]}...")
-            print(f"DEBUG - FORMATTED PROMPT (last 200 chars):\n{prompt[-200:]}...")
-            
-            llm_response = self.llm.generate(prompt)
-            
-            # Print the response to debug
-            print(f"DEBUG - LLM RESPONSE (first 200 chars):\n{llm_response[:200]}...")
-            print(f"DEBUG - LLM RESPONSE (last 200 chars):\n{llm_response[-200:]}...")
-            
-            try:
-                memory_data = json.loads(llm_response)
-            except json.JSONDecodeError:
-                import re
-                print("Failed to parse direct JSON, attempting to extract JSON structure...")
-                json_match = re.search(r'\{[\s\S]*\}', llm_response)
-                if json_match:
-                    try:
-                        json_str = json_match.group(0)
-                        # Remove any markdown code block markers
-                        json_str = re.sub(r'```json\s*|\s*```', '', json_str)
-                        memory_data = json.loads(json_str)
-                        print("Successfully extracted and fixed JSON structure")
-                    except json.JSONDecodeError as e:
-                        print(f"Error parsing extracted JSON structure: {str(e)}")
-                        return False
-                else:
-                    print("Could not find JSON structure in LLM response")
-                    return False
-            
-            # Validate only the top-level structure
-            if "static_memory" not in memory_data:
-                print("Missing static_memory in LLM response")
-                return False
-            
-            # Use existing GUID if it was provided or already generated, only generate a new one as a last resort
-            if not self.memory_guid:
-                self.memory_guid = str(uuid.uuid4())
-                print(f"Generated new GUID for memory: {self.memory_guid}")
-            else:
-                print(f"Using existing GUID for memory: {self.memory_guid}")
+            # Generate digest for initial data
+            print("Generating digest for initial data...")
+            initial_digest = self.digest_generator.generate_digest(system_entry)
+            system_entry["digest"] = initial_digest
+                        
+            # Create static memory from digest
+            static_memory = self._create_static_memory_from_digest(initial_digest)
             
             # Initialize complete memory structure
             now = datetime.now().isoformat()
             self.memory = {
                 "guid": self.memory_guid,            # Use the GUID we already have or just generated
                 "memory_type": "standard",           # Explicitly mark this as a standard memory type
-                "initial_data": input_data,         # Store the initial raw input data
-                "static_memory": memory_data["static_memory"],
+                "static_memory": static_memory,      # Markdown formatted static knowledge
                 "context": {},                       # Organized important information by topic
                 "metadata": {
                     "created_at": now,
                     "last_updated": now,
                     "version": "1.0"
-                },
-                "conversation_history": []
+                }
             }
+
+            # Add system_entry to conversation history
+            self.add_to_conversation_history(system_entry)
+            self.memory["conversation_history"] = [] # do not add the system entry to the conversation history
+
             
             self.save_memory("create_initial_memory")
             print(f"Initial memory created with GUID: {self.memory_guid} and type: standard")
@@ -258,6 +216,71 @@ class MemoryManager(BaseMemoryManager):
             print(f"Error creating memory structure: {str(e)}")
             print(f"Full error: {repr(e)}")
             return False
+            
+    def _create_static_memory_from_digest(self, digest: Dict[str, Any]) -> str:
+        """Convert digest into markdown formatted static memory.
+        
+        Args:
+            digest: The digest containing rated segments and topics
+            
+        Returns:
+            str: Markdown formatted static memory
+        """
+        try:
+            # Extract rated segments
+            rated_segments = digest.get("rated_segments", [])
+            
+            # Collect all unique topics
+            all_topics = set()
+            for segment in rated_segments:
+                all_topics.update(segment.get("topics", []))
+            
+            # Sort topics alphabetically
+            sorted_topics = sorted(list(all_topics))
+            
+            # Group segments by importance
+            segments_by_importance = {5: [], 4: [], 3: [], 2: [], 1: []}
+            for segment in rated_segments:
+                importance = segment.get("importance", 3)
+                segments_by_importance[importance].append(segment)
+            
+            # Build markdown
+            lines = []
+            
+            # Title
+            lines.append("# Memory Digest")
+            lines.append("")
+            
+            # Topics Index
+            lines.append("## Topics")
+            for topic in sorted_topics:
+                lines.append(f"- {topic}")
+            lines.append("")
+            
+            # Segments by Importance
+            importance_levels = {
+                5: "Essential Information",
+                4: "Important Information",
+                3: "Extra Information",
+                2: "Unimportant Information",
+                1: "Redundant Information"
+            }
+            
+            for importance in [5, 4, 3, 2, 1]:
+                segments = segments_by_importance[importance]
+                if segments:
+                    lines.append(f"## {importance_levels[importance]} [!{importance}]")
+                    for segment in segments:
+                        topics = segment.get("topics", [])
+                        topic_str = f" [{', '.join(topics)}]" if topics else ""
+                        lines.append(f"- {segment['text']}{topic_str}")
+                    lines.append("")
+            
+            return "\n".join(lines)
+            
+        except Exception as e:
+            print(f"Error creating static memory from digest: {str(e)}")
+            return "## Error\nFailed to format static memory properly."
 
     def query_memory(self, query_context: Dict[str, Any]) -> str:
         """Query memory with the given context."""
@@ -346,25 +369,16 @@ class MemoryManager(BaseMemoryManager):
             return f"Error processing query: {str(e)}"
 
     def _format_static_memory_as_text(self) -> str:
-        """Format static memory as readable text instead of JSON."""
+        """Format static memory as readable text."""
         if "static_memory" not in self.memory:
             return "No static memory available."
             
         static_memory = self.memory["static_memory"]
-        if "topics" not in static_memory:
-            return f"Static memory available but not in topic format: {json.dumps(static_memory, indent=2)}"
+        if not static_memory:
+            return "Static memory is empty."
         
-        result = []
-        for topic_name, segments in static_memory["topics"].items():
-            result.append(f"TOPIC: {topic_name}")
-            for segment in segments:
-                importance = segment.get("importance", 3)
-                importance_str = "*" * importance  # Visualize importance with asterisks
-                text = segment.get("text", "")
-                result.append(f"{importance_str} {text}")
-            result.append("")  # Empty line between topics
-        
-        return "\n".join(result)
+        # Static memory is now stored as markdown, so we can return it directly
+        return static_memory
     
     def _format_context_as_text(self) -> str:
         """Format context as readable text instead of JSON."""
