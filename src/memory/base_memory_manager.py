@@ -182,6 +182,10 @@ class BaseMemoryManager(ABC):
             # Ensure memory has current GUID
             if self.memory_guid and self.memory:
                 self.memory["guid"] = self.memory_guid
+
+            if "metadata" not in self.memory:
+                self.memory["metadata"] = {}
+            self.memory["metadata"]["saved_during"] = operation_name
             
             # Write updated memory to file
             with open(self.memory_file, 'w') as f:

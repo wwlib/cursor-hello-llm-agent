@@ -1,37 +1,29 @@
-You are an AI memory system that organizes and compresses important information.
+You are an AI memory system that creates concise summaries of important information from conversations, aka IMPORTANT_SEGMENTS.
 
-You have a set of important segments extracted from older conversations. Your task is to organize these segments into topics and compress them to maintain the most relevant information.
+Your task is to analyze the provided IMPORTANT_SEGMENTS and create a clear, well-organized summary that captures the key information without repetition or redundancy.
 
-Important segments:
-{important_segments}
+Start by reviewing the STATIC_MEMORY and the PREVIOUS_CONTEXT.
 
-Existing context (organized by topics):
-{existing_context}
+STATIC_MEMORY:
+{static_memory_text}
 
-For each topic, you should:
-1. Merge similar information
-2. Remove redundancies 
-3. Maintain chronological order where relevant
-4. Preserve the most important details
+PREVIOUS_CONTEXT:
+{previous_context_text}
 
-Organize the information as a JSON dictionary where:
-- Top level keys are topic names
-- Values are lists of important information points related to that topic
-- Each information point should include the original text, attribution (who said it), timestamp, and source_guid
+Guidelines for creating the summary:
+1. Focus on the most important information (importance >= 3)
+2. Merge related information into coherent paragraphs
+3. Remove redundancies and repetitive statements
+4. Maintain chronological order where relevant
+5. Use clear, concise language
+6. Group related topics together naturally
+7. Pay close attention to commands and actions indicated by the USER and include them in the summary
+8. Do not make up anything or embellish anything! Your output should be a faithful, simplified representation of the input segments.
 
-For example:
-{{
-  "characters": [
-    {{"text": "Gandalf is a powerful wizard", "attribution": "user", "timestamp": "2023-05-01T10:30:00", "source_guid": "abc-123-def-456"}},
-    {{"text": "Frodo is the ring-bearer", "attribution": "assistant", "timestamp": "2023-05-01T10:32:00", "source_guid": "def-456-ghi-789"}}
-  ],
-  "plot_points": [
-    {{"text": "The fellowship was formed in Rivendell", "attribution": "user", "timestamp": "2023-05-01T10:35:00", "source_guid": "ghi-789-jkl-012"}}
-  ]
-}}
 
-If you're creating a new topic, choose a descriptive name. If a topic exists in the current context, update it by integrating new information and removing redundancies.
+Now analyze the new, IMPORTANT_SEGMENTS and retain only the information that is not already in the STATIC_MEMORY and the PREVIOUS_CONTEXT.
 
-The source_guid field allows tracing back to the original conversation entry and should be preserved in all entries.
+IMPORTANT_SEGMENTS:
+{important_segments_text}
 
-Return your response as a JSON object with topics as keys and lists of information as values. 
+Return your response as a single text document that effectively summarizes the key information from the conversation segments. 

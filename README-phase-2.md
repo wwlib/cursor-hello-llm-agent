@@ -255,10 +255,60 @@ These changes provide several key benefits:
 
 The new format makes it easier for both humans and LLMs to understand and work with the memory content, while maintaining all the important information from the original data. This represents a significant step forward in making the memory system more efficient and user-friendly.
 
+## Phase 2 Update - May 01, 2025 - Enhanced Memory Compression & Turn-Based Processing
+
+We've implemented significant improvements to the memory compression system:
+
+1. **Turn-Based Compression**:
+   - Memory compression now processes conversations in natural "turns" (user + assistant pairs)
+   - Each turn is compressed independently, maintaining conversation context
+   - Better preservation of dialogue flow and interaction patterns
+   - More focused summaries that capture complete exchanges
+
+2. **Improved Unicode Handling**:
+   - Enhanced text cleaning to properly handle Unicode characters
+   - Preserves special characters like en-dashes and other typographic elements
+   - Better handling of international text and special symbols
+   - Cleaner, more readable output in memory files
+
+3. **Configurable Compression Parameters**:
+   - Added `max_recent_conversation_entries` parameter (default: 4) to control memory size
+   - Configurable `importance_threshold` (1-5 scale) for segment filtering
+   - Parameters can be adjusted during initialization to tune memory behavior
+   - Better control over memory size vs. information retention
+
+4. **Enhanced Context Integration**:
+   - Compression now considers both static memory and previous context
+   - Better deduplication of information across memory components
+   - More intelligent organization of information by topic
+   - Improved traceability with source GUIDs maintained in context entries
+
+5. **Technical Improvements**:
+   - More robust error handling during compression
+   - Better logging of compression operations
+   - Cleaner separation between conversation history and compressed memory
+   - More efficient memory file structure
+
+These improvements create a more sophisticated memory system that:
+- Better preserves the natural flow of conversations
+- Maintains higher quality text with proper Unicode handling
+- Provides more control over memory size and information retention
+- Creates more focused and contextually relevant summaries
+- Better integrates new information with existing knowledge
+
+The system now strikes an excellent balance between:
+- Preserving important information
+- Maintaining conversation context
+- Managing memory size
+- Ensuring text quality
+- Supporting efficient retrieval
+
+This represents a significant step forward in making the memory system more robust and user-friendly while maintaining high-quality information extraction and organization.
+
 ## TODO
 
-- Compression should transform important information from the conversation history digests into entries in the memory context dictionary
-- Context entries should retain conversation history guid(s) to allow future search to find the source in the full conversation history file
+- Process LLM responses to replace special characters and unicode escape sequences
+- Move the memory compression into its own class and set the llm temperature for compression to 0
 - Implement search functions to retrieve information from both memory and conversation history
 - Add metadata to track memory usage statistics and performance
 - Develop tools for memory visualization and analysis

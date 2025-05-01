@@ -30,8 +30,9 @@ class LLMService:
             import logging
             
             # Create logger
-            self.logger = logging.getLogger(f'llm_service{self.debug_scope}')
+            self.logger = logging.getLogger(f'llm_service:{self.debug_scope}')
             self.logger.setLevel(logging.DEBUG)
+            self.logger.propagate = False  # Prevent propagation to root logger
             
             # Create formatters
             scope_prefix = f'[{self.debug_scope}]' if self.debug_scope else ''

@@ -84,11 +84,14 @@ class DigestGenerator:
             # Step 2: Rate segments and assign topics
             rated_segments = self._rate_segments(segments, memory_state)
             
+            # Step 3: Clean the rated segments
+            cleaned_segments = self._clean_segments(rated_segments)
+            
             # Combine into final digest
             digest = {
                 "conversation_history_entry_guid": entry_guid,
                 "role": conversation_entry.get("role", "unknown"),
-                "rated_segments": rated_segments,
+                "rated_segments": cleaned_segments,
                 "timestamp": datetime.now().isoformat()
             }
             
@@ -246,4 +249,44 @@ class DigestGenerator:
                 "topics": []
             }
             for segment in segments
-        ] 
+        ]
+
+    def _clean_segments(self, segments: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Clean and validate segments.
+        
+        Args:
+            segments: List of segment dictionaries
+            
+        Returns:
+            List[Dict[str, Any]]: Cleaned segments
+        """
+        cleaned_segments = []
+        
+        for segment in segments:
+            # Clean text by removing extra whitespace and newlines
+            if "text" in segment:
+                # First decode any Unicode escape sequences
+                text = segment["text"].encode().decode('unicode_escape')
+                # Then clean up whitespace
+                text = " ".join(text.split())
+                segment["text"] = text
+            
+            # Ensure importance is an integer between 1-5
+            if "importance" in segment:
+                try:
+                    importance = int(segment["importance"])
+                    segment["importance"] = max(1, min(5, importance))
+                except (ValueError, TypeError):
+                    segment["importance"] = 3  # Default to middle importance
+            
+            # Ensure topics is a list of strings
+            if "topics" in segment:
+                if not isinstance(segment["topics"], list):
+                    segment["topics"] = []
+                segment["topics"] = [str(topic).strip() for topic in segment["topics"] if topic]
+            else:
+                segment["topics"] = []
+            
+            cleaned_segments.append(segment)
+        
+        return cleaned_segments 

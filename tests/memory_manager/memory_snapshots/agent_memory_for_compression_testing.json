@@ -1,0 +1,440 @@
+{
+    "guid": "4352fc36-fb9d-45c5-bff8-2659ef851c31",
+    "memory_type": "standard",
+    "static_memory": "# Memory Digest\n\n## Topics\n- Anomalies\n- Archaeology\n- Artifacts\n- Characters\n- Decryption\n- Defense\n- Discovery\n- Events\n- Geography\n- Investigation\n- Knowledge\n- Location\n- Locations\n- Logistics\n- Magic\n- Motivation\n- Obstacles\n- Politics\n- Role\n- Ruins\n- Setting\n- Settlements\n- Skills\n- Solutions\n- Threats\n- Trade\n- Value\n- Wildlife\n\n## Essential Information [!5]\n- The valley is hidden and surrounded by impassable mountains. [Location, Geography, Obstacles]\n- Ancient ruins are scattered throughout the valley. [Location, Ruins, Archaeology]\n- Mysterious magical anomalies exist within the valley. [Magic, Anomalies, Location]\n- Elena is currently investigating strange occurrences in Haven. [Characters, Investigation, Events]\n- Theron's expertise is in ancient ruins and artifacts. [Characters, Skills, Ruins, Artifacts]\n- Theron is currently researching decoding ruin inscriptions. [Characters, Investigation, Ruins, Decryption]\n- Sara is concerned about increased monster activity. [Events, Threats, Defense]\n- New chambers have been discovered within the ancient ruins. [Ruins, Discovery, Investigation]\n- Strange energy emanations are coming from the ruins. [Ruins, Magic, Anomalies]\n- Valuable artifacts have been found in the ruins. [Ruins, Artifacts, Value]\n- Random magical effects are occurring. [Magic, Events, Anomalies]\n- There may be a connection between the anomalies and the ruins. [Ruins, Magic, Anomalies, Investigation]\n\n## Important Information [!4]\n- There are three main settlements: Haven, Riverwatch, and Mountainkeep. [Settlements, Locations, Politics]\n- Elena is the Mayor of Haven. [Characters, Settlements, Politics]\n- Elena's motivation is to protect the valley's inhabitants. [Characters, Motivation, Politics]\n- Theron is the Master Scholar. [Characters, Role, Knowledge]\n- Sara is the Captain of Riverwatch. [Characters, Role, Defense]\n- Sara's responsibility is the valley's defense. [Characters, Role, Defense]\n- Trade routes between settlements are disrupted. [Events, Trade, Logistics]\n- Merchants are seeking protection due to the disrupted routes. [Characters, Events, Trade]\n- These magical effects are affecting local wildlife. [Magic, Wildlife, Anomalies]\n\n## Extra Information [!3]\n- The campaign setting is The Lost Valley. [Setting, Location]\n- Alternative routes are needed. [Logistics, Solutions]\n",
+    "context": [],
+    "metadata": {
+      "created_at": "2025-05-01T06:27:39.468759",
+      "last_updated": "2025-05-01T06:27:39.468759",
+      "version": "1.0",
+      "saved_during": "query_memory"
+    },
+    "conversation_history": [
+      {
+        "guid": "dcabf249-10dc-405a-9ee0-cbb872a263c7",
+        "role": "user",
+        "content": "please describe the world",
+        "timestamp": "2025-05-01T06:28:28.226704",
+        "digest": {
+          "conversation_history_entry_guid": "dcabf249-10dc-405a-9ee0-cbb872a263c7",
+          "role": "user",
+          "rated_segments": [
+            {
+              "text": "please describe the world",
+              "importance": 4,
+              "topics": [
+                "Setting",
+                "Location",
+                "Geography",
+                "Ruins",
+                "Archaeology"
+              ]
+            }
+          ],
+          "timestamp": "2025-05-01T06:28:29.788829"
+        }
+      },
+      {
+        "guid": "83cbab18-d974-47e4-90ee-0129f7efc88c",
+        "role": "assistant",
+        "content": "The world is known as The Lost Valley, a place shielded by towering, impassable mountains \u2013 a truly isolated location. Within this valley, you\u2019ll find ancient ruins scattered across the landscape, remnants of a forgotten civilization. These ruins are the source of strange occurrences: mysterious magical anomalies, and even random magical effects! \n\nCurrently, there are three main settlements: Haven, governed by Mayor Elena; Riverwatch, and Mountainkeep. The valley\u2019s inhabitants are increasingly concerned about a rise in monster activity, and trade routes between these settlements have been disrupted, leading merchants to seek protection. \n\nTheron, a Master Scholar, is currently deep in research, attempting to decipher the inscriptions found within the ruins, while Sara, Captain of Riverwatch, is primarily focused on maintaining the valley's defense against these threats. It appears the anomalies and the ruins are somehow connected, and the magical effects are even impacting the local wildlife. ",
+        "timestamp": "2025-05-01T06:28:31.658462",
+        "digest": {
+          "conversation_history_entry_guid": "83cbab18-d974-47e4-90ee-0129f7efc88c",
+          "role": "assistant",
+          "rated_segments": [
+            {
+              "text": "The world is known as The Lost Valley, a place shielded by towering, impassable mountains a truly isolated location.",
+              "importance": 3,
+              "topics": [
+                "Setting",
+                "Location",
+                "Geography"
+              ]
+            },
+            {
+              "text": "Within this valley, youll find ancient ruins scattered across the landscape, remnants of a forgotten civilization.",
+              "importance": 5,
+              "topics": [
+                "Location",
+                "Ruins",
+                "Archaeology",
+                "Discovery"
+              ]
+            },
+            {
+              "text": "These ruins are the source of strange occurrences: mysterious magical anomalies, and even random magical effects!",
+              "importance": 5,
+              "topics": [
+                "Location",
+                "Magic",
+                "Anomalies",
+                "Events"
+              ]
+            },
+            {
+              "text": "Currently, there are three main settlements: Haven, governed by Mayor Elena; Riverwatch, and Mountainkeep.",
+              "importance": 4,
+              "topics": [
+                "Settlements",
+                "Locations",
+                "Politics"
+              ]
+            },
+            {
+              "text": "The valleys inhabitants are increasingly concerned about a rise in monster activity.",
+              "importance": 4,
+              "topics": [
+                "Threats",
+                "Events",
+                "Defense"
+              ]
+            },
+            {
+              "text": "Trade routes between these settlements have been disrupted, leading merchants to seek protection.",
+              "importance": 4,
+              "topics": [
+                "Trade",
+                "Logistics",
+                "Events",
+                "Threats"
+              ]
+            },
+            {
+              "text": "Theron, a Master Scholar, is currently deep in research, attempting to decipher the inscriptions found within the ruins.",
+              "importance": 5,
+              "topics": [
+                "Characters",
+                "Skills",
+                "Investigation",
+                "Ruins",
+                "Decryption",
+                "Knowledge"
+              ]
+            },
+            {
+              "text": "Sara, Captain of Riverwatch, is primarily focused on maintaining the valleys defense against these threats.",
+              "importance": 5,
+              "topics": [
+                "Characters",
+                "Role",
+                "Defense",
+                "Threats",
+                "Location"
+              ]
+            },
+            {
+              "text": "It appears the anomalies and the ruins are somehow connected.",
+              "importance": 4,
+              "topics": [
+                "Anomalies",
+                "Ruins",
+                "Investigation"
+              ]
+            },
+            {
+              "text": "The magical effects are even impacting the local wildlife.",
+              "importance": 4,
+              "topics": [
+                "Magic",
+                "Wildlife",
+                "Anomalies",
+                "Location"
+              ]
+            }
+          ],
+          "timestamp": "2025-05-01T06:28:39.144268"
+        }
+      },
+      {
+        "guid": "d3661b30-bbb3-4bd6-b3f0-3a3befea84c4",
+        "role": "user",
+        "content": "i need a quest that will earn me some gold",
+        "timestamp": "2025-05-01T06:30:37.134517",
+        "digest": {
+          "conversation_history_entry_guid": "d3661b30-bbb3-4bd6-b3f0-3a3befea84c4",
+          "role": "user",
+          "rated_segments": [
+            {
+              "text": "I need a quest that will earn me some gold",
+              "importance": 1,
+              "topics": [
+                "Characters",
+                "Events",
+                "Motivation",
+                "Value",
+                "Solutions"
+              ]
+            }
+          ],
+          "timestamp": "2025-05-01T06:30:38.307080"
+        }
+      },
+      {
+        "guid": "a248cfcb-f6f4-44b8-ab45-993490db7634",
+        "role": "assistant",
+        "content": "Okay, let\u2019s see what we can do to earn you some gold. Given the situation \u2013 the disrupted trade routes and increased monster activity \u2013 there\u2019s a potentially lucrative opportunity. \n\nSeveral merchants from Riverwatch and Mountainkeep have approached Mayor Elena (that\u2019s me!) seeking protection for caravans attempting to navigate the disrupted trade routes. They\u2019re willing to pay a hefty sum \u2013 50 gold pieces \u2013 for a small group to escort a caravan to Haven. However, Sara, Captain of Riverwatch, suspects that the increased monster activity is linked to the anomalies within the ruins, and she believes the caravan is headed directly into danger. \n\nShe\u2019s asking for a group of adventurers to investigate the ruins just ahead of the caravan's route. If you can identify and neutralize the source of the monster activity \u2013 perhaps a magical creature drawn to the anomalies \u2013 you\u2019ll not only earn the 50 gold from the merchants, but you might also uncover a valuable artifact within the ruins! \n\nDo you think you\u2019re up for the task?",
+        "timestamp": "2025-05-01T06:30:40.672974",
+        "digest": {
+          "conversation_history_entry_guid": "a248cfcb-f6f4-44b8-ab45-993490db7634",
+          "role": "assistant",
+          "rated_segments": [
+            {
+              "text": "Okay, lets see what we can do to earn you some gold.",
+              "importance": 2,
+              "topics": [
+                "Value",
+                "Logistics",
+                "Solutions"
+              ]
+            },
+            {
+              "text": "Given the situation the disrupted trade routes and increased monster activity theres a potentially lucrative opportunity.",
+              "importance": 4,
+              "topics": [
+                "Logistics",
+                "Events",
+                "Threats",
+                "Value"
+              ]
+            },
+            {
+              "text": "Several merchants from Riverwatch and Mountainkeep have approached Mayor Elena (thats me!) seeking protection for caravans attempting to navigate the disrupted trade routes.",
+              "importance": 5,
+              "topics": [
+                "Trade",
+                "Logistics",
+                "Events",
+                "Characters",
+                "Politics"
+              ]
+            },
+            {
+              "text": "Theyre willing to pay a hefty sum 50 gold pieces for a small group to escort a caravan to Haven.",
+              "importance": 5,
+              "topics": [
+                "Value",
+                "Logistics",
+                "Events",
+                "Characters",
+                "Solutions"
+              ]
+            },
+            {
+              "text": "Sara, Captain of Riverwatch, suspects that the increased monster activity is linked to the anomalies within the ruins.",
+              "importance": 5,
+              "topics": [
+                "Threats",
+                "Anomalies",
+                "Investigation",
+                "Ruins",
+                "Defense"
+              ]
+            },
+            {
+              "text": "She believes the caravan is headed directly into danger.",
+              "importance": 4,
+              "topics": [
+                "Threats",
+                "Investigation",
+                "Ruins",
+                "Defense"
+              ]
+            },
+            {
+              "text": "Shes asking for a group of adventurers to investigate the ruins just ahead of the caravan's route.",
+              "importance": 5,
+              "topics": [
+                "Investigation",
+                "Ruins",
+                "Anomalies",
+                "Defense"
+              ]
+            },
+            {
+              "text": "If you can identify and neutralize the source of the monster activity perhaps a magical creature drawn to the anomalies youll not only earn the 50 gold from the merchants, but you might also uncover a valuable artifact within the ruins!",
+              "importance": 5,
+              "topics": [
+                "Threats",
+                "Anomalies",
+                "Ruins",
+                "Value",
+                "Artifacts",
+                "Investigation"
+              ]
+            },
+            {
+              "text": "Do you think youre up for the task?",
+              "importance": 3,
+              "topics": [
+                "Investigation",
+                "Threats",
+                "Ruins",
+                "Characters"
+              ]
+            }
+          ],
+          "timestamp": "2025-05-01T06:30:48.273060"
+        }
+      },
+      {
+        "guid": "e11c4417-dfd8-47eb-a124-63a369b46a97",
+        "role": "user",
+        "content": "great. yes, i accept the quest.",
+        "timestamp": "2025-05-01T06:32:00.950509",
+        "digest": {
+          "conversation_history_entry_guid": "e11c4417-dfd8-47eb-a124-63a369b46a97",
+          "role": "user",
+          "rated_segments": [
+            {
+              "text": "great.",
+              "importance": 1,
+              "topics": [
+                "Acknowledgement"
+              ]
+            },
+            {
+              "text": "yes, i accept the quest.",
+              "importance": 5,
+              "topics": [
+                "Events",
+                "Investigation",
+                "Characters",
+                "Motivation"
+              ]
+            },
+            {
+              "text": "i accept the quest.",
+              "importance": 5,
+              "topics": [
+                "Events",
+                "Investigation",
+                "Characters",
+                "Motivation"
+              ]
+            }
+          ],
+          "timestamp": "2025-05-01T06:32:02.895990"
+        }
+      },
+      {
+        "guid": "27577e06-032f-424f-ba7f-167f28f6898b",
+        "role": "assistant",
+        "content": "Excellent! So, you\u2019ve accepted the quest to investigate the disturbances ahead of the caravan\u2019s route to Haven. Sara, Captain of Riverwatch, believes the increased monster activity is linked to the magical anomalies within the ruins, and she\u2019s provided you with a preliminary assessment.\n\nSpecifically, she\u2019s pinpointed a cluster of new chambers discovered just outside the main ruins complex \u2013 those are the source of the strange energy emanations and the recent surge in monster activity. She suspects a corrupted magical creature might be drawn to the anomalies, feeding off the chaotic energy.\n\nBefore you head out, I want to offer a small piece of advice. Theron, our Master Scholar, has been studying the inscriptions within those new chambers and believes there might be a key to understanding \u2013 and potentially controlling \u2013 the magical effects. He\u2019s requested you bring him back any unusual artifacts you discover. \n\nI\u2019ll send Sara along with you to provide support and coordinate with the merchants. She\u2019s particularly concerned about the caravan\u2019s safety, so let\u2019s prioritize neutralizing the threat swiftly. \n\nDo you have any questions before we set off?",
+        "timestamp": "2025-05-01T06:32:05.444695",
+        "digest": {
+          "conversation_history_entry_guid": "27577e06-032f-424f-ba7f-167f28f6898b",
+          "role": "assistant",
+          "rated_segments": [
+            {
+              "text": "Excellent! So, youve accepted the quest to investigate the disturbances ahead of the caravans route to Haven.",
+              "importance": 4,
+              "topics": [
+                "Events",
+                "Investigation",
+                "Logistics",
+                "Characters"
+              ]
+            },
+            {
+              "text": "Sara, Captain of Riverwatch, believes the increased monster activity is linked to the magical anomalies within the ruins, and shes provided you with a preliminary assessment.",
+              "importance": 4,
+              "topics": [
+                "Events",
+                "Threats",
+                "Anomalies",
+                "Defense",
+                "Investigation"
+              ]
+            },
+            {
+              "text": "Specifically, shes pinpointed a cluster of new chambers discovered just outside the main ruins complex those are the source of the strange energy emanations and the recent surge in monster activity.",
+              "importance": 5,
+              "topics": [
+                "Ruins",
+                "Anomalies",
+                "Events",
+                "Threats",
+                "Defense",
+                "Investigation",
+                "Discovery"
+              ]
+            },
+            {
+              "text": "She suspects a corrupted magical creature might be drawn to the anomalies, feeding off the chaotic energy.",
+              "importance": 5,
+              "topics": [
+                "Anomalies",
+                "Magic",
+                "Threats",
+                "Defense",
+                "Investigation"
+              ]
+            },
+            {
+              "text": "Before you head out, I want to offer a small piece of advice.",
+              "importance": 3,
+              "topics": [
+                "Investigation",
+                "Solutions",
+                "Logistics"
+              ]
+            },
+            {
+              "text": "Theron, our Master Scholar, has been studying the inscriptions within those new chambers and believes there might be a key to understanding and potentially controlling the magical effects.",
+              "importance": 5,
+              "topics": [
+                "Ruins",
+                "Investigation",
+                "Decryption",
+                "Magic",
+                "Anomalies",
+                "Knowledge"
+              ]
+            },
+            {
+              "text": "Hes requested you bring him back any unusual artifacts you discover.",
+              "importance": 4,
+              "topics": [
+                "Ruins",
+                "Artifacts",
+                "Value",
+                "Investigation"
+              ]
+            },
+            {
+              "text": "Ill send Sara along with you to provide support and coordinate with the merchants.",
+              "importance": 4,
+              "topics": [
+                "Characters",
+                "Defense",
+                "Trade",
+                "Logistics",
+                "Events"
+              ]
+            },
+            {
+              "text": "Shes particularly concerned about the caravans safety, so lets prioritize neutralizing the threat swiftly.",
+              "importance": 5,
+              "topics": [
+                "Events",
+                "Threats",
+                "Defense",
+                "Logistics",
+                "Characters"
+              ]
+            },
+            {
+              "text": "Do you have any questions before we set off?",
+              "importance": 3,
+              "topics": [
+                "Investigation",
+                "Characters"
+              ]
+            }
+          ],
+          "timestamp": "2025-05-01T06:32:13.938609"
+        }
+      }
+    ]
+  }

@@ -68,7 +68,7 @@ async def main():
             memory_file=custom_memory_file,
             domain_config=domain_config,
             llm_service=llm_service,
-            max_recent_conversations=5,      # Keep only 5 recent conversations (default is 10)
+            max_recent_conversation_entries=5,      # Keep only 5 recent conversations (default is 10)
             importance_threshold=4           # Only keep very important segments (default is 3)
         )
         

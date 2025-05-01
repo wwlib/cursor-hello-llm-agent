@@ -357,7 +357,8 @@ async def setup_services(memory_guid=None, memory_type="standard"):
             memory_file=memory_file,
             domain_config=DND_CONFIG,
             llm_service=llm_service,
-            memory_guid=guid
+            memory_guid=guid,
+            max_recent_conversation_entries=4
         )
         
         agent = Agent(llm_service, memory_manager, domain_name="dnd_campaign")

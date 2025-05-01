@@ -44,7 +44,6 @@ Current Situations:
 
 DND_CONFIG = {
     "domain_specific_prompt_instructions": {
-        "create_memory": "You are creating a memory for a D&D campaign. You are given all of the information needed to start the campaign. Keep in mind that the memory data you are creating will be included in subsequent prompts as context. The memory will be used to inform the agent's behavior and decision-making.",
         "query": "You are an agent acting as a DM for a D&D campaign. You should respond in a way that moves the gameplay forward and adds details and richness to the story.",
         "update": "You are analyzing the input from both the user and the agent and extracting and classifying the important information into the conversation history data structure."
     },
@@ -87,7 +86,6 @@ Return ONLY a valid JSON object with structured_data and knowledge_graph section
 
 USER_STORY_CONFIG = {
     "domain_specific_prompt_instructions": {
-        "create_memory": "",
         "query": "",
         "update": ""
     },
