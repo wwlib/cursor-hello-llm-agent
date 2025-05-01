@@ -43,6 +43,7 @@ import uuid
 from datetime import datetime
 from .base_memory_manager import BaseMemoryManager
 from .digest_generator import DigestGenerator
+from .memory_compressor import MemoryCompressor
 
 class MemoryManager(BaseMemoryManager):
     """LLM-driven memory manager implementation.
@@ -79,6 +80,10 @@ class MemoryManager(BaseMemoryManager):
         # Initialize DigestGenerator
         self.digest_generator = DigestGenerator(llm_service)
         print("Initialized DigestGenerator")
+        
+        # Initialize MemoryCompressor
+        self.memory_compressor = MemoryCompressor(llm_service, importance_threshold)
+        print("Initialized MemoryCompressor")
         
         # Ensure memory has a GUID
         self._ensure_memory_guid()
@@ -139,8 +144,7 @@ class MemoryManager(BaseMemoryManager):
         self.templates = {}
         
         template_files = {
-            "query": "query_memory.prompt",
-            "compress": "compress_memory.prompt"
+            "query": "query_memory.prompt"
         }
         
         for key, filename in template_files.items():
@@ -439,112 +443,27 @@ class MemoryManager(BaseMemoryManager):
 
     def _compress_conversation_history(self) -> bool:
         """Compress conversation history by keeping only important segments and updating context."""
-        try:            
-            # Find conversation entries to compress (all except most recent MAX_RECENT_CONVERSATIONS)
-            entries_to_compress = self.memory["conversation_history"]
+        try:
+            # Get current memory state
+            conversation_history = self.memory.get("conversation_history", [])
+            static_memory = self.memory.get("static_memory", "")
+            current_context = self.memory.get("context", [])
             
-            if not entries_to_compress:
-                print("No entries to compress")
-                return False
+            # Use MemoryCompressor to compress the conversation history
+            compressed_state = self.memory_compressor.compress_conversation_history(
+                conversation_history=conversation_history,
+                static_memory=static_memory,
+                current_context=current_context
+            )
             
-            print(f"Found {len(entries_to_compress)} entries to compress")
-            
-            # Process entries in turns (user + assistant pairs)
-            turns = []
-            current_turn = []
-            compressed_guids = []
-            
-            for entry in entries_to_compress:
-                # Store GUID of compressed entry for reference
-                entry_guid = entry.get("guid")
-                if entry_guid:
-                    compressed_guids.append(entry_guid)
-                
-                current_turn.append(entry)
-                
-                # If we have a complete turn (user + assistant) or this is the last entry
-                if len(current_turn) == 2 or entry == entries_to_compress[-1]:
-                    turns.append(current_turn)
-                    current_turn = []
-            
-            print(f"Split into {len(turns)} turns")
-            
-            # Get static memory text
-            static_memory_text = self._format_static_memory_as_text()
-            
-            # Process each turn
-            for turn in turns:
-                # Extract important segments from this turn
-                important_segments = []
-                
-                for entry in turn:
-                    # Process digest if available
-                    if "digest" in entry and "rated_segments" in entry["digest"]:
-                        print(f"Processing digest for entry {entry.get('guid')}")
-                        # Filter segments by importance
-                        for segment in entry["digest"]["rated_segments"]:
-                            if segment.get("importance", 0) >= self.importance_threshold:
-                                # Include role and timestamp with the segment
-                                important_segments.append({
-                                    "text": segment["text"],
-                                    "importance": segment["importance"],
-                                    "topics": segment.get("topics", []),
-                                    "role": entry["role"],
-                                    "timestamp": entry["timestamp"],
-                                    "source_guid": entry.get("guid")
-                                })
-                    else:
-                        print(f"No digest found for entry {entry.get('guid')}")
-                
-                if important_segments:
-                    # Transform segments into simple markdown format
-                    markdown_segments = []
-                    for segment in important_segments:
-                        # Create a markdown entry with topics as tags
-                        # topics = segment.get("topics", [])
-                        # topic_tags = " ".join([f"#{topic.lower()}" for topic in topics])
-                        role = segment.get("role", "unknown").upper()
-                        markdown_segments.append(f"[{role}]: {segment['text']}") # {topic_tags}")
-                    
-                    # Join segments with newlines
-                    important_segments_text = "\n".join(markdown_segments)
-                    
-                    # Use LLM to organize important segments by topic
-                    prompt = self.templates["compress"].format(
-                        important_segments_text=important_segments_text,
-                        previous_context_text=json.dumps(self.memory.get("context", []), indent=2),
-                        static_memory_text=static_memory_text
-                    )
-                    
-                    print("Sending compression prompt to LLM...")
-                    # Call LLM to organize segments
-                    llm_response = self.llm.generate(prompt)
-                    print("Received response from LLM")
-                    
-                    # Create a new context entry with the markdown text and source GUIDs
-                    context_entry = {
-                        "text": llm_response,
-                        "guids": [entry.get("guid") for entry in turn if entry.get("guid")]
-                    }
-                    
-                    # Initialize context as a list if it doesn't exist
-                    if "context" not in self.memory:
-                        self.memory["context"] = []
-                    elif not isinstance(self.memory["context"], list):
-                        # If context exists but is not a list, convert it
-                        print("Converting context from dict to list")
-                        self.memory["context"] = []
-                    
-                    # Add the new context entry
-                    self.memory["context"].append(context_entry)
-                    print("Added new context entry with compressed information")
-            
-            # Reset the conversation history
-            self.memory["conversation_history"] = []
-            
-            print(f"Compressed memory using {len(entries_to_compress)} recent messages")
+            # Update memory with compressed state
+            self.memory["context"] = compressed_state["context"]
+            self.memory["conversation_history"] = compressed_state["conversation_history"]
             
             # Update metadata
+            if "metadata" not in self.memory:
+                self.memory["metadata"] = {}
+            self.memory["metadata"].update(compressed_state.get("metadata", {}))
             self.memory["metadata"]["last_updated"] = datetime.now().isoformat()
             
             # Save the updated memory

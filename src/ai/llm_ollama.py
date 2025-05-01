@@ -15,7 +15,7 @@ class OllamaService(LLMService):
                    - base_url: str - Ollama server URL
                    - model: str - Model name to use
                    Optional fields:
-                   - temperature: float - Sampling temperature
+                   - temperature: float - Default sampling temperature (0.0 to 1.0)
                    - debug: bool - Enable debug logging
                    - debug_file: str - Path to debug log file
                    - debug_scope: str - Scope identifier for debug logs
@@ -31,17 +31,20 @@ class OllamaService(LLMService):
         self.base_url = config['base_url']
         self.model = config['model']
         
-        # Optional config
-        self.temperature = config.get('temperature', 0.7)
+        # Optional config with defaults
+        self.default_temperature = config.get('temperature', 0.7)
         
         if self.debug:
             self.logger.debug(f":[init]:Initialized Ollama service with model: {self.model}")
     
-    def _generate_impl(self, prompt: str, debug_generate_scope: str = "") -> str:
+    def _generate_impl(self, prompt: str, options: Dict[str, Any], debug_generate_scope: str = "") -> str:
         """Generate a response using Ollama.
         
         Args:
             prompt: The input prompt
+            options: Dictionary of generation options:
+                    - temperature: float - Sampling temperature (0.0 to 1.0)
+                    - stream: bool - Whether to stream the response
             debug_generate_scope: Optional scope identifier for debugging
             
         Returns:
@@ -58,8 +61,8 @@ class OllamaService(LLMService):
             data = {
                 "model": self.model,
                 "prompt": prompt,
-                "temperature": self.temperature,
-                "stream": False
+                "temperature": options.get('temperature', self.default_temperature),
+                "stream": options.get('stream', False)
             }
             
             if self.debug:

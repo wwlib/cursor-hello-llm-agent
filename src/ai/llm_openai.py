@@ -13,8 +13,8 @@ class OpenAIService(LLMService):
             config: Optional configuration with keys:
                 - api_key: OpenAI API key (optional if set in env)
                 - model: Model to use (default: gpt-4)
-                - temperature: Generation temperature (default: 0.7)
-                - max_tokens: Maximum tokens (default: 1000)
+                - temperature: Default generation temperature (default: 0.7)
+                - max_tokens: Default maximum tokens (default: 1000)
         """
         super().__init__(config)
         self.api_key = self.config.get('api_key') or os.getenv('OPENAI_API_KEY')
@@ -22,15 +22,19 @@ class OpenAIService(LLMService):
             raise LLMServiceError("OpenAI API key not found in config or environment")
             
         self.model = self.config.get('model', 'gpt-4')
-        self.temperature = self.config.get('temperature', 0.7)
-        self.max_tokens = self.config.get('max_tokens', 1000)
+        self.default_temperature = self.config.get('temperature', 0.7)
+        self.default_max_tokens = self.config.get('max_tokens', 1000)
         openai.api_key = self.api_key
 
-    def generate(self, prompt: str) -> str:
+    def _generate_impl(self, prompt: str, options: Dict[str, Any], debug_generate_scope: str = "") -> str:
         """Generate a response using OpenAI's API.
         
         Args:
             prompt: The input prompt
+            options: Dictionary of generation options:
+                    - temperature: float - Sampling temperature (0.0 to 1.0)
+                    - max_tokens: int - Maximum tokens to generate
+            debug_generate_scope: Optional scope identifier for debugging
             
         Returns:
             str: The generated response
@@ -42,8 +46,8 @@ class OpenAIService(LLMService):
             response = openai.ChatCompletion.create(
                 model=self.model,
                 messages=[{"role": "user", "content": prompt}],
-                temperature=self.temperature,
-                max_tokens=self.max_tokens
+                temperature=options.get('temperature', self.default_temperature),
+                max_tokens=options.get('max_tokens', self.default_max_tokens)
             )
             return response.choices[0].message.content
         except Exception as e:
@@ -58,4 +62,7 @@ class OpenAIService(LLMService):
         Returns:
             bool: True if response is valid (non-empty string)
         """
-        return isinstance(response, str) and len(response.strip()) > 0
+        is_valid = isinstance(response, str) and len(response.strip()) > 0
+        if self.debug and not is_valid:
+            self.logger.warning(f"Invalid response format: {response}")
+        return is_valid

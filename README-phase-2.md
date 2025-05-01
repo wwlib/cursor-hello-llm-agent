@@ -305,11 +305,68 @@ The system now strikes an excellent balance between:
 
 This represents a significant step forward in making the memory system more robust and user-friendly while maintaining high-quality information extraction and organization.
 
+## Phase 2 Update - May 01, 2025 - Enhanced LLM Service & Memory Compression
+
+We've implemented significant improvements to the LLM service architecture and memory compression system:
+
+1. **Enhanced LLM Service Architecture**:
+   - Added support for per-call generation options including temperature
+   - Standardized interface across Ollama and OpenAI implementations
+   - Improved debug logging for generation options and responses
+   - Better error handling and response validation
+
+2. **Memory Compression Improvements**:
+   - Moved memory compression logic into dedicated `MemoryCompressor` class
+   - Set temperature to 0 for deterministic compression results
+   - Improved compression quality with better context handling
+   - Enhanced traceability with source GUIDs
+
+3. **Technical Improvements**:
+   - Added configurable generation parameters:
+     - temperature: Controls randomness (0.0 to 1.0)
+     - max_tokens: Controls response length
+     - stream: Enables streaming responses
+   - Better separation of concerns between memory management and compression
+   - More robust error handling and logging
+   - Cleaner code organization
+
+4. **Usage Example**:
+```python
+# Initialize LLM service with defaults
+llm_service = OllamaService({
+    "base_url": "http://localhost:11434",
+    "model": "llama2",
+    "temperature": 0.7  # Default temperature
+})
+
+# Use default temperature
+response = llm_service.generate("Your prompt")
+
+# Use custom temperature for deterministic results
+response = llm_service.generate("Your prompt", options={"temperature": 0.0})
+
+# Use multiple options
+response = llm_service.generate("Your prompt", options={
+    "temperature": 0.0,
+    "max_tokens": 500,
+    "stream": True
+})
+```
+
+These changes provide several key benefits:
+- More consistent and reliable memory compression
+- Better control over LLM generation parameters
+- Improved debugging capabilities
+- Cleaner separation of concerns
+- More maintainable and extensible codebase
+
+The system now provides a solid foundation for future enhancements while maintaining high-quality memory compression and information retention.
+
 ## TODO
 
+- The digest should classify segments as either: query, statement, action, or command
 - Process LLM responses to replace special characters and unicode escape sequences
-- Move the memory compression into its own class and set the llm temperature for compression to 0
 - Implement search functions to retrieve information from both memory and conversation history
+- Generate embeddings for conversation history entries to enable RAG, semantic search
 - Add metadata to track memory usage statistics and performance
 - Develop tools for memory visualization and analysis
-- Consider separating memory files by conversation session for multi-user scenarios

@@ -10,8 +10,8 @@ class LLMServiceError(Exception):
 class LLMService:
     """Base class for LLM service providers"""
     
-    def __init__(self, config: Dict[str, Any]):
-        """Initialize the LLM service with configuration.
+    def __init__(self, config: Optional[Dict[str, Any]] = None):
+        """Initialize the LLM service.
         
         Args:
             config: Configuration dictionary with service settings
@@ -22,10 +22,13 @@ class LLMService:
                    - debug_scope: str - Scope identifier for debug logs
                    - console_output: bool - Whether to also log to console
         """
-        self.config = config
-        self.debug = config.get('debug', False)
-        self.debug_scope = config.get('debug_scope', '')
+        self.config = config or {}
+        self.debug = self.config.get('debug', False)
+        self.debug_scope = self.config.get('debug_scope', 'llm')
+        self.debug_file = self.config.get('debug_file')
+        self.console_output = self.config.get('console_output', False)
         
+        # Set up logging if debug is enabled
         if self.debug:
             import logging
             
@@ -55,11 +58,15 @@ class LLMService:
             
             self.logger.debug(f":[init]:LLM service initialized with debug logging")
     
-    def generate(self, prompt: str, debug_generate_scope: str = "") -> str:
+    def generate(self, prompt: str, options: Optional[Dict[str, Any]] = None, debug_generate_scope: str = "") -> str:
         """Generate a response for the given prompt.
         
         Args:
             prompt: The input prompt
+            options: Optional dictionary of generation options:
+                    - temperature: float - Sampling temperature (0.0 to 1.0)
+                    - max_tokens: int - Maximum tokens to generate
+                    - stream: bool - Whether to stream the response
             debug_generate_scope: Optional scope identifier for this specific generate call
             
         Returns:
@@ -67,9 +74,11 @@ class LLMService:
         """
         if self.debug:
             self.logger.debug(f":[{debug_generate_scope}]:Generating response for prompt:\n{prompt}")
+            if options:
+                self.logger.debug(f":[{debug_generate_scope}]:Generation options:\n{json.dumps(options, indent=2)}")
         
         try:
-            response = self._generate_impl(prompt, debug_generate_scope)
+            response = self._generate_impl(prompt, options or {}, debug_generate_scope)
             
             if self.debug:
                 self.logger.debug(f":[{debug_generate_scope}]:Generated response:\n{response}\n\n\n\n\n")
@@ -81,12 +90,13 @@ class LLMService:
                 self.logger.debug(f":[{debug_generate_scope}]:Error generating response: {str(e)}")
             raise
     
-    def _generate_impl(self, prompt: str, debug_generate_scope: str = "") -> str:
+    def _generate_impl(self, prompt: str, options: Dict[str, Any], debug_generate_scope: str = "") -> str:
         """Implementation specific generation logic.
         Must be implemented by derived classes.
         
         Args:
             prompt: The input prompt
+            options: Dictionary of generation options
             debug_generate_scope: Optional scope identifier for debugging
             
         Returns:
