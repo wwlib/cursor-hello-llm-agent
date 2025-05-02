@@ -463,10 +463,52 @@ These improvements provide several key benefits:
 
 The system now provides a more robust foundation for content segmentation, making it easier to maintain and extend while ensuring high-quality results.
 
+## Phase 2 Update - May 02, 2025 - Enhanced LLM Service & Embeddings Support
+
+We've implemented significant improvements to the LLM service architecture and added support for embeddings:
+
+1. **Enhanced LLM Service Architecture**:
+   - Added comprehensive embedding generation support in both base `LLMService` and `OllamaService` classes
+   - Implemented proper error handling and validation for embedding operations
+   - Added support for vector normalization and model selection
+   - Improved debug logging for embedding operations
+
+2. **Ollama Embeddings Integration**:
+   - Added support for both `/api/embed` and `/api/embeddings` endpoints
+   - Implemented proper request/response handling for embedding generation
+   - Added validation for empty text and invalid responses
+   - Support for batch embedding generation
+
+3. **Example Implementation**:
+   - Created example script demonstrating embedding generation and similarity analysis
+   - Implemented cosine similarity calculation between embeddings
+   - Added support for comparing input text against a set of test texts
+   - Included proper error handling and user interaction
+
+4. **Testing Framework**:
+   - Added comprehensive test suite for embedding functionality
+   - Tests cover basic generation, options, error handling, and semantic properties
+   - Implemented validation for embedding vectors and normalization
+   - Added tests for consistency and similarity between related texts
+
+5. **Technical Improvements**:
+   - Added proper type hints and documentation
+   - Implemented robust error handling with custom exceptions
+   - Added support for environment variable configuration
+   - Improved code organization and maintainability
+
+The LLM service classes are now ready for use in the upcoming `EmbeddingsManager` implementation, which will provide:
+- Efficient storage and retrieval of embeddings
+- Semantic search capabilities
+- Integration with the memory system
+- Support for batch operations and caching
+
+These changes provide a solid foundation for implementing semantic search and RAG capabilities in the memory system.
+
 ## TODO
 
-- Review all tests and fix or clean up as needed
 - Generate embeddings for conversation history entries to enable RAG, semantic search
 - Implement search functions to retrieve information from both memory and conversation history
 - Add metadata to track memory usage statistics and performance
 - Develop tools for memory visualization and analysis
+- Review all tests and fix or clean up as needed

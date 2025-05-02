@@ -1,4 +1,4 @@
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 import json
 import logging
 import time
@@ -102,38 +102,6 @@ class LLMService:
             for unicode_char, ascii_char in replacements.items():
                 cleaned = cleaned.replace(unicode_char, ascii_char)
             
-            # # Replace common special characters with their ASCII equivalents
-            # replacements = {
-            #     '\u2013': '-',  # en-dash
-            #     '\u2014': '--', # em-dash
-            #     '\u2018': "'",  # left single quote
-            #     '\u2019': "'",  # right single quote
-            #     '\u201c': '"',  # left double quote
-            #     '\u201d': '"',  # right double quote
-            #     '\u2026': '...', # ellipsis
-            #     '\u00a0': ' ',  # non-breaking space
-            #     '\u00b0': ' degrees', # degree symbol
-            #     '\u00b7': '.',  # middle dot
-            #     '\u00e9': 'e',  # e with acute
-            #     '\u00e8': 'e',  # e with grave
-            #     '\u00e0': 'a',  # a with grave
-            #     '\u00e1': 'a',  # a with acute
-            #     '\u00e2': 'a',  # a with circumflex
-            #     '\u00e4': 'a',  # a with diaeresis
-            #     '\u00e7': 'c',  # c with cedilla
-            #     '\u00f1': 'n',  # n with tilde
-            #     '\u00f3': 'o',  # o with acute
-            #     '\u00f6': 'o',  # o with diaeresis
-            #     '\u00fa': 'u',  # u with acute
-            #     '\u00fc': 'u',  # u with diaeresis
-            # }
-            
-            # for unicode_char, ascii_char in replacements.items():
-            #     cleaned = cleaned.replace(unicode_char, ascii_char)
-            
-            # # Clean up whitespace
-            # cleaned = ' '.join(cleaned.split())
-            
             return cleaned
             
         except Exception as e:
@@ -168,7 +136,6 @@ class LLMService:
             
             if self.debug:
                 self.logger.debug(f":[{debug_generate_scope}]:Generated response:\n{response}\n\n\n\n\n")
-                # self.logger.debug(f":[{debug_generate_scope}]:Cleaned response:\n{cleaned_response}\n\n\n\n\n")
             
             return cleaned_response
             
@@ -199,6 +166,69 @@ class LLMService:
             
         Returns:
             bool: True if response is valid, False otherwise
+            
+        Raises:
+            NotImplementedError: If not implemented by subclass
+        """
+        raise NotImplementedError
+
+    def generate_embedding(self, text: str, options: Optional[Dict[str, Any]] = None) -> List[float]:
+        """Generate an embedding vector for the given text.
+        
+        Args:
+            text: The text to generate an embedding for
+            options: Optional dictionary of embedding options:
+                    - model: str - Specific embedding model to use
+                    - normalize: bool - Whether to normalize the embedding vector
+            
+        Returns:
+            List[float]: The embedding vector
+            
+        Raises:
+            LLMServiceError: If embedding generation fails
+        """
+        if self.debug:
+            self.logger.debug(f":[embedding]:Generating embedding for text:\n{text}")
+            if options:
+                self.logger.debug(f":[embedding]:Embedding options:\n{json.dumps(options, indent=2)}")
+        
+        try:
+            embedding = self._generate_embedding_impl(text, options or {})
+            
+            if self.debug:
+                self.logger.debug(f":[embedding]:Generated embedding vector of length {len(embedding)}")
+            
+            return embedding
+            
+        except Exception as e:
+            if self.debug:
+                self.logger.debug(f":[embedding]:Error generating embedding: {str(e)}")
+            raise LLMServiceError(f"Failed to generate embedding: {str(e)}")
+    
+    def _generate_embedding_impl(self, text: str, options: Dict[str, Any]) -> List[float]:
+        """Implementation specific embedding generation logic.
+        Must be implemented by derived classes.
+        
+        Args:
+            text: The text to generate an embedding for
+            options: Dictionary of embedding options
+            
+        Returns:
+            List[float]: The embedding vector
+            
+        Raises:
+            NotImplementedError: If not implemented by subclass
+        """
+        raise NotImplementedError("_generate_embedding_impl must be implemented by derived class")
+    
+    def validate_embedding(self, embedding: List[float]) -> bool:
+        """Validate embedding vector format.
+        
+        Args:
+            embedding: The embedding vector to validate
+            
+        Returns:
+            bool: True if embedding is valid, False otherwise
             
         Raises:
             NotImplementedError: If not implemented by subclass

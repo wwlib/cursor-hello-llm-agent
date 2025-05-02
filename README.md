@@ -149,6 +149,16 @@ Example usage:
 ```bash
 # D&D Campaign Example - usinf the default, LLM-driven "standard" MemoryManager
 python examples/agent_usage_example.py
+OLLAMA_BASE_URL=http://ollama-ip-address:11434 python examples/call_ollama_to_generate_embeddings.py
+OLLAMA_BASE_URL=http://192.168.1.173:11434 python examples/call_ollama_to_generate_embeddings.py
+
+# Test Ollama
+OLLAMA_BASE_URL=http://ollama-ip-address:11434 python examples/call_ollama.py
+OLLAMA_BASE_URL=http://192.168.1.173:11434 python examples/call_ollama.py
+
+# Test Ollama Embeddings
+OLLAMA_BASE_URL=http://ollama-ip-address:11434 python examples/call_ollama_to_generate_embeddings.py
+OLLAMA_BASE_URL=http://192.168.1.173:11434 python examples/call_ollama_to_generate_embeddings.py
 
 # D&D Campaign Example - using the simple memory manager
 python examples/agent_usage_example.py --type simple
