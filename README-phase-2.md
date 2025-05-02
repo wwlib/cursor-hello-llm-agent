@@ -415,9 +415,58 @@ The system now provides:
 
 This represents a significant step forward in making the memory system more robust and reliable while maintaining high-quality text processing.
 
+## Phase 2 Update - May 02, 2025 - Content Segmentation Improvements
+
+We've implemented significant improvements to the content segmentation system:
+
+1. **Dedicated ContentSegmenter Class**:
+   - Moved segmentation logic from `DigestGenerator` into its own class
+   - Improved separation of concerns and maintainability
+   - Enhanced error handling and fallback mechanisms
+   - Better testability with focused unit tests
+
+2. **Enhanced Prompt Template**:
+   - Added explicit instructions for handling single sentences
+   - Improved clarity around content duplication prevention
+   - Added examples for both single and multi-sentence cases
+   - Better preservation of context between related ideas
+
+3. **Comprehensive Testing**:
+   - Added dedicated test suite in `tests/memory_manager/test_content_segmenter.py`
+   - Tests cover various scenarios:
+     - Single sentences
+     - Complex multi-sentence content
+     - Empty input
+     - Whitespace-only input
+   - Uses key phrase verification instead of exact character matching
+
+4. **Usage Example**:
+```python
+from src.memory.content_segmenter import ContentSegmenter
+from src.ai.llm_ollama import OllamaService
+
+# Initialize the segmenter
+llm_service = OllamaService(config)
+segmenter = ContentSegmenter(llm_service)
+
+# Segment content
+content = "This is a test sentence. This is another sentence."
+segments = segmenter.segment_content(content)
+```
+
+These improvements provide several key benefits:
+- Better separation of concerns
+- More maintainable and testable code
+- Improved error handling
+- More reliable segmentation results
+- Clearer prompt instructions
+
+The system now provides a more robust foundation for content segmentation, making it easier to maintain and extend while ensuring high-quality results.
+
 ## TODO
 
-- Implement search functions to retrieve information from both memory and conversation history
+- Review all tests and fix or clean up as needed
 - Generate embeddings for conversation history entries to enable RAG, semantic search
+- Implement search functions to retrieve information from both memory and conversation history
 - Add metadata to track memory usage statistics and performance
 - Develop tools for memory visualization and analysis

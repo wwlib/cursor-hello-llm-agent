@@ -86,7 +86,7 @@ def test_generate_digest(digest_generator, test_conversation_entry):
 
 def test_segment_content(digest_generator, test_conversation_entry):
     """Test segmenting content into meaningful chunks."""
-    segments = digest_generator._segment_content(test_conversation_entry["content"])
+    segments = digest_generator.content_segmenter.segment_content(test_conversation_entry["content"])
     
     assert isinstance(segments, list), "Segments should be a list"
     assert len(segments) > 1, "Should produce multiple segments"
@@ -99,16 +99,31 @@ def test_segment_content(digest_generator, test_conversation_entry):
 def test_rate_segments(digest_generator, test_conversation_entry):
     """Test rating and classifying segments."""
     # First segment the content
-    segments = digest_generator._segment_content(test_conversation_entry["content"])
-    
+    segments = digest_generator.content_segmenter.segment_content(test_conversation_entry["content"])
+
+    # Print the segments for inspection
+    print("\nSegments:")
+    print(json.dumps(segments, indent=2))
+
     # Then rate the segments
     rated_segments = digest_generator._rate_segments(segments)
-    
-    assert isinstance(rated_segments, list), "Rated segments should be a list"
-    assert len(rated_segments) == len(segments), "Should have same number of rated segments as input segments"
-    
+
     # Print the rated segments for inspection
     print("\nRated Segments:")
     print(json.dumps(rated_segments, indent=2))
+
+    assert isinstance(rated_segments, list), "Rated segments should be a list"
+    assert len(rated_segments) == len(segments), "Should have same number of rated segments as input segments"
+    
+    # Verify each rated segment has required fields
+    for segment in rated_segments:
+        assert isinstance(segment, dict), "Each rated segment should be a dictionary"
+        assert "text" in segment, "Each segment should have text"
+        assert "importance" in segment, "Each segment should have importance"
+        assert "topics" in segment, "Each segment should have topics"
+        assert "type" in segment, "Each segment should have type"
+        assert segment["type"] in ["query", "information", "action", "command"], "Invalid segment type"
+
+    
 
 

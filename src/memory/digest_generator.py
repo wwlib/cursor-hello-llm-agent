@@ -4,6 +4,7 @@ import re
 import os
 from typing import Dict, List, Any, Optional
 from datetime import datetime
+from .content_segmenter import ContentSegmenter
 
 class DigestGenerator:
     """Handles the process of generating structured digests from conversation entries.
@@ -23,6 +24,7 @@ class DigestGenerator:
             llm_service: Service for LLM operations
         """
         self.llm = llm_service
+        self.content_segmenter = ContentSegmenter(llm_service)
         self._load_templates()
     
     def _load_templates(self) -> None:
@@ -31,7 +33,6 @@ class DigestGenerator:
         self.templates = {}
         
         template_files = {
-            "segment": "segment_conversation.prompt",
             "rate": "rate_segments.prompt"
         }
         
@@ -68,8 +69,8 @@ class DigestGenerator:
                 print("Warning: Empty content in conversation entry")
                 return self._create_empty_digest(entry_guid, conversation_entry.get("role", "unknown"))
             
-            # Step 1: Segment the content
-            segments = self._segment_content(content)
+            # Step 1: Segment the content using ContentSegmenter
+            segments = self.content_segmenter.segment_content(content)
             
             print(f"\n\ngenerate_digest: Segments:")
             for segment in segments:
@@ -101,47 +102,6 @@ class DigestGenerator:
             print(f"Error generating digest: {str(e)}")
             return self._create_empty_digest(entry_guid if entry_guid else str(uuid.uuid4()), 
                                             conversation_entry.get("role", "unknown"))
-    
-    def _segment_content(self, content: str) -> List[str]:
-        """Segment the content into meaningful phrases using LLM.
-        
-        Args:
-            content: The text content to segment
-            
-        Returns:
-            list: A list of segmented phrases
-        """
-        try:
-            # Format the prompt with the content
-            prompt = self.templates["segment"].format(content=content)
-            
-            # Call LLM to segment the content
-            llm_response = self.llm.generate(prompt)
-            
-            # Parse the response as JSON array
-            try:
-                segments = json.loads(llm_response)
-                if not isinstance(segments, list):
-                    print("Segmentation failed: Response is not a list")
-                    return [content]  # Fall back to using the entire content as a single segment
-                return segments
-            except json.JSONDecodeError:
-                # Try to extract JSON array if it's embedded in markdown or other text
-                segments_match = re.search(r'\[\s*".*"\s*(?:,\s*".*"\s*)*\]', llm_response, re.DOTALL)
-                if segments_match:
-                    try:
-                        segments = json.loads(segments_match.group(0))
-                        return segments
-                    except json.JSONDecodeError:
-                        pass
-                
-                # Fall back to using the entire content as a single segment
-                print("Failed to parse segments, using entire content")
-                return [content]
-                
-        except Exception as e:
-            print(f"Error in content segmentation: {str(e)}")
-            return [content]  # Fall back to using the entire content as a single segment
     
     def _rate_segments(self, segments: List[str], memory_state: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
         """Rate segments for importance and assign topics using LLM.

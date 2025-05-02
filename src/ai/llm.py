@@ -168,7 +168,7 @@ class LLMService:
             
             if self.debug:
                 self.logger.debug(f":[{debug_generate_scope}]:Generated response:\n{response}\n\n\n\n\n")
-                self.logger.debug(f":[{debug_generate_scope}]:Cleaned response:\n{cleaned_response}\n\n\n\n\n")
+                # self.logger.debug(f":[{debug_generate_scope}]:Cleaned response:\n{cleaned_response}\n\n\n\n\n")
             
             return cleaned_response
             

@@ -5,6 +5,7 @@ __pycache__
 hide
 
 /*.log
+/logs
 /agent_memories
 /example_memory*
 /user_story_memory*
