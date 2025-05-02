@@ -336,23 +336,23 @@ class MemoryManager(BaseMemoryManager):
             print("Generating response using LLM...")
             llm_response = self.llm.generate(prompt)
             
-            # Create assistant entry with GUID
-            assistant_entry = {
+            # Create agent entry with GUID
+            agent_entry = {
                 "guid": str(uuid.uuid4()),
-                "role": "assistant",
+                "role": "agent",
                 "content": llm_response,
                 "timestamp": datetime.now().isoformat()
             }
             
-            # Generate digest for assistant response
-            print("Generating digest for assistant response...")
-            assistant_digest = self.digest_generator.generate_digest(assistant_entry, self.memory)
-            assistant_entry["digest"] = assistant_digest
+            # Generate digest for agent response
+            print("Generating digest for agent response...")
+            agent_digest = self.digest_generator.generate_digest(agent_entry, self.memory)
+            agent_entry["digest"] = agent_digest
             
             # Add to both conversation history file and memory
-            self.add_to_conversation_history(assistant_entry)
-            self.memory["conversation_history"].append(assistant_entry)
-            print("Added assistant response to history with digest")
+            self.add_to_conversation_history(agent_entry)
+            self.memory["conversation_history"].append(agent_entry)
+            print("Added agent response to history with digest")
 
             # Save to persist memory updates
             self.save_memory("query_memory")

@@ -12,7 +12,7 @@ import json
 from typing import Optional
 
 test_prompt = """
-You are a helpful assistant that communicates using JSON. All your responses should be in JSON format.
+You are a helpful agent that communicates using JSON. All your responses should be in JSON format.
 
 Current Memory State:
 {}

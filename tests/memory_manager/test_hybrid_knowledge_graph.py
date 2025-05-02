@@ -204,7 +204,7 @@ def test_update_memory_with_hybrid_graph(memory_manager, mock_llm_service):
                 "timestamp": "2024-01-01T00:00:01"
             },
             {
-                "role": "assistant",
+                "role": "agent",
                 "content": "Test response 1",
                 "timestamp": "2024-01-01T00:00:02"
             }

@@ -17,7 +17,7 @@ Looking at README-phase-2.md, I can see you're planning a significant expansion 
 
 The overall goals are ambitious and practical - you want to create a versatile agent framework that can be applied to multiple use cases, including:
 1. A "self-hosted" agent that helps manage its own development (acting as PM/Scrum Master)
-2. A "Jarvis-like" workshop assistant for project tracking (voice-driven lab notebook)
+2. A "Jarvis-like" workshop assistant/agent for project tracking (voice-driven lab notebook)
 3. A D&D Dungeon Master
 
 The TODO list focuses on several key improvements to the memory system:
@@ -260,7 +260,7 @@ The new format makes it easier for both humans and LLMs to understand and work w
 We've implemented significant improvements to the memory compression system:
 
 1. **Turn-Based Compression**:
-   - Memory compression now processes conversations in natural "turns" (user + assistant pairs)
+   - Memory compression now processes conversations in natural "turns" (user + agent pairs)
    - Each turn is compressed independently, maintaining conversation context
    - Better preservation of dialogue flow and interaction patterns
    - More focused summaries that capture complete exchanges
@@ -362,10 +362,61 @@ These changes provide several key benefits:
 
 The system now provides a solid foundation for future enhancements while maintaining high-quality memory compression and information retention.
 
+## Phase 2 Update - May 01, 2025 - Enhanced Text Processing & Segmentation
+
+We've implemented significant improvements to the text processing and segmentation system:
+
+1. **Enhanced Segmentation Quality**:
+   - Improved prompt template to ensure complete coverage of input text
+   - Added explicit instructions to maintain context between related ideas
+   - Better handling of questions, statements, and descriptive text
+   - Preservation of important modifiers and qualifiers with their related content
+
+2. **Robust Text Cleaning**:
+   - Added comprehensive Unicode character handling
+   - Standardized special character replacements
+   - Better handling of international text and typographic elements
+   - Cleaner, more readable output in memory files
+
+3. **Improved Error Handling**:
+   - Better fallback mechanisms for segmentation failures
+   - Graceful degradation when parsing fails
+   - Comprehensive validation of segment structure
+   - Detailed logging of processing steps
+
+4. **Technical Improvements**:
+   - More efficient text processing pipeline
+   - Better separation of concerns between cleaning and segmentation
+   - Enhanced debug logging for text processing steps
+   - Cleaner code organization
+
+5. **Enhanced Segment Classification**
+   - Added segment type classification:
+     - Query: Questions and requests for information
+     - Information: Factual declarations and descriptions
+     - Action: Information about actions taken
+     - Command: Direct instructions or commands
+   - Improved topic assignment based on segment type
+   - Better importance rating based on segment role
+   - More accurate context preservation between segments
+
+
+These improvements create a more robust text processing system that:
+- Ensures no content is lost during segmentation
+- Maintains proper context between related ideas
+- Handles special characters and Unicode properly
+- Provides better error recovery and logging
+
+The system now provides:
+- More accurate and complete segmentation
+- Better preservation of text meaning and context
+- Cleaner, more consistent output
+- More reliable error handling
+
+This represents a significant step forward in making the memory system more robust and reliable while maintaining high-quality text processing.
+
 ## TODO
 
-- The digest should classify segments as either: query, statement, action, or command
-- Process LLM responses to replace special characters and unicode escape sequences
 - Implement search functions to retrieve information from both memory and conversation history
 - Generate embeddings for conversation history entries to enable RAG, semantic search
 - Add metadata to track memory usage statistics and performance

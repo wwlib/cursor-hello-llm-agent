@@ -166,7 +166,7 @@ Please provide a helpful response based on all available context."""
             
             # Add response to history
             self.memory["conversation_history"].append({
-                "role": "assistant",
+                "role": "agent",
                 "content": llm_response,
                 "timestamp": datetime.now().isoformat()
             })

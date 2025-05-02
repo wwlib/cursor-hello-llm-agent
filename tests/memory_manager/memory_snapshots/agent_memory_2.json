@@ -79,7 +79,7 @@
       "timestamp": "2025-04-10T12:16:02.536812"
     },
     {
-      "role": "assistant",
+      "role": "agent",
       "content": "Welcome to the world, a vast and wondrous place filled with beauty, diversity, and complexity. From the majestic mountains to the deepest oceans, our planet is home to an incredible array of ecosystems, each teeming with life. Explore the world's many wonders, from the vibrant cities to the serene landscapes, and discover the incredible stories that bring this magnificent place to life.",
       "timestamp": "2025-04-10T12:16:06.382499"
     },
@@ -89,7 +89,7 @@
       "timestamp": "2025-04-10T12:28:40.938330"
     },
     {
-      "role": "assistant",
+      "role": "agent",
       "content": "Embark on the thrilling 'Golden Gauntlets' quest! Brave the perilous Swamp of Sorrows and claim the legendary Golden Amulet. This treacherous adventure promises a bounty of 100 gold pieces, sure to bolster your treasury.",
       "timestamp": "2025-04-10T12:28:45.181259"
     }

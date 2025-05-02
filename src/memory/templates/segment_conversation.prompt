@@ -4,11 +4,15 @@ CONTENT:
 {content}
 
 INSTRUCTIONS:
-1. Divide the content into distinct segments, each representing one coherent idea, fact, or piece of information
-2. Each segment should be a complete phrase or sentence
-3. Preserve the original meaning and context
-4. Don't omit any significant information
+1. Divide the content into phrases, aka segments.
+2. Each segment should encompass one coherent idea, fact, or piece of information
+3. Each segment should contain an exact substring of the original text
+4. No substring of the CONTENT should appear in more than one segment
 5. Avoid creating segments that are too long or that contain multiple separate ideas
+6. IMPORTANT: Every part of the original text must be included in exactly one segment
+7. Maintain context by keeping related ideas together in the same segment
+8. Include all questions, statements, and descriptive text
+9. Preserve important modifiers and qualifiers with their related content
 
 For example, given:
 "Captain Sara patrols the eastern border with her squad of ten guards. She's concerned about recent monster sightings and has requested additional resources."
@@ -16,8 +20,7 @@ For example, given:
 The segmentation would be:
 [
   "Captain Sara patrols the eastern border with her squad of ten guards.",
-  "She's concerned about recent monster sightings.",
-  "She has requested additional resources."
+  "She's concerned about recent monster sightings and has requested additional resources."
 ]
 
-Return ONLY a JSON array of strings, with each string being a distinct segment. The response should be valid JSON that can be directly parsed. 
+Return ONLY a JSON array of strings, with each string being a distinct segment. The response should be valid JSON that can be directly parsed. Make sure to include ALL content from the original text in your segmentation. 

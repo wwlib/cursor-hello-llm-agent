@@ -32,12 +32,12 @@ async def main():
     # Sample domain config
     domain_config = {
         "domain_specific_prompt_instructions": {
-            "create_memory": "You are creating memory for a note-taking assistant.",
-            "query": "You are a helpful note-taking assistant.",
-            "update": "You are updating memory for a note-taking assistant."
+            "create_memory": "You are creating memory for a note-taking agent.",
+            "query": "You are a helpful note-taking agent.",
+            "update": "You are updating memory for a note-taking agent."
         },
         "initial_data": (
-            "This is a note-taking assistant that helps users organize their thoughts and ideas. "
+            "This is a note-taking agent that helps users organize their thoughts and ideas. "
             "It can take notes, categorize them, and retrieve them based on user queries."
         )
     }

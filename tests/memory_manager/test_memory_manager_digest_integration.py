@@ -109,7 +109,7 @@ class TestMemoryManagerDigestIntegration(unittest.TestCase):
         
         # Verify conversation history has been updated
         conversation_history = self.memory_manager.memory["conversation_history"]
-        self.assertEqual(len(conversation_history), 2)  # User message + assistant response
+        self.assertEqual(len(conversation_history), 2)  # User message + agent response
         
         # Verify user message has a digest
         user_message = conversation_history[0]
@@ -124,29 +124,29 @@ class TestMemoryManagerDigestIntegration(unittest.TestCase):
         self.assertEqual(user_digest["conversation_history_entry_guid"], user_message["guid"])
         self.assertEqual(user_digest["role"], "user")
     
-    def test_03_assistant_message_digest_generation(self):
-        """Test that assistant message digests are generated correctly."""
+    def test_03_agent_message_digest_generation(self):
+        """Test that agent message digests are generated correctly."""
         # Get conversation history after previous test
         conversation_history = self.memory_manager.memory["conversation_history"]
         
-        # There should be at least 2 messages by now (user + assistant)
+        # There should be at least 2 messages by now (user + agent)
         self.assertGreaterEqual(len(conversation_history), 2)
         
-        # Get the assistant message (should be the second message)
-        assistant_message = conversation_history[1]
-        self.assertEqual(assistant_message["role"], "assistant")
-        self.assertIn("digest", assistant_message)
+        # Get the agent message (should be the second message)
+        agent_message = conversation_history[1]
+        self.assertEqual(agent_message["role"], "agent")
+        self.assertIn("digest", agent_message)
         
-        # Validate assistant digest structure
-        assistant_digest = assistant_message["digest"]
-        self._validate_digest_structure(assistant_digest)
+        # Validate agent digest structure
+        agent_digest = agent_message["digest"]
+        self._validate_digest_structure(agent_digest)
         
-        # Verify digest contains the assistant's GUID
-        self.assertEqual(assistant_digest["conversation_history_entry_guid"], assistant_message["guid"])
-        self.assertEqual(assistant_digest["role"], "assistant")
+        # Verify digest contains the agent's GUID
+        self.assertEqual(agent_digest["conversation_history_entry_guid"], agent_message["guid"])
+        self.assertEqual(agent_digest["role"], "agent")
         
-        # Assistant digest should typically have more segments and facts
-        self.assertGreaterEqual(len(assistant_digest["segments"]), 1)
+        # agent digest should typically have more segments and facts
+        self.assertGreaterEqual(len(agent_digest["segments"]), 1)
     
     def test_04_multi_turn_conversation(self):
         """Test digest generation in a multi-turn conversation."""
@@ -160,25 +160,25 @@ class TestMemoryManagerDigestIntegration(unittest.TestCase):
         
         # Verify conversation history has been updated
         conversation_history = self.memory_manager.memory["conversation_history"]
-        self.assertEqual(len(conversation_history), 4)  # 2 user messages + 2 assistant responses
+        self.assertEqual(len(conversation_history), 4)  # 2 user messages + 2 agent responses
         
         # Check the latest user message
         latest_user = conversation_history[2]
         self.assertEqual(latest_user["role"], "user")
         self.assertIn("digest", latest_user)
         
-        # Check the latest assistant message
-        latest_assistant = conversation_history[3]
-        self.assertEqual(latest_assistant["role"], "assistant")
-        self.assertIn("digest", latest_assistant)
+        # Check the latest agent message
+        latest_agent = conversation_history[3]
+        self.assertEqual(latest_agent["role"], "agent")
+        self.assertIn("digest", latest_agent)
         
         # Validate both digests
         self._validate_digest_structure(latest_user["digest"])
-        self._validate_digest_structure(latest_assistant["digest"])
+        self._validate_digest_structure(latest_agent["digest"])
         
         # Verify GUIDs are linked correctly
         self.assertEqual(latest_user["digest"]["conversation_history_entry_guid"], latest_user["guid"])
-        self.assertEqual(latest_assistant["digest"]["conversation_history_entry_guid"], latest_assistant["guid"])
+        self.assertEqual(latest_agent["digest"]["conversation_history_entry_guid"], latest_agent["guid"])
     
     def _validate_digest_structure(self, digest):
         """Helper to validate the structure of a digest."""

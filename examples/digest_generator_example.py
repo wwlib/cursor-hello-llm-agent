@@ -63,7 +63,7 @@ def main():
     conversation_entries = [
         {
             "guid": str(uuid.uuid4()),
-            "role": "assistant",
+            "role": "agent",
             "content": "The air hangs heavy with the scent of pine and damp earth as you recall the recent events. Just yesterday, Captain Silas, a grizzled veteran of the Merchant Guard, approached you with a proposition. He'd detected unusual activity near the Blackwood Caves – whispers of monstrous spiders weaving webs of shadow and venom. He offered a reward of 50 gold pieces plus a share of any recovered goods, a considerable sum considering the dangers. You accepted, eager for adventure and a bit of coin. The task: track down these venomous spiders and eliminate the threat to the surrounding settlements. The caves themselves are known to be a labyrinthine network, riddled with traps and, as Silas ominously warned, the spiders themselves.",
             "timestamp": datetime.now().isoformat()
         },
@@ -75,7 +75,7 @@ def main():
         },
         {
             "guid": str(uuid.uuid4()),
-            "role": "assistant",
+            "role": "agent",
             "content": "For tackling venomous spiders, you'd be wise to bring antivenom potions if available from the local apothecary. Torches or lanterns are essential given the darkness of caves. A sturdy shield would help deflect any lunging attacks, while ranged weapons like a bow or crossbow could let you strike before entering their webbed domains. As for knowledge of the Blackwood Caves, you recall that Old Marta, the herbalist who lives at the edge of the village, once mentioned gathering rare fungi from those caves in her younger days. She might have valuable insights about the cave layout. There's also Durgan, a retired miner who frequents the Sleeping Dragon tavern - he's mapped many local cave systems and might have some information about Blackwood's tunnels for the price of a few ales.",
             "timestamp": datetime.now().isoformat()
         }

@@ -96,7 +96,7 @@ def test_query_memory_adds_messages(memory_manager, mock_llm):
     assert len(history) == 2  # User message + response
     assert history[0]["role"] == "user"
     assert history[0]["content"] == "Test question"
-    assert history[1]["role"] == "assistant"
+    assert history[1]["role"] == "agent"
     assert history[1]["content"] == "Test response from LLM"
 
 def test_query_memory_saves_after_response(memory_manager, memory_file):

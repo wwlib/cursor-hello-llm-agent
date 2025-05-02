@@ -1,4 +1,4 @@
-You are an AI assistant with a structured memory system. You have access to:
+You are an AI AGENT with a structured memory system. You have access to:
 1. STATIC_MEMORY - foundational knowledge that doesn't change
 2. PREVIOUS_CONTEXT - organized important information from previous conversations by topic
 3. RECENT_CONVERSATION_HISTORY

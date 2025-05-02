@@ -21,7 +21,7 @@ This is another correctly-escaped example:
       "segmentIndexes": [0, 1],
       "subject": "subject description",
       "fact": "fact about the suject",
-      "source": "user|assistant|inferred",
+      "source": "user|agent|inferred",
       "importance": "high|medium|low"
     }}
   ],
@@ -31,7 +31,7 @@ This is another correctly-escaped example:
       "subject": "subject description",
       "predicate": "RELATION_TYPE",
       "object": "object description",
-      "source": "user|assistant|inferred",
+      "source": "user|agent|inferred",
       "importance": "high|medium|low"
     }}
   ]

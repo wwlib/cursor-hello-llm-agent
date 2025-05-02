@@ -58,6 +58,89 @@ class LLMService:
             
             self.logger.debug(f":[init]:LLM service initialized with debug logging")
     
+    def _clean_response(self, llm_response: str) -> str:
+        """Clean up special characters and Unicode escape sequences from LLM response.
+        
+        Args:
+            response: The raw response from the LLM
+            
+        Returns:
+            str: Cleaned response with normalized characters
+        """
+        if not llm_response:
+            return llm_response
+            
+        try:
+            # Comprehensive dictionary of Unicode replacements
+            replacements = {
+                '\u2013': '-',  # en-dash
+                '\u2014': '--', # em-dash
+                '\u2018': "'",  # left single quote
+                '\u2019': "'",  # right single quote
+                '\u201c': '"',  # left double quote
+                '\u201d': '"',  # right double quote
+                '\u2026': '...', # ellipsis
+                '\u00a0': ' ',  # non-breaking space
+                '\u00b0': ' degrees', # degree symbol
+                '\u00b7': '.',  # middle dot
+                '\u00e9': 'e',  # e with acute
+                '\u00e8': 'e',  # e with grave
+                '\u00e0': 'a',  # a with grave
+                '\u00e1': 'a',  # a with acute
+                '\u00e2': 'a',  # a with circumflex
+                '\u00e4': 'a',  # a with diaeresis
+                '\u00e7': 'c',  # c with cedilla
+                '\u00f1': 'n',  # n with tilde
+                '\u00f3': 'o',  # o with acute
+                '\u00f6': 'o',  # o with diaeresis
+                '\u00fa': 'u',  # u with acute
+                '\u00fc': 'u',  # u with diaeresis
+            }
+
+            # Apply all replacements
+            cleaned = llm_response
+            for unicode_char, ascii_char in replacements.items():
+                cleaned = cleaned.replace(unicode_char, ascii_char)
+            
+            # # Replace common special characters with their ASCII equivalents
+            # replacements = {
+            #     '\u2013': '-',  # en-dash
+            #     '\u2014': '--', # em-dash
+            #     '\u2018': "'",  # left single quote
+            #     '\u2019': "'",  # right single quote
+            #     '\u201c': '"',  # left double quote
+            #     '\u201d': '"',  # right double quote
+            #     '\u2026': '...', # ellipsis
+            #     '\u00a0': ' ',  # non-breaking space
+            #     '\u00b0': ' degrees', # degree symbol
+            #     '\u00b7': '.',  # middle dot
+            #     '\u00e9': 'e',  # e with acute
+            #     '\u00e8': 'e',  # e with grave
+            #     '\u00e0': 'a',  # a with grave
+            #     '\u00e1': 'a',  # a with acute
+            #     '\u00e2': 'a',  # a with circumflex
+            #     '\u00e4': 'a',  # a with diaeresis
+            #     '\u00e7': 'c',  # c with cedilla
+            #     '\u00f1': 'n',  # n with tilde
+            #     '\u00f3': 'o',  # o with acute
+            #     '\u00f6': 'o',  # o with diaeresis
+            #     '\u00fa': 'u',  # u with acute
+            #     '\u00fc': 'u',  # u with diaeresis
+            # }
+            
+            # for unicode_char, ascii_char in replacements.items():
+            #     cleaned = cleaned.replace(unicode_char, ascii_char)
+            
+            # # Clean up whitespace
+            # cleaned = ' '.join(cleaned.split())
+            
+            return cleaned
+            
+        except Exception as e:
+            if self.debug:
+                self.logger.warning(f"Error cleaning response: {str(e)}")
+            return llm_response  # Return original response if cleaning fails
+    
     def generate(self, prompt: str, options: Optional[Dict[str, Any]] = None, debug_generate_scope: str = "") -> str:
         """Generate a response for the given prompt.
         
@@ -80,10 +163,14 @@ class LLMService:
         try:
             response = self._generate_impl(prompt, options or {}, debug_generate_scope)
             
+            # Clean the response
+            cleaned_response = self._clean_response(response)
+            
             if self.debug:
                 self.logger.debug(f":[{debug_generate_scope}]:Generated response:\n{response}\n\n\n\n\n")
+                self.logger.debug(f":[{debug_generate_scope}]:Cleaned response:\n{cleaned_response}\n\n\n\n\n")
             
-            return response
+            return cleaned_response
             
         except Exception as e:
             if self.debug:

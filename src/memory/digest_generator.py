@@ -151,7 +151,7 @@ class DigestGenerator:
             memory_state: Optional current memory state for context
             
         Returns:
-            list: List of rated segments with importance and topics
+            list: List of rated segments with importance, topics, and type
         """
         try:
             # Format the prompt with the segments and memory state
@@ -181,7 +181,8 @@ class DigestGenerator:
                         rated_segments[i] = {
                             "text": segments[i] if i < len(segments) else "",
                             "importance": 3,
-                            "topics": []
+                            "topics": [],
+                            "type": "information"  # Default type
                         }
                     elif "text" not in segment:
                         print(f"Segment {i} missing text, using original")
@@ -192,6 +193,12 @@ class DigestGenerator:
                     elif "topics" not in segment:
                         print(f"Segment {i} missing topics, using empty list")
                         segment["topics"] = []
+                    elif "type" not in segment:
+                        print(f"Segment {i} missing type, using default")
+                        segment["type"] = "information"
+                    elif segment["type"] not in ["query", "information", "action", "command"]:
+                        print(f"Segment {i} has invalid type, using default")
+                        segment["type"] = "information"
                 
                 return rated_segments
             except json.JSONDecodeError:
@@ -216,8 +223,12 @@ class DigestGenerator:
                                 rated_segments[i] = {
                                     "text": segments[i] if i < len(segments) else "",
                                     "importance": 3,
-                                    "topics": []
+                                    "topics": [],
+                                    "type": "information"  # Default type
                                 }
+                            elif "type" not in segment or segment["type"] not in ["query", "information", "action", "command"]:
+                                print(f"Segment {i} has invalid type, using default")
+                                segment["type"] = "information"
                         
                         return rated_segments
                     except json.JSONDecodeError:
@@ -246,7 +257,8 @@ class DigestGenerator:
             {
                 "text": segment,
                 "importance": 3,  # Medium importance by default
-                "topics": []
+                "topics": [],
+                "type": "information"  # Default type
             }
             for segment in segments
         ]
@@ -262,15 +274,7 @@ class DigestGenerator:
         """
         cleaned_segments = []
         
-        for segment in segments:
-            # Clean text by removing extra whitespace and newlines
-            if "text" in segment:
-                # First decode any Unicode escape sequences
-                text = segment["text"].encode().decode('unicode_escape')
-                # Then clean up whitespace
-                text = " ".join(text.split())
-                segment["text"] = text
-            
+        for segment in segments:            
             # Ensure importance is an integer between 1-5
             if "importance" in segment:
                 try:
@@ -286,6 +290,10 @@ class DigestGenerator:
                 segment["topics"] = [str(topic).strip() for topic in segment["topics"] if topic]
             else:
                 segment["topics"] = []
+            
+            # Ensure type is valid
+            if "type" not in segment or segment["type"] not in ["query", "information", "action", "command"]:
+                segment["type"] = "information"  # Default to information if invalid
             
             cleaned_segments.append(segment)
         

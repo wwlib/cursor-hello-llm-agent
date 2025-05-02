@@ -10,7 +10,7 @@ Design Principles:
    - Configurable compression parameters
 
 2. Efficient Compression
-   - Processes conversations in natural turns (user + assistant pairs)
+   - Processes conversations in natural turns (user + agent pairs)
    - Maintains conversation context and flow
    - Preserves important information while reducing redundancy
 
@@ -72,14 +72,14 @@ class MemoryCompressor:
             
             print(f"Found {len(conversation_history)} entries to compress")
             
-            # Process entries in turns (user + assistant pairs)
+            # Process entries in turns (user + agent pairs)
             turns = []
             current_turn = []
             
             for entry in conversation_history:
                 current_turn.append(entry)
                 
-                # If we have a complete turn (user + assistant) or this is the last entry
+                # If we have a complete turn (user + agent) or this is the last entry
                 if len(current_turn) == 2 or entry == conversation_history[-1]:
                     turns.append(current_turn)
                     current_turn = []

@@ -188,7 +188,7 @@ def test_query_memory_success(memory_manager, mock_llm_service):
     # Verify conversation history was updated
     assert len(memory_manager.memory["conversation_history"]) == 2  # User message + response
     assert memory_manager.memory["conversation_history"][0]["role"] == "user"
-    assert memory_manager.memory["conversation_history"][1]["role"] == "assistant"
+    assert memory_manager.memory["conversation_history"][1]["role"] == "agent"
 
 def test_query_memory_failure(memory_manager, mock_llm_service):
     """Test handling of invalid LLM response"""
@@ -275,7 +275,7 @@ def test_update_memory_success(memory_manager, mock_llm_service):
                 "timestamp": "2024-01-01T00:00:01"
             },
             {
-                "role": "assistant",
+                "role": "agent",
                 "content": "Test response 1",
                 "timestamp": "2024-01-01T00:00:02"
             }
@@ -521,7 +521,7 @@ def test_memory_update_process(memory_manager, mock_llm_service):
                 "timestamp": "2024-01-01T00:00:01"
             },
             {
-                "role": "assistant",
+                "role": "agent",
                 "content": "You've cleared the blockage at the Eastside Well, and water flow to the valley's crops is now restored. Sara thanks you for your help, and Elena offers 100 gold as a reward.",
                 "timestamp": "2024-01-01T00:00:02"
             }
@@ -714,7 +714,7 @@ def test_memory_update_integration_with_llm():
                     "timestamp": datetime.now().isoformat()
                 },
                 {
-                    "role": "assistant",
+                    "role": "agent",
                     "content": "You've cleared the blockage at the Eastside Well, and water flow to the valley's crops is now restored. Sara thanks you for your help, and Elena offers 100 gold as a reward.",
                     "timestamp": datetime.now().isoformat()
                 }
@@ -987,7 +987,7 @@ def test_query_memory_adds_messages(memory_manager, mock_llm):
     assert len(history) == 2  # User message + response
     assert history[0]["role"] == "user"
     assert history[0]["content"] == "Test question"
-    assert history[1]["role"] == "assistant"
+    assert history[1]["role"] == "agent"
     assert history[1]["content"] == "Test response from LLM"
 
 def test_query_memory_saves_after_response(memory_manager, memory_file):
