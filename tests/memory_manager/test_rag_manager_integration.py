@@ -209,8 +209,8 @@ def test_enhance_memory_query(rag_manager, test_memory_data):
     """Test enhancing a memory query with RAG context."""
     # Basic query
     query_context = {
-        "query": "What rewards are offered for completing quests?",
-        "domain_instructions": "You are a helpful assistant",
+        "query": "What is the capital of France?",
+        "domain_specific_prompt_instructions": "You are a helpful assistant",
         "static_memory": test_memory_data.get("static_memory", ""),
         "conversation_history": "User: What rewards can I earn?\nAgent: Let me check my memory."
     }
@@ -223,7 +223,7 @@ def test_enhance_memory_query(rag_manager, test_memory_data):
     
     # All other fields should be preserved
     assert enhanced_context["query"] == query_context["query"]
-    assert enhanced_context["domain_instructions"] == query_context["domain_instructions"]
+    assert enhanced_context["domain_specific_prompt_instructions"] == query_context["domain_specific_prompt_instructions"]
     assert enhanced_context["static_memory"] == query_context["static_memory"]
 
 @pytest.mark.skipif(not TEST_CONVERSATIONS_PATH.exists(), 

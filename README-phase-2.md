@@ -600,6 +600,33 @@ These improvements significantly enhance the agent's ability to recall and utili
 
 The RAG implementation represents a major advancement in the memory system's capabilities, bridging the gap between simple prompt-based memory retrieval and sophisticated context-aware information access. This prepares the framework for future enhancements like advanced knowledge graph integration and multi-modal memory management.
 
+## Phase 2 Update – May 04, 2025 – RAG Example Simplification, Robustness, and Bug Fixes
+
+- Canonical Minimal RAG Example: A new, minimal script (examples/rag_enhanced_memory_example_simple.py) now serves as the baseline for all Retrieval Augmented Generation (RAG) and memory system experiments. This script:
+  - Loads real test data and memory snapshots.
+  - Runs a single, clear RAG-enhanced query.
+  - Prints both the RAG context and the final LLM response.
+  - Is easy to maintain, fast to run, and ideal for documentation, CI, and regression testing.
+- Removal of Redundant Example: The previous, more complex rag_enhanced_memory_example.py has been deleted. All essential RAG demonstration and testing is now handled by the simple script, reducing maintenance burden and confusion.
+- Bug Fixes and Defensive Programming:
+  - Fixed a bug in memory compression where compressed_entries could be an int instead of a list, causing runtime errors.
+  - Added defensive checks to ensure metadata fields are always the correct type, preventing future corruption or legacy data issues.
+  - Restored and enforced consistent use of the domain_specific_prompt_instructions key throughout the codebase and prompt templates.
+- RAG and Memory System Robustness:
+  - The RAG pipeline is now fully reliable, with relevant context being surfaced and used in LLM responses.
+  - Memory compression and context management are robust, with clear error handling and no silent failures.
+  - The codebase is now easier to extend, test, and reason about.
+
+How to Use the New Example:
+- Run examples/rag_enhanced_memory_example_simple.py to verify RAG integration and memory system behavior.
+- The script is self-contained, uses real test data, and demonstrates both RAG context retrieval and LLM response generation.
+- Use this script as a starting point for further RAG or memory system experiments.
+
+Next Steps:
+- Update documentation and tests to reference the new canonical example.
+- Use the simple script for future RAG/memory feature development and regression testing.
+- Continue to prioritize clarity, maintainability, and robust error handling in all new features.
+
 ## TODO
 
 - Agent Improvements - RAG Integration

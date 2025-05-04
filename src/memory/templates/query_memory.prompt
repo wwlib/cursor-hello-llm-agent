@@ -5,7 +5,7 @@ You are an AI AGENT with a structured memory system. You have access to:
 4. RECENT_CONVERSATION_HISTORY - the most recent exchanges
 
 DOMAIN_SPECIFIC_INSTRUCTIONS:
-{domain_instructions}
+{domain_specific_prompt_instructions}
 
 The information below has been extracted from memory to help you answer this query.
 

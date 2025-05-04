@@ -144,13 +144,21 @@ class MemoryCompressor:
                     new_context.append(context_entry)
                     print("Added new context entry with compressed information")
             
+            # Collect GUIDs of all compressed entries
+            all_compressed_guids = []
+            for turn in turns:
+                for entry in turn:
+                    if entry.get('guid'):
+                        all_compressed_guids.append(entry['guid'])
+
             # Return updated memory state
             return {
                 "context": new_context,
                 "conversation_history": [],  # Clear conversation history after compression
                 "metadata": {
                     "last_compressed": datetime.now().isoformat(),
-                    "compressed_entries": len(conversation_history)
+                    "compressed_entries": all_compressed_guids,
+                    "compressed_entry_count": len(all_compressed_guids)
                 }
             }
             

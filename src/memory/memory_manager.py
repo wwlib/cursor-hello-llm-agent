@@ -328,9 +328,9 @@ class MemoryManager(BaseMemoryManager):
                 print("Using RAG-enhanced context for memory query")
             
             # Get domain-specific instructions (use provided or get from config)
-            domain_instructions = query_context.get("domain_instructions", "")
-            if not domain_instructions and self.domain_config:
-                domain_instructions = self.domain_config.get("domain_instructions", "")
+            domain_specific_prompt_instructions = query_context.get("domain_specific_prompt_instructions", "")
+            if not domain_specific_prompt_instructions and self.domain_config:
+                domain_specific_prompt_instructions = self.domain_config.get("domain_specific_prompt_instructions", "")
             
             # Create prompt with formatted text
             prompt = self.templates["query"].format(
@@ -338,7 +338,7 @@ class MemoryManager(BaseMemoryManager):
                 previous_context_text=previous_context_text,
                 conversation_history_text=conversation_history_text,
                 query=query or user_message,
-                domain_instructions=domain_instructions,
+                domain_specific_prompt_instructions=domain_specific_prompt_instructions,
                 rag_context=rag_context  # Include RAG context in the prompt
             )
             
@@ -504,7 +504,9 @@ class MemoryManager(BaseMemoryManager):
             # Update the compressed entries tracker
             if "compressed_entries" not in self.memory["metadata"]:
                 self.memory["metadata"]["compressed_entries"] = []
-                
+            # Defensive: ensure it's a list
+            if not isinstance(self.memory["metadata"]["compressed_entries"], list):
+                self.memory["metadata"]["compressed_entries"] = []
             compressed_entries = compressed_state.get("compressed_entries", [])
             self.memory["metadata"]["compressed_entries"].extend(compressed_entries)
             

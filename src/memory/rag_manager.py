@@ -265,7 +265,7 @@ class RAGManager:
         Args:
             query_context: Dictionary containing original query context:
                            - query: The query text
-                           - domain_instructions: Domain-specific instructions
+                           - domain_specific_prompt_instructions: Domain-specific instructions
                            - static_memory: Static memory text
                            - previous_context: Previous context text
                            - conversation_history: Recent conversation history
