@@ -1,0 +1,683 @@
+{
+  "memory_file_guid": "f1ce087f-76b3-4383-865f-4179c927d162",
+  "entries": [
+    {
+      "guid": "dee8df28-2a54-4bc2-862b-3ad5c4d61470",
+      "role": "system",
+      "content": "\nCampaign Setting: The Lost Valley\n\nWorld Details:\n- Hidden valley surrounded by impassable mountains\n- Ancient ruins scattered throughout\n- Mysterious magical anomalies\n- Three main settlements: Haven (central), Riverwatch (east), Mountainkeep (west)\n\nKey NPCs:\n1. Elena\n   - Role: Mayor of Haven\n   - Motivation: Protect the valley's inhabitants\n   - Current Quest: Investigate strange occurrences in Haven\n\n2. Theron\n   - Role: Master Scholar\n   - Expertise: Ancient ruins and artifacts\n   - Current Research: Decoding ruin inscriptions\n\n3. Sara\n   - Role: Captain of Riverwatch\n   - Responsibility: Valley's defense\n   - Current Concern: Increased monster activity\n\nCurrent Situations:\n1. Trade Routes\n   - Main road between settlements disrupted\n   - Merchants seeking protection\n   - Alternative routes needed\n\n2. Ancient Ruins\n   - New chambers discovered\n   - Strange energy emanations\n   - Valuable artifacts found\n\n3. Magical Anomalies\n   - Random magical effects\n   - Affecting local wildlife\n   - Possible connection to ruins",
+      "timestamp": "2025-05-03T12:13:51.529550",
+      "digest": {
+        "conversation_history_entry_guid": "dee8df28-2a54-4bc2-862b-3ad5c4d61470",
+        "role": "system",
+        "rated_segments": [
+          {
+            "text": "Campaign Setting: The Lost Valley",
+            "importance": 5,
+            "topics": [
+              "campaign setting",
+              "location"
+            ],
+            "type": "information"
+          },
+          {
+            "text": "World Details: Hidden valley surrounded by impassable mountains",
+            "importance": 4,
+            "topics": [
+              "location",
+              "geography",
+              "terrain"
+            ],
+            "type": "information"
+          },
+          {
+            "text": "World Details: Ancient ruins scattered throughout",
+            "importance": 4,
+            "topics": [
+              "ancient ruins",
+              "location",
+              "archaeology"
+            ],
+            "type": "information"
+          },
+          {
+            "text": "World Details: Mysterious magical anomalies",
+            "importance": 5,
+            "topics": [
+              "magical anomalies",
+              "location",
+              "fantasy"
+            ],
+            "type": "information"
+          },
+          {
+            "text": "World Details: Three main settlements: Haven (central), Riverwatch (east), Mountainkeep (west)",
+            "importance": 4,
+            "topics": [
+              "settlements",
+              "location",
+              "towns"
+            ],
+            "type": "information"
+          },
+          {
+            "text": "Key NPCs: 1. Elena",
+            "importance": 3,
+            "topics": [
+              "key npc",
+              "character"
+            ],
+            "type": "information"
+          },
+          {
+            "text": "Key NPCs: Role: Mayor of Haven",
+            "importance": 3,
+            "topics": [
+              "key npc",
+              "role",
+              "town government"
+            ],
+            "type": "information"
+          },
+          {
+            "text": "Key NPCs: Motivation: Protect the valley's inhabitants",
+            "importance": 4,
+            "topics": [
+              "key npc",
+              "motivation",
+              "role"
+            ],
+            "type": "information"
+          },
+          {
+            "text": "Key NPCs: Current Quest: Investigate strange occurrences in Haven",
+            "importance": 5,
+            "topics": [
+              "key npc",
+              "quest",
+              "investigation"
+            ],
+            "type": "information"
+          },
+          {
+            "text": "Key NPCs: 2. Theron",
+            "importance": 3,
+            "topics": [
+              "key npc",
+              "character"
+            ],
+            "type": "information"
+          },
+          {
+            "text": "Key NPCs: Role: Master Scholar",
+            "importance": 3,
+            "topics": [
+              "key npc",
+              "role",
+              "academia"
+            ],
+            "type": "information"
+          },
+          {
+            "text": "Key NPCs: Expertise: Ancient ruins and artifacts",
+            "importance": 4,
+            "topics": [
+              "key npc",
+              "expertise",
+              "archaeology"
+            ],
+            "type": "information"
+          },
+          {
+            "text": "Key NPCs: Current Research: Decoding ruin inscriptions",
+            "importance": 4,
+            "topics": [
+              "key npc",
+              "research",
+              "archaeology"
+            ],
+            "type": "information"
+          },
+          {
+            "text": "Key NPCs: 3. Sara",
+            "importance": 3,
+            "topics": [
+              "key npc",
+              "character"
+            ],
+            "type": "information"
+          },
+          {
+            "text": "Key NPCs: Role: Captain of Riverwatch",
+            "importance": 3,
+            "topics": [
+              "key npc",
+              "role",
+              "military"
+            ],
+            "type": "information"
+          },
+          {
+            "text": "Key NPCs: Responsibility: Valley's defense",
+            "importance": 3,
+            "topics": [
+              "key npc",
+              "responsibility",
+              "military"
+            ],
+            "type": "information"
+          },
+          {
+            "text": "Key NPCs: Current Concern: Increased monster activity",
+            "importance": 4,
+            "topics": [
+              "key npc",
+              "threat",
+              "monster activity"
+            ],
+            "type": "information"
+          },
+          {
+            "text": "Current Situations: 1. Trade Routes",
+            "importance": 3,
+            "topics": [
+              "situation",
+              "trade"
+            ],
+            "type": "information"
+          },
+          {
+            "text": "Current Situations: Main road between settlements disrupted",
+            "importance": 4,
+            "topics": [
+              "situation",
+              "road",
+              "disruption"
+            ],
+            "type": "information"
+          },
+          {
+            "text": "Current Situations: Merchants seeking protection",
+            "importance": 4,
+            "topics": [
+              "situation",
+              "merchants",
+              "protection"
+            ],
+            "type": "information"
+          },
+          {
+            "text": "Current Situations: Alternative routes needed",
+            "importance": 3,
+            "topics": [
+              "situation",
+              "route",
+              "alternative"
+            ],
+            "type": "information"
+          },
+          {
+            "text": "Current Situations: 2. Ancient Ruins",
+            "importance": 5,
+            "topics": [
+              "situation",
+              "ancient ruins",
+              "archaeology"
+            ],
+            "type": "information"
+          },
+          {
+            "text": "Current Situations: New chambers discovered",
+            "importance": 4,
+            "topics": [
+              "situation",
+              "ancient ruins",
+              "discovery"
+            ],
+            "type": "information"
+          },
+          {
+            "text": "Current Situations: Strange energy emanations",
+            "importance": 5,
+            "topics": [
+              "situation",
+              "magical anomalies",
+              "energy"
+            ],
+            "type": "information"
+          },
+          {
+            "text": "Current Situations: Valuable artifacts found",
+            "importance": 4,
+            "topics": [
+              "situation",
+              "artifacts",
+              "treasure"
+            ],
+            "type": "information"
+          },
+          {
+            "text": "Current Situations: 3. Magical Anomalies",
+            "importance": 5,
+            "topics": [
+              "situation",
+              "magical anomalies"
+            ],
+            "type": "information"
+          },
+          {
+            "text": "Current Situations: Strange energy emanations",
+            "importance": 5,
+            "topics": [
+              "situation",
+              "magical anomalies",
+              "energy"
+            ],
+            "type": "information"
+          }
+        ],
+        "timestamp": "2025-05-03T12:15:31.206054"
+      }
+    },
+    {
+      "guid": "287c7ef0-c6d1-44fb-a1d2-2cab992b3b31",
+      "role": "user",
+      "content": "please tell me about the world.",
+      "timestamp": "2025-05-03T12:16:14.165205",
+      "digest": {
+        "conversation_history_entry_guid": "287c7ef0-c6d1-44fb-a1d2-2cab992b3b31",
+        "role": "user",
+        "rated_segments": [
+          {
+            "text": "please tell me about the world",
+            "importance": 4,
+            "topics": [
+              "campaign setting",
+              "location",
+              "fantasy",
+              "geography",
+              "trade",
+              "towns",
+              "settlements"
+            ],
+            "type": "query"
+          }
+        ],
+        "timestamp": "2025-05-03T12:16:20.094511"
+      }
+    },
+    {
+      "guid": "1d1a6516-2b77-41f9-a0cc-9dee71709c2a",
+      "role": "agent",
+      "content": "The world is a place of both beauty and peril. You find yourself in the Lost Valley, a hidden paradise nestled amongst impassable mountains - a truly remarkable geographic anomaly. The valley is protected by three main settlements: Haven, the central hub; Riverwatch, located to the east; and Mountainkeep, to the west. \n\nCurrently, there's a significant disruption on the main road between Haven and Riverwatch, likely caused by increased monster activity. This has led to merchants seeking protection from the local military, led by Captain Sara of Riverwatch. \n\nAdding to the intrigue, several ancient ruins are scattered throughout the valley, and a team of scholars, led by Master Scholar Theron, are hard at work attempting to decipher the inscriptions within them, hoping to uncover the valley's secrets and potentially understand the strange magical anomalies that plague the area.  Recently, new chambers have been discovered, and valuable artifacts have been unearthed - though, unsettlingly, reports indicate a rise in monster activity surrounding these ruins. \n\nDo you want me to elaborate on any specific aspect of the Lost Valley, such as a particular settlement or the nature of the magical anomalies?",
+      "timestamp": "2025-05-03T12:16:31.453388",
+      "digest": {
+        "conversation_history_entry_guid": "1d1a6516-2b77-41f9-a0cc-9dee71709c2a",
+        "role": "agent",
+        "rated_segments": [
+          {
+            "text": "The world is a place of both beauty and peril.",
+            "importance": 1,
+            "topics": [
+              "fantasy",
+              "situation",
+              "threat"
+            ],
+            "type": "information"
+          },
+          {
+            "text": "You find yourself in the Lost Valley, a hidden paradise nestled amongst impassable mountains - a truly remarkable geographic anomaly.",
+            "importance": 4,
+            "topics": [
+              "campaign setting",
+              "location",
+              "geography",
+              "terrain"
+            ],
+            "type": "information"
+          },
+          {
+            "text": "The valley is protected by three main settlements: Haven, the central hub; Riverwatch, located to the east; and Mountainkeep, to the west.",
+            "importance": 4,
+            "topics": [
+              "settlements",
+              "location",
+              "towns",
+              "campaign setting"
+            ],
+            "type": "information"
+          },
+          {
+            "text": "Currently, there's a significant disruption on the main road between Haven and Riverwatch, likely caused by increased monster activity.",
+            "importance": 5,
+            "topics": [
+              "situation",
+              "road",
+              "disruption",
+              "threat",
+              "monster activity"
+            ],
+            "type": "information"
+          },
+          {
+            "text": "This has led to merchants seeking protection from the local military, led by Captain Sara of Riverwatch.",
+            "importance": 4,
+            "topics": [
+              "situation",
+              "merchants",
+              "protection",
+              "military",
+              "town government",
+              "role"
+            ],
+            "type": "information"
+          },
+          {
+            "text": "Adding to the intrigue, several ancient ruins are scattered throughout the valley, and a team of scholars, led by Master Scholar Theron, are hard at work attempting to decipher the inscriptions within them, hoping to uncover the valley's secrets and potentially understand the strange magical anomalies that plague the area.",
+            "importance": 5,
+            "topics": [
+              "ancient ruins",
+              "archaeology",
+              "research",
+              "magical anomalies",
+              "situation",
+              "campaign setting"
+            ],
+            "type": "information"
+          },
+          {
+            "text": "Recently, new chambers have been discovered, and valuable artifacts have been unearthed - though, unsettlingly, reports indicate a rise in monster activity surrounding these ruins.",
+            "importance": 5,
+            "topics": [
+              "ancient ruins",
+              "discovery",
+              "archaeology",
+              "artifacts",
+              "treasure",
+              "threat",
+              "monster activity"
+            ],
+            "type": "information"
+          },
+          {
+            "text": "Do you want me to elaborate on any specific aspect of the Lost Valley, such as a particular settlement or the nature of the magical anomalies?",
+            "importance": 3,
+            "topics": [
+              "campaign setting",
+              "location",
+              "magical anomalies",
+              "situation"
+            ],
+            "type": "command"
+          }
+        ],
+        "timestamp": "2025-05-03T12:17:17.990432"
+      }
+    },
+    {
+      "guid": "b94bfa9f-6271-4580-82f0-f3047b5b9960",
+      "role": "user",
+      "content": "i need a quest that will earn me some gold",
+      "timestamp": "2025-05-03T12:18:36.676979",
+      "digest": {
+        "conversation_history_entry_guid": "b94bfa9f-6271-4580-82f0-f3047b5b9960",
+        "role": "user",
+        "rated_segments": [
+          {
+            "text": "i need a quest",
+            "importance": 5,
+            "topics": [
+              "quest",
+              "situation"
+            ],
+            "type": "command"
+          },
+          {
+            "text": "that will earn me some gold",
+            "importance": 4,
+            "topics": [
+              "quest",
+              "gold",
+              "situation"
+            ],
+            "type": "query"
+          }
+        ],
+        "timestamp": "2025-05-03T12:18:43.069809"
+      }
+    },
+    {
+      "guid": "ec067351-852e-4771-aab1-0eb83dbb1309",
+      "role": "agent",
+      "content": "Okay, you're looking for a quest that'll bring in some coin, eh? \n\nGiven the current situation - the disrupted road, increased monster activity around the ancient ruins, and merchants seeking protection - I have an idea. The Mayor of Haven, Elena, has received reports of a band of goblins raiding caravans along the old trade routes. She's willing to pay a reward to anyone who can clear them out and secure the road. \n\nMore specifically, she's heard the goblins are particularly interested in the recently discovered artifacts within the ruins near Riverwatch. Eliminating the threat and recovering any lost valuables would be a solid start. She's offering 50 gold pieces for the task, plus a share of any recovered artifacts.\n\nWould you like me to tell you more about the goblins - perhaps their numbers or any known weaknesses - before you decide to take on this quest?",
+      "timestamp": "2025-05-03T12:18:52.194227",
+      "digest": {
+        "conversation_history_entry_guid": "ec067351-852e-4771-aab1-0eb83dbb1309",
+        "role": "agent",
+        "rated_segments": [
+          {
+            "text": "Okay, you're looking for a quest that'll bring in some coin, eh?",
+            "importance": 3,
+            "topics": [
+              "quest",
+              "motivation",
+              "situation"
+            ],
+            "type": "query"
+          },
+          {
+            "text": "Given the current situation - the disrupted road, increased monster activity around the ancient ruins, and merchants seeking protection - I have an idea.",
+            "importance": 4,
+            "topics": [
+              "situation",
+              "threat",
+              "action",
+              "quest"
+            ],
+            "type": "information"
+          },
+          {
+            "text": "The Mayor of Haven, Elena, has received reports of a band of goblins raiding caravans along the old trade routes.",
+            "importance": 4,
+            "topics": [
+              "key npc",
+              "situation",
+              "threat",
+              "action",
+              "quest"
+            ],
+            "type": "information"
+          },
+          {
+            "text": "She's willing to pay a reward to anyone who can clear them out and secure the road.",
+            "importance": 5,
+            "topics": [
+              "key npc",
+              "situation",
+              "threat",
+              "quest",
+              "action"
+            ],
+            "type": "information"
+          },
+          {
+            "text": "More specifically, she's heard the goblins are particularly interested in the recently discovered artifacts within the ruins near Riverwatch.",
+            "importance": 5,
+            "topics": [
+              "key npc",
+              "situation",
+              "threat",
+              "action",
+              "quest",
+              "ancient ruins",
+              "artifacts"
+            ],
+            "type": "information"
+          },
+          {
+            "text": "Eliminating the threat and recovering any lost valuables would be a solid start.",
+            "importance": 4,
+            "topics": [
+              "key npc",
+              "situation",
+              "threat",
+              "action",
+              "quest"
+            ],
+            "type": "information"
+          },
+          {
+            "text": "She's offering 50 gold pieces for the task, plus a share of any recovered artifacts.",
+            "importance": 5,
+            "topics": [
+              "key npc",
+              "reward",
+              "action",
+              "quest",
+              "treasure"
+            ],
+            "type": "information"
+          },
+          {
+            "text": "Would you like me to tell you more about the goblins - perhaps their numbers or any known weaknesses - before you decide to take on this quest?",
+            "importance": 4,
+            "topics": [
+              "key npc",
+              "threat",
+              "action",
+              "quest",
+              "information"
+            ],
+            "type": "query"
+          }
+        ],
+        "timestamp": "2025-05-03T12:19:33.158330"
+      }
+    },
+    {
+      "guid": "d76b69f2-8f39-4c47-812a-e00b639cc950",
+      "role": "user",
+      "content": "accept elena's quest and get started.",
+      "timestamp": "2025-05-03T12:20:33.536005",
+      "digest": {
+        "conversation_history_entry_guid": "d76b69f2-8f39-4c47-812a-e00b639cc950",
+        "role": "user",
+        "rated_segments": [
+          {
+            "text": "accept elena's quest",
+            "importance": 5,
+            "topics": [
+              "quest",
+              "key npc",
+              "character"
+            ],
+            "type": "command"
+          },
+          {
+            "text": "and get started",
+            "importance": 4,
+            "topics": [
+              "quest",
+              "action"
+            ],
+            "type": "action"
+          }
+        ],
+        "timestamp": "2025-05-03T12:20:39.834093"
+      }
+    },
+    {
+      "guid": "c2d15471-90d7-422c-a04c-97719e21eed4",
+      "role": "agent",
+      "content": "\"Excellent! Elena appreciates your willingness to help. Here's what you need to know,\" I say, adjusting my tone to reflect the urgency of the situation. \"The goblins are a relatively small band - estimates put them at around twenty, though they're surprisingly well-organized. They've been focusing their raids on caravans heading towards the ruins near Riverwatch, likely drawn by the recent discoveries. \n\nShe's provided you with a basic map indicating the route to the goblins' likely camp - a small cave system nestled amongst the foothills, about a day's travel east of Haven.  She's also instructed you to prioritize securing any artifacts you find, as they're a significant concern. \n\nTo help you on your way, she's provided a small pouch of 10 gold pieces as an advance, and will pay out the remaining 40 once the goblins are dealt with and the road secured. \n\nLet's get moving! Do you want me to detail the terrain you'll be traversing, or perhaps suggest a few supplies you might want to acquire before setting out?\"",
+      "timestamp": "2025-05-03T12:20:51.396791",
+      "digest": {
+        "conversation_history_entry_guid": "c2d15471-90d7-422c-a04c-97719e21eed4",
+        "role": "agent",
+        "rated_segments": [
+          {
+            "text": "Excellent! Elena appreciates your willingness to help.",
+            "importance": 3,
+            "topics": [
+              "character",
+              "key npc"
+            ],
+            "type": "information"
+          },
+          {
+            "text": "Here's what you need to know,",
+            "importance": 2,
+            "topics": [
+              "information",
+              "situation"
+            ],
+            "type": "information"
+          },
+          {
+            "text": "The goblins are a relatively small band - estimates put them at around twenty, though they're surprisingly well-organized.",
+            "importance": 4,
+            "topics": [
+              "monster activity",
+              "threat",
+              "situation"
+            ],
+            "type": "information"
+          },
+          {
+            "text": "They've been focusing their raids on caravans heading towards the ruins near Riverwatch, likely drawn by the recent discoveries.",
+            "importance": 4,
+            "topics": [
+              "situation",
+              "ancient ruins",
+              "discovery",
+              "threat"
+            ],
+            "type": "information"
+          },
+          {
+            "text": "She's provided you with a basic map indicating the route to the goblins' likely camp - a small cave system nestled amongst the foothills, about a day's travel east of Haven.",
+            "importance": 5,
+            "topics": [
+              "location",
+              "situation",
+              "route"
+            ],
+            "type": "information"
+          },
+          {
+            "text": "She's also instructed you to prioritize securing any artifacts you find, as they're a significant concern.",
+            "importance": 4,
+            "topics": [
+              "situation",
+              "artifacts",
+              "threat"
+            ],
+            "type": "information"
+          },
+          {
+            "text": "To help you on your way, she's provided a small pouch of 10 gold pieces as an advance, and will pay out the remaining 40 once the goblins are dealt with and the road secured.",
+            "importance": 5,
+            "topics": [
+              "action",
+              "treasure",
+              "situation",
+              "merchant activity"
+            ],
+            "type": "action"
+          },
+          {
+            "text": "Let's get moving! Do you want me to detail the terrain you'll be traversing, or perhaps suggest a few supplies you might want to acquire before setting out?",
+            "importance": 4,
+            "topics": [
+              "situation",
+              "terrain",
+              "supplies",
+              "route"
+            ],
+            "type": "command"
+          }
+        ],
+        "timestamp": "2025-05-03T12:21:32.505870"
+      }
+    }
+  ]
+}

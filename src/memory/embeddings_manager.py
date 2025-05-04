@@ -4,12 +4,13 @@ This module provides functionality for generating, storing, and searching embedd
 of conversation history entries to enable semantic search capabilities.
 """
 
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Union, Any
 import json
 import os
 import numpy as np
 from datetime import datetime
 from pathlib import Path
+import logging
 
 class EmbeddingsManager:
     """Manages embeddings for conversation history entries to enable semantic search.
@@ -72,87 +73,148 @@ class EmbeddingsManager:
         self.embeddings_file = embeddings_file
         self.llm_service = llm_service
         self.embeddings = []  # List of (embedding, metadata) tuples
+        self.logger = logging.getLogger("embeddings_manager")
+        
+        # Initialize embeddings file directory if it doesn't exist
+        embeddings_dir = os.path.dirname(embeddings_file)
+        if embeddings_dir and not os.path.exists(embeddings_dir):
+            os.makedirs(embeddings_dir, exist_ok=True)
+            
+        # Load existing embeddings
         self._load_embeddings()
     
     def _load_embeddings(self):
         """Load existing embeddings from file."""
         if not os.path.exists(self.embeddings_file):
+            self.logger.info(f"Embeddings file {self.embeddings_file} does not exist, starting with empty embeddings.")
             return
             
         try:
             with open(self.embeddings_file, 'r') as f:
-                for line in f:
-                    data = json.loads(line)
-                    self.embeddings.append((
-                        np.array(data['embedding']),
-                        data['metadata']
-                    ))
+                for line_num, line in enumerate(f, 1):
+                    try:
+                        data = json.loads(line)
+                        if 'embedding' not in data or 'metadata' not in data:
+                            self.logger.warning(f"Line {line_num} in embeddings file is missing required fields.")
+                            continue
+                            
+                        self.embeddings.append((
+                            np.array(data['embedding']),
+                            data['metadata']
+                        ))
+                    except json.JSONDecodeError:
+                        self.logger.warning(f"Failed to parse line {line_num} in embeddings file.")
+                        continue
+                        
+            self.logger.info(f"Loaded {len(self.embeddings)} embeddings from {self.embeddings_file}")
         except Exception as e:
-            print(f"Error loading embeddings: {str(e)}")
+            self.logger.error(f"Error loading embeddings: {str(e)}")
     
-    def generate_embedding(self, text: str) -> np.ndarray:
+    def generate_embedding(self, text: str, options: Optional[Dict[str, Any]] = None) -> np.ndarray:
         """Generate embedding for a text string.
         
         Args:
             text: Text to generate embedding for
-            
+            options: Optional dictionary with embedding options:
+                - model: Specific embedding model to use (default: whatever the LLM service uses)
+                - normalize: Whether to normalize the embedding vector (default: True)
+                
         Returns:
             np.ndarray: Embedding vector
+            
+        Raises:
+            ValueError: If LLM service is not available or text is empty
         """
         if not self.llm_service:
             raise ValueError("LLM service is required for generating embeddings")
             
+        if not text or not text.strip():
+            raise ValueError("Cannot generate embedding for empty text")
+            
+        options = options or {}
+        normalize = options.get('normalize', True)
+            
         try:
             # Generate embedding using LLM service
-            embedding = self.llm_service.generate_embedding(text, {
-                'normalize': True  # Always normalize embeddings for consistent similarity calculations
-            })
+            embedding = self.llm_service.generate_embedding(text, options)
             
             # Convert to numpy array
-            return np.array(embedding)
+            embedding_array = np.array(embedding)
+            
+            # Normalize if requested (though LLM service should already do this)
+            if normalize and options.get('normalize', True):
+                norm = np.linalg.norm(embedding_array)
+                if norm > 0:
+                    embedding_array = embedding_array / norm
+                    
+            return embedding_array
             
         except Exception as e:
-            print(f"Error generating embedding: {str(e)}")
-            # Return random vector as fallback for testing
-            return np.random.rand(384)  # Typical embedding dimension
+            self.logger.error(f"Error generating embedding: {str(e)}")
+            raise
     
-    def add_embedding(self, text: str, metadata: Dict) -> bool:
+    def add_embedding(self, text: str, metadata: Dict[str, Any], options: Optional[Dict[str, Any]] = None) -> bool:
         """Add a new embedding to the store.
         
         Args:
             text: Text to generate embedding for
             metadata: Associated metadata (GUID, timestamp, etc.)
+            options: Optional dictionary with embedding options
             
         Returns:
             bool: True if successfully added
         """
         try:
             # Generate embedding
-            embedding = self.generate_embedding(text)
+            embedding = self.generate_embedding(text, options)
             
             # Add to in-memory store
             self.embeddings.append((embedding, metadata))
             
-            # Append to file
-            with open(self.embeddings_file, 'a') as f:
+            # Append to file - create file if it doesn't exist
+            file_mode = 'a' if os.path.exists(self.embeddings_file) else 'w'
+            with open(self.embeddings_file, file_mode) as f:
                 json.dump({
                     'embedding': embedding.tolist(),
-                    'metadata': metadata
+                    'metadata': metadata,
+                    'text': text[:100] + '...' if len(text) > 100 else text  # Store text preview for debugging
                 }, f)
                 f.write('\n')
             
+            self.logger.info(f"Added embedding for text: '{text[:30]}...' with GUID: {metadata.get('guid', 'unknown')}")
             return True
         except Exception as e:
-            print(f"Error adding embedding: {str(e)}")
+            self.logger.error(f"Error adding embedding: {str(e)}")
             return False
     
-    def search(self, query: str, k: int = 5, 
+    def calculate_similarity(self, embedding1: np.ndarray, embedding2: np.ndarray) -> float:
+        """Calculate cosine similarity between two embeddings.
+        
+        Args:
+            embedding1: First embedding vector
+            embedding2: Second embedding vector
+            
+        Returns:
+            float: Cosine similarity score between -1 and 1
+        """
+        # Ensure embeddings are normalized for accurate cosine similarity
+        norm1 = np.linalg.norm(embedding1)
+        norm2 = np.linalg.norm(embedding2)
+        
+        if norm1 > 0:
+            embedding1 = embedding1 / norm1
+        if norm2 > 0:
+            embedding2 = embedding2 / norm2
+            
+        return np.dot(embedding1, embedding2)
+    
+    def search(self, query: Union[str, np.ndarray], k: int = 5, 
               min_importance: Optional[int] = None,
               date_range: Optional[Tuple[datetime, datetime]] = None) -> List[Dict]:
         """Search for similar entries using semantic similarity.
         
         Args:
-            query: Search query text
+            query: Search query text or embedding vector
             k: Number of results to return
             min_importance: Optional minimum importance threshold
             date_range: Optional (start_date, end_date) tuple
@@ -160,8 +222,15 @@ class EmbeddingsManager:
         Returns:
             List[Dict]: List of results with similarity scores and metadata
         """
-        # Generate query embedding
-        query_embedding = self.generate_embedding(query)
+        # Get query embedding
+        if isinstance(query, str):
+            try:
+                query_embedding = self.generate_embedding(query)
+            except Exception as e:
+                self.logger.error(f"Error generating embedding for query: {str(e)}")
+                return []
+        else:
+            query_embedding = query
         
         # Compute similarities
         similarities = []
@@ -170,26 +239,33 @@ class EmbeddingsManager:
             if min_importance and metadata.get('importance', 0) < min_importance:
                 continue
                 
-            if date_range:
-                entry_date = datetime.fromisoformat(metadata['timestamp'])
-                if not (date_range[0] <= entry_date <= date_range[1]):
+            if date_range and 'timestamp' in metadata:
+                try:
+                    entry_date = datetime.fromisoformat(metadata['timestamp'])
+                    if not (date_range[0] <= entry_date <= date_range[1]):
+                        continue
+                except (ValueError, TypeError):
+                    # Skip entries with invalid timestamps
                     continue
             
             # Compute cosine similarity
-            similarity = np.dot(query_embedding, embedding) / (
-                np.linalg.norm(query_embedding) * np.linalg.norm(embedding)
-            )
+            similarity = self.calculate_similarity(query_embedding, embedding)
             similarities.append((similarity, metadata))
         
-        # Sort by similarity and return top k
-        similarities.sort(reverse=True)
-        return [
+        # Sort by similarity (highest first)
+        similarities.sort(key=lambda x: x[0], reverse=True)
+        
+        # Return top k results
+        results = [
             {
-                'score': score,
+                'score': float(score),  # Convert from numpy to Python float
                 'metadata': metadata
             }
             for score, metadata in similarities[:k]
         ]
+        
+        self.logger.info(f"Search found {len(results)} results out of {len(similarities)} total embeddings")
+        return results
     
     def update_embeddings(self, conversation_history: List[Dict]) -> bool:
         """Update embeddings for conversation history entries.
@@ -204,37 +280,56 @@ class EmbeddingsManager:
             # Clear existing embeddings
             self.embeddings = []
             if os.path.exists(self.embeddings_file):
-                os.remove(self.embeddings_file)
+                # Create a backup of the existing file
+                backup_path = f"{self.embeddings_file}.bak"
+                try:
+                    os.rename(self.embeddings_file, backup_path)
+                    self.logger.info(f"Created backup of embeddings file: {backup_path}")
+                except OSError:
+                    self.logger.warning(f"Could not create backup of embeddings file")
+            
+            # Create a new embeddings file
+            with open(self.embeddings_file, 'w'):
+                pass  # Just create an empty file
             
             # Generate new embeddings
+            success_count = 0
+            total_count = 0
+            
             for entry in conversation_history:
+                total_count += 1
+                
                 # Generate embedding for full entry
-                self.add_embedding(
-                    entry['content'],
+                if self.add_embedding(
+                    entry.get('content', ''),
                     {
-                        'guid': entry['guid'],
-                        'timestamp': entry['timestamp'],
-                        'role': entry['role'],
+                        'guid': entry.get('guid', ''),
+                        'timestamp': entry.get('timestamp', datetime.now().isoformat()),
+                        'role': entry.get('role', 'unknown'),
                         'type': 'full_entry'
                     }
-                )
+                ):
+                    success_count += 1
                 
                 # Generate embeddings for segments if available
                 if 'digest' in entry and 'rated_segments' in entry['digest']:
                     for segment in entry['digest']['rated_segments']:
-                        self.add_embedding(
-                            segment['text'],
+                        total_count += 1
+                        if self.add_embedding(
+                            segment.get('text', ''),
                             {
-                                'guid': entry['guid'],
-                                'timestamp': entry['timestamp'],
-                                'role': entry['role'],
+                                'guid': entry.get('guid', ''),
+                                'timestamp': entry.get('timestamp', datetime.now().isoformat()),
+                                'role': entry.get('role', 'unknown'),
                                 'type': 'segment',
-                                'importance': segment['importance'],
-                                'topics': segment['topics']
+                                'importance': segment.get('importance', 3),
+                                'topics': segment.get('topics', [])
                             }
-                        )
+                        ):
+                            success_count += 1
             
-            return True
+            self.logger.info(f"Updated embeddings: {success_count}/{total_count} successful")
+            return success_count > 0
         except Exception as e:
-            print(f"Error updating embeddings: {str(e)}")
+            self.logger.error(f"Error updating embeddings: {str(e)}")
             return False 

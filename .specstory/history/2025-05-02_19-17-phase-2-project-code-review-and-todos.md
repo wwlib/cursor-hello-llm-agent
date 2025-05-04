@@ -1805,3 +1805,1121 @@ Would you like me to modify the message in any way?
 
 ---
 
+_**User**_
+
+OK. Let's think about how embeddings/RAG can be used to improve this LLM-driven Agent.
+
+Please add your thoughts as comments to the new rag_manager.py file - where we can implement the RAG features.
+
+---
+
+_**Assistant**_
+
+I'll add detailed comments to `rag_manager.py` outlining how RAG can enhance the LLM-driven Agent:
+
+
+---
+
+```diff
+- 
++ """RAG (Retrieval Augmented Generation) Manager for enhanced memory retrieval.
++ 
++ This module implements RAG capabilities to improve the LLM-driven Agent's memory access
++ and response generation. RAG combines the power of semantic search with LLM generation
++ to provide more accurate, contextually relevant responses.
++ 
++ Key Features:
++ 1. Semantic Search Integration
++    - Uses embeddings to find relevant conversation history entries
++    - Supports both full-text and segment-level search
++    - Enables finding related information across different conversations
++ 
++ 2. Context Enhancement
++    - Retrieves relevant historical context for current queries
++    - Combines static memory with dynamic conversation history
++    - Provides better continuity across multiple interactions
++ 
++ 3. Memory Augmentation
++    - Enhances LLM responses with retrieved context
++    - Maintains conversation coherence
++    - Reduces hallucination by grounding responses in actual history
++ 
++ Implementation Strategy:
++ 
++ 1. Memory Indexing
++    - Index both static memory and conversation history
++    - Generate embeddings for:
++      * Full conversation entries
++      * Individual segments from digests
++      * Topics and key concepts
++    - Maintain separate indices for different types of content
++ 
++ 2. Retrieval Process
++    - Convert user query to embedding
++    - Search across all indices for relevant content
++    - Rank results by relevance and recency
++    - Apply importance filtering
++    - Return top-k most relevant entries
++ 
++ 3. Context Assembly
++    - Combine retrieved content with current context
++    - Format for optimal LLM consumption
++    - Maintain source attribution
++    - Handle overlapping/redundant information
++ 
++ 4. Response Generation
++    - Use retrieved context to enhance LLM prompts
++    - Ensure responses are grounded in actual history
++    - Maintain conversation flow and coherence
++    - Track which retrieved content influenced the response
++ 
++ 5. Performance Optimization
++    - Implement caching for frequent queries
++    - Use batch processing for embedding generation
++    - Maintain efficient index structures
++    - Support incremental updates
++ 
++ Integration Points:
++ 
++ 1. MemoryManager Integration
++    - Hook into memory update process
++    - Index new content as it's added
++    - Maintain consistency with memory compression
++    - Support memory reconstruction from indices
++ 
++ 2. LLM Service Integration
++    - Enhance prompts with retrieved context
++    - Track which retrieved content influenced responses
++    - Support different retrieval strategies for different types of queries
++ 
++ 3. Conversation History Integration
++    - Index new conversation entries
++    - Support temporal queries (e.g., "what did we discuss last week?")
++    - Enable finding related conversations
++ 
++ 4. Domain-Specific Customization
++    - Support domain-specific retrieval strategies
++    - Allow custom importance weighting
++    - Enable specialized indexing for domain concepts
++ 
++ Usage Example:
++ ```python
++ # Initialize RAG Manager
++ rag_manager = RAGManager(
++     embeddings_manager=embeddings_manager,
++     llm_service=llm_service,
++     memory_manager=memory_manager
++ )
++ 
++ # Query with RAG enhancement
++ response = rag_manager.query(
++     query="What did we discuss about the mountain troll?",
++     context={
++         "importance_threshold": 3,
++         "max_results": 5,
++         "include_static_memory": True
++     }
++ )
++ ```
++ 
++ Future Enhancements:
++ 1. Multi-hop Retrieval
++    - Chain multiple retrieval steps
++    - Follow references between related content
++    - Build knowledge graphs from retrieved content
++ 
++ 2. Active Learning
++    - Track which retrieved content was useful
++    - Improve retrieval based on feedback
++    - Adapt to user's information needs
++ 
++ 3. Temporal Reasoning
++    - Track how information evolves over time
++    - Handle conflicting or outdated information
++    - Support temporal queries
++ 
++ 4. Cross-Conversation Analysis
++    - Identify patterns across conversations
++    - Build topic hierarchies
++    - Support meta-level queries about conversation history
++ """
++ 
++ from typing import Dict, List, Optional, Any
++ import json
++ from datetime import datetime
++ 
++ class RAGManager:
++     """Manages RAG functionality for enhanced memory retrieval and response generation."""
++     
++     def __init__(self, embeddings_manager, llm_service, memory_manager):
++         """Initialize the RAG Manager.
++         
++         Args:
++             embeddings_manager: Manager for handling embeddings
++             llm_service: Service for LLM operations
++             memory_manager: Manager for memory operations
++         """
++         self.embeddings_manager = embeddings_manager
++         self.llm = llm_service
++         self.memory_manager = memory_manager
++         
++     def query(self, query: str, context: Optional[Dict[str, Any]] = None) -> str:
++         """Process a query using RAG-enhanced retrieval.
++         
++         Args:
++             query: The user's query
++             context: Optional context for retrieval:
++                     - importance_threshold: Minimum importance score
++                     - max_results: Maximum number of results to retrieve
++                     - include_static_memory: Whether to include static memory
++                     
++         Returns:
++             str: The generated response
++         """
++         # TODO: Implement RAG-enhanced query processing
++         pass
++         
++     def index_memory(self) -> bool:
++         """Index current memory state for retrieval.
++         
++         Returns:
++             bool: True if indexing was successful
++         """
++         # TODO: Implement memory indexing
++         pass
++         
++     def update_indices(self) -> bool:
++         """Update indices with new memory content.
++         
++         Returns:
++             bool: True if update was successful
++         """
++         # TODO: Implement index updates
++         pass
++ 
+```
+
+---
+
+I've added comprehensive comments to `rag_manager.py` that outline how RAG can enhance the LLM-driven Agent. The comments cover:
+
+1. **Key Features**:
+   - Semantic search integration
+   - Context enhancement
+   - Memory augmentation
+
+2. **Implementation Strategy**:
+   - Memory indexing
+   - Retrieval process
+   - Context assembly
+   - Response generation
+   - Performance optimization
+
+3. **Integration Points**:
+   - MemoryManager integration
+   - LLM service integration
+   - Conversation history integration
+   - Domain-specific customization
+
+4. **Future Enhancements**:
+   - Multi-hop retrieval
+   - Active learning
+   - Temporal reasoning
+   - Cross-conversation analysis
+
+I've also added a basic class structure with three key methods:
+- `query()`: For RAG-enhanced query processing
+- `index_memory()`: For indexing the current memory state
+- `update_indices()`: For updating indices with new content
+
+Would you like me to:
+1. Start implementing any of these methods?
+2. Add more specific integration details?
+3. Expand on any particular aspect of the RAG implementation?
+
+---
+
+_**User**_
+
+Great. I just upgraded the agent model to claude-3.7-sonnet. Please take another look at the plan notes in  rag_manager.py
+
+---
+
+_**Assistant**_
+
+I've taken another look at the plan we've outlined in `rag_manager.py`. With the upgrade to Claude 3.7 Sonnet, we can leverage more sophisticated capabilities for the RAG implementation. Here are some further thoughts:
+
+The current plan is solid and comprehensive, covering the key aspects of RAG integration. With Claude 3.7 Sonnet, we can enhance these capabilities in several ways:
+
+1. **More Advanced Retrieval Techniques**:
+   - Claude 3.7 has improved contextual understanding that can help better match semantically related content
+   - We can implement more nuanced similarity metrics beyond simple cosine similarity
+   - Hybrid retrieval combining keyword and semantic search could yield better results
+
+2. **Better Context Assembly**:
+   - Claude 3.7's improved reasoning can handle more complex context structures
+   - We can provide more sophisticated context organization (hierarchical, temporal, topical)
+   - The LLM can better handle potentially contradictory information from different time periods
+
+3. **Enhanced Response Generation**:
+   - Improved coherence and factual accuracy with the more capable model
+   - Better ability to synthesize information from multiple sources
+   - More nuanced attribution and reasoning about source reliability
+
+4. **Optimization Opportunities**:
+   - Claude 3.7 can handle longer contexts, allowing for more comprehensive retrieval
+   - More efficient prompt designs that take advantage of Claude's improved instruction following
+   - Better few-shot examples for specialized retrieval tasks
+
+Would you like me to:
+
+1. Begin implementing the `query()` method with these Claude 3.7-specific enhancements?
+2. Create a specialized retrieval prompt template that leverages Claude 3.7's capabilities?
+3. Design a more sophisticated context assembly approach that takes advantage of the improved model?
+4. Explore how we might integrate Claude 3.7's improved reasoning into the retrieval ranking process?
+
+---
+
+_**User**_
+
+Let's start with the foundational features needed for the EmbeddingsManager. We need to be able to generate, save and load embedings. Once we have this working we can use it to generate embeddings for the conversation history.
+
+But step 1 is generate/save/load. We will need integration tests (actual LLM calls).
+
+Let's start with generate and save in EmbeddingsManager. 
+
+Note: Please use examples/call_ollama_to_generate_embeddings.py as an api reference.
+
+Tests should go in test_embeddings_manager_integration.py
+See the comments in the file about available test data.
+
+
+
+---
+
+_**Assistant**_
+
+I'll help you implement and test the core embedding functionality in the `EmbeddingsManager` class. Let's focus on the generate/save/load functionality first.
+
+---
+
+Read file: src/memory/embeddings_manager.py
+
+---
+
+Read file: examples/call_ollama_to_generate_embeddings.py
+
+---
+
+Now let's create an integration test file:
+
+---
+
+```diff
+- # Files to use for testing the EmbeddingsManager
+- 
+- # The main memory file which contains a "digest" of the full conversation history
+- # tests/memory_manager/memory_snapshots/rag/agent_memory_f1ce087f-76b3-4383-865f-4179c927d162.json
+- 
+- # The conversation history file which contains the full conversation history
+- # tests/memory_manager/memory_snapshots/rag/agent_memory_f1ce087f-76b3-4383-865f-4179c927d162_conversations.json
+- 
+- # Tests should generate embeddings for the conversation history and save them to a separate embeddings file
++ """Integration tests for the EmbeddingsManager class with actual LLM calls."""
++ 
++ import pytest
++ import os
++ import json
++ import numpy as np
++ from datetime import datetime
++ import tempfile
++ import shutil
++ from pathlib import Path
++ 
++ from src.memory.embeddings_manager import EmbeddingsManager
++ from src.ai.llm_ollama import OllamaService
++ 
++ # Test data paths - memory snapshots from a DND game
++ TEST_DATA_DIR = Path("tests/memory_manager/memory_snapshots/rag")
++ TEST_MEMORY_PATH = TEST_DATA_DIR / "agent_memory_f1ce087f-76b3-4383-865f-4179c927d162.json"
++ TEST_CONVERSATIONS_PATH = TEST_DATA_DIR / "agent_memory_f1ce087f-76b3-4383-865f-4179c927d162_conversations.json"
++ 
++ # Configure Ollama connection
++ OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://192.168.1.173:11434")
++ OLLAMA_EMBED_MODEL = os.getenv("OLLAMA_EMBED_MODEL", "mxbai-embed-large")
++ 
++ @pytest.fixture
++ def llm_service():
++     """Create an instance of OllamaService for testing."""
++     return OllamaService({
++         "base_url": OLLAMA_BASE_URL,
++         "model": OLLAMA_EMBED_MODEL,
++         "debug": True,
++         "debug_scope": "test_embeddings_manager",
++         "console_output": True
++     })
++     
++ @pytest.fixture
++ def temp_embeddings_file():
++     """Create a temporary embeddings file for testing."""
++     with tempfile.NamedTemporaryFile(suffix=".jsonl", delete=False) as temp_file:
++         temp_path = temp_file.name
++     
++     yield temp_path
++     
++     # Clean up after test
++     if os.path.exists(temp_path):
++         os.remove(temp_path)
++ 
++ @pytest.fixture
++ def test_conversation_data():
++     """Load test conversation data from the snapshot file."""
++     if not TEST_CONVERSATIONS_PATH.exists():
++         pytest.skip(f"Test conversation data not found at {TEST_CONVERSATIONS_PATH}")
++         
++     with open(TEST_CONVERSATIONS_PATH, 'r') as f:
++         return json.load(f)
++ 
++ def test_embeddings_manager_init(llm_service, temp_embeddings_file):
++     """Test that the EmbeddingsManager initializes correctly."""
++     manager = EmbeddingsManager(temp_embeddings_file, llm_service)
++     assert manager.embeddings_file == temp_embeddings_file
++     assert manager.llm_service == llm_service
++     assert isinstance(manager.embeddings, list)
++     assert len(manager.embeddings) == 0  # Empty initially
++ 
++ def test_generate_embedding(llm_service, temp_embeddings_file):
++     """Test generating a single embedding."""
++     manager = EmbeddingsManager(temp_embeddings_file, llm_service)
++     
++     # Generate embedding for a test text
++     test_text = "This is a test sentence for embedding generation."
++     embedding = manager.generate_embedding(test_text)
++     
++     # Check that we got a valid embedding
++     assert isinstance(embedding, np.ndarray)
++     assert embedding.shape[0] > 0
++     
++     # Check that the embedding is normalized (approximately)
++     norm = np.linalg.norm(embedding)
++     assert abs(norm - 1.0) < 1e-6
++ 
++ def test_add_embedding(llm_service, temp_embeddings_file):
++     """Test adding an embedding to the store."""
++     manager = EmbeddingsManager(temp_embeddings_file, llm_service)
++     
++     # Add an embedding
++     test_text = "This is a test sentence for embedding storage."
++     metadata = {
++         "guid": "test-guid-1",
++         "timestamp": datetime.now().isoformat(),
++         "role": "user",
++         "type": "full_entry"
++     }
++     
++     success = manager.add_embedding(test_text, metadata)
++     assert success is True
++     
++     # Check that it's in memory
++     assert len(manager.embeddings) == 1
++     stored_embedding, stored_metadata = manager.embeddings[0]
++     assert isinstance(stored_embedding, np.ndarray)
++     assert stored_metadata["guid"] == "test-guid-1"
++     
++     # Check that it's in the file
++     assert os.path.exists(temp_embeddings_file)
++     with open(temp_embeddings_file, 'r') as f:
++         data = json.loads(f.read().strip())
++         assert data["metadata"]["guid"] == "test-guid-1"
++         assert isinstance(data["embedding"], list)
++ 
++ def test_load_embeddings(llm_service, temp_embeddings_file):
++     """Test loading embeddings from a file."""
++     # Create a file with some test embeddings
++     test_embeddings = [
++         {
++             "embedding": [0.1, 0.2, 0.3, 0.4],
++             "metadata": {
++                 "guid": "test-guid-2",
++                 "timestamp": datetime.now().isoformat(),
++                 "role": "agent",
++                 "type": "full_entry"
++             }
++         },
++         {
++             "embedding": [0.5, 0.6, 0.7, 0.8],
++             "metadata": {
++                 "guid": "test-guid-3",
++                 "timestamp": datetime.now().isoformat(),
++                 "role": "user",
++                 "type": "segment",
++                 "importance": 4,
++                 "topics": ["test", "topic"]
++             }
++         }
++     ]
++     
++     with open(temp_embeddings_file, 'w') as f:
++         for item in test_embeddings:
++             f.write(json.dumps(item) + '\n')
++     
++     # Create a new manager that loads these embeddings
++     manager = EmbeddingsManager(temp_embeddings_file, llm_service)
++     
++     # Check that embeddings were loaded correctly
++     assert len(manager.embeddings) == 2
++     assert manager.embeddings[0][1]["guid"] == "test-guid-2"
++     assert manager.embeddings[1][1]["guid"] == "test-guid-3"
++     assert np.array_equal(manager.embeddings[0][0], np.array([0.1, 0.2, 0.3, 0.4]))
++ 
++ def test_add_multiple_embeddings(llm_service, temp_embeddings_file):
++     """Test adding multiple embeddings to the store."""
++     manager = EmbeddingsManager(temp_embeddings_file, llm_service)
++     
++     # Add multiple embeddings
++     test_texts = [
++         "This is the first test sentence.",
++         "This is the second test sentence, which is different.",
++         "This is a completely unrelated sentence about cats."
++     ]
++     
++     for i, text in enumerate(test_texts):
++         metadata = {
++             "guid": f"test-guid-multi-{i}",
++             "timestamp": datetime.now().isoformat(),
++             "role": "user" if i % 2 == 0 else "agent",
++             "type": "full_entry"
++         }
++         
++         success = manager.add_embedding(text, metadata)
++         assert success is True
++     
++     # Check that all were added
++     assert len(manager.embeddings) == 3
++     
++     # Check the file contents
++     with open(temp_embeddings_file, 'r') as f:
++         lines = f.readlines()
++         assert len(lines) == 3
++         
++         for i, line in enumerate(lines):
++             data = json.loads(line)
++             assert data["metadata"]["guid"] == f"test-guid-multi-{i}"
++ 
++ @pytest.mark.skipif(not TEST_CONVERSATIONS_PATH.exists(), 
++                     reason=f"Test conversation data not found at {TEST_CONVERSATIONS_PATH}")
++ def test_update_embeddings_from_conversation_history(llm_service, temp_embeddings_file, test_conversation_data):
++     """Test updating embeddings from conversation history."""
++     manager = EmbeddingsManager(temp_embeddings_file, llm_service)
++     
++     # Get conversation entries
++     entries = test_conversation_data.get("entries", [])
++     assert len(entries) > 0, "No entries found in test conversation data"
++     
++     # Update embeddings from this history
++     success = manager.update_embeddings(entries)
++     assert success is True
++     
++     # Calculate expected number of embeddings (entries + segments)
++     expected_count = 0
++     for entry in entries:
++         expected_count += 1  # Count the entry itself
++         if 'digest' in entry and 'rated_segments' in entry['digest']:
++             expected_count += len(entry['digest']['rated_segments'])
++     
++     # Check that we have the right number of embeddings
++     assert len(manager.embeddings) == expected_count
++     
++     # Check file exists and is not empty
++     assert os.path.exists(temp_embeddings_file)
++     assert os.path.getsize(temp_embeddings_file) > 0
+  
+  
+```
+
+---
+
+Let's now modify the `EmbeddingsManager` class to improve the implementation based on the example script and ensure it handles the Ollama API correctly:
+
+---
+
+```diff
+  """
+  
+- from typing import Dict, List, Optional, Tuple
++ from typing import Dict, List, Optional, Tuple, Union, Any
+  import json
+  import os
+  import numpy as np
+  from datetime import datetime
+  from pathlib import Path
++ import logging
+  
+  class EmbeddingsManager:
+```
+
+```diff
+          self.llm_service = llm_service
+          self.embeddings = []  # List of (embedding, metadata) tuples
++         self.logger = logging.getLogger("embeddings_manager")
++         
++         # Initialize embeddings file directory if it doesn't exist
++         embeddings_dir = os.path.dirname(embeddings_file)
++         if embeddings_dir and not os.path.exists(embeddings_dir):
++             os.makedirs(embeddings_dir, exist_ok=True)
++             
++         # Load existing embeddings
+          self._load_embeddings()
+      
+      def _load_embeddings(self):
+          """Load existing embeddings from file."""
+          if not os.path.exists(self.embeddings_file):
++             self.logger.info(f"Embeddings file {self.embeddings_file} does not exist, starting with empty embeddings.")
+              return
+              
+          try:
+              with open(self.embeddings_file, 'r') as f:
+-                 for line in f:
++                 for line_num, line in enumerate(f, 1):
++                     try:
+                          data = json.loads(line)
++                         if 'embedding' not in data or 'metadata' not in data:
++                             self.logger.warning(f"Line {line_num} in embeddings file is missing required fields.")
++                             continue
++                             
+                          self.embeddings.append((
+                              np.array(data['embedding']),
+                              data['metadata']
+                          ))
++                     except json.JSONDecodeError:
++                         self.logger.warning(f"Failed to parse line {line_num} in embeddings file.")
++                         continue
++                         
++             self.logger.info(f"Loaded {len(self.embeddings)} embeddings from {self.embeddings_file}")
+          except Exception as e:
+-             print(f"Error loading embeddings: {str(e)}")
++             self.logger.error(f"Error loading embeddings: {str(e)}")
+      
+-     def generate_embedding(self, text: str) -> np.ndarray:
++     def generate_embedding(self, text: str, options: Optional[Dict[str, Any]] = None) -> np.ndarray:
+          """Generate embedding for a text string.
+          
+          Args:
+              text: Text to generate embedding for
++             options: Optional dictionary with embedding options:
++                 - model: Specific embedding model to use (default: whatever the LLM service uses)
++                 - normalize: Whether to normalize the embedding vector (default: True)
+                  
+          Returns:
+              np.ndarray: Embedding vector
++             
++         Raises:
++             ValueError: If LLM service is not available or text is empty
+          """
+          if not self.llm_service:
+              raise ValueError("LLM service is required for generating embeddings")
+              
++         if not text or not text.strip():
++             raise ValueError("Cannot generate embedding for empty text")
++             
++         options = options or {}
++         normalize = options.get('normalize', True)
++             
+          try:
+              # Generate embedding using LLM service
+-             embedding = self.llm_service.generate_embedding(text, {
+-                 'normalize': True  # Always normalize embeddings for consistent similarity calculations
+-             })
++             embedding = self.llm_service.generate_embedding(text, options)
+              
+              # Convert to numpy array
+-             return np.array(embedding)
++             embedding_array = np.array(embedding)
++             
++             # Normalize if requested (though LLM service should already do this)
++             if normalize and options.get('normalize', True):
++                 norm = np.linalg.norm(embedding_array)
++                 if norm > 0:
++                     embedding_array = embedding_array / norm
++                     
++             return embedding_array
+              
+          except Exception as e:
+-             print(f"Error generating embedding: {str(e)}")
+-             # Return random vector as fallback for testing
+-             return np.random.rand(384)  # Typical embedding dimension
++             self.logger.error(f"Error generating embedding: {str(e)}")
++             raise
+      
+-     def add_embedding(self, text: str, metadata: Dict) -> bool:
++     def add_embedding(self, text: str, metadata: Dict[str, Any], options: Optional[Dict[str, Any]] = None) -> bool:
+          """Add a new embedding to the store.
+          
+          Args:
+              text: Text to generate embedding for
+              metadata: Associated metadata (GUID, timestamp, etc.)
++             options: Optional dictionary with embedding options
+              
+          Returns:
+```
+
+```diff
+          try:
+              # Generate embedding
+-             embedding = self.generate_embedding(text)
++             embedding = self.generate_embedding(text, options)
+              
+              # Add to in-memory store
+              self.embeddings.append((embedding, metadata))
+              
+-             # Append to file
+-             with open(self.embeddings_file, 'a') as f:
++             # Append to file - create file if it doesn't exist
++             file_mode = 'a' if os.path.exists(self.embeddings_file) else 'w'
++             with open(self.embeddings_file, file_mode) as f:
+                  json.dump({
+                      'embedding': embedding.tolist(),
+-                     'metadata': metadata
++                     'metadata': metadata,
++                     'text': text[:100] + '...' if len(text) > 100 else text  # Store text preview for debugging
+                  }, f)
+                  f.write('\n')
+              
++             self.logger.info(f"Added embedding for text: '{text[:30]}...' with GUID: {metadata.get('guid', 'unknown')}")
+              return True
+          except Exception as e:
+-             print(f"Error adding embedding: {str(e)}")
++             self.logger.error(f"Error adding embedding: {str(e)}")
+              return False
+      
+-     def search(self, query: str, k: int = 5, 
++     def calculate_similarity(self, embedding1: np.ndarray, embedding2: np.ndarray) -> float:
++         """Calculate cosine similarity between two embeddings.
++         
++         Args:
++             embedding1: First embedding vector
++             embedding2: Second embedding vector
++             
++         Returns:
++             float: Cosine similarity score between -1 and 1
++         """
++         # Ensure embeddings are normalized for accurate cosine similarity
++         norm1 = np.linalg.norm(embedding1)
++         norm2 = np.linalg.norm(embedding2)
++         
++         if norm1 > 0:
++             embedding1 = embedding1 / norm1
++         if norm2 > 0:
++             embedding2 = embedding2 / norm2
++             
++         return np.dot(embedding1, embedding2)
++     
++     def search(self, query: Union[str, np.ndarray], k: int = 5, 
+                min_importance: Optional[int] = None,
+                date_range: Optional[Tuple[datetime, datetime]] = None) -> List[Dict]:
+          """Search for similar entries using semantic similarity.
+          
+          Args:
+-             query: Search query text
++             query: Search query text or embedding vector
+              k: Number of results to return
+              min_importance: Optional minimum importance threshold
+```
+
+```diff
+              List[Dict]: List of results with similarity scores and metadata
+          """
+-         # Generate query embedding
++         # Get query embedding
++         if isinstance(query, str):
++             try:
+                  query_embedding = self.generate_embedding(query)
++             except Exception as e:
++                 self.logger.error(f"Error generating embedding for query: {str(e)}")
++                 return []
++         else:
++             query_embedding = query
+          
+          # Compute similarities
+```
+
+```diff
+                  continue
+                  
+-             if date_range:
++             if date_range and 'timestamp' in metadata:
++                 try:
+                      entry_date = datetime.fromisoformat(metadata['timestamp'])
+                      if not (date_range[0] <= entry_date <= date_range[1]):
++                         continue
++                 except (ValueError, TypeError):
++                     # Skip entries with invalid timestamps
+                      continue
+              
+              # Compute cosine similarity
+-             similarity = np.dot(query_embedding, embedding) / (
+-                 np.linalg.norm(query_embedding) * np.linalg.norm(embedding)
+-             )
++             similarity = self.calculate_similarity(query_embedding, embedding)
+              similarities.append((similarity, metadata))
+          
+-         # Sort by similarity and return top k
+-         similarities.sort(reverse=True)
+-         return [
++         # Sort by similarity (highest first)
++         similarities.sort(key=lambda x: x[0], reverse=True)
++         
++         # Return top k results
++         results = [
+              {
+-                 'score': score,
++                 'score': float(score),  # Convert from numpy to Python float
+                  'metadata': metadata
+              }
+              for score, metadata in similarities[:k]
+          ]
++         
++         self.logger.info(f"Search found {len(results)} results out of {len(similarities)} total embeddings")
++         return results
+      
+      def update_embeddings(self, conversation_history: List[Dict]) -> bool:
+```
+
+```diff
+              self.embeddings = []
+              if os.path.exists(self.embeddings_file):
+-                 os.remove(self.embeddings_file)
++                 # Create a backup of the existing file
++                 backup_path = f"{self.embeddings_file}.bak"
++                 try:
++                     os.rename(self.embeddings_file, backup_path)
++                     self.logger.info(f"Created backup of embeddings file: {backup_path}")
++                 except OSError:
++                     self.logger.warning(f"Could not create backup of embeddings file")
++             
++             # Create a new embeddings file
++             with open(self.embeddings_file, 'w'):
++                 pass  # Just create an empty file
+              
+              # Generate new embeddings
++             success_count = 0
++             total_count = 0
++             
+              for entry in conversation_history:
++                 total_count += 1
++                 
+                  # Generate embedding for full entry
+-                 self.add_embedding(
+-                     entry['content'],
++                 if self.add_embedding(
++                     entry.get('content', ''),
+                      {
+-                         'guid': entry['guid'],
+-                         'timestamp': entry['timestamp'],
+-                         'role': entry['role'],
++                         'guid': entry.get('guid', ''),
++                         'timestamp': entry.get('timestamp', datetime.now().isoformat()),
++                         'role': entry.get('role', 'unknown'),
+                          'type': 'full_entry'
+                      }
+-                 )
++                 ):
++                     success_count += 1
+                  
+                  # Generate embeddings for segments if available
+                  if 'digest' in entry and 'rated_segments' in entry['digest']:
+                      for segment in entry['digest']['rated_segments']:
+-                         self.add_embedding(
+-                             segment['text'],
++                         total_count += 1
++                         if self.add_embedding(
++                             segment.get('text', ''),
+                              {
+-                                 'guid': entry['guid'],
+-                                 'timestamp': entry['timestamp'],
+-                                 'role': entry['role'],
++                                 'guid': entry.get('guid', ''),
++                                 'timestamp': entry.get('timestamp', datetime.now().isoformat()),
++                                 'role': entry.get('role', 'unknown'),
+                                  'type': 'segment',
+-                                 'importance': segment['importance'],
+-                                 'topics': segment['topics']
++                                 'importance': segment.get('importance', 3),
++                                 'topics': segment.get('topics', [])
+                              }
+-                         )
++                         ):
++                             success_count += 1
+              
+-             return True
++             self.logger.info(f"Updated embeddings: {success_count}/{total_count} successful")
++             return success_count > 0
+          except Exception as e:
+-             print(f"Error updating embeddings: {str(e)}")
++             self.logger.error(f"Error updating embeddings: {str(e)}")
+              return False 
+```
+
+---
+
+Now, let's run the integration tests to verify our implementation:
+
+---
+
+```bash
+cd /Users/andrewrapo/github/cursor/cursor-hello-llm-agent && OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_EMBED_MODEL=mxbai-embed-large pytest tests/memory_manager/test_embeddings_manager_integration.py -v
+```
+
+---
+
+
+
+---
+
+_**User**_
+
+Can you tell me about the way the temp files/paths are managed using the tempfile package?
+
+---
+
+_**Assistant**_
+
+The `tempfile` package in Python provides a clean way to create and manage temporary files and directories. In your integration tests, it's used specifically in the `temp_embeddings_file` fixture:
+
+```python
+@pytest.fixture
+def temp_embeddings_file():
+    """Create a temporary embeddings file for testing."""
+    with tempfile.NamedTemporaryFile(suffix=".jsonl", delete=False) as temp_file:
+        temp_path = temp_file.name
+        print(f"Created temporary embeddings file: {temp_path}")
+    
+    yield temp_path
+    
+    # Clean up after test
+    if os.path.exists(temp_path):
+        os.remove(temp_path)
+```
+
+Here's how it works:
+
+1. **Creation**: `tempfile.NamedTemporaryFile()` creates a temporary file with a unique name in the system's temporary directory (like `/tmp` on Unix systems).
+   - `suffix=".jsonl"` adds the specified extension to the filename
+   - `delete=False` means Python won't automatically delete the file when the file object is closed
+
+2. **Context Manager**: The `with` statement ensures the file is properly closed after creating it
+   - `temp_file.name` gives you the full path to the created file
+   - The path is stored in `temp_path`
+
+3. **Pytest Fixture Yield**: The `yield temp_path` statement makes the file path available to the test function
+   - When the test function completes, execution returns here
+
+4. **Cleanup**: After the test finishes, the code after `yield` runs as cleanup
+   - It checks if the file still exists
+   - If it does, it removes the file
+
+This approach has several advantages:
+
+1. **Isolation**: Each test gets a unique, clean file
+2. **No conflicts**: The unique naming prevents test interference
+3. **Automatic cleanup**: Files are removed after tests, preventing leftover files
+4. **Cross-platform**: Works on any operating system
+5. **Fixed location**: Unlike random strings, tempfile uses the system's designated temporary directory
+
+The `tempfile` module also offers other useful functions:
+- `tempfile.mkstemp()`: Lower-level function returning a file descriptor and path
+- `tempfile.mkdtemp()`: Creates a temporary directory
+- `tempfile.TemporaryDirectory()`: Context manager for temporary directories
+
+This pattern is particularly valuable for testing file operations like your embedding storage because it ensures each test starts with fresh state and leaves no artifacts behind.
+
+---
+
+_**User**_
+
+OK. That sounds great.
+
+During development of the tests I would like to be able to inspect the temp files. Can we have an option to reate them in /tests/test_files/tmp/ and not clean them up?
+
+---
+
+_**Assistant**_
+
+Absolutely! Let's modify the `temp_embeddings_file` fixture to give you more control during development. We'll add an option to create the files in a specific directory and keep them for inspection.
+
+---
+
+```diff
+  OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+  OLLAMA_EMBED_MODEL = os.getenv("OLLAMA_EMBED_MODEL", "mxbai-embed-large")
++ 
++ # Development settings for temp files
++ DEV_MODE = os.getenv("DEV_MODE", "False").lower() in ("true", "1", "t")
++ DEV_TEMP_DIR = Path("tests/test_files/tmp")
+  
+  @pytest.fixture
+```
+
+```diff
+  @pytest.fixture
+  def temp_embeddings_file():
+-     """Create a temporary embeddings file for testing."""
++     """Create a temporary embeddings file for testing.
++     
++     When DEV_MODE is enabled:
++     - Files are created in DEV_TEMP_DIR instead of system temp directory
++     - Files are not automatically deleted after tests
++     - A timestamp is added to the filename to prevent conflicts
++     
++     This makes it easier to inspect the files during development.
++     """
++     if DEV_MODE:
++         # Create the dev temp directory if it doesn't exist
++         DEV_TEMP_DIR.mkdir(parents=True, exist_ok=True)
++         
++         # Create a unique filename with timestamp
++         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
++         filename = f"embeddings_test_{timestamp}.jsonl"
++         temp_path = DEV_TEMP_DIR / filename
++         
++         # Create the file
++         temp_path.touch()
++         print(f"[DEV MODE] Created test file at: {temp_path}")
++         
++         yield str(temp_path)
++         
++         # In dev mode, we don't delete the file
++         print(f"[DEV MODE] Keeping test file for inspection: {temp_path}")
++     else:
++         # Standard tempfile behavior for normal test runs
+          with tempfile.NamedTemporaryFile(suffix=".jsonl", delete=False) as temp_file:
+              temp_path = temp_file.name
+```
+
+```diff
+          if os.path.exists(temp_path):
+              os.remove(temp_path)
++             print(f"Removed temporary file: {temp_path}")
+  
+  @pytest.fixture
+```
+
+---
+
+```bash
+mkdir -p tests/test_files/tmp
+```
+
+---
+
+I've modified the tests with a development mode that will make it
+
+---
+
+_**User**_
+
+That looks great. Can we automatically create the tests/test_files/tmp if it does't exist?
+
+---
+
+_**Assistant**_
+
+You're right! The code already does that. If you look at the DEV_MODE block, I've included this line:
+
+```python
+# Create the dev temp directory if it doesn't exist
+DEV_TEMP_DIR.mkdir(parents=True, exist_ok=True)
+```
+
+This uses `Path.mkdir()` with:
+- `parents=True` - Creates parent directories if they don't exist 
+- `exist_ok=True` - Doesn't error if the directory already exists
+
+So when you run the tests with DEV_MODE enabled, it will:
+1. Check if `tests/test_files/tmp` exists
+2. Create it (and any parent directories) if it doesn't
+3. Then create the test files in that directory
+
+To run tests in development mode, you'd use:
+
+```bash
+DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_EMBED_MODEL=mxbai-embed-large pytest tests/memory_manager/test_embeddings_manager_integration.py -v
+```
+
+This will preserve the test files in the specified directory for your inspection.
+
+Would you like to make any additional changes to how the development mode works?
+
+---
+
+_**User**_
+
+Can you tell why the test is failing?
+
+
+---
+
+_**Assistant**_
+
+I can see the issue from the test failure. The test is failing because the EmbeddingsManager already has embeddings loaded that weren't expected.
+
+Here's what's happening:
+
+1. The test `test_add_multiple_embeddings` expects to start with an empty EmbeddingsManager and add 3 embeddings
+2. However, the EmbeddingsManager actually contains 5 embeddings:
+   - 2 embeddings that were loaded during initialization
+   - 3 new embeddings that were added during the test
+
+The loaded embeddings are:
+- An embedding with guid 'test-guid-2'
+- An embedding with guid 'test-guid-3'
+
+This suggests that in DEV_MODE, the test files aren't starting empty - they're persisting between test runs. This is causing tests to interfere with each other.
+
+The issue is in how we're handling the test files in DEV_MODE:
+
+1. When DEV_MODE is on, the fixture creates a new file for each test run
+2. But it's not checking if that file already has data in it
+3. Then the EmbeddingsManager loads any data that might be in the file during initialization
+
+To fix this, we need to ensure test files are empty when we start each test. Let's modify either:
+
+1. The temp_embeddings_file fixture to create empty files in DEV_MODE
+2. Or each test to clear the EmbeddingsManager at the start
+
+Would you like me to implement one of these fixes?
+
+---
+
+_**User**_
+
+each test should clear the EmbeddingsManager at the start.
+
+---
+
+_**Assistant**_
+
+Let's update the tests to ensure each EmbeddingsManager starts with a clean state by clearing any existing content in the temp file.
+
+---
+
+
+
+---
+
+
+
+---
+
+_**User**_
+
+Yes.
+
+---
+
+_**Assistant**_
+
+
+
+---
+

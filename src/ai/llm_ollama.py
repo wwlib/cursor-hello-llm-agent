@@ -23,6 +23,8 @@ import numpy as np
 #   "prompt": "Llamas are members of the camelid family"
 # }'
 
+# See: examples/call_ollama_to_generate_embeddings.py for examples of how to call the Ollama API
+
 
 class OllamaService(LLMService):
     """LLM service implementation using Ollama"""
