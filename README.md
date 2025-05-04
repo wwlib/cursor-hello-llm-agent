@@ -168,4 +168,7 @@ python examples/user_story_example.py
 
 # Memory Manager Example
 python examples/memory_manager_usage_example.py
+
+# Embedding Manager Example
+OLLAMA_BASE_URL=http://192.168.1.173:11434 python examples/embeddings_manager_example.py
 ```

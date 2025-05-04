@@ -11,5 +11,6 @@ hide
 /user_story_memory*
 /test_memory*
 /tests/test_files
+/examples/temp_data
 # SpecStory explanation file
 .specstory/.what-is-this.md

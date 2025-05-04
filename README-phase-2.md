@@ -536,10 +536,45 @@ These changes lay the groundwork for significantly improving the agent's ability
 
 Next steps include implementing the search functions to enable retrieving information from both memory and conversation history, developing visualization tools for memory analysis, and enhancing the system with batch embedding operations for efficiency.
 
+## Phase 2 Update - May 04, 2025 (Update 2) - Enhanced Semantic Search and Example Implementation
+
+We've made significant improvements to our embedding and semantic search functionality:
+
+1. **Granular Segment-Level Embeddings**:
+   - Enhanced embedding storage to include complete segment text and metadata
+   - Implemented separate embedding generation for both full conversation entries and individual segments
+   - Added rich metadata including importance ratings, topics, and segment types
+   - Preserved conversation entry GUIDs and segment indices for accurate retrieval
+
+2. **Advanced Semantic Search Example**:
+   - Created comprehensive example script `embeddings_manager_example.py` 
+   - Demonstrates loading conversation history, generating embeddings, and performing semantic search
+   - Includes example queries and an interactive search mode
+   - Provides clear documentation of RAG integration benefits
+
+3. **Improved Search Result Display**:
+   - Enhanced formatting of search results to clearly show matching segments
+   - Added visualization of importance ratings with star notation
+   - Included topic metadata to understand why segments matched
+   - Maintained reference to source conversation entries
+
+4. **Memory Integration Pathway**:
+   - Documented clear approach for incorporating semantic search into memory queries
+   - Designed system to retrieve semantically relevant historical conversations
+   - Created foundation for enhancing LLM responses with contextually appropriate information
+   - Established pattern for integrating with `query_memory.prompt`
+
+These enhancements significantly improve the system's ability to retrieve contextually relevant information from conversation history. By generating embeddings at the segment level rather than just at the entry level, we achieve much more precise and targeted search results. This granular approach ensures that when searching for specific concepts like "ancient relics" or "earning gold," the system returns exactly the relevant segments rather than entire conversations.
+
+The example implementation provides a clear demonstration of how these capabilities can be integrated into the agent framework to enhance memory retrieval and improve response generation.
+
 ## TODO
 
-- Generate embeddings for conversation history entries to enable RAG, semantic search
-- Implement search functions to retrieve information from both memory and conversation history
+- Agent Improvements
+  - Generate embeddings for conversation history entries to enable RAG, semantic search
+  - Implement search functions to retrieve information from the conversation history
+  - Use the semantic search results to inform the query_memory.prompt (i.e. RAG)
 - Add metadata to track memory usage statistics and performance
 - Develop tools for memory visualization and analysis
 - Review all tests and fix or clean up as needed
+- Figure out how to organize the data in the conversation history into a knowledge graph
