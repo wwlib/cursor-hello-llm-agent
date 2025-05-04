@@ -120,55 +120,299 @@ Future Enhancements:
    - Support meta-level queries about conversation history
 """
 
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, Tuple
 import json
 from datetime import datetime
+import os
+import logging
 
 class RAGManager:
-    """Manages RAG functionality for enhanced memory retrieval and response generation."""
+    """Manages Retrieval Augmented Generation for enhancing memory queries.
     
-    def __init__(self, embeddings_manager, llm_service, memory_manager):
-        """Initialize the RAG Manager.
+    The RAGManager integrates with EmbeddingsManager to provide semantic search
+    capabilities and context enhancement for memory queries. It:
+    
+    1. Performs semantic searches for relevant context
+    2. Formats search results into context for memory queries
+    3. Integrates with the memory system to enhance queries with relevant context
+    4. Handles updates to the embeddings indices
+    
+    This enables agents to retrieve contextually relevant information from
+    conversation history based on semantic similarity rather than just
+    recency or exact keyword matches.
+    """
+    
+    def __init__(self, llm_service, embeddings_manager):
+        """Initialize the RAGManager.
         
         Args:
-            embeddings_manager: Manager for handling embeddings
             llm_service: Service for LLM operations
-            memory_manager: Manager for memory operations
+            embeddings_manager: Manager for embeddings and semantic search
         """
+        self.llm_service = llm_service
         self.embeddings_manager = embeddings_manager
-        self.llm = llm_service
-        self.memory_manager = memory_manager
         
-    def query(self, query: str, context: Optional[Dict[str, Any]] = None) -> str:
-        """Process a query using RAG-enhanced retrieval.
+        # Configure logging
+        self.logger = logging.getLogger("rag_manager")
+        # Set up basic console handler if none exists
+        if not self.logger.handlers:
+            handler = logging.StreamHandler()
+            handler.setFormatter(logging.Formatter('%(name)s - %(levelname)s - %(message)s'))
+            self.logger.addHandler(handler)
+            self.logger.setLevel(logging.INFO)
+    
+    def query(self, query_text: str, limit: int = 5, min_importance: Optional[int] = None) -> List[Dict[str, Any]]:
+        """Query for semantically relevant context.
         
         Args:
-            query: The user's query
-            context: Optional context for retrieval:
-                    - importance_threshold: Minimum importance score
-                    - max_results: Maximum number of results to retrieve
-                    - include_static_memory: Whether to include static memory
-                    
+            query_text: The text query to find relevant context for
+            limit: Maximum number of results to return (default: 5)
+            min_importance: Minimum importance level (1-5) for results
+            
         Returns:
-            str: The generated response
+            List of relevant context items with text, score, and metadata
         """
-        # TODO: Implement RAG-enhanced query processing
-        pass
+        try:
+            self.logger.info(f"Querying for: '{query_text}' (limit={limit}, min_importance={min_importance})")
+            
+            # Get search results
+            search_results = self.embeddings_manager.search(query_text, k=limit*2, min_importance=min_importance)
+            self.logger.info(f"Search returned {len(search_results)} raw results")
+            
+            # Transform results to include the text
+            enhanced_results = []
+            for i, result in enumerate(search_results):
+                # Get the metadata
+                metadata = result.get("metadata", {})
+                score = result.get("score", 0)
+                
+                # Extract text from various possible locations
+                text = None
+                
+                # Try to get text directly from result
+                if "text" in result:
+                    text = result["text"]
+                # Try to get from metadata
+                elif "text" in metadata:
+                    text = metadata["text"]
+                # For segments, check if segment text exists
+                elif "segment_text" in metadata:
+                    text = metadata["segment_text"]
+                # For full entries, use content
+                elif "content" in metadata:
+                    text = metadata["content"]
+                
+                # Skip results without text
+                if not text:
+                    self.logger.warning(f"Skipping result {i} - no text found")
+                    continue
+                
+                # Prepare the enhanced result
+                enhanced_result = {
+                    "score": score,
+                    "text": text,
+                    "metadata": metadata
+                }
+                
+                enhanced_results.append(enhanced_result)
+                self.logger.debug(f"Added result {i}: score={score:.4f}, text='{text[:50]}...'")
+            
+            # Sort by score (highest first) and limit
+            enhanced_results.sort(key=lambda x: x["score"], reverse=True)
+            results = enhanced_results[:limit]
+            
+            self.logger.info(f"Returning {len(results)} processed results")
+            return results
+            
+        except Exception as e:
+            self.logger.error(f"Error in RAG query: {str(e)}")
+            return []
+    
+    def format_enhanced_context(self, query_text: str, search_results: List[Dict[str, Any]]) -> str:
+        """Format search results into a structured context for memory enhancement.
         
-    def index_memory(self) -> bool:
-        """Index current memory state for retrieval.
+        Args:
+            query_text: Original query text (for reference)
+            search_results: Results from semantic search
+            
+        Returns:
+            Formatted context string for inclusion in memory query
+        """
+        if not search_results:
+            self.logger.info("No search results to format as context")
+            return ""
         
+        # Start with header
+        context = "SEMANTICALLY_RELEVANT_CONTEXT (Information specifically related to your query):\n\n"
+        
+        # Add each result with its importance level
+        for i, result in enumerate(search_results):
+            # Get importance level (default to 3 if not specified)
+            importance = result.get("metadata", {}).get("importance", 3)
+            # Get topics if available
+            topics = result.get("metadata", {}).get("topics", [])
+            
+            # Format the result
+            topics_str = f" (Topics: {', '.join(topics)})" if topics else ""
+            context += f"[!{importance}] {result['text']}{topics_str}\n\n"
+        
+        self.logger.info(f"Generated context with {len(search_results)} items")
+        return context
+    
+    def enhance_memory_query(self, query_context: Dict[str, Any]) -> Dict[str, Any]:
+        """Enhance a memory query with semantically relevant context.
+        
+        Args:
+            query_context: Dictionary containing original query context:
+                           - query: The query text
+                           - domain_instructions: Domain-specific instructions
+                           - static_memory: Static memory text
+                           - previous_context: Previous context text
+                           - conversation_history: Recent conversation history
+                           
+        Returns:
+            Enhanced query context with RAG context added
+        """
+        # Make a copy of the original context to avoid modifying it
+        enhanced_context = query_context.copy()
+        
+        try:
+            # Extract the query text
+            query_text = query_context.get("query", "")
+            self.logger.info(f"Enhancing memory query: '{query_text}'")
+            
+            # Search for relevant content
+            search_results = self.query(
+                query_text,
+                limit=5,
+                min_importance=2  # Only include moderately important content and above
+            )
+            
+            # Format the results as context
+            if search_results:
+                rag_context = self.format_enhanced_context(query_text, search_results)
+                enhanced_context["rag_context"] = rag_context
+                self.logger.info(f"Added RAG context of length {len(rag_context)}")
+            else:
+                enhanced_context["rag_context"] = ""
+                self.logger.warning("No relevant context found for query")
+            
+            return enhanced_context
+            
+        except Exception as e:
+            self.logger.error(f"Error enhancing memory query: {str(e)}")
+            enhanced_context["rag_context"] = ""
+            return enhanced_context
+    
+    def index_memory(self, conversation_entries: List[Dict[str, Any]]) -> bool:
+        """Index conversation entries for semantic search.
+        
+        Args:
+            conversation_entries: List of conversation entries to index
+            
         Returns:
             bool: True if indexing was successful
         """
-        # TODO: Implement memory indexing
-        pass
+        try:
+            self.logger.info(f"Indexing {len(conversation_entries)} conversation entries for search")
+            
+            # Process entries to ensure they have proper text fields
+            processed_entries = []
+            for entry in conversation_entries:
+                # Skip entries without content
+                if "content" not in entry or not entry["content"]:
+                    self.logger.warning(f"Skipping entry without content: {entry.get('guid', 'unknown')}")
+                    continue
+                
+                # Create a copy with both text and content fields to ensure embeddings work
+                processed_entry = entry.copy()
+                
+                # Ensure text field is present (some implementations expect this)
+                if "text" not in processed_entry:
+                    processed_entry["text"] = processed_entry["content"]
+                
+                # Process digest if available to extract segments
+                if "digest" in processed_entry and "rated_segments" in processed_entry["digest"]:
+                    # Make sure the digest has text for each segment 
+                    for segment in processed_entry["digest"]["rated_segments"]:
+                        if "text" not in segment or not segment["text"]:
+                            self.logger.warning(f"Segment in entry {processed_entry.get('guid', 'unknown')} missing text")
+                
+                processed_entries.append(processed_entry)
+            
+            # Use the embeddings manager to update indices
+            if not processed_entries:
+                self.logger.warning("No valid entries to index")
+                return False
+                
+            success = self.embeddings_manager.update_embeddings(processed_entries)
+            self.logger.info(f"Indexing completed: {'successfully' if success else 'with errors'}")
+            return success
+        except Exception as e:
+            self.logger.error(f"Error indexing memory: {str(e)}")
+            return False
+    
+    def update_indices(self, new_entries: List[Dict[str, Any]]) -> bool:
+        """Update indices with new conversation entries.
         
-    def update_indices(self) -> bool:
-        """Update indices with new memory content.
+        This is typically called when new conversation entries are added.
         
+        Args:
+            new_entries: List of new conversation entries to add to indices
+            
         Returns:
             bool: True if update was successful
         """
-        # TODO: Implement index updates
-        pass
+        try:
+            self.logger.info(f"Updating indices with {len(new_entries)} new entries")
+            # For now, this just calls index_memory, but in the future
+            # we could implement incremental updates instead of rebuilding
+            # the entire index
+            return self.index_memory(new_entries)
+        except Exception as e:
+            self.logger.error(f"Error updating indices: {str(e)}")
+            return False
+    
+    def _format_context_as_text(self, context) -> str:
+        """Format context items as text for inclusion in prompts.
+        
+        Handles both list and dictionary formats.
+        
+        Args:
+            context: Context items to format (list or dict)
+            
+        Returns:
+            Formatted text representation
+        """
+        if not context:
+            return ""
+            
+        # Handle list format
+        if isinstance(context, list):
+            formatted_items = []
+            for item in context:
+                if isinstance(item, dict) and "text" in item:
+                    # Format with importance if available
+                    importance = item.get("importance", 3)
+                    formatted_items.append(f"[!{importance}] {item['text']}")
+                elif isinstance(item, str):
+                    formatted_items.append(item)
+            
+            return "\n\n".join(formatted_items)
+            
+        # Handle dictionary format
+        elif isinstance(context, dict):
+            # Either use the items or text field
+            if "items" in context:
+                return self._format_context_as_text(context["items"])
+            elif "text" in context:
+                return context["text"]
+            else:
+                # Try to convert the whole dict to string
+                try:
+                    return str(context)
+                except:
+                    return ""
+        
+        # Handle string or other formats
+        return str(context)

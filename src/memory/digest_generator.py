@@ -123,8 +123,15 @@ class DigestGenerator:
                 memory_context=memory_context
             )
             
-            # Call LLM to rate segments
-            llm_response = self.llm.generate(prompt)
+            # Call LLM to rate segments with explicit options
+            llm_response = self.llm.generate(
+                prompt, 
+                options={
+                    "temperature": 0,  # Lower temperature for more consistent ratings
+                    "stream": False  # Ensure streaming is off
+                },
+                debug_generate_scope="segment_rating"
+            )
             
             # Parse the response as JSON
             try:

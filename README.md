@@ -170,5 +170,8 @@ python examples/user_story_example.py
 python examples/memory_manager_usage_example.py
 
 # Embedding Manager Example
-OLLAMA_BASE_URL=http://192.168.1.173:11434 python examples/embeddings_manager_example.py
+OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large  python examples/embeddings_manager_example.py
+
+# RAG Manager Example
+OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/rag_enhanced_memory_example.py
 ```

@@ -568,12 +568,49 @@ These enhancements significantly improve the system's ability to retrieve contex
 
 The example implementation provides a clear demonstration of how these capabilities can be integrated into the agent framework to enhance memory retrieval and improve response generation.
 
+## Phase 2 Update - May 04, 2025 - RAG Implementation & Semantic Search Integration
+
+We've successfully implemented Retrieval Augmented Generation (RAG) capabilities into the memory system:
+
+1. **RAGManager Implementation**:
+   - Created a dedicated RAGManager class for semantic search and context enhancement
+   - Implemented integration with EmbeddingsManager for efficient retrieval
+   - Added methods for enhancing memory queries with semantically relevant historical information
+   - Streamlined API for generating, formatting, and integrating contextual information
+
+2. **Enhanced EmbeddingsManager**:
+   - Added robust handling of text extraction from various field formats
+   - Implemented importance-based filtering for search results
+   - Enhanced semantic search with better error handling and rich metadata
+   - Added support for segment-level embeddings for more granular retrieval
+
+3. **Memory Manager Integration**:
+   - Updated MemoryManager to utilize RAG-enhanced retrieval
+   - Added RAG context section to query_memory template
+   - Modified query_memory method to include retrieved context in prompts
+   - Maintained seamless API compatibility for existing code
+
+4. **Comprehensive Testing Framework**:
+   - Created integration tests for RAGManager with test conversation history
+   - Implemented tests for various search scenarios and context formats
+   - Added test fixtures for proper embeddings file management
+   - Ensured compatibility with both full-entry and segment-level search
+
+These improvements significantly enhance the agent's ability to recall and utilize relevant information from past conversations. The system now automatically retrieves semantically similar content based on the current query context, providing more informed and contextually appropriate responses.
+
+The RAG implementation represents a major advancement in the memory system's capabilities, bridging the gap between simple prompt-based memory retrieval and sophisticated context-aware information access. This prepares the framework for future enhancements like advanced knowledge graph integration and multi-modal memory management.
+
 ## TODO
 
-- Agent Improvements
+- Agent Improvements - RAG Integration
   - Generate embeddings for conversation history entries to enable RAG, semantic search
   - Implement search functions to retrieve information from the conversation history
   - Use the semantic search results to inform the query_memory.prompt (i.e. RAG)
+  - RAG should prioritize semantic search results using the segment classifications
+    - i.e. filter out user commands (type == command) when only information (type == information)
+    - i.e. prioritize segments with higer importance
+  - When appropriate, look up other segments in the same conversatino entry to see if they should be inclueded
+    - might require another LLM call to determine which to include
 - Add metadata to track memory usage statistics and performance
 - Develop tools for memory visualization and analysis
 - Review all tests and fix or clean up as needed

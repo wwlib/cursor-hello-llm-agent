@@ -32,12 +32,12 @@ def main():
     # Verify that template files exist
     template_dir = os.path.join(project_root, "src", "memory", "templates")
     segment_template_path = os.path.join(template_dir, "segment_conversation.prompt") 
-    extract_template_path = os.path.join(template_dir, "extract_digest.prompt")
+    rate_template_path = os.path.join(template_dir, "rate_segments.prompt")
     
-    if not os.path.exists(segment_template_path) or not os.path.exists(extract_template_path):
+    if not os.path.exists(segment_template_path) or not os.path.exists(rate_template_path):
         print(f"Error: Template files not found. Please ensure they exist at:")
         print(f"  - {segment_template_path}")
-        print(f"  - {extract_template_path}")
+        print(f"  - {rate_template_path}")
         return
     
     # Initialize LLM service
@@ -46,7 +46,6 @@ def main():
         "base_url": "http://192.168.1.173:11434",
         "model": "llama3",
         "temperature": 0.7,
-        "stream": False,
         "debug": True,
         "debug_file": "digest_generator_example.log",
         "debug_scope": "digest_example",
@@ -100,46 +99,17 @@ def main():
         print(f"\nDigest for entry {i+1} - {entry['role']}:")
         print("-" * 40)
         
-        # Print segment count
-        print(f"\nSegments: {len(digest['segments'])}")
-        if len(digest['segments']) > 0:
+        # Print rated segments
+        print(f"\nRated Segments: {len(digest['rated_segments'])}")
+        if len(digest['rated_segments']) > 0:
             print("\nFirst 3 segments:")
-            for j, segment in enumerate(digest['segments'][:3]):
-                print(f"  {j}: {segment}")
-            if len(digest['segments']) > 3:
-                print(f"  ... ({len(digest['segments']) - 3} more segments)")
-        
-        # Print context
-        print(f"\nContext: {digest['context']}")
-        
-        # Print facts
-        print(f"\nExtracted Facts: {len(digest['new_facts'])}")
-        if len(digest['new_facts']) > 0:
-            print("\nSample facts:")
-            for j, fact in enumerate(digest['new_facts'][:2]):  # Print just first 2 facts
-                print(f"  Fact {j}:")
-                print(f"    Key: {fact.get('key')}")
-                print(f"    Value: {fact.get('value')}")
-                print(f"    Importance: {fact.get('importance', 'N/A')}")
-                print(f"    Topic: {fact.get('topic', 'N/A')}")
-                print(f"    Segments: {fact.get('segmentIndexes', [])}")
-            if len(digest['new_facts']) > 2:
-                print(f"  ... ({len(digest['new_facts']) - 2} more facts)")
-        
-        # Print relationships
-        print(f"\nExtracted Relationships: {len(digest['new_relationships'])}")
-        if len(digest['new_relationships']) > 0:
-            print("\nSample relationships:")
-            for j, rel in enumerate(digest['new_relationships'][:2]):  # Print just first 2 relationships
-                print(f"  Relationship {j}:")
-                print(f"    Subject: {rel.get('subject')}")
-                print(f"    Predicate: {rel.get('predicate')}")
-                print(f"    Object: {rel.get('object')}")
-                print(f"    Importance: {rel.get('importance', 'N/A')}")
-                print(f"    Topic: {rel.get('topic', 'N/A')}")
-                print(f"    Segments: {rel.get('segmentIndexes', [])}")
-            if len(digest['new_relationships']) > 2:
-                print(f"  ... ({len(digest['new_relationships']) - 2} more relationships)")
+            for j, segment in enumerate(digest['rated_segments'][:3]):
+                print(f"  {j}: {segment['text']}")
+                print(f"     Importance: {segment['importance']}")
+                print(f"     Topics: {segment['topics']}")
+                print(f"     Type: {segment['type']}")
+            if len(digest['rated_segments']) > 3:
+                print(f"  ... ({len(digest['rated_segments']) - 3} more segments)")
     
     print_section_header("Example Complete")
 

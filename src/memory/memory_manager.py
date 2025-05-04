@@ -199,97 +199,101 @@ class MemoryManager(BaseMemoryManager):
                 "context": [],                       # Organized important information by topic
                 "metadata": {
                     "created_at": now,
-                    "last_updated": now,
-                    "version": "1.0"
-                }
+                    "updated_at": now,
+                    "version": "2.0.0",
+                    "domain": self.domain_config.get("name", "general") if self.domain_config else "general"
+                },
+                "conversation_history": [system_entry]  # Include initial entries in history
             }
-
-            # Add system_entry to conversation history
-            self.add_to_conversation_history(system_entry)
-            self.memory["conversation_history"] = [] # do not add the system entry to the conversation history
-
             
+            # Save memory to file
             self.save_memory("create_initial_memory")
-            print(f"Initial memory created with GUID: {self.memory_guid} and type: standard")
+            
+            # Also add to conversation history file
+            self.add_to_conversation_history(system_entry)
+            
+            print("Memory created and initialized with static knowledge")
             return True
-            
         except Exception as e:
-            print(f"Error creating memory structure: {str(e)}")
-            print(f"Full error: {repr(e)}")
+            print(f"Error creating initial memory: {str(e)}")
             return False
-            
+
     def _create_static_memory_from_digest(self, digest: Dict[str, Any]) -> str:
-        """Convert digest into markdown formatted static memory.
+        """Create formatted static memory text from a digest.
         
-        Args:
-            digest: The digest containing rated segments and topics
-            
-        Returns:
-            str: Markdown formatted static memory
+        The static memory is now stored as markdown, with segments organized by importance
+        and structured with importance ratings visible.
         """
         try:
-            # Extract rated segments
             rated_segments = digest.get("rated_segments", [])
             
-            # Collect all unique topics
+            if not rated_segments:
+                print("Warning: No rated segments found in digest, using empty static memory")
+                return ""
+                
+            # Sort segments by importance (highest first)
+            rated_segments = sorted(rated_segments, key=lambda x: x.get("importance", 0), reverse=True)
+            
+            # Collect all topics for index
             all_topics = set()
             for segment in rated_segments:
-                all_topics.update(segment.get("topics", []))
+                if "topics" in segment and segment["topics"]:
+                    all_topics.update(segment["topics"])
             
-            # Sort topics alphabetically
-            sorted_topics = sorted(list(all_topics))
-            
-            # Group segments by importance
-            segments_by_importance = {5: [], 4: [], 3: [], 2: [], 1: []}
-            for segment in rated_segments:
-                importance = segment.get("importance", 3)
-                segments_by_importance[importance].append(segment)
-            
-            # Build markdown
+            # Format static memory with topics section and importance markers
             lines = []
             
-            # Title
-            lines.append("# Memory Digest")
-            lines.append("")
+            # Topics index
+            if all_topics:
+                lines.append("# Topics Index\n")
+                for topic in sorted(all_topics):
+                    lines.append(f"- {topic}")
+                lines.append("\n")
             
-            # Topics Index
-            lines.append("## Topics")
-            for topic in sorted_topics:
-                lines.append(f"- {topic}")
-            lines.append("")
+            # Content sections by importance level
+            lines.append("# Knowledge Base\n")
             
-            # Segments by Importance
-            importance_levels = {
-                5: "Essential Information",
-                4: "Important Information",
-                3: "Extra Information",
-                2: "Unimportant Information",
-                1: "Redundant Information"
-            }
-            
-            for importance in [5, 4, 3, 2, 1]:
-                segments = segments_by_importance[importance]
-                if segments:
-                    lines.append(f"## {importance_levels[importance]} [!{importance}]")
-                    for segment in segments:
+            # Group by importance level
+            for importance in range(5, 0, -1):
+                importance_segments = [s for s in rated_segments if s.get("importance", 0) == importance]
+                
+                if importance_segments:
+                    lines.append(f"## Importance Level {importance}\n")
+                    
+                    for segment in importance_segments:
+                        text = segment.get("text", "")
                         topics = segment.get("topics", [])
-                        topic_str = f" [{', '.join(topics)}]" if topics else ""
-                        lines.append(f"- {segment['text']}{topic_str}")
-                    lines.append("")
+                        
+                        # Add segment with importance marker and topics
+                        topic_str = f" (Topics: {', '.join(topics)})" if topics else ""
+                        lines.append(f"[!{importance}] {text}{topic_str}\n")
             
             return "\n".join(lines)
             
         except Exception as e:
             print(f"Error creating static memory from digest: {str(e)}")
-            return "## Error\nFailed to format static memory properly."
+            return ""
 
-    def query_memory(self, query_context: Dict[str, Any]) -> str:
-        """Query memory with the given context."""
+    def query_memory(self, query_context: Dict[str, Any]) -> Dict[str, Any]:
+        """Query memory with the given context.
+        
+        Args:
+            query_context: Dictionary containing query context:
+                           - query: The query text
+                           - domain_instructions: Optional domain-specific instructions
+                           - rag_context: Optional RAG-enhanced context
+                           
+        Returns:
+            Dict[str, Any]: Response with the LLM's answer
+        """
         try:
             print("\nQuerying memory...")
             
-            # Add user message to history
-            user_message = query_context.get("user_message", "")
+            # Extract query text and user message (for backward compatibility)
+            query = query_context.get("query", "")
+            user_message = query_context.get("user_message", query)
+            
+            # Add user message to history if it exists
             if user_message:
                 # Create user message entry with GUID
                 user_entry = {
@@ -309,32 +313,41 @@ class MemoryManager(BaseMemoryManager):
                 self.memory["conversation_history"].append(user_entry)
                 print(f"Added user message to history with digest: {user_message}")
             
-            # Format static memory as text
-            static_memory_text = self._format_static_memory_as_text()
+            # Format static memory as text (use provided or get from memory)
+            static_memory_text = query_context.get("static_memory", "") or self._format_static_memory_as_text()
             
-            # Format context as text
-            previous_context_text = self._format_context_as_text()
+            # Format context as text (use provided or get from memory)
+            previous_context_text = query_context.get("previous_context", "") or self._format_context_as_text()
             
-            # Format recent conversation history as text
-            conversation_history_text = self._format_conversation_history_as_text()
+            # Format recent conversation history as text (use provided or get from memory)
+            conversation_history_text = query_context.get("conversation_history", "") or self._format_conversation_history_as_text()
             
-            # Get domain-specific instructions
-            domain_instructions = ""
-            if self.domain_config and "domain_specific_prompt_instructions" in self.domain_config:
-                domain_instructions = self.domain_config["domain_specific_prompt_instructions"].get("query", "")
+            # Get RAG context if provided
+            rag_context = query_context.get("rag_context", "")
+            if rag_context:
+                print("Using RAG-enhanced context for memory query")
+            
+            # Get domain-specific instructions (use provided or get from config)
+            domain_instructions = query_context.get("domain_instructions", "")
+            if not domain_instructions and self.domain_config:
+                domain_instructions = self.domain_config.get("domain_instructions", "")
             
             # Create prompt with formatted text
             prompt = self.templates["query"].format(
                 static_memory_text=static_memory_text,
                 previous_context_text=previous_context_text,
                 conversation_history_text=conversation_history_text,
-                query=user_message,
-                domain_instructions=domain_instructions
+                query=query or user_message,
+                domain_instructions=domain_instructions,
+                rag_context=rag_context  # Include RAG context in the prompt
             )
             
             # Get response from LLM
             print("Generating response using LLM...")
-            llm_response = self.llm.generate(prompt)
+            llm_response = self.llm.generate(
+                prompt,
+                options={"temperature": 0.7}
+            )
             
             # Create agent entry with GUID
             agent_entry = {
@@ -363,11 +376,11 @@ class MemoryManager(BaseMemoryManager):
                 print(f"Memory has {conversation_entries} conversations, compressing...")
                 self.update_memory({"operation": "update"})
             
-            return llm_response
+            return {"response": llm_response}
 
         except Exception as e:
             print(f"Error in query_memory: {str(e)}")
-            return f"Error processing query: {str(e)}"
+            return {"response": f"Error processing query: {str(e)}", "error": str(e)}
 
     def _format_static_memory_as_text(self) -> str:
         """Format static memory as readable text."""
@@ -381,24 +394,52 @@ class MemoryManager(BaseMemoryManager):
         # Static memory is now stored as markdown, so we can return it directly
         return static_memory
     
+    def get_formatted_context(self) -> str:
+        """Get formatted context text for external use (e.g., RAG)."""
+        return self._format_context_as_text()
+        
     def _format_context_as_text(self) -> str:
         """Format context as readable text instead of JSON."""
         if "context" not in self.memory or not self.memory["context"]:
             return "No context information available yet."
         
+        context = self.memory["context"]
         result = []
-        for topic_name, items in self.memory["context"].items():
-            result.append(f"TOPIC: {topic_name}")
-            for item in items:
+        
+        # Handle context as a list (newer format)
+        if isinstance(context, list):
+            for item in context:
+                # Each item is a context entry with text and guids
                 text = item.get("text", "")
-                attribution = item.get("attribution", "")
-                importance = item.get("importance", 3)
-                importance_str = "*" * importance  # Visualize importance with asterisks
-                result.append(f"{importance_str} {text} [{attribution}]")
-            result.append("")  # Empty line between topics
+                guids = item.get("guids", [])
+                
+                # Add formatted text
+                if text:
+                    result.append(text)
+                    result.append("")  # Empty line between entries
+        
+        # Handle context as a dictionary (older format)
+        elif isinstance(context, dict):
+            for topic_name, items in context.items():
+                result.append(f"TOPIC: {topic_name}")
+                for item in items:
+                    text = item.get("text", "")
+                    attribution = item.get("attribution", "")
+                    importance = item.get("importance", 3)
+                    importance_str = "*" * importance  # Visualize importance with asterisks
+                    result.append(f"{importance_str} {text} [{attribution}]")
+                result.append("")  # Empty line between topics
+        
+        # Add message for unrecognized format
+        else:
+            result.append("Context information available but format not recognized.")
         
         return "\n".join(result)
     
+    def get_formatted_recent_conversations(self) -> str:
+        """Get formatted recent conversation history for external use (e.g., RAG)."""
+        return self._format_conversation_history_as_text()
+        
     def _format_conversation_history_as_text(self) -> str:
         """Format recent conversation history as readable text."""
         if "conversation_history" not in self.memory or not self.memory["conversation_history"]:
@@ -457,20 +498,102 @@ class MemoryManager(BaseMemoryManager):
             )
             
             # Update memory with compressed state
-            self.memory["context"] = compressed_state["context"]
-            self.memory["conversation_history"] = compressed_state["conversation_history"]
+            self.memory["conversation_history"] = compressed_state.get("conversation_history", conversation_history)
+            self.memory["context"] = compressed_state.get("context", current_context)
+            
+            # Update the compressed entries tracker
+            if "compressed_entries" not in self.memory["metadata"]:
+                self.memory["metadata"]["compressed_entries"] = []
+                
+            compressed_entries = compressed_state.get("compressed_entries", [])
+            self.memory["metadata"]["compressed_entries"].extend(compressed_entries)
             
             # Update metadata
-            if "metadata" not in self.memory:
-                self.memory["metadata"] = {}
-            self.memory["metadata"].update(compressed_state.get("metadata", {}))
-            self.memory["metadata"]["last_updated"] = datetime.now().isoformat()
+            self.memory["metadata"]["updated_at"] = datetime.now().isoformat()
+            self.memory["metadata"]["compression_count"] = self.memory["metadata"].get("compression_count", 0) + 1
             
-            # Save the updated memory
-            self.save_memory("compress_memory")
-            print("Memory compressed and saved successfully")
+            # Save to persist memory updates
+            self.save_memory("compress_conversation_history")
+            
+            print(f"Compressed conversation history. Remaining entries: {len(self.memory['conversation_history'])}")
             return True
             
         except Exception as e:
-            print(f"Error in _compress_conversation_history: {str(e)}")
+            print(f"Error compressing conversation history: {str(e)}")
+            return False
+            
+    def add_conversation_entry(self, entry: Dict[str, Any]) -> bool:
+        """Add a conversation entry with automatic digest generation.
+        
+        Args:
+            entry: Dictionary containing the conversation entry:
+                  - guid: Optional unique identifier (will be generated if missing)
+                  - role: Role (e.g., "user", "agent", "system")
+                  - content: Entry content text
+                  - timestamp: Optional timestamp (will be generated if missing)
+                  
+        Returns:
+            bool: True if the entry was added successfully
+        """
+        try:
+            # Ensure basic fields exist
+            if "content" not in entry:
+                print("Error: Conversation entry must have 'content'")
+                return False
+                
+            if "role" not in entry:
+                print("Error: Conversation entry must have 'role'")
+                return False
+                
+            # Ensure GUID
+            if "guid" not in entry:
+                entry["guid"] = str(uuid.uuid4())
+                
+            # Ensure timestamp
+            if "timestamp" not in entry:
+                entry["timestamp"] = datetime.now().isoformat()
+                
+            # Generate digest if not already present
+            if "digest" not in entry:
+                print(f"Generating digest for {entry['role']} entry...")
+                entry["digest"] = self.digest_generator.generate_digest(entry, self.memory)
+                
+            # Add to conversation history file and memory
+            self.add_to_conversation_history(entry)
+            
+            if "conversation_history" not in self.memory:
+                self.memory["conversation_history"] = []
+                
+            self.memory["conversation_history"].append(entry)
+            print(f"Added {entry['role']} entry to conversation history")
+            
+            # Save to persist memory updates
+            self.save_memory("add_conversation_entry")
+            
+            return True
+            
+        except Exception as e:
+            print(f"Error adding conversation entry: {str(e)}")
+            return False
+            
+    def update_memory_with_conversations(self) -> bool:
+        """Update memory with current conversation history.
+        
+        This method processes the conversation history to extract important information
+        and update the memory context.
+        
+        Returns:
+            bool: True if memory was updated successfully
+        """
+        try:
+            # Check if we need to compress based on conversation count
+            conversation_entries = len(self.memory.get("conversation_history", []))
+            if conversation_entries > self.max_recent_conversation_entries:
+                print(f"Memory has {conversation_entries} conversations, compressing...")
+                return self.update_memory({"operation": "update"})
+            else:
+                print(f"Memory has only {conversation_entries} conversations, compression not needed yet")
+                return True
+        except Exception as e:
+            print(f"Error updating memory with conversations: {str(e)}")
             return False

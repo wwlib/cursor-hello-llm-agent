@@ -11,6 +11,7 @@ import numpy as np
 from datetime import datetime
 from pathlib import Path
 import logging
+import traceback
 
 class EmbeddingsManager:
     """Manages embeddings for conversation history entries to enable semantic search.
@@ -73,7 +74,15 @@ class EmbeddingsManager:
         self.embeddings_file = embeddings_file
         self.llm_service = llm_service
         self.embeddings = []  # List of (embedding, metadata) tuples
+        
+        # Configure logging
         self.logger = logging.getLogger("embeddings_manager")
+        # Set up basic console handler if none exists
+        if not self.logger.handlers:
+            handler = logging.StreamHandler()
+            handler.setFormatter(logging.Formatter('%(name)s - %(levelname)s - %(message)s'))
+            self.logger.addHandler(handler)
+            self.logger.setLevel(logging.INFO)
         
         # Initialize embeddings file directory if it doesn't exist
         embeddings_dir = os.path.dirname(embeddings_file)
@@ -91,22 +100,40 @@ class EmbeddingsManager:
             
         try:
             with open(self.embeddings_file, 'r') as f:
+                count = 0
+                error_count = 0
                 for line_num, line in enumerate(f, 1):
                     try:
                         data = json.loads(line)
-                        if 'embedding' not in data or 'metadata' not in data:
-                            self.logger.warning(f"Line {line_num} in embeddings file is missing required fields.")
+                        if 'embedding' not in data:
+                            self.logger.warning(f"Line {line_num} in embeddings file is missing 'embedding' field.")
+                            error_count += 1
                             continue
+                            
+                        # Ensure metadata exists (create empty if not)
+                        if 'metadata' not in data:
+                            self.logger.warning(f"Line {line_num} in embeddings file is missing 'metadata' field, creating empty.")
+                            data['metadata'] = {}
+                            
+                        # Add the text to metadata if it's in the main data but not in metadata
+                        if 'text' in data and 'text' not in data['metadata']:
+                            data['metadata']['text'] = data['text']
                             
                         self.embeddings.append((
                             np.array(data['embedding']),
                             data['metadata']
                         ))
+                        count += 1
                     except json.JSONDecodeError:
                         self.logger.warning(f"Failed to parse line {line_num} in embeddings file.")
+                        error_count += 1
+                        continue
+                    except Exception as e:
+                        self.logger.warning(f"Error processing line {line_num}: {str(e)}")
+                        error_count += 1
                         continue
                         
-            self.logger.info(f"Loaded {len(self.embeddings)} embeddings from {self.embeddings_file}")
+            self.logger.info(f"Loaded {count} embeddings from {self.embeddings_file} ({error_count} errors)")
         except Exception as e:
             self.logger.error(f"Error loading embeddings: {str(e)}")
     
@@ -153,18 +180,77 @@ class EmbeddingsManager:
             self.logger.error(f"Error generating embedding: {str(e)}")
             raise
     
-    def add_embedding(self, text: str, metadata: Dict[str, Any], options: Optional[Dict[str, Any]] = None) -> bool:
+    def _extract_text(self, item: Union[Dict[str, Any], str]) -> str:
+        """Extract text content from various possible formats.
+        
+        Args:
+            item: Dictionary or string containing text
+            
+        Returns:
+            str: Extracted text
+        """
+        # If already a string, return it
+        if isinstance(item, str):
+            return item
+            
+        # If it's a dictionary, try various fields
+        if isinstance(item, dict):
+            # Try common text field names
+            for field in ['text', 'content', 'segment_text']:
+                if field in item and item[field]:
+                    return item[field]
+                    
+            # Check metadata if present
+            if 'metadata' in item and isinstance(item['metadata'], dict):
+                for field in ['text', 'content', 'segment_text']:
+                    if field in item['metadata'] and item['metadata'][field]:
+                        return item['metadata'][field]
+        
+        # If we get here, we couldn't find any text
+        self.logger.warning(f"Could not extract text from item: {item}")
+        return ""
+    
+    def add_embedding(self, text_or_item: Union[str, Dict[str, Any]], metadata: Optional[Dict[str, Any]] = None, options: Optional[Dict[str, Any]] = None) -> bool:
         """Add a new embedding to the store.
         
         Args:
-            text: Text to generate embedding for
-            metadata: Associated metadata (GUID, timestamp, etc.)
+            text_or_item: Text to generate embedding for or dictionary with text/'content' field
+            metadata: Associated metadata (GUID, timestamp, etc.) - optional if text_or_item is a dictionary with metadata
             options: Optional dictionary with embedding options
             
         Returns:
             bool: True if successfully added
         """
         try:
+            # Extract text and metadata
+            if isinstance(text_or_item, str):
+                text = text_or_item
+                metadata = metadata or {}
+            else:
+                # Extract text from dictionary
+                text = self._extract_text(text_or_item)
+                
+                # If metadata wasn't provided but exists in the item, use that
+                if metadata is None and isinstance(text_or_item, dict):
+                    if 'metadata' in text_or_item:
+                        metadata = text_or_item['metadata']
+                    else:
+                        # Use the item itself as metadata
+                        metadata = text_or_item
+            
+            # Ensure we have text to embed
+            if not text or not text.strip():
+                self.logger.warning("Cannot add embedding for empty text")
+                return False
+                
+            # Ensure metadata is a dictionary
+            if metadata is None:
+                metadata = {}
+                
+            # Store text in metadata if not already there
+            if 'text' not in metadata:
+                metadata['text'] = text[:1000]  # Limit text size for storage
+            
             # Generate embedding
             embedding = self.generate_embedding(text, options)
             
@@ -181,10 +267,13 @@ class EmbeddingsManager:
                 }, f)
                 f.write('\n')
             
-            self.logger.info(f"Added embedding for text: '{text[:30]}...' with GUID: {metadata.get('guid', 'unknown')}")
+            guid = metadata.get('guid', 'unknown')
+            text_preview = text[:30] + '...' if len(text) > 30 else text
+            self.logger.debug(f"Added embedding for text: '{text_preview}' with GUID: {guid}")
             return True
         except Exception as e:
             self.logger.error(f"Error adding embedding: {str(e)}")
+            self.logger.error(traceback.format_exc())
             return False
     
     def calculate_similarity(self, embedding1: np.ndarray, embedding2: np.ndarray) -> float:
@@ -222,56 +311,88 @@ class EmbeddingsManager:
         Returns:
             List[Dict]: List of results with similarity scores and metadata
         """
-        # Get query embedding
-        if isinstance(query, str):
-            try:
-                query_embedding = self.generate_embedding(query)
-            except Exception as e:
-                self.logger.error(f"Error generating embedding for query: {str(e)}")
-                return []
-        else:
-            query_embedding = query
-        
-        # Compute similarities
-        similarities = []
-        for embedding, metadata in self.embeddings:
-            # Apply filters
-            if min_importance and metadata.get('importance', 0) < min_importance:
-                continue
-                
-            if date_range and 'timestamp' in metadata:
+        if not self.embeddings:
+            self.logger.warning("No embeddings available for search")
+            return []
+            
+        try:
+            # Get query embedding
+            if isinstance(query, str):
                 try:
-                    entry_date = datetime.fromisoformat(metadata['timestamp'])
-                    if not (date_range[0] <= entry_date <= date_range[1]):
-                        continue
-                except (ValueError, TypeError):
-                    # Skip entries with invalid timestamps
+                    self.logger.info(f"Generating embedding for query: '{query}'")
+                    query_embedding = self.generate_embedding(query)
+                except Exception as e:
+                    self.logger.error(f"Error generating embedding for query: {str(e)}")
+                    return []
+            else:
+                query_embedding = query
+            
+            # Compute similarities
+            similarities = []
+            for embedding, metadata in self.embeddings:
+                try:
+                    # Apply filters
+                    if min_importance is not None:
+                        importance = metadata.get('importance', 0)
+                        if importance < min_importance:
+                            continue
+                            
+                    if date_range and 'timestamp' in metadata:
+                        try:
+                            entry_date = datetime.fromisoformat(metadata['timestamp'])
+                            if not (date_range[0] <= entry_date <= date_range[1]):
+                                continue
+                        except (ValueError, TypeError):
+                            # Skip entries with invalid timestamps
+                            continue
+                    
+                    # Compute cosine similarity
+                    similarity = self.calculate_similarity(query_embedding, embedding)
+                    
+                    # Extract text from metadata for convenience
+                    text = metadata.get('text', '')
+                    if not text and 'content' in metadata:
+                        text = metadata['content']
+                        
+                    # Create a copy of metadata to avoid modifying the original
+                    result_metadata = metadata.copy()
+                    
+                    # Add the entry to results
+                    similarities.append((
+                        similarity, 
+                        text,
+                        result_metadata
+                    ))
+                except Exception as e:
+                    self.logger.warning(f"Error processing embedding: {str(e)}")
                     continue
             
-            # Compute cosine similarity
-            similarity = self.calculate_similarity(query_embedding, embedding)
-            similarities.append((similarity, metadata))
-        
-        # Sort by similarity (highest first)
-        similarities.sort(key=lambda x: x[0], reverse=True)
-        
-        # Return top k results
-        results = [
-            {
-                'score': float(score),  # Convert from numpy to Python float
-                'metadata': metadata
-            }
-            for score, metadata in similarities[:k]
-        ]
-        
-        self.logger.info(f"Search found {len(results)} results out of {len(similarities)} total embeddings")
-        return results
+            # Sort by similarity (highest first)
+            similarities.sort(key=lambda x: x[0], reverse=True)
+            
+            # Return top k results
+            results = [
+                {
+                    'score': float(score),  # Convert from numpy to Python float
+                    'text': text,
+                    'metadata': metadata
+                }
+                for score, text, metadata in similarities[:k]
+            ]
+            
+            self.logger.info(f"Search found {len(results)} results out of {len(similarities)} total embeddings")
+            return results
+            
+        except Exception as e:
+            self.logger.error(f"Error in search: {str(e)}")
+            self.logger.error(traceback.format_exc())
+            return []
     
-    def update_embeddings(self, conversation_history: List[Dict]) -> bool:
+    def update_embeddings(self, conversation_entries: List[Dict]) -> bool:
         """Update embeddings for conversation history entries.
         
         Args:
-            conversation_history: List of conversation entries
+            conversation_entries: List of conversation entries
             
         Returns:
             bool: True if successfully updated
@@ -296,40 +417,57 @@ class EmbeddingsManager:
             success_count = 0
             total_count = 0
             
-            for entry in conversation_history:
+            for entry in conversation_entries:
+                # Skip entries without content
+                if "content" not in entry or not entry["content"]:
+                    self.logger.warning(f"Skipping entry without content: {entry.get('guid', 'unknown')}")
+                    continue
+                    
                 total_count += 1
                 
+                # Generate metadata for full entry
+                entry_metadata = {
+                    'guid': entry.get('guid', str(total_count)),
+                    'timestamp': entry.get('timestamp', datetime.now().isoformat()),
+                    'role': entry.get('role', 'unknown'),
+                    'type': 'full_entry',
+                    'content': entry.get('content', '')
+                }
+                
                 # Generate embedding for full entry
-                if self.add_embedding(
-                    entry.get('content', ''),
-                    {
-                        'guid': entry.get('guid', ''),
-                        'timestamp': entry.get('timestamp', datetime.now().isoformat()),
-                        'role': entry.get('role', 'unknown'),
-                        'type': 'full_entry'
-                    }
-                ):
+                if self.add_embedding(entry.get('content', ''), entry_metadata):
                     success_count += 1
                 
                 # Generate embeddings for segments if available
                 if 'digest' in entry and 'rated_segments' in entry['digest']:
-                    for segment in entry['digest']['rated_segments']:
+                    segments = entry['digest']['rated_segments']
+                    self.logger.info(f"Processing {len(segments)} segments for entry {entry_metadata['guid']}")
+                    
+                    for i, segment in enumerate(segments):
+                        if 'text' not in segment or not segment['text']:
+                            self.logger.warning(f"Skipping segment {i} without text in entry {entry_metadata['guid']}")
+                            continue
+                            
                         total_count += 1
-                        if self.add_embedding(
-                            segment.get('text', ''),
-                            {
-                                'guid': entry.get('guid', ''),
-                                'timestamp': entry.get('timestamp', datetime.now().isoformat()),
-                                'role': entry.get('role', 'unknown'),
-                                'type': 'segment',
-                                'importance': segment.get('importance', 3),
-                                'topics': segment.get('topics', [])
-                            }
-                        ):
+                        
+                        # Create segment metadata
+                        segment_metadata = {
+                            'guid': entry.get('guid', str(total_count)),
+                            'timestamp': entry.get('timestamp', datetime.now().isoformat()),
+                            'role': entry.get('role', 'unknown'),
+                            'type': 'segment',
+                            'importance': segment.get('importance', 3),
+                            'topics': segment.get('topics', []),
+                            'segment_index': i,
+                            'text': segment.get('text', '')
+                        }
+                        
+                        if self.add_embedding(segment.get('text', ''), segment_metadata):
                             success_count += 1
             
             self.logger.info(f"Updated embeddings: {success_count}/{total_count} successful")
             return success_count > 0
         except Exception as e:
             self.logger.error(f"Error updating embeddings: {str(e)}")
+            self.logger.error(traceback.format_exc())
             return False 

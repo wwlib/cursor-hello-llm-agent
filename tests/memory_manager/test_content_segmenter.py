@@ -71,7 +71,7 @@ def test_segment_content_single_sentence(content_segmenter):
     assert segments[0] == content, "Should return the original content as a single segment"
     
     # Test with another single sentence
-    content = "The quick brown fox jumps over the lazy dog."
+    content = "The quick brown fox jumps over the lazy dog"
     segments = content_segmenter.segment_content(content)
     
     assert isinstance(segments, list), "Should return a list"

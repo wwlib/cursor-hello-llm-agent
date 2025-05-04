@@ -67,8 +67,15 @@ class ContentSegmenter:
             # Format the prompt with the content
             prompt = self.segment_template.format(content=content)
             
-            # Call LLM to segment the content
-            llm_response = self.llm.generate(prompt)
+            # Call LLM to segment the content with explicit options
+            llm_response = self.llm.generate(
+                prompt,
+                options={
+                    "temperature": 0,  # Lower temperature for more consistent segmentation
+                    "stream": False  # Ensure streaming is off
+                },
+                debug_generate_scope="content_segmentation"
+            )
             
             # Parse the response as JSON array
             try:
