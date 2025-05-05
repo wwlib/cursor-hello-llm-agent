@@ -51,7 +51,8 @@ class Agent:
             if self.current_phase == AgentPhase.INITIALIZATION:
                 self.current_phase = AgentPhase.INTERACTION
             
-            return response
+            # Return just the string response, not the whole dict
+            return response.get("response", str(response))
             
         except Exception as e:
             print(f"Error processing message: {str(e)}")

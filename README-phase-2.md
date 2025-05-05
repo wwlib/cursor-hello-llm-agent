@@ -627,6 +627,29 @@ Next Steps:
 - Use the simple script for future RAG/memory feature development and regression testing.
 - Continue to prioritize clarity, maintainability, and robust error handling in all new features.
 
+## Phase 2 Update – May 04, 2025 – Modernized Testing, RAG Integration, and Cleanup
+
+- **Modernized Test Suite:**
+  - Replaced legacy, dict-based memory tests with a new suite that matches the markdown-based memory format and current API.
+  - All unit tests now use a robust mock LLM and are decoupled from the old structured memory format.
+  - Added a dedicated integration test (`test_memory_manager_integration.py`) that exercises the real LLM endpoint and verifies end-to-end memory creation and querying.
+  - Removed outdated and redundant tests, including the digest integration test, to reduce maintenance burden and confusion.
+
+- **RAG Example Simplification:**
+  - The canonical RAG example is now `examples/rag_enhanced_memory_example_simple.py`, which is minimal, fast, and easy to extend.
+  - The old, complex example was deleted.
+
+- **Defensive Programming and Bug Fixes:**
+  - Added defensive checks for metadata and memory fields to prevent legacy data issues.
+  - Ensured all code and tests use the correct `domain_specific_prompt_instructions` key.
+
+- **Documentation and Clarity:**
+  - Updated documentation and test references to point to the new canonical RAG example and test suite.
+  - The codebase is now easier to maintain, extend, and reason about.
+
+These changes ensure the memory and RAG systems are robust, testable, and ready for further development. All new features and experiments should use the new example and test patterns as a baseline.
+
+
 ## TODO
 
 - Agent Improvements - RAG Integration
