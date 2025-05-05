@@ -47,12 +47,13 @@ class DigestGenerator:
                 # Raise an exception if the template cannot be loaded
                 raise Exception(f"Failed to load template: {filename}")
     
-    def generate_digest(self, conversation_entry: Dict[str, Any], memory_state: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    def generate_digest(self, conversation_entry: Dict[str, Any], memory_state: Optional[Dict[str, Any]] = None, segments: Optional[List[str]] = None) -> Dict[str, Any]:
         """Generate a digest from a conversation entry by segmenting and rating importance.
         
         Args:
             conversation_entry: Dictionary containing the conversation entry with role, content, etc.
             memory_state: Optional current memory state for context
+            segments: Optional list of pre-segmented content strings. If provided, skips segmentation step.
             
         Returns:
             dict: A digest containing rated and topically organized text segments
@@ -69,11 +70,14 @@ class DigestGenerator:
                 print("Warning: Empty content in conversation entry")
                 return self._create_empty_digest(entry_guid, conversation_entry.get("role", "unknown"))
             
-            # Step 1: Segment the content using ContentSegmenter
-            segments = self.content_segmenter.segment_content(content)
+            # Step 1: Use provided segments or segment the content
+            if segments is not None:
+                segments_to_use = segments
+            else:
+                segments_to_use = self.content_segmenter.segment_content(content)
             
             print(f"\n\ngenerate_digest: Segments:")
-            for segment in segments:
+            for segment in segments_to_use:
                 print(segment)
             print(f"\n\n")
 
@@ -83,7 +87,7 @@ class DigestGenerator:
             print(f"\n\n")
             
             # Step 2: Rate segments and assign topics
-            rated_segments = self._rate_segments(segments, memory_state)
+            rated_segments = self._rate_segments(segments_to_use, memory_state)
             
             # Step 3: Clean the rated segments
             cleaned_segments = self._clean_segments(rated_segments)

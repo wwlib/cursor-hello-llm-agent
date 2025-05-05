@@ -160,6 +160,12 @@ OLLAMA_BASE_URL=http://192.168.1.173:11434 python examples/call_ollama.py
 OLLAMA_BASE_URL=http://ollama-ip-address:11434 python examples/call_ollama_to_generate_embeddings.py
 OLLAMA_BASE_URL=http://192.168.1.173:11434 python examples/call_ollama_to_generate_embeddings.py
 
+# Test MemoryManager
+DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_LLM_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large pytest tests/memory_manager/test_memory_manager_integration.py -v -s
+
+# Test Data Preprocessor
+DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_LLM_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large pytest tests/memory_manager/test_data_preprocessor_integration.py -v -s
+
 # D&D Campaign Example - using the simple memory manager
 python examples/agent_usage_example.py --type simple
 

@@ -44,6 +44,7 @@ from datetime import datetime
 from .base_memory_manager import BaseMemoryManager
 from .digest_generator import DigestGenerator
 from .memory_compressor import MemoryCompressor
+from .data_preprocessor import DataPreprocessor
 
 class MemoryManager(BaseMemoryManager):
     """LLM-driven memory manager implementation.
@@ -174,6 +175,11 @@ class MemoryManager(BaseMemoryManager):
 
             print("\nCreating initial memory structure...")
 
+            # Use DataPreprocessor to segment the input data
+            data_preprocessor = DataPreprocessor(self.llm)
+            preprocessed_segments = data_preprocessor.preprocess_data(input_data)
+            print(f"Preprocessed segments: {preprocessed_segments}")
+
             # Create system entry for initial data
             system_entry = {
                 "guid": str(uuid.uuid4()),
@@ -182,9 +188,9 @@ class MemoryManager(BaseMemoryManager):
                 "timestamp": datetime.now().isoformat()
             }
             
-            # Generate digest for initial data
-            print("Generating digest for initial data...")
-            initial_digest = self.digest_generator.generate_digest(system_entry)
+            # Generate digest for initial data using pre-segmented content
+            print("Generating digest for initial data with pre-segmented content...")
+            initial_digest = self.digest_generator.generate_digest(system_entry, segments=preprocessed_segments)
             system_entry["digest"] = initial_digest
                         
             # Create static memory from digest

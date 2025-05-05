@@ -9967,7 +9967,68 @@ Note: Please change as little code as possible.
 
 _**Assistant**_
 
+```diff
+                  self.current_phase = AgentPhase.INTERACTION
+              
+-             return response
++             # Return just the string response, not the whole dict
++             return response.get("response", str(response))
+              
+          except Exception as e:
+```
 
+---
+
+The change is complete:  
+The agent will now return only the string response from the LLM, not the entire dictionary. This will give you plain text answers as expected.
+
+Let me know if you want to test this or need help with anything else!
+
+---
+
+_**User**_
+
+OK. Great.
+
+Let'd double-check something.
+
+Please run examples/rag_enhanced_memory_example_simple.py and make sure that RAG is working.
+
+DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_LLM_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/rag_enhanced_memory_example_simple.py
+
+---
+
+_**Assistant**_
+
+```bash
+DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_LLM_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/rag_enhanced_memory_example_simple.py | tee rag_example_simple_run_check.log
+```
+
+```
+(.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent % DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1
+.173:11434 OLLAMA_LLM_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/rag_enhanced_memory_
+example_simple.py | tee rag_example_simple_run_check.log                              DEV_MODE=true OLLAMA_B
+ASE_URL=http://192.168.1.173:11434 OLLAMA_LLM_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examp
+les/rag_enhanced_memory_example_simple.py | tee rag_example_simple_run_check.log
+embeddings_manager - INFO - Embeddings file /var/folders/rt/vkpjxg7922l4qscz5rlkrkj80000gn/T/tmp9q4hgign/emb
+eddings.jsonl does not exist, starting with empty embeddings.
+embeddings_manager - INFO - Processing 27 segments for entry dee8df28-2a54-4bc2-862b-3ad5c4d61470
+embeddings_manager - INFO - Processing 1 segments for entry 287c7ef0-c6d1-44fb-a1d2-2cab992b3b31
+embeddings_manager - INFO - Processing 8 segments for entry 1d1a6516-2b77-41f9-a0cc-9dee71709c2a
+embeddings_manager - INFO - Processing 2 segments for entry b94bfa9f-6271-4580-82f0-f3047b5b9960
+embeddings_manager - INFO - Processing 8 segments for entry ec067351-852e-4771-aab1-0eb83dbb1309
+embeddings_manager - INFO - Processing 2 segments for entry d76b69f2-8f39-4c47-812a-e00b639cc950
+embeddings_manager - INFO - Processing 8 segments for entry c2d15471-90d7-422c-a04c-97719e21eed4
+embeddings_manager - INFO - Updated embeddings: 63/63 successful
+rag_manager - INFO - Enhancing memory query: 'What do I know about the ancient ruins?'
+rag_manager - INFO - Querying for: 'What do I know about the ancient ruins?' (limit=5, min_importance=2)
+embeddings_manager - INFO - Generating embedding for query: 'What do I know about the ancient ruins?'
+embeddings_manager - INFO - Search found 10 results out of 55 total embeddings
+rag_manager - INFO - Search returned 10 raw results
+rag_manager - INFO - Returning 5 processed results
+rag_manager - INFO - Generated context with 5 items
+rag_manager - INFO - Added RAG context of length 870
+```
 
 ---
 

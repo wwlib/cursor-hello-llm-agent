@@ -650,12 +650,46 @@ Next Steps:
 These changes ensure the memory and RAG systems are robust, testable, and ready for further development. All new features and experiments should use the new example and test patterns as a baseline.
 
 
+## Phase 2 Update – May 05, 2025 – Data Preprocessing Integration & Digest Flexibility
+
+We've implemented a major improvement to the memory initialization and digest pipeline:
+
+1. **DataPreprocessor Integration**:
+   - Introduced a dedicated `DataPreprocessor` class for transforming structured or unstructured world data into concise, embeddable phrases.
+   - The `DataPreprocessor` uses a specialized LLM prompt to extract 3–5 semantically rich, embeddable segments from initial input data.
+   - This ensures that the most important concepts are captured in a format optimized for downstream semantic search and memory operations.
+
+2. **Flexible Digest Generation**:
+   - The `DigestGenerator` now accepts an optional `segments` argument in its `generate_digest` method.
+   - When provided, these pre-segmented phrases are used directly, bypassing redundant segmentation.
+   - This enables seamless integration with external preprocessing steps and supports more modular, testable pipelines.
+
+3. **Improved Memory Initialization**:
+   - `MemoryManager.create_initial_memory` now uses the `DataPreprocessor` to segment initial world/campaign data before digest generation.
+   - The resulting embeddable phrases are passed to the digest, ensuring that static memory is built from high-quality, LLM-optimized segments.
+   - This approach improves both the quality and efficiency of the initial memory structure, and ensures better downstream retrieval and compression.
+
+4. **Technical Improvements**:
+   - All changes are backward-compatible and minimally invasive, preserving existing interfaces and logic.
+   - Comprehensive error handling and logging for the new preprocessing and segmentation steps.
+   - Updated integration tests to validate the new pipeline and ensure robust end-to-end behavior.
+
+**Benefits:**
+- Ensures that initial memory is seeded with the most relevant, embeddable knowledge for the domain.
+- Reduces redundant LLM calls and improves efficiency by reusing high-quality segments.
+- Makes the memory system more modular, testable, and extensible for future enhancements.
+- Lays the groundwork for more advanced preprocessing and knowledge extraction workflows.
+
+This update represents a significant step forward in the modularity and quality of the agent's memory system, ensuring that all downstream processes benefit from high-quality, semantically meaningful segments right from initialization.
+
 ## TODO
 
+- Improve the way topics are assigned to digest segments
+- When including the initial data in prompts, use the concatenated segments of the initial system entry
 - Agent Improvements - RAG Integration
-  - Generate embeddings for conversation history entries to enable RAG, semantic search
-  - Implement search functions to retrieve information from the conversation history
-  - Use the semantic search results to inform the query_memory.prompt (i.e. RAG)
+  - [DONE] Generate embeddings for conversation history entries to enable RAG, semantic search
+  - [DONE] Implement search functions to retrieve information from the conversation history
+  - [DONE] Use the semantic search results to inform the query_memory.prompt (i.e. RAG)
   - RAG should prioritize semantic search results using the segment classifications
     - i.e. filter out user commands (type == command) when only information (type == information)
     - i.e. prioritize segments with higer importance
@@ -665,3 +699,5 @@ These changes ensure the memory and RAG systems are robust, testable, and ready 
 - Develop tools for memory visualization and analysis
 - Review all tests and fix or clean up as needed
 - Figure out how to organize the data in the conversation history into a knowledge graph
+
+
