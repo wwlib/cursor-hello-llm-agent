@@ -10,4 +10,10 @@ src/ai/llm.py
 src/ai/llm_ollama.py
 src/ai/llm_openai.py
 src/memory/__init__.py
+src/memory/base_memory_manager.py
+src/memory/content_segmenter.py
+src/memory/digest_generator.py
+src/memory/embeddings_manager.py
+src/memory/memory_compressor.py
 src/memory/memory_manager.py
+src/memory/simple_memory_manager.py

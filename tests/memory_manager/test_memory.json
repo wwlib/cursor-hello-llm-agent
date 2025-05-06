@@ -90,7 +90,7 @@
             "timestamp": "2024-01-04T00:01:00"
         },
         {
-            "role": "assistant",
+            "role": "agent",
             "content": "The project has two main components: the Memory Manager which handles memory persistence and reflection, and the LLM Service which provides integration with Ollama and OpenAI.",
             "timestamp": "2024-01-04T00:01:01"
         }

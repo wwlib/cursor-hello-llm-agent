@@ -1,0 +1,37 @@
+{
+  "guid": "f1ce087f-76b3-4383-865f-4179c927d162",
+  "memory_type": "standard",
+  "static_memory": "# Memory Digest\n\n## Topics\n- academia\n- alternative\n- ancient ruins\n- archaeology\n- artifacts\n- campaign setting\n- character\n- discovery\n- disruption\n- energy\n- expertise\n- fantasy\n- geography\n- investigation\n- key npc\n- location\n- magical anomalies\n- merchants\n- military\n- monster activity\n- motivation\n- protection\n- quest\n- research\n- responsibility\n- road\n- role\n- route\n- settlements\n- situation\n- terrain\n- threat\n- town government\n- towns\n- trade\n- treasure\n\n## Essential Information [!5]\n- Campaign Setting: The Lost Valley [campaign setting, location]\n- World Details: Mysterious magical anomalies [magical anomalies, location, fantasy]\n- Key NPCs: Current Quest: Investigate strange occurrences in Haven [key npc, quest, investigation]\n- Current Situations: 2. Ancient Ruins [situation, ancient ruins, archaeology]\n- Current Situations: Strange energy emanations [situation, magical anomalies, energy]\n- Current Situations: 3. Magical Anomalies [situation, magical anomalies]\n- Current Situations: Strange energy emanations [situation, magical anomalies, energy]\n\n## Important Information [!4]\n- World Details: Hidden valley surrounded by impassable mountains [location, geography, terrain]\n- World Details: Ancient ruins scattered throughout [ancient ruins, location, archaeology]\n- World Details: Three main settlements: Haven (central), Riverwatch (east), Mountainkeep (west) [settlements, location, towns]\n- Key NPCs: Motivation: Protect the valley's inhabitants [key npc, motivation, role]\n- Key NPCs: Expertise: Ancient ruins and artifacts [key npc, expertise, archaeology]\n- Key NPCs: Current Research: Decoding ruin inscriptions [key npc, research, archaeology]\n- Key NPCs: Current Concern: Increased monster activity [key npc, threat, monster activity]\n- Current Situations: Main road between settlements disrupted [situation, road, disruption]\n- Current Situations: Merchants seeking protection [situation, merchants, protection]\n- Current Situations: New chambers discovered [situation, ancient ruins, discovery]\n- Current Situations: Valuable artifacts found [situation, artifacts, treasure]\n\n## Extra Information [!3]\n- Key NPCs: 1. Elena [key npc, character]\n- Key NPCs: Role: Mayor of Haven [key npc, role, town government]\n- Key NPCs: 2. Theron [key npc, character]\n- Key NPCs: Role: Master Scholar [key npc, role, academia]\n- Key NPCs: 3. Sara [key npc, character]\n- Key NPCs: Role: Captain of Riverwatch [key npc, role, military]\n- Key NPCs: Responsibility: Valley's defense [key npc, responsibility, military]\n- Current Situations: 1. Trade Routes [situation, trade]\n- Current Situations: Alternative routes needed [situation, route, alternative]\n",
+  "context": [
+    {
+      "text": "The Lost Valley is a hidden paradise nestled amongst impassable mountains - a remarkable geographic anomaly. The valley is protected by three main settlements: Haven (central), Riverwatch (east), and Mountainkeep (west). Recent discoveries include new chambers within scattered ancient ruins and valuable artifacts unearthed there. A team of scholars, led by Master Scholar Theron, is actively researching the ancient ruins and attempting to decode inscriptions, while also investigating the rise in monster activity surrounding these locations and the strange magical anomalies affecting the area. The main road between Haven and Riverwatch is currently disrupted due to increased monster activity, prompting merchants to seek protection from Captain Sara of Riverwatch.",
+      "guids": [
+        "287c7ef0-c6d1-44fb-a1d2-2cab992b3b31",
+        "1d1a6516-2b77-41f9-a0cc-9dee71709c2a"
+      ]
+    },
+    {
+      "text": "**Summary**\n\nThe Mayor of Haven, Elena, is offering a quest for 50 gold pieces plus a share of recovered artifacts. The task involves clearing out a band of goblins raiding caravans along the disrupted trade routes, particularly those seeking recently discovered artifacts within the ancient ruins near Riverwatch. These goblins are motivated by the valuable artifacts. Eliminating the threat and recovering any lost valuables would constitute a solid start to the quest. The agent is prepared to provide further details about the goblins, such as their numbers or known weaknesses, should you desire.",
+      "guids": [
+        "b94bfa9f-6271-4580-82f0-f3047b5b9960",
+        "ec067351-852e-4771-aab1-0eb83dbb1309"
+      ]
+    },
+    {
+      "text": "**Summary**\n\nThe party has accepted Elena's quest to investigate and resolve the situation involving goblin activity near the ancient ruins and trade routes. The goblins, numbering approximately twenty and surprisingly well-organized, are primarily targeting caravans approaching the ruins east of Haven. Elena has provided a map leading to their likely camp - a cave system amidst the foothills - and is prioritizing the security of any discovered artifacts due to their significance. She has offered an initial advance of 10 gold pieces, with a further 40 to be paid upon the goblins' removal and the road secured. The party is now considering terrain details and potential supplies for the journey.",
+      "guids": [
+        "d76b69f2-8f39-4c47-812a-e00b639cc950",
+        "c2d15471-90d7-422c-a04c-97719e21eed4"
+      ]
+    }
+  ],
+  "metadata": {
+    "created_at": "2025-05-03T12:15:31.206150",
+    "last_updated": "2025-05-03T12:21:51.095272",
+    "version": "1.0",
+    "saved_during": "compress_memory",
+    "last_compressed": "2025-05-03T12:21:51.095248",
+    "compressed_entries": 6
+  },
+  "conversation_history": []
+}

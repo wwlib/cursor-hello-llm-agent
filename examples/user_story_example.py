@@ -114,42 +114,8 @@ async def initialize_project(agent, memory_manager):
         return True
     
     print("Creating new project memory...")
-    project_data = """Please structure the following project information into a JSON format with structured_data for facts, knowledge_graph for relationships, and appropriate metadata.
-
-Project: Task Management System
-
-Overview:
-- Web-based task management application
-- Multiple user support with different roles
-- Task organization with projects and tags
-- Due date tracking and notifications
-
-Key Features:
-- User authentication and authorization
-- Task creation and management
-- Project organization
-- Tag system
-- Due date reminders
-- Activity tracking
-
-Stakeholders:
-- Project Manager (primary user)
-- Team Members (task executors)
-- Team Leads (task reviewers)
-- System Administrator
-
-Requirements:
-- Secure user authentication
-- Intuitive task creation interface
-- Project hierarchy support
-- Tag-based task filtering
-- Email notifications for due dates
-- Activity history and audit logs
-
-Return ONLY a valid JSON object with structured_data and knowledge_graph sections. No additional text or explanation."""
-    
     print(f"Phase before learning: {agent.get_current_phase().name}")
-    success = await agent.learn(project_data)
+    success = await agent.learn(USER_STORY_CONFIG["initial_data"])
     print(f"Phase after learning: {agent.get_current_phase().name}")
     
     if not success:

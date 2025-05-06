@@ -102,7 +102,7 @@ async def test_process_message_success(agent, mock_memory_manager):
         },
         "conversation_history": [
             {"role": "user", "content": "Hello", "timestamp": datetime.now().isoformat()},
-            {"role": "assistant", "content": "Test response", "timestamp": datetime.now().isoformat()}
+            {"role": "agent", "content": "Test response", "timestamp": datetime.now().isoformat()}
         ]
     }
     
@@ -114,7 +114,7 @@ async def test_process_message_success(agent, mock_memory_manager):
     assert len(history) == 2
     assert history[0]["role"] == "user"
     assert history[0]["content"] == "Hello"
-    assert history[1]["role"] == "assistant"
+    assert history[1]["role"] == "agent"
     assert history[1]["content"] == "Test response"
 
 @pytest.mark.asyncio
@@ -286,9 +286,9 @@ async def test_memory_reflection_trigger(agent, mock_memory_manager):
     """Test that reflection is triggered after accumulating messages"""
     # Setup memory manager to simulate conversation history
     conversation_history = []
-    for i in range(3):  # Add enough messages to trigger reflection
+    for i in range(10):  # Add enough messages to trigger reflection (new threshold is 10)
         conversation_history.append({
-            "role": "user" if i % 2 == 0 else "assistant",
+            "role": "user" if i % 2 == 0 else "agent",
             "content": f"Message {i}",
             "timestamp": datetime.now().isoformat()
         })

@@ -12,7 +12,7 @@ import json
 from typing import Optional
 
 test_prompt = """
-You are a helpful assistant that communicates using JSON. All your responses should be in JSON format.
+You are a helpful agent that communicates using JSON. All your responses should be in JSON format.
 
 Current Memory State:
 {}
@@ -88,7 +88,7 @@ def main():
     
     # First check if Ollama is running
     try:
-        health_check = requests.get("http://localhost:11434/api/tags")
+        health_check = requests.get("http://192.168.1.173:11434/api/tags")
         health_check.raise_for_status()
     except requests.exceptions.RequestException:
         print("Error: Ollama is not running. Please start Ollama first.")

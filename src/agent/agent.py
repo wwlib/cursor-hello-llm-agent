@@ -22,6 +22,7 @@ class Agent:
         self.domain_name = domain_name
         self.current_phase = AgentPhase.INITIALIZATION
         print(f"Agent initialized for domain: {domain_name}")
+        print(f"Memory management is handled transparently by the MemoryManager")
 
     def get_current_phase(self) -> AgentPhase:
         """Get the current agent phase"""
@@ -33,26 +34,25 @@ class Agent:
         return memory_context.get("conversation_history", [])
 
     async def process_message(self, message: str) -> str:
-        """Process a user message and return a response."""
+        """Process a user message and return a response.
+        
+        Memory management (compression, etc.) is automatically handled by the MemoryManager.
+        """
         try:
             # Create query context
-            context = {
-                "user_message": message
+            query_context = {
+                "query": message
             }
             
             # Query memory for response
-            result = self.memory.query_memory(json.dumps(context))
-            response = result.get("response", "Error processing message")
+            response = self.memory.query_memory(query_context)
             
             # After first message, transition to INTERACTION phase
             if self.current_phase == AgentPhase.INITIALIZATION:
                 self.current_phase = AgentPhase.INTERACTION
             
-            # Check if we need reflection
-            if len(self.get_conversation_history()) >= 3:
-                await self.reflect()
-                
-            return response
+            # Return just the string response, not the whole dict
+            return response.get("response", str(response))
             
         except Exception as e:
             print(f"Error processing message: {str(e)}")
@@ -60,6 +60,10 @@ class Agent:
 
     async def learn(self, information: str) -> bool:
         """Learn new information and update memory.
+        
+        This method handles two types of learning:
+        1. Initial learning during INITIALIZATION phase
+        2. Ongoing learning during INTERACTION phase
         
         Args:
             information: New information to learn
@@ -75,51 +79,30 @@ class Agent:
                 success = self.memory.create_initial_memory(information)
                 if success:
                     print("Initial memory created")
-                    self.current_phase = AgentPhase.INTERACTION
+                    self.current_phase = AgentPhase.LEARNING
                 return success
             
-            # Update existing memory with new information
-            context = {
-                "operation": "update",
-                "messages": [{
-                    "role": "system",
-                    "content": information,
-                    "timestamp": datetime.now().isoformat()
-                }]
-            }
+            # For ongoing learning, use update_memory
+            if self.current_phase in [AgentPhase.LEARNING, AgentPhase.INTERACTION]:
+                # Add the new information to conversation history
+                context = {
+                    "operation": "update",
+                    "learning_content": information
+                }
+                
+                success = self.memory.update_memory(context)
+                if success:
+                    print("Successfully learned new information")
+                    # Transition to INTERACTION phase if we were in LEARNING
+                    if self.current_phase == AgentPhase.LEARNING:
+                        self.current_phase = AgentPhase.INTERACTION
+                else:
+                    print("Failed to learn new information")
+                return success
             
-            success = self.memory.update_memory(json.dumps(context))
-            if success:
-                print("Successfully learned new information")
-            else:
-                print("Failed to learn new information")
-            return success
+            print(f"Unexpected phase for learning: {self.current_phase}")
+            return False
             
         except Exception as e:
             print(f"Error learning information: {str(e)}")
             return False
-
-    async def reflect(self) -> None:
-        """Reflect on recent interactions and update memory accordingly."""
-        try:
-            print(f"\nReflecting on recent interactions (Current phase: {self.current_phase})")
-            
-            # Get recent conversation history
-            conversation_history = self.get_conversation_history()
-            
-            # Create reflection context
-            context = {
-                "operation": "update",
-                "messages": conversation_history + [{
-                    "role": "system",
-                    "content": "Reflection triggered",
-                    "timestamp": datetime.now().isoformat()
-                }]
-            }
-            
-            success = self.memory.update_memory(json.dumps(context))
-            if not success:
-                print("Failed to complete reflection")
-            
-        except Exception as e:
-            print(f"Error during reflection: {str(e)}")
