@@ -74,6 +74,8 @@ class EmbeddingsManager:
         self.embeddings_file = embeddings_file
         self.llm_service = llm_service
         self.embeddings = []  # List of (embedding, metadata) tuples
+        # Always use the embedding model from env or default
+        self.embedding_model = os.getenv("OLLAMA_EMBED_MODEL", "mxbai-embed-large")
         
         # Configure logging
         self.logger = logging.getLogger("embeddings_manager")
@@ -159,6 +161,8 @@ class EmbeddingsManager:
             raise ValueError("Cannot generate embedding for empty text")
             
         options = options or {}
+        # Always set the embedding model
+        options = {**options, "model": self.embedding_model}
         normalize = options.get('normalize', True)
             
         try:
@@ -418,38 +422,15 @@ class EmbeddingsManager:
             total_count = 0
             
             for entry in conversation_entries:
-                # Skip entries without content
-                if "content" not in entry or not entry["content"]:
-                    self.logger.warning(f"Skipping entry without content: {entry.get('guid', 'unknown')}")
-                    continue
-                    
-                total_count += 1
-                
-                # Generate metadata for full entry
-                entry_metadata = {
-                    'guid': entry.get('guid', str(total_count)),
-                    'timestamp': entry.get('timestamp', datetime.now().isoformat()),
-                    'role': entry.get('role', 'unknown'),
-                    'type': 'full_entry',
-                    'content': entry.get('content', '')
-                }
-                
-                # Generate embedding for full entry
-                if self.add_embedding(entry.get('content', ''), entry_metadata):
-                    success_count += 1
-                
-                # Generate embeddings for segments if available
+                # Only embed rated_segments from digest
                 if 'digest' in entry and 'rated_segments' in entry['digest']:
                     segments = entry['digest']['rated_segments']
-                    self.logger.info(f"Processing {len(segments)} segments for entry {entry_metadata['guid']}")
-                    
+                    self.logger.info(f"Processing {len(segments)} segments for entry {entry.get('guid', str(total_count))}")
                     for i, segment in enumerate(segments):
                         if 'text' not in segment or not segment['text']:
-                            self.logger.warning(f"Skipping segment {i} without text in entry {entry_metadata['guid']}")
+                            self.logger.warning(f"Skipping segment {i} without text in entry {entry.get('guid', str(total_count))}")
                             continue
-                            
                         total_count += 1
-                        
                         # Create segment metadata
                         segment_metadata = {
                             'guid': entry.get('guid', str(total_count)),
@@ -461,7 +442,6 @@ class EmbeddingsManager:
                             'segment_index': i,
                             'text': segment.get('text', '')
                         }
-                        
                         if self.add_embedding(segment.get('text', ''), segment_metadata):
                             success_count += 1
             
@@ -470,4 +450,53 @@ class EmbeddingsManager:
         except Exception as e:
             self.logger.error(f"Error updating embeddings: {str(e)}")
             self.logger.error(traceback.format_exc())
-            return False 
+            return False
+    
+    def _existing_embedding_keys(self):
+        """Return a set of (guid, type, segment_index) for all current embeddings."""
+        keys = set()
+        for _, metadata in self.embeddings:
+            guid = metadata.get('guid')
+            typ = metadata.get('type', 'full_entry')
+            segment_index = metadata.get('segment_index') if typ == 'segment' else None
+            keys.add((guid, typ, segment_index))
+        return keys
+    
+    def add_embeddings_for_entry(self, entry: Dict) -> int:
+        """Add embeddings for a single conversation entry and its segments, skipping duplicates.
+        Returns the number of new embeddings added."""
+        added = 0
+        existing_keys = self._existing_embedding_keys()
+        guid = entry.get('guid')
+        timestamp = entry.get('timestamp', datetime.now().isoformat())
+        role = entry.get('role', 'unknown')
+        # Add segment embeddings if present
+        if 'digest' in entry and 'rated_segments' in entry['digest']:
+            segments = entry['digest']['rated_segments']
+            for i, segment in enumerate(segments):
+                if 'text' not in segment or not segment['text']:
+                    continue
+                key = (guid, 'segment', i)
+                if key in existing_keys:
+                    continue
+                segment_metadata = {
+                    'guid': guid,
+                    'timestamp': timestamp,
+                    'role': role,
+                    'type': 'segment',
+                    'importance': segment.get('importance', 3),
+                    'topics': segment.get('topics', []),
+                    'segment_index': i,
+                    'text': segment.get('text', '')
+                }
+                if self.add_embedding(segment.get('text', ''), segment_metadata):
+                    added += 1
+        return added
+    
+    def update_indices(self, new_entries: List[Dict]) -> bool:
+        """Incrementally add embeddings for new conversation entries only."""
+        total_added = 0
+        for entry in new_entries:
+            total_added += self.add_embeddings_for_entry(entry)
+        self.logger.info(f"Incremental embedding update: {total_added} new embeddings added.")
+        return total_added > 0 

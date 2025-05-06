@@ -682,10 +682,39 @@ We've implemented a major improvement to the memory initialization and digest pi
 
 This update represents a significant step forward in the modularity and quality of the agent's memory system, ensuring that all downstream processes benefit from high-quality, semantically meaningful segments right from initialization.
 
+## Phase 2 Update – May 06, 2025 – Segment-Only Embeddings, Unified Entry Flow, and RAG/Embedding Separation
+
+We've delivered another round of critical improvements to the agent's memory and retrieval system:
+
+1. **Segment-Only Embedding Generation**:
+   - Embeddings are now generated exclusively for the LLM-rated segments (`rated_segments`) of each conversation entry, rather than for the full entry content.
+   - This ensures that only the most semantically meaningful, contextually relevant information is indexed for retrieval and RAG, improving both efficiency and retrieval quality.
+
+2. **Unified Entry Addition and Indexing**:
+   - All new conversation entries (user and agent) are now processed through a single, consistent code path (`add_conversation_entry`).
+   - Every entry is digested, added to history, and embedded/indexed in one place, eliminating the risk of missing embeddings and making the codebase easier to maintain and extend.
+
+3. **Clear RAG/Embedding Separation**:
+   - All embedding and indexing logic has been moved out of RAGManager and centralized in EmbeddingsManager.
+   - RAGManager now focuses solely on retrieval and context assembly, while EmbeddingsManager handles all aspects of embedding generation, storage, and search.
+   - This clear separation of concerns improves modularity, testability, and future extensibility.
+
+4. **Robust, Modular Retrieval Pipeline**:
+   - The system is now fully ready for advanced RAG and semantic search enhancements, with a robust, segment-level embedding index.
+   - Retrieval quality is improved, as only high-quality, LLM-rated segments are considered for semantic search and context augmentation.
+
+5. **Technical and Architectural Benefits**:
+   - The codebase is now more maintainable, with less duplication and clearer responsibilities.
+   - All entry addition, digesting, and embedding logic is centralized, reducing the risk of future bugs.
+   - The system is easier to test, extend, and reason about, paving the way for future improvements in knowledge extraction, RAG, and memory visualization.
+
+These changes further strengthen the reliability, quality, and extensibility of the agent's memory and retrieval system. The groundwork is now laid for even more advanced RAG, semantic search, and knowledge graph features in the next phase.
+
 ## TODO
 
 - Improve the way topics are assigned to digest segments
 - When including the initial data in prompts, use the concatenated segments of the initial system entry
+- write all test log data to /logs
 - Agent Improvements - RAG Integration
   - [DONE] Generate embeddings for conversation history entries to enable RAG, semantic search
   - [DONE] Implement search functions to retrieve information from the conversation history

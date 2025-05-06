@@ -65,6 +65,9 @@ def main():
         memory_file = os.path.join(temp_dir, "memory.json")
         embeddings_file = os.path.join(temp_dir, "embeddings.jsonl")
 
+        print(f"Memory file: {memory_file}")
+        print(f"Embeddings file: {embeddings_file}")
+
         # Set up services
         llm_service = get_llm_service()
         embed_service = get_embed_service()

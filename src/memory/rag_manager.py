@@ -304,74 +304,9 @@ class RAGManager:
             enhanced_context["rag_context"] = ""
             return enhanced_context
     
-    def index_memory(self, conversation_entries: List[Dict[str, Any]]) -> bool:
-        """Index conversation entries for semantic search.
-        
-        Args:
-            conversation_entries: List of conversation entries to index
-            
-        Returns:
-            bool: True if indexing was successful
-        """
-        try:
-            self.logger.info(f"Indexing {len(conversation_entries)} conversation entries for search")
-            
-            # Process entries to ensure they have proper text fields
-            processed_entries = []
-            for entry in conversation_entries:
-                # Skip entries without content
-                if "content" not in entry or not entry["content"]:
-                    self.logger.warning(f"Skipping entry without content: {entry.get('guid', 'unknown')}")
-                    continue
-                
-                # Create a copy with both text and content fields to ensure embeddings work
-                processed_entry = entry.copy()
-                
-                # Ensure text field is present (some implementations expect this)
-                if "text" not in processed_entry:
-                    processed_entry["text"] = processed_entry["content"]
-                
-                # Process digest if available to extract segments
-                if "digest" in processed_entry and "rated_segments" in processed_entry["digest"]:
-                    # Make sure the digest has text for each segment 
-                    for segment in processed_entry["digest"]["rated_segments"]:
-                        if "text" not in segment or not segment["text"]:
-                            self.logger.warning(f"Segment in entry {processed_entry.get('guid', 'unknown')} missing text")
-                
-                processed_entries.append(processed_entry)
-            
-            # Use the embeddings manager to update indices
-            if not processed_entries:
-                self.logger.warning("No valid entries to index")
-                return False
-                
-            success = self.embeddings_manager.update_embeddings(processed_entries)
-            self.logger.info(f"Indexing completed: {'successfully' if success else 'with errors'}")
-            return success
-        except Exception as e:
-            self.logger.error(f"Error indexing memory: {str(e)}")
-            return False
-    
-    def update_indices(self, new_entries: List[Dict[str, Any]]) -> bool:
-        """Update indices with new conversation entries.
-        
-        This is typically called when new conversation entries are added.
-        
-        Args:
-            new_entries: List of new conversation entries to add to indices
-            
-        Returns:
-            bool: True if update was successful
-        """
-        try:
-            self.logger.info(f"Updating indices with {len(new_entries)} new entries")
-            # For now, this just calls index_memory, but in the future
-            # we could implement incremental updates instead of rebuilding
-            # the entire index
-            return self.index_memory(new_entries)
-        except Exception as e:
-            self.logger.error(f"Error updating indices: {str(e)}")
-            return False
+    # Embedding/indexing is now fully delegated to EmbeddingsManager.
+    # For incremental updates, use self.embeddings_manager.update_indices(new_entries)
+    # For full reindexing, use self.embeddings_manager.update_embeddings(conversation_entries)
     
     def _format_context_as_text(self, context) -> str:
         """Format context items as text for inclusion in prompts.

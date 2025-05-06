@@ -40,12 +40,12 @@ class Agent:
         """
         try:
             # Create query context
-            context = {
-                "user_message": message
+            query_context = {
+                "query": message
             }
             
             # Query memory for response
-            response = self.memory.query_memory(context)
+            response = self.memory.query_memory(query_context)
             
             # After first message, transition to INTERACTION phase
             if self.current_phase == AgentPhase.INITIALIZATION:

@@ -45,6 +45,8 @@ from .base_memory_manager import BaseMemoryManager
 from .digest_generator import DigestGenerator
 from .memory_compressor import MemoryCompressor
 from .data_preprocessor import DataPreprocessor
+from .embeddings_manager import EmbeddingsManager
+from .rag_manager import RAGManager
 
 class MemoryManager(BaseMemoryManager):
     """LLM-driven memory manager implementation.
@@ -85,6 +87,13 @@ class MemoryManager(BaseMemoryManager):
         # Initialize MemoryCompressor
         self.memory_compressor = MemoryCompressor(llm_service, importance_threshold)
         print("Initialized MemoryCompressor")
+        
+        # Initialize EmbeddingsManager and RAGManager
+        embeddings_file = os.path.splitext(memory_file)[0] + "_embeddings.jsonl"
+        self.embeddings_manager = EmbeddingsManager(embeddings_file, llm_service)
+        self.rag_manager = RAGManager(llm_service, self.embeddings_manager)
+        print("Initialized EmbeddingsManager and RAGManager")
+        print(f"Embeddings file: {embeddings_file}")
         
         # Ensure memory has a GUID
         self._ensure_memory_guid()
@@ -218,6 +227,9 @@ class MemoryManager(BaseMemoryManager):
             # Also add to conversation history file
             self.add_to_conversation_history(system_entry)
             
+            # Generate and save embeddings for the initial system entry
+            self.embeddings_manager.update_indices([system_entry])
+
             print("Memory created and initialized with static knowledge")
             return True
         except Exception as e:
@@ -225,60 +237,31 @@ class MemoryManager(BaseMemoryManager):
             return False
 
     def _create_static_memory_from_digest(self, digest: Dict[str, Any]) -> str:
-        """Create formatted static memory text from a digest.
-        
-        The static memory is now stored as markdown, with segments organized by importance
-        and structured with importance ratings visible.
-        """
+        """Create static memory text from a digest by concatenating rated segments."""
         try:
             rated_segments = digest.get("rated_segments", [])
             
             if not rated_segments:
                 print("Warning: No rated segments found in digest, using empty static memory")
                 return ""
-                
-            # Sort segments by importance (highest first)
-            rated_segments = sorted(rated_segments, key=lambda x: x.get("importance", 0), reverse=True)
             
-            # Collect all topics for index
-            all_topics = set()
-            for segment in rated_segments:
-                if "topics" in segment and segment["topics"]:
-                    all_topics.update(segment["topics"])
-            
-            # Format static memory with topics section and importance markers
-            lines = []
-            
-            # Topics index
-            if all_topics:
-                lines.append("# Topics Index\n")
-                for topic in sorted(all_topics):
-                    lines.append(f"- {topic}")
-                lines.append("\n")
-            
-            # Content sections by importance level
-            lines.append("# Knowledge Base\n")
-            
-            # Group by importance level
-            for importance in range(5, 0, -1):
-                importance_segments = [s for s in rated_segments if s.get("importance", 0) == importance]
-                
-                if importance_segments:
-                    lines.append(f"## Importance Level {importance}\n")
-                    
-                    for segment in importance_segments:
-                        text = segment.get("text", "")
-                        topics = segment.get("topics", [])
-                        
-                        # Add segment with importance marker and topics
-                        topic_str = f" (Topics: {', '.join(topics)})" if topics else ""
-                        lines.append(f"[!{importance}] {text}{topic_str}\n")
-            
-            return "\n".join(lines)
+            return "\n".join(segment.get("text", "") for segment in rated_segments)
             
         except Exception as e:
             print(f"Error creating static memory from digest: {str(e)}")
             return ""
+
+    def _get_initial_segments_text(self) -> str:
+        """Concatenate the rated segments from the initial system entry for use in prompts."""
+        if "conversation_history" not in self.memory or not self.memory["conversation_history"]:
+            return ""
+        initial_entry = self.memory["conversation_history"][0]
+        digest = initial_entry.get("digest", {})
+        rated_segments = digest.get("rated_segments", [])
+        if not rated_segments:
+            return initial_entry.get("content", "")
+        # Concatenate all segment texts, separated by newlines
+        return "\n".join(seg.get("text", "") for seg in rated_segments if seg.get("text"))
 
     def query_memory(self, query_context: Dict[str, Any]) -> Dict[str, Any]:
         """Query memory with the given context.
@@ -295,32 +278,21 @@ class MemoryManager(BaseMemoryManager):
         try:
             print("\nQuerying memory...")
             
-            # Extract query text and user message (for backward compatibility)
+            # Extract query text
             query = query_context.get("query", "")
-            user_message = query_context.get("user_message", query)
-            
-            # Add user message to history if it exists
-            if user_message:
-                # Create user message entry with GUID
+
+            # Add user message to history and trigger embedding/indexing
+            if query:
                 user_entry = {
                     "guid": str(uuid.uuid4()),
                     "role": "user",
-                    "content": user_message,
+                    "content": query,
                     "timestamp": datetime.now().isoformat()
                 }
-                
-                # Generate digest for user message
-                print("Generating digest for user message...")
-                user_digest = self.digest_generator.generate_digest(user_entry, self.memory)
-                user_entry["digest"] = user_digest
-                
-                # Add to both conversation history file and memory
-                self.add_to_conversation_history(user_entry)
-                self.memory["conversation_history"].append(user_entry)
-                print(f"Added user message to history with digest: {user_message}")
+                self.add_conversation_entry(user_entry)
             
-            # Format static memory as text (use provided or get from memory)
-            static_memory_text = query_context.get("static_memory", "") or self._format_static_memory_as_text()
+            # Use concatenated initial segments for static memory in prompts
+            static_memory_text = query_context.get("static_memory", "") or self._get_initial_segments_text() or self._format_static_memory_as_text()
             
             # Format context as text (use provided or get from memory)
             previous_context_text = query_context.get("previous_context", "") or self._format_context_as_text()
@@ -328,23 +300,30 @@ class MemoryManager(BaseMemoryManager):
             # Format recent conversation history as text (use provided or get from memory)
             conversation_history_text = query_context.get("conversation_history", "") or self._format_conversation_history_as_text()
             
-            # Get RAG context if provided
-            rag_context = query_context.get("rag_context", "")
-            if rag_context:
-                print("Using RAG-enhanced context for memory query")
+            # Get or generate RAG context
+            rag_context = query_context.get("rag_context")
+            if not rag_context:
+                enhanced_context = self.rag_manager.enhance_memory_query(query_context)
+                rag_context = enhanced_context.get("rag_context", "")
+                if rag_context:
+                    print("Using RAG-enhanced context for memory query (auto-generated)")
+            else:
+                print("Using RAG-enhanced context for memory query (provided)")
             
             # Get domain-specific instructions (use provided or get from config)
             domain_specific_prompt_instructions = query_context.get("domain_specific_prompt_instructions", "")
+            domain_specific_query_prompt_instructions = domain_specific_prompt_instructions
             if not domain_specific_prompt_instructions and self.domain_config:
                 domain_specific_prompt_instructions = self.domain_config.get("domain_specific_prompt_instructions", "")
+                domain_specific_query_prompt_instructions = domain_specific_prompt_instructions.get("query", "") if isinstance(domain_specific_prompt_instructions, dict) else ""
             
             # Create prompt with formatted text
             prompt = self.templates["query"].format(
                 static_memory_text=static_memory_text,
                 previous_context_text=previous_context_text,
                 conversation_history_text=conversation_history_text,
-                query=query or user_message,
-                domain_specific_prompt_instructions=domain_specific_prompt_instructions,
+                query=query,
+                domain_specific_prompt_instructions=domain_specific_query_prompt_instructions,
                 rag_context=rag_context  # Include RAG context in the prompt
             )
             
@@ -355,23 +334,14 @@ class MemoryManager(BaseMemoryManager):
                 options={"temperature": 0.7}
             )
             
-            # Create agent entry with GUID
+            # Add agent response to history and trigger embedding/indexing
             agent_entry = {
                 "guid": str(uuid.uuid4()),
                 "role": "agent",
                 "content": llm_response,
                 "timestamp": datetime.now().isoformat()
             }
-            
-            # Generate digest for agent response
-            print("Generating digest for agent response...")
-            agent_digest = self.digest_generator.generate_digest(agent_entry, self.memory)
-            agent_entry["digest"] = agent_digest
-            
-            # Add to both conversation history file and memory
-            self.add_to_conversation_history(agent_entry)
-            self.memory["conversation_history"].append(agent_entry)
-            print("Added agent response to history with digest")
+            self.add_conversation_entry(agent_entry)
 
             # Save to persist memory updates
             self.save_memory("query_memory")
@@ -447,7 +417,7 @@ class MemoryManager(BaseMemoryManager):
         return self._format_conversation_history_as_text()
         
     def _format_conversation_history_as_text(self) -> str:
-        """Format recent conversation history as readable text."""
+        """Format recent conversation history as readable text using digest segments."""
         if "conversation_history" not in self.memory or not self.memory["conversation_history"]:
             return "No conversation history available."
         
@@ -458,7 +428,18 @@ class MemoryManager(BaseMemoryManager):
         result = []
         for entry in recent_entries:
             role = entry.get("role", "unknown").upper()
-            content = entry.get("content", "")
+            
+            # Get segments from digest if available
+            digest = entry.get("digest", {})
+            segments = digest.get("rated_segments", [])
+            
+            if segments:
+                # Use concatenated segments
+                content = " ".join(segment["text"] for segment in segments)
+            else:
+                # Fallback to original content if no digest/segments
+                content = entry.get("content", "")
+                
             result.append(f"[{role}]: {content}")
             result.append("")  # Empty line between entries
         
@@ -493,7 +474,8 @@ class MemoryManager(BaseMemoryManager):
         try:
             # Get current memory state
             conversation_history = self.memory.get("conversation_history", [])
-            static_memory = self.memory.get("static_memory", "")
+            # Use concatenated initial segments for static memory in compression
+            static_memory = self._get_initial_segments_text() or self.memory.get("static_memory", "")
             current_context = self.memory.get("context", [])
             
             # Use MemoryCompressor to compress the conversation history
@@ -578,6 +560,9 @@ class MemoryManager(BaseMemoryManager):
             # Save to persist memory updates
             self.save_memory("add_conversation_entry")
             
+            # Update RAG/embeddings indices for the new entry
+            self.embeddings_manager.update_indices([entry])
+
             return True
             
         except Exception as e:
