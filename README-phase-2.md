@@ -709,24 +709,3 @@ We've delivered another round of critical improvements to the agent's memory and
    - The system is easier to test, extend, and reason about, paving the way for future improvements in knowledge extraction, RAG, and memory visualization.
 
 These changes further strengthen the reliability, quality, and extensibility of the agent's memory and retrieval system. The groundwork is now laid for even more advanced RAG, semantic search, and knowledge graph features in the next phase.
-
-## TODO
-
-- Improve the way topics are assigned to digest segments
-- When including the initial data in prompts, use the concatenated segments of the initial system entry
-- write all test log data to /logs
-- Agent Improvements - RAG Integration
-  - [DONE] Generate embeddings for conversation history entries to enable RAG, semantic search
-  - [DONE] Implement search functions to retrieve information from the conversation history
-  - [DONE] Use the semantic search results to inform the query_memory.prompt (i.e. RAG)
-  - RAG should prioritize semantic search results using the segment classifications
-    - i.e. filter out user commands (type == command) when only information (type == information)
-    - i.e. prioritize segments with higer importance
-  - When appropriate, look up other segments in the same conversatino entry to see if they should be inclueded
-    - might require another LLM call to determine which to include
-- Add metadata to track memory usage statistics and performance
-- Develop tools for memory visualization and analysis
-- Review all tests and fix or clean up as needed
-- Figure out how to organize the data in the conversation history into a knowledge graph
-
-

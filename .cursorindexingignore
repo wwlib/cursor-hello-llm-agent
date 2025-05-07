@@ -1,3 +1,9 @@
 
 # Don't index SpecStory auto-save files, but allow explicit context inclusion via @ references
 .specstory/**
+
+# Don't index archived documentation, logs, temp files, etc.
+/cursor-notes/** */
+/hide/**
+/logs/**
+/agent-memories/**

@@ -1,205 +1,106 @@
-# LLM-Driven Agent with Session Memory
+# LLM-Driven Agent (Phase-Orchestrator)
 
-A flexible, conversational agent that maintains context across multiple interactions using LLM-driven memory management.
+A modern, domain-agnostic conversational agent that leverages RAG-enabled, segment-based memory for persistent, context-rich interactions.
 
 ## Overview
 
-The Agent serves as the core orchestrator, managing conversations with users while leveraging the Memory Manager to maintain context and the LLM Service for generating responses. It's designed to be domain-agnostic but includes specialized capabilities for running tabletop RPG campaigns.
+The Agent serves as a thin orchestrator, managing conversation phases and delegating all memory operations to the MemoryManager. It is designed to be:
+- **Domain-agnostic**: Behavior is controlled via configuration, not code changes.
+- **Extensible**: Easily adapted to new domains or memory strategies.
+- **RAG-Enabled**: Works with a memory system that supports segment-level embeddings and semantic search for Retrieval Augmented Generation (RAG).
 
-### Key Features
+## Key Features
 
-- **Contextual Conversations**: Maintains conversation history and context
-- **Memory-Augmented Responses**: Uses structured data and knowledge graphs to inform responses
-- **Multi-Phase Interactions**: Supports different interaction phases (e.g., setup, execution)
-- **Domain Adaptation**: Adapts to different use cases through LLM-driven memory structuring
-- **Persistent State**: Maintains conversation state across sessions
+- **Phase-Driven Conversation**: The agent manages three phases:
+  - **INITIALIZATION**: Set up initial domain knowledge.
+  - **LEARNING**: Acquire new information and expand memory.
+  - **INTERACTION**: Ongoing conversation and Q&A.
+- **Delegation to MemoryManager**: All memory creation, update, compression, and retrieval is handled by the memory manager (including RAG and semantic search).
+- **Persistent, Contextual Memory**: Memory is automatically compressed and organized for efficient, long-running sessions.
+- **Separation of Concerns**: The agent does not manage memory structure or reflection—this is fully encapsulated in the memory layer.
 
 ## Architecture
 
 ### Components
-
 ```
 agent/
 ├── agent.py           # Core agent implementation
-├── README.md         # This documentation
-└── prompts/         # Agent prompt templates
-    ├── respond.txt  # Response generation prompt
-    └── reflect.txt  # Memory update reflection prompt
+├── README-agent.md    # This documentation
 ```
 
-### Agent States
-
-1. **Initialization**
-   - Load configuration
-   - Initialize LLM service
-   - Initialize Memory Manager
-
-2. **Learning Phase**
-   - Gather domain information
-   - Structure initial memory
-   - Establish baseline knowledge
-
-3. **Interaction Phase**
-   - Process user input
-   - Generate contextual responses
-   - Update memory with new information
+### Agent Phases
+1. **INITIALIZATION**: Load configuration, initialize LLM and memory manager, seed static knowledge.
+2. **LEARNING**: Add new domain information to memory.
+3. **INTERACTION**: Process user input, generate responses, and update memory.
 
 ## Implementation
 
-### Agent Class Structure
-
+### Agent Class Structure (Simplified)
 ```python
 class Agent:
-    def __init__(self, llm_service, memory_manager):
-        """Initialize the agent with required services"""
+    def __init__(self, llm_service, memory_manager, domain_name="general"):
         self.llm = llm_service
         self.memory = memory_manager
-        self.current_phase = "initialization"
+        self.domain_name = domain_name
+        self.current_phase = AgentPhase.INITIALIZATION
 
     async def process_message(self, message: str) -> str:
-        """Process a user message and return a response"""
-        # 1. Query memory for context
-        # 2. Generate response using LLM
-        # 3. Update memory with new information
-        # 4. Return response
+        """Process a user message and return a response (memory/RAG handled automatically)."""
+        response = self.memory.query_memory({"query": message})
+        if self.current_phase == AgentPhase.INITIALIZATION:
+            self.current_phase = AgentPhase.INTERACTION
+        return response.get("response", str(response))
 
     async def learn(self, information: str) -> bool:
-        """Learn new information and update memory"""
-        # Process and store new information
-
-    async def reflect(self) -> None:
-        """Periodic reflection to optimize memory"""
-        # Analyze and restructure memory if needed
+        """Learn new information and update memory."""
+        if self.current_phase == AgentPhase.INITIALIZATION:
+            success = self.memory.create_initial_memory(information)
+            if success:
+                self.current_phase = AgentPhase.LEARNING
+            return success
+        else:
+            return self.memory.update_memory({"operation": "update", "learning_content": information})
 ```
 
-## Usage
-
-### Initialization
+## Usage Example
 
 ```python
-from agent.agent import Agent
-from memory.memory_manager import MemoryManager
-from ai.llm import LLMService
+from src.agent.agent import Agent
+from src.memory.memory_manager import MemoryManager
+from src.ai.llm_ollama import OllamaService
 
-# Initialize services
-llm_service = LLMService()
-memory_manager = MemoryManager(llm_service)
+# Initialize LLM and memory manager
+llm_service = OllamaService({
+    "base_url": "http://localhost:11434",
+    "model": "gemma3",
+    "temperature": 0.7
+})
+memory_manager = MemoryManager(llm_service=llm_service)
 
 # Create agent
 agent = Agent(llm_service, memory_manager)
-```
 
-### Basic Interaction
+# Async usage
+import asyncio
+async def main():
+    await agent.learn("The world is a flat world with a single continent...")
+    response = await agent.process_message("Tell me about the campaign world.")
+    print(response)
 
-```python
-# Process a user message
-response = await agent.process_message("Tell me about the campaign world.")
-
-# Learn new information
-success = await agent.learn("The world has a new magical artifact...")
-
-# Trigger reflection
-await agent.reflect()
-```
-
-## Example: D&D Campaign Management
-
-### Phase 1: Learning Campaign Details
-
-```python
-# Initialize with campaign setting
-await agent.learn("""
-The world is a simple, flat world with a single continent...
-[Campaign details from README]
-""")
-```
-
-### Phase 2: Character Integration
-
-```python
-# Add player characters
-await agent.learn("""
-The party consists of 4 players...
-[Character details from README]
-""")
-```
-
-### Phase 3: Campaign Execution
-
-```python
-# Start an encounter
-response = await agent.process_message("The party enters the mountain cave...")
-```
-
-## LLM Prompts
-
-### Response Generation
-
-```text
-Context:
-{MEMORY_CONTEXT}
-
-Current Phase: {PHASE}
-Previous Messages: {CONVERSATION_HISTORY}
-
-User Message: {USER_INPUT}
-
-Generate a response that:
-1. Uses relevant information from memory
-2. Maintains consistency with previous interactions
-3. Advances the current phase appropriately
-4. Identifies any new information to be stored
-
-Response should be in-character and appropriate for the current phase.
-```
-
-### Memory Reflection
-
-```text
-Current Memory State:
-{MEMORY_JSON}
-
-Recent Interactions:
-{RECENT_MESSAGES}
-
-Analyze the current memory state and recent interactions to:
-1. Identify important patterns or relationships
-2. Suggest memory structure optimizations
-3. Highlight key information for future reference
-
-Return analysis and suggested updates in JSON format.
+asyncio.run(main())
 ```
 
 ## Best Practices
+- **Let the MemoryManager handle all memory logic**: The agent should not manipulate memory structure or perform reflection/compression directly.
+- **Use domain configuration for specialization**: Adapt the agent to new domains by providing a new config file.
+- **Leverage RAG and semantic search**: The agent automatically benefits from RAG-enabled memory—no special logic required.
+- **Keep the agent stateless regarding memory**: All persistent state is managed by the memory manager.
 
-1. **Context Management**
-   - Keep relevant context in memory
-   - Prune outdated information
-   - Maintain conversation coherence
+## Extensibility
+- **Add new domains** by providing a new config file.
+- **Swap LLM providers** by changing the LLM service instantiation.
+- **Extend memory or RAG** by subclassing the relevant manager.
 
-2. **Response Generation**
-   - Ensure consistency with memory
-   - Maintain appropriate tone/style
-   - Handle edge cases gracefully
-
-3. **Memory Updates**
-   - Validate new information
-   - Resolve conflicts with existing data
-   - Maintain knowledge graph integrity
-
-## Future Enhancements
-
-1. **Advanced Dialogue Management**
-   - Multi-turn conversation planning
-   - Goal-oriented dialogue strategies
-   - Dynamic context prioritization
-
-2. **Enhanced Learning**
-   - Active learning from interactions
-   - Pattern recognition in conversations
-   - Automatic knowledge base expansion
-
-3. **Performance Optimization**
-   - Selective memory inclusion
-   - Response caching
-   - Parallel processing for reflection
+## Further Reading
+- See the main project README for architectural details and advanced usage.
+- See `examples/rag_enhanced_memory_example_simple.py` for a canonical RAG workflow.

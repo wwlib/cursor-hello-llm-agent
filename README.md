@@ -1,122 +1,89 @@
-# LLM-Driven Agent with Session Memory
+# LLM-Driven Agent with RAG-Enabled Session Memory
 
-(overview written by Cursor Agent using claude-3.7-sonnet)
 
-(This project has been vibe-coded using Cursor)
+This project is a modern, extensible framework for building domain-agnostic LLM-powered agents with persistent, semantically searchable memory. The system supports Retrieval Augmented Generation (RAG), segment-level embeddings, and robust memory compression, making it suitable for complex, long-running conversational applications.
 
-(The most recent vibe-coding history is in the .specstory directory. Earlier history is in the cursor-notes directory)
+Important: This project has been "vibe-coded" using Cursor as a way to get familiar with agent-assisted development. All of the agent interactions have been preserved in `/cursor-notes` (intially) and now going forward in `/.specstory` as markdown transcripts.
 
-(The following is a Summary of Phase 1 - see README-phase-2.md for Phase 2 details)
+This README contains a description of the current state of the project. For historical details, see:
+- cursor-notes (contains the original cursor instructions and .specstory files)
+- [README-phase-2.md](README-phase-2.md) (phase 2 development notes)
+- [README-phase-3.md](README-phase-3.md) (phase 3 development notes - this is the current phase)
 
-This is a sophisticated framework for building domain-agnostic LLM-powered agents with persistent memory capabilities. The system is designed to maintain context across multiple sessions, organize complex information dynamically, and adapt to different domains through configuration rather than code changes.
+---
+
+## Project Highlights
+
+- **RAG-Enabled Memory**: Memory is searchable using segment-level embeddings and semantic similarity (RAG). Relevant context is automatically retrieved and injected into LLM prompts for grounded, context-aware responses.
+- **Turn-Based, Importance-Filtered Compression**: Conversation history is compressed in user+agent turns, retaining only the most important segments (rated by the LLM) for efficient, scalable memory.
+- **Provider-Agnostic LLM Service**: Supports both local (Ollama) and cloud (OpenAI) LLMs, with per-call options for temperature, streaming, and embedding generation.
+- **Modular, Domain-Agnostic Agent**: The agent is phase-driven (INITIALIZATION, LEARNING, INTERACTION) and can be configured for any domain via external config files—no code changes required.
+- **Robust, Modern Test Suite**: Comprehensive tests for memory, agent, embeddings, RAG, and segmentation. Canonical, minimal RAG example included.
+- **Extensible and Maintainable**: All major components (memory, embeddings, RAG, agent) are modular and easily extended or replaced.
+
+---
 
 ## Core Architecture
 
-The project is structured around three main components:
-
 ### 1. Memory Management System
 
-At the heart of the system is a flexible, LLM-driven memory manager that uses a structured approach to organize and persist information:
+- **BaseMemoryManager**: Abstract base class for all memory managers (handles persistence, interface, and GUIDs).
+- **MemoryManager**: Main implementation. Features:
+  - **Static Memory**: Foundational, read-only knowledge (seeded at initialization).
+  - **Context**: Compressed, topic-organized, high-importance information from past conversations.
+  - **Conversation History**: Full record of all interactions, with each entry digested into LLM-rated segments (importance, topics, type).
+  - **Segment-Level Embeddings**: Only the most meaningful segments are embedded and indexed for semantic search.
+  - **Automatic, Turn-Based Compression**: After a configurable number of turns, memory is compressed to retain only important segments, preserving dialogue flow and traceability.
+- **SimpleMemoryManager**: Flat, non-transforming memory for testing and simple use cases.
 
-- **BaseMemoryManager**: An abstract base class that defines core persistence functionality and the interface for all memory operations.
+### 2. Embeddings and RAG Layer
 
-- **MemoryManager**: The primary implementation that uses LLM to dynamically organize information with a sophisticated memory structure:
-  - **Static Memory**: Read-only foundational knowledge about the domain
-  - **Working Memory**: Dynamic information learned during interactions
-  - **Knowledge Graph**: Explicit relationships between entities
-  - **Conversation History**: Complete record of all interactions
-  - **Metadata**: System information like timestamps and version
+- **EmbeddingsManager**: Handles all embedding generation, storage (JSONL), and semantic search. Embeddings are generated for each LLM-rated segment, not just full entries.
+- **RAGManager**: Retrieves semantically relevant context for queries using the EmbeddingsManager. Injects this context into LLM prompts for Retrieval Augmented Generation (RAG).
+- **Canonical Example**: See `examples/rag_enhanced_memory_example_simple.py` for a minimal, end-to-end RAG workflow.
 
-- **SimpleMemoryManager**: A straightforward implementation for testing and simpler use cases that maintains a flat memory structure.
+### 3. LLM Service Layer
 
-The memory manager uses prompt templates to instruct the LLM on how to structure, query, and update memory. Rather than hard-coding schemas, it allows the LLM to determine the most appropriate way to organize information based on the context.
+- **Provider-Agnostic**: Supports Ollama (local) and OpenAI (cloud) via a common interface.
+- **Configurable**: Per-call options for temperature, streaming, and embedding model.
+- **Debug Logging**: Optional, with scoped output and file/console support.
 
-### 2. LLM Service Layer
+### 4. Agent Layer
 
-The system abstracts interactions with language models through a service layer:
+- **Phase-Driven**: The agent manages conversation flow through INITIALIZATION, LEARNING, and INTERACTION phases.
+- **Delegation**: All memory operations (creation, update, compression, retrieval) are handled by the memory manager. The agent is domain-agnostic and stateless regarding memory.
+- **Domain Configuration**: Behavior is controlled via external config files (see `examples/domain_configs.py`).
 
-- **OllamaService**: Connects to local LLM deployments via Ollama
-- Supports both streaming and non-streaming responses
-- Includes configurable debug logging for troubleshooting
-
-### 3. Agent Layer
-
-The agent orchestrates the interaction flow, manages conversation phases, and coordinates between the user and memory:
-
-- **Agent**: Manages the conversation flow through distinct phases:
-  - **INITIALIZATION**: Setting up initial domain knowledge
-  - **LEARNING**: Acquiring new domain information
-  - **INTERACTION**: Regular conversation
-- Automatically triggers memory reflection after a configurable number of messages
-- Maintains phase-specific handling of user inputs
+---
 
 ## Key Features
 
-1. **Domain Agnosticism**: The system can be adapted to different domains through configuration files rather than code changes.
+- **RAG-Enhanced Memory Search**: Retrieve contextually relevant information from any point in conversation history using semantic similarity.
+- **Segment-Only Embeddings**: Only the most important, LLM-rated segments are embedded and indexed, improving retrieval quality and efficiency.
+- **Automatic, Turn-Based Memory Compression**: Keeps memory size manageable while preserving important context and dialogue flow.
+- **Separation of Concerns**: Agent, memory, embeddings, and RAG are fully decoupled and independently testable.
+- **Persistent, Traceable Storage**: All memory and conversation history is saved to disk with GUIDs for traceability.
+- **Robust Error Handling**: Defensive programming throughout, with automatic backups and recovery.
+- **Modern Test Suite**: Tests for all major components, including integration with real LLM endpoints.
 
-2. **Persistent Memory**: All interactions are saved to disk, allowing conversations to continue across multiple sessions.
-
-3. **Memory Reflection**: The system periodically reviews conversation history to identify and extract important information into the structured working memory.
-
-4. **Flexible Knowledge Representation**: The memory structure is adaptable, allowing the LLM to determine the optimal organization for different domains.
-
-5. **Robust Error Handling**: The system includes mechanisms for graceful error handling, including memory backups and recovery.
-
-6. **Debug Logging**: Comprehensive logging of all LLM interactions with scoped outputs for easier debugging.
-
-## Implementation Details
-
-- **Prompt Engineering**: The system uses carefully crafted prompt templates to instruct the LLM on how to structure, query, and update memory.
-
-- **JSON Persistence**: Memory is stored in JSON format with automatic backups created on each save operation.
-
-- **Domain Configurations**: Different domains (like D&D campaigns or user story generation) are defined through configuration objects that include schema suggestions and domain-specific prompts.
-
-- **Conversation History Management**: All interactions are tracked and used for both direct responses and periodic memory reflection.
+---
 
 ## Example Use Cases
 
-The repository includes examples demonstrating the system's versatility:
+- **D&D Campaign Management**: Create and manage a virtual campaign world, with persistent memory and semantic search.
+- **User Story Generation**: Assist in requirements gathering and feature planning for software projects.
+- **RAG-Enhanced Q&A**: Retrieve and use relevant historical context for any domain.
+- **Basic Memory Operations**: Demonstrate direct memory creation, querying, and compression.
 
-1. **D&D Campaign Management**: Creating and managing a virtual D&D campaign world, including locations, characters, and plot elements.
-
-2. **User Story Generation**: Assisting in requirements gathering and feature planning for software projects.
-
-3. **Basic Memory Operations**: Demonstrating direct memory creation, querying, and reflection processes.
-
-The framework is set up to be easily extended to new domains by providing appropriate domain configurations, without needing to modify the core code.
-
-## Technical Implementation
-
-The project uses modern Python patterns including abstract base classes, typed interfaces, and modular design. It has a proper package structure with pyproject.toml for installation and dependencies. The code leverages asyncio for efficient handling of LLM operations and includes comprehensive error handling throughout.
-
-The memory system demonstrates a sophisticated approach to knowledge management, using the LLM itself to determine the best way to structure and organize information rather than hard-coding schemas, which makes it highly adaptable to different domains and use cases.
-
+---
 
 ## Setup and Usage
 
-Development and testing has been done using ollama running either on a local machine or on the local LAN. The usage examples instantiate the OllamaService like:
+### Prerequisites
+- Python 3.8+
+- Ollama (for local LLM/embedding models) or OpenAI API key
 
-```python
-    llm_service = OllamaService({
-        "base_url": "http://localhost:11434",
-        "model": "llama3", // gemma3
-        "temperature": 0.7,
-        "stream": False,
-        "debug": True,
-        "debug_file": "agent_debug.log",
-        "debug_scope": "agent_example",
-        "console_output": False
-    })
-```
-
-
-## Usage
-
-Start ollama and have it serve a `llama3` model (or similar)
-
-Python setup
-
+### Installation
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
@@ -125,59 +92,72 @@ pip install -e .
 pip install -r requirements.txt
 ```
 
-Note: `The project is set up with a modern Python packaging structure using pyproject.toml, but there are a couple of things we need to do to install it correctly:`
-
+### LLM Service Configuration
+Example Ollama setup:
+```python
+from src.ai.llm_ollama import OllamaService
+llm_service = OllamaService({
+    "base_url": "http://localhost:11434",
+    "model": "gemma3",  # or llama3, etc.
+    "temperature": 0.7,
+    "stream": False,
+    "debug": True,
+    "debug_file": "agent_debug.log",
+    "debug_scope": "agent_example",
+    "console_output": False
+})
 ```
-First, we need to install the build dependencies
-Then we can install the project in editable mode
-Let me help you with the correct installation steps. I'll propose the commands to run:
-pip install --upgrade pip setuptools wheel
-wheel
-```
 
-Note: `Now that we have the build dependencies installed, let's install the project in editable mode:`
-`pip install -e .`
-
-If necessary...
-
+### Running Examples
 ```bash
-python3 -m pip install --upgrade pip
-```
+# Canonical RAG Example (recommended starting point)
+OLLAMA_BASE_URL=http://localhost:11434 python examples/rag_enhanced_memory_example_simple.py
 
-Example usage:
-
-```bash
-# D&D Campaign Example - usinf the default, LLM-driven "standard" MemoryManager
+# D&D Campaign Example (standard memory manager)
 python examples/agent_usage_example.py
-OLLAMA_BASE_URL=http://ollama-ip-address:11434 python examples/call_ollama_to_generate_embeddings.py
-OLLAMA_BASE_URL=http://192.168.1.173:11434 python examples/call_ollama_to_generate_embeddings.py
 
-# Test Ollama
-OLLAMA_BASE_URL=http://ollama-ip-address:11434 python examples/call_ollama.py
-OLLAMA_BASE_URL=http://192.168.1.173:11434 python examples/call_ollama.py
-
-# Test Ollama Embeddings
-OLLAMA_BASE_URL=http://ollama-ip-address:11434 python examples/call_ollama_to_generate_embeddings.py
-OLLAMA_BASE_URL=http://192.168.1.173:11434 python examples/call_ollama_to_generate_embeddings.py
-
-# Test MemoryManager
-DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_LLM_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large pytest tests/memory_manager/test_memory_manager_integration.py -v -s
-
-# Test Data Preprocessor
-DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_LLM_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large pytest tests/memory_manager/test_data_preprocessor_integration.py -v -s
-
-# D&D Campaign Example - using the simple memory manager
+# D&D Campaign Example (simple memory manager)
 python examples/agent_usage_example.py --type simple
 
 # User Story Generation Example
 python examples/user_story_example.py
 
+# Embeddings Manager Example
+OLLAMA_BASE_URL=http://localhost:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/embeddings_manager_example.py
+
 # Memory Manager Example
 python examples/memory_manager_usage_example.py
-
-# Embedding Manager Example
-OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large  python examples/embeddings_manager_example.py
-
-# RAG Manager Example
-OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/rag_enhanced_memory_example.py
 ```
+
+### Running Tests
+```bash
+pytest tests/ -v -s
+```
+
+---
+
+## Extensibility & Modularity
+- **Add new domains** by providing a new config file—no code changes required.
+- **Swap LLM providers** by changing the LLM service instantiation.
+- **Extend memory, embeddings, or RAG** by subclassing the relevant manager.
+- **All components are independently testable and replaceable.**
+
+---
+
+## Further Reading & Development History
+
+
+## Component Documentation
+- [Agent Service](src/agent/README-agent.md): Phase-driven conversational agent design
+- [LLM Service](src/ai/README-ai.md): Provider-agnostic LLM interface
+- [Memory Manager](src/memory/README-memory-manager.md): RAG-enabled memory system
+
+- [README-phase-3.md](README-phase-3.md): Notes about the current phase of development.
+- [README-phase-2.md](README-phase-2.md): Detailed development notes and architectural evolution.
+- `cursor-notes/`, `.specstory/`: Historical design and implementation records.
+
+---
+
+## Acknowledgements
+- Built with Cursor, Ollama, and OpenAI.
+- Inspired by best practices in LLM agent and RAG system design.

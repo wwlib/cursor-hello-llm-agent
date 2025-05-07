@@ -1,266 +1,118 @@
 # Memory Manager for LLM-Driven Agent
 
-A flexible, LLM-driven approach to managing structured data and knowledge graphs for conversational agents.
+A modern, LLM-driven memory system for conversational agents, supporting segment-level embeddings, RAG (Retrieval Augmented Generation), and robust, scalable memory compression.
 
 ## Overview
 
-The Memory Manager uses LLM prompts to structure, query, and update memory without imposing predefined data schemas. Instead of hard-coding data structures, it allows the LLM to determine the most appropriate way to organize information based on the context and requirements.
+The Memory Manager organizes, compresses, and retrieves conversational memory using LLM prompts and segment-level embeddings. It is designed to:
+- Maintain context across long-running sessions
+- Support semantic search and RAG
+- Adapt to any domain via configuration, not code changes
+- Be provider-agnostic (works with any LLM/embedding backend)
 
-### Key Features
+## Key Features
 
-- **Dynamic Data Structuring**: LLM determines optimal data organization
-- **Flexible Knowledge Representation**: Adapts to any domain or use case
-- **Prompt-Driven Operations**: All memory operations handled via LLM prompts
-- **Persistent Storage**: Automatic JSON-based file storage
-- **Session Management**: Maintains context across conversations
+- **Segment-Based Memory**: All conversation entries are digested into LLM-rated segments (importance, topics, type).
+- **RAG-Enabled**: Segment-level embeddings power semantic search and Retrieval Augmented Generation (RAG).
+- **Turn-Based Compression**: Conversation history is compressed in user+agent turns, retaining only the most important segments.
+- **Persistent, Traceable Storage**: All memory and conversation history is saved to disk with GUIDs for traceability.
+- **Prompt-Driven, Provider-Agnostic**: All memory operations are handled via LLM prompts, and the system is decoupled from any specific LLM provider.
 
-## Architecture
+## Memory Structure
 
-### Components
+Memory is organized as a dictionary with the following main sections:
 
-```
-memory/
-├── memory_manager.py     # Core memory management functionality
-├── README.md            # This documentation
-└── prompts/            # LLM prompt templates
-    ├── create.txt      # Initial memory structure prompt
-    ├── query.txt       # Memory query prompt
-    └── update.txt      # Memory update prompt
-```
+- `static_memory`: Foundational, unchanging knowledge about the domain (markdown/text, not JSON).
+- `context`: Compressed, topic-organized, high-importance information from past conversations (used for efficient retrieval and prompt context).
+- `conversation_history`: Full record of all interactions, with each entry digested into LLM-rated segments (importance, topics, type).
+- `metadata`: System information (timestamps, version, domain, etc.).
 
-### Memory Structure
-
-The memory is stored as a JSON object with three main sections:
-
+Example (simplified):
 ```json
 {
-    "structured_data": {
-        // LLM-defined structure for facts and details
+  "static_memory": "...markdown/text...",
+  "context": [
+    {"text": "...compressed summary...", "guids": ["..."]}
+  ],
+  "conversation_history": [
+    {
+      "guid": "...",
+      "role": "user",
+      "content": "...",
+      "digest": {
+        "rated_segments": [
+          {"text": "...", "importance": 5, "topics": ["magic"], "type": "information"},
+          ...
+        ]
+      },
+      "timestamp": "..."
     },
-    "knowledge_graph": {
-        // LLM-defined structure for relationships
-    },
-    "metadata": {
-        "categories": [],
-        "timestamp": "",
-        "version": "1.0",
-        "created_at": "",
-        "last_updated": ""
-    }
+    ...
+  ],
+  "metadata": {"created_at": "...", "updated_at": "...", "version": "2.0.0", ...}
 }
 ```
 
-## Usage
+## Embeddings and RAG
 
-### Initialization
+- **Segment-Level Embeddings**: Embeddings are generated for each LLM-rated segment (not just full entries).
+- **EmbeddingsManager**: Handles embedding generation, storage (JSONL), and semantic search.
+- **RAGManager**: Retrieves semantically relevant context for queries, which is injected into LLM prompts for Retrieval Augmented Generation (RAG).
 
-```python
-from memory.memory_manager import MemoryManager
-from ai.llm import LLMService
+## Turn-Based, Importance-Filtered Compression
 
-llm_service = LLMService()
-memory_manager = MemoryManager(llm_service)
-```
+- Conversation history is compressed in user+agent turns.
+- Only segments rated above a configurable importance threshold are retained.
+- Compression is automatic and transparent to the agent.
 
-### Creating Initial Memory
-
-```python
-# Provide initial data
-initial_data = """
-[Your campaign or domain data here]
-"""
-
-# LLM will structure this into appropriate memory format
-memory_manager.create_initial_memory(initial_data)
-```
-
-### Accessing Memory
+## Usage Example
 
 ```python
-# Get full memory context
-context = memory_manager.get_memory_context()
+from src.memory.memory_manager import MemoryManager
+from src.ai.llm_ollama import OllamaService
+
+# Initialize LLM and memory manager
+llm_service = OllamaService({
+    "base_url": "http://localhost:11434",
+    "model": "gemma3",
+    "temperature": 0.7
+})
+memory_manager = MemoryManager(llm_service=llm_service)
+
+# Create initial memory
+memory_manager.create_initial_memory("The world is a flat world with a single continent...")
+
+# Add a conversation entry (user message)
+user_entry = {
+    "role": "user",
+    "content": "Tell me about the campaign world."
+}
+memory_manager.add_conversation_entry(user_entry)
+
+# Query memory (RAG context is used automatically)
+response = memory_manager.query_memory({"query": "What are the most important magical artifacts?"})
+print(response["response"])
 ```
 
-## LLM Prompts
+## Prompt-Driven, Provider-Agnostic Design
 
-### Create Memory Prompt
+- All memory operations (creation, update, compression, retrieval) are handled via LLM prompts.
+- The system is decoupled from any specific LLM provider (Ollama, OpenAI, etc.).
+- Per-call options (temperature, model, etc.) are supported.
 
-Used to establish initial memory structure:
-
-```text
-You are a memory management system. Your task is to analyze the provided information 
-and create two organized data structures:
-
-1. A structured_data JSON object to store key facts and details
-2. A knowledge_graph JSON object to map relationships between entities
-
-Input Data:
-{INPUT_DATA}
-
-Requirements:
-- Structure the data in a way that will be useful for the specific domain
-- Include all relevant information from the input
-- Create meaningful relationships in the knowledge graph
-- Use consistent naming and structure that can be extended in future updates
-- Include metadata about data categories to help with future queries
-
-Return only a valid JSON object...
-```
-
-### Query Memory Prompt (Planned)
-
-Used to retrieve relevant information:
-
-```text
-Given this memory context: {MEMORY_JSON}
-And this query: {QUERY}
-Provide a response using the stored information.
-```
-
-### Update Memory Prompt (Planned)
-
-Used to incorporate new information:
-
-```text
-Given this memory context: {MEMORY_JSON}
-And this new information: {NEW_DATA}
-Return updated JSON structures that incorporate the new information.
-```
-
-## Implementation Approach
-
-1. **Initial Memory Creation**
-   - Receive raw input data
-   - Use LLM to structure into JSON format
-   - Store structured data and relationships
-   - Maintain metadata about the structure
-
-2. **Memory Queries**
-   - Include full memory context in prompt
-   - Let LLM determine relevant information
-   - Return formatted response
-
-3. **Memory Updates**
-   - Include current memory and new data in prompt
-   - LLM determines how to merge/update information
-   - Save updated structure
+## Extensibility
+- **Add new domains** by providing a new config file—no code changes required.
+- **Swap LLM providers** by changing the LLM service instantiation.
+- **Extend memory, embeddings, or RAG** by subclassing the relevant manager.
+- All components are independently testable and replaceable.
 
 ## Best Practices
+- Let the MemoryManager handle all memory logic; do not manipulate memory structure directly.
+- Use domain configuration for specialization.
+- Leverage RAG and semantic search for contextually relevant retrieval.
+- Keep the agent stateless regarding memory; all persistent state is managed by the memory manager.
 
-1. **Prompt Design**
-   - Be explicit about expected output format
-   - Include examples where helpful
-   - Specify requirements clearly
-
-2. **Error Handling**
-   - Validate LLM responses
-   - Handle JSON parsing errors
-   - Maintain data consistency
-
-3. **Performance**
-   - Only include relevant context in prompts
-   - Cache frequently accessed data
-   - Optimize file I/O operations
-
-## Future Enhancements
-
-1. **Memory Pruning**
-   - LLM-driven relevance assessment
-   - Automatic cleanup of outdated information
-
-2. **Version Control**
-   - Track memory changes over time
-   - Ability to rollback to previous states
-
-3. **Multi-Session Support**
-   - Handle multiple concurrent conversations
-   - Session isolation and management
-
-## Proposed memory_manager.py - draft
-
-```python
-from typing import Any, Dict, Optional
-import json
-import os
-from datetime import datetime
-
-class MemoryManager:
-    def __init__(self, llm_service, memory_file: str = "memory.json"):
-        self.memory_file = memory_file
-        self.llm = llm_service
-        self.memory: Dict[str, Any] = {}
-        self._load_memory()
-
-    def _load_memory(self) -> None:
-        """Load memory from JSON file if it exists"""
-        if os.path.exists(self.memory_file):
-            with open(self.memory_file, 'r') as f:
-                self.memory = json.load(f)
-
-    def save_memory(self) -> None:
-        """Save current memory state to JSON file"""
-        with open(self.memory_file, 'w') as f:
-            json.dump(self.memory, f, indent=2)
-
-    def create_initial_memory(self, input_data: str) -> None:
-        """Use LLM to structure initial input data into memory format"""
-        create_memory_prompt = """
-You are a memory management system. Your task is to analyze the provided campaign information and create two organized data structures:
-
-1. A structured_data JSON object to store key facts and details
-2. A knowledge_graph JSON object to map relationships between entities
-
-Input Data:
-{INPUT_DATA}
-
-Requirements:
-- Structure the data in a way that will be useful for a D&D campaign management system
-- Include all relevant information from the input
-- Create meaningful relationships in the knowledge graph
-- Use consistent naming and structure that can be extended in future updates
-- Include metadata about data categories to help with future queries
-
-Return only a valid JSON object with this structure:
-{
-    "structured_data": {
-        // Your structured organization of the facts and details
-    },
-    "knowledge_graph": {
-        // Your graph of relationships between entities
-    },
-    "metadata": {
-        "categories": [],
-        "timestamp": "",
-        "version": "1.0"
-    }
-}
-
-Important: Return ONLY the JSON object, with no additional explanation or text."""
-
-        # Get structured memory from LLM
-        prompt = create_memory_prompt.replace("{INPUT_DATA}", input_data)
-        try:
-            llm_response = self.llm.generate(prompt)
-            memory_data = json.loads(llm_response)
-            
-            # Add system metadata
-            memory_data["metadata"]["created_at"] = datetime.now().isoformat()
-            memory_data["metadata"]["last_updated"] = datetime.now().isoformat()
-            
-            self.memory = memory_data
-            self.save_memory()
-            return True
-        except (json.JSONDecodeError, Exception) as e:
-            print(f"Error creating memory structure: {str(e)}")
-            return False
-
-    def get_memory_context(self) -> Dict[str, Any]:
-        """Return the entire memory state"""
-        return self.memory
-
-    def clear_memory(self) -> None:
-        """Clear all stored memory"""
-        self.memory = {}
-        if os.path.exists(self.memory_file):
-            os.remove(self.memory_file)
-```
+## Further Reading
+- See the main project README for architectural details and advanced usage.
+- See `examples/rag_enhanced_memory_example_simple.py` for a canonical RAG workflow.
+- See `src/memory/memory_manager.py` for implementation details.
