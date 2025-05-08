@@ -59,24 +59,24 @@ def print_memory_state(memory_manager, title="Current Memory State"):
         
     # Print static memory if available
     if "static_memory" in memory_context:
-        print("\nStatic Memory (Read-Only):")
-        print("-" * 30)
+        # print("\nStatic Memory (Read-Only):")
+        # print("-" * 30)
         static_mem = memory_context["static_memory"]
-        if isinstance(static_mem, str):
-            # New markdown format
-            print(static_mem)
+        # if isinstance(static_mem, str):
+        #     # New markdown format
+        #     print(static_mem)
     else:
         print("No static memory")
     
     # Print working memory if available
-    if "working_memory" in memory_context:
-        print("\nWorking Memory:")
-        print("-" * 30)
-        working_mem = memory_context["working_memory"]
-        print("\nStructured Data:")
-        print(json.dumps(working_mem.get("structured_data", {}), indent=2))
-        print("\nKnowledge Graph:")
-        print(json.dumps(working_mem.get("knowledge_graph", {}), indent=2))
+    # if "working_memory" in memory_context:
+    #     print("\nWorking Memory:")
+    #     print("-" * 30)
+    #     working_mem = memory_context["working_memory"]
+    #     print("\nStructured Data:")
+    #     print(json.dumps(working_mem.get("structured_data", {}), indent=2))
+    #     print("\nKnowledge Graph:")
+    #     print(json.dumps(working_mem.get("knowledge_graph", {}), indent=2))
     
     # Print metadata if available
     if "metadata" in memory_context:
@@ -419,17 +419,17 @@ async def initialize_campaign(agent, memory_manager):
         print("Campaign already initialized, using existing memory")
         
         # Display recent conversation history
-        messages = memory_context["conversation_history"]
-        if messages:
-            print("\nRecent Conversation History:")
-            print("-" * 30)
-            # Show last 3 messages
-            for msg in messages[-3:]:
-                role = msg.get("role", "unknown")
-                content = msg.get("content", "")
-                timestamp = msg.get("timestamp", "")
-                print(f"\n[{role.upper()}] {timestamp}")
-                print(f"{content}")
+        # messages = memory_context["conversation_history"]
+        # if messages:
+        #     print("\nRecent Conversation History:")
+        #     print("-" * 30)
+        #     # Show last 3 messages
+        #     for msg in messages[-3:]:
+        #         role = msg.get("role", "unknown")
+        #         content = msg.get("content", "")
+        #         timestamp = msg.get("timestamp", "")
+        #         print(f"\n[{role.upper()}] {timestamp}")
+        #         print(f"{content}")
         
         # Ensure we're in INTERACTION phase
         if agent.get_current_phase() == AgentPhase.INITIALIZATION:
@@ -461,10 +461,23 @@ async def interactive_session(agent, memory_manager):
     
     while True:
         try:
+            # Check for pending operations before getting user input
+            if agent.has_pending_operations():
+                pending = agent.memory.get_pending_operations()
+                print(f"\nWaiting for background operations to complete...")
+                print(f"Pending digests: {pending['pending_digests']}")
+                print(f"Pending embeddings: {pending['pending_embeddings']}")
+                await agent.wait_for_pending_operations()
+                print("Background operations completed.")
+            
             user_input = input("\nYou: ").strip().lower()
             
             if user_input == 'quit' or user_input == 'exit' or user_input == 'q':
                 print("\nEnding session...")
+                # Wait for any pending operations before exiting
+                if agent.has_pending_operations():
+                    print("Waiting for background operations to complete before exiting...")
+                    await agent.wait_for_pending_operations()
                 break
             elif user_input == 'help':
                 print_help()
@@ -493,8 +506,15 @@ async def interactive_session(agent, memory_manager):
             response = await agent.process_message(user_input)
             print(f"\nAgent: {response}")
             
+            # Add a small delay to allow background processing to start
+            await asyncio.sleep(0.1)
+            
         except KeyboardInterrupt:
             print("\nSession interrupted by user.")
+            # Wait for any pending operations before exiting
+            if agent.has_pending_operations():
+                print("Waiting for background operations to complete before exiting...")
+                await agent.wait_for_pending_operations()
             break
         except Exception as e:
             print(f"\nError during interaction: {str(e)}")

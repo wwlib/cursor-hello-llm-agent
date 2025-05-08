@@ -76,15 +76,17 @@ class DigestGenerator:
             else:
                 segments_to_use = self.content_segmenter.segment_content(content)
             
-            print(f"\n\ngenerate_digest: Segments:")
-            for segment in segments_to_use:
-                print(segment)
-            print(f"\n\n")
+            # Print number of segments generated
+            print(f"Generated {len(segments_to_use)} segments")
+            # print(f"\n\ngenerate_digest: Segments:")
+            # for segment in segments_to_use:
+            #     print(segment)
+            # print(f"\n\n")
 
-            print(f"\n\ngenerate_digest: Memory state: static_memory")
-            static_memory = "" if memory_state is None else memory_state.get("static_memory", "")
-            print(static_memory)
-            print(f"\n\n")
+            # print(f"\n\ngenerate_digest: Memory state: static_memory")
+            # static_memory = "" if memory_state is None else memory_state.get("static_memory", "")
+            # print(static_memory)
+            # print(f"\n\n")
             
             # Step 2: Rate segments and assign topics
             rated_segments = self._rate_segments(segments_to_use, memory_state)

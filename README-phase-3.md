@@ -11,8 +11,7 @@
 
 ## TODO
 
-- Make the logs more useful/readable
-- Write all test log data to /logs so it can be easily cleaned-up
+- Have the digest and embedding processes hapen async - i.e. do not wait for the to finish
 - Improve the way topics are assigned to digest segments
 - Agent Improvements - RAG Integration
   - RAG should prioritize semantic search results using the segment classifications

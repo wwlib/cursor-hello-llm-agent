@@ -2,6 +2,7 @@ from enum import Enum
 from typing import Dict, List, Optional
 import json
 from datetime import datetime
+import asyncio
 
 class AgentPhase(Enum):
     INITIALIZATION = "INITIALIZATION"
@@ -14,7 +15,7 @@ class Agent:
         
         Args:
             llm_service: Service for LLM operations
-            memory_manager: Service for memory operations
+            memory_manager: Service for memory operations (should be AsyncMemoryManager)
             domain_name: Name of the domain (e.g., "dnd_campaign", "user_stories")
         """
         self.llm = llm_service
@@ -23,6 +24,9 @@ class Agent:
         self.current_phase = AgentPhase.INITIALIZATION
         print(f"Agent initialized for domain: {domain_name}")
         print(f"Memory management is handled transparently by the MemoryManager")
+        
+        # Track pending operations
+        self._pending_operations = False
 
     def get_current_phase(self) -> AgentPhase:
         """Get the current agent phase"""
@@ -32,11 +36,19 @@ class Agent:
         """Get the current conversation history from memory"""
         memory_context = self.memory.get_memory_context()
         return memory_context.get("conversation_history", [])
+        
+    def has_pending_operations(self) -> bool:
+        """Check if there are any pending async operations."""
+        if hasattr(self.memory, 'get_pending_operations'):
+            pending = self.memory.get_pending_operations()
+            return pending["pending_digests"] > 0 or pending["pending_embeddings"] > 0
+        return False
 
     async def process_message(self, message: str) -> str:
         """Process a user message and return a response.
         
         Memory management (compression, etc.) is automatically handled by the MemoryManager.
+        Digest generation and embeddings updates happen asynchronously.
         """
         try:
             # Create query context
@@ -106,3 +118,8 @@ class Agent:
         except Exception as e:
             print(f"Error learning information: {str(e)}")
             return False
+            
+    async def wait_for_pending_operations(self) -> None:
+        """Wait for all pending async operations to complete."""
+        if hasattr(self.memory, 'wait_for_pending_operations'):
+            await self.memory.wait_for_pending_operations()

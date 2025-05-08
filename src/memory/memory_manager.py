@@ -47,6 +47,7 @@ from .memory_compressor import MemoryCompressor
 from .data_preprocessor import DataPreprocessor
 from .embeddings_manager import EmbeddingsManager
 from .rag_manager import RAGManager
+import asyncio
 
 class MemoryManager(BaseMemoryManager):
     """LLM-driven memory manager implementation.
@@ -285,7 +286,7 @@ class MemoryManager(BaseMemoryManager):
             # Extract query text
             query = query_context.get("query", "")
 
-            # Add user message to history and trigger embedding/indexing
+            # Add user message to history immediately
             if query:
                 user_entry = {
                     "guid": str(uuid.uuid4()),
@@ -293,7 +294,12 @@ class MemoryManager(BaseMemoryManager):
                     "content": query,
                     "timestamp": datetime.now().isoformat()
                 }
-                self.add_conversation_entry(user_entry)
+                # Add to conversation history file and memory immediately
+                self.add_to_conversation_history(user_entry)
+                if "conversation_history" not in self.memory:
+                    self.memory["conversation_history"] = []
+                self.memory["conversation_history"].append(user_entry)
+                self.save_memory("add_user_entry")
             
             # Use concatenated initial segments for static memory in prompts
             static_memory_text = query_context.get("static_memory", "") or self._get_initial_segments_text() or self._format_static_memory_as_text()
@@ -338,29 +344,64 @@ class MemoryManager(BaseMemoryManager):
                 options={"temperature": 0.7}
             )
             
-            # Add agent response to history and trigger embedding/indexing
+            # Start background processing for user entry and agent response
+            if query:
+                # Start background processing for user entry
+                asyncio.create_task(self._process_entry_async(user_entry))
+            
+            # Create agent entry
             agent_entry = {
                 "guid": str(uuid.uuid4()),
                 "role": "agent",
                 "content": llm_response,
                 "timestamp": datetime.now().isoformat()
             }
-            self.add_conversation_entry(agent_entry)
-
-            # Save to persist memory updates
-            self.save_memory("query_memory")
+            
+            # Add agent response to history immediately
+            self.add_to_conversation_history(agent_entry)
+            if "conversation_history" not in self.memory:
+                self.memory["conversation_history"] = []
+            self.memory["conversation_history"].append(agent_entry)
+            self.save_memory("add_agent_entry")
+            
+            # Start background processing for agent entry
+            asyncio.create_task(self._process_entry_async(agent_entry))
             
             # Check if we should compress memory based on number of conversations
             conversation_entries = len(self.memory["conversation_history"])
             if conversation_entries > self.max_recent_conversation_entries:
-                print(f"Memory has {conversation_entries} conversations, compressing...")
-                self.update_memory({"operation": "update"})
+                print(f"Memory has {conversation_entries} conversations, scheduling compression...")
+                asyncio.create_task(self._compress_memory_async())
             
             return {"response": llm_response}
 
         except Exception as e:
             print(f"Error in query_memory: {str(e)}")
             return {"response": f"Error processing query: {str(e)}", "error": str(e)}
+            
+    async def _process_entry_async(self, entry: Dict[str, Any]) -> None:
+        """Process a conversation entry asynchronously (digest generation and embeddings)."""
+        try:
+            # Generate digest if not already present
+            if "digest" not in entry:
+                print(f"Generating digest for {entry['role']} entry...")
+                entry["digest"] = self.digest_generator.generate_digest(entry, self.memory)
+                self.save_memory("async_digest_generation")
+            
+            # Update embeddings
+            print(f"Updating embeddings for {entry['role']} entry...")
+            self.embeddings_manager.update_indices([entry])
+            
+        except Exception as e:
+            print(f"Error in async entry processing: {str(e)}")
+            
+    async def _compress_memory_async(self) -> None:
+        """Compress memory asynchronously."""
+        try:
+            print("Starting async memory compression...")
+            self._compress_conversation_history()
+        except Exception as e:
+            print(f"Error in async memory compression: {str(e)}")
 
     def _format_static_memory_as_text(self) -> str:
         """Format static memory as readable text."""
@@ -594,3 +635,117 @@ class MemoryManager(BaseMemoryManager):
         except Exception as e:
             print(f"Error updating memory with conversations: {str(e)}")
             return False
+
+class AsyncMemoryManager(MemoryManager):
+    """Asynchronous version of MemoryManager that handles digest generation and embeddings updates asynchronously."""
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._pending_digests = {}  # guid -> entry
+        self._pending_embeddings = set()  # set of guids
+        
+    async def add_conversation_entry(self, entry: Dict[str, Any]) -> bool:
+        """Add a conversation entry with asynchronous digest generation and embeddings update.
+        
+        Args:
+            entry: Dictionary containing the conversation entry:
+                  - guid: Optional unique identifier (will be generated if missing)
+                  - role: Role (e.g., "user", "agent", "system")
+                  - content: Entry content text
+                  - timestamp: Optional timestamp (will be generated if missing)
+                  
+        Returns:
+            bool: True if the entry was added successfully
+        """
+        try:
+            # Ensure basic fields exist
+            if "content" not in entry:
+                print("Error: Conversation entry must have 'content'")
+                return False
+                
+            if "role" not in entry:
+                print("Error: Conversation entry must have 'role'")
+                return False
+                
+            # Ensure GUID
+            if "guid" not in entry:
+                entry["guid"] = str(uuid.uuid4())
+                
+            # Ensure timestamp
+            if "timestamp" not in entry:
+                entry["timestamp"] = datetime.now().isoformat()
+            
+            # Add to conversation history file and memory immediately
+            self.add_to_conversation_history(entry)
+            
+            if "conversation_history" not in self.memory:
+                self.memory["conversation_history"] = []
+                
+            self.memory["conversation_history"].append(entry)
+            print(f"Added {entry['role']} entry to conversation history")
+            
+            # Save to persist memory updates
+            self.save_memory("add_conversation_entry")
+            
+            # Start async digest generation if not already present
+            if "digest" not in entry:
+                print(f"Starting async digest generation for {entry['role']} entry...")
+                self._pending_digests[entry["guid"]] = entry
+                asyncio.create_task(self._generate_digest_async(entry))
+            else:
+                # If digest exists, start embeddings update
+                self._pending_embeddings.add(entry["guid"])
+                asyncio.create_task(self._update_embeddings_async(entry))
+
+            return True
+            
+        except Exception as e:
+            print(f"Error adding conversation entry: {str(e)}")
+            return False
+    
+    async def _generate_digest_async(self, entry: Dict[str, Any]) -> None:
+        """Asynchronously generate digest for an entry."""
+        try:
+            # Generate digest
+            entry["digest"] = self.digest_generator.generate_digest(entry, self.memory)
+            
+            # Remove from pending digests
+            self._pending_digests.pop(entry["guid"], None)
+            
+            # Start embeddings update
+            self._pending_embeddings.add(entry["guid"])
+            await self._update_embeddings_async(entry)
+            
+            # Save memory to persist the digest
+            self.save_memory("async_digest_generation")
+            
+        except Exception as e:
+            print(f"Error in async digest generation: {str(e)}")
+    
+    async def _update_embeddings_async(self, entry: Dict[str, Any]) -> None:
+        """Asynchronously update embeddings for an entry."""
+        try:
+            # Update embeddings
+            self.embeddings_manager.update_indices([entry])
+            
+            # Remove from pending embeddings
+            self._pending_embeddings.discard(entry["guid"])
+            
+        except Exception as e:
+            print(f"Error in async embeddings update: {str(e)}")
+    
+    def get_pending_operations(self) -> Dict[str, Any]:
+        """Get information about pending async operations.
+        
+        Returns:
+            Dict with counts of pending digests and embeddings
+        """
+        return {
+            "pending_digests": len(self._pending_digests),
+            "pending_embeddings": len(self._pending_embeddings)
+        }
+    
+    async def wait_for_pending_operations(self) -> None:
+        """Wait for all pending async operations to complete."""
+        while self._pending_digests or self._pending_embeddings:
+            await asyncio.sleep(0.1)  # Small delay to prevent busy waiting
