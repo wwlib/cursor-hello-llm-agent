@@ -57,13 +57,25 @@ Current Situations:
 
 def test_data_preprocessor_integration():
     """Integration test for DataPreprocessor with Ollama LLM service."""
+    # Create logs directory structure
+    # logs_dir = os.path.join(project_root, "logs")
+    logs_dir = os.path.join(os.path.dirname(__file__), "logs")
+    guid = "data_preprocessor_test"
+    guid_logs_dir = os.path.join(logs_dir, guid)
+    os.makedirs(guid_logs_dir, exist_ok=True)
+    
+    # Create separate debug files for each service
+    general_debug_file = os.path.join(guid_logs_dir, "general.log")
+    digest_debug_file = os.path.join(guid_logs_dir, "digest.log")
+    embed_debug_file = os.path.join(guid_logs_dir, "embed.log")
+    
     llm_service = OllamaService({
         "base_url": OLLAMA_BASE_URL,
         "model": OLLAMA_LLM_MODEL,
         "temperature": 0,
         "stream": False,
         "debug": DEV_MODE,
-        "debug_file": str(DEV_TEMP_DIR / "data_preprocessor_integration.log"),
+        "debug_file": general_debug_file,
         "debug_scope": "test_data_preprocessor_integration",
         "console_output": DEV_MODE
     })

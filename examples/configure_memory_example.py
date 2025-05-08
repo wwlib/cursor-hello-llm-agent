@@ -5,6 +5,7 @@ import json
 import os
 from pathlib import Path
 import sys
+import uuid
 
 # Add the project root to the Python path
 project_root = str(Path(__file__).parent.parent)
@@ -22,12 +23,29 @@ def print_section_header(title):
     print(f"{'='*80}\n")
 
 async def main():
-    """Demonstrate configurable memory parameters"""
-    print_section_header("Configurable Memory Parameters Example")
+    """Demonstrate different memory configurations"""
+    print("\n=== Memory Configuration Example ===")
     
-    # Create a temporary directory for this example
-    memory_dir = os.path.join(project_root, "examples", "temp_memories")
-    os.makedirs(memory_dir, exist_ok=True)
+    # Create a temporary directory for memory storage
+    temp_dir = os.path.join(project_root, "temp_memory")
+    os.makedirs(temp_dir, exist_ok=True)
+    
+    # Create logs directory structure
+    logs_dir = os.path.join(project_root, "logs")
+    guid = str(uuid.uuid4())
+    guid_logs_dir = os.path.join(logs_dir, guid)
+    os.makedirs(guid_logs_dir, exist_ok=True)
+    print(f"Logs directory: {guid_logs_dir}")
+    
+    # Create separate debug files for each service within the GUID directory
+    general_debug_file = os.path.join(guid_logs_dir, "general.log")
+    digest_debug_file = os.path.join(guid_logs_dir, "digest.log")
+    embed_debug_file = os.path.join(guid_logs_dir, "embed.log")
+    
+    print(f"Debug log files:")
+    print(f"  General: {general_debug_file}")
+    print(f"  Digest: {digest_debug_file}")
+    print(f"  Embed: {embed_debug_file}")
     
     # Sample domain config
     domain_config = {
@@ -43,40 +61,68 @@ async def main():
     }
     
     try:
-        # Initialize LLM service
-        print("Initializing LLM service...")
-        llm_service = OllamaService({
-            "base_url": "http://192.168.1.173:11434",  # Update this to your Ollama server
+        # Initialize LLM services
+        print("Initializing LLM services...")
+        
+        # General query service
+        general_llm_service = OllamaService({
+            "base_url": "http://192.168.1.173:11434",
             "model": "gemma3",
             "temperature": 0.7,
-            "stream": False
+            "stream": False,
+            "debug": True,
+            "debug_file": general_debug_file,
+            "debug_scope": "memory_config_general"
+        })
+        
+        # Digest generation service
+        digest_llm_service = OllamaService({
+            "base_url": "http://192.168.1.173:11434",
+            "model": "gemma3",
+            "temperature": 0.7,
+            "stream": False,
+            "debug": True,
+            "debug_file": digest_debug_file,
+            "debug_scope": "memory_config_digest"
+        })
+        
+        # Initialize embeddings service
+        embeddings_llm_service = OllamaService({
+            "base_url": "http://192.168.1.173:11434",
+            "model": "mxbai-embed-large",
+            "debug": False,
+            "debug_file": embed_debug_file  # Still specify the file even though logging is disabled
         })
         
         # Create the first MemoryManager with default settings
         print("\nCreating MemoryManager with default settings...")
-        default_memory_file = os.path.join(memory_dir, "default_memory.json")
+        default_memory_file = os.path.join(temp_dir, "default_memory.json")
         default_memory = MemoryManager(
             memory_file=default_memory_file,
             domain_config=domain_config,
-            llm_service=llm_service
+            llm_service=general_llm_service,
+            digest_llm_service=digest_llm_service,
+            embeddings_llm_service=embeddings_llm_service
         )
         
         # Create the second MemoryManager with custom compression settings
         print("\nCreating MemoryManager with custom compression settings...")
-        custom_memory_file = os.path.join(memory_dir, "custom_memory.json")
+        custom_memory_file = os.path.join(temp_dir, "custom_memory.json")
         custom_memory = MemoryManager(
             memory_file=custom_memory_file,
             domain_config=domain_config,
-            llm_service=llm_service,
+            llm_service=general_llm_service,
+            digest_llm_service=digest_llm_service,
+            embeddings_llm_service=embeddings_llm_service,
             max_recent_conversation_entries=5,      # Keep only 5 recent conversations (default is 10)
             importance_threshold=4           # Only keep very important segments (default is 3)
         )
         
         # Initialize agent with default memory manager
-        default_agent = Agent(llm_service, default_memory, domain_name="notes")
+        default_agent = Agent(general_llm_service, default_memory, domain_name="notes")
         
         # Initialize agent with custom memory manager
-        custom_agent = Agent(llm_service, custom_memory, domain_name="notes")
+        custom_agent = Agent(general_llm_service, custom_memory, domain_name="notes")
         
         # Initialize memories
         print("\nInitializing memories with initial data...")
@@ -157,7 +203,7 @@ async def main():
         print(f"Custom conversation history file entries: {len(custom_conversations['entries'])}")
         
         print("\nThis demonstrates that even though the memory file may contain fewer conversations due to compression,")
-        print("all conversations are still preserved in the separate conversation history file.")
+        print("the conversation history file maintains a complete record of all interactions.")
         
     except Exception as e:
         print(f"Error during example: {str(e)}")

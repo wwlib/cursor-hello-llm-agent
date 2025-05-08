@@ -55,9 +55,9 @@ class MemoryManager(BaseMemoryManager):
     """
 
     def __init__(self, memory_file: str = "memory.json", domain_config: Optional[Dict[str, Any]] = None, 
-                 llm_service = None, memory_guid: str = None, max_recent_conversation_entries: int = 8, 
-                 importance_threshold: int = 3):
-        """Initialize the MemoryManager with an LLM service and domain configuration.
+                 llm_service = None, digest_llm_service = None, embeddings_llm_service = None, memory_guid: str = None, 
+                 max_recent_conversation_entries: int = 8, importance_threshold: int = 3):
+        """Initialize the MemoryManager with LLM service instances and domain configuration.
         
         Args:
             memory_file: Path to the JSON file for persistent storage
@@ -65,7 +65,9 @@ class MemoryManager(BaseMemoryManager):
                          - schema: Domain-specific entity types and properties
                          - relationships: Domain-specific relationship types
                          - prompts: Domain-specific prompt templates
-            llm_service: Service for LLM operations (required for this implementation)
+            llm_service: Service for general LLM operations (required)
+            digest_llm_service: Service for digest generation (optional, falls back to llm_service)
+            embeddings_llm_service: Service for embeddings/RAG (optional, falls back to llm_service)
             memory_guid: Optional GUID to identify this memory instance. If not provided, 
                        a new one will be generated or loaded from existing file.
             max_recent_conversation_entries: Maximum number of recent conversation entries to keep before compression
@@ -78,20 +80,22 @@ class MemoryManager(BaseMemoryManager):
         super().__init__(memory_file, domain_config, memory_guid)
         print(f"\nInitializing MemoryManager with file: {memory_file}")
         self.llm = llm_service
+        self.digest_llm = digest_llm_service or llm_service
+        self.embeddings_llm = embeddings_llm_service or llm_service
         self._load_templates()
         
-        # Initialize DigestGenerator
-        self.digest_generator = DigestGenerator(llm_service)
+        # Initialize DigestGenerator with dedicated LLM service
+        self.digest_generator = DigestGenerator(self.digest_llm)
         print("Initialized DigestGenerator")
         
-        # Initialize MemoryCompressor
-        self.memory_compressor = MemoryCompressor(llm_service, importance_threshold)
+        # Initialize MemoryCompressor (uses general LLM)
+        self.memory_compressor = MemoryCompressor(self.llm, importance_threshold)
         print("Initialized MemoryCompressor")
         
-        # Initialize EmbeddingsManager and RAGManager
+        # Initialize EmbeddingsManager and RAGManager with dedicated embeddings LLM service
         embeddings_file = os.path.splitext(memory_file)[0] + "_embeddings.jsonl"
-        self.embeddings_manager = EmbeddingsManager(embeddings_file, llm_service)
-        self.rag_manager = RAGManager(llm_service, self.embeddings_manager)
+        self.embeddings_manager = EmbeddingsManager(embeddings_file, self.embeddings_llm)
+        self.rag_manager = RAGManager(self.embeddings_llm, self.embeddings_manager)
         print("Initialized EmbeddingsManager and RAGManager")
         print(f"Embeddings file: {embeddings_file}")
         

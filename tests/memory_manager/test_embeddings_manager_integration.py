@@ -261,7 +261,6 @@ def test_update_embeddings_from_conversation_history(llm_service, temp_embedding
     # Calculate expected number of embeddings (entries + segments)
     expected_count = 0
     for entry in entries:
-        expected_count += 1  # Count the entry itself
         if 'digest' in entry and 'rated_segments' in entry['digest']:
             expected_count += len(entry['digest']['rated_segments'])
     

@@ -6,6 +6,7 @@ import uuid
 from datetime import datetime
 from pathlib import Path
 import sys
+import os
 
 # Add the project root to the Python path
 project_root = str(Path(__file__).parent.parent)
@@ -31,67 +32,116 @@ def print_memory_state(memory_manager, title="Current Memory State"):
     print(json.dumps(memory_context, indent=2))
 
 async def demonstrate_memory_creation():
-    """Demonstrate creating initial memory structure"""
-    print_section_header("Memory Creation Demo")
+    """Demonstrate creating and using memory with the MemoryManager"""
+    print("\n=== Memory Creation Example ===")
     
-    # Initialize services
-    llm_service = OllamaService({
+    # Create logs directory structure
+    logs_dir = os.path.join(project_root, "logs")
+    guid = str(uuid.uuid4())
+    guid_logs_dir = os.path.join(logs_dir, guid)
+    os.makedirs(guid_logs_dir, exist_ok=True)
+    print(f"Logs directory: {guid_logs_dir}")
+    
+    # Create separate debug files for each service within the GUID directory
+    general_debug_file = os.path.join(guid_logs_dir, "general.log")
+    digest_debug_file = os.path.join(guid_logs_dir, "digest.log")
+    embed_debug_file = os.path.join(guid_logs_dir, "embed.log")
+    
+    print(f"Debug log files:")
+    print(f"  General: {general_debug_file}")
+    print(f"  Digest: {digest_debug_file}")
+    print(f"  Embed: {embed_debug_file}")
+    
+    # Initialize LLM services
+    print("\nInitializing LLM services...")
+    
+    # General query service
+    general_llm_service = OllamaService({
         "base_url": "http://192.168.1.173:11434",
-        "model": "llama3",
+        "model": "gemma3",
         "temperature": 0.7,
         "stream": False,
         "debug": True,
-        "debug_file": "example_memory_debug.log",
-        "debug_scope": "memory_demo"
+        "debug_file": general_debug_file,
+        "debug_scope": "memory_example_general"
     })
     
-    # Create memory manager with test file and a specific GUID
-    demo_guid = str(uuid.uuid4())
-    print(f"Using predefined GUID for new memory: {demo_guid}")
+    # Digest generation service
+    digest_llm_service = OllamaService({
+        "base_url": "http://192.168.1.173:11434",
+        "model": "gemma3",
+        "temperature": 0.7,
+        "stream": False,
+        "debug": True,
+        "debug_file": digest_debug_file,
+        "debug_scope": "memory_example_digest"
+    })
     
+    # Initialize embeddings service
+    embeddings_llm_service = OllamaService({
+        "base_url": "http://192.168.1.173:11434",
+        "model": "mxbai-embed-large",
+        "debug": False,
+        "debug_file": embed_debug_file  # Still specify the file even though logging is disabled
+    })
+    
+    # Create memory manager
     memory_manager = MemoryManager(
-        llm_service=llm_service, 
-        memory_file="example_memory.json", 
-        domain_config=USER_STORY_CONFIG, 
-        memory_guid=demo_guid
+        memory_file=f"memory_{guid}.json",
+        domain_config=USER_STORY_CONFIG,
+        llm_service=general_llm_service,
+        digest_llm_service=digest_llm_service,
+        embeddings_llm_service=embeddings_llm_service,
+        memory_guid=guid
     )
     
-    # Example input data
-    # llm-driven-agent-with-session-memory
-    input_data = """
-Project Details:
-- Project Name: LLM-Driven Agent with Session Memory
-- Project Description: A service framework for providing lightweightmulti-use-case LLM-driven agents
-- Project Features:
-    - Memory Manager to manage session memory
-        - Generates LLM prompts for memory management
-        - Manages memory of user interactions
-        - Accumulates memory datat that is important for the current use case
-    - LLM Service to provide LLM services
-        - Provides an interface to LLM services like Ollama and OpenAI
-    - Agent to handle user interactions
-        - Handles user interactions and uses the Memory Manager provde responses and remember new details
-- Project Technology:
-    - Python
-    - Ollama
-    - pytest
-
-- Agent Role:
-    - Understand the project's current features, requirements and technology
-    - Receive user input about new, proposed features
-    - Break new features into smaller, manageable user stories
-    - Generate user stories with clear descriptions and acceptance criteria
-"""
-    
     # Create initial memory
-    success = memory_manager.create_initial_memory(input_data)
-    if success:
-        print("\nInitial memory created successfully!")
-        print_memory_state(memory_manager, "Initial Memory State")
-    else:
-        print("\nFailed to create initial memory")
+    print("\nCreating initial memory...")
+    input_data = """
+    The party consists of:
+    - A human fighter named Thorne who wields a magical greatsword
+    - An elven wizard named Elara who specializes in fire magic
+    - A dwarven cleric named Durin who worships Moradin
+    - A halfling rogue named Pip who is an expert lockpick
     
-    return memory_manager, demo_guid
+    They are currently in the town of Winterhaven, investigating rumors of undead in the nearby ruins.
+    The town's mayor, Padraig, has offered a reward for clearing out the ruins.
+    The party has learned that the ruins were once a temple to Orcus, and the undead are likely being raised by a necromancer.
+    """
+    
+    await memory_manager.create_memory(input_data)
+    print("Initial memory created successfully")
+    
+    # Query the memory
+    print("\nQuerying memory...")
+    query = "Tell me about the party members and their current mission"
+    response = await memory_manager.query_memory(query)
+    print(f"\nQuery: {query}")
+    print(f"Response: {response}")
+    
+    # Update the memory
+    print("\nUpdating memory...")
+    update_data = """
+    The party has discovered that the necromancer is a former priest of Orcus named Kalarel.
+    He is using a portal to the Shadowfell to raise undead.
+    The party needs to find the key to the portal, which is hidden in the temple's crypt.
+    """
+    
+    await memory_manager.update_memory(update_data)
+    print("Memory updated successfully")
+    
+    # Query again
+    print("\nQuerying updated memory...")
+    query = "What have they learned about the necromancer and what do they need to do?"
+    response = await memory_manager.query_memory(query)
+    print(f"\nQuery: {query}")
+    print(f"Response: {response}")
+    
+    # Clean up
+    print("\nCleaning up...")
+    if os.path.exists(memory_manager.memory_file):
+        os.remove(memory_manager.memory_file)
+    print("Memory file removed")
 
 async def demonstrate_multiple_memories():
     """Demonstrate working with multiple memory files using GUIDs"""
@@ -272,7 +322,7 @@ async def main():
     """Main function to run the memory manager examples"""
     try:
         # Create initial memory
-        memory_manager, demo_guid = await demonstrate_memory_creation()
+        await demonstrate_memory_creation()
         
         # Demonstrate multiple memories
         guid1, guid2 = await demonstrate_multiple_memories()

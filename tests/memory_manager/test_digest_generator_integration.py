@@ -15,13 +15,25 @@ from src.memory.digest_generator import DigestGenerator
 @pytest.fixture(scope="module")
 def llm_service():
     """Create an LLM service instance for testing."""
+    # Create logs directory structure
+    # logs_dir = os.path.join(project_root, "logs")
+    logs_dir = os.path.join(os.path.dirname(__file__), "logs")
+    guid = "digest_generator_test"
+    guid_logs_dir = os.path.join(logs_dir, guid)
+    os.makedirs(guid_logs_dir, exist_ok=True)
+    
+    # Create separate debug files for each service
+    general_debug_file = os.path.join(guid_logs_dir, "general.log")
+    digest_debug_file = os.path.join(guid_logs_dir, "digest.log")
+    embed_debug_file = os.path.join(guid_logs_dir, "embed.log")
+    
     service = OllamaService({
         "base_url": "http://192.168.1.173:11434",
         "model": "gemma3",
         "temperature": 0,
         "stream": False,
         "debug": True,
-        "debug_file": "digest_generation.log",
+        "debug_file": general_debug_file,
         "debug_scope": "test_digest_generator_integration",
         "console_output": False
     })

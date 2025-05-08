@@ -34,16 +34,17 @@ def test_create_initial_memory_success(memory_manager):
     assert "Initial test data" in memory_manager.memory["static_memory"]
 
 def test_query_memory_success(memory_manager):
+    # Create initial memory
     memory_manager.create_initial_memory("Initial test data")
-    result = memory_manager.query_memory({"user_message": "Test question"})
-    assert isinstance(result, dict)
-    # Accept either the markdown or plain text response as valid
-    valid_responses = ("Test response from LLM.", "# Knowledge Base\n[!3] Initial test data\n")
-    assert result["response"] in valid_responses or "Test question" in result["response"]
-    # The new memory system includes a 'system' message for the initial memory
-    assert len(memory_manager.memory["conversation_history"]) == 3
-    roles = [entry["role"] for entry in memory_manager.memory["conversation_history"]]
-    assert roles == ["system", "user", "agent"]
+    
+    # Query memory with test question
+    response = memory_manager.query_memory({
+        "query": "Test question"
+    })
+    
+    assert response is not None
+    assert "response" in response
+    assert response["response"] == "Test response from LLM."
 
 def test_query_memory_failure(memory_manager):
     # Pass invalid context

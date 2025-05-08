@@ -155,7 +155,10 @@ def get_memory_filename(memory_type, guid):
     if not guid:
         raise ValueError("GUID must be provided to get_memory_filename")
     
-    file_path = os.path.join(memory_dir, f"{MEMORY_FILE_PREFIX}_{guid}.json")
+    # Create GUID directory if it doesn't exist
+    guid_dir = os.path.join(memory_dir, guid)
+    os.makedirs(guid_dir, exist_ok=True)
+    file_path = os.path.join(guid_dir, f"{MEMORY_FILE_PREFIX}.json")
     return file_path
 
 def list_memory_files(memory_type=None):
@@ -326,20 +329,55 @@ async def setup_services(memory_guid=None, memory_type="standard"):
     # Initialize the session first - this sets up the global session_guid
     guid, memory_file, memory_type = initialize_session(memory_guid, memory_type)
     
-    # Create unique debug file for this session
-    debug_file = f"agent_debug_{guid}.log"
-    print(f"Debug log file: {debug_file}")
+    # Create logs directory structure
+    logs_dir = os.path.join(project_root, "logs")
+    guid_logs_dir = os.path.join(logs_dir, guid)
+    os.makedirs(guid_logs_dir, exist_ok=True)
+    print(f"Logs directory: {guid_logs_dir}")
     
-    print("Initializing LLM service (Ollama)...")
-    llm_service = OllamaService({
+    # Create separate debug files for each service within the GUID directory
+    general_debug_file = os.path.join(guid_logs_dir, "general.log")
+    digest_debug_file = os.path.join(guid_logs_dir, "digest.log")
+    embed_debug_file = os.path.join(guid_logs_dir, "embed.log")
+    
+    print(f"Debug log files:")
+    print(f"  General: {general_debug_file}")
+    print(f"  Digest: {digest_debug_file}")
+    print(f"  Embed: {embed_debug_file}")
+    
+    # Create separate OllamaService instances for different purposes
+    print("Initializing LLM services (Ollama)...")
+    
+    # General query service with logging enabled
+    general_llm_service = OllamaService({
         "base_url": "http://192.168.1.173:11434",
         "model": "gemma3",
         "temperature": 0.7,
         "stream": False,
         "debug": True,
-        "debug_file": debug_file,
-        "debug_scope": "agent_example",
+        "debug_file": general_debug_file,
+        "debug_scope": "agent_example_general",
         "console_output": False
+    })
+    
+    # Digest generation service with logging enabled
+    digest_llm_service = OllamaService({
+        "base_url": "http://192.168.1.173:11434",
+        "model": "gemma3",
+        "temperature": 0.7,
+        "stream": False,
+        "debug": True,
+        "debug_file": digest_debug_file,
+        "debug_scope": "agent_example_digest",
+        "console_output": False
+    })
+    
+    # Initialize embeddings service
+    embeddings_llm_service = OllamaService({
+        "base_url": "http://192.168.1.173:11434",
+        "model": "mxbai-embed-large",
+        "debug": False,
+        "debug_file": embed_debug_file  # Still specify the file even though logging is disabled
     })
     
     try:
@@ -356,12 +394,14 @@ async def setup_services(memory_guid=None, memory_type="standard"):
         memory_manager = memory_manager_class(
             memory_file=memory_file,
             domain_config=DND_CONFIG,
-            llm_service=llm_service,
+            llm_service=general_llm_service,  # Use general service for main queries
             memory_guid=guid,
-            max_recent_conversation_entries=4
+            max_recent_conversation_entries=4,
+            digest_llm_service=digest_llm_service,  # Use digest service for memory compression
+            embeddings_llm_service=embeddings_llm_service  # Use embeddings service for embeddings
         )
         
-        agent = Agent(llm_service, memory_manager, domain_name="dnd_campaign")
+        agent = Agent(general_llm_service, memory_manager, domain_name="dnd_campaign")
         print("Services initialized successfully")
         return agent, memory_manager
     except Exception as e:

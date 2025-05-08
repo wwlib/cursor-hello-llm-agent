@@ -4,6 +4,7 @@ import json
 from .llm import LLMService, LLMServiceError
 import time
 import numpy as np
+import os
 
 # CURL example
 # curl http://localhost:11434/api/embed -d '{
@@ -43,6 +44,12 @@ class OllamaService(LLMService):
                    - debug_scope: str - Scope identifier for debug logs
                    - console_output: bool - Whether to also log to console
         """
+        # Ensure /logs directory exists if debug_file is specified
+        debug_file = config.get('debug_file')
+        if debug_file:
+            logs_dir = os.path.dirname(debug_file)
+            if logs_dir and not os.path.exists(logs_dir):
+                os.makedirs(logs_dir, exist_ok=True)
         # Set default debug scope if not provided
         if 'debug' in config and 'debug_scope' not in config:
             config['debug_scope'] = 'ollama'

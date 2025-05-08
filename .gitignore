@@ -6,6 +6,7 @@ hide
 
 /*.log
 /logs
+/tests/memory_manager/logs
 /agent_memories
 /example_memory*
 /user_story_memory*

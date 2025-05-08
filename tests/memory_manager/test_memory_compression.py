@@ -16,7 +16,6 @@ LLM_CONFIG = {
     "temperature": 0.7,
     "stream": False,
     "debug": True,
-    "debug_file": "memory_compression_test.log",
     "debug_scope": "memory_compression_test",
     "console_output": False
 }
@@ -24,7 +23,22 @@ LLM_CONFIG = {
 @pytest.fixture
 def llm_service():
     """Create a real OllamaService instance for integration testing"""
-    service = OllamaService(LLM_CONFIG)
+    # Create logs directory structure
+    logs_dir = os.path.join(os.path.dirname(__file__), "logs")
+    guid = "memory_compression_test"
+    guid_logs_dir = os.path.join(logs_dir, guid)
+    os.makedirs(guid_logs_dir, exist_ok=True)
+    
+    # Create separate debug files for each service
+    general_debug_file = os.path.join(guid_logs_dir, "general.log")
+    digest_debug_file = os.path.join(guid_logs_dir, "digest.log")
+    embed_debug_file = os.path.join(guid_logs_dir, "embed.log")
+    
+    # Update config with debug files
+    config = LLM_CONFIG.copy()
+    config["debug_file"] = general_debug_file
+    
+    service = OllamaService(config)
     return service
 
 @pytest.fixture

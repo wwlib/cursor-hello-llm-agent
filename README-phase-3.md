@@ -31,7 +31,7 @@
 We've completed several major improvements to the documentation and RAG capabilities:
 
 1. **Comprehensive Documentation Updates**:
-- Rewrote main README.md to reflect RAG-enabled, segment-level memory, turn-based compression, and provider-agnostic LLM service
+- Rewritten main README.md to reflect RAG-enabled, segment-level memory, turn-based compression, and provider-agnostic LLM service
 - Completely updated src/memory/README-memory-manager.md:
   - Removed outdated knowledge graph/JSON schema content
   - Described new static_memory/context/conversation_history structure
@@ -43,3 +43,24 @@ We've completed several major improvements to the documentation and RAG capabili
   - Explained per-call options and RAG/memory integration
 - Updated src/agent/README-agent.md for phase-driven, stateless agent design
 - Ensured all docs are concise, up to date, and reflect the current modular, extensible architecture
+
+## Phase 3 Update - May 07, 2025 - Improved log management in the code and tests
+
+We've made significant improvements to the logging system and test infrastructure:
+
+1. **Enhanced Logging System**:
+   - Added dedicated log files for different services:
+     - General service logs for core operations
+     - Digest generation logs for memory processing
+     - Embedding service logs for RAG operations
+   - Improved log organization with GUID-based directory structure
+   - Added detailed logging for memory operations and embeddings generation
+
+2. **Test Infrastructure Improvements**:
+   - Centralized test log management in `/logs` directory
+   - Added automatic cleanup of test logs
+   - Improved test output readability with better formatting
+   - Enhanced error reporting in test failures
+
+These improvements make the system more maintainable and easier to debug, while providing better visibility into the system's operation and test execution.
+
