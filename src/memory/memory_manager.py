@@ -21,6 +21,7 @@ Design Principles:
 
 Usage:
     memory_manager = MemoryManager(
+        memory_guid=guid,
         llm_service=llm_service,
         memory_file="memory.json",
         domain_config={
@@ -48,6 +49,7 @@ from .data_preprocessor import DataPreprocessor
 from .embeddings_manager import EmbeddingsManager
 from .rag_manager import RAGManager
 import asyncio
+import logging
 
 class MemoryManager(BaseMemoryManager):
     """LLM-driven memory manager implementation.
@@ -55,9 +57,9 @@ class MemoryManager(BaseMemoryManager):
     Extends BaseMemoryManager to provide LLM-driven memory operations with domain-specific configuration.
     """
 
-    def __init__(self, memory_file: str = "memory.json", domain_config: Optional[Dict[str, Any]] = None, 
-                 llm_service = None, digest_llm_service = None, embeddings_llm_service = None, memory_guid: str = None, 
-                 max_recent_conversation_entries: int = 8, importance_threshold: int = 3):
+    def __init__(self, memory_guid: str, memory_file: str = "memory.json", domain_config: Optional[Dict[str, Any]] = None, 
+                 llm_service = None, digest_llm_service = None, embeddings_llm_service = None, 
+                 max_recent_conversation_entries: int = 8, importance_threshold: int = 3, logger=None):
         """Initialize the MemoryManager with LLM service instances and domain configuration.
         
         Args:
@@ -69,16 +71,16 @@ class MemoryManager(BaseMemoryManager):
             llm_service: Service for general LLM operations (required)
             digest_llm_service: Service for digest generation (optional, falls back to llm_service)
             embeddings_llm_service: Service for embeddings/RAG (optional, falls back to llm_service)
-            memory_guid: Optional GUID to identify this memory instance. If not provided, 
-                       a new one will be generated or loaded from existing file.
+            memory_guid: Required GUID to identify this memory instance.
             max_recent_conversation_entries: Maximum number of recent conversation entries to keep before compression
             importance_threshold: Threshold for segment importance (1-5 scale) to keep during compression
+            logger: Optional logger instance for this MemoryManager
         """
         if llm_service is None:
             raise ValueError("llm_service is required for MemoryManager")
             
-        # Pass memory_guid to the parent constructor
-        super().__init__(memory_file, domain_config, memory_guid)
+        # Pass memory_guid and logger to the parent constructor
+        super().__init__(memory_guid, memory_file, domain_config, logger=logger)
         print(f"\nInitializing MemoryManager with file: {memory_file}")
         self.llm = llm_service
         self.digest_llm = digest_llm_service or llm_service
@@ -86,17 +88,17 @@ class MemoryManager(BaseMemoryManager):
         self._load_templates()
         
         # Initialize DigestGenerator with dedicated LLM service
-        self.digest_generator = DigestGenerator(self.digest_llm)
+        self.digest_generator = DigestGenerator(self.digest_llm, logger=logger)
         print("Initialized DigestGenerator")
         
         # Initialize MemoryCompressor (uses general LLM)
-        self.memory_compressor = MemoryCompressor(self.llm, importance_threshold)
+        self.memory_compressor = MemoryCompressor(self.llm, importance_threshold, logger=logger)
         print("Initialized MemoryCompressor")
         
         # Initialize EmbeddingsManager and RAGManager with dedicated embeddings LLM service
         embeddings_file = os.path.splitext(memory_file)[0] + "_embeddings.jsonl"
-        self.embeddings_manager = EmbeddingsManager(embeddings_file, self.embeddings_llm)
-        self.rag_manager = RAGManager(self.embeddings_llm, self.embeddings_manager)
+        self.embeddings_manager = EmbeddingsManager(embeddings_file, self.embeddings_llm, logger=logger)
+        self.rag_manager = RAGManager(self.embeddings_llm, self.embeddings_manager, logger=logger)
         print("Initialized EmbeddingsManager and RAGManager")
         print(f"Embeddings file: {embeddings_file}")
         

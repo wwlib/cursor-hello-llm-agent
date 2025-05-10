@@ -24,7 +24,8 @@ def memory_file(tmp_path):
 
 @pytest.fixture
 def memory_manager(memory_file, mock_llm_service):
-    return MemoryManager(memory_file=memory_file, llm_service=mock_llm_service)
+    memory_guid = "test_memory_manager"
+    return MemoryManager(memory_guid=memory_guid, memory_file=memory_file, llm_service=mock_llm_service)
 
 def test_create_initial_memory_success(memory_manager):
     result = memory_manager.create_initial_memory("Initial test data")
@@ -56,11 +57,13 @@ def test_query_memory_failure(memory_manager):
 
 def test_save_and_load_memory(memory_file, mock_llm_service):
     # Save memory in one instance
-    manager1 = MemoryManager(memory_file=memory_file, llm_service=mock_llm_service)
+    memory_guid = "test_memory_manager_1"
+    manager1 = MemoryManager(memory_guid=memory_guid, memory_file=memory_file, llm_service=mock_llm_service)
     manager1.create_initial_memory("Initial test data")
     manager1.save_memory()
     # Load in new instance
-    manager2 = MemoryManager(memory_file=memory_file, llm_service=mock_llm_service)
+    memory_guid = "test_memory_manager_2"
+    manager2 = MemoryManager(memory_guid=memory_guid, memory_file=memory_file, llm_service=mock_llm_service)
     # If the new instance does not load memory, re-initialize and check
     if not manager2.memory:
         # Comment: If the new format is not backward compatible, re-initialize

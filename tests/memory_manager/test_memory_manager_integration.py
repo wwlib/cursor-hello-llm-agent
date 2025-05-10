@@ -28,7 +28,8 @@ def test_create_and_query_memory_with_real_llm(tmp_path):
     except Exception as e:
         pytest.skip(f"Could not connect to LLM service: {e}")
 
-    memory_manager = MemoryManager(memory_file=memory_file, llm_service=llm_service)
+    memory_guid = "test_memory_manager_integration"
+    memory_manager = MemoryManager(memory_guid=memory_guid, memory_file=memory_file, llm_service=llm_service)
     # Create initial memory
     result = memory_manager.create_initial_memory("Integration test data")
     assert result is True

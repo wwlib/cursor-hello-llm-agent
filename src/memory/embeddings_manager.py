@@ -64,27 +64,19 @@ class EmbeddingsManager:
        - Return both similarity scores and full entry data
     """
     
-    def __init__(self, embeddings_file: str, llm_service=None):
+    def __init__(self, embeddings_file: str, llm_service=None, logger=None):
         """Initialize the EmbeddingsManager.
         
         Args:
             embeddings_file: Path to the JSONL file for storing embeddings
             llm_service: Optional LLM service for generating embeddings
+            logger: Optional logger instance
         """
         self.embeddings_file = embeddings_file
         self.llm_service = llm_service
         self.embeddings = []  # List of (embedding, metadata) tuples
-        # Always use the embedding model from env or default
         self.embedding_model = os.getenv("OLLAMA_EMBED_MODEL", "mxbai-embed-large")
-        
-        # Configure logging
-        self.logger = logging.getLogger("embeddings_manager")
-        # Set up basic console handler if none exists
-        if not self.logger.handlers:
-            handler = logging.StreamHandler()
-            handler.setFormatter(logging.Formatter('%(name)s - %(levelname)s - %(message)s'))
-            self.logger.addHandler(handler)
-            self.logger.setLevel(logging.INFO)
+        self.logger = logger or logging.getLogger(__name__)
         
         # Initialize embeddings file directory if it doesn't exist
         embeddings_dir = os.path.dirname(embeddings_file)

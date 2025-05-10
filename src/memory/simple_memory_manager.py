@@ -15,6 +15,7 @@ import json
 import uuid
 from datetime import datetime
 from .base_memory_manager import BaseMemoryManager
+import logging
 
 class SimpleMemoryManager(BaseMemoryManager):
     """Simple implementation of memory manager that accumulates data without transformation.
@@ -26,7 +27,7 @@ class SimpleMemoryManager(BaseMemoryManager):
     - Uses simplified memory structure
     """
     
-    def __init__(self, memory_file: str = "memory.json", domain_config: Optional[Dict[str, Any]] = None, llm_service = None, memory_guid: str = None):
+    def __init__(self, memory_guid: str, memory_file: str = "memory.json", domain_config: Optional[Dict[str, Any]] = None, llm_service = None, logger=None):
         """Initialize the SimpleMemoryManager.
         
         Args:
@@ -36,14 +37,16 @@ class SimpleMemoryManager(BaseMemoryManager):
             llm_service: Service for LLM operations (required for generating responses)
             memory_guid: Optional GUID to identify this memory instance. If not provided, 
                        a new one will be generated or loaded from existing file.
+            logger: Optional logger instance for logging
         """
         if llm_service is None:
             raise ValueError("llm_service is required for SimpleMemoryManager")
         
         # Pass memory_guid to the parent constructor
-        super().__init__(memory_file, domain_config, memory_guid)
+        super().__init__(memory_guid, memory_file, domain_config, logger=logger)
         print(f"\nInitializing SimpleMemoryManager with file: {memory_file}")
         self.llm = llm_service
+        self.logger = logger or logging.getLogger(__name__)
         
         # Ensure memory has a GUID
         self._ensure_memory_guid()

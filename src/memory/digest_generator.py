@@ -5,6 +5,7 @@ import os
 from typing import Dict, List, Any, Optional
 from datetime import datetime
 from .content_segmenter import ContentSegmenter
+import logging
 
 class DigestGenerator:
     """Handles the process of generating structured digests from conversation entries.
@@ -17,13 +18,15 @@ class DigestGenerator:
     natural for LLMs to process.
     """
     
-    def __init__(self, llm_service):
+    def __init__(self, llm_service, logger=None):
         """Initialize the DigestGenerator.
         
         Args:
             llm_service: Service for LLM operations
+            logger: Optional logger instance
         """
         self.llm = llm_service
+        self.logger = logger or logging.getLogger(__name__)
         self.content_segmenter = ContentSegmenter(llm_service)
         self._load_templates()
     

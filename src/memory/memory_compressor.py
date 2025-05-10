@@ -23,19 +23,22 @@ Design Principles:
 from typing import Any, Dict, List, Optional
 import json
 from datetime import datetime
+import logging
 
 class MemoryCompressor:
     """Handles compression of conversation history into efficient memory format."""
     
-    def __init__(self, llm_service, importance_threshold: int = 3):
+    def __init__(self, llm_service, importance_threshold: int = 3, logger=None):
         """Initialize the MemoryCompressor.
         
         Args:
             llm_service: Service for LLM operations
             importance_threshold: Minimum importance score (1-5) to keep segments
+            logger: Logger instance for logging
         """
         self.llm = llm_service
         self.importance_threshold = importance_threshold
+        self.logger = logger or logging.getLogger(__name__)
         self._load_templates()
         
     def _load_templates(self) -> None:

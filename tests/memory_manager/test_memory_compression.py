@@ -45,9 +45,9 @@ def llm_service():
 def memory_manager(llm_service):
     """Create a MemoryManager instance with real LLM service"""
     manager = MemoryManager(
+        memory_guid="memory_compression_test_guid",
         memory_file="memory_compression_test",
         llm_service=llm_service,
-        memory_guid="memory_compression_test_guid",
         max_recent_conversation_entries=8,  # Keep only 2 most recent entries
         importance_threshold=3  # Keep segments with importance >= 3
     )

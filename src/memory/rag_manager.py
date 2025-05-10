@@ -142,24 +142,17 @@ class RAGManager:
     recency or exact keyword matches.
     """
     
-    def __init__(self, llm_service, embeddings_manager):
+    def __init__(self, llm_service, embeddings_manager, logger=None):
         """Initialize the RAGManager.
         
         Args:
             llm_service: Service for LLM operations
             embeddings_manager: Manager for embeddings and semantic search
+            logger: Optional logger instance
         """
         self.llm_service = llm_service
         self.embeddings_manager = embeddings_manager
-        
-        # Configure logging
-        self.logger = logging.getLogger("rag_manager")
-        # Set up basic console handler if none exists
-        if not self.logger.handlers:
-            handler = logging.StreamHandler()
-            handler.setFormatter(logging.Formatter('%(name)s - %(levelname)s - %(message)s'))
-            self.logger.addHandler(handler)
-            self.logger.setLevel(logging.INFO)
+        self.logger = logger or logging.getLogger(__name__)
     
     def query(self, query_text: str, limit: int = 5, min_importance: Optional[int] = None) -> List[Dict[str, Any]]:
         """Query for semantically relevant context.

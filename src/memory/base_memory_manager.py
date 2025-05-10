@@ -21,6 +21,7 @@ import json
 import os
 import uuid
 from datetime import datetime
+import logging
 
 class BaseMemoryManager(ABC):
     """Abstract base class for memory management implementations.
@@ -29,7 +30,7 @@ class BaseMemoryManager(ABC):
     for memory operations. Concrete implementations must implement all abstract methods.
     """
     
-    def __init__(self, memory_file: str = "memory.json", domain_config: Optional[Dict[str, Any]] = None, memory_guid: Optional[str] = None):
+    def __init__(self, memory_guid: str, memory_file: str = "memory.json", domain_config: Optional[Dict[str, Any]] = None, logger=None):
         """Initialize the base memory manager.
         
         Args:
@@ -38,13 +39,16 @@ class BaseMemoryManager(ABC):
                          - schema: Domain-specific entity types and properties
                          - relationships: Domain-specific relationship types
                          - prompts: Domain-specific prompt templates
-            memory_guid: Optional GUID to identify this memory instance
+            memory_guid: Required GUID to identify this memory instance
+            logger: Optional logger instance for logging
         """
         self.memory_file = memory_file
         self.domain_config = domain_config or {}
         self.memory: Dict[str, Any] = {}
         # Store the provided memory_guid (may be None)
         self.memory_guid = memory_guid
+        # Store the logger instance, or get a default logger for this module
+        self.logger = logger or logging.getLogger(__name__)
         self._load_memory()
         
         # Initialize conversation history file path based on memory file

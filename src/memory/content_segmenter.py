@@ -25,17 +25,20 @@ from typing import List, Optional
 import json
 import re
 import os
+import logging
 
 class ContentSegmenter:
     """Handles segmentation of text content into meaningful chunks."""
     
-    def __init__(self, llm_service):
+    def __init__(self, llm_service, logger=None):
         """Initialize the ContentSegmenter.
         
         Args:
             llm_service: Service for LLM operations
+            logger: Logger instance for logging
         """
         self.llm = llm_service
+        self.logger = logger or logging.getLogger(__name__)
         self._load_templates()
     
     def _load_templates(self) -> None:

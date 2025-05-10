@@ -77,7 +77,7 @@ llm_service = OllamaService({
     "model": "gemma3",
     "temperature": 0.7
 })
-memory_manager = MemoryManager(llm_service=llm_service)
+memory_manager = MemoryManager(memory_guid, llm_service=llm_service)
 
 # Create initial memory
 memory_manager.create_initial_memory("The world is a flat world with a single continent...")

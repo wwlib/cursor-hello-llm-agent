@@ -2,17 +2,20 @@ import os
 import json
 import re
 from typing import List, Optional
+import logging
 
 class DataPreprocessor:
     """Transforms structured or unstructured world data into embeddable phrases using LLM and a prompt template."""
 
-    def __init__(self, llm_service):
+    def __init__(self, llm_service, logger=None):
         """Initialize the DataPreprocessor.
         
         Args:
             llm_service: Service for LLM operations
+            logger: Logger instance for logging
         """
         self.llm = llm_service
+        self.logger = logger or logging.getLogger(__name__)
         self._load_templates()
 
     def _load_templates(self) -> None:
