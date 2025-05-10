@@ -36,6 +36,7 @@ file_handler.setFormatter(formatter)
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 logger.addHandler(file_handler)
+logger.info("This should only appear in the log file")
 
 # Set the root logger to WARNING to suppress lower-level logs globally
 logging.getLogger().setLevel(logging.WARNING)
@@ -53,12 +54,14 @@ MEMORY_MANAGER_TYPES = {
 # Global session guid (will be set during initialization)
 session_guid = None
 
+# print a formatted section header to the console
 def print_section_header(title):
     """Print a formatted section header"""
     print(f"\n{'='*80}")
     print(f"  {title}")
     print(f"{'='*80}\n")
 
+# print the memory state in a readable format to the console
 def print_memory_state(memory_manager, title="Current Memory State"):
     """Helper to print memory state in a readable format"""
     print(f"\n{title}")
@@ -68,46 +71,32 @@ def print_memory_state(memory_manager, title="Current Memory State"):
     # Log memory GUID
     guid = memory_manager.get_memory_guid()
     if guid:
-        logger.info(f"Memory GUID: {guid}")
+        print(f"Memory GUID: {guid}")
     
     # Log memory type
     memory_type = memory_context.get("memory_manager_type", "unknown")
-    logger.info(f"Memory Manager Type: {memory_type}")
+    print(f"Memory Manager Type: {memory_type}")
     
     # Log filename
-    logger.info(f"Memory File: {memory_manager.memory_file}")
+    print(f"Memory File: {memory_manager.memory_file}")
         
     # Print static memory if available
     if "static_memory" in memory_context:
-        # print("\nStatic Memory (Read-Only):")
-        # print("-" * 30)
-        static_mem = memory_context["static_memory"]
-        # if isinstance(static_mem, str):
-        #     # New markdown format
-        #     print(static_mem)
+        print("Static memory present.")
     else:
         print("No static memory")
     
-    # Print working memory if available
-    # if "working_memory" in memory_context:
-    #     print("\nWorking Memory:")
-    #     print("-" * 30)
-    #     working_mem = memory_context["working_memory"]
-    #     print("\nStructured Data:")
-    #     print(json.dumps(working_mem.get("structured_data", {}), indent=2))
-    #     print("\nKnowledge Graph:")
-    #     print(json.dumps(working_mem.get("knowledge_graph", {}), indent=2))
-    
     # Print metadata if available
     if "metadata" in memory_context:
-        logger.info("Metadata:")
-        logger.info("-" * 30)
-        logger.info(json.dumps(memory_context["metadata"], indent=2))
+        print("Metadata:")
+        print("-" * 30)
+        print(json.dumps(memory_context["metadata"], indent=2))
     
     # Print conversation history length
     if "conversation_history" in memory_context:
-        logger.info(f"\nConversation History: {len(memory_context['conversation_history'])} messages")
+        print(f"\nConversation History: {len(memory_context['conversation_history'])} messages")
 
+# print the conversation history in a readable format to the console
 def print_conversation_history(memory_manager, title="Conversation History"):
     """Print the accumulated conversation history from memory"""
     print(f"\n{title}")
@@ -124,6 +113,7 @@ def print_conversation_history(memory_manager, title="Conversation History"):
         print(f"\n[{role.upper()}] {timestamp}")
         print(f"{content}")
 
+# print the recent history in a readable format to the console
 def print_recent_history(agent, title="Recent History"):
     """Print the agent's current session history"""
     print(f"\n{title}")
@@ -139,6 +129,7 @@ def print_recent_history(agent, title="Recent History"):
         print(f"\n[{role.upper()}] {timestamp}")
         print(f"{content}")
 
+# print the help message to the console
 def print_help():
     """Print available commands and their descriptions"""
     print("\nAvailable Commands:")
@@ -223,7 +214,8 @@ def list_memory_files(memory_type=None):
                         logger.error(f"Error reading {memory_file}: {str(e)}")
     
     return files
-    
+
+# print the memory files in a readable format to the console
 def print_memory_files(memory_type=None):
     """Print all available memory files
     
@@ -256,11 +248,10 @@ def get_memory_file_by_guid(guid, memory_type=None):
         tuple: (file_path, memory_type) or (None, None) if not found
     """
     files = list_memory_files()
-    print(f"[DEBUG] list_memory_files() returned: {files}")
+    logger.debug(f"list_memory_files() returned: {files}")
     if guid in files:
         mem_type, file_path, _ = files[guid]
-        print(f"[DEBUG] get_memory_file_by_guid: guid={guid}, file_path={file_path}, mem_type={mem_type}")
-        # Verify memory_type in the file matches expected type
+        logger.debug(f"get_memory_file_by_guid: guid={guid}, file_path={file_path}, mem_type={mem_type}")        # Verify memory_type in the file matches expected type
         try:
             with open(file_path, 'r') as f:
                 data = json.load(f)
@@ -306,7 +297,7 @@ def initialize_session(provided_guid=None, memory_type="standard"):
     if provided_guid:
         # Check if the GUID exists
         result = get_memory_file_by_guid(provided_guid, memory_type)
-        print(f"[DEBUG] initialize_session: get_memory_file_by_guid({provided_guid}, {memory_type}) returned: {result}")
+        logger.debug(f"Initialize_session: get_memory_file_by_guid({provided_guid}, {memory_type}) returned: {result}")
         if result is None:
             memory_file = None
             found_type = None
@@ -324,7 +315,7 @@ def initialize_session(provided_guid=None, memory_type="standard"):
                 logger.debug(f"Switching to '{found_type}' memory manager to match the existing file.")
                 memory_type = found_type
                 
-            print(f"[DEBUG] initialize_session: returning (session_guid={session_guid}, memory_file={memory_file}, memory_type={memory_type})")
+            logger.debug(f"Initialize_session: returning (session_guid={session_guid}, memory_file={memory_file}, memory_type={memory_type})")
             return session_guid, memory_file, memory_type
         else:
             # Create a new file with the provided GUID
@@ -338,7 +329,7 @@ def initialize_session(provided_guid=None, memory_type="standard"):
     # Create memory file path using the session GUID
     memory_file = get_memory_filename(memory_type, session_guid)
     logger.debug(f"Memory file path: {memory_file}")
-    print(f"[DEBUG] initialize_session: returning (session_guid={session_guid}, memory_file={memory_file}, memory_type={memory_type})")
+    logger.debug(f"Initialize_session: returning (session_guid={session_guid}, memory_file={memory_file}, memory_type={memory_type})")
     return session_guid, memory_file, memory_type
 
 async def setup_services(memory_guid=None, memory_type="standard"):
@@ -426,6 +417,7 @@ async def setup_services(memory_guid=None, memory_type="standard"):
         # Create memory manager log file in the GUID-specific directory
         memory_manager_log_file = os.path.join(guid_logs_dir, "memory_manager.log")
         memory_manager_logger.addHandler(logging.FileHandler(memory_manager_log_file))
+        memory_manager_logger.info("This should only appear in the log file")
         
         # Create memory manager instance based on type
         memory_manager = memory_manager_class(
