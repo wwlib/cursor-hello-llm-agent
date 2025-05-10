@@ -166,11 +166,11 @@ class RAGManager:
             List of relevant context items with text, score, and metadata
         """
         try:
-            self.logger.info(f"Querying for: '{query_text}' (limit={limit}, min_importance={min_importance})")
+            self.logger.debug(f"Querying for: '{query_text}' (limit={limit}, min_importance={min_importance})")
             
             # Get search results
             search_results = self.embeddings_manager.search(query_text, k=limit*2, min_importance=min_importance)
-            self.logger.info(f"Search returned {len(search_results)} raw results")
+            self.logger.debug(f"Search returned {len(search_results)} raw results")
             
             # Transform results to include the text
             enhanced_results = []
@@ -197,7 +197,7 @@ class RAGManager:
                 
                 # Skip results without text
                 if not text:
-                    self.logger.warning(f"Skipping result {i} - no text found")
+                    self.logger.debug(f"Skipping result {i} - no text found")
                     continue
                 
                 # Prepare the enhanced result
@@ -214,7 +214,7 @@ class RAGManager:
             enhanced_results.sort(key=lambda x: x["score"], reverse=True)
             results = enhanced_results[:limit]
             
-            self.logger.info(f"Returning {len(results)} processed results")
+            self.logger.debug(f"Returning {len(results)} processed results")
             return results
             
         except Exception as e:
@@ -232,7 +232,7 @@ class RAGManager:
             Formatted context string for inclusion in memory query
         """
         if not search_results:
-            self.logger.info("No search results to format as context")
+            self.logger.debug("No search results to format as context")
             return ""
         
         # Start with header
@@ -249,7 +249,7 @@ class RAGManager:
             topics_str = f" (Topics: {', '.join(topics)})" if topics else ""
             context += f"[!{importance}] {result['text']}{topics_str}\n\n"
         
-        self.logger.info(f"Generated context with {len(search_results)} items")
+        self.logger.debug(f"Generated context with {len(search_results)} items")
         return context
     
     def enhance_memory_query(self, query_context: Dict[str, Any]) -> Dict[str, Any]:
@@ -272,7 +272,7 @@ class RAGManager:
         try:
             # Extract the query text
             query_text = query_context.get("query", "")
-            self.logger.info(f"Enhancing memory query: '{query_text}'")
+            self.logger.debug(f"Enhancing memory query: '{query_text}'")
             
             # Search for relevant content
             search_results = self.query(
@@ -285,10 +285,10 @@ class RAGManager:
             if search_results:
                 rag_context = self.format_enhanced_context(query_text, search_results)
                 enhanced_context["rag_context"] = rag_context
-                self.logger.info(f"Added RAG context of length {len(rag_context)}")
+                self.logger.debug(f"Added RAG context of length {len(rag_context)}")
             else:
                 enhanced_context["rag_context"] = ""
-                self.logger.warning("No relevant context found for query")
+                self.logger.debug("No relevant context found for query")
             
             return enhanced_context
             

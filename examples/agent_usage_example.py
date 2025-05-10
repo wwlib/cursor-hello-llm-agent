@@ -29,12 +29,12 @@ for handler in logging.root.handlers[:]:
 logs_dir = os.path.join(project_root, "logs")
 os.makedirs(logs_dir, exist_ok=True)
 file_handler = logging.FileHandler(os.path.join(logs_dir, "agent_usage_example.log"))
-file_handler.setLevel(logging.INFO)
+file_handler.setLevel(logging.DEBUG)
 formatter = logging.Formatter('%(asctime)s %(levelname)s:%(name)s:%(message)s')
 file_handler.setFormatter(formatter)
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 logger.addHandler(file_handler)
 logger.info("This should only appear in the log file")
 
@@ -79,12 +79,6 @@ def print_memory_state(memory_manager, title="Current Memory State"):
     
     # Log filename
     print(f"Memory File: {memory_manager.memory_file}")
-        
-    # Print static memory if available
-    if "static_memory" in memory_context:
-        print("Static memory present.")
-    else:
-        print("No static memory")
     
     # Print metadata if available
     if "metadata" in memory_context:
@@ -95,6 +89,20 @@ def print_memory_state(memory_manager, title="Current Memory State"):
     # Print conversation history length
     if "conversation_history" in memory_context:
         print(f"\nConversation History: {len(memory_context['conversation_history'])} messages")
+
+    # Print static memory if available
+    if "static_memory" in memory_context:
+        print("Static memory present.")
+        print("-" * 30)
+        # assume that the static memory is a line-delimited list of strings
+        # split the static memory into a list of strings
+        static_memory_list = memory_context["static_memory"].split("\n")
+        # print the list of strings
+        for item in static_memory_list:
+            print(item)
+            print()
+    else:
+        print("No static memory")
 
 # print the conversation history in a readable format to the console
 def print_conversation_history(memory_manager, title="Conversation History"):
@@ -414,9 +422,12 @@ async def setup_services(memory_guid=None, memory_type="standard"):
 
         # Set up logging for the memory manager
         memory_manager_logger = logging.getLogger(f"memory_manager.{memory_type}")
+        memory_manager_logger.setLevel(logging.DEBUG)
         # Create memory manager log file in the GUID-specific directory
         memory_manager_log_file = os.path.join(guid_logs_dir, "memory_manager.log")
-        memory_manager_logger.addHandler(logging.FileHandler(memory_manager_log_file))
+        memory_manager_log_handler = logging.FileHandler(memory_manager_log_file)
+        memory_manager_log_handler.setLevel(logging.DEBUG)
+        memory_manager_logger.addHandler(memory_manager_log_handler)
         memory_manager_logger.info("This should only appear in the log file")
         
         # Create memory manager instance based on type
@@ -430,8 +441,18 @@ async def setup_services(memory_guid=None, memory_type="standard"):
             embeddings_llm_service=embeddings_llm_service,  # Use embeddings service for embeddings
             logger=memory_manager_logger
         )
+
+        # Set up logging for the agent
+        agent_logger = logging.getLogger("agent")
+        # Create agent log file in the GUID-specific directory 
+        agent_log_file = os.path.join(guid_logs_dir, "agent.log")
+        agent_handler = logging.FileHandler(agent_log_file)
+        agent_handler.setFormatter(formatter)
+        agent_logger.addHandler(agent_handler)
+        agent_logger.setLevel(logging.DEBUG)
+        agent_logger.info("Agent logger initialized")
         
-        agent = Agent(general_llm_service, memory_manager, domain_name="dnd_campaign")
+        agent = Agent(general_llm_service, memory_manager, domain_name="dnd_campaign", logger=agent_logger)
         logger.debug("Services initialized successfully")
         return agent, memory_manager
     except Exception as e:
@@ -447,19 +468,6 @@ async def initialize_campaign(agent, memory_manager):
     memory_context = memory_manager.get_memory_context()
     if memory_context and memory_context.get("conversation_history"):
         logger.debug("Campaign already initialized, using existing memory")
-        
-        # Display recent conversation history
-        # messages = memory_context["conversation_history"]
-        # if messages:
-        #     print("\nRecent Conversation History:")
-        #     print("-" * 30)
-        #     # Show last 3 messages
-        #     for msg in messages[-3:]:
-        #         role = msg.get("role", "unknown")
-        #         content = msg.get("content", "")
-        #         timestamp = msg.get("timestamp", "")
-        #         print(f"\n[{role.upper()}] {timestamp}")
-        #         print(f"{content}")
         
         # Ensure we're in INTERACTION phase
         if agent.get_current_phase() == AgentPhase.INITIALIZATION:

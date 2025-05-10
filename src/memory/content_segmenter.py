@@ -48,9 +48,9 @@ class ContentSegmenter:
         try:
             with open(os.path.join(template_dir, "segment_conversation.prompt"), 'r') as f:
                 self.segment_template = f.read().strip()
-            print("Loaded segmentation template")
+            self.logger.debug("Loaded segmentation template")
         except Exception as e:
-            print(f"Error loading segmentation template: {str(e)}")
+            self.logger.error(f"Error loading segmentation template: {str(e)}")
             raise Exception("Failed to load segmentation template")
     
     def segment_content(self, content: str) -> List[str]:
@@ -84,7 +84,7 @@ class ContentSegmenter:
             try:
                 segments = json.loads(llm_response)
                 if not isinstance(segments, list):
-                    print("Segmentation failed: Response is not a list")
+                    self.logger.debug("Segmentation failed: Response is not a list")
                     return [content]  # Fall back to using the entire content as a single segment
                 return segments
             except json.JSONDecodeError:
@@ -98,9 +98,9 @@ class ContentSegmenter:
                         pass
                 
                 # Fall back to using the entire content as a single segment
-                print("Failed to parse segments, using entire content")
+                self.logger.debug("Failed to parse segments, using entire content")
                 return [content]
                 
         except Exception as e:
-            print(f"Error in content segmentation: {str(e)}")
+            self.logger.error(f"Error in content segmentation: {str(e)}")
             return [content]  # Fall back to using the entire content as a single segment 

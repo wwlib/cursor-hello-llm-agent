@@ -3,6 +3,7 @@ from typing import Dict, List, Optional
 import json
 from datetime import datetime
 import asyncio
+import logging
 
 class AgentPhase(Enum):
     INITIALIZATION = "INITIALIZATION"
@@ -10,7 +11,7 @@ class AgentPhase(Enum):
     INTERACTION = "INTERACTION"
 
 class Agent:
-    def __init__(self, llm_service, memory_manager, domain_name: str = "general"):
+    def __init__(self, llm_service, memory_manager, domain_name: str = "general", logger=None):
         """Initialize the agent with required services.
         
         Args:
@@ -22,8 +23,9 @@ class Agent:
         self.memory = memory_manager
         self.domain_name = domain_name
         self.current_phase = AgentPhase.INITIALIZATION
-        print(f"Agent initialized for domain: {domain_name}")
-        print(f"Memory management is handled transparently by the MemoryManager")
+        self.logger = logger or logging.getLogger(__name__)
+        self.logger.debug(f"Agent initialized for domain: {domain_name}")
+        self.logger.debug(f"Memory management is handled transparently by the MemoryManager")
         
         # Track pending operations
         self._pending_operations = False
@@ -67,7 +69,7 @@ class Agent:
             return response.get("response", str(response))
             
         except Exception as e:
-            print(f"Error processing message: {str(e)}")
+            self.logger.error(f"Error processing message: {str(e)}")
             return "Error processing message"
 
     async def learn(self, information: str) -> bool:
@@ -84,13 +86,13 @@ class Agent:
             bool: True if learning was successful
         """
         try:
-            print(f"\nLearning new information (Current phase: {self.current_phase})")
+            self.logger.debug(f"\nLearning new information (Current phase: {self.current_phase})")
             
             # Create initial memory if needed
             if self.current_phase == AgentPhase.INITIALIZATION:
                 success = self.memory.create_initial_memory(information)
                 if success:
-                    print("Initial memory created")
+                    self.logger.debug("Initial memory created")
                     self.current_phase = AgentPhase.LEARNING
                 return success
             
@@ -104,19 +106,19 @@ class Agent:
                 
                 success = self.memory.update_memory(context)
                 if success:
-                    print("Successfully learned new information")
+                    self.logger.debug("Successfully learned new information")
                     # Transition to INTERACTION phase if we were in LEARNING
                     if self.current_phase == AgentPhase.LEARNING:
                         self.current_phase = AgentPhase.INTERACTION
                 else:
-                    print("Failed to learn new information")
+                    self.logger.debug("Failed to learn new information")
                 return success
             
-            print(f"Unexpected phase for learning: {self.current_phase}")
+            self.logger.debug(f"Unexpected phase for learning: {self.current_phase}")
             return False
             
         except Exception as e:
-            print(f"Error learning information: {str(e)}")
+            self.logger.error(f"Error learning information: {str(e)}")
             return False
             
     async def wait_for_pending_operations(self) -> None:

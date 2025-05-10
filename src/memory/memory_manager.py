@@ -81,26 +81,26 @@ class MemoryManager(BaseMemoryManager):
             
         # Pass memory_guid and logger to the parent constructor
         super().__init__(memory_guid, memory_file, domain_config, logger=logger)
-        print(f"\nInitializing MemoryManager with file: {memory_file}")
+        self.logger.debug(f"\nInitializing MemoryManager with file: {memory_file}")
         self.llm = llm_service
         self.digest_llm = digest_llm_service or llm_service
         self.embeddings_llm = embeddings_llm_service or llm_service
         self._load_templates()
         
         # Initialize DigestGenerator with dedicated LLM service
+        self.logger.debug("Initializing DigestGenerator")
         self.digest_generator = DigestGenerator(self.digest_llm, logger=logger)
-        print("Initialized DigestGenerator")
         
         # Initialize MemoryCompressor (uses general LLM)
         self.memory_compressor = MemoryCompressor(self.llm, importance_threshold, logger=logger)
-        print("Initialized MemoryCompressor")
+        self.logger.debug("Initialized MemoryCompressor")
         
         # Initialize EmbeddingsManager and RAGManager with dedicated embeddings LLM service
         embeddings_file = os.path.splitext(memory_file)[0] + "_embeddings.jsonl"
         self.embeddings_manager = EmbeddingsManager(embeddings_file, self.embeddings_llm, logger=logger)
         self.rag_manager = RAGManager(self.embeddings_llm, self.embeddings_manager, logger=logger)
-        print("Initialized EmbeddingsManager and RAGManager")
-        print(f"Embeddings file: {embeddings_file}")
+        self.logger.debug("Initialized EmbeddingsManager and RAGManager")
+        self.logger.debug(f"Embeddings file: {embeddings_file}")
         
         # Ensure memory has a GUID
         self._ensure_memory_guid()
@@ -108,7 +108,7 @@ class MemoryManager(BaseMemoryManager):
         # Configurable memory parameters
         self.max_recent_conversation_entries = max_recent_conversation_entries
         self.importance_threshold = importance_threshold
-        print(f"Memory configuration: max_recent_conversation_entries={max_recent_conversation_entries}, importance_threshold={importance_threshold}")
+        self.logger.debug(f"Memory configuration: max_recent_conversation_entries={max_recent_conversation_entries}, importance_threshold={importance_threshold}")
 
     def _ensure_memory_guid(self):
         """Ensure that the memory has a GUID, prioritizing the provided GUID if available."""
@@ -117,7 +117,7 @@ class MemoryManager(BaseMemoryManager):
             # Make sure we have a GUID, generating one if needed
             if not self.memory_guid:
                 self.memory_guid = str(uuid.uuid4())
-                print(f"Generated new GUID: {self.memory_guid} for memory file that will be created")
+                self.logger.debug(f"Generated new GUID: {self.memory_guid} for memory file that will be created")
             return
             
         # Priority order for GUID:
@@ -129,22 +129,20 @@ class MemoryManager(BaseMemoryManager):
         if self.memory_guid:
             # Force the memory to use our provided GUID, overriding any existing GUID
             if "guid" in self.memory and self.memory["guid"] != self.memory_guid:
-                print(f"Replacing existing memory GUID: {self.memory['guid']} with provided GUID: {self.memory_guid}")
+                self.logger.debug(f"Replacing existing memory GUID: {self.memory['guid']} with provided GUID: {self.memory_guid}")
             
             # Set the GUID in memory
             self.memory["guid"] = self.memory_guid
-            print(f"Using provided GUID for memory: {self.memory_guid}")
-            # self.save_memory()
+            self.logger.debug(f"Using provided GUID for memory: {self.memory_guid}")
         # If no GUID was provided but one exists in memory, use that
         elif "guid" in self.memory:
             self.memory_guid = self.memory["guid"]
-            print(f"Using existing memory GUID: {self.memory_guid}")
+            self.logger.debug(f"Using existing memory GUID: {self.memory_guid}")
         # If no GUID was provided and none exists in memory, generate a new one
         else:
             self.memory_guid = str(uuid.uuid4())
             self.memory["guid"] = self.memory_guid
-            print(f"Generated new GUID for memory: {self.memory_guid}")
-            # self.save_memory()
+            self.logger.debug(f"Generated new GUID for memory: {self.memory_guid}")
 
     def _get_default_config(self) -> dict:
         """Get the default domain configuration if none provided."""
@@ -169,9 +167,9 @@ class MemoryManager(BaseMemoryManager):
             try:
                 with open(path, 'r') as f:
                     self.templates[key] = f.read().strip()
-                print(f"Loaded template: {filename}")
+                self.logger.debug(f"Loaded template: {filename}")
             except Exception as e:
-                print(f"Error loading template {filename}: {str(e)}")
+                self.logger.error(f"Error loading template {filename}: {str(e)}")
                 # Raise an exception if the template cannot be loaded
                 raise Exception(f"Failed to load template: {filename}")
 
@@ -184,17 +182,17 @@ class MemoryManager(BaseMemoryManager):
         try:
             # Check if we have valid existing memory
             if self.memory and all(key in self.memory for key in ["static_memory", "context", "conversation_history"]):
-                print("Valid memory structure already exists, skipping initialization")
+                self.logger.debug("Valid memory structure already exists, skipping initialization")
                 # Ensure GUID exists even for pre-existing memories
                 self._ensure_memory_guid()
                 return True
 
-            print("\nCreating initial memory structure...")
+            self.logger.debug("Creating initial memory structure...")
 
             # Use DataPreprocessor to segment the input data
             data_preprocessor = DataPreprocessor(self.llm)
             preprocessed_segments = data_preprocessor.preprocess_data(input_data)
-            print(f"Preprocessed segments: {preprocessed_segments}")
+            self.logger.debug(f"Preprocessed segments: {preprocessed_segments}")
 
             # Create system entry for initial data
             system_entry = {
@@ -205,7 +203,7 @@ class MemoryManager(BaseMemoryManager):
             }
             
             # Generate digest for initial data using pre-segmented content
-            print("Generating digest for initial data with pre-segmented content...")
+            self.logger.debug("Generating digest for initial data with pre-segmented content...")
             initial_digest = self.digest_generator.generate_digest(system_entry, segments=preprocessed_segments)
             system_entry["digest"] = initial_digest
                         
@@ -237,10 +235,10 @@ class MemoryManager(BaseMemoryManager):
             # Generate and save embeddings for the initial system entry
             self.embeddings_manager.update_indices([system_entry])
 
-            print("Memory created and initialized with static knowledge")
+            self.logger.debug("Memory created and initialized with static knowledge")
             return True
         except Exception as e:
-            print(f"Error creating initial memory: {str(e)}")
+            self.logger.error(f"Error creating initial memory: {str(e)}")
             return False
 
     def _create_static_memory_from_digest(self, digest: Dict[str, Any]) -> str:
@@ -249,13 +247,13 @@ class MemoryManager(BaseMemoryManager):
             rated_segments = digest.get("rated_segments", [])
             
             if not rated_segments:
-                print("Warning: No rated segments found in digest, using empty static memory")
+                self.logger.debug("Warning: No rated segments found in digest, using empty static memory")
                 return ""
             
             return "\n".join(segment.get("text", "") for segment in rated_segments)
             
         except Exception as e:
-            print(f"Error creating static memory from digest: {str(e)}")
+            self.logger.error(f"Error creating static memory from digest: {str(e)}")
             return ""
 
     def _get_initial_segments_text(self) -> str:
@@ -283,7 +281,7 @@ class MemoryManager(BaseMemoryManager):
             Dict[str, Any]: Response with the LLM's answer
         """
         try:
-            print("\nQuerying memory...")
+            self.logger.debug("Querying memory...")
             
             # Extract query text
             query = query_context.get("query", "")
@@ -318,9 +316,9 @@ class MemoryManager(BaseMemoryManager):
                 enhanced_context = self.rag_manager.enhance_memory_query(query_context)
                 rag_context = enhanced_context.get("rag_context", "")
                 if rag_context:
-                    print("Using RAG-enhanced context for memory query (auto-generated)")
+                    self.logger.debug("Using RAG-enhanced context for memory query (auto-generated)")
             else:
-                print("Using RAG-enhanced context for memory query (provided)")
+                self.logger.debug("Using RAG-enhanced context for memory query (provided)")
             
             # Get domain-specific instructions (use provided or get from config)
             domain_specific_prompt_instructions = query_context.get("domain_specific_prompt_instructions", "")
@@ -340,7 +338,7 @@ class MemoryManager(BaseMemoryManager):
             )
             
             # Get response from LLM
-            print("Generating response using LLM...")
+            self.logger.debug("Generating response using LLM...")
             llm_response = self.llm.generate(
                 prompt,
                 options={"temperature": 0.7}
@@ -372,13 +370,13 @@ class MemoryManager(BaseMemoryManager):
             # Check if we should compress memory based on number of conversations
             conversation_entries = len(self.memory["conversation_history"])
             if conversation_entries > self.max_recent_conversation_entries:
-                print(f"Memory has {conversation_entries} conversations, scheduling compression...")
+                self.logger.debug(f"Memory has {conversation_entries} conversations, scheduling compression...")
                 asyncio.create_task(self._compress_memory_async())
             
             return {"response": llm_response}
 
         except Exception as e:
-            print(f"Error in query_memory: {str(e)}")
+            self.logger.error(f"Error in query_memory: {str(e)}")
             return {"response": f"Error processing query: {str(e)}", "error": str(e)}
             
     async def _process_entry_async(self, entry: Dict[str, Any]) -> None:
@@ -386,24 +384,24 @@ class MemoryManager(BaseMemoryManager):
         try:
             # Generate digest if not already present
             if "digest" not in entry:
-                print(f"Generating digest for {entry['role']} entry...")
+                self.logger.debug(f"Generating digest for {entry['role']} entry...")
                 entry["digest"] = self.digest_generator.generate_digest(entry, self.memory)
                 self.save_memory("async_digest_generation")
             
             # Update embeddings
-            print(f"Updating embeddings for {entry['role']} entry...")
+            self.logger.debug(f"Updating embeddings for {entry['role']} entry...")
             self.embeddings_manager.update_indices([entry])
             
         except Exception as e:
-            print(f"Error in async entry processing: {str(e)}")
+            self.logger.error(f"Error in async entry processing: {str(e)}")
             
     async def _compress_memory_async(self) -> None:
         """Compress memory asynchronously."""
         try:
-            print("Starting async memory compression...")
+            self.logger.debug("Starting async memory compression...")
             self._compress_conversation_history()
         except Exception as e:
-            print(f"Error in async memory compression: {str(e)}")
+            self.logger.error(f"Error in async memory compression: {str(e)}")
 
     def _format_static_memory_as_text(self) -> str:
         """Format static memory as readable text."""
@@ -502,18 +500,18 @@ class MemoryManager(BaseMemoryManager):
             bool: True if memory was updated successfully
         """
         try:
-            print("\nUpdating memory...")
+            self.logger.debug("Updating memory...")
             
             # Only handle updating memory operations
             if update_context.get("operation") != "update":
-                print("update_memory should only be used for updating memory operations")
+                self.logger.debug("update_memory should only be used for updating memory operations")
                 return False
 
-            print("\nCompressing conversation history...")            
+            self.logger.debug("Compressing conversation history...")            
             return self._compress_conversation_history()
             
         except Exception as e:
-            print(f"Error updating memory: {str(e)}")
+            self.logger.error(f"Error updating memory: {str(e)}")
             return False
 
     def _compress_conversation_history(self) -> bool:
@@ -552,11 +550,11 @@ class MemoryManager(BaseMemoryManager):
             # Save to persist memory updates
             self.save_memory("compress_conversation_history")
             
-            print(f"Compressed conversation history. Remaining entries: {len(self.memory['conversation_history'])}")
+            self.logger.debug(f"Compressed conversation history. Remaining entries: {len(self.memory['conversation_history'])}")
             return True
             
         except Exception as e:
-            print(f"Error compressing conversation history: {str(e)}")
+            self.logger.error(f"Error compressing conversation history: {str(e)}")
             return False
             
     def add_conversation_entry(self, entry: Dict[str, Any]) -> bool:
@@ -575,11 +573,11 @@ class MemoryManager(BaseMemoryManager):
         try:
             # Ensure basic fields exist
             if "content" not in entry:
-                print("Error: Conversation entry must have 'content'")
+                self.logger.error("Error: Conversation entry must have 'content'")
                 return False
                 
             if "role" not in entry:
-                print("Error: Conversation entry must have 'role'")
+                self.logger.error("Error: Conversation entry must have 'role'")
                 return False
                 
             # Ensure GUID
@@ -592,7 +590,7 @@ class MemoryManager(BaseMemoryManager):
                 
             # Generate digest if not already present
             if "digest" not in entry:
-                print(f"Generating digest for {entry['role']} entry...")
+                self.logger.debug(f"Generating digest for {entry['role']} entry...")
                 entry["digest"] = self.digest_generator.generate_digest(entry, self.memory)
                 
             # Add to conversation history file and memory
@@ -602,7 +600,7 @@ class MemoryManager(BaseMemoryManager):
                 self.memory["conversation_history"] = []
                 
             self.memory["conversation_history"].append(entry)
-            print(f"Added {entry['role']} entry to conversation history")
+            self.logger.debug(f"Added {entry['role']} entry to conversation history")
             
             # Save to persist memory updates
             self.save_memory("add_conversation_entry")
@@ -613,7 +611,7 @@ class MemoryManager(BaseMemoryManager):
             return True
             
         except Exception as e:
-            print(f"Error adding conversation entry: {str(e)}")
+            self.logger.error(f"Error adding conversation entry: {str(e)}")
             return False
             
     def update_memory_with_conversations(self) -> bool:
@@ -629,13 +627,13 @@ class MemoryManager(BaseMemoryManager):
             # Check if we need to compress based on conversation count
             conversation_entries = len(self.memory.get("conversation_history", []))
             if conversation_entries > self.max_recent_conversation_entries:
-                print(f"Memory has {conversation_entries} conversations, compressing...")
+                self.logger.debug(f"Memory has {conversation_entries} conversations, compressing...")
                 return self.update_memory({"operation": "update"})
             else:
-                print(f"Memory has only {conversation_entries} conversations, compression not needed yet")
+                self.logger.debug(f"Memory has only {conversation_entries} conversations, compression not needed yet")
                 return True
         except Exception as e:
-            print(f"Error updating memory with conversations: {str(e)}")
+            self.logger.error(f"Error updating memory with conversations: {str(e)}")
             return False
 
 class AsyncMemoryManager(MemoryManager):
@@ -662,11 +660,11 @@ class AsyncMemoryManager(MemoryManager):
         try:
             # Ensure basic fields exist
             if "content" not in entry:
-                print("Error: Conversation entry must have 'content'")
+                self.logger.error("Error: Conversation entry must have 'content'")
                 return False
                 
             if "role" not in entry:
-                print("Error: Conversation entry must have 'role'")
+                self.logger.error("Error: Conversation entry must have 'role'")
                 return False
                 
             # Ensure GUID
@@ -684,14 +682,14 @@ class AsyncMemoryManager(MemoryManager):
                 self.memory["conversation_history"] = []
                 
             self.memory["conversation_history"].append(entry)
-            print(f"Added {entry['role']} entry to conversation history")
+            self.logger.debug(f"Added {entry['role']} entry to conversation history")
             
             # Save to persist memory updates
             self.save_memory("add_conversation_entry")
             
             # Start async digest generation if not already present
             if "digest" not in entry:
-                print(f"Starting async digest generation for {entry['role']} entry...")
+                self.logger.debug(f"Starting async digest generation for {entry['role']} entry...")
                 self._pending_digests[entry["guid"]] = entry
                 asyncio.create_task(self._generate_digest_async(entry))
             else:
@@ -702,7 +700,7 @@ class AsyncMemoryManager(MemoryManager):
             return True
             
         except Exception as e:
-            print(f"Error adding conversation entry: {str(e)}")
+            self.logger.error(f"Error adding conversation entry: {str(e)}")
             return False
     
     async def _generate_digest_async(self, entry: Dict[str, Any]) -> None:
@@ -722,7 +720,7 @@ class AsyncMemoryManager(MemoryManager):
             self.save_memory("async_digest_generation")
             
         except Exception as e:
-            print(f"Error in async digest generation: {str(e)}")
+            self.logger.error(f"Error in async digest generation: {str(e)}")
     
     async def _update_embeddings_async(self, entry: Dict[str, Any]) -> None:
         """Asynchronously update embeddings for an entry."""
@@ -734,7 +732,7 @@ class AsyncMemoryManager(MemoryManager):
             self._pending_embeddings.discard(entry["guid"])
             
         except Exception as e:
-            print(f"Error in async embeddings update: {str(e)}")
+            self.logger.error(f"Error in async embeddings update: {str(e)}")
     
     def get_pending_operations(self) -> Dict[str, Any]:
         """Get information about pending async operations.

@@ -89,7 +89,7 @@ class EmbeddingsManager:
     def _load_embeddings(self):
         """Load existing embeddings from file."""
         if not os.path.exists(self.embeddings_file):
-            self.logger.info(f"Embeddings file {self.embeddings_file} does not exist, starting with empty embeddings.")
+            self.logger.debug(f"Embeddings file {self.embeddings_file} does not exist, starting with empty embeddings.")
             return
             
         try:
@@ -100,13 +100,13 @@ class EmbeddingsManager:
                     try:
                         data = json.loads(line)
                         if 'embedding' not in data:
-                            self.logger.warning(f"Line {line_num} in embeddings file is missing 'embedding' field.")
+                            self.logger.debug(f"Line {line_num} in embeddings file is missing 'embedding' field.")
                             error_count += 1
                             continue
                             
                         # Ensure metadata exists (create empty if not)
                         if 'metadata' not in data:
-                            self.logger.warning(f"Line {line_num} in embeddings file is missing 'metadata' field, creating empty.")
+                            self.logger.debug(f"Line {line_num} in embeddings file is missing 'metadata' field, creating empty.")
                             data['metadata'] = {}
                             
                         # Add the text to metadata if it's in the main data but not in metadata
@@ -119,15 +119,15 @@ class EmbeddingsManager:
                         ))
                         count += 1
                     except json.JSONDecodeError:
-                        self.logger.warning(f"Failed to parse line {line_num} in embeddings file.")
+                        self.logger.debug(f"Failed to parse line {line_num} in embeddings file.")
                         error_count += 1
                         continue
                     except Exception as e:
-                        self.logger.warning(f"Error processing line {line_num}: {str(e)}")
+                        self.logger.debug(f"Error processing line {line_num}: {str(e)}")
                         error_count += 1
                         continue
                         
-            self.logger.info(f"Loaded {count} embeddings from {self.embeddings_file} ({error_count} errors)")
+            self.logger.debug(f"Loaded {count} embeddings from {self.embeddings_file} ({error_count} errors)")
         except Exception as e:
             self.logger.error(f"Error loading embeddings: {str(e)}")
     
@@ -203,7 +203,7 @@ class EmbeddingsManager:
                         return item['metadata'][field]
         
         # If we get here, we couldn't find any text
-        self.logger.warning(f"Could not extract text from item: {item}")
+        self.logger.debug(f"Could not extract text from item: {item}")
         return ""
     
     def add_embedding(self, text_or_item: Union[str, Dict[str, Any]], metadata: Optional[Dict[str, Any]] = None, options: Optional[Dict[str, Any]] = None) -> bool:
@@ -236,7 +236,7 @@ class EmbeddingsManager:
             
             # Ensure we have text to embed
             if not text or not text.strip():
-                self.logger.warning("Cannot add embedding for empty text")
+                self.logger.debug("Cannot add embedding for empty text")
                 return False
                 
             # Ensure metadata is a dictionary
@@ -308,14 +308,14 @@ class EmbeddingsManager:
             List[Dict]: List of results with similarity scores and metadata
         """
         if not self.embeddings:
-            self.logger.warning("No embeddings available for search")
+            self.logger.debug("No embeddings available for search")
             return []
             
         try:
             # Get query embedding
             if isinstance(query, str):
                 try:
-                    self.logger.info(f"Generating embedding for query: '{query}'")
+                    self.logger.debug(f"Generating embedding for query: '{query}'")
                     query_embedding = self.generate_embedding(query)
                 except Exception as e:
                     self.logger.error(f"Error generating embedding for query: {str(e)}")
@@ -360,7 +360,7 @@ class EmbeddingsManager:
                         result_metadata
                     ))
                 except Exception as e:
-                    self.logger.warning(f"Error processing embedding: {str(e)}")
+                    self.logger.debug(f"Error processing embedding: {str(e)}")
                     continue
             
             # Sort by similarity (highest first)
@@ -376,7 +376,7 @@ class EmbeddingsManager:
                 for score, text, metadata in similarities[:k]
             ]
             
-            self.logger.info(f"Search found {len(results)} results out of {len(similarities)} total embeddings")
+            self.logger.debug(f"Search found {len(results)} results out of {len(similarities)} total embeddings")
             return results
             
         except Exception as e:
@@ -401,9 +401,9 @@ class EmbeddingsManager:
                 backup_path = f"{self.embeddings_file}.bak"
                 try:
                     os.rename(self.embeddings_file, backup_path)
-                    self.logger.info(f"Created backup of embeddings file: {backup_path}")
+                    self.logger.debug(f"Created backup of embeddings file: {backup_path}")
                 except OSError:
-                    self.logger.warning(f"Could not create backup of embeddings file")
+                    self.logger.error(f"Could not create backup of embeddings file")
             
             # Create a new embeddings file
             with open(self.embeddings_file, 'w'):
@@ -417,10 +417,10 @@ class EmbeddingsManager:
                 # Only embed rated_segments from digest
                 if 'digest' in entry and 'rated_segments' in entry['digest']:
                     segments = entry['digest']['rated_segments']
-                    self.logger.info(f"Processing {len(segments)} segments for entry {entry.get('guid', str(total_count))}")
+                    self.logger.debug(f"Processing {len(segments)} segments for entry {entry.get('guid', str(total_count))}")
                     for i, segment in enumerate(segments):
                         if 'text' not in segment or not segment['text']:
-                            self.logger.warning(f"Skipping segment {i} without text in entry {entry.get('guid', str(total_count))}")
+                            self.logger.debug(f"Skipping segment {i} without text in entry {entry.get('guid', str(total_count))}")
                             continue
                         total_count += 1
                         # Create segment metadata
@@ -437,7 +437,7 @@ class EmbeddingsManager:
                         if self.add_embedding(segment.get('text', ''), segment_metadata):
                             success_count += 1
             
-            self.logger.info(f"Updated embeddings: {success_count}/{total_count} successful")
+            self.logger.debug(f"Updated embeddings: {success_count}/{total_count} successful")
             return success_count > 0
         except Exception as e:
             self.logger.error(f"Error updating embeddings: {str(e)}")
@@ -490,5 +490,5 @@ class EmbeddingsManager:
         total_added = 0
         for entry in new_entries:
             total_added += self.add_embeddings_for_entry(entry)
-        self.logger.info(f"Incremental embedding update: {total_added} new embeddings added.")
+        self.logger.debug(f"Incremental embedding update: {total_added} new embeddings added.")
         return total_added > 0 

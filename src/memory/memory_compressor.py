@@ -49,9 +49,9 @@ class MemoryCompressor:
         try:
             with open(os.path.join(template_dir, "compress_memory.prompt"), 'r') as f:
                 self.compress_template = f.read().strip()
-            print("Loaded compression template")
+            self.logger.debug("Loaded compression template")
         except Exception as e:
-            print(f"Error loading compression template: {str(e)}")
+            self.logger.error(f"Error loading compression template: {str(e)}")
             raise Exception("Failed to load compression template")
             
     def compress_conversation_history(self, 
@@ -70,10 +70,10 @@ class MemoryCompressor:
         """
         try:
             if not conversation_history:
-                print("No entries to compress")
+                self.logger.debug("No entries to compress")
                 return {"context": current_context, "conversation_history": []}
             
-            print(f"Found {len(conversation_history)} entries to compress")
+            self.logger.debug(f"Found {len(conversation_history)} entries to compress")
             
             # Process entries in turns (user + agent pairs)
             turns = []
@@ -87,7 +87,7 @@ class MemoryCompressor:
                     turns.append(current_turn)
                     current_turn = []
             
-            print(f"Split into {len(turns)} turns")
+            self.logger.debug(f"Split into {len(turns)} turns")
             
             # Process each turn
             new_context = current_context.copy() if current_context else []
@@ -99,7 +99,7 @@ class MemoryCompressor:
                 for entry in turn:
                     # Process digest if available
                     if "digest" in entry and "rated_segments" in entry["digest"]:
-                        print(f"Processing digest for entry {entry.get('guid')}")
+                        self.logger.debug(f"Processing digest for entry {entry.get('guid')}")
                         # Filter segments by importance
                         for segment in entry["digest"]["rated_segments"]:
                             if segment.get("importance", 0) >= self.importance_threshold:
@@ -113,7 +113,7 @@ class MemoryCompressor:
                                     "source_guid": entry.get("guid")
                                 })
                     else:
-                        print(f"No digest found for entry {entry.get('guid')}")
+                        self.logger.debug(f"No digest found for entry {entry.get('guid')}")
                 
                 if important_segments:
                     # Transform segments into simple markdown format
@@ -132,10 +132,10 @@ class MemoryCompressor:
                         static_memory_text=static_memory
                     )
                     
-                    print("Sending compression prompt to LLM...")
+                    self.logger.debug("Sending compression prompt to LLM...")
                     # Call LLM to organize segments with temperature=0 for deterministic results
                     llm_response = self.llm.generate(prompt, options={"temperature": 0}, debug_generate_scope="memory_compression")
-                    print("Received response from LLM")
+                    self.logger.debug("Received response from LLM")
                     
                     # Create a new context entry with the markdown text and source GUIDs
                     context_entry = {
@@ -145,7 +145,7 @@ class MemoryCompressor:
                     
                     # Add the new context entry
                     new_context.append(context_entry)
-                    print("Added new context entry with compressed information")
+                    self.logger.debug("Added new context entry with compressed information")
             
             # Collect GUIDs of all compressed entries
             all_compressed_guids = []
@@ -166,5 +166,5 @@ class MemoryCompressor:
             }
             
         except Exception as e:
-            print(f"Error in compress_conversation_history: {str(e)}")
+            self.logger.error(f"Error in compress_conversation_history: {str(e)}")
             return {"context": current_context, "conversation_history": conversation_history} 

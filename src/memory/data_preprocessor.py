@@ -24,9 +24,9 @@ class DataPreprocessor:
         try:
             with open(os.path.join(template_dir, "preprocess_data.prompt"), 'r') as f:
                 self.preprocess_template = f.read().strip()
-            print("Loaded preprocess_data template")
+            self.logger.debug("Loaded preprocess_data template")
         except Exception as e:
-            print(f"Error loading preprocess_data template: {str(e)}")
+            self.logger.error(f"Error loading preprocess_data template: {str(e)}")
             raise Exception("Failed to load preprocess_data template")
 
     def preprocess_data(self, input_data: str) -> List[str]:
@@ -56,7 +56,7 @@ class DataPreprocessor:
             try:
                 phrases = json.loads(llm_response)
                 if not isinstance(phrases, list) or not all(isinstance(p, str) for p in phrases):
-                    print("Preprocessing failed: Response is not a list of strings")
+                    self.logger.debug("Preprocessing failed: Response is not a list of strings")
                     return [input_data]
                 return phrases
             except json.JSONDecodeError:
@@ -69,8 +69,8 @@ class DataPreprocessor:
                             return phrases
                     except json.JSONDecodeError:
                         pass
-                print("Failed to parse embeddable phrases, using input as fallback")
+                self.logger.error("Failed to parse embeddable phrases, using input as fallback")
                 return [input_data]
         except Exception as e:
-            print(f"Error in data preprocessing: {str(e)}")
+            self.logger.error(f"Error in data preprocessing: {str(e)}")
             return [input_data]

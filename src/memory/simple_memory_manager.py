@@ -44,9 +44,9 @@ class SimpleMemoryManager(BaseMemoryManager):
         
         # Pass memory_guid to the parent constructor
         super().__init__(memory_guid, memory_file, domain_config, logger=logger)
-        print(f"\nInitializing SimpleMemoryManager with file: {memory_file}")
         self.llm = llm_service
         self.logger = logger or logging.getLogger(__name__)
+        self.logger.debug(f"\nInitializing SimpleMemoryManager with file: {memory_file}")
         
         # Ensure memory has a GUID
         self._ensure_memory_guid()
@@ -58,7 +58,7 @@ class SimpleMemoryManager(BaseMemoryManager):
             # Make sure we have a GUID, generating one if needed
             if not self.memory_guid:
                 self.memory_guid = str(uuid.uuid4())
-                print(f"Generated new GUID: {self.memory_guid} for memory file that will be created")
+                self.logger.debug(f"Generated new GUID: {self.memory_guid} for memory file that will be created")
             return
             
         # Priority order for GUID:
@@ -70,21 +70,21 @@ class SimpleMemoryManager(BaseMemoryManager):
         if self.memory_guid:
             # Force the memory to use our provided GUID, overriding any existing GUID
             if "guid" in self.memory and self.memory["guid"] != self.memory_guid:
-                print(f"Replacing existing memory GUID: {self.memory['guid']} with provided GUID: {self.memory_guid}")
+                self.logger.debug(f"Replacing existing memory GUID: {self.memory['guid']} with provided GUID: {self.memory_guid}")
             
             # Set the GUID in memory
             self.memory["guid"] = self.memory_guid
-            print(f"Using provided GUID for memory: {self.memory_guid}")
+            self.logger.debug(f"Using provided GUID for memory: {self.memory_guid}")
             # self.save_memory()
         # If no GUID was provided but one exists in memory, use that
         elif "guid" in self.memory:
             self.memory_guid = self.memory["guid"]
-            print(f"Using existing memory GUID: {self.memory_guid}")
+            self.logger.debug(f"Using existing memory GUID: {self.memory_guid}")
         # If no GUID was provided and none exists in memory, generate a new one
         else:
             self.memory_guid = str(uuid.uuid4())
             self.memory["guid"] = self.memory_guid
-            print(f"Generated new GUID for memory: {self.memory_guid}")
+            self.logger.debug(f"Generated new GUID for memory: {self.memory_guid}")
             # self.save_memory()
 
     def create_initial_memory(self, input_data: str) -> bool:
@@ -99,7 +99,7 @@ class SimpleMemoryManager(BaseMemoryManager):
         try:
             # Check if we have valid existing memory
             if self.memory and all(key in self.memory for key in ["initial_data", "conversation_history", "last_updated"]):
-                print("Valid memory structure already exists, skipping initialization")
+                self.logger.debug("Valid memory structure already exists, skipping initialization")
                 # Ensure GUID exists even for pre-existing memories
                 self._ensure_memory_guid()
                 return True
@@ -107,9 +107,9 @@ class SimpleMemoryManager(BaseMemoryManager):
             # Use existing GUID if it was provided or already generated, only generate a new one as a last resort
             if not self.memory_guid:
                 self.memory_guid = str(uuid.uuid4())
-                print(f"Generated new GUID for memory: {self.memory_guid}")
+                self.logger.debug(f"Generated new GUID for memory: {self.memory_guid}")
             else:
-                print(f"Using existing GUID for memory: {self.memory_guid}")
+                self.logger.debug(f"Using existing GUID for memory: {self.memory_guid}")
             
             # Initialize the simplified memory structure
             now = datetime.now().isoformat()
@@ -122,11 +122,11 @@ class SimpleMemoryManager(BaseMemoryManager):
             }
             
             self.save_memory("create_initial_memory:simple")
-            print(f"Initial memory created with GUID: {self.memory_guid} and type: simple")
+            self.logger.debug(f"Initial memory created with GUID: {self.memory_guid} and type: simple")
             return True
             
         except Exception as e:
-            print(f"Error creating memory: {str(e)}")
+            self.logger.error(f"Error creating memory: {str(e)}")
             return False
 
     def query_memory(self, query_context: Dict[str, Any]) -> dict:
@@ -164,7 +164,7 @@ Latest User Message: {user_message}
 Please provide a helpful response based on all available context."""
             
             # Get response from LLM
-            print("Generating response using LLM...")
+            self.logger.debug("Generating response using LLM...")
             llm_response = self.llm.generate(prompt)
             
             # Add response to history
@@ -181,7 +181,7 @@ Please provide a helpful response based on all available context."""
             return {"response": llm_response}
             
         except Exception as e:
-            print(f"Error processing query: {str(e)}")
+            self.logger.error(f"Error processing query: {str(e)}")
             return {"response": f"Error processing query: {str(e)}"}
 
     def _format_conversation_history(self) -> str:
@@ -206,7 +206,7 @@ Please provide a helpful response based on all available context."""
         try:
             # Only handle update operations
             if update_context.get("operation") != "update":
-                print("update_memory should only be used for update operations")
+                self.logger.debug("update_memory should only be used for update operations")
                 return False
             
             # For simple memory manager, we don't need reflection updates
@@ -214,5 +214,5 @@ Please provide a helpful response based on all available context."""
             return True
             
         except Exception as e:
-            print(f"Error updating memory: {str(e)}")
+            self.logger.error(f"Error updating memory: {str(e)}")
             return False

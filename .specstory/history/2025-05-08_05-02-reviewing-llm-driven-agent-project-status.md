@@ -3618,6 +3618,526 @@ Can you tell if the loggers are confogured to NOT output to the console?
 
 _**Assistant**_
 
+Yes, based on the logging configuration you now have in `agent_usage_example.py`, the loggers are **configured to NOT output to the console**. Here’s why:
+
+### What your code does:
+1. **Removes all handlers from the root logger:**
+   ```python
+   for handler in logging.root.handlers[:]:
+       logging.root.removeHandler(handler)
+   ```
+   This ensures that any default `StreamHandler` (which outputs to the console) is removed.
+
+2. **Adds only a `FileHandler` to your main logger:**
+   ```python
+   file_handler = logging.FileHandler(os.path.join(logs_dir, "agent_usage_example.log"))
+   file_handler.setLevel(logging.INFO)
+   formatter = logging.Formatter('%(asctime)s %(levelname)s:%(name)s:%(message)s')
+   file_handler.setFormatter(formatter)
+
+   logger = logging.getLogger(__name__)
+   logger.setLevel(logging.INFO)
+   logger.addHandler(file_handler)
+   ```
+
+3. **Sets the root logger to WARNING:**
+   ```python
+   logging.getLogger().setLevel(logging.WARNING)
+   ```
+   This means that unless a handler is explicitly added, only WARNING and above will be processed by the root logger (and you have removed all handlers from it).
+
+### **Result:**
+- **No log messages (INFO, DEBUG, etc.) will go to the console.**
+- **All log messages from your logger will go only to the specified log file.**
+- **Only `print()` statements will appear in the console, which are now reserved for user-facing output.**
+
+---
+
+**You can verify this by running your script:**  
+- You should see only user-facing output in the terminal.
+- All log output (including debug/info/error) will be in `logs/agent_usage_example.log`.
+
+If you want to be extra sure, you can add a temporary `logger.info("This should only appear in the log file")` at the top of your script, run it, and confirm it does not appear in the console.
+
+Let me know if you want to proceed to the next file for log cleanup!
+
+---
+
+_**User**_
+
+OK let's move on to memory_manager.py
+
+There should be no print statements. All logging should be via logger.debug()
+
+---
+
+_**Assistant**_
+
+```diff
+          # Pass memory_guid and logger to the parent constructor
+          super().__init__(memory_guid, memory_file, domain_config, logger=logger)
+-         print(f"\nInitializing MemoryManager with file: {memory_file}")
+          self.llm = llm_service
+          self.digest_llm = digest_llm_service or llm_service
+```
+
+```diff
+          # Initialize DigestGenerator with dedicated LLM service
+          self.digest_generator = DigestGenerator(self.digest_llm, logger=logger)
+-         print("Initialized DigestGenerator")
+          
+          # Initialize MemoryCompressor (uses general LLM)
+          self.memory_compressor = MemoryCompressor(self.llm, importance_threshold, logger=logger)
+-         print("Initialized MemoryCompressor")
+          
+          # Initialize EmbeddingsManager and RAGManager with dedicated embeddings LLM service
+          embeddings_file = os.path.splitext(memory_file)[0] + "_embeddings.jsonl"
+          self.embeddings_manager = EmbeddingsManager(embeddings_file, self.embeddings_llm, logger=logger)
+          self.rag_manager = RAGManager(self.embeddings_llm, self.embeddings_manager, logger=logger)
+-         print("Initialized EmbeddingsManager and RAGManager")
+-         print(f"Embeddings file: {embeddings_file}")
+          
+          # Ensure memory has a GUID
+```
+
+```diff
+          self.max_recent_conversation_entries = max_recent_conversation_entries
+          self.importance_threshold = importance_threshold
+-         print(f"Memory configuration: max_recent_conversation_entries={max_recent_conversation_entries}, importance_threshold={importance_threshold}")
++         logger.debug(f"MemoryManager initialized with file: {memory_file}")
+  
+      def _ensure_memory_guid(self):
+```
+
+```diff
+              if not self.memory_guid:
+                  self.memory_guid = str(uuid.uuid4())
+-                 print(f"Generated new GUID: {self.memory_guid} for memory file that will be created")
++                 self.logger.debug(f"Generated new GUID: {self.memory_guid} for memory file that will be created")
+              return
+              
+```
+
+```diff
+              # Force the memory to use our provided GUID, overriding any existing GUID
+              if "guid" in self.memory and self.memory["guid"] != self.memory_guid:
+-                 print(f"Replacing existing memory GUID: {self.memory['guid']} with provided GUID: {self.memory_guid}")
++                 self.logger.debug(f"Replacing existing memory GUID: {self.memory['guid']} with provided GUID: {self.memory_guid}")
+              
+              # Set the GUID in memory
+              self.memory["guid"] = self.memory_guid
+-             print(f"Using provided GUID for memory: {self.memory_guid}")
+-             # self.save_memory()
++             self.logger.debug(f"Using provided GUID for memory: {self.memory_guid}")
+          # If no GUID was provided but one exists in memory, use that
+          elif "guid" in self.memory:
+              self.memory_guid = self.memory["guid"]
+-             print(f"Using existing memory GUID: {self.memory_guid}")
++             self.logger.debug(f"Using existing memory GUID: {self.memory_guid}")
+          # If no GUID was provided and none exists in memory, generate a new one
+          else:
+              self.memory_guid = str(uuid.uuid4())
+              self.memory["guid"] = self.memory_guid
+-             print(f"Generated new GUID for memory: {self.memory_guid}")
+-             # self.save_memory()
++             self.logger.debug(f"Generated new GUID for memory: {self.memory_guid}")
+  
+      def _get_default_config(self) -> dict:
+```
+
+```diff
+                  with open(path, 'r') as f:
+                      self.templates[key] = f.read().strip()
+-                 print(f"Loaded template: {filename}")
++                 self.logger.debug(f"Loaded template: {filename}")
+              except Exception as e:
+-                 print(f"Error loading template {filename}: {str(e)}")
++                 self.logger.error(f"Error loading template {filename}: {str(e)}")
+                  # Raise an exception if the template cannot be loaded
+                  raise Exception(f"Failed to load template: {filename}")
+```
+
+```diff
+              # Check if we have valid existing memory
+              if self.memory and all(key in self.memory for key in ["static_memory", "context", "conversation_history"]):
+-                 print("Valid memory structure already exists, skipping initialization")
++                 self.logger.debug("Valid memory structure already exists, skipping initialization")
+                  # Ensure GUID exists even for pre-existing memories
+                  self._ensure_memory_guid()
+                  return True
+  
+-             print("\nCreating initial memory structure...")
++             self.logger.debug("Creating initial memory structure...")
+  
+              # Use DataPreprocessor to segment the input data
+              data_preprocessor = DataPreprocessor(self.llm)
+              preprocessed_segments = data_preprocessor.preprocess_data(input_data)
+-             print(f"Preprocessed segments: {preprocessed_segments}")
++             self.logger.debug(f"Preprocessed segments: {preprocessed_segments}")
+  
+              # Create system entry for initial data
+```
+
+```diff
+              
+              # Generate digest for initial data using pre-segmented content
+-             print("Generating digest for initial data with pre-segmented content...")
++             self.logger.debug("Generating digest for initial data with pre-segmented content...")
+              initial_digest = self.digest_generator.generate_digest(system_entry, segments=preprocessed_segments)
+              system_entry["digest"] = initial_digest
+```
+
+```diff
+              self.embeddings_manager.update_indices([system_entry])
+  
+-             print("Memory created and initialized with static knowledge")
++             self.logger.debug("Memory created and initialized with static knowledge")
+              return True
+          except Exception as e:
+-             print(f"Error creating initial memory: {str(e)}")
++             self.logger.error(f"Error creating initial memory: {str(e)}")
+              return False
+  
+```
+
+```diff
+              
+              if not rated_segments:
+-                 print("Warning: No rated segments found in digest, using empty static memory")
++                 self.logger.debug("Warning: No rated segments found in digest, using empty static memory")
+                  return ""
+              
+              return "\n".join(segment.get("text", "") for segment in rated_segments)
+              
+          except Exception as e:
+-             print(f"Error creating static memory from digest: {str(e)}")
++             self.logger.error(f"Error creating static memory from digest: {str(e)}")
+              return ""
+  
+```
+
+```diff
+          """
+          try:
+-             print("\nQuerying memory...")
++             self.logger.debug("Querying memory...")
+              
+              # Extract query text
+```
+
+```diff
+                  rag_context = enhanced_context.get("rag_context", "")
+                  if rag_context:
+-                     print("Using RAG-enhanced context for memory query (auto-generated)")
++                     self.logger.debug("Using RAG-enhanced context for memory query (auto-generated)")
+              else:
+-                 print("Using RAG-enhanced context for memory query (provided)")
++                 self.logger.debug("Using RAG-enhanced context for memory query (provided)")
+              
+              # Get domain-specific instructions (use provided or get from config)
+```
+
+```diff
+              
+              # Get response from LLM
+-             print("Generating response using LLM...")
++             self.logger.debug("Generating response using LLM...")
+              llm_response = self.llm.generate(
+                  prompt,
+```
+
+```diff
+              conversation_entries = len(self.memory["conversation_history"])
+              if conversation_entries > self.max_recent_conversation_entries:
+-                 print(f"Memory has {conversation_entries} conversations, scheduling compression...")
++                 self.logger.debug(f"Memory has {conversation_entries} conversations, scheduling compression...")
+                  asyncio.create_task(self._compress_memory_async())
+              
+              return {"response": llm_response}
+  
+          except Exception as e:
+-             print(f"Error in query_memory: {str(e)}")
++             self.logger.error(f"Error in query_memory: {str(e)}")
+              return {"response": f"Error processing query: {str(e)}", "error": str(e)}
+              
+```
+
+```diff
+              # Generate digest if not already present
+              if "digest" not in entry:
+-                 print(f"Generating digest for {entry['role']} entry...")
++                 self.logger.debug(f"Generating digest for {entry['role']} entry...")
+                  entry["digest"] = self.digest_generator.generate_digest(entry, self.memory)
+                  self.save_memory("async_digest_generation")
+              
+              # Update embeddings
+-             print(f"Updating embeddings for {entry['role']} entry...")
++             self.logger.debug(f"Updating embeddings for {entry['role']} entry...")
+              self.embeddings_manager.update_indices([entry])
+              
+          except Exception as e:
+-             print(f"Error in async entry processing: {str(e)}")
++             self.logger.error(f"Error in async entry processing: {str(e)}")
+              
+      async def _compress_memory_async(self) -> None:
+          """Compress memory asynchronously."""
+          try:
+-             print("Starting async memory compression...")
++             self.logger.debug("Starting async memory compression...")
+              self._compress_conversation_history()
+          except Exception as e:
+-             print(f"Error in async memory compression: {str(e)}")
++             self.logger.error(f"Error in async memory compression: {str(e)}")
+  
+      def _format_static_memory_as_text(self) -> str:
+```
+
+```diff
+          """
+          try:
+-             print("\nUpdating memory...")
++             self.logger.debug("Updating memory...")
+              
+              # Only handle updating memory operations
+              if update_context.get("operation") != "update":
+-                 print("update_memory should only be used for updating memory operations")
++                 self.logger.debug("update_memory should only be used for updating memory operations")
+                  return False
+  
+-             print("\nCompressing conversation history...")            
++             self.logger.debug("Compressing conversation history...")            
+              return self._compress_conversation_history()
+              
+          except Exception as e:
+-             print(f"Error updating memory: {str(e)}")
++             self.logger.error(f"Error updating memory: {str(e)}")
+              return False
+  
+```
+
+```diff
+              self.save_memory("compress_conversation_history")
+              
+-             print(f"Compressed conversation history. Remaining entries: {len(self.memory['conversation_history'])}")
++             self.logger.debug(f"Compressed conversation history. Remaining entries: {len(self.memory['conversation_history'])}")
+              return True
+              
+          except Exception as e:
+-             print(f"Error compressing conversation history: {str(e)}")
++             self.logger.error(f"Error compressing conversation history: {str(e)}")
+              return False
+              
+```
+
+```diff
+              # Ensure basic fields exist
+              if "content" not in entry:
+-                 print("Error: Conversation entry must have 'content'")
++                 self.logger.error("Error: Conversation entry must have 'content'")
+                  return False
+                  
+              if "role" not in entry:
+-                 print("Error: Conversation entry must have 'role'")
++                 self.logger.error("Error: Conversation entry must have 'role'")
+                  return False
+                  
+```
+
+```diff
+              # Generate digest if not already present
+              if "digest" not in entry:
+-                 print(f"Generating digest for {entry['role']} entry...")
++                 self.logger.debug(f"Generating digest for {entry['role']} entry...")
+                  entry["digest"] = self.digest_generator.generate_digest(entry, self.memory)
+                  
+```
+
+```diff
+                  
+              self.memory["conversation_history"].append(entry)
+-             print(f"Added {entry['role']} entry to conversation history")
++             self.logger.debug(f"Added {entry['role']} entry to conversation history")
+              
+              # Save to persist memory updates
+```
+
+```diff
+              
+          except Exception as e:
+-             print(f"Error adding conversation entry: {str(e)}")
++             self.logger.error(f"Error adding conversation entry: {str(e)}")
+              return False
+              
+```
+
+```diff
+              conversation_entries = len(self.memory.get("conversation_history", []))
+              if conversation_entries > self.max_recent_conversation_entries:
+-                 print(f"Memory has {conversation_entries} conversations, compressing...")
++                 self.logger.debug(f"Memory has {conversation_entries} conversations, compressing...")
+                  return self.update_memory({"operation": "update"})
+              else:
+-                 print(f"Memory has only {conversation_entries} conversations, compression not needed yet")
++                 self.logger.debug(f"Memory has only {conversation_entries} conversations, compression not needed yet")
+                  return True
+          except Exception as e:
+-             print(f"Error updating memory with conversations: {str(e)}")
++             self.logger.error(f"Error updating memory with conversations: {str(e)}")
+              return False
+  
+```
+
+```diff
+              # Ensure basic fields exist
+              if "content" not in entry:
+-                 print("Error: Conversation entry must have 'content'")
++                 self.logger.error("Error: Conversation entry must have 'content'")
+                  return False
+                  
+              if "role" not in entry:
+-                 print("Error: Conversation entry must have 'role'")
++                 self.logger.error("Error: Conversation entry must have 'role'")
+                  return False
+                  
+```
+
+```diff
+                  
+              self.memory["conversation_history"].append(entry)
+-             print(f"Added {entry['role']} entry to conversation history")
++             self.logger.debug(f"Added {entry['role']} entry to conversation history")
+              
+              # Save to persist memory updates
+```
+
+```diff
+              # Start async digest generation if not already present
+              if "digest" not in entry:
+-                 print(f"Starting async digest generation for {entry['role']} entry...")
++                 self.logger.debug(f"Starting async digest generation for {entry['role']} entry...")
+                  self._pending_digests[entry["guid"]] = entry
+                  asyncio.create_task(self._generate_digest_async(entry))
+```
+
+```diff
+              
+          except Exception as e:
+-             print(f"Error adding conversation entry: {str(e)}")
++             self.logger.error(f"Error adding conversation entry: {str(e)}")
+              return False
+      
+```
+
+```diff
+              
+          except Exception as e:
+-             print(f"Error in async digest generation: {str(e)}")
++             self.logger.error(f"Error in async digest generation: {str(e)}")
+      
+      async def _update_embeddings_async(self, entry: Dict[str, Any]) -> None:
+```
+
+```diff
+              
+          except Exception as e:
+-             print(f"Error in async embeddings update: {str(e)}")
++             self.logger.error(f"Error in async embeddings update: {str(e)}")
+      
+      def get_pending_operations(self) -> Dict[str, Any]:
+```
+
+---
+
+All `print` statements in `src/memory/memory_manager.py` have been replaced with the appropriate logger calls:
+
+- Internal status, info, and debug output now uses `self.logger.debug(...)`.
+- All exception handling uses `self.logger.error(...)`.
+- No `print` statements remain in the file.
+
+This ensures that all internal logs go to the log files and not the console, keeping the user-facing output clean.
+
+Ready for the next file, or let me know if you want to review or adjust anything!
+
+---
+
+_**User**_
+
+Will this prevent debi=ug and error logs from being written:
+
+logger.setLevel(logging.INFO)
+
+I am not seeing debug or error logs in the log files.
+
+---
+
+_**Assistant**_
+
+Great question!  
+**Yes, setting `logger.setLevel(logging.INFO)` will prevent DEBUG logs from being written to the log file.**  
+However, it will NOT prevent ERROR logs—those are higher severity and will still be written.
+
+### How Python Logging Levels Work
+
+- `DEBUG` < `INFO` < `WARNING` < `ERROR` < `CRITICAL`
+- If you set a logger or handler to `INFO`, it will only log `INFO`, `WARNING`, `ERROR`, and `CRITICAL` messages (not `DEBUG`).
+- If you want to see `DEBUG` logs, you must set the logger and the handler to `DEBUG`.
+
+### **How to Fix**
+
+**To see both DEBUG and ERROR logs in your log file:**
+
+1. **Set the logger level to DEBUG:**
+   ```python
+   logger.setLevel(logging.DEBUG)
+   ```
+
+2. **Set the file handler level to DEBUG:**
+   ```python
+   file_handler.setLevel(logging.DEBUG)
+   ```
+
+This will ensure that all logs (`DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL`) are written to your log file.
+
+---
+
+### **Example Fix**
+
+Change this:
+```python
+file_handler.setLevel(logging.INFO)
+logger.setLevel(logging.INFO)
+```
+to:
+```python
+file_handler.setLevel(logging.DEBUG)
+logger.setLevel(logging.DEBUG)
+```
+
+---
+
+### **Summary**
+- `logger.setLevel(logging.INFO)` hides `DEBUG` logs.
+- To see `DEBUG` logs, set both the logger and the handler to `DEBUG`.
+- `ERROR` logs should always appear if the logger/handler is set to `INFO` or lower, but if you want to see everything, use `DEBUG`.
+
+---
+
+**Would you like me to update your logging setup to use `DEBUG` for both the logger and the file handler?**
+
+---
+
+_**User**_
+
+OK. Logging is looking good.
+
+Let make another commit.
+
+Please write a git commit message. We have replaced all print statements with logger calls - in all memory mamanger modules and in the agent and example files.
+
+---
+
+_**Assistant**_
+
 
 
 ---
