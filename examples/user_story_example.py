@@ -26,7 +26,7 @@ def print_memory_state(memory_manager, title="Current Memory State"):
     """Helper to print memory state in a readable format"""
     print(f"\n{title}")
     print("=" * len(title))
-    print(json.dumps(memory_manager.get_memory_context(), indent=2))
+    print(json.dumps(memory_manager.get_memory(), indent=2))
 
 def print_conversation_history(memory_manager, title="Conversation History"):
     """Print the accumulated conversation history from memory"""

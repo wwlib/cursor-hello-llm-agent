@@ -174,11 +174,7 @@ class MemoryManager(BaseMemoryManager):
                 raise Exception(f"Failed to load template: {filename}")
 
     def create_initial_memory(self, input_data: str) -> bool:
-        """Use LLM to structure initial input data into memory format.
-        
-        The initial data is processed through the DigestGenerator to create a structured
-        markdown representation of the static knowledge.
-        """
+        self.logger.debug(f"[DEBUG] create_initial_memory: memory_file={self.memory_file}, current self.memory={json.dumps(self.memory, indent=2)}")
         try:
             # Check if we have valid existing memory
             if self.memory and all(key in self.memory for key in ["static_memory", "context", "conversation_history"]):
@@ -186,7 +182,6 @@ class MemoryManager(BaseMemoryManager):
                 # Ensure GUID exists even for pre-existing memories
                 self._ensure_memory_guid()
                 return True
-
             self.logger.debug("Creating initial memory structure...")
 
             # Use DataPreprocessor to segment the input data
@@ -233,7 +228,7 @@ class MemoryManager(BaseMemoryManager):
             self.add_to_conversation_history(system_entry)
             
             # Generate and save embeddings for the initial system entry
-            self.embeddings_manager.update_indices([system_entry])
+            self.embeddings_manager.add_new_embeddings([system_entry])
 
             self.logger.debug("Memory created and initialized with static knowledge")
             return True
@@ -390,7 +385,7 @@ class MemoryManager(BaseMemoryManager):
             
             # Update embeddings
             self.logger.debug(f"Updating embeddings for {entry['role']} entry...")
-            self.embeddings_manager.update_indices([entry])
+            self.embeddings_manager.add_new_embeddings([entry])
             
         except Exception as e:
             self.logger.error(f"Error in async entry processing: {str(e)}")
@@ -606,7 +601,7 @@ class MemoryManager(BaseMemoryManager):
             self.save_memory("add_conversation_entry")
             
             # Update RAG/embeddings indices for the new entry
-            self.embeddings_manager.update_indices([entry])
+            self.embeddings_manager.add_new_embeddings([entry])
 
             return True
             
@@ -726,7 +721,7 @@ class AsyncMemoryManager(MemoryManager):
         """Asynchronously update embeddings for an entry."""
         try:
             # Update embeddings
-            self.embeddings_manager.update_indices([entry])
+            self.embeddings_manager.add_new_embeddings([entry])
             
             # Remove from pending embeddings
             self._pending_embeddings.discard(entry["guid"])

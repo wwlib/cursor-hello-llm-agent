@@ -44,13 +44,11 @@ class BaseMemoryManager(ABC):
         """
         self.memory_file = memory_file
         self.domain_config = domain_config or {}
-        self.memory: Dict[str, Any] = {}
         # Store the provided memory_guid (may be None)
         self.memory_guid = memory_guid
         # Store the logger instance, or get a default logger for this module
         self.logger = logger or logging.getLogger(__name__)
-        self._load_memory()
-        
+        self.memory: Dict[str, Any] = self._load_memory()
         # Initialize conversation history file path based on memory file
         self._init_conversation_history_file()
 
@@ -200,7 +198,7 @@ class BaseMemoryManager(ABC):
             self.logger.error(f"Error saving memory: {str(e)}")
             return False
 
-    def get_memory_context(self) -> Dict[str, Any]:
+    def get_memory(self) -> Dict[str, Any]:
         """Return the entire memory state"""
         return self.memory
 

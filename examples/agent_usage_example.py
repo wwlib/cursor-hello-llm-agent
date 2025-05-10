@@ -66,7 +66,7 @@ def print_memory_state(memory_manager, title="Current Memory State"):
     """Helper to print memory state in a readable format"""
     print(f"\n{title}")
     print("=" * len(title))
-    memory_context = memory_manager.get_memory_context()
+    memory = memory_manager.get_memory()
     
     # Log memory GUID
     guid = memory_manager.get_memory_guid()
@@ -74,29 +74,29 @@ def print_memory_state(memory_manager, title="Current Memory State"):
         print(f"Memory GUID: {guid}")
     
     # Log memory type
-    memory_type = memory_context.get("memory_manager_type", "unknown")
+    memory_type = memory.get("memory_type", "unknown")
     print(f"Memory Manager Type: {memory_type}")
     
     # Log filename
     print(f"Memory File: {memory_manager.memory_file}")
     
     # Print metadata if available
-    if "metadata" in memory_context:
+    if "metadata" in memory:
         print("Metadata:")
         print("-" * 30)
-        print(json.dumps(memory_context["metadata"], indent=2))
+        print(json.dumps(memory["metadata"], indent=2))
     
     # Print conversation history length
-    if "conversation_history" in memory_context:
-        print(f"\nConversation History: {len(memory_context['conversation_history'])} messages")
+    if "conversation_history" in memory:
+        print(f"\nConversation History: {len(memory['conversation_history'])} messages")
 
     # Print static memory if available
-    if "static_memory" in memory_context:
+    if "static_memory" in memory:
         print("Static memory present.")
         print("-" * 30)
         # assume that the static memory is a line-delimited list of strings
         # split the static memory into a list of strings
-        static_memory_list = memory_context["static_memory"].split("\n")
+        static_memory_list = memory["static_memory"].split("\n")
         # print the list of strings
         for item in static_memory_list:
             print(item)
@@ -109,8 +109,8 @@ def print_conversation_history(memory_manager, title="Conversation History"):
     """Print the accumulated conversation history from memory"""
     print(f"\n{title}")
     print("=" * len(title))
-    memory_context = memory_manager.get_memory_context()
-    messages = memory_context.get("conversation_history", [])
+    memory = memory_manager.get_memory()
+    messages = memory.get("conversation_history", [])
     if not messages:
         print("No conversation history in memory")
         return
@@ -306,6 +306,7 @@ def initialize_session(provided_guid=None, memory_type="standard"):
         # Check if the GUID exists
         result = get_memory_file_by_guid(provided_guid, memory_type)
         logger.debug(f"Initialize_session: get_memory_file_by_guid({provided_guid}, {memory_type}) returned: {result}")
+        print(f"Initializing session with guid: {provided_guid}")
         if result is None:
             memory_file = None
             found_type = None
@@ -316,7 +317,7 @@ def initialize_session(provided_guid=None, memory_type="standard"):
             # Use the existing file with its memory type
             session_guid = provided_guid
             logger.debug(f"Using existing memory with GUID: {session_guid}")
-            
+            print(f"Using existing memory with GUID: {session_guid}")
             # If memory type doesn't match what's in the file, update memory_type
             if found_type != memory_type:
                 logger.debug(f"Found memory with GUID {session_guid} has memory_type '{found_type}' instead of requested '{memory_type}'.")
@@ -333,11 +334,13 @@ def initialize_session(provided_guid=None, memory_type="standard"):
         # Generate a new GUID
         session_guid = str(uuid.uuid4())
         logger.debug(f"Generated new session GUID: {session_guid} for {memory_type} memory")
+        print(f"Generated new session GUID: {session_guid} for {memory_type} memory")
     
     # Create memory file path using the session GUID
     memory_file = get_memory_filename(memory_type, session_guid)
     logger.debug(f"Memory file path: {memory_file}")
     logger.debug(f"Initialize_session: returning (session_guid={session_guid}, memory_file={memory_file}, memory_type={memory_type})")
+    print("Done initializing session")
     return session_guid, memory_file, memory_type
 
 async def setup_services(memory_guid=None, memory_type="standard"):
@@ -351,6 +354,7 @@ async def setup_services(memory_guid=None, memory_type="standard"):
         tuple: (agent, memory_manager) instances
     """
     logger.debug("\nSetting up services...")
+    print("Setting up services...")
     
     # Initialize the session first - this sets up the global session_guid
     guid, memory_file, memory_type = initialize_session(memory_guid, memory_type)
@@ -450,40 +454,45 @@ async def setup_services(memory_guid=None, memory_type="standard"):
         agent_handler.setFormatter(formatter)
         agent_logger.addHandler(agent_handler)
         agent_logger.setLevel(logging.DEBUG)
-        agent_logger.info("Agent logger initialized")
+        agent_logger.debug("Agent logger initialized")
         
         agent = Agent(general_llm_service, memory_manager, domain_name="dnd_campaign", logger=agent_logger)
         logger.debug("Services initialized successfully")
+        print("Services initialized successfully")
         return agent, memory_manager
     except Exception as e:
         logger.error(f"Error initializing services: {str(e)}")
+        print(f"Error initializing services: {str(e)}")
         raise
 
-async def initialize_campaign(agent, memory_manager):
-    """Set up initial campaign state"""
-    logger.debug("\nInitializing campaign...")
+async def initialize_memory(agent, memory_manager):
+    """Set up initial memory state"""
+    logger.debug("\nInitializing memory...")
+    print("Initializing memory...")
     logger.debug(f"Current phase: {agent.get_current_phase().name}")
     
     # First check if memory already exists and has content
-    memory_context = memory_manager.get_memory_context()
-    if memory_context and memory_context.get("conversation_history"):
-        logger.debug("Campaign already initialized, using existing memory")
-        
+    memory = memory_manager.get_memory()
+    if memory and memory.get("conversation_history"):
+        logger.debug("Memory already initialized, using existing memory")
+        print("Memory already initialized, using existing memory")
         # Ensure we're in INTERACTION phase
         if agent.get_current_phase() == AgentPhase.INITIALIZATION:
-            logger.debug("\nMoving to INTERACTION phase for existing campaign")
+            logger.debug("\nMoving to INTERACTION phase for existing memory")
             agent.current_phase = AgentPhase.INTERACTION
         return True
     
-    # If no existing memory, create new campaign
-    logger.debug("Creating new campaign memory...")
+    # If no existing memory, create new memory
+    logger.debug("Creating new memory...")
+    print("Creating new memory...")
     success = await agent.learn(DND_CONFIG["initial_data"])
     if not success:
-        logger.error("Failed to initialize campaign!")
+        logger.error("Failed to initialize memory!")
         return False
     
-    logger.debug("\nCampaign world initialized successfully!")
-    print_memory_state(memory_manager, "Initial Campaign State")
+    logger.debug("\nMemory initialized successfully!")
+    print("Memory initialized successfully!")
+    print_memory_state(memory_manager, "Initial Memory State")
     logger.debug(f"Current phase: {agent.get_current_phase().name}")
     return True
 
@@ -495,7 +504,7 @@ async def interactive_session(agent, memory_manager):
     memory_type = memory_manager.memory.get("memory_manager_type", "unknown")
     logger.debug(f"Memory GUID: {guid}")
     logger.debug(f"Memory Manager Type: {memory_type}")
-    logger.debug('Type "help" to see available commands')
+    print('Type "help" to see available commands')
     
     while True:
         try:
@@ -561,7 +570,7 @@ async def interactive_session(agent, memory_manager):
 async def main():
     """Main function to run the agent example"""
     # Set up argument parser
-    parser = argparse.ArgumentParser(description="D&D Campaign Agent Example")
+    parser = argparse.ArgumentParser(description="Agent Usage Example")
     parser.add_argument('--guid', type=str, help='Specify a GUID to load an existing memory file or create a new one with this GUID')
     parser.add_argument('--type', type=str, choices=list(MEMORY_MANAGER_TYPES.keys()), default='standard',
                        help='Specify memory manager type to use (standard or simple)')
@@ -575,14 +584,14 @@ async def main():
         print_memory_files(args.list_type)
         return
     
-    print_section_header("D&D Campaign Agent Example")
+    print_section_header("Agent Usage Example")
     
     try:
         # Setup with optional specified GUID and memory type
         agent, memory_manager = await setup_services(args.guid, args.type)
         
-        # Initialize campaign
-        if not await initialize_campaign(agent, memory_manager):
+        # Initialize memory
+        if not await initialize_memory(agent, memory_manager):
             return
         
         # Interactive session

@@ -36,7 +36,7 @@ class Agent:
 
     def get_conversation_history(self) -> list:
         """Get the current conversation history from memory"""
-        memory_context = self.memory.get_memory_context()
+        memory_context = self.memory.get_memory()
         return memory_context.get("conversation_history", [])
         
     def has_pending_operations(self) -> bool:

@@ -298,7 +298,7 @@ class RAGManager:
             return enhanced_context
     
     # Embedding/indexing is now fully delegated to EmbeddingsManager.
-    # For incremental updates, use self.embeddings_manager.update_indices(new_entries)
+    # For incremental updates, use self.embeddings_manager.add_new_embeddings(new_entries)
     # For full reindexing, use self.embeddings_manager.update_embeddings(conversation_entries)
     
     def _format_context_as_text(self, context) -> str:

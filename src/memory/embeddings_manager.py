@@ -384,6 +384,44 @@ class EmbeddingsManager:
             self.logger.error(traceback.format_exc())
             return []
     
+    def deduplicate_embeddings_file(self):
+        """Remove redundant embeddings with identical text from the embeddings file. Returns the number of embeddings removed."""
+        if not os.path.exists(self.embeddings_file):
+            self.logger.debug("Embeddings file does not exist, skipping deduplication.")
+            return 0
+
+        seen_texts = set()
+        deduped = []
+        original_count = 0
+        try:
+            with open(self.embeddings_file, "r") as infile:
+                for line in infile:
+                    original_count += 1
+                    try:
+                        data = json.loads(line)
+                        meta = data.get("metadata", {})
+                        text = meta.get("text") or data.get("text")
+                        if text is not None:
+                            text_key = text.strip()
+                            if text_key not in seen_texts:
+                                seen_texts.add(text_key)
+                                deduped.append(data)
+                    except Exception as e:
+                        self.logger.debug(f"Error parsing line during deduplication: {e}")
+
+            # Overwrite the file with deduplicated entries
+            with open(self.embeddings_file, "w") as outfile:
+                for item in deduped:
+                    json.dump(item, outfile)
+                    outfile.write("\n")
+
+            removed_count = original_count - len(deduped)
+            self.logger.info(f"Deduplicated embeddings file: {len(deduped)} unique texts remain. {removed_count} embeddings removed.")
+            return removed_count
+        except Exception as e:
+            self.logger.error(f"Error during embeddings deduplication: {e}")
+            return 0
+
     def update_embeddings(self, conversation_entries: List[Dict]) -> bool:
         """Update embeddings for conversation history entries.
         
@@ -438,6 +476,9 @@ class EmbeddingsManager:
                             success_count += 1
             
             self.logger.debug(f"Updated embeddings: {success_count}/{total_count} successful")
+            # Deduplicate after batch update
+            removed_count = self.deduplicate_embeddings_file()
+            self.logger.info(f"Deduplication complete: {removed_count} redundant embeddings removed.")
             return success_count > 0
         except Exception as e:
             self.logger.error(f"Error updating embeddings: {str(e)}")
@@ -485,7 +526,7 @@ class EmbeddingsManager:
                     added += 1
         return added
     
-    def update_indices(self, new_entries: List[Dict]) -> bool:
+    def add_new_embeddings(self, new_entries: List[Dict]) -> bool:
         """Incrementally add embeddings for new conversation entries only."""
         total_added = 0
         for entry in new_entries:
