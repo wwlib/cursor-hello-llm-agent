@@ -27,7 +27,7 @@ class DigestGenerator:
         """
         self.llm = llm_service
         self.logger = logger or logging.getLogger(__name__)
-        self.content_segmenter = ContentSegmenter(llm_service)
+        self.content_segmenter = ContentSegmenter(llm_service, self.logger)
         self._load_templates()
         self.logger.debug("Initialized DigestGenerator")
     

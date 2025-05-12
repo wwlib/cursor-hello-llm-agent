@@ -186,7 +186,7 @@ class MemoryManager(BaseMemoryManager):
 
             # Use DataPreprocessor to segment the input data
             data_preprocessor = DataPreprocessor(self.llm)
-            preprocessed_segments = data_preprocessor.preprocess_data(input_data)
+            preprocessed_prose, preprocessed_segments = data_preprocessor.preprocess_data(input_data)
             self.logger.debug(f"Preprocessed segments: {preprocessed_segments}")
 
             # Create system entry for initial data

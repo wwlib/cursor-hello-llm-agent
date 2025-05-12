@@ -19,7 +19,7 @@ from src.ai.llm_ollama import OllamaService
 from src.memory.memory_manager import MemoryManager
 from src.memory.simple_memory_manager import SimpleMemoryManager
 from src.agent.agent import Agent, AgentPhase
-from examples.domain_configs import DND_CONFIG
+from examples.domain_configs import CONFIG_MAP
 
 # Remove all handlers associated with the root logger object to suppress console output
 for handler in logging.root.handlers[:]:
@@ -343,7 +343,7 @@ def initialize_session(provided_guid=None, memory_type="standard"):
     print("Done initializing session")
     return session_guid, memory_file, memory_type
 
-async def setup_services(memory_guid=None, memory_type="standard"):
+async def setup_services(domain_config, memory_guid=None, memory_type="standard"):
     """Initialize the LLM service and memory manager
     
     Args:
@@ -438,7 +438,7 @@ async def setup_services(memory_guid=None, memory_type="standard"):
         memory_manager = memory_manager_class(
             memory_guid=guid,
             memory_file=memory_file,
-            domain_config=DND_CONFIG,
+            domain_config=domain_config,
             llm_service=general_llm_service,  # Use general service for main queries
             max_recent_conversation_entries=4,
             digest_llm_service=digest_llm_service,  # Use digest service for memory compression
@@ -456,7 +456,9 @@ async def setup_services(memory_guid=None, memory_type="standard"):
         agent_logger.setLevel(logging.DEBUG)
         agent_logger.debug("Agent logger initialized")
         
-        agent = Agent(general_llm_service, memory_manager, domain_name="dnd_campaign", logger=agent_logger)
+        domain_name = domain_config["domain_name"]
+        print(f"Domain name: {domain_name}")
+        agent = Agent(general_llm_service, memory_manager, domain_name=domain_name, logger=agent_logger)
         logger.debug("Services initialized successfully")
         print("Services initialized successfully")
         return agent, memory_manager
@@ -465,7 +467,7 @@ async def setup_services(memory_guid=None, memory_type="standard"):
         print(f"Error initializing services: {str(e)}")
         raise
 
-async def initialize_memory(agent, memory_manager):
+async def initialize_memory(agent, memory_manager, domain_config):
     """Set up initial memory state"""
     logger.debug("\nInitializing memory...")
     print("Initializing memory...")
@@ -485,7 +487,7 @@ async def initialize_memory(agent, memory_manager):
     # If no existing memory, create new memory
     logger.debug("Creating new memory...")
     print("Creating new memory...")
-    success = await agent.learn(DND_CONFIG["initial_data"])
+    success = await agent.learn(domain_config["initial_data"])
     if not success:
         logger.error("Failed to initialize memory!")
         return False
@@ -577,6 +579,8 @@ async def main():
     parser.add_argument('--list', action='store_true', help='List available memory files with their GUIDs')
     parser.add_argument('--list-type', type=str, choices=list(MEMORY_MANAGER_TYPES.keys()),
                        help='List memory files for a specific memory manager type')
+    parser.add_argument('--config', type=str, choices=list(CONFIG_MAP.keys()), default='dnd',
+                       help='Select domain config: ' + ', '.join(CONFIG_MAP.keys()))
     args = parser.parse_args()
 
     # If list flag is set, just list available memory files and exit
@@ -588,10 +592,17 @@ async def main():
     
     try:
         # Setup with optional specified GUID and memory type
-        agent, memory_manager = await setup_services(args.guid, args.type)
+        try:
+            domain_config = CONFIG_MAP[args.config]
+        except (KeyError, TypeError):
+            # If args.config is invalid or None, use first config in map
+            domain_config = next(iter(CONFIG_MAP.values()))
+        print(f"Using domain config: {args.config}")
+        print(f"Domain config: {domain_config}")
+        agent, memory_manager = await setup_services(domain_config, args.guid, args.type)
         
         # Initialize memory
-        if not await initialize_memory(agent, memory_manager):
+        if not await initialize_memory(agent, memory_manager, domain_config):
             return
         
         # Interactive session

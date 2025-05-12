@@ -1,38 +1,14 @@
-You are a text analysis system. Your task is to segment the provided CONTENT into meaningful phrases, each containing a single idea or piece of information.
+You are a text processing system. Your task is prepare the provided INPUT_TEXT for inclusion in a semantic search database by segmenting it.
+
+The segments will be added to a semantic search database so each segment should comprise a complete idea with all relevant details, modifiers, qualifiers, etc.
 
 INSTRUCTIONS:
-1. Divide the CONTENT into phrases, aka segments.
-2. Each segment should encompass one coherent idea, fact, or piece of information
-3. Each segment should contain an exact substring of the original text
-4. No substring of the CONTENT should appear in more than one segment
-5. Avoid creating segments that are too long or that contain multiple separate ideas
-6. IMPORTANT: Every part of the original text must be included in exactly one segment
-7. Maintain context by keeping related ideas together in the same segment
-8. Include all questions, statements, and descriptive text
-9. Preserve important modifiers and qualifiers with their related content
-10. NEVER duplicate content - each piece of text should appear exactly once
-11. For single sentences, return them as a single segment
-12. CRITICAL: If the input is a single sentence, return it as a single segment without any duplication
+1. If the text is long and contains more than one complete idea, please split the INPUT_TEXT into segments
+2. IMPORTANT: Keep relevant information and context together in the same segment.
+3. It is better to have fewer, longer segments that to create segments with incomplete context.
+4. IMPORTANT: Do not enhance or edit the text in any way. Segments must be exact, literal substrings of the imput text.
+5. If the text contains only one complete idea, then do not split it and return the INPUT_TEXT as one segment.
+6. Return ONLY a JSON array of strings, with each string being a distinct segment. The response should be valid JSON that can be directly parsed.
 
-For example, given:
-"Captain Sara patrols the eastern border with her squad of ten guards. She's concerned about recent monster sightings and has requested additional resources."
-
-The segmentation would be:
-[
-  "Captain Sara patrols the eastern border with her squad of ten guards.",
-  "She's concerned about recent monster sightings and has requested additional resources."
-]
-
-For a single sentence like "This is a single sentence.", the segmentation would be:
-[
-  "This is a single sentence."
-]
-
-IMPORTANT: Never duplicate segments. Each piece of text should appear exactly once in the output.
-If the input is a single sentence, return it as a single segment without any duplication.
-If no CONTENT is provided, return an empty array.
-
-Return ONLY a JSON array of strings, with each string being a distinct segment. The response should be valid JSON that can be directly parsed. Make sure to include ALL content from the original text in your segmentation. 
-
-CONTENT:
+INPUT_TEXT:
 {content}

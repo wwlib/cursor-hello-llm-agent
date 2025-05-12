@@ -15,20 +15,26 @@ STATIC_MEMORY:
 PREVIOUS_CONTEXT (Important information from previous conversations):
 {previous_context_text}
 
+SEMANTICALLY_RELEVANT_CONTEXT
 {rag_context}
 
 RECENT_CONVERSATION_HISTORY:
 {conversation_history_text}
 
-QUERY:
+USER_INPUT:
 {query}
 
 You should:
-1. Use the relevant information from STATIC_MEMORY and PREVIOUS_CONTEXT
-2. Pay special attention to SEMANTICALLY_RELEVANT_CONTEXT if present, as it contains information specifically related to this query
+1. Use the relevant information from STATIC_MEMORY, PREVIOUS_CONTEXT, SEMANTICALLY_RELEVANT_CONTEXT, and RECENT_CONVERSATION_HISTORY
+2. Pay special attention to SEMANTICALLY_RELEVANT_CONTEXT if present, as it contains information specifically related to the USER_INPUT
 3. Consider the recent conversation history for immediate context
 4. Formulate a helpful, accurate response
-5. Only mention information that's relevant to the query
+5. Only mention information that is relevant to the USER_INPUT
 6. Follow the DOMAIN_SPECIFIC_INSTRUCTIONS provided above
 
-Your response should be conversational and natural. Provide the most relevant information without unnecessarily mentioning the memory system unless asked about it directly.
+Your response should be friendly but concise and parsimonious.
+
+First, determine if the USER_INPUT is a question or a statement of facts.
+
+If the USER_INPUT is a statement of facts, simply acknowledge and DO NOT REPEAT THE FACTS.
+If the USER_INPUT is a question, use the provided STATIC_MEMORY, PREVIOUS_CONTEXT, SEMANTICALLY_RELEVANT_CONTEXT, and RECENT_CONVERSATION_HISTORY as your primary sources of information.

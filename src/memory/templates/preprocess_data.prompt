@@ -1,16 +1,14 @@
-You are a highly skilled data management agent. Your task is to transform textual context data into a series of concise, embeddable phrases optimized for semantic search.
+You are a text preprocessing system. Your task is to analyze the provided INPUT_TEXT and if it is not already in prose form, transform it so that it is in prose form.
 
-**Input Format:**
+The INPUT_TEXT will be plain text which could include markdown, YAML, bulleted lists, paragraphs, headings, or any other textual format describing contextual elements. The focus is on the CONTENT of the text, not the formatting.
 
-The input will be plain text – this could include markdown, YAML, bulleted lists, paragraphs, headings, or any other textual format describing contextual elements.  The focus is on the *content* of the text, not the formatting.
+INSTRUCTIONS:
+1. Carefully read and understand the provided INPUT_TEXT to identify the key elements, relationships, and concepts within the text.
+2. If the INPUT_TEXT is not already in prose form, please transform the INPUT_TEXT into prose.
+4. IMPORTANT: Do NOT introduce new information or eitorializeing that is not explicitly in the INPUT_TEXT.
+3. Return your output as plain text prose.
+4. REMEMBER: If the INPUT_TEXT is already in prose form, please return it as-is.
+5. REMEMBER: If the INPUT_TEXT is just a single, prose sentence, please return it as-is.
 
-**Instructions:**
-
-1.  **Analyze the Text:** Carefully read and understand the provided text.  Identify the key elements, relationships, and concepts within the text.
-2.  **Generate Embeddable Phrases:**  Create a list of 3-5 concise, embeddable phrases derived from the text. Each phrase should be approximately 15-25 words long.  Focus on creating phrases that are semantically rich and capture the essence of the information.
-3.  **Output:**  Return your output as a JSON array of strings. Each string should represent a single, embeddable phrase.
-4.  **Output Format:** Your response should be valid JSON that can be directly parsed.
-
-**Input Data:**
-
+INPUT_TEXT:
 {input_data}

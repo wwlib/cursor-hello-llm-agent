@@ -5148,3 +5148,25 @@ Let me know if you want a shorter or more detailed version!
 
 ---
 
+_**User**_
+
+Now, we ar going to try a different use case. Instead of DND_CONFIG we are going to use LAB_ASSISTANT_CONFIG.
+
+We need a simple way to switch between configs in agent_usage_example.py
+
+A launch parameter would be a good way to choose.
+
+Remember, all changes should be minimal, surgical and easy to review.
+
+---
+
+_**Assistant**_
+
+
+
+---
+
+
+
+---
+
