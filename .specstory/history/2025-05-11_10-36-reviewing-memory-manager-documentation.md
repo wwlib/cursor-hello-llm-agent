@@ -472,7 +472,290 @@ _**Assistant**_
 
 ---
 
+Read file: src/memory/content_segmenter.py
 
+---
+
+```diff
+  import json
+  import re
+- from typing import List, Optional
++ from typing import List, Optional, Tuple
+  import logging
++ from .content_segmenter import ContentSegmenter
+  
+  class DataPreprocessor:
+```
+
+```diff
+          self.logger = logger or logging.getLogger(__name__)
+          self._load_templates()
++         self.segmenter = ContentSegmenter(llm_service, self.logger)
+  
+      def _load_templates(self) -> None:
+```
+
+```diff
+              raise Exception("Failed to load preprocess_data template")
+  
+-     def preprocess_data(self, input_data: str) -> List[str]:
++     def preprocess_data(self, input_data: str) -> Tuple[str, List[str]]:
+          """Turn input data into embeddable phrases using the LLM and the preprocess_data prompt.
+          
+```
+
+```diff
+          
+          Returns:
+-             List[str]: List of embeddable phrases
++             Tuple[str, List[str]]: (prose, segments)
+          """
+          try:
+              if not input_data or not input_data.strip():
+-                 return []
++                 return ("", [])
+  
+              prompt = self.preprocess_template.format(input_data=input_data)
+-             llm_response = self.llm.generate(
++             prose = self.llm.generate(
+                  prompt,
+                  options={
+```
+
+```diff
+              )
+  
+-             return llm_response
+- 
+-             # Try to parse as JSON array
+-             # try:
+-             #     phrases = json.loads(llm_response)
+-             #     if not isinstance(phrases, list) or not all(isinstance(p, str) for p in phrases):
+-             #         self.logger.debug("Preprocessing failed: Response is not a list of strings")
+-             #         return [input_data]
+-             #     return phrases
+-             # except json.JSONDecodeError:
+-             #     # Try to extract JSON array if embedded in markdown or text
+-             #     match = re.search(r'\[\s*".*?".*?\]', llm_response, re.DOTALL)
+-             #     if match:
+-             #         try:
+-             #             phrases = json.loads(match.group(0))
+-             #             if isinstance(phrases, list) and all(isinstance(p, str) for p in phrases):
+-             #                 return phrases
+-             #         except json.JSONDecodeError:
+-             #             pass
+-             #     self.logger.error("Failed to parse embeddable phrases, using input as fallback")
+-             #     return [input_data]
++             segments = self.segmenter.segment_content(prose)
++             return (prose, segments)
+          except Exception as e:
+              self.logger.error(f"Error in data preprocessing: {str(e)}")
+-             return [input_data]
++             return (input_data, [input_data])
+  
+```
+
+---
+
+The `DataPreprocessor` class has been refactored so that `preprocess_data()` now performs a two-step process:
+
+1. **Gets prose from the LLM** using the `preprocess_data.prompt`.
+2. **Segments the prose** using `ContentSegmenter`, returning an array of strings.
+
+The method now returns a tuple: **(prose, segments)**.
+
+- `self.segmenter` is initialized in the constructor.
+- The method returns `("", [])` for empty input, and falls back to `(input_data, [input_data])` on error.
+
+You can now update your tests and downstream code to expect this tuple return value. If you need help updating the tests or want to see an example usage, let me know!
+
+---
+
+_**User**_
+
+OK. Time to write an update for README-phase-3.md
+
+Please review the git log and write a compreshensive update. BTW: Today is May 12, 2025
+
+---
+
+_**Assistant**_
+
+```bash
+git log --since=2024-05-01 --pretty=format:'%h %ad %s' --date=short
+```
+
+---
+
+I was about to review the recent git log to write a comprehensive update for `README-phase-3.md`, but it looks like I don't have access to the latest commit history.
+
+**To proceed, please either:**
+- Share the recent git log output (ideally for the last 1–2 weeks or since the last update),  
+- Or let me know if there are specific features, refactors, or fixes you want highlighted in the update.
+
+Once I have that information, I’ll write a detailed and accurate update for the README, summarizing all recent progress as of May 12, 2025!
+
+---
+
+_**User**_
+
+Sorry, here is the log info:
+
+
+---
+
+_**Assistant**_
+
+Thank you for providing the recent git log! Here’s a comprehensive update for `README-phase-3.md` as of May 12, 2025, summarizing all major improvements and changes:
+
+---
+
+## Phase 3 Update – May 12, 2025 – Async Memory, Logging, Preprocessing, and Usability
+
+Over the past week, the Agent Framework has seen significant improvements in memory management, logging, data preprocessing, and usability. Here’s a summary of the most important changes:
+
+### **1. Asynchronous Memory Processing**
+- **Digest generation and embeddings updates are now fully asynchronous.**
+  - User queries return immediately, while memory operations (digest, embeddings, compression) are processed in the background.
+  - The interactive session and agent workflow now gracefully handle pending operations, ensuring data consistency and a responsive user experience.
+  - Memory compression is also moved to a background task, further reducing latency.
+
+### **2. Improved Data Preprocessing and Segmentation**
+- **DataPreprocessor now performs a two-step process:**
+  1. Converts input (including markdown, YAML, or bulleted lists) to prose using the LLM.
+  2. Segments the resulting prose into embeddable phrases using the ContentSegmenter.
+- **Both the prose and the segment array are returned,** improving downstream memory and embedding quality.
+- **The query prompt and preprocessing prompt have been improved** for clarity and accuracy.
+- **A new CLI `--config` option** in `agent_usage_example.py` allows users to select the domain config for the session, supporting more flexible and domain-specific agent behavior.
+- **A new example `lab_assistant` domain config** has been added.
+
+### **3. Logging System Overhaul**
+- **All print statements have been replaced with structured logger calls** across all major modules:
+  - `src/agent/agent.py`
+  - `src/memory/memory_manager.py`, `base_memory_manager.py`, `simple_memory_manager.py`
+  - `src/memory/digest_generator.py`, `embeddings_manager.py`, `memory_compressor.py`, `content_segmenter.py`, `data_preprocessor.py`, `rag_manager.py`
+  - `examples/agent_usage_example.py`
+- **Loggers and file handlers are set to DEBUG level** for full traceability.
+- **User-facing output is now cleanly separated from internal logs,** which are written to log files.
+- **Improved error handling and traceability** throughout the memory management and agent workflow.
+- **Console logging in `agent_usage_example.py` has been cleaned up** to show only user-relevant information.
+
+### **4. Embeddings and Memory Management Refactor**
+- **EmbeddingsManager now includes deduplication:**  
+  - The new `deduplicate_embeddings_file()` method removes redundant embeddings by text after batch updates, logging the number of unique and removed embeddings.
+  - `update_embeddings()` now logs and returns the number of redundant embeddings removed.
+  - The method for incremental embedding addition has been renamed to `add_new_embeddings()` for clarity.
+- **All incremental embedding additions now use `add_new_embeddings()`.**
+- **Improved logging and docstrings** clarify the distinction between batch and incremental embedding updates.
+- **General code cleanup and improved naming** for maintainability and reliability.
+
+### **5. Usability and Developer Experience**
+- **Refactored logging setup in `agent_usage_example.py`:**
+  - All handlers are removed from the root logger to suppress console output.
+  - Only a FileHandler is added for the main logger, writing to `logs/agent_usage_example.log`.
+  - The root logger is set to WARNING to suppress all INFO/DEBUG logs globally.
+- **Argument order in MemoryManager and SimpleMemoryManager constructors has been fixed and standardized.**
+- **All super() calls now use the correct argument order.**
+- **Legacy/incorrect print statements have been removed.**
+
+---
+
+### **Summary**
+
+These changes make the Agent Framework:
+- **Faster and more responsive** (thanks to async memory processing)
+- **Easier to debug and maintain** (due to comprehensive, structured logging)
+- **More robust and reliable** (with deduplicated embeddings and improved error handling)
+- **More flexible and user-friendly** (with better preprocessing, segmentation, and domain config selection)
+
+The framework is now well-positioned for further improvements in RAG, topic assignment, knowledge graph integration, and advanced agent behaviors.
+
+---
+
+**(Feel free to copy-paste this directly into your README-phase-3.md, or let me know if you want it in a different format or with additional details!)**
+
+---
+
+_**User**_
+
+Beautiful. Can you please add the update to the end of README-phase-3.md
+
+---
+
+_**Assistant**_
+
+```diff
+  
+  These improvements make the system more maintainable and easier to debug, while providing better visibility into the system's operation and test execution.
++ 
++ ## Phase 3 Update – May 12, 2025 – Async Memory, Logging, Preprocessing, and Usability
++ 
++ Over the past week, the Agent Framework has seen significant improvements in memory management, logging, data preprocessing, and usability. Here’s a summary of the most important changes:
++ 
++ ### 1. Asynchronous Memory Processing
++ - Digest generation and embeddings updates are now fully asynchronous.
++   - User queries return immediately, while memory operations (digest, embeddings, compression) are processed in the background.
++   - The interactive session and agent workflow now gracefully handle pending operations, ensuring data consistency and a responsive user experience.
++   - Memory compression is also moved to a background task, further reducing latency.
++ 
++ ### 2. Improved Data Preprocessing and Segmentation
++ - DataPreprocessor now performs a two-step process:
++   1. Converts input (including markdown, YAML, or bulleted lists) to prose using the LLM.
++   2. Segments the resulting prose into embeddable phrases using the ContentSegmenter.
++ - Both the prose and the segment array are returned, improving downstream memory and embedding quality.
++ - The query prompt and preprocessing prompt have been improved for clarity and accuracy.
++ - A new CLI --config option in agent_usage_example.py allows users to select the domain config for the session, supporting more flexible and domain-specific agent behavior.
++ - A new example lab_assistant domain config has been added.
++ 
++ ### 3. Logging System Overhaul
++ - All print statements have been replaced with structured logger calls across all major modules:
++   - src/agent/agent.py
++   - src/memory/memory_manager.py, base_memory_manager.py, simple_memory_manager.py
++   - src/memory/digest_generator.py, embeddings_manager.py, memory_compressor.py, content_segmenter.py, data_preprocessor.py, rag_manager.py
++   - examples/agent_usage_example.py
++ - Loggers and file handlers are set to DEBUG level for full traceability.
++ - User-facing output is now cleanly separated from internal logs, which are written to log files.
++ - Improved error handling and traceability throughout the memory management and agent workflow.
++ - Console logging in agent_usage_example.py has been cleaned up to show only user-relevant information.
++ 
++ ### 4. Embeddings and Memory Management Refactor
++ - EmbeddingsManager now includes deduplication:
++   - The new deduplicate_embeddings_file() method removes redundant embeddings by text after batch updates, logging the number of unique and removed embeddings.
++   - update_embeddings() now logs and returns the number of redundant embeddings removed.
++   - The method for incremental embedding addition has been renamed to add_new_embeddings() for clarity.
++ - All incremental embedding additions now use add_new_embeddings().
++ - Improved logging and docstrings clarify the distinction between batch and incremental embedding updates.
++ - General code cleanup and improved naming for maintainability and reliability.
++ 
++ ### 5. Usability and Developer Experience
++ - Refactored logging setup in agent_usage_example.py:
++   - All handlers are removed from the root logger to suppress console output.
++   - Only a FileHandler is added for the main logger, writing to logs/agent_usage_example.log.
++   - The root logger is set to WARNING to suppress all INFO/DEBUG logs globally.
++ - Argument order in MemoryManager and SimpleMemoryManager constructors has been fixed and standardized.
++ - All super() calls now use the correct argument order.
++ - Legacy/incorrect print statements have been removed.
++ 
++ ---
++ 
++ ### Summary
++ 
++ These changes make the Agent Framework:
++ - Faster and more responsive (thanks to async memory processing)
++ - Easier to debug and maintain (due to comprehensive, structured logging)
++ - More robust and reliable (with deduplicated embeddings and improved error handling)
++ - More flexible and user-friendly (with better preprocessing, segmentation, and domain config selection)
++ 
++ The framework is now well-positioned for further improvements in RAG, topic assignment, knowledge graph integration, and advanced agent behaviors.
+  
+  
+```
+
+---
+
+The comprehensive update for May 12, 2025, has been appended to the end of `README-phase-3.md`. This section now documents all recent improvements in async memory processing, logging, data preprocessing, embeddings management, and usability.
+
+If you need any further edits or want to highlight additional details, just let me know!
 
 ---
 
