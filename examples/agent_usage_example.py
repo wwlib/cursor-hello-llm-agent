@@ -8,6 +8,7 @@ import argparse
 from datetime import datetime
 from pathlib import Path
 import sys
+import logging
 
 # Add the project root to the Python path
 project_root = str(Path(__file__).parent.parent)
@@ -18,7 +19,27 @@ from src.ai.llm_ollama import OllamaService
 from src.memory.memory_manager import MemoryManager
 from src.memory.simple_memory_manager import SimpleMemoryManager
 from src.agent.agent import Agent, AgentPhase
-from examples.domain_configs import DND_CONFIG
+from examples.domain_configs import CONFIG_MAP
+
+# Remove all handlers associated with the root logger object to suppress console output
+for handler in logging.root.handlers[:]:
+    logging.root.removeHandler(handler)
+
+# Set up logging for the agent example (file only, no console)
+logs_dir = os.path.join(project_root, "logs")
+os.makedirs(logs_dir, exist_ok=True)
+file_handler = logging.FileHandler(os.path.join(logs_dir, "agent_usage_example.log"))
+file_handler.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s %(levelname)s:%(name)s:%(message)s')
+file_handler.setFormatter(formatter)
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+logger.addHandler(file_handler)
+logger.info("This should only appear in the log file")
+
+# Set the root logger to WARNING to suppress lower-level logs globally
+logging.getLogger().setLevel(logging.WARNING)
 
 # Constants
 BASE_MEMORY_DIR = "agent_memories"
@@ -33,67 +54,63 @@ MEMORY_MANAGER_TYPES = {
 # Global session guid (will be set during initialization)
 session_guid = None
 
+# print a formatted section header to the console
 def print_section_header(title):
     """Print a formatted section header"""
     print(f"\n{'='*80}")
     print(f"  {title}")
     print(f"{'='*80}\n")
 
+# print the memory state in a readable format to the console
 def print_memory_state(memory_manager, title="Current Memory State"):
     """Helper to print memory state in a readable format"""
     print(f"\n{title}")
     print("=" * len(title))
-    memory_context = memory_manager.get_memory_context()
+    memory = memory_manager.get_memory()
     
-    # Print memory GUID
+    # Log memory GUID
     guid = memory_manager.get_memory_guid()
     if guid:
-        print(f"\nMemory GUID: {guid}")
+        print(f"Memory GUID: {guid}")
     
-    # Print memory type
-    memory_type = memory_context.get("memory_manager_type", "unknown")
+    # Log memory type
+    memory_type = memory.get("memory_type", "unknown")
     print(f"Memory Manager Type: {memory_type}")
     
-    # Print filename
+    # Log filename
     print(f"Memory File: {memory_manager.memory_file}")
-        
-    # Print static memory if available
-    if "static_memory" in memory_context:
-        print("\nStatic Memory (Read-Only):")
-        print("-" * 30)
-        static_mem = memory_context["static_memory"]
-        if isinstance(static_mem, str):
-            # New markdown format
-            print(static_mem)
-    else:
-        print("No static memory")
-    
-    # Print working memory if available
-    if "working_memory" in memory_context:
-        print("\nWorking Memory:")
-        print("-" * 30)
-        working_mem = memory_context["working_memory"]
-        print("\nStructured Data:")
-        print(json.dumps(working_mem.get("structured_data", {}), indent=2))
-        print("\nKnowledge Graph:")
-        print(json.dumps(working_mem.get("knowledge_graph", {}), indent=2))
     
     # Print metadata if available
-    if "metadata" in memory_context:
-        print("\nMetadata:")
+    if "metadata" in memory:
+        print("Metadata:")
         print("-" * 30)
-        print(json.dumps(memory_context["metadata"], indent=2))
+        print(json.dumps(memory["metadata"], indent=2))
     
     # Print conversation history length
-    if "conversation_history" in memory_context:
-        print(f"\nConversation History: {len(memory_context['conversation_history'])} messages")
+    if "conversation_history" in memory:
+        print(f"\nConversation History: {len(memory['conversation_history'])} messages")
 
+    # Print static memory if available
+    if "static_memory" in memory:
+        print("Static memory present.")
+        print("-" * 30)
+        # assume that the static memory is a line-delimited list of strings
+        # split the static memory into a list of strings
+        static_memory_list = memory["static_memory"].split("\n")
+        # print the list of strings
+        for item in static_memory_list:
+            print(item)
+            print()
+    else:
+        print("No static memory")
+
+# print the conversation history in a readable format to the console
 def print_conversation_history(memory_manager, title="Conversation History"):
     """Print the accumulated conversation history from memory"""
     print(f"\n{title}")
     print("=" * len(title))
-    memory_context = memory_manager.get_memory_context()
-    messages = memory_context.get("conversation_history", [])
+    memory = memory_manager.get_memory()
+    messages = memory.get("conversation_history", [])
     if not messages:
         print("No conversation history in memory")
         return
@@ -104,6 +121,7 @@ def print_conversation_history(memory_manager, title="Conversation History"):
         print(f"\n[{role.upper()}] {timestamp}")
         print(f"{content}")
 
+# print the recent history in a readable format to the console
 def print_recent_history(agent, title="Recent History"):
     """Print the agent's current session history"""
     print(f"\n{title}")
@@ -119,6 +137,7 @@ def print_recent_history(agent, title="Recent History"):
         print(f"\n[{role.upper()}] {timestamp}")
         print(f"{content}")
 
+# print the help message to the console
 def print_help():
     """Print available commands and their descriptions"""
     print("\nAvailable Commands:")
@@ -187,23 +206,24 @@ def list_memory_files(memory_type=None):
         # Ensure directory exists
         os.makedirs(memory_dir, exist_ok=True)
         
-        # Pattern to match: agent_memory_GUID.json but not backup files
-        for filename in os.listdir(memory_dir):
-            if filename.startswith(MEMORY_FILE_PREFIX) and filename.endswith(".json") and "_bak_" not in filename:
-                try:
-                    # Extract GUID from filename
-                    filename_guid = filename.replace(MEMORY_FILE_PREFIX + "_", "").replace(".json", "")
-                    
-                    with open(os.path.join(memory_dir, filename), 'r') as f:
-                        data = json.load(f)
-                        if "guid" in data:
-                            # Store both the internal GUID and filename GUID
-                            files[data["guid"]] = (mem_type, filename, filename_guid)
-                except Exception as e:
-                    print(f"Error reading {filename}: {str(e)}")
+        # Look for memory files in GUID-specific directories
+        for guid_dir in os.listdir(memory_dir):
+            guid_path = os.path.join(memory_dir, guid_dir)
+            if os.path.isdir(guid_path):
+                memory_file = os.path.join(guid_path, f"{MEMORY_FILE_PREFIX}.json")
+                if os.path.exists(memory_file):
+                    try:
+                        with open(memory_file, 'r') as f:
+                            data = json.load(f)
+                            if "guid" in data:
+                                # Store both the internal GUID and filename GUID
+                                files[data["guid"]] = (mem_type, memory_file, guid_dir)
+                    except Exception as e:
+                        logger.error(f"Error reading {memory_file}: {str(e)}")
     
     return files
-    
+
+# print the memory files in a readable format to the console
 def print_memory_files(memory_type=None):
     """Print all available memory files
     
@@ -236,11 +256,10 @@ def get_memory_file_by_guid(guid, memory_type=None):
         tuple: (file_path, memory_type) or (None, None) if not found
     """
     files = list_memory_files()
+    logger.debug(f"list_memory_files() returned: {files}")
     if guid in files:
-        mem_type, filename, _ = files[guid]
-        file_path = os.path.join(get_memory_dir(mem_type), filename)
-        
-        # Verify memory_type in the file matches expected type
+        mem_type, file_path, _ = files[guid]
+        logger.debug(f"get_memory_file_by_guid: guid={guid}, file_path={file_path}, mem_type={mem_type}")        # Verify memory_type in the file matches expected type
         try:
             with open(file_path, 'r') as f:
                 data = json.load(f)
@@ -248,21 +267,21 @@ def get_memory_file_by_guid(guid, memory_type=None):
                 
                 # If memory_type is specified in the file
                 if file_memory_type:
-                    print(f"File has memory_type: {file_memory_type}")
+                    logger.debug(f"File has memory_type: {file_memory_type}")
                     
                     # If a specific memory_type was requested, verify it matches
                     if memory_type and file_memory_type != memory_type:
-                        print(f"Warning: Requested memory_type '{memory_type}' doesn't match file's memory_type '{file_memory_type}'")
-                        print(f"Using file's memory_type: {file_memory_type}")
+                        logger.debug(f"Warning: Requested memory_type '{memory_type}' doesn't match file's memory_type '{file_memory_type}'")
+                        logger.debug(f"Using file's memory_type: {file_memory_type}")
                     
                     # Return the memory_type from the file (this takes precedence)
                     return file_path, file_memory_type
                 else:
                     # If file doesn't specify memory_type, default to the directory type
-                    print(f"File doesn't specify memory_type, using detected type: {mem_type}")
+                    logger.debug(f"File doesn't specify memory_type, using detected type: {mem_type}")
                     return file_path, mem_type
         except Exception as e:
-            print(f"Error reading memory file: {str(e)}")
+            logger.error(f"Error reading memory file: {str(e)}")
             return file_path, mem_type
     
     return None, None
@@ -285,36 +304,46 @@ def initialize_session(provided_guid=None, memory_type="standard"):
     # If a GUID is provided, use it
     if provided_guid:
         # Check if the GUID exists
-        memory_file, found_type = get_memory_file_by_guid(provided_guid, memory_type)
+        result = get_memory_file_by_guid(provided_guid, memory_type)
+        logger.debug(f"Initialize_session: get_memory_file_by_guid({provided_guid}, {memory_type}) returned: {result}")
+        print(f"Initializing session with guid: {provided_guid}")
+        if result is None:
+            memory_file = None
+            found_type = None
+        else:
+            memory_file, found_type = result
         
         if memory_file:
             # Use the existing file with its memory type
             session_guid = provided_guid
+            logger.debug(f"Using existing memory with GUID: {session_guid}")
             print(f"Using existing memory with GUID: {session_guid}")
-            
             # If memory type doesn't match what's in the file, update memory_type
             if found_type != memory_type:
-                print(f"Found memory with GUID {session_guid} has memory_type '{found_type}' instead of requested '{memory_type}'.")
-                print(f"Switching to '{found_type}' memory manager to match the existing file.")
+                logger.debug(f"Found memory with GUID {session_guid} has memory_type '{found_type}' instead of requested '{memory_type}'.")
+                logger.debug(f"Switching to '{found_type}' memory manager to match the existing file.")
                 memory_type = found_type
                 
+            logger.debug(f"Initialize_session: returning (session_guid={session_guid}, memory_file={memory_file}, memory_type={memory_type})")
             return session_guid, memory_file, memory_type
         else:
             # Create a new file with the provided GUID
             session_guid = provided_guid
-            print(f"Creating new memory with provided GUID: {session_guid} and type: {memory_type}")
+            logger.debug(f"Creating new memory with provided GUID: {session_guid} and type: {memory_type}")
     else:
         # Generate a new GUID
         session_guid = str(uuid.uuid4())
+        logger.debug(f"Generated new session GUID: {session_guid} for {memory_type} memory")
         print(f"Generated new session GUID: {session_guid} for {memory_type} memory")
     
     # Create memory file path using the session GUID
     memory_file = get_memory_filename(memory_type, session_guid)
-    print(f"Memory file path: {memory_file}")
-    
+    logger.debug(f"Memory file path: {memory_file}")
+    logger.debug(f"Initialize_session: returning (session_guid={session_guid}, memory_file={memory_file}, memory_type={memory_type})")
+    print("Done initializing session")
     return session_guid, memory_file, memory_type
 
-async def setup_services(memory_guid=None, memory_type="standard"):
+async def setup_services(domain_config, memory_guid=None, memory_type="standard"):
     """Initialize the LLM service and memory manager
     
     Args:
@@ -324,29 +353,34 @@ async def setup_services(memory_guid=None, memory_type="standard"):
     Returns:
         tuple: (agent, memory_manager) instances
     """
-    print("\nSetting up services...")
+    logger.debug("\nSetting up services...")
+    print("Setting up services...")
     
     # Initialize the session first - this sets up the global session_guid
     guid, memory_file, memory_type = initialize_session(memory_guid, memory_type)
     
     # Create logs directory structure
     logs_dir = os.path.join(project_root, "logs")
+    os.makedirs(logs_dir, exist_ok=True)
+    
+    # Create GUID-specific logs directory
     guid_logs_dir = os.path.join(logs_dir, guid)
     os.makedirs(guid_logs_dir, exist_ok=True)
-    print(f"Logs directory: {guid_logs_dir}")
+    
+    logger.debug(f"Logs directory: {guid_logs_dir}")
     
     # Create separate debug files for each service within the GUID directory
-    general_debug_file = os.path.join(guid_logs_dir, "general.log")
-    digest_debug_file = os.path.join(guid_logs_dir, "digest.log")
-    embed_debug_file = os.path.join(guid_logs_dir, "embed.log")
+    ollama_general_debug_file = os.path.join(guid_logs_dir, "ollama_general.log")
+    ollama_digest_debug_file = os.path.join(guid_logs_dir, "ollama_digest.log")
+    ollama_embed_debug_file = os.path.join(guid_logs_dir, "ollama_embed.log")
     
-    print(f"Debug log files:")
-    print(f"  General: {general_debug_file}")
-    print(f"  Digest: {digest_debug_file}")
-    print(f"  Embed: {embed_debug_file}")
+    logger.debug(f"Ollama debug log files:")
+    logger.debug(f"  General: {ollama_general_debug_file}")
+    logger.debug(f"  Digest: {ollama_digest_debug_file}")
+    logger.debug(f"  Embed: {ollama_embed_debug_file}")
     
     # Create separate OllamaService instances for different purposes
-    print("Initializing LLM services (Ollama)...")
+    logger.debug("Initializing LLM services (Ollama)...")
     
     # General query service with logging enabled
     general_llm_service = OllamaService({
@@ -355,7 +389,7 @@ async def setup_services(memory_guid=None, memory_type="standard"):
         "temperature": 0.7,
         "stream": False,
         "debug": True,
-        "debug_file": general_debug_file,
+        "debug_file": ollama_general_debug_file,
         "debug_scope": "agent_example_general",
         "console_output": False
     })
@@ -364,10 +398,10 @@ async def setup_services(memory_guid=None, memory_type="standard"):
     digest_llm_service = OllamaService({
         "base_url": "http://192.168.1.173:11434",
         "model": "gemma3",
-        "temperature": 0.7,
+        "temperature": 0,
         "stream": False,
         "debug": True,
-        "debug_file": digest_debug_file,
+        "debug_file": ollama_digest_debug_file,
         "debug_scope": "agent_example_digest",
         "console_output": False
     })
@@ -377,94 +411,122 @@ async def setup_services(memory_guid=None, memory_type="standard"):
         "base_url": "http://192.168.1.173:11434",
         "model": "mxbai-embed-large",
         "debug": False,
-        "debug_file": embed_debug_file  # Still specify the file even though logging is disabled
+        "debug_file": ollama_embed_debug_file  # Still specify the file even though logging is disabled
     })
     
     try:
         # Ensure the memory manager type is valid
         if memory_type not in MEMORY_MANAGER_TYPES:
-            print(f"Invalid memory type '{memory_type}', defaulting to 'standard'")
+            logger.debug(f"Invalid memory type '{memory_type}', defaulting to 'standard'")
             memory_type = "standard"
             
         # Get the correct memory manager class
         memory_manager_class = MEMORY_MANAGER_TYPES[memory_type]
-        print(f"Creating {memory_type} MemoryManager and Agent instances...")
+        logger.debug(f"Creating {memory_type} MemoryManager and Agent instances...")
+
+        # Set up logging for the memory manager
+        memory_manager_logger = logging.getLogger(f"memory_manager.{memory_type}")
+        memory_manager_logger.setLevel(logging.DEBUG)
+        # Create memory manager log file in the GUID-specific directory
+        memory_manager_log_file = os.path.join(guid_logs_dir, "memory_manager.log")
+        memory_manager_log_handler = logging.FileHandler(memory_manager_log_file)
+        memory_manager_log_handler.setLevel(logging.DEBUG)
+        memory_manager_logger.addHandler(memory_manager_log_handler)
+        memory_manager_logger.info("This should only appear in the log file")
         
         # Create memory manager instance based on type
         memory_manager = memory_manager_class(
-            memory_file=memory_file,
-            domain_config=DND_CONFIG,
-            llm_service=general_llm_service,  # Use general service for main queries
             memory_guid=guid,
+            memory_file=memory_file,
+            domain_config=domain_config,
+            llm_service=general_llm_service,  # Use general service for main queries
             max_recent_conversation_entries=4,
             digest_llm_service=digest_llm_service,  # Use digest service for memory compression
-            embeddings_llm_service=embeddings_llm_service  # Use embeddings service for embeddings
+            embeddings_llm_service=embeddings_llm_service,  # Use embeddings service for embeddings
+            logger=memory_manager_logger
         )
+
+        # Set up logging for the agent
+        agent_logger = logging.getLogger("agent")
+        # Create agent log file in the GUID-specific directory 
+        agent_log_file = os.path.join(guid_logs_dir, "agent.log")
+        agent_handler = logging.FileHandler(agent_log_file)
+        agent_handler.setFormatter(formatter)
+        agent_logger.addHandler(agent_handler)
+        agent_logger.setLevel(logging.DEBUG)
+        agent_logger.debug("Agent logger initialized")
         
-        agent = Agent(general_llm_service, memory_manager, domain_name="dnd_campaign")
+        domain_name = domain_config["domain_name"]
+        print(f"Domain name: {domain_name}")
+        agent = Agent(general_llm_service, memory_manager, domain_name=domain_name, logger=agent_logger)
+        logger.debug("Services initialized successfully")
         print("Services initialized successfully")
         return agent, memory_manager
     except Exception as e:
+        logger.error(f"Error initializing services: {str(e)}")
         print(f"Error initializing services: {str(e)}")
         raise
 
-async def initialize_campaign(agent, memory_manager):
-    """Set up initial campaign state"""
-    print("\nInitializing campaign...")
-    print(f"Current phase: {agent.get_current_phase().name}")
+async def initialize_memory(agent, memory_manager, domain_config):
+    """Set up initial memory state"""
+    logger.debug("\nInitializing memory...")
+    print("Initializing memory...")
+    logger.debug(f"Current phase: {agent.get_current_phase().name}")
     
     # First check if memory already exists and has content
-    memory_context = memory_manager.get_memory_context()
-    if memory_context and memory_context.get("conversation_history"):
-        print("Campaign already initialized, using existing memory")
-        
-        # Display recent conversation history
-        messages = memory_context["conversation_history"]
-        if messages:
-            print("\nRecent Conversation History:")
-            print("-" * 30)
-            # Show last 3 messages
-            for msg in messages[-3:]:
-                role = msg.get("role", "unknown")
-                content = msg.get("content", "")
-                timestamp = msg.get("timestamp", "")
-                print(f"\n[{role.upper()}] {timestamp}")
-                print(f"{content}")
-        
+    memory = memory_manager.get_memory()
+    if memory and memory.get("conversation_history"):
+        logger.debug("Memory already initialized, using existing memory")
+        print("Memory already initialized, using existing memory")
         # Ensure we're in INTERACTION phase
         if agent.get_current_phase() == AgentPhase.INITIALIZATION:
-            print("\nMoving to INTERACTION phase for existing campaign")
+            logger.debug("\nMoving to INTERACTION phase for existing memory")
             agent.current_phase = AgentPhase.INTERACTION
         return True
     
-    # If no existing memory, create new campaign
-    print("Creating new campaign memory...")
-    success = await agent.learn(DND_CONFIG["initial_data"])
+    # If no existing memory, create new memory
+    logger.debug("Creating new memory...")
+    print("Creating new memory...")
+    success = await agent.learn(domain_config["initial_data"])
     if not success:
-        print("Failed to initialize campaign!")
+        logger.error("Failed to initialize memory!")
         return False
     
-    print("\nCampaign world initialized successfully!")
-    print_memory_state(memory_manager, "Initial Campaign State")
-    print(f"Current phase: {agent.get_current_phase().name}")
+    logger.debug("\nMemory initialized successfully!")
+    print("Memory initialized successfully!")
+    print_memory_state(memory_manager, "Initial Memory State")
+    logger.debug(f"Current phase: {agent.get_current_phase().name}")
     return True
 
 async def interactive_session(agent, memory_manager):
     """Run an interactive session with the agent"""
-    print("\nStarting interactive session...")
-    print(f"Current phase: {agent.get_current_phase().name}")
+    logger.debug("\nStarting interactive session...")
+    logger.debug(f"Current phase: {agent.get_current_phase().name}")
     guid = memory_manager.get_memory_guid()
     memory_type = memory_manager.memory.get("memory_manager_type", "unknown")
-    print(f"Memory GUID: {guid}")
-    print(f"Memory Manager Type: {memory_type}")
+    logger.debug(f"Memory GUID: {guid}")
+    logger.debug(f"Memory Manager Type: {memory_type}")
     print('Type "help" to see available commands')
     
     while True:
         try:
+            # Check for pending operations before getting user input
+            if agent.has_pending_operations():
+                pending = agent.memory.get_pending_operations()
+                logger.debug(f"\nWaiting for background operations to complete...")
+                logger.debug(f"Pending digests: {pending['pending_digests']}")
+                logger.debug(f"Pending embeddings: {pending['pending_embeddings']}")
+                await agent.wait_for_pending_operations()
+                logger.debug("Background operations completed.")
+            
             user_input = input("\nYou: ").strip().lower()
             
             if user_input == 'quit' or user_input == 'exit' or user_input == 'q':
-                print("\nEnding session...")
+                logger.debug("\nEnding session...")
+                # Wait for any pending operations before exiting
+                if agent.has_pending_operations():
+                    logger.debug("Waiting for background operations to complete before exiting...")
+                    await agent.wait_for_pending_operations()
                 break
             elif user_input == 'help':
                 print_help()
@@ -493,23 +555,32 @@ async def interactive_session(agent, memory_manager):
             response = await agent.process_message(user_input)
             print(f"\nAgent: {response}")
             
+            # Add a small delay to allow background processing to start
+            await asyncio.sleep(0.1)
+            
         except KeyboardInterrupt:
-            print("\nSession interrupted by user.")
+            logger.debug("\nSession interrupted by user.")
+            # Wait for any pending operations before exiting
+            if agent.has_pending_operations():
+                logger.debug("Waiting for background operations to complete before exiting...")
+                await agent.wait_for_pending_operations()
             break
         except Exception as e:
-            print(f"\nError during interaction: {str(e)}")
+            logger.error(f"\nError during interaction: {str(e)}")
             continue
 
 async def main():
     """Main function to run the agent example"""
     # Set up argument parser
-    parser = argparse.ArgumentParser(description="D&D Campaign Agent Example")
+    parser = argparse.ArgumentParser(description="Agent Usage Example")
     parser.add_argument('--guid', type=str, help='Specify a GUID to load an existing memory file or create a new one with this GUID')
     parser.add_argument('--type', type=str, choices=list(MEMORY_MANAGER_TYPES.keys()), default='standard',
                        help='Specify memory manager type to use (standard or simple)')
     parser.add_argument('--list', action='store_true', help='List available memory files with their GUIDs')
     parser.add_argument('--list-type', type=str, choices=list(MEMORY_MANAGER_TYPES.keys()),
                        help='List memory files for a specific memory manager type')
+    parser.add_argument('--config', type=str, choices=list(CONFIG_MAP.keys()), default='dnd',
+                       help='Select domain config: ' + ', '.join(CONFIG_MAP.keys()))
     args = parser.parse_args()
 
     # If list flag is set, just list available memory files and exit
@@ -517,26 +588,33 @@ async def main():
         print_memory_files(args.list_type)
         return
     
-    print_section_header("D&D Campaign Agent Example")
+    print_section_header("Agent Usage Example")
     
     try:
         # Setup with optional specified GUID and memory type
-        agent, memory_manager = await setup_services(args.guid, args.type)
+        try:
+            domain_config = CONFIG_MAP[args.config]
+        except (KeyError, TypeError):
+            # If args.config is invalid or None, use first config in map
+            domain_config = next(iter(CONFIG_MAP.values()))
+        print(f"Using domain config: {args.config}")
+        print(f"Domain config: {domain_config}")
+        agent, memory_manager = await setup_services(domain_config, args.guid, args.type)
         
-        # Initialize campaign
-        if not await initialize_campaign(agent, memory_manager):
+        # Initialize memory
+        if not await initialize_memory(agent, memory_manager, domain_config):
             return
         
         # Interactive session
         await interactive_session(agent, memory_manager)
         
     except Exception as e:
-        print(f"\nError during example: {str(e)}")
+        logger.error(f"\nError during example: {str(e)}")
     finally:
-        print("\nExample completed.")
+        logger.debug("\nExample completed.")
 
 if __name__ == "__main__":
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
-        print("\nExample ended by user.") 
+        logger.debug("\nExample ended by user.") 

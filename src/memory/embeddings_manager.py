@@ -64,27 +64,19 @@ class EmbeddingsManager:
        - Return both similarity scores and full entry data
     """
     
-    def __init__(self, embeddings_file: str, llm_service=None):
+    def __init__(self, embeddings_file: str, llm_service=None, logger=None):
         """Initialize the EmbeddingsManager.
         
         Args:
             embeddings_file: Path to the JSONL file for storing embeddings
             llm_service: Optional LLM service for generating embeddings
+            logger: Optional logger instance
         """
         self.embeddings_file = embeddings_file
         self.llm_service = llm_service
         self.embeddings = []  # List of (embedding, metadata) tuples
-        # Always use the embedding model from env or default
         self.embedding_model = os.getenv("OLLAMA_EMBED_MODEL", "mxbai-embed-large")
-        
-        # Configure logging
-        self.logger = logging.getLogger("embeddings_manager")
-        # Set up basic console handler if none exists
-        if not self.logger.handlers:
-            handler = logging.StreamHandler()
-            handler.setFormatter(logging.Formatter('%(name)s - %(levelname)s - %(message)s'))
-            self.logger.addHandler(handler)
-            self.logger.setLevel(logging.INFO)
+        self.logger = logger or logging.getLogger(__name__)
         
         # Initialize embeddings file directory if it doesn't exist
         embeddings_dir = os.path.dirname(embeddings_file)
@@ -97,7 +89,7 @@ class EmbeddingsManager:
     def _load_embeddings(self):
         """Load existing embeddings from file."""
         if not os.path.exists(self.embeddings_file):
-            self.logger.info(f"Embeddings file {self.embeddings_file} does not exist, starting with empty embeddings.")
+            self.logger.debug(f"Embeddings file {self.embeddings_file} does not exist, starting with empty embeddings.")
             return
             
         try:
@@ -108,13 +100,13 @@ class EmbeddingsManager:
                     try:
                         data = json.loads(line)
                         if 'embedding' not in data:
-                            self.logger.warning(f"Line {line_num} in embeddings file is missing 'embedding' field.")
+                            self.logger.debug(f"Line {line_num} in embeddings file is missing 'embedding' field.")
                             error_count += 1
                             continue
                             
                         # Ensure metadata exists (create empty if not)
                         if 'metadata' not in data:
-                            self.logger.warning(f"Line {line_num} in embeddings file is missing 'metadata' field, creating empty.")
+                            self.logger.debug(f"Line {line_num} in embeddings file is missing 'metadata' field, creating empty.")
                             data['metadata'] = {}
                             
                         # Add the text to metadata if it's in the main data but not in metadata
@@ -127,15 +119,15 @@ class EmbeddingsManager:
                         ))
                         count += 1
                     except json.JSONDecodeError:
-                        self.logger.warning(f"Failed to parse line {line_num} in embeddings file.")
+                        self.logger.debug(f"Failed to parse line {line_num} in embeddings file.")
                         error_count += 1
                         continue
                     except Exception as e:
-                        self.logger.warning(f"Error processing line {line_num}: {str(e)}")
+                        self.logger.debug(f"Error processing line {line_num}: {str(e)}")
                         error_count += 1
                         continue
                         
-            self.logger.info(f"Loaded {count} embeddings from {self.embeddings_file} ({error_count} errors)")
+            self.logger.debug(f"Loaded {count} embeddings from {self.embeddings_file} ({error_count} errors)")
         except Exception as e:
             self.logger.error(f"Error loading embeddings: {str(e)}")
     
@@ -211,7 +203,7 @@ class EmbeddingsManager:
                         return item['metadata'][field]
         
         # If we get here, we couldn't find any text
-        self.logger.warning(f"Could not extract text from item: {item}")
+        self.logger.debug(f"Could not extract text from item: {item}")
         return ""
     
     def add_embedding(self, text_or_item: Union[str, Dict[str, Any]], metadata: Optional[Dict[str, Any]] = None, options: Optional[Dict[str, Any]] = None) -> bool:
@@ -244,7 +236,7 @@ class EmbeddingsManager:
             
             # Ensure we have text to embed
             if not text or not text.strip():
-                self.logger.warning("Cannot add embedding for empty text")
+                self.logger.debug("Cannot add embedding for empty text")
                 return False
                 
             # Ensure metadata is a dictionary
@@ -316,14 +308,14 @@ class EmbeddingsManager:
             List[Dict]: List of results with similarity scores and metadata
         """
         if not self.embeddings:
-            self.logger.warning("No embeddings available for search")
+            self.logger.debug("No embeddings available for search")
             return []
             
         try:
             # Get query embedding
             if isinstance(query, str):
                 try:
-                    self.logger.info(f"Generating embedding for query: '{query}'")
+                    self.logger.debug(f"Generating embedding for query: '{query}'")
                     query_embedding = self.generate_embedding(query)
                 except Exception as e:
                     self.logger.error(f"Error generating embedding for query: {str(e)}")
@@ -368,7 +360,7 @@ class EmbeddingsManager:
                         result_metadata
                     ))
                 except Exception as e:
-                    self.logger.warning(f"Error processing embedding: {str(e)}")
+                    self.logger.debug(f"Error processing embedding: {str(e)}")
                     continue
             
             # Sort by similarity (highest first)
@@ -384,7 +376,7 @@ class EmbeddingsManager:
                 for score, text, metadata in similarities[:k]
             ]
             
-            self.logger.info(f"Search found {len(results)} results out of {len(similarities)} total embeddings")
+            self.logger.debug(f"Search found {len(results)} results out of {len(similarities)} total embeddings")
             return results
             
         except Exception as e:
@@ -392,6 +384,44 @@ class EmbeddingsManager:
             self.logger.error(traceback.format_exc())
             return []
     
+    def deduplicate_embeddings_file(self):
+        """Remove redundant embeddings with identical text from the embeddings file. Returns the number of embeddings removed."""
+        if not os.path.exists(self.embeddings_file):
+            self.logger.debug("Embeddings file does not exist, skipping deduplication.")
+            return 0
+
+        seen_texts = set()
+        deduped = []
+        original_count = 0
+        try:
+            with open(self.embeddings_file, "r") as infile:
+                for line in infile:
+                    original_count += 1
+                    try:
+                        data = json.loads(line)
+                        meta = data.get("metadata", {})
+                        text = meta.get("text") or data.get("text")
+                        if text is not None:
+                            text_key = text.strip()
+                            if text_key not in seen_texts:
+                                seen_texts.add(text_key)
+                                deduped.append(data)
+                    except Exception as e:
+                        self.logger.debug(f"Error parsing line during deduplication: {e}")
+
+            # Overwrite the file with deduplicated entries
+            with open(self.embeddings_file, "w") as outfile:
+                for item in deduped:
+                    json.dump(item, outfile)
+                    outfile.write("\n")
+
+            removed_count = original_count - len(deduped)
+            self.logger.info(f"Deduplicated embeddings file: {len(deduped)} unique texts remain. {removed_count} embeddings removed.")
+            return removed_count
+        except Exception as e:
+            self.logger.error(f"Error during embeddings deduplication: {e}")
+            return 0
+
     def update_embeddings(self, conversation_entries: List[Dict]) -> bool:
         """Update embeddings for conversation history entries.
         
@@ -409,9 +439,9 @@ class EmbeddingsManager:
                 backup_path = f"{self.embeddings_file}.bak"
                 try:
                     os.rename(self.embeddings_file, backup_path)
-                    self.logger.info(f"Created backup of embeddings file: {backup_path}")
+                    self.logger.debug(f"Created backup of embeddings file: {backup_path}")
                 except OSError:
-                    self.logger.warning(f"Could not create backup of embeddings file")
+                    self.logger.error(f"Could not create backup of embeddings file")
             
             # Create a new embeddings file
             with open(self.embeddings_file, 'w'):
@@ -425,10 +455,10 @@ class EmbeddingsManager:
                 # Only embed rated_segments from digest
                 if 'digest' in entry and 'rated_segments' in entry['digest']:
                     segments = entry['digest']['rated_segments']
-                    self.logger.info(f"Processing {len(segments)} segments for entry {entry.get('guid', str(total_count))}")
+                    self.logger.debug(f"Processing {len(segments)} segments for entry {entry.get('guid', str(total_count))}")
                     for i, segment in enumerate(segments):
                         if 'text' not in segment or not segment['text']:
-                            self.logger.warning(f"Skipping segment {i} without text in entry {entry.get('guid', str(total_count))}")
+                            self.logger.debug(f"Skipping segment {i} without text in entry {entry.get('guid', str(total_count))}")
                             continue
                         total_count += 1
                         # Create segment metadata
@@ -445,7 +475,10 @@ class EmbeddingsManager:
                         if self.add_embedding(segment.get('text', ''), segment_metadata):
                             success_count += 1
             
-            self.logger.info(f"Updated embeddings: {success_count}/{total_count} successful")
+            self.logger.debug(f"Updated embeddings: {success_count}/{total_count} successful")
+            # Deduplicate after batch update
+            removed_count = self.deduplicate_embeddings_file()
+            self.logger.info(f"Deduplication complete: {removed_count} redundant embeddings removed.")
             return success_count > 0
         except Exception as e:
             self.logger.error(f"Error updating embeddings: {str(e)}")
@@ -493,10 +526,10 @@ class EmbeddingsManager:
                     added += 1
         return added
     
-    def update_indices(self, new_entries: List[Dict]) -> bool:
+    def add_new_embeddings(self, new_entries: List[Dict]) -> bool:
         """Incrementally add embeddings for new conversation entries only."""
         total_added = 0
         for entry in new_entries:
             total_added += self.add_embeddings_for_entry(entry)
-        self.logger.info(f"Incremental embedding update: {total_added} new embeddings added.")
+        self.logger.debug(f"Incremental embedding update: {total_added} new embeddings added.")
         return total_added > 0 

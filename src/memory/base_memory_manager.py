@@ -21,6 +21,7 @@ import json
 import os
 import uuid
 from datetime import datetime
+import logging
 
 class BaseMemoryManager(ABC):
     """Abstract base class for memory management implementations.
@@ -29,7 +30,7 @@ class BaseMemoryManager(ABC):
     for memory operations. Concrete implementations must implement all abstract methods.
     """
     
-    def __init__(self, memory_file: str = "memory.json", domain_config: Optional[Dict[str, Any]] = None, memory_guid: Optional[str] = None):
+    def __init__(self, memory_guid: str, memory_file: str = "memory.json", domain_config: Optional[Dict[str, Any]] = None, logger=None):
         """Initialize the base memory manager.
         
         Args:
@@ -38,15 +39,16 @@ class BaseMemoryManager(ABC):
                          - schema: Domain-specific entity types and properties
                          - relationships: Domain-specific relationship types
                          - prompts: Domain-specific prompt templates
-            memory_guid: Optional GUID to identify this memory instance
+            memory_guid: Required GUID to identify this memory instance
+            logger: Optional logger instance for logging
         """
         self.memory_file = memory_file
         self.domain_config = domain_config or {}
-        self.memory: Dict[str, Any] = {}
         # Store the provided memory_guid (may be None)
         self.memory_guid = memory_guid
-        self._load_memory()
-        
+        # Store the logger instance, or get a default logger for this module
+        self.logger = logger or logging.getLogger(__name__)
+        self.memory: Dict[str, Any] = self._load_memory()
         # Initialize conversation history file path based on memory file
         self._init_conversation_history_file()
 
@@ -58,7 +60,7 @@ class BaseMemoryManager(ABC):
         
         # Create conversation history file name based on memory file
         self.conversation_history_file = os.path.join(memory_dir, f"{memory_base}_conversations.json")
-        print(f"Conversation history file: {self.conversation_history_file}")
+        self.logger.debug(f"Conversation history file: {self.conversation_history_file}")
         
         # Initialize conversation history structure if it doesn't exist
         if not os.path.exists(self.conversation_history_file):
@@ -76,9 +78,9 @@ class BaseMemoryManager(ABC):
         try:
             with open(self.conversation_history_file, 'w') as f:
                 json.dump(conversation_data, f, indent=2)
-            print(f"Created new conversation history file: {self.conversation_history_file}")
+            self.logger.debug(f"Created new conversation history file: {self.conversation_history_file}")
         except Exception as e:
-            print(f"Error creating conversation history file: {str(e)}")
+            self.logger.error(f"Error creating conversation history file: {str(e)}")
             
     def _load_conversation_history(self) -> Dict[str, Any]:
         """Load conversation history from file."""
@@ -89,7 +91,7 @@ class BaseMemoryManager(ABC):
                     
                 # Ensure the memory GUID matches
                 if self.memory_guid and conversation_data.get("memory_file_guid") != self.memory_guid:
-                    print(f"Warning: Conversation history GUID mismatch. Expected {self.memory_guid}, found {conversation_data.get('memory_file_guid')}")
+                    self.logger.debug(f"Warning: Conversation history GUID mismatch. Expected {self.memory_guid}, found {conversation_data.get('memory_file_guid')}")
                     # Update the GUID to match current memory
                     conversation_data["memory_file_guid"] = self.memory_guid
                     self._save_conversation_history(conversation_data)
@@ -98,7 +100,7 @@ class BaseMemoryManager(ABC):
             else:
                 return self._initialize_conversation_history()
         except Exception as e:
-            print(f"Error loading conversation history: {str(e)}")
+            self.logger.error(f"Error loading conversation history: {str(e)}")
             return {"memory_file_guid": self.memory_guid or "", "entries": []}
             
     def _save_conversation_history(self, conversation_data: Dict[str, Any]) -> bool:
@@ -112,7 +114,7 @@ class BaseMemoryManager(ABC):
                 json.dump(conversation_data, f, indent=2)
             return True
         except Exception as e:
-            print(f"Error saving conversation history: {str(e)}")
+            self.logger.error(f"Error saving conversation history: {str(e)}")
             return False
             
     def add_to_conversation_history(self, entry: Dict[str, Any]) -> bool:
@@ -134,7 +136,7 @@ class BaseMemoryManager(ABC):
             # Save updated history
             return self._save_conversation_history(conversation_data)
         except Exception as e:
-            print(f"Error adding to conversation history: {str(e)}")
+            self.logger.error(f"Error adding to conversation history: {str(e)}")
             return False
             
     def get_conversation_history(self) -> List[Dict[str, Any]]:
@@ -147,7 +149,7 @@ class BaseMemoryManager(ABC):
             conversation_data = self._load_conversation_history()
             return conversation_data.get("entries", [])
         except Exception as e:
-            print(f"Error getting conversation history: {str(e)}")
+            self.logger.error(f"Error getting conversation history: {str(e)}")
             return []
 
     def _load_memory(self) -> Dict[str, Any]:
@@ -159,14 +161,14 @@ class BaseMemoryManager(ABC):
                     # If memory already has a GUID and we weren't given one
                     if "guid" in memory_data and not self.memory_guid:
                         self.memory_guid = memory_data["guid"]
-                        print(f"Loaded memory with existing GUID: {self.memory_guid}")
-                print("Memory loaded from file")
+                        self.logger.debug(f"Loaded memory with existing GUID: {self.memory_guid}")
+                self.logger.debug("Memory loaded from file")
                 return memory_data
             else:
-                print("Memory file not found, will create new memory")
+                self.logger.debug("Memory file not found, will create new memory")
                 return {}
         except Exception as e:
-            print(f"Error loading memory: {str(e)}")
+            self.logger.error(f"Error loading memory: {str(e)}")
             return {}
 
     def save_memory(self, operation_name: str = "unknown") -> bool:
@@ -177,7 +179,7 @@ class BaseMemoryManager(ABC):
                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
                 backup_file = f"{os.path.splitext(self.memory_file)[0]}_bak_{timestamp}{os.path.splitext(self.memory_file)[1]}"
                 os.rename(self.memory_file, backup_file)
-                print(f"Backup created: {backup_file}")
+                self.logger.debug(f"Backup created: {backup_file}")
             
             # Ensure memory has current GUID
             if self.memory_guid and self.memory:
@@ -190,13 +192,13 @@ class BaseMemoryManager(ABC):
             # Write updated memory to file
             with open(self.memory_file, 'w') as f:
                 json.dump(self.memory, f, indent=2)
-            print(f"Memory saved after '{operation_name}' operation")
+            self.logger.debug(f"Memory saved after '{operation_name}' operation")
             return True
         except Exception as e:
-            print(f"Error saving memory: {str(e)}")
+            self.logger.error(f"Error saving memory: {str(e)}")
             return False
 
-    def get_memory_context(self) -> Dict[str, Any]:
+    def get_memory(self) -> Dict[str, Any]:
         """Return the entire memory state"""
         return self.memory
 

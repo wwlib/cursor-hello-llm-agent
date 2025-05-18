@@ -27,9 +27,9 @@ def print_memory_state(memory_manager, title="Current Memory State"):
     """Helper to print memory state in a readable format"""
     print(f"\n{title}")
     print("=" * len(title))
-    memory_context = memory_manager.get_memory_context()
+    memory = memory_manager.get_memory()
     print(f"Memory GUID: {memory_manager.get_memory_guid()}")
-    print(json.dumps(memory_context, indent=2))
+    print(json.dumps(memory, indent=2))
 
 async def demonstrate_memory_creation():
     """Demonstrate creating and using memory with the MemoryManager"""

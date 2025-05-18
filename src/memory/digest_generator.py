@@ -5,6 +5,7 @@ import os
 from typing import Dict, List, Any, Optional
 from datetime import datetime
 from .content_segmenter import ContentSegmenter
+import logging
 
 class DigestGenerator:
     """Handles the process of generating structured digests from conversation entries.
@@ -17,15 +18,18 @@ class DigestGenerator:
     natural for LLMs to process.
     """
     
-    def __init__(self, llm_service):
+    def __init__(self, llm_service, logger=None):
         """Initialize the DigestGenerator.
         
         Args:
             llm_service: Service for LLM operations
+            logger: Optional logger instance
         """
         self.llm = llm_service
-        self.content_segmenter = ContentSegmenter(llm_service)
+        self.logger = logger or logging.getLogger(__name__)
+        self.content_segmenter = ContentSegmenter(llm_service, self.logger)
         self._load_templates()
+        self.logger.debug("Initialized DigestGenerator")
     
     def _load_templates(self) -> None:
         """Load prompt templates from files"""
@@ -41,9 +45,9 @@ class DigestGenerator:
             try:
                 with open(path, 'r') as f:
                     self.templates[key] = f.read().strip()
-                print(f"Loaded digest template: {filename}")
+                self.logger.debug(f"Loaded digest template: {filename}")
             except Exception as e:
-                print(f"Error loading digest template {filename}: {str(e)}")
+                self.logger.error(f"Error loading digest template {filename}: {str(e)}")
                 # Raise an exception if the template cannot be loaded
                 raise Exception(f"Failed to load template: {filename}")
     
@@ -67,7 +71,7 @@ class DigestGenerator:
             
             content = conversation_entry.get("content", "")
             if not content.strip():
-                print("Warning: Empty content in conversation entry")
+                self.logger.debug("Warning: Empty content in conversation entry")
                 return self._create_empty_digest(entry_guid, conversation_entry.get("role", "unknown"))
             
             # Step 1: Use provided segments or segment the content
@@ -76,15 +80,8 @@ class DigestGenerator:
             else:
                 segments_to_use = self.content_segmenter.segment_content(content)
             
-            print(f"\n\ngenerate_digest: Segments:")
-            for segment in segments_to_use:
-                print(segment)
-            print(f"\n\n")
-
-            print(f"\n\ngenerate_digest: Memory state: static_memory")
-            static_memory = "" if memory_state is None else memory_state.get("static_memory", "")
-            print(static_memory)
-            print(f"\n\n")
+            # Print number of segments generated
+            self.logger.debug(f"Generated {len(segments_to_use)} segments")
             
             # Step 2: Rate segments and assign topics
             rated_segments = self._rate_segments(segments_to_use, memory_state)
@@ -103,7 +100,7 @@ class DigestGenerator:
             return digest
             
         except Exception as e:
-            print(f"Error generating digest: {str(e)}")
+            self.logger.error(f"Error generating digest: {str(e)}")
             return self._create_empty_digest(entry_guid if entry_guid else str(uuid.uuid4()), 
                                             conversation_entry.get("role", "unknown"))
     
@@ -142,13 +139,13 @@ class DigestGenerator:
                 rated_segments = json.loads(llm_response)
                 # Validate the structure
                 if not isinstance(rated_segments, list):
-                    print("Rating failed: Response is not a list")
+                    self.logger.debug("Rating failed: Response is not a list")
                     return self._create_default_rated_segments(segments)
                 
                 # Validate each rated segment
                 for i, segment in enumerate(rated_segments):
                     if not isinstance(segment, dict):
-                        print(f"Segment {i} is not a dictionary, using default")
+                        self.logger.debug(f"Segment {i} is not a dictionary, using default")
                         rated_segments[i] = {
                             "text": segments[i] if i < len(segments) else "",
                             "importance": 3,
@@ -156,19 +153,19 @@ class DigestGenerator:
                             "type": "information"  # Default type
                         }
                     elif "text" not in segment:
-                        print(f"Segment {i} missing text, using original")
+                        self.logger.debug(f"Segment {i} missing text, using original")
                         segment["text"] = segments[i] if i < len(segments) else ""
                     elif "importance" not in segment:
-                        print(f"Segment {i} missing importance, using default")
+                        self.logger.debug(f"Segment {i} missing importance, using default")
                         segment["importance"] = 3
                     elif "topics" not in segment:
-                        print(f"Segment {i} missing topics, using empty list")
+                        self.logger.debug(f"Segment {i} missing topics, using empty list")
                         segment["topics"] = []
                     elif "type" not in segment:
-                        print(f"Segment {i} missing type, using default")
+                        self.logger.debug(f"Segment {i} missing type, using default")
                         segment["type"] = "information"
                     elif segment["type"] not in ["query", "information", "action", "command"]:
-                        print(f"Segment {i} has invalid type, using default")
+                        self.logger.debug(f"Segment {i} has invalid type, using default")
                         segment["type"] = "information"
                 
                 return rated_segments
@@ -184,13 +181,13 @@ class DigestGenerator:
                         
                         # Do basic validation
                         if not isinstance(rated_segments, list):
-                            print("Extracted rating is not a list")
+                            self.logger.debug("Extracted rating is not a list")
                             return self._create_default_rated_segments(segments)
                         
                         # Validate each segment has required fields
                         for i, segment in enumerate(rated_segments):
                             if not isinstance(segment, dict) or "text" not in segment:
-                                print(f"Segment {i} invalid, using default")
+                                self.logger.debug(f"Segment {i} invalid, using default")
                                 rated_segments[i] = {
                                     "text": segments[i] if i < len(segments) else "",
                                     "importance": 3,
@@ -198,7 +195,7 @@ class DigestGenerator:
                                     "type": "information"  # Default type
                                 }
                             elif "type" not in segment or segment["type"] not in ["query", "information", "action", "command"]:
-                                print(f"Segment {i} has invalid type, using default")
+                                self.logger.debug(f"Segment {i} has invalid type, using default")
                                 segment["type"] = "information"
                         
                         return rated_segments
@@ -206,11 +203,11 @@ class DigestGenerator:
                         pass
                 
                 # Fall back to default rating
-                print("Failed to parse rated segments, using defaults")
+                self.logger.debug("Failed to parse rated segments, using defaults")
                 return self._create_default_rated_segments(segments)
                 
         except Exception as e:
-            print(f"Error in segment rating: {str(e)}")
+            self.logger.error(f"Error in segment rating: {str(e)}")
             return self._create_default_rated_segments(segments)
     
     def _create_empty_digest(self, entry_guid: str, role: str) -> Dict[str, Any]:

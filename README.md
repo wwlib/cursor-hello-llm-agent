@@ -134,6 +134,10 @@ python examples/memory_manager_usage_example.py
 pytest tests/ -v -s
 ```
 
+```bash
+DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/agent_usage_example.py --guid dnd --config dnd
+```
+
 ---
 
 ## Extensibility & Modularity
