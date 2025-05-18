@@ -2,16 +2,15 @@
 
 ## Overall Goals
 
-- Create an Agent Framework tha can be used for a variety of purposes
+- Create an Agent Framework that can be used for a variety of purposes
 - Use the Agent Framework as a tool to help continually improve this Agent Framework (i.e. make the framework "self-hosted")
-  - Including acting as the project ProjewctManager/ScrumMaster
+  - Including acting as the project ProjectManager/ScrumMaster
 - Use the Agent Framework to create an Agent that can act like a "Jarvis" in a home workshop to assist with projects and preserve project details - like a voice-driven lab notebook
 - Use the Agent Framework to power a DND Dungeon Master agent
 
 
 ## TODO
 
-- Have the digest and embedding processes hapen async - i.e. do not wait for the to finish
 - Improve the way topics are assigned to digest segments
 - Agent Improvements - RAG Integration
   - RAG should prioritize semantic search results using the segment classifications
