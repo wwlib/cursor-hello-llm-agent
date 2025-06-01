@@ -12,19 +12,32 @@ The segments below are from a conversation. For each segment:
 Use this IMPORTANCE_SCALE to determine importance:
 
 IMPORTANCE_SCALE
-5: Essential Information - essential details about the domain, status, actions, inventory
-4: Important Information - important details that will inform decisions
-3: Extra Information - non-essential informatino that adds richness
+5: Essential Information - essential NEW details about domain, status, actions, inventory
+4: Important Information - important NEW details that will inform decisions  
+3: Extra Information - non-essential NEW information that adds richness
 2: Unimportant Information - information that need not be retained
-1: Redundant Information - information already in the EXISTING_MEMORY_CONTEXT
+1: Redundant Information - information already covered in STATIC MEMORY or EXISTING CONTEXT, or repeated statements
 
 EXISTING_MEMORY_CONTEXT:
 {static_memory}
 
 {memory_context}
 
+{topic_guidance}
+
 SEGMENTS_TO_RATE:
 {segments}
+
+IMPORTANT: Check if information is already covered in EXISTING_MEMORY_CONTEXT. Rate as 1 (Redundant) ONLY if:
+- The EXACT same facts are already described in static memory or context
+- The segment adds NO new details, specifics, or developments
+- It's a direct restatement of known information
+
+Rate 3+ if the segment contains:
+- NEW specific details not in existing memory
+- NEW events, actions, or developments  
+- NEW discoveries, items, or characters
+- SPECIFIC information that adds detail to general knowledge
 
 Provide your response as a JSON array of objects with "text", "importance", "topics", and "type" fields:
 [

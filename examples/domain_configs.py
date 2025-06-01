@@ -48,7 +48,75 @@ DND_CONFIG = {
         "query": "You are an agent acting as a DM for a D&D campaign. You should respond in a way that moves the gameplay forward and adds details and richness to the story.",
         "update": "You are analyzing the input from both the user and the agent and extracting and classifying the important information into the conversation history data structure."
     },
-    "initial_data": dnd_initial_data
+    "initial_data": dnd_initial_data,
+    "topic_taxonomy": {
+        "world": ["setting", "geography", "location", "environment", "terrain"],
+        "characters": ["npc", "player", "personality", "motivation", "background"],
+        "narrative": ["story", "plot", "quest", "adventure", "campaign"],
+        "mechanics": ["rules", "dice", "combat", "magic", "spells"],
+        "objects": ["items", "equipment", "artifacts", "treasure", "inventory"],
+        "history": ["lore", "ruins", "archaeology", "ancient", "past"],
+        "society": ["politics", "trade", "settlements", "culture", "religion"],
+        "threats": ["monsters", "enemies", "dangers", "conflict", "war"],
+        "exploration": ["discovery", "investigation", "research", "mystery"],
+        "events": ["happenings", "situations", "incidents", "occurrences"]
+    },
+    "topic_normalizations": {
+        # Geography variations
+        "locations": "location",
+        "geography": "location", 
+        "terrain": "environment",
+        "area": "location",
+        "place": "location",
+        "region": "location",
+        
+        # Character variations
+        "character": "characters",
+        "key npc": "npc",
+        "npcs": "npc",
+        "people": "characters",
+        
+        # Ruins/archaeology variations
+        "ruins": "archaeology",
+        "ancient ruins": "archaeology",
+        "artifacts": "archaeology",
+        "archaeological": "archaeology",
+        
+        # Events variations
+        "situation": "events",
+        "situations": "events",
+        "happenings": "events",
+        "occurrences": "events",
+        
+        # Investigation variations
+        "research": "investigation",
+        "exploration": "investigation",
+        "discovery": "investigation",
+        
+        # Magic variations
+        "magical": "magic",
+        "anomalies": "magic",
+        "magical anomalies": "magic",
+        
+        # DnD-specific normalizations
+        "setting": "world",
+        "world": "setting",
+        "lore": "history", 
+        "ancient": "history",
+        "monsters": "threats",
+        "enemies": "threats",
+        "monster activity": "threats",
+        "defense": "threats",
+        "trade routes": "trade",
+        "settlements": "society",
+        "politics": "society",
+        "value": "objects",
+        "treasure": "objects",
+        "skills": "mechanics",
+        "expertise": "mechanics",
+        "decryption": "investigation",
+        "wildlife": "environment"
+    }
 }
 
 user_story_initial_data = """Please structure the following project information into a JSON format with structured_data for facts, knowledge_graph for relationships, and appropriate metadata.
@@ -130,7 +198,36 @@ LAB_ASSISTANT_CONFIG = {
         "query": lab_assistant_query_instructions,
         "update": "You are analyzing the input from both the user and the agent and extracting and classifying the important information into the conversation history data structure. Your goal is to keep the most relevant information and filter out the rest. Please do not filter out anything important!"
     },
-    "initial_data": lab_assistant_initial_data
+    "initial_data": lab_assistant_initial_data,
+    "topic_taxonomy": {
+        "projects": ["experiment", "build", "design", "prototype", "research"],
+        "equipment": ["tools", "instruments", "machines", "devices", "hardware"],
+        "materials": ["components", "supplies", "resources", "substances"],
+        "methods": ["procedures", "techniques", "processes", "protocols"],
+        "results": ["data", "measurements", "observations", "outcomes"],
+        "analysis": ["evaluation", "testing", "validation", "troubleshooting"],
+        "documentation": ["notes", "records", "logs", "reports", "specs"],
+        "safety": ["precautions", "hazards", "protection", "risks"],
+        "planning": ["goals", "timeline", "requirements", "resources"],
+        "collaboration": ["team", "assistance", "consultation", "sharing"]
+    },
+    "topic_normalizations": {
+        "equipment": "tools",
+        "instruments": "tools", 
+        "devices": "tools",
+        "experiment": "projects",
+        "build": "projects",
+        "prototype": "projects",
+        "components": "materials",
+        "supplies": "materials",
+        "measurements": "results",
+        "observations": "results",
+        "procedures": "methods",
+        "techniques": "methods",
+        "specs": "documentation",
+        "logs": "documentation",
+        "records": "documentation"
+    }
 }
 
 
