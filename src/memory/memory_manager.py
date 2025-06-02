@@ -51,6 +51,11 @@ from .rag_manager import RAGManager
 import asyncio
 import logging
 
+# Memory filtering constants
+DEFAULT_COMPRESSION_IMPORTANCE_THRESHOLD = 3
+DEFAULT_RAG_IMPORTANCE_THRESHOLD = 3  # Standardized to match compression
+DEFAULT_EMBEDDINGS_IMPORTANCE_THRESHOLD = 3  # Only embed important segments
+
 class MemoryManager(BaseMemoryManager):
     """LLM-driven memory manager implementation.
     
@@ -59,7 +64,7 @@ class MemoryManager(BaseMemoryManager):
 
     def __init__(self, memory_guid: str, memory_file: str = "memory.json", domain_config: Optional[Dict[str, Any]] = None, 
                  llm_service = None, digest_llm_service = None, embeddings_llm_service = None, 
-                 max_recent_conversation_entries: int = 8, importance_threshold: int = 3, logger=None):
+                 max_recent_conversation_entries: int = 8, importance_threshold: int = DEFAULT_COMPRESSION_IMPORTANCE_THRESHOLD, logger=None):
         """Initialize the MemoryManager with LLM service instances and domain configuration.
         
         Args:

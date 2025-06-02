@@ -126,6 +126,12 @@ from datetime import datetime
 import os
 import logging
 
+# Standard importance threshold for RAG filtering
+DEFAULT_RAG_IMPORTANCE_THRESHOLD = 3
+
+# Define which segment types should be included in RAG context
+RAG_RELEVANT_TYPES = ["information", "action"]  # Exclude old queries and commands
+
 class RAGManager:
     """Manages Retrieval Augmented Generation for enhancing memory queries.
     
@@ -198,6 +204,12 @@ class RAGManager:
                 # Skip results without text
                 if not text:
                     self.logger.debug(f"Skipping result {i} - no text found")
+                    continue
+                
+                # Filter by segment type - exclude old queries and commands
+                segment_type = metadata.get("type", "information")
+                if segment_type not in RAG_RELEVANT_TYPES:
+                    self.logger.debug(f"Skipping result {i} - irrelevant type: {segment_type}")
                     continue
                 
                 # Prepare the enhanced result
@@ -278,7 +290,7 @@ class RAGManager:
             search_results = self.query(
                 query_text,
                 limit=5,
-                min_importance=2  # Only include moderately important content and above
+                min_importance=DEFAULT_RAG_IMPORTANCE_THRESHOLD  # Only include important content and above
             )
             
             # Format the results as context

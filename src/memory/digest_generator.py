@@ -91,8 +91,11 @@ class DigestGenerator:
             # Step 2: Rate segments and assign topics
             rated_segments = self._rate_segments(segments_to_use, memory_state)
             
+            # Step 2.5: Filter out non-memory-worthy segments
+            memory_worthy_segments = self._filter_memory_worthy_segments(rated_segments)
+            
             # Step 3: Clean the rated segments
-            cleaned_segments = self._clean_segments(rated_segments)
+            cleaned_segments = self._clean_segments(memory_worthy_segments)
             
             # Combine into final digest
             digest = {
@@ -177,6 +180,9 @@ class DigestGenerator:
                     elif segment["type"] not in ["query", "information", "action", "command"]:
                         self.logger.debug(f"Segment {i} has invalid type, using default")
                         segment["type"] = "information"
+                    elif "memory_worthy" not in segment:
+                        self.logger.debug(f"Segment {i} missing memory_worthy, using default")
+                        segment["memory_worthy"] = True
                 
                 return rated_segments
             except json.JSONDecodeError:
@@ -202,11 +208,15 @@ class DigestGenerator:
                                     "text": segments[i] if i < len(segments) else "",
                                     "importance": 3,
                                     "topics": [],
-                                    "type": "information"  # Default type
+                                    "type": "information",  # Default type
+                                    "memory_worthy": True   # Default to memory worthy
                                 }
                             elif "type" not in segment or segment["type"] not in ["query", "information", "action", "command"]:
                                 self.logger.debug(f"Segment {i} has invalid type, using default")
                                 segment["type"] = "information"
+                            elif "memory_worthy" not in segment:
+                                self.logger.debug(f"Segment {i} missing memory_worthy, using default")
+                                segment["memory_worthy"] = True
                         
                         return rated_segments
                     except json.JSONDecodeError:
@@ -236,10 +246,33 @@ class DigestGenerator:
                 "text": segment,
                 "importance": 3,  # Medium importance by default
                 "topics": [],
-                "type": "information"  # Default type
+                "type": "information",  # Default type
+                "memory_worthy": True   # Default to memory worthy
             }
             for segment in segments
         ]
+
+    def _filter_memory_worthy_segments(self, rated_segments: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Filter out non-memory-worthy segments before storage.
+        
+        Args:
+            rated_segments: List of segments with memory_worthy field
+            
+        Returns:
+            List[Dict[str, Any]]: Only segments marked as memory_worthy
+        """
+        memory_worthy = []
+        excluded_count = 0
+        
+        for segment in rated_segments:
+            if segment.get("memory_worthy", True):  # Default to True for safety
+                memory_worthy.append(segment)
+            else:
+                excluded_count += 1
+                self.logger.debug(f"Excluded non-memory-worthy segment: {segment.get('text', '')[:50]}...")
+        
+        self.logger.debug(f"Filtered out {excluded_count} non-memory-worthy segments, kept {len(memory_worthy)} segments")
+        return memory_worthy
 
     def _clean_segments(self, segments: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """Clean and validate segments.
@@ -274,6 +307,12 @@ class DigestGenerator:
             # Ensure type is valid
             if "type" not in segment or segment["type"] not in ["query", "information", "action", "command"]:
                 segment["type"] = "information"  # Default to information if invalid
+            
+            # Ensure memory_worthy is a boolean
+            if "memory_worthy" not in segment:
+                segment["memory_worthy"] = True  # Default to memory worthy if missing
+            elif not isinstance(segment["memory_worthy"], bool):
+                segment["memory_worthy"] = bool(segment["memory_worthy"])  # Convert to boolean
             
             cleaned_segments.append(segment)
         

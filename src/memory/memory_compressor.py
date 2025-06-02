@@ -25,6 +25,9 @@ import json
 from datetime import datetime
 import logging
 
+# Define which segment types should be included in compressed memory context
+CONTEXT_RELEVANT_TYPES = ["information", "action"]  # Exclude old queries and commands
+
 class MemoryCompressor:
     """Handles compression of conversation history into efficient memory format."""
     
@@ -100,9 +103,11 @@ class MemoryCompressor:
                     # Process digest if available
                     if "digest" in entry and "rated_segments" in entry["digest"]:
                         self.logger.debug(f"Processing digest for entry {entry.get('guid')}")
-                        # Filter segments by importance
+                        # Filter segments by importance and type
                         for segment in entry["digest"]["rated_segments"]:
-                            if segment.get("importance", 0) >= self.importance_threshold:
+                            segment_type = segment.get("type", "information")
+                            if (segment.get("importance", 0) >= self.importance_threshold and 
+                                segment_type in CONTEXT_RELEVANT_TYPES):
                                 # Include role and timestamp with the segment
                                 important_segments.append({
                                     "text": segment["text"],

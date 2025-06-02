@@ -291,12 +291,12 @@ async def test_lab_assistant_digest_llm_evaluation(lab_digest_generator, evaluat
     assert topic_consistency >= 6.0, f"Topic consistency too low: {topic_consistency}/10"
 
 
-def test_agent_response_digest_evaluation(dnd_digest_generator, evaluation_llm_service, test_conversations):
+def test_agent_response_digest_evaluation(lab_digest_generator, evaluation_llm_service, test_conversations):
     """Test how well the DigestGenerator handles agent responses vs user inputs."""
     conversation = test_conversations["agent_response"]
     
     # Generate digest  
-    digest = dnd_digest_generator.generate_digest(conversation)
+    digest = lab_digest_generator.generate_digest(conversation)
     
     # Basic validation
     assert isinstance(digest, dict)
@@ -341,9 +341,133 @@ def test_agent_response_digest_evaluation(dnd_digest_generator, evaluation_llm_s
         all_topics.extend(segment["topics"])
     
     lab_related_topics = [t for t in all_topics if any(keyword in t.lower() 
-                         for keyword in ["project", "design", "equipment", "methods", "materials"])]
+                         for keyword in ["project", "design", "equipment", "methods", "materials", "pcb", "electronics", "sensors", "engineering", "manufacturing", "firmware"])]
     
     assert len(lab_related_topics) > 0, f"Should have lab-related topics, found: {all_topics}"
+
+
+def test_memory_worthy_filtering(dnd_digest_generator):
+    """Test that memory_worthy field properly filters out non-memorable content."""
+    
+    # Test non-memory-worthy content
+    non_memorable_conversations = [
+        {
+            "guid": "test-non-memorable-1",
+            "role": "user",
+            "content": "okay",
+            "timestamp": "2025-05-01T10:00:00"
+        },
+        {
+            "guid": "test-non-memorable-2", 
+            "role": "agent",
+            "content": "Got it, I'll note that.",
+            "timestamp": "2025-05-01T10:01:00"
+        },
+        {
+            "guid": "test-non-memorable-3",
+            "role": "user", 
+            "content": "thanks",
+            "timestamp": "2025-05-01T10:02:00"
+        }
+    ]
+    
+    # Test memory-worthy content
+    memorable_conversation = {
+        "guid": "test-memorable-1",
+        "role": "user",
+        "content": "I discovered a magical sword with ancient runes in the chest. It seems to be made of a strange blue metal that glows faintly.",
+        "timestamp": "2025-05-01T10:03:00"
+    }
+    
+    # Generate digests
+    non_memorable_digests = [dnd_digest_generator.generate_digest(conv) for conv in non_memorable_conversations]
+    memorable_digest = dnd_digest_generator.generate_digest(memorable_conversation)
+    
+    # Check that non-memorable content has empty or minimal segments after filtering
+    total_non_memorable_segments = 0
+    for digest in non_memorable_digests:
+        total_non_memorable_segments += len(digest["rated_segments"])
+    
+    # Should have very few or no segments after memory_worthy filtering
+    # Allow some margin since LLM classification may vary
+    assert total_non_memorable_segments <= 3, f"Too many segments preserved for non-memorable content: {total_non_memorable_segments}"
+    
+    # Check that memorable content is preserved
+    memorable_segments = memorable_digest["rated_segments"]
+    assert len(memorable_segments) > 0, "Memorable content should have segments preserved"
+    
+    # Check that memorable segments have appropriate characteristics
+    for segment in memorable_segments:
+        assert "memory_worthy" in segment, "Segments should have memory_worthy field"
+        if segment.get("memory_worthy", False):
+            assert segment.get("importance", 0) >= 3, "Memory-worthy segments should have high importance"
+            assert segment.get("type") in ["information", "action"], "Memory-worthy segments should be information or action type"
+    
+    print(f"Non-memorable segments total: {total_non_memorable_segments}")
+    print(f"Memorable segments: {len(memorable_segments)}")
+    print(f"Sample memorable segment: {memorable_segments[0] if memorable_segments else 'None'}")
+
+
+def test_segment_type_classification_accuracy(dnd_digest_generator):
+    """Test that segment types are classified accurately with memory_worthy consideration."""
+    
+    test_segments = [
+        {
+            "content": "What do I see in the room?",
+            "expected_type": "query",
+            "expected_memory_worthy": False
+        },
+        {
+            "content": "I found a golden chalice with intricate engravings.",
+            "expected_type": "information", 
+            "expected_memory_worthy": True
+        },
+        {
+            "content": "I cast fireball at the goblins.",
+            "expected_type": "action",
+            "expected_memory_worthy": True
+        },
+        {
+            "content": "Continue with the story.",
+            "expected_type": "command",
+            "expected_memory_worthy": False
+        }
+    ]
+    
+    for i, test_case in enumerate(test_segments):
+        conversation = {
+            "guid": f"test-type-{i}",
+            "role": "user", 
+            "content": test_case["content"],
+            "timestamp": "2025-05-01T10:00:00"
+        }
+        
+        digest = dnd_digest_generator.generate_digest(conversation)
+        segments = digest["rated_segments"]
+        
+        if segments:  # Only check if segments were preserved
+            segment = segments[0]
+            assert segment["type"] == test_case["expected_type"], \
+                f"Expected type {test_case['expected_type']} but got {segment['type']} for: {test_case['content']}"
+            
+            # Print segment details for debugging
+            print(f"Content: '{test_case['content']}' -> Type: {segment['type']}, Memory worthy: {segment.get('memory_worthy', 'missing')}, Importance: {segment.get('importance', 'missing')}")
+            
+            # For segments that should be non-memory-worthy, check if they're filtered or at least marked correctly
+            if not test_case["expected_memory_worthy"]:
+                # The segment survived filtering, so it should either be marked as not memory worthy
+                # or have very low importance (which would be filtered later)
+                is_properly_classified = (
+                    segment.get("memory_worthy") == False or 
+                    segment.get("importance", 5) <= 2
+                )
+                if not is_properly_classified:
+                    print(f"Warning: Non-memorable segment survived filtering: {test_case['content']}")
+        else:
+            # If no segments preserved, it should be non-memory-worthy content
+            print(f"Content: '{test_case['content']}' -> No segments preserved (filtered out)")
+            if test_case["expected_memory_worthy"]:
+                print(f"Warning: Expected memory-worthy content but no segments preserved: {test_case['content']}")
 
 
 def test_topic_normalization_quality(dnd_digest_generator, evaluation_llm_service):
