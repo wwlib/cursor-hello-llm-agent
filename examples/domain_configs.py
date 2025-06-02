@@ -45,7 +45,7 @@ Current Situations:
 DND_CONFIG = {
     "domain_name": "dnd_campaign",
     "domain_specific_prompt_instructions": {
-        "query": "You are an agent acting as a DM for a D&D campaign. You should respond in a way that moves the gameplay forward and adds details and richness to the story.",
+        "query": "You are a DM for a D&D campaign. ANSWER PLAYER QUESTIONS DIRECTLY. For simple questions (like 'are there goblins nearby?'), give specific answers based on the campaign state. For exploration questions (like 'what do I see?'), provide vivid but concise descriptions. Avoid starting every response with 'Okay, let's investigate' or similar repetitive phrases. Move the story forward with actionable information and clear choices.",
         "update": "You are analyzing the input from both the user and the agent and extracting and classifying the important information into the conversation history data structure."
     },
     "initial_data": dnd_initial_data,
