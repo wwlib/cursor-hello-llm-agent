@@ -13,6 +13,12 @@ from pathlib import Path
 import logging
 import traceback
 
+# Standard importance threshold for embeddings generation
+DEFAULT_EMBEDDINGS_IMPORTANCE_THRESHOLD = 3
+
+# Define which segment types should be embedded for search
+EMBEDDINGS_RELEVANT_TYPES = ["information", "action"]  # Exclude queries and commands
+
 class EmbeddingsManager:
     """Manages embeddings for conversation history entries to enable semantic search.
     
@@ -460,6 +466,19 @@ class EmbeddingsManager:
                         if 'text' not in segment or not segment['text']:
                             self.logger.debug(f"Skipping segment {i} without text in entry {entry.get('guid', str(total_count))}")
                             continue
+                        
+                        # Skip segments below importance threshold
+                        importance = segment.get('importance', 3)
+                        if importance < DEFAULT_EMBEDDINGS_IMPORTANCE_THRESHOLD:
+                            self.logger.debug(f"Skipping segment {i} with low importance ({importance}) in entry {entry.get('guid', str(total_count))}")
+                            continue
+                        
+                        # Skip segments with irrelevant types
+                        segment_type = segment.get('type', 'information')
+                        if segment_type not in EMBEDDINGS_RELEVANT_TYPES:
+                            self.logger.debug(f"Skipping segment {i} with irrelevant type ({segment_type}) in entry {entry.get('guid', str(total_count))}")
+                            continue
+                            
                         total_count += 1
                         # Create segment metadata
                         segment_metadata = {
@@ -509,6 +528,17 @@ class EmbeddingsManager:
             for i, segment in enumerate(segments):
                 if 'text' not in segment or not segment['text']:
                     continue
+                
+                # Skip segments below importance threshold
+                importance = segment.get('importance', 3)
+                if importance < DEFAULT_EMBEDDINGS_IMPORTANCE_THRESHOLD:
+                    continue
+                
+                # Skip segments with irrelevant types
+                segment_type = segment.get('type', 'information')
+                if segment_type not in EMBEDDINGS_RELEVANT_TYPES:
+                    continue
+                    
                 key = (guid, 'segment', i)
                 if key in existing_keys:
                     continue

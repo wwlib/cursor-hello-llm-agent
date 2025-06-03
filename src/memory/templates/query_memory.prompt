@@ -25,16 +25,28 @@ USER_INPUT:
 {query}
 
 You should:
-1. Use the relevant information from STATIC_MEMORY, PREVIOUS_CONTEXT, SEMANTICALLY_RELEVANT_CONTEXT, and RECENT_CONVERSATION_HISTORY
-2. Pay special attention to SEMANTICALLY_RELEVANT_CONTEXT if present, as it contains information specifically related to the USER_INPUT
-3. Consider the recent conversation history for immediate context
-4. Formulate a helpful, accurate response
-5. Only mention information that is relevant to the USER_INPUT
-6. Follow the DOMAIN_SPECIFIC_INSTRUCTIONS provided above
+1. ANSWER THE USER'S QUESTION DIRECTLY FIRST - don't start with generic phrases like "Okay, let's investigate"
+2. Use only the most relevant information from memory that specifically addresses the USER_INPUT
+3. Be concise - avoid overwhelming the user with excessive background context
+4. For simple questions, provide simple answers - complex narratives are only appropriate for complex queries
+5. Follow the DOMAIN_SPECIFIC_INSTRUCTIONS provided above
 
-Your response should be friendly but concise and parsimonious.
+RESPONSE GUIDELINES:
+- DIRECT ANSWERS: Start with a direct response to what the user asked
+- FOCUSED CONTEXT: Only include background information that is essential for understanding the answer
+- VARIED RESPONSES: Use different opening phrases - avoid repetitive patterns like "Okay, let's..." 
+- APPROPRIATE DEPTH: Match response complexity to question complexity
 
-First, determine if the USER_INPUT is a question or a statement of facts.
+First, determine the USER_INPUT type:
+
+If the USER_INPUT is a SIMPLE QUESTION (like "are there goblins nearby?" or "what do I see?"):
+- Start with a direct answer based on available information
+- Add only essential context needed for the answer
+- Keep response focused and actionable
+
+If the USER_INPUT is a COMPLEX QUESTION or STATEMENT:
+- Provide proportionally detailed response
+- Include relevant background context
+- Offer multiple options or deeper narrative
 
 If the USER_INPUT is a statement of facts, simply acknowledge and DO NOT REPEAT THE FACTS.
-If the USER_INPUT is a question, use the provided STATIC_MEMORY, PREVIOUS_CONTEXT, SEMANTICALLY_RELEVANT_CONTEXT, and RECENT_CONVERSATION_HISTORY as your primary sources of information.

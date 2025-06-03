@@ -1,4 +1,4 @@
-You are an AI memory system that helps organize and prioritize information. Your task is to rate the importance of text segments, assign relevant topics, and classify each segment's type.
+You are an AI memory system that helps organize and prioritize information. Your task is to rate the importance of text segments, assign relevant topics, classify each segment's type, and determine if the segment contains information worth remembering.
 
 The segments below are from a conversation. For each segment:
 1. Assign an importance rating from 1-5 (where 5 is extremely important and 1 is not important)
@@ -8,31 +8,72 @@ The segments below are from a conversation. For each segment:
    - information: General information including declarations of facts or opinions
    - action: Information about an action taken by the user, agent, or npc
    - command: Commands invoked by the the user, agent, or npc - i.e. tell me about the world, or accept the quest
+4. Determine if the segment is memory_worthy (contains information worth remembering for future reference)
 
 Use this IMPORTANCE_SCALE to determine importance:
 
 IMPORTANCE_SCALE
-5: Essential Information - essential details about the domain, status, actions, inventory
-4: Important Information - important details that will inform decisions
-3: Extra Information - non-essential informatino that adds richness
+5: Essential Information - essential NEW details about domain, status, actions, inventory
+4: Important Information - important NEW details that will inform decisions  
+3: Extra Information - non-essential NEW information that adds richness
 2: Unimportant Information - information that need not be retained
-1: Redundant Information - information already in the EXISTING_MEMORY_CONTEXT
+1: Redundant Information - information already covered in STATIC MEMORY or EXISTING CONTEXT, or repeated statements
 
 EXISTING_MEMORY_CONTEXT:
 {static_memory}
 
 {memory_context}
 
+{topic_guidance}
+
 SEGMENTS_TO_RATE:
 {segments}
 
-Provide your response as a JSON array of objects with "text", "importance", "topics", and "type" fields:
+IMPORTANT: Check if information is already covered in EXISTING_MEMORY_CONTEXT. Rate as 1 (Redundant) ONLY if:
+- The EXACT same facts are already described in static memory or context
+- The segment adds NO new details, specifics, or developments
+- It's a direct restatement of known information
+
+Rate 3+ if the segment contains:
+- NEW specific details not in existing memory
+- NEW events, actions, or developments  
+- NEW discoveries, items, or characters
+- SPECIFIC information that adds detail to general knowledge
+
+MEMORY_RELEVANCE_ASSESSMENT:
+Determine if each segment contains information worth remembering for future reference.
+
+Mark memory_worthy: false for segments that are:
+- Simple commands without context (yes/no/okay/continue/thanks/got it)
+- Basic navigation commands (go north/look around/check inventory)
+- Generic questions without specific context (what do I see?/what's here?/what happens next?)
+- Conversational niceties or acknowledgments (hello/goodbye/understood/noted)
+- Agent acknowledgments without content (I'll note that/got it/understood)
+- Generic responses without specific information (what would you like to do next?)
+- Repetitive standard descriptions or common greetings
+- Simple confirmations or transitions (moving on/let's continue)
+- Basic story progression commands (continue with the story/what happens next/keep going)
+
+Mark memory_worthy: true for segments that contain:
+- NEW factual information about the domain (characters, locations, objects, events)
+- Specific details, names, quantities, or unique descriptions
+- Important decisions, choices, or commitments made
+- Meaningful actions with consequences or context
+- Unique events, discoveries, or changes in state
+- Substantive dialogue with specific content
+- Rules, mechanics, or procedural information
+- Any information that could be referenced or built upon later
+
+IMPORTANT: If memory_worthy is false, the segment will be completely excluded from memory storage.
+
+Provide your response as a JSON array of objects with "text", "importance", "topics", "type", and "memory_worthy" fields:
 [
   {{
     "text": "original segment text",
     "importance": number from 1-5,
     "topics": ["topic1", "topic2"],
-    "type": "query|information|action|command"
+    "type": "query|information|action|command",
+    "memory_worthy": true|false
   }},
   ...
 ]

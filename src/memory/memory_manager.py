@@ -51,6 +51,11 @@ from .rag_manager import RAGManager
 import asyncio
 import logging
 
+# Memory filtering constants
+DEFAULT_COMPRESSION_IMPORTANCE_THRESHOLD = 3
+DEFAULT_RAG_IMPORTANCE_THRESHOLD = 3  # Standardized to match compression
+DEFAULT_EMBEDDINGS_IMPORTANCE_THRESHOLD = 3  # Only embed important segments
+
 class MemoryManager(BaseMemoryManager):
     """LLM-driven memory manager implementation.
     
@@ -59,7 +64,7 @@ class MemoryManager(BaseMemoryManager):
 
     def __init__(self, memory_guid: str, memory_file: str = "memory.json", domain_config: Optional[Dict[str, Any]] = None, 
                  llm_service = None, digest_llm_service = None, embeddings_llm_service = None, 
-                 max_recent_conversation_entries: int = 8, importance_threshold: int = 3, logger=None):
+                 max_recent_conversation_entries: int = 8, importance_threshold: int = DEFAULT_COMPRESSION_IMPORTANCE_THRESHOLD, logger=None):
         """Initialize the MemoryManager with LLM service instances and domain configuration.
         
         Args:
@@ -87,9 +92,10 @@ class MemoryManager(BaseMemoryManager):
         self.embeddings_llm = embeddings_llm_service or llm_service
         self._load_templates()
         
-        # Initialize DigestGenerator with dedicated LLM service
-        self.logger.debug("Initializing DigestGenerator")
-        self.digest_generator = DigestGenerator(self.digest_llm, logger=logger)
+        # Initialize DigestGenerator with dedicated LLM service and domain config
+        domain_name = self.domain_config.get("domain_name", "general") if self.domain_config else "general"
+        self.logger.debug(f"Initializing DigestGenerator for domain: {domain_name}")
+        self.digest_generator = DigestGenerator(self.digest_llm, domain_name=domain_name, domain_config=self.domain_config, logger=logger)
         
         # Initialize MemoryCompressor (uses general LLM)
         self.memory_compressor = MemoryCompressor(self.llm, importance_threshold, logger=logger)

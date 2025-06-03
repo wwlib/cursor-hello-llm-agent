@@ -42,7 +42,9 @@ def llm_service():
 @pytest.fixture(scope="module")
 def digest_generator(llm_service):
     """Create a DigestGenerator instance for testing."""
-    return DigestGenerator(llm_service)
+    # Import here to avoid circular imports
+    from examples.domain_configs import DND_CONFIG
+    return DigestGenerator(llm_service, domain_name="dnd_campaign", domain_config=DND_CONFIG)
 
 @pytest.fixture(scope="module")
 def test_conversation_entry():

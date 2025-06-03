@@ -5,6 +5,7 @@ import os
 from typing import Dict, List, Any, Optional
 from datetime import datetime
 from .content_segmenter import ContentSegmenter
+from .topic_taxonomy import TopicTaxonomy
 import logging
 
 class DigestGenerator:
@@ -18,18 +19,22 @@ class DigestGenerator:
     natural for LLMs to process.
     """
     
-    def __init__(self, llm_service, logger=None):
+    def __init__(self, llm_service, domain_name: str = "general", domain_config=None, logger=None):
         """Initialize the DigestGenerator.
         
         Args:
             llm_service: Service for LLM operations
+            domain_name: Domain name for topic taxonomy (e.g., 'dnd_campaign', 'lab_assistant')
+            domain_config: Optional domain configuration dictionary
             logger: Optional logger instance
         """
         self.llm = llm_service
         self.logger = logger or logging.getLogger(__name__)
+        self.domain_name = domain_name
         self.content_segmenter = ContentSegmenter(llm_service, self.logger)
+        self.topic_taxonomy = TopicTaxonomy(domain_name, domain_config, self.logger)
         self._load_templates()
-        self.logger.debug("Initialized DigestGenerator")
+        self.logger.debug(f"Initialized DigestGenerator for domain: {domain_name}")
     
     def _load_templates(self) -> None:
         """Load prompt templates from files"""
@@ -86,8 +91,11 @@ class DigestGenerator:
             # Step 2: Rate segments and assign topics
             rated_segments = self._rate_segments(segments_to_use, memory_state)
             
+            # Step 2.5: Filter out non-memory-worthy segments
+            memory_worthy_segments = self._filter_memory_worthy_segments(rated_segments)
+            
             # Step 3: Clean the rated segments
-            cleaned_segments = self._clean_segments(rated_segments)
+            cleaned_segments = self._clean_segments(memory_worthy_segments)
             
             # Combine into final digest
             digest = {
@@ -118,10 +126,15 @@ class DigestGenerator:
             # Format the prompt with the segments and memory state
             static_memory = "" if memory_state is None else memory_state.get("static_memory", "")
             memory_context = "" if memory_state is None else json.dumps(memory_state.get("context", ""), indent=2)
+            
+            # Add domain-specific topic guidance
+            topic_guidance = self.topic_taxonomy.get_domain_prompt_guidance()
+            
             prompt = self.templates["rate"].format(
                 segments=json.dumps(segments),
                 static_memory=static_memory,
-                memory_context=memory_context
+                memory_context=memory_context,
+                topic_guidance=topic_guidance
             )
             
             # Call LLM to rate segments with explicit options
@@ -167,6 +180,9 @@ class DigestGenerator:
                     elif segment["type"] not in ["query", "information", "action", "command"]:
                         self.logger.debug(f"Segment {i} has invalid type, using default")
                         segment["type"] = "information"
+                    elif "memory_worthy" not in segment:
+                        self.logger.debug(f"Segment {i} missing memory_worthy, using default")
+                        segment["memory_worthy"] = True
                 
                 return rated_segments
             except json.JSONDecodeError:
@@ -192,11 +208,15 @@ class DigestGenerator:
                                     "text": segments[i] if i < len(segments) else "",
                                     "importance": 3,
                                     "topics": [],
-                                    "type": "information"  # Default type
+                                    "type": "information",  # Default type
+                                    "memory_worthy": True   # Default to memory worthy
                                 }
                             elif "type" not in segment or segment["type"] not in ["query", "information", "action", "command"]:
                                 self.logger.debug(f"Segment {i} has invalid type, using default")
                                 segment["type"] = "information"
+                            elif "memory_worthy" not in segment:
+                                self.logger.debug(f"Segment {i} missing memory_worthy, using default")
+                                segment["memory_worthy"] = True
                         
                         return rated_segments
                     except json.JSONDecodeError:
@@ -226,10 +246,33 @@ class DigestGenerator:
                 "text": segment,
                 "importance": 3,  # Medium importance by default
                 "topics": [],
-                "type": "information"  # Default type
+                "type": "information",  # Default type
+                "memory_worthy": True   # Default to memory worthy
             }
             for segment in segments
         ]
+
+    def _filter_memory_worthy_segments(self, rated_segments: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Filter out non-memory-worthy segments before storage.
+        
+        Args:
+            rated_segments: List of segments with memory_worthy field
+            
+        Returns:
+            List[Dict[str, Any]]: Only segments marked as memory_worthy
+        """
+        memory_worthy = []
+        excluded_count = 0
+        
+        for segment in rated_segments:
+            if segment.get("memory_worthy", True):  # Default to True for safety
+                memory_worthy.append(segment)
+            else:
+                excluded_count += 1
+                self.logger.debug(f"Excluded non-memory-worthy segment: {segment.get('text', '')[:50]}...")
+        
+        self.logger.debug(f"Filtered out {excluded_count} non-memory-worthy segments, kept {len(memory_worthy)} segments")
+        return memory_worthy
 
     def _clean_segments(self, segments: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """Clean and validate segments.
@@ -251,17 +294,25 @@ class DigestGenerator:
                 except (ValueError, TypeError):
                     segment["importance"] = 3  # Default to middle importance
             
-            # Ensure topics is a list of strings
+            # Ensure topics is a list of strings and normalize them
             if "topics" in segment:
                 if not isinstance(segment["topics"], list):
                     segment["topics"] = []
-                segment["topics"] = [str(topic).strip() for topic in segment["topics"] if topic]
+                # Clean and normalize topics
+                raw_topics = [str(topic).strip() for topic in segment["topics"] if topic]
+                segment["topics"] = self.topic_taxonomy.normalize_topics(raw_topics)
             else:
                 segment["topics"] = []
             
             # Ensure type is valid
             if "type" not in segment or segment["type"] not in ["query", "information", "action", "command"]:
                 segment["type"] = "information"  # Default to information if invalid
+            
+            # Ensure memory_worthy is a boolean
+            if "memory_worthy" not in segment:
+                segment["memory_worthy"] = True  # Default to memory worthy if missing
+            elif not isinstance(segment["memory_worthy"], bool):
+                segment["memory_worthy"] = bool(segment["memory_worthy"])  # Convert to boolean
             
             cleaned_segments.append(segment)
         
