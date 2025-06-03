@@ -130,7 +130,7 @@ import logging
 DEFAULT_RAG_IMPORTANCE_THRESHOLD = 3
 
 # Define which segment types should be included in RAG context
-RAG_RELEVANT_TYPES = ["information", "action"]  # Exclude old queries and commands
+RAG_RELEVANT_TYPES = ["information", "action", "segment"]  # Include segments and exclude old queries/commands
 
 class RAGManager:
     """Manages Retrieval Augmented Generation for enhancing memory queries.
