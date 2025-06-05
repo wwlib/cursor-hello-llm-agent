@@ -16,7 +16,7 @@ if project_root not in sys.path:
     sys.path.append(project_root)
 
 from src.ai.llm_ollama import OllamaService
-from src.memory.memory_manager import MemoryManager
+from src.memory.memory_manager import MemoryManager, AsyncMemoryManager
 from src.memory.simple_memory_manager import SimpleMemoryManager
 from src.agent.agent import Agent, AgentPhase
 from examples.domain_configs import CONFIG_MAP
@@ -47,8 +47,9 @@ MEMORY_FILE_PREFIX = "agent_memory"
 
 # Memory manager types
 MEMORY_MANAGER_TYPES = {
-    "standard": MemoryManager,
-    "simple": SimpleMemoryManager
+    "standard": AsyncMemoryManager,  # Use async for better user experience
+    "simple": SimpleMemoryManager,
+    "sync": MemoryManager  # Keep sync version available for testing
 }
 
 # Global session guid (will be set during initialization)

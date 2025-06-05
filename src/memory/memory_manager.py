@@ -387,6 +387,10 @@ class MemoryManager(BaseMemoryManager):
             if "digest" not in entry:
                 self.logger.debug(f"Generating digest for {entry['role']} entry...")
                 entry["digest"] = self.digest_generator.generate_digest(entry, self.memory)
+                
+                # Update conversation history file with the digest
+                self._update_conversation_history_entry(entry)
+                
                 self.save_memory("async_digest_generation")
             
             # Update embeddings
@@ -710,6 +714,9 @@ class AsyncMemoryManager(MemoryManager):
             # Generate digest
             entry["digest"] = self.digest_generator.generate_digest(entry, self.memory)
             
+            # Update conversation history file with the digest
+            self._update_conversation_history_entry(entry)
+            
             # Remove from pending digests
             self._pending_digests.pop(entry["guid"], None)
             
@@ -722,6 +729,47 @@ class AsyncMemoryManager(MemoryManager):
             
         except Exception as e:
             self.logger.error(f"Error in async digest generation: {str(e)}")
+    
+    def _update_conversation_history_entry(self, entry: Dict[str, Any]) -> bool:
+        """Update an existing entry in the conversation history file.
+        
+        Args:
+            entry: Updated conversation entry with digest
+            
+        Returns:
+            bool: True if entry was updated successfully
+        """
+        try:
+            # Load current conversation history
+            conversation_data = self._load_conversation_history()
+            
+            # Find and update the entry by GUID
+            entry_guid = entry.get("guid")
+            if not entry_guid:
+                self.logger.error("Cannot update conversation history entry without GUID")
+                return False
+                
+            # Find the entry to update
+            updated = False
+            for i, existing_entry in enumerate(conversation_data["entries"]):
+                if existing_entry.get("guid") == entry_guid:
+                    conversation_data["entries"][i] = entry
+                    updated = True
+                    break
+            
+            if not updated:
+                self.logger.warning(f"Could not find conversation history entry with GUID {entry_guid} to update")
+                return False
+            
+            # Save updated history
+            success = self._save_conversation_history(conversation_data)
+            if success:
+                self.logger.debug(f"Updated conversation history entry {entry_guid} with digest")
+            return success
+            
+        except Exception as e:
+            self.logger.error(f"Error updating conversation history entry: {str(e)}")
+            return False
     
     async def _update_embeddings_async(self, entry: Dict[str, Any]) -> None:
         """Asynchronously update embeddings for an entry."""

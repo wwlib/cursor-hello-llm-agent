@@ -24,7 +24,7 @@ if project_root not in sys.path:
 
 from src.agent.agent import Agent, AgentPhase
 from src.ai.llm_ollama import OllamaService
-from src.memory.memory_manager import MemoryManager
+from src.memory.memory_manager import AsyncMemoryManager
 from examples.domain_configs import CONFIG_MAP
 
 from .user_simulator import UserSimulator, PersonaType
@@ -144,7 +144,7 @@ class AgentTestController:
         memory_handler.setLevel(logging.DEBUG)
         memory_logger.addHandler(memory_handler)
         
-        self.memory_manager = MemoryManager(
+        self.memory_manager = AsyncMemoryManager(
             memory_guid=self.session_guid,
             memory_file=memory_file,
             domain_config=self.domain_config,
