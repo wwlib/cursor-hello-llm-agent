@@ -268,3 +268,23 @@ class BaseMemoryManager(ABC):
             str: The memory GUID if available, None otherwise
         """
         return self.memory_guid
+    
+    def has_pending_operations(self) -> bool:
+        """Check if there are any pending async operations.
+        
+        Returns:
+            bool: True if there are pending operations
+        """
+        return False  # Default implementation for synchronous managers
+    
+    def get_graph_context(self, query: str, max_entities: int = 5) -> str:
+        """Get graph-based context for a query.
+        
+        Args:
+            query: The query to find relevant graph context for
+            max_entities: Maximum number of entities to include in context
+            
+        Returns:
+            str: Formatted graph context string
+        """
+        return ""  # Default implementation returns empty context

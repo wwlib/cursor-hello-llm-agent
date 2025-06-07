@@ -48,6 +48,7 @@ from .memory_compressor import MemoryCompressor
 from .data_preprocessor import DataPreprocessor
 from .embeddings_manager import EmbeddingsManager
 from .rag_manager import RAGManager
+from .graph_memory import GraphManager
 import asyncio
 import logging
 
@@ -64,7 +65,8 @@ class MemoryManager(BaseMemoryManager):
 
     def __init__(self, memory_guid: str, memory_file: str = "memory.json", domain_config: Optional[Dict[str, Any]] = None, 
                  llm_service = None, digest_llm_service = None, embeddings_llm_service = None, 
-                 max_recent_conversation_entries: int = 8, importance_threshold: int = DEFAULT_COMPRESSION_IMPORTANCE_THRESHOLD, logger=None):
+                 max_recent_conversation_entries: int = 8, importance_threshold: int = DEFAULT_COMPRESSION_IMPORTANCE_THRESHOLD, 
+                 enable_graph_memory: bool = True, logger=None):
         """Initialize the MemoryManager with LLM service instances and domain configuration.
         
         Args:
@@ -79,6 +81,7 @@ class MemoryManager(BaseMemoryManager):
             memory_guid: Required GUID to identify this memory instance.
             max_recent_conversation_entries: Maximum number of recent conversation entries to keep before compression
             importance_threshold: Threshold for segment importance (1-5 scale) to keep during compression
+            enable_graph_memory: Whether to enable graph memory functionality (default: True)
             logger: Optional logger instance for this MemoryManager
         """
         if llm_service is None:
@@ -101,12 +104,45 @@ class MemoryManager(BaseMemoryManager):
         self.memory_compressor = MemoryCompressor(self.llm, importance_threshold, logger=logger)
         self.logger.debug("Initialized MemoryCompressor")
         
-        # Initialize EmbeddingsManager and RAGManager with dedicated embeddings LLM service
+        # Initialize EmbeddingsManager first
         embeddings_file = os.path.splitext(memory_file)[0] + "_embeddings.jsonl"
         self.embeddings_manager = EmbeddingsManager(embeddings_file, self.embeddings_llm, logger=logger)
-        self.rag_manager = RAGManager(self.embeddings_llm, self.embeddings_manager, logger=logger)
-        self.logger.debug("Initialized EmbeddingsManager and RAGManager")
+        self.logger.debug("Initialized EmbeddingsManager")
         self.logger.debug(f"Embeddings file: {embeddings_file}")
+        
+        # Initialize GraphManager if enabled
+        self.enable_graph_memory = enable_graph_memory
+        self.graph_manager = None
+        if enable_graph_memory:
+            try:
+                # Create graph storage path based on memory file
+                memory_dir = os.path.dirname(memory_file) or "."
+                memory_base = os.path.basename(memory_file).split(".")[0]
+                graph_storage_path = os.path.join(memory_dir, f"{memory_base}_graph_data")
+                graph_embeddings_file = os.path.join(graph_storage_path, "graph_memory_embeddings.jsonl")
+                
+                self.graph_manager = GraphManager(
+                    llm_service=self.embeddings_llm,
+                    embeddings_manager=self.embeddings_manager,
+                    storage_path=graph_storage_path,
+                    embeddings_file=graph_embeddings_file,
+                    domain_config=self.domain_config,
+                    logger=logger
+                )
+                self.logger.debug(f"Initialized GraphManager with storage: {graph_storage_path}")
+            except Exception as e:
+                self.logger.warning(f"Failed to initialize GraphManager: {e}. Graph memory disabled.")
+                self.enable_graph_memory = False
+                self.graph_manager = None
+        
+        # Initialize RAGManager with optional graph manager
+        self.rag_manager = RAGManager(
+            llm_service=self.embeddings_llm, 
+            embeddings_manager=self.embeddings_manager, 
+            graph_manager=self.graph_manager,
+            logger=logger
+        )
+        self.logger.debug("Initialized RAGManager with graph integration")
         
         # Ensure memory has a GUID
         self._ensure_memory_guid()
@@ -114,7 +150,7 @@ class MemoryManager(BaseMemoryManager):
         # Configurable memory parameters
         self.max_recent_conversation_entries = max_recent_conversation_entries
         self.importance_threshold = importance_threshold
-        self.logger.debug(f"Memory configuration: max_recent_conversation_entries={max_recent_conversation_entries}, importance_threshold={importance_threshold}")
+        self.logger.debug(f"Memory configuration: max_recent_conversation_entries={max_recent_conversation_entries}, importance_threshold={importance_threshold}, graph_memory={enable_graph_memory}")
 
     def _ensure_memory_guid(self):
         """Ensure that the memory has a GUID, prioritizing the provided GUID if available."""
@@ -321,6 +357,17 @@ class MemoryManager(BaseMemoryManager):
             else:
                 self.logger.debug("Using RAG-enhanced context for memory query (provided)")
             
+            # Get graph context if enabled
+            graph_context = ""
+            if self.enable_graph_memory and self.graph_manager:
+                try:
+                    graph_context = self.get_graph_context(query)
+                    if graph_context:
+                        self.logger.debug("Added graph context to memory query")
+                except Exception as e:
+                    self.logger.warning(f"Failed to get graph context: {e}")
+                    graph_context = ""
+            
             # Get domain-specific instructions (use provided or get from config)
             domain_specific_prompt_instructions = query_context.get("domain_specific_prompt_instructions", "")
             domain_specific_query_prompt_instructions = domain_specific_prompt_instructions
@@ -335,7 +382,8 @@ class MemoryManager(BaseMemoryManager):
                 conversation_history_text=conversation_history_text,
                 query=query,
                 domain_specific_prompt_instructions=domain_specific_query_prompt_instructions,
-                rag_context=rag_context  # Include RAG context in the prompt
+                rag_context=rag_context,  # Include RAG context in the prompt
+                graph_context=graph_context  # Include graph context in the prompt
             )
             
             # Get response from LLM
@@ -381,7 +429,7 @@ class MemoryManager(BaseMemoryManager):
             return {"response": f"Error processing query: {str(e)}", "error": str(e)}
             
     async def _process_entry_async(self, entry: Dict[str, Any]) -> None:
-        """Process a conversation entry asynchronously (digest generation and embeddings)."""
+        """Process a conversation entry asynchronously (digest generation, embeddings, and graph updates)."""
         try:
             # Generate digest if not already present
             if "digest" not in entry:
@@ -397,8 +445,81 @@ class MemoryManager(BaseMemoryManager):
             self.logger.debug(f"Updating embeddings for {entry['role']} entry...")
             self.embeddings_manager.add_new_embeddings([entry])
             
+            # Update graph memory if enabled
+            if self.enable_graph_memory and self.graph_manager:
+                try:
+                    await self._update_graph_memory_async(entry)
+                except Exception as e:
+                    self.logger.warning(f"Error updating graph memory: {e}")
+            
         except Exception as e:
             self.logger.error(f"Error in async entry processing: {str(e)}")
+    
+    async def _update_graph_memory_async(self, entry: Dict[str, Any]) -> None:
+        """Update graph memory with entities and relationships from a conversation entry."""
+        try:
+            self.logger.debug(f"Updating graph memory for {entry['role']} entry...")
+            
+            # Get segments from digest
+            digest = entry.get("digest", {})
+            segments = digest.get("rated_segments", [])
+            
+            if not segments:
+                self.logger.debug("No segments found in digest, skipping graph update")
+                return
+            
+            # Filter for important segments
+            important_segments = [
+                seg for seg in segments 
+                if seg.get("importance", 0) >= DEFAULT_RAG_IMPORTANCE_THRESHOLD 
+                and seg.get("memory_worthy", True)
+                and seg.get("type") in ["information", "action"]
+            ]
+            
+            if not important_segments:
+                self.logger.debug("No important segments found, skipping graph update")
+                return
+            
+            # Process segments for graph memory
+            for segment in important_segments:
+                segment_text = segment.get("text", "")
+                if segment_text:
+                    # Extract entities from the segment
+                    entities = self.graph_manager.extract_entities_from_segments([{
+                        "text": segment_text,
+                        "metadata": segment
+                    }])
+                    
+                    # Add entities to graph (with automatic similarity matching)
+                    for entity in entities:
+                        self.graph_manager.add_or_update_node(
+                            name=entity.get("name", ""),
+                            node_type=entity.get("type", "concept"),
+                            description=entity.get("description", ""),
+                            attributes=entity.get("attributes", {})
+                        )
+                    
+                    # Extract relationships between entities in this segment
+                    if len(entities) > 1:
+                        relationships = self.graph_manager.extract_relationships_from_segments([{
+                            "text": segment_text,
+                            "entities": entities
+                        }])
+                        
+                        # Add relationships to graph
+                        for rel in relationships:
+                            self.graph_manager.add_edge(
+                                from_node=rel.get("from_entity", ""),
+                                to_node=rel.get("to_entity", ""),
+                                relationship_type=rel.get("relationship", "related_to"),
+                                evidence=segment_text,
+                                confidence=rel.get("confidence", 0.5)
+                            )
+            
+            self.logger.debug(f"Updated graph memory with {len(important_segments)} segments")
+            
+        except Exception as e:
+            self.logger.error(f"Error updating graph memory: {str(e)}")
             
     async def _compress_memory_async(self) -> None:
         """Compress memory asynchronously."""
@@ -640,6 +761,56 @@ class MemoryManager(BaseMemoryManager):
         except Exception as e:
             self.logger.error(f"Error updating memory with conversations: {str(e)}")
             return False
+    
+    def get_graph_context(self, query: str, max_entities: int = 5) -> str:
+        """Get graph-based context for a query.
+        
+        Args:
+            query: The query to find relevant graph context for
+            max_entities: Maximum number of entities to include in context
+            
+        Returns:
+            str: Formatted graph context string
+        """
+        if not self.enable_graph_memory or not self.graph_manager:
+            return ""
+        
+        try:
+            # Query the graph for relevant context
+            context_results = self.graph_manager.query_for_context(query, max_results=max_entities)
+            
+            if not context_results:
+                return ""
+            
+            # Format graph context for the prompt
+            context_lines = []
+            context_lines.append("Relevant entities and relationships:")
+            
+            for result in context_results:
+                entity_name = result.get("name", "Unknown")
+                entity_type = result.get("type", "unknown")
+                description = result.get("description", "")
+                connections = result.get("connections", [])
+                
+                # Add entity info
+                entity_line = f"• {entity_name} ({entity_type})"
+                if description:
+                    entity_line += f": {description}"
+                context_lines.append(entity_line)
+                
+                # Add key relationships
+                if connections:
+                    for conn in connections[:3]:  # Limit to top 3 connections
+                        rel_type = conn.get("relationship", "related_to")
+                        target = conn.get("target", "")
+                        if target:
+                            context_lines.append(f"  - {rel_type} {target}")
+                
+            return "\n".join(context_lines)
+            
+        except Exception as e:
+            self.logger.warning(f"Error getting graph context: {e}")
+            return ""
 
 class AsyncMemoryManager(MemoryManager):
     """Asynchronous version of MemoryManager that handles digest generation and embeddings updates asynchronously."""
@@ -648,6 +819,7 @@ class AsyncMemoryManager(MemoryManager):
         super().__init__(*args, **kwargs)
         self._pending_digests = {}  # guid -> entry
         self._pending_embeddings = set()  # set of guids
+        self._pending_graph_updates = set()  # set of guids
         
     async def add_conversation_entry(self, entry: Dict[str, Any]) -> bool:
         """Add a conversation entry with asynchronous digest generation and embeddings update.
@@ -698,8 +870,10 @@ class AsyncMemoryManager(MemoryManager):
                 self._pending_digests[entry["guid"]] = entry
                 asyncio.create_task(self._generate_digest_async(entry))
             else:
-                # If digest exists, start embeddings update
+                # If digest exists, start embeddings and graph updates
                 self._pending_embeddings.add(entry["guid"])
+                if self.enable_graph_memory and self.graph_manager:
+                    self._pending_graph_updates.add(entry["guid"])
                 asyncio.create_task(self._update_embeddings_async(entry))
 
             return True
@@ -720,8 +894,10 @@ class AsyncMemoryManager(MemoryManager):
             # Remove from pending digests
             self._pending_digests.pop(entry["guid"], None)
             
-            # Start embeddings update
+            # Start embeddings and graph updates
             self._pending_embeddings.add(entry["guid"])
+            if self.enable_graph_memory and self.graph_manager:
+                self._pending_graph_updates.add(entry["guid"])
             await self._update_embeddings_async(entry)
             
             # Save memory to persist the digest
@@ -772,7 +948,7 @@ class AsyncMemoryManager(MemoryManager):
             return False
     
     async def _update_embeddings_async(self, entry: Dict[str, Any]) -> None:
-        """Asynchronously update embeddings for an entry."""
+        """Asynchronously update embeddings and graph memory for an entry."""
         try:
             # Update embeddings
             self.embeddings_manager.add_new_embeddings([entry])
@@ -780,21 +956,35 @@ class AsyncMemoryManager(MemoryManager):
             # Remove from pending embeddings
             self._pending_embeddings.discard(entry["guid"])
             
+            # Update graph memory if enabled
+            if self.enable_graph_memory and self.graph_manager and entry["guid"] in self._pending_graph_updates:
+                await self._update_graph_memory_async(entry)
+                self._pending_graph_updates.discard(entry["guid"])
+            
         except Exception as e:
-            self.logger.error(f"Error in async embeddings update: {str(e)}")
+            self.logger.error(f"Error in async embeddings/graph update: {str(e)}")
     
     def get_pending_operations(self) -> Dict[str, Any]:
         """Get information about pending async operations.
         
         Returns:
-            Dict with counts of pending digests and embeddings
+            Dict with counts of pending digests, embeddings, and graph updates
         """
         return {
             "pending_digests": len(self._pending_digests),
-            "pending_embeddings": len(self._pending_embeddings)
+            "pending_embeddings": len(self._pending_embeddings),
+            "pending_graph_updates": len(self._pending_graph_updates)
         }
+    
+    def has_pending_operations(self) -> bool:
+        """Check if there are any pending async operations.
+        
+        Returns:
+            bool: True if there are pending operations
+        """
+        return bool(self._pending_digests or self._pending_embeddings or self._pending_graph_updates)
     
     async def wait_for_pending_operations(self) -> None:
         """Wait for all pending async operations to complete."""
-        while self._pending_digests or self._pending_embeddings:
+        while self._pending_digests or self._pending_embeddings or self._pending_graph_updates:
             await asyncio.sleep(0.1)  # Small delay to prevent busy waiting

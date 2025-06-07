@@ -41,9 +41,13 @@ class Agent:
         
     def has_pending_operations(self) -> bool:
         """Check if there are any pending async operations."""
-        if hasattr(self.memory, 'get_pending_operations'):
+        if hasattr(self.memory, 'has_pending_operations'):
+            return self.memory.has_pending_operations()
+        elif hasattr(self.memory, 'get_pending_operations'):
             pending = self.memory.get_pending_operations()
-            return pending["pending_digests"] > 0 or pending["pending_embeddings"] > 0
+            return (pending.get("pending_digests", 0) > 0 or 
+                   pending.get("pending_embeddings", 0) > 0 or
+                   pending.get("pending_graph_updates", 0) > 0)
         return False
 
     async def process_message(self, message: str) -> str:

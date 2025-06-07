@@ -116,6 +116,17 @@ DND_CONFIG = {
         "expertise": "mechanics",
         "decryption": "investigation",
         "wildlife": "environment"
+    },
+    "graph_memory_config": {
+        "enabled": True,
+        "entity_types": ["character", "location", "object", "event", "concept", "organization"],
+        "relationship_types": [
+            "located_in", "owns", "member_of", "allies_with", "enemies_with", 
+            "uses", "created_by", "leads_to", "participates_in", "related_to", "mentions"
+        ],
+        "entity_extraction_prompt": "Extract entities from this D&D campaign text. Focus on characters, locations, objects, events, concepts, and organizations that are important to the campaign world and story.",
+        "relationship_extraction_prompt": "Identify relationships between entities in this D&D campaign text. Look for spatial relationships (located_in), ownership (owns), social relationships (allies_with, enemies_with), and story connections.",
+        "similarity_threshold": 0.8
     }
 }
 
@@ -172,7 +183,18 @@ USER_STORY_CONFIG = {
             ]
         }
     },
-    "initial_data": user_story_initial_data
+    "initial_data": user_story_initial_data,
+    "graph_memory_config": {
+        "enabled": True,
+        "entity_types": ["feature", "stakeholder", "requirement", "technology", "component", "process"],
+        "relationship_types": [
+            "depends_on", "implements", "used_by", "part_of", "manages", 
+            "requires", "interacts_with", "supports", "validates", "related_to"
+        ],
+        "entity_extraction_prompt": "Extract entities from this software requirements text. Focus on features, stakeholders, requirements, technologies, components, and processes that are important to the project.",
+        "relationship_extraction_prompt": "Identify relationships between entities in this software requirements text. Look for dependencies (depends_on), implementations (implements), usage patterns (used_by), and hierarchical relationships (part_of).",
+        "similarity_threshold": 0.8
+    }
 } 
 
 lab_assistant_initial_data = """
@@ -227,6 +249,17 @@ LAB_ASSISTANT_CONFIG = {
         "specs": "documentation",
         "logs": "documentation",
         "records": "documentation"
+    },
+    "graph_memory_config": {
+        "enabled": True,
+        "entity_types": ["equipment", "material", "procedure", "result", "project", "person"],
+        "relationship_types": [
+            "uses", "produces", "requires", "part_of", "leads_to", 
+            "tested_with", "works_with", "owned_by", "located_in", "related_to"
+        ],
+        "entity_extraction_prompt": "Extract entities from this laboratory text. Focus on equipment, materials, procedures, results, projects, and people that are important to the lab work and experiments.",
+        "relationship_extraction_prompt": "Identify relationships between entities in this laboratory text. Look for usage patterns (uses), production relationships (produces), requirements (requires), and experimental connections.",
+        "similarity_threshold": 0.8
     }
 }
 

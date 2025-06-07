@@ -148,16 +148,18 @@ class RAGManager:
     recency or exact keyword matches.
     """
     
-    def __init__(self, llm_service, embeddings_manager, logger=None):
+    def __init__(self, llm_service, embeddings_manager, graph_manager=None, logger=None):
         """Initialize the RAGManager.
         
         Args:
             llm_service: Service for LLM operations
             embeddings_manager: Manager for embeddings and semantic search
+            graph_manager: Optional graph manager for structured context
             logger: Optional logger instance
         """
         self.llm_service = llm_service
         self.embeddings_manager = embeddings_manager
+        self.graph_manager = graph_manager
         self.logger = logger or logging.getLogger(__name__)
     
     def query(self, query_text: str, limit: int = 5, min_importance: Optional[int] = None) -> List[Dict[str, Any]]:
@@ -356,3 +358,75 @@ class RAGManager:
         
         # Handle string or other formats
         return str(context)
+    
+    def enhance_memory_query_with_graph(self, query_context: Dict[str, Any]) -> Dict[str, Any]:
+        """Enhance a memory query with both RAG and graph context.
+        
+        Args:
+            query_context: Dictionary containing original query context
+            
+        Returns:
+            Enhanced query context with both RAG and graph context added
+        """
+        # First enhance with standard RAG
+        enhanced_context = self.enhance_memory_query(query_context)
+        
+        # Add graph context if graph manager is available
+        if self.graph_manager:
+            try:
+                query_text = query_context.get("query", "")
+                graph_results = self.graph_manager.query_for_context(query_text, max_results=5)
+                
+                if graph_results:
+                    graph_context = self._format_graph_context(query_text, graph_results)
+                    enhanced_context["graph_context"] = graph_context
+                    self.logger.debug(f"Added graph context of length {len(graph_context)}")
+                else:
+                    enhanced_context["graph_context"] = ""
+                    
+            except Exception as e:
+                self.logger.warning(f"Error adding graph context: {e}")
+                enhanced_context["graph_context"] = ""
+        else:
+            enhanced_context["graph_context"] = ""
+            
+        return enhanced_context
+    
+    def _format_graph_context(self, query_text: str, graph_results: List[Dict[str, Any]]) -> str:
+        """Format graph results into a structured context for memory enhancement.
+        
+        Args:
+            query_text: Original query text (for reference)
+            graph_results: Results from graph query
+            
+        Returns:
+            Formatted graph context string for inclusion in memory query
+        """
+        if not graph_results:
+            return ""
+        
+        context = "GRAPH_CONTEXT (Structured relationships and entities):\n\n"
+        
+        for result in graph_results:
+            entity_name = result.get("name", "Unknown")
+            entity_type = result.get("type", "unknown")
+            description = result.get("description", "")
+            connections = result.get("connections", [])
+            
+            # Add entity information
+            context += f"• {entity_name} ({entity_type})"
+            if description:
+                context += f": {description}"
+            context += "\n"
+            
+            # Add key relationships
+            if connections:
+                for conn in connections[:3]:  # Limit to top 3 connections
+                    rel_type = conn.get("relationship", "related_to")
+                    target = conn.get("target", "")
+                    if target:
+                        context += f"  - {rel_type} {target}\n"
+            
+            context += "\n"
+        
+        return context
