@@ -325,4 +325,113 @@ segment_id = segment.get('id', segment.get('segment_id', ''))
 - ✅ **Cross-Segment Processing**: Working (relationships found across conversation segments)
 
 **Impact**: The graph memory system is now **fully production-ready** and automatically creates structured knowledge graphs with both entities and relationships during normal agent conversations. This represents the completion of Phase 5's core graph memory objectives.
+
+
+## Phase 5 Update - June 07, 2025 - Static Memory Graph Processing & Enhanced Logging
+
+### Static Memory Graph Processing Enhancement
+
+**Issue Identified**: When `examples/agent_usage_example.py` starts up, the static memory for the specified domain is processed and added to the conversation history with a digest. However, this was not being processed by the graph manager, missing valuable initial entities and relationships from domain configurations.
+
+**Root Cause**: The `create_initial_memory()` method processed static memory content and generated embeddings, but did not trigger graph memory processing that would extract entities and relationships from the domain's initial knowledge.
+
+**Solution Implemented**:
+
+1. **Added Graph Processing to Initial Memory Creation**:
+   - Enhanced `create_initial_memory()` to call graph memory processing for static content
+   - Added `_process_initial_graph_memory()` method for synchronous graph processing during initialization
+   - Processes static memory segments through the same entity and relationship extraction pipeline used for conversations
+
+2. **Technical Implementation**:
+   ```python
+   # Process static memory with graph memory system if enabled
+   if self.enable_graph_memory and self.graph_manager:
+       self.logger.debug("Processing static memory for graph memory...")
+       self._process_initial_graph_memory(system_entry)
+   ```
+
+3. **Processing Pipeline**:
+   - Extracts entities from important static memory segments (importance ≥ 3, memory_worthy=true)
+   - Applies semantic similarity matching to prevent duplicate entities
+   - Extracts relationships between entities within static content
+   - Saves complete graph state with initial knowledge structure
+
+**Verification Results**:
+✅ **13 entities** extracted from D&D campaign static memory (characters, locations, objects, concepts)  
+✅ **6 relationships** created between entities from static content  
+✅ **Graph files populated** with domain knowledge before any conversations begin  
+✅ **Semantic matching working** - similar entities properly consolidated  
+
+**Impact**: Agents now start with a rich knowledge graph populated from domain configurations, providing structured context for interactions from the very beginning rather than building knowledge only through conversations.
+
+### Enhanced Session-Specific Logging System
+
+**Issue**: Graph manager operations were logged to the general memory manager log, making it difficult to debug graph-specific operations and track graph memory behavior.
+
+**Requirements**:
+1. Create dedicated log files for graph manager operations
+2. Place graph logs in session-specific directories alongside other session logs
+3. Ensure top-level logs directory creation
+
+**Solution Implemented**:
+
+1. **Dedicated Graph Manager Logger**:
+   - Created `_create_graph_manager_logger()` method in MemoryManager
+   - Graph manager now uses its own logger instance separate from memory manager
+   - Prevents log pollution and enables focused debugging
+
+2. **Session-Specific Log Organization**:
+   - Graph logs written to `logs/{session_guid}/graph_manager.log`
+   - Follows same pattern as other session logs (agent.log, memory_manager.log, ollama_*.log)
+   - Each session gets isolated graph operation logging
+
+3. **Automatic Directory Creation**:
+   - Enhanced logger creation to detect project structure automatically
+   - Creates `logs/` directory and session subdirectories as needed
+   - Handles both GUID-specific and direct memory directory structures
+
+4. **Comprehensive Graph Operation Logging**:
+   - Entity extraction and processing: "Extracted 2 entities from text"
+   - Embedding generation: "Added embedding for text"
+   - Similarity matching: "Found similar node with similarity 0.856"
+   - Node creation and updates: "Created new node" and "Updated existing node"
+   - Relationship extraction: "Extracted 2 relationships from text"
+   - Graph state management: "Saved graph: 18 nodes, 0 edges"
+
+**Technical Details**:
+```python
+# Session-specific graph logger creation
+logger_name = f"graph_memory.{self.memory_guid}"
+session_logs_dir = os.path.join(logs_base_dir, "logs", self.memory_guid)
+log_file_path = os.path.join(session_logs_dir, "graph_manager.log")
+```
+
+**Final Logging Structure**:
+```
+logs/
+├── agent_usage_example.log          # Top-level application log
+└── {session_guid}/                  # Session-specific logs
+    ├── agent.log                    # Agent operations
+    ├── memory_manager.log           # Memory management
+    ├── graph_manager.log            # Graph memory operations
+    ├── ollama_general.log           # General LLM calls
+    ├── ollama_digest.log            # Digest generation
+    └── ollama_embed.log             # Embedding operations
+```
+
+**Benefits**:
+✅ **Isolated Debug Context**: Graph operations can be debugged independently  
+✅ **Session Organization**: All logs for a session in one location  
+✅ **Performance Monitoring**: Easy to track graph memory performance per session  
+✅ **Development Efficiency**: Clear separation makes troubleshooting faster  
+
+### Summary
+
+These enhancements complete the graph memory system integration by:
+
+1. **Ensuring Complete Knowledge Capture**: Static memory from domain configurations now populates the knowledge graph from initialization
+2. **Providing Comprehensive Debugging**: Session-specific logging enables detailed monitoring of graph memory operations
+3. **Maintaining System Organization**: Clean separation of concerns with dedicated log files and structured directories
+
+The graph memory system is now fully production-ready with both complete knowledge processing and robust debugging capabilities, representing the final milestone for Phase 5 objectives.
   

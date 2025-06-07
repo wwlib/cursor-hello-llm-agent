@@ -124,6 +124,9 @@ class MemoryManager(BaseMemoryManager):
                 # Create directory for graph storage
                 os.makedirs(graph_storage_path, exist_ok=True)
                 
+                # Create dedicated logger for graph manager
+                graph_logger = self._create_graph_manager_logger(memory_dir, memory_base)
+                
                 # Get similarity threshold from domain config
                 similarity_threshold = 0.8
                 if self.domain_config and "graph_memory_config" in self.domain_config:
@@ -134,19 +137,20 @@ class MemoryManager(BaseMemoryManager):
                 graph_embeddings_manager = EmbeddingsManager(
                     embeddings_file=graph_embeddings_file,
                     llm_service=self.embeddings_llm,
-                    logger=logger
+                    logger=graph_logger  # Use dedicated graph logger
                 )
                 
                 self.graph_manager = GraphManager(
                     storage_path=graph_storage_path,
                     embeddings_manager=graph_embeddings_manager,
                     similarity_threshold=similarity_threshold,
-                    logger=logger,
+                    logger=graph_logger,  # Use dedicated graph logger
                     llm_service=self.llm,  # Use general LLM service (gemma3) for entity extraction
                     embeddings_llm_service=self.embeddings_llm,  # Use embeddings LLM service (mxbai-embed-large)
                     domain_config=self.domain_config
                 )
                 self.logger.debug(f"Initialized GraphManager with storage: {graph_storage_path}")
+                graph_logger.debug(f"Graph memory logger initialized for memory: {memory_base}")
             except Exception as e:
                 self.logger.warning(f"Failed to initialize GraphManager: {e}. Graph memory disabled.")
                 self.enable_graph_memory = False
@@ -289,6 +293,11 @@ class MemoryManager(BaseMemoryManager):
             # Generate and save embeddings for the initial system entry
             self.embeddings_manager.add_new_embeddings([system_entry])
 
+            # Process static memory with graph memory system if enabled
+            if self.enable_graph_memory and self.graph_manager:
+                self.logger.debug("Processing static memory for graph memory...")
+                self._process_initial_graph_memory(system_entry)
+
             self.logger.debug("Memory created and initialized with static knowledge")
             return True
         except Exception as e:
@@ -321,6 +330,66 @@ class MemoryManager(BaseMemoryManager):
             return initial_entry.get("content", "")
         # Concatenate all segment texts, separated by newlines
         return "\n".join(seg.get("text", "") for seg in rated_segments if seg.get("text"))
+
+    def _create_graph_manager_logger(self, memory_dir: str, memory_base: str) -> logging.Logger:
+        """Create a dedicated logger for graph manager operations.
+        
+        Args:
+            memory_dir: Directory where the memory file is located
+            memory_base: Base name of the memory file (without extension) - kept for compatibility
+            
+        Returns:
+            Logger instance configured for graph memory operations
+        """
+        # Create logger name based on memory GUID for session-specific logging
+        logger_name = f"graph_memory.{self.memory_guid}"
+        graph_logger = logging.getLogger(logger_name)
+        
+        # Avoid duplicate handlers if logger already exists
+        if graph_logger.handlers:
+            return graph_logger
+            
+        # Set logger level
+        graph_logger.setLevel(logging.DEBUG)
+        
+        # Create session-specific logs directory (same pattern as agent_usage_example.py)
+        if memory_dir and memory_dir != ".":
+            # For GUID-specific memories, use the parent directory to create logs
+            parent_dir = os.path.dirname(memory_dir)
+            if parent_dir and os.path.basename(parent_dir) in ["standard", "simple", "sync"]:
+                # We're in agent_memories/standard/guid_dir structure
+                logs_base_dir = os.path.dirname(os.path.dirname(parent_dir))  # Go up to project root
+            else:
+                # We're in a direct memory directory
+                logs_base_dir = os.path.dirname(memory_dir) if memory_dir != "." else "."
+        else:
+            # Default to current directory
+            logs_base_dir = "."
+            
+        # Create session-specific logs directory using memory GUID
+        session_logs_dir = os.path.join(logs_base_dir, "logs", self.memory_guid)
+        os.makedirs(session_logs_dir, exist_ok=True)
+        
+        # Create graph manager log file in the session directory
+        log_file_path = os.path.join(session_logs_dir, "graph_manager.log")
+        
+        # Create file handler
+        file_handler = logging.FileHandler(log_file_path)
+        file_handler.setLevel(logging.DEBUG)
+        
+        # Create formatter
+        formatter = logging.Formatter('%(asctime)s %(levelname)s:%(name)s:%(message)s')
+        file_handler.setFormatter(formatter)
+        
+        # Add handler to logger
+        graph_logger.addHandler(file_handler)
+        
+        # Prevent propagation to avoid duplicate logs in parent loggers
+        graph_logger.propagate = False
+        
+        self.logger.debug(f"Created graph memory logger: {logger_name} -> {log_file_path}")
+        
+        return graph_logger
 
     def query_memory(self, query_context: Dict[str, Any]) -> Dict[str, Any]:
         """Query memory with the given context.
@@ -564,6 +633,114 @@ class MemoryManager(BaseMemoryManager):
             
         except Exception as e:
             self.logger.error(f"Error updating graph memory: {str(e)}")
+    
+    def _process_initial_graph_memory(self, system_entry: Dict[str, Any]) -> None:
+        """Process initial system entry for graph memory during memory creation.
+        
+        This is a synchronous version of the graph memory processing specifically 
+        for the initial static memory that contains domain knowledge.
+        
+        Args:
+            system_entry: The initial system entry containing static memory content
+        """
+        try:
+            self.logger.debug("Processing initial system entry for graph memory...")
+            
+            # Get segments from digest
+            digest = system_entry.get("digest", {})
+            segments = digest.get("rated_segments", [])
+            
+            if not segments:
+                self.logger.debug("No segments found in initial digest, skipping initial graph processing")
+                return
+            
+            # Filter for important segments (same criteria as async processing)
+            important_segments = [
+                seg for seg in segments 
+                if seg.get("importance", 0) >= DEFAULT_RAG_IMPORTANCE_THRESHOLD 
+                and seg.get("memory_worthy", True)
+                and seg.get("type") in ["information", "action"]
+            ]
+            
+            if not important_segments:
+                self.logger.debug("No important segments found in initial content, skipping graph processing")
+                return
+            
+            self.logger.debug(f"Processing {len(important_segments)} important segments for initial graph memory")
+            
+            # Process all segments together for better entity and relationship extraction
+            all_segment_entities = []
+            segments_with_entities = []
+            
+            # First pass: Extract entities from all segments
+            for i, segment in enumerate(important_segments):
+                segment_text = segment.get("text", "")
+                if segment_text:
+                    # Extract entities from the segment
+                    entities = self.graph_manager.extract_entities_from_segments([{
+                        "text": segment_text,
+                        "importance": segment.get("importance", 0),
+                        "type": segment.get("type", "information"),
+                        "memory_worthy": segment.get("memory_worthy", True),
+                        "topics": segment.get("topics", [])
+                    }])
+                    
+                    # Add entities to graph (with automatic similarity matching)
+                    for entity in entities:
+                        self.graph_manager.add_or_update_node(
+                            name=entity.get("name", ""),
+                            node_type=entity.get("type", "concept"),
+                            description=entity.get("description", ""),
+                            attributes=entity.get("attributes", {})
+                        )
+                    
+                    # Store segment with its entities for relationship extraction
+                    if entities:
+                        segment_with_entities = {
+                            "id": f"seg_{i}",
+                            "text": segment_text,
+                            "entities": entities,
+                            "importance": segment.get("importance", 0),
+                            "type": segment.get("type", "information")
+                        }
+                        segments_with_entities.append(segment_with_entities)
+                        all_segment_entities.extend(entities)
+            
+            # Second pass: Extract relationships across all segments if we have multiple entities
+            if len(all_segment_entities) > 1 and segments_with_entities:
+                try:
+                    relationships = self.graph_manager.extract_relationships_from_segments(segments_with_entities)
+                    
+                    # Add relationships to graph
+                    for rel in relationships:
+                        # Find evidence from the segments
+                        evidence = ""
+                        for seg in segments_with_entities:
+                            if any(entity.get("name") == rel.get("from_entity") for entity in seg.get("entities", [])) and \
+                               any(entity.get("name") == rel.get("to_entity") for entity in seg.get("entities", [])):
+                                evidence = seg.get("text", "")
+                                break
+                        
+                        self.graph_manager.add_edge(
+                            from_node=rel.get("from_entity", ""),
+                            to_node=rel.get("to_entity", ""),
+                            relationship_type=rel.get("relationship_type", "related_to"),
+                            confidence=rel.get("confidence", 0.5),
+                            evidence=evidence
+                        )
+                    
+                    self.logger.debug(f"Added {len(relationships)} relationships from initial static memory")
+                    
+                except Exception as e:
+                    self.logger.error(f"Error extracting relationships from initial segments: {str(e)}")
+            
+            # Save graph state
+            self.graph_manager.save_graph()
+            
+            self.logger.debug(f"Initial graph memory processing complete: {len(all_segment_entities)} entities processed")
+            
+        except Exception as e:
+            self.logger.error(f"Error processing initial graph memory: {str(e)}")
             
     async def _compress_memory_async(self) -> None:
         """Compress memory asynchronously."""
