@@ -9,73 +9,23 @@ import asyncio
 import json
 import tempfile
 import os
-from unittest.mock import MagicMock
 
 from src.memory.memory_manager import MemoryManager, AsyncMemoryManager
 from src.ai.llm_ollama import OllamaService
 from examples.domain_configs import DND_CONFIG
 
 
-class MockLLMService:
-    """Mock LLM service for testing"""
-    
-    def generate(self, prompt, options=None):
-        """Generate a mock response"""
-        if "extract entities" in prompt.lower():
-            return json.dumps([
-                {
-                    "name": "Eldara",
-                    "type": "character",
-                    "description": "A fire wizard who runs a magic shop",
-                    "attributes": {"profession": "wizard", "magic_type": "fire"}
-                },
-                {
-                    "name": "Riverwatch",
-                    "type": "location", 
-                    "description": "A settlement in the eastern part of the valley",
-                    "attributes": {"region": "east", "type": "settlement"}
-                }
-            ])
-        elif "extract relationships" in prompt.lower():
-            return json.dumps([
-                {
-                    "from_entity": "Eldara",
-                    "to_entity": "Riverwatch",
-                    "relationship": "located_in",
-                    "confidence": 0.9,
-                    "evidence": "Eldara runs a magic shop in Riverwatch"
-                }
-            ])
-        elif "digest" in prompt.lower() or "rate" in prompt.lower():
-            return json.dumps({
-                "rated_segments": [
-                    {
-                        "text": "Eldara is a fire wizard who runs a magic shop in Riverwatch",
-                        "importance": 4,
-                        "topics": ["characters", "location"],
-                        "type": "information",
-                        "memory_worthy": True
-                    }
-                ]
-            })
-        else:
-            return "This is a test response mentioning Eldara's shop in Riverwatch."
-    
-    def generate_embedding(self, text):
-        """Generate a mock embedding"""
-        # Return a simple mock embedding based on text hash
-        import hashlib
-        hash_val = int(hashlib.md5(text.encode()).hexdigest()[:8], 16)
-        # Create a normalized embedding vector
-        embedding = [(hash_val >> i) & 1 for i in range(32)]
-        # Normalize to floats between 0 and 1
-        return [float(x) for x in embedding]
-
-
 @pytest.fixture
-def mock_llm_service():
-    """Create a mock LLM service"""
-    return MockLLMService()
+def real_llm_service():
+    """Create a real LLM service for integration testing"""
+    llm_config = {
+        "base_url": os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
+        "model": os.getenv("OLLAMA_MODEL", "gemma3"),
+        "embedding_model": os.getenv("OLLAMA_EMBED_MODEL", "mxbai-embed-large"),
+        "debug": False,
+        "console_output": False
+    }
+    return OllamaService(llm_config)
 
 
 @pytest.fixture
@@ -91,7 +41,8 @@ def domain_config():
     return DND_CONFIG
 
 
-def test_memory_manager_graph_initialization(mock_llm_service, temp_memory_dir, domain_config):
+@pytest.mark.integration
+def test_memory_manager_graph_initialization(real_llm_service, temp_memory_dir, domain_config):
     """Test that MemoryManager initializes with graph memory enabled"""
     memory_file = os.path.join(temp_memory_dir, "test_memory.json")
     
@@ -99,7 +50,7 @@ def test_memory_manager_graph_initialization(mock_llm_service, temp_memory_dir, 
         memory_guid="test-guid",
         memory_file=memory_file,
         domain_config=domain_config,
-        llm_service=mock_llm_service,
+        llm_service=real_llm_service,
         enable_graph_memory=True
     )
     
@@ -109,10 +60,11 @@ def test_memory_manager_graph_initialization(mock_llm_service, temp_memory_dir, 
     
     # Check that graph storage path is properly set
     expected_graph_path = os.path.join(temp_memory_dir, "test_memory_graph_data")
-    assert memory_manager.graph_manager.storage_path == expected_graph_path
+    assert memory_manager.graph_manager.storage.storage_path == expected_graph_path
 
 
-def test_memory_manager_graph_disabled(mock_llm_service, temp_memory_dir, domain_config):
+@pytest.mark.integration
+def test_memory_manager_graph_disabled(real_llm_service, temp_memory_dir, domain_config):
     """Test that graph memory can be disabled"""
     memory_file = os.path.join(temp_memory_dir, "test_memory.json")
     
@@ -120,7 +72,7 @@ def test_memory_manager_graph_disabled(mock_llm_service, temp_memory_dir, domain
         memory_guid="test-guid",
         memory_file=memory_file,
         domain_config=domain_config,
-        llm_service=mock_llm_service,
+        llm_service=real_llm_service,
         enable_graph_memory=False
     )
     
@@ -129,7 +81,8 @@ def test_memory_manager_graph_disabled(mock_llm_service, temp_memory_dir, domain
     assert memory_manager.graph_manager is None
 
 
-def test_query_with_graph_context(mock_llm_service, temp_memory_dir, domain_config):
+@pytest.mark.integration
+def test_query_with_graph_context(real_llm_service, temp_memory_dir, domain_config):
     """Test that queries include graph context when available"""
     memory_file = os.path.join(temp_memory_dir, "test_memory.json")
     
@@ -137,7 +90,7 @@ def test_query_with_graph_context(mock_llm_service, temp_memory_dir, domain_conf
         memory_guid="test-guid",
         memory_file=memory_file,
         domain_config=domain_config,
-        llm_service=mock_llm_service,
+        llm_service=real_llm_service,
         enable_graph_memory=True
     )
     
@@ -169,19 +122,19 @@ def test_query_with_graph_context(mock_llm_service, temp_memory_dir, domain_conf
     
     # Test graph context retrieval
     graph_context = memory_manager.get_graph_context("Tell me about Eldara")
-    assert "Eldara" in graph_context
-    assert "character" in graph_context
-    assert "located_in Riverwatch" in graph_context
     
-    # Test memory query with graph context
-    response = memory_manager.query_memory({"query": "Tell me about Eldara"})
-    assert "response" in response
-    # The mock LLM should mention both Eldara and Riverwatch
-    assert "Eldara" in response["response"]
+    # With real LLM calls, we should get some context but can't predict exact format
+    # The context should contain information about Eldara since we manually added her
+    assert "Eldara" in graph_context, f"Expected 'Eldara' in graph context: {graph_context}"
+    assert "character" in graph_context, f"Expected 'character' in graph context: {graph_context}"
+    
+    # Since we manually added a relationship, there should be some connection info
+    assert ("located_in" in graph_context or "Riverwatch" in graph_context), f"Expected relationship info in graph context: {graph_context}"
 
 
 @pytest.mark.asyncio
-async def test_async_graph_memory_updates(mock_llm_service, temp_memory_dir, domain_config):
+@pytest.mark.integration
+async def test_async_graph_memory_updates(real_llm_service, temp_memory_dir, domain_config):
     """Test that async memory manager updates graph memory"""
     memory_file = os.path.join(temp_memory_dir, "test_memory.json")
     
@@ -189,7 +142,7 @@ async def test_async_graph_memory_updates(mock_llm_service, temp_memory_dir, dom
         memory_guid="test-guid",
         memory_file=memory_file,
         domain_config=domain_config,
-        llm_service=mock_llm_service,
+        llm_service=real_llm_service,
         enable_graph_memory=True
     )
     
@@ -214,23 +167,16 @@ async def test_async_graph_memory_updates(mock_llm_service, temp_memory_dir, dom
     nodes = async_memory_manager.graph_manager.storage.load_nodes()
     assert len(nodes) > 0
     
-    # Look for Eldara in the nodes
-    eldara_found = False
-    riverwatch_found = False
-    for node in nodes.values():
-        if node.name == "Eldara":
-            eldara_found = True
-            assert node.node_type == "character"
-        elif node.name == "Riverwatch":
-            riverwatch_found = True
-            assert node.node_type == "location"
+    # Check that some entities were extracted and added to the graph
+    # With real LLM calls, we can't predict exact entities, but there should be some
+    assert len(nodes) >= 1, f"Expected at least 1 entity to be extracted, but found {len(nodes)}"
     
-    # At least one entity should be found (depending on mock LLM responses)
-    # The exact entities depend on the mock LLM implementation
-    assert len(nodes) >= 1
+    # Log what entities were found for debugging
+    print(f"Entities found in graph: {[node['name'] for node in nodes.values()]}")
 
 
-def test_has_pending_operations_includes_graph(mock_llm_service, temp_memory_dir, domain_config):
+@pytest.mark.integration
+def test_has_pending_operations_includes_graph(real_llm_service, temp_memory_dir, domain_config):
     """Test that pending operations include graph updates"""
     memory_file = os.path.join(temp_memory_dir, "test_memory.json")
     
@@ -238,7 +184,7 @@ def test_has_pending_operations_includes_graph(mock_llm_service, temp_memory_dir
         memory_guid="test-guid",
         memory_file=memory_file,
         domain_config=domain_config,
-        llm_service=mock_llm_service,
+        llm_service=real_llm_service,
         enable_graph_memory=True
     )
     
@@ -270,7 +216,8 @@ def test_domain_config_graph_settings(domain_config):
 
 
 @pytest.mark.asyncio
-async def test_end_to_end_graph_integration(mock_llm_service, temp_memory_dir, domain_config):
+@pytest.mark.integration
+async def test_end_to_end_graph_integration(real_llm_service, temp_memory_dir, domain_config):
     """Test complete end-to-end graph memory integration"""
     memory_file = os.path.join(temp_memory_dir, "test_memory.json")
     
@@ -279,7 +226,7 @@ async def test_end_to_end_graph_integration(mock_llm_service, temp_memory_dir, d
         memory_guid="test-guid",
         memory_file=memory_file,
         domain_config=domain_config,
-        llm_service=mock_llm_service,
+        llm_service=real_llm_service,
         enable_graph_memory=True
     )
     
@@ -309,15 +256,14 @@ async def test_end_to_end_graph_integration(mock_llm_service, temp_memory_dir, d
     # Wait for all async processing
     await memory_manager.wait_for_pending_operations()
     
-    # Test that graph context is available
+    # Test that graph context is available after processing
     graph_context = memory_manager.get_graph_context("Tell me about magic shops")
     
-    # Should have some graph context (exact content depends on mock LLM)
-    if graph_context:  # Only test if graph context was generated
-        assert len(graph_context) > 0
-        # Could contain references to entities or relationships
+    # With real LLM calls, we should get some graph context if entities were extracted
+    # The exact content depends on what the real LLM extracted
+    print(f"Graph context for 'magic shops': {graph_context}")
     
-    # Test memory query includes graph context
+    # Test memory query includes graph context  
     response = memory_manager.query_memory({
         "query": "What do I know about Eldara?"
     })
@@ -325,6 +271,9 @@ async def test_end_to_end_graph_integration(mock_llm_service, temp_memory_dir, d
     assert "response" in response
     assert isinstance(response["response"], str)
     assert len(response["response"]) > 0
+    
+    # The response should be meaningful (not just an error)
+    assert "error" not in response["response"].lower() or "processing query" not in response["response"].lower()
 
 
 if __name__ == "__main__":

@@ -11,6 +11,8 @@ from datetime import datetime
 import logging
 
 from .graph_storage import GraphStorage
+from .entity_extractor import EntityExtractor
+from .relationship_extractor import RelationshipExtractor
 
 
 class GraphNode:
@@ -119,7 +121,8 @@ class GraphManager:
     """
     
     def __init__(self, storage_path: str, embeddings_manager=None, 
-                 similarity_threshold: float = 0.8, logger=None):
+                 similarity_threshold: float = 0.8, logger=None,
+                 llm_service=None, embeddings_llm_service=None, domain_config=None):
         """
         Initialize graph manager.
         
@@ -128,11 +131,25 @@ class GraphManager:
             embeddings_manager: EmbeddingsManager instance for entity matching
             similarity_threshold: Threshold for entity similarity matching
             logger: Logger instance
+            llm_service: LLM service for entity and relationship extraction (text generation)
+            embeddings_llm_service: LLM service for embeddings generation
+            domain_config: Domain configuration for entity types and relationships
         """
         self.storage = GraphStorage(storage_path)
         self.embeddings_manager = embeddings_manager
         self.similarity_threshold = similarity_threshold
         self.logger = logger or logging.getLogger(__name__)
+        self.llm_service = llm_service  # Text generation service (gemma3)
+        self.embeddings_llm_service = embeddings_llm_service or llm_service  # Embeddings service (mxbai-embed-large)
+        self.domain_config = domain_config
+        
+        # Initialize extractors if LLM service is provided
+        if llm_service and domain_config:
+            self.entity_extractor = EntityExtractor(llm_service, domain_config, logger)
+            self.relationship_extractor = RelationshipExtractor(llm_service, domain_config, logger)
+        else:
+            self.entity_extractor = None
+            self.relationship_extractor = None
         
         # Load existing graph data
         self._load_graph()
@@ -217,7 +234,7 @@ class GraphManager:
             similar_node.attributes.update(attributes)
             
             # Update embedding if available
-            if embedding:
+            if embedding is not None and len(embedding) > 0:
                 similar_node.embedding = embedding
             
             self._save_graph()
@@ -291,7 +308,17 @@ class GraphManager:
     @staticmethod
     def _cosine_similarity(vec1: List[float], vec2: List[float]) -> float:
         """Calculate cosine similarity between two vectors."""
-        if not vec1 or not vec2 or len(vec1) != len(vec2):
+        # Handle None or empty vectors
+        if vec1 is None or vec2 is None:
+            return 0.0
+        
+        # Convert to numpy arrays if not already
+        if hasattr(vec1, 'tolist'):
+            vec1 = vec1.tolist()
+        if hasattr(vec2, 'tolist'):
+            vec2 = vec2.tolist()
+            
+        if len(vec1) == 0 or len(vec2) == 0 or len(vec1) != len(vec2):
             return 0.0
         
         vec1_np = np.array(vec1)
@@ -307,29 +334,63 @@ class GraphManager:
         
         return float(dot_product / (norm1 * norm2))
     
-    def add_edge(self, from_node_id: str, to_node_id: str, relationship: str,
-                weight: float = 1.0, **attributes) -> GraphEdge:
+    def add_edge(self, from_node_id: str = None, to_node_id: str = None, relationship: str = None,
+                weight: float = 1.0, from_node: str = None, to_node: str = None, 
+                relationship_type: str = None, **attributes) -> GraphEdge:
         """
         Add edge between nodes.
         
         Args:
-            from_node_id: Source node ID
-            to_node_id: Target node ID
-            relationship: Relationship type
+            from_node_id: Source node ID (legacy parameter)
+            to_node_id: Target node ID (legacy parameter)
+            relationship: Relationship type (legacy parameter)
+            from_node: Source node name (new parameter style)
+            to_node: Target node name (new parameter style)
+            relationship_type: Relationship type (new parameter style)
             weight: Edge weight
             **attributes: Additional edge attributes
             
         Returns:
             Created edge
         """
+        # Handle both parameter styles for backward compatibility
+        if from_node is not None:
+            # New style: node names instead of IDs, find the actual node IDs
+            from_nodes = self.find_nodes_by_name(from_node, exact_match=True)
+            if not from_nodes:
+                raise ValueError(f"Source node '{from_node}' not found")
+            actual_from_node_id = from_nodes[0].id
+        elif from_node_id is not None:
+            # Legacy style: direct node ID
+            actual_from_node_id = from_node_id
+        else:
+            raise ValueError("Either from_node or from_node_id must be provided")
+            
+        if to_node is not None:
+            # New style: node names instead of IDs, find the actual node IDs
+            to_nodes = self.find_nodes_by_name(to_node, exact_match=True)
+            if not to_nodes:
+                raise ValueError(f"Target node '{to_node}' not found")
+            actual_to_node_id = to_nodes[0].id
+        elif to_node_id is not None:
+            # Legacy style: direct node ID
+            actual_to_node_id = to_node_id
+        else:
+            raise ValueError("Either to_node or to_node_id must be provided")
+            
+        # Handle relationship parameter
+        actual_relationship = relationship_type or relationship
+        if not actual_relationship:
+            raise ValueError("Either relationship or relationship_type must be provided")
+        
         # Check if nodes exist
-        if from_node_id not in self.nodes:
-            raise ValueError(f"Source node {from_node_id} not found")
-        if to_node_id not in self.nodes:
-            raise ValueError(f"Target node {to_node_id} not found")
+        if actual_from_node_id not in self.nodes:
+            raise ValueError(f"Source node {actual_from_node_id} not found")
+        if actual_to_node_id not in self.nodes:
+            raise ValueError(f"Target node {actual_to_node_id} not found")
         
         # Check if edge already exists
-        existing_edge = self._find_edge(from_node_id, to_node_id, relationship)
+        existing_edge = self._find_edge(actual_from_node_id, actual_to_node_id, actual_relationship)
         if existing_edge:
             # Update existing edge
             existing_edge.weight = weight
@@ -339,11 +400,11 @@ class GraphManager:
             return existing_edge
         
         # Create new edge
-        edge = GraphEdge(from_node_id, to_node_id, relationship, weight, **attributes)
+        edge = GraphEdge(actual_from_node_id, actual_to_node_id, actual_relationship, weight, **attributes)
         self.edges.append(edge)
         self._save_graph()
         
-        self.logger.debug(f"Added edge: {from_node_id} --{relationship}--> {to_node_id}")
+        self.logger.debug(f"Added edge: {actual_from_node_id} --{actual_relationship}--> {actual_to_node_id}")
         return edge
     
     def _find_edge(self, from_node_id: str, to_node_id: str, 
@@ -421,3 +482,166 @@ class GraphManager:
             'relationship_types': relationship_types,
             'storage_stats': self.storage.get_storage_stats()
         }
+    
+    def extract_entities_from_segments(self, segments: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Extract entities from conversation segments using the integrated entity extractor.
+        
+        Args:
+            segments: List of segments with text and metadata
+            
+        Returns:
+            List of extracted entities
+        """
+        if not self.entity_extractor:
+            self.logger.warning("Entity extractor not available - LLM service or domain config missing")
+            return []
+        
+        try:
+            entities = self.entity_extractor.extract_entities_from_segments(segments)
+            self.logger.debug(f"Extracted {len(entities)} entities from {len(segments)} segments")
+            return entities
+        except Exception as e:
+            self.logger.error(f"Error extracting entities from segments: {e}")
+            return []
+    
+    def extract_relationships_from_segments(self, segments: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Extract relationships from conversation segments using the integrated relationship extractor.
+        
+        Args:
+            segments: List of segments with text, entities, and metadata
+            
+        Returns:
+            List of extracted relationships
+        """
+        if not self.relationship_extractor:
+            self.logger.warning("Relationship extractor not available - LLM service or domain config missing")
+            return []
+        
+        try:
+            relationships = self.relationship_extractor.extract_relationships_from_segments(segments)
+            self.logger.debug(f"Extracted {len(relationships)} relationships from {len(segments)} segments")
+            return relationships
+        except Exception as e:
+            self.logger.error(f"Error extracting relationships from segments: {e}")
+            return []
+    
+    def query_for_context(self, query: str, max_results: int = 5) -> List[Dict[str, Any]]:
+        """Query the graph for context relevant to a query using semantic search.
+        
+        Args:
+            query: The query to find relevant context for
+            max_results: Maximum number of results to return
+            
+        Returns:
+            List of context results with entity information and connections
+        """
+        try:
+            results = []
+            
+            # Use embeddings for semantic search if available
+            if self.embeddings_manager:
+                try:
+                    # Generate embedding for the query
+                    query_embedding = self.embeddings_manager.generate_embedding(query)
+                    
+                    # Find semantically similar entities
+                    for node in self.nodes.values():
+                        if node.embedding is not None and len(node.embedding) > 0:
+                            # Calculate similarity with node embedding
+                            similarity = self._cosine_similarity(query_embedding, node.embedding)
+                            
+                            if similarity > 0.1:  # Minimum similarity threshold
+                                # Get connections for this entity
+                                connections = self.get_connected_nodes(node.id)
+                                connection_info = []
+                                
+                                for connected_node, edge in connections[:3]:  # Limit to top 3 connections
+                                    connection_info.append({
+                                        "relationship": edge.relationship,
+                                        "target": connected_node.name,
+                                        "target_type": connected_node.type
+                                    })
+                                
+                                results.append({
+                                    "name": node.name,
+                                    "type": node.type,
+                                    "description": node.description,
+                                    "connections": connection_info,
+                                    "relevance_score": similarity
+                                })
+                    
+                    # Sort by similarity score and limit results
+                    results.sort(key=lambda x: x["relevance_score"], reverse=True)
+                    return results[:max_results]
+                    
+                except Exception as e:
+                    self.logger.warning(f"Embeddings-based search failed, falling back to string matching: {e}")
+            
+            # Fallback to string matching if embeddings not available
+            query_lower = query.lower()
+            
+            # Extract potential entity names from the query
+            query_words = [word.strip().lower() for word in query_lower.replace('?', '').replace('.', '').replace(',', '').split()]
+            
+            # Find entities that match the query
+            for node in self.nodes.values():
+                relevance_score = 0
+                node_name_lower = node.name.lower()
+                node_desc_lower = node.description.lower()
+                
+                # Check exact name match in query
+                if node_name_lower in query_lower:
+                    relevance_score += 5
+                
+                # Check if any query word matches the node name
+                for word in query_words:
+                    if word == node_name_lower:
+                        relevance_score += 4
+                    elif word in node_name_lower:
+                        relevance_score += 3
+                
+                # Check description match
+                if query_lower in node_desc_lower:
+                    relevance_score += 2
+                    
+                # Check if any query word appears in description
+                for word in query_words:
+                    if len(word) > 2 and word in node_desc_lower:  # Skip very short words
+                        relevance_score += 1
+                
+                # Check aliases match
+                for alias in node.aliases:
+                    alias_lower = alias.lower()
+                    if query_lower in alias_lower:
+                        relevance_score += 1
+                    for word in query_words:
+                        if word == alias_lower:
+                            relevance_score += 2
+                
+                if relevance_score > 0:
+                    # Get connections for this entity
+                    connections = self.get_connected_nodes(node.id)
+                    connection_info = []
+                    
+                    for connected_node, edge in connections[:3]:  # Limit to top 3 connections
+                        connection_info.append({
+                            "relationship": edge.relationship,
+                            "target": connected_node.name,
+                            "target_type": connected_node.type
+                        })
+                    
+                    results.append({
+                        "name": node.name,
+                        "type": node.type,
+                        "description": node.description,
+                        "connections": connection_info,
+                        "relevance_score": relevance_score
+                    })
+            
+            # Sort by relevance score and limit results
+            results.sort(key=lambda x: x["relevance_score"], reverse=True)
+            return results[:max_results]
+            
+        except Exception as e:
+            self.logger.error(f"Error querying graph for context: {e}")
+            return []

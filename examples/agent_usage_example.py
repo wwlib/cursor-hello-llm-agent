@@ -499,6 +499,49 @@ async def initialize_memory(agent, memory_manager, domain_config):
     logger.debug(f"Current phase: {agent.get_current_phase().name}")
     return True
 
+def has_stdin_input():
+    """Check if there's input available on stdin (for piped input)"""
+    if sys.stdin.isatty():
+        return False  # Interactive terminal, no piped input
+    return True
+
+async def process_piped_input(agent, _memory_manager):
+    """Process input from stdin (piped input)"""
+    logger.debug("Processing piped input...")
+    
+    # Read all input from stdin
+    try:
+        user_input = sys.stdin.read().strip()
+        if not user_input:
+            logger.debug("No input received from stdin")
+            return
+        
+        logger.debug(f"Received piped input: {user_input}")
+        print(f"Processing: {user_input}")
+        
+        # Check for pending operations before processing
+        if agent.has_pending_operations():
+            pending = agent.memory.get_pending_operations()
+            logger.debug(f"Waiting for background operations to complete...")
+            logger.debug(f"Pending digests: {pending['pending_digests']}")
+            logger.debug(f"Pending embeddings: {pending['pending_embeddings']}")
+            await agent.wait_for_pending_operations()
+            logger.debug("Background operations completed.")
+        
+        # Process the message
+        response = await agent.process_message(user_input)
+        print(f"\nAgent: {response}")
+        
+        # Wait for any background processing to complete before exiting
+        if agent.has_pending_operations():
+            logger.debug("Waiting for final background operations to complete...")
+            await agent.wait_for_pending_operations()
+            logger.debug("All operations completed.")
+        
+    except Exception as e:
+        logger.error(f"Error processing piped input: {str(e)}")
+        print(f"Error: {str(e)}")
+
 async def interactive_session(agent, memory_manager):
     """Run an interactive session with the agent"""
     logger.debug("\nStarting interactive session...")
@@ -507,6 +550,13 @@ async def interactive_session(agent, memory_manager):
     memory_type = memory_manager.memory.get("memory_manager_type", "unknown")
     logger.debug(f"Memory GUID: {guid}")
     logger.debug(f"Memory Manager Type: {memory_type}")
+    
+    # Check if input is piped
+    if has_stdin_input():
+        await process_piped_input(agent, memory_manager)
+        return
+    
+    # Interactive mode
     print('Type "help" to see available commands')
     
     while True:

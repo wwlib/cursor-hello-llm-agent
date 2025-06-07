@@ -510,6 +510,9 @@ Comprehensive test suite covers all major functionality:
 # Run graph memory tests
 pytest tests/memory_manager/test_graph_memory.py -v
 
+DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embe
+d-large pytest tests/memory_manager/test_graph_memory_integration.py -v
+
 # Run integration tests  
 pytest tests/memory_manager/test_graph_memory_integration.py -v
 

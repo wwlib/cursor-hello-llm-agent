@@ -90,7 +90,7 @@ class AgentTestController:
         self.llm_services = {}
         self.logger = logging.getLogger(__name__)
         
-    async def setup_agent(self) -> Tuple[str, Agent, MemoryManager]:
+    async def setup_agent(self) -> Tuple[str, Agent, AsyncMemoryManager]:
         """Set up agent instance for testing"""
         
         # Generate test-specific GUID

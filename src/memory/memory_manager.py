@@ -121,13 +121,22 @@ class MemoryManager(BaseMemoryManager):
                 graph_storage_path = os.path.join(memory_dir, f"{memory_base}_graph_data")
                 graph_embeddings_file = os.path.join(graph_storage_path, "graph_memory_embeddings.jsonl")
                 
+                # Create directory for graph storage
+                os.makedirs(graph_storage_path, exist_ok=True)
+                
+                # Get similarity threshold from domain config
+                similarity_threshold = 0.8
+                if self.domain_config and "graph_memory_config" in self.domain_config:
+                    similarity_threshold = self.domain_config["graph_memory_config"].get("similarity_threshold", 0.8)
+                
                 self.graph_manager = GraphManager(
-                    llm_service=self.embeddings_llm,
-                    embeddings_manager=self.embeddings_manager,
                     storage_path=graph_storage_path,
-                    embeddings_file=graph_embeddings_file,
-                    domain_config=self.domain_config,
-                    logger=logger
+                    embeddings_manager=self.embeddings_manager,
+                    similarity_threshold=similarity_threshold,
+                    logger=logger,
+                    llm_service=self.llm,  # Use general LLM service (gemma3) for entity extraction
+                    embeddings_llm_service=self.embeddings_llm,  # Use embeddings LLM service (mxbai-embed-large)
+                    domain_config=self.domain_config
                 )
                 self.logger.debug(f"Initialized GraphManager with storage: {graph_storage_path}")
             except Exception as e:
@@ -485,9 +494,13 @@ class MemoryManager(BaseMemoryManager):
                 segment_text = segment.get("text", "")
                 if segment_text:
                     # Extract entities from the segment
+                    # Pass the segment in the format expected by EntityExtractor
                     entities = self.graph_manager.extract_entities_from_segments([{
                         "text": segment_text,
-                        "metadata": segment
+                        "importance": segment.get("importance", 0),
+                        "type": segment.get("type", "information"),
+                        "memory_worthy": segment.get("memory_worthy", True),
+                        "topics": segment.get("topics", [])
                     }])
                     
                     # Add entities to graph (with automatic similarity matching)

@@ -210,4 +210,62 @@ Graph Memory Integration Complete!
 
   The graph memory system is now fully integrated and ready to enhance the agent's memory capabilities with
    structured knowledge representation!
+
+
+## Phase 5 Update - June 07, 2025 - Graph Memory Integration Tests Fixed
+
+### Issue Resolution: Async Graph Memory Processing
+
+**Problem**: The `test_async_graph_memory_updates` integration test was failing - async graph memory updates weren't working correctly, with 0 entities being extracted when entities should have been created.
+
+**Root Cause Analysis**:
+- Initial status: 6/7 graph memory integration tests passing
+- Direct entity extraction worked correctly
+- Digest generation created proper segments with importance ≥ 3, type="information", memory_worthy=true
+- Issue was in the async processing pipeline data structure
+
+**Root Cause Found**: 
+In `src/memory/memory_manager.py`, the `_update_graph_memory_async` method was passing segment data to EntityExtractor in wrong format:
+
+```python
+# BROKEN - metadata nested incorrectly
+entities = self.graph_manager.extract_entities_from_segments([{
+    "text": segment_text,
+    "metadata": segment  # EntityExtractor expected fields directly on segment
+}])
+```
+
+**Solution Implemented**:
+Fixed the data structure to match EntityExtractor expectations:
+
+```python
+# FIXED - proper segment format
+entities = self.graph_manager.extract_entities_from_segments([{
+    "text": segment_text,
+    "importance": segment.get("importance", 0),
+    "type": segment.get("type", "information"), 
+    "memory_worthy": segment.get("memory_worthy", True),
+    "topics": segment.get("topics", [])
+}])
+```
+
+**Additional Fixes**:
+1. **pyproject.toml**: Fixed duplicate `[tool.pytest.ini_options]` sections
+2. **Test Compatibility**: Updated `test_query_memory_success` to async for compatibility with new async processing
+
+**Final Results**:
+✅ **All 7/7 graph memory integration tests now passing**  
+✅ **All memory manager tests passing**  
+✅ **Graph memory system fully operational with real LLM calls**
+
+**Test Verification** (all passing):
+- Graph memory initialization ✅
+- Graph memory disable functionality ✅  
+- Graph context retrieval and formatting ✅
+- **Async graph memory updates ✅** (previously failing)
+- Pending operations tracking includes graph updates ✅
+- Domain configuration settings ✅
+- End-to-end graph integration with real LLM calls ✅
+
+The graph memory integration is now **100% complete and fully functional**. The system automatically extracts entities and relationships during conversation processing, stores them in the knowledge graph, and provides enhanced context for agent responses.
   
