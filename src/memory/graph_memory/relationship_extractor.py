@@ -241,7 +241,7 @@ Relationships:"""
                 segment.get('type') not in ['information', 'action']):
                 continue
             
-            segment_id = segment.get('segment_id', '')
+            segment_id = segment.get('id', segment.get('segment_id', ''))
             text = segment.get('text', '')
             entities = entities_by_segment.get(segment_id, [])
             
@@ -288,14 +288,14 @@ Relationships:"""
             
             # Create a simple temporal relationship
             temporal_rel = {
-                'from_entity': f"event_{current_segment.get('segment_id', i)}",
-                'to_entity': f"event_{next_segment.get('segment_id', i+1)}",
+                'from_entity': f"event_{current_segment.get('id', current_segment.get('segment_id', i))}",
+                'to_entity': f"event_{next_segment.get('id', next_segment.get('segment_id', i+1))}",
                 'relationship': 'occurs_before',
                 'confidence': 0.8,
                 'evidence': 'Sequential order in conversation',
                 'source_segments': [
-                    current_segment.get('segment_id', ''),
-                    next_segment.get('segment_id', '')
+                    current_segment.get('id', current_segment.get('segment_id', '')),
+                    next_segment.get('id', next_segment.get('segment_id', ''))
                 ],
                 'temporal_order': i
             }

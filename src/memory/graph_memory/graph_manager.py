@@ -31,25 +31,35 @@ class GraphNode:
         self.updated_at = datetime.now().isoformat()
         self.mention_count = attributes.get('mention_count', 1)
     
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert node to dictionary representation."""
-        # Convert embedding to list if it's a numpy array
-        embedding = self.embedding
-        if hasattr(embedding, 'tolist'):
-            embedding = embedding.tolist()
+    def to_dict(self, include_embedding: bool = False) -> Dict[str, Any]:
+        """Convert node to dictionary representation.
         
-        return {
+        Args:
+            include_embedding: Whether to include embedding vector in output.
+                              Should be False for storage to avoid bloating JSON files.
+                              Embeddings are stored separately in graph_memory_embeddings.jsonl
+        """
+        result = {
             'id': self.id,
             'type': self.type,
             'name': self.name,
             'description': self.description,
-            'embedding': embedding,
             'aliases': self.aliases,
             'created_at': self.created_at,
             'updated_at': self.updated_at,
             'mention_count': self.mention_count,
             **self.attributes
         }
+        
+        # Only include embedding if explicitly requested (e.g., for in-memory operations)
+        if include_embedding:
+            # Convert embedding to list if it's a numpy array
+            embedding = self.embedding
+            if hasattr(embedding, 'tolist'):
+                embedding = embedding.tolist()
+            result['embedding'] = embedding
+            
+        return result
     
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'GraphNode':
@@ -518,7 +528,18 @@ class GraphManager:
             return []
         
         try:
-            relationships = self.relationship_extractor.extract_relationships_from_segments(segments)
+            # Build entities_by_segment dictionary from segments
+            entities_by_segment = {}
+            for i, segment in enumerate(segments):
+                segment_id = segment.get("id", f"seg_{i}")
+                entities = segment.get("entities", [])
+                entities_by_segment[segment_id] = entities
+                # Ensure segment has an id
+                if "id" not in segment:
+                    segment["id"] = segment_id
+            
+            relationships = self.relationship_extractor.extract_relationships_from_segments(
+                segments, entities_by_segment)
             self.logger.debug(f"Extracted {len(relationships)} relationships from {len(segments)} segments")
             return relationships
         except Exception as e:

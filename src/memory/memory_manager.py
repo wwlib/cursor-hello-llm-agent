@@ -129,9 +129,17 @@ class MemoryManager(BaseMemoryManager):
                 if self.domain_config and "graph_memory_config" in self.domain_config:
                     similarity_threshold = self.domain_config["graph_memory_config"].get("similarity_threshold", 0.8)
                 
+                # Create separate embeddings manager for graph memory
+                graph_embeddings_file = os.path.join(graph_storage_path, "graph_memory_embeddings.jsonl")
+                graph_embeddings_manager = EmbeddingsManager(
+                    embeddings_file=graph_embeddings_file,
+                    llm_service=self.embeddings_llm,
+                    logger=logger
+                )
+                
                 self.graph_manager = GraphManager(
                     storage_path=graph_storage_path,
-                    embeddings_manager=self.embeddings_manager,
+                    embeddings_manager=graph_embeddings_manager,
                     similarity_threshold=similarity_threshold,
                     logger=logger,
                     llm_service=self.llm,  # Use general LLM service (gemma3) for entity extraction
@@ -489,12 +497,15 @@ class MemoryManager(BaseMemoryManager):
                 self.logger.debug("No important segments found, skipping graph update")
                 return
             
-            # Process segments for graph memory
-            for segment in important_segments:
+            # Process all segments together for better entity and relationship extraction
+            all_segment_entities = []
+            segments_with_entities = []
+            
+            # First pass: Extract entities from all segments
+            for i, segment in enumerate(important_segments):
                 segment_text = segment.get("text", "")
                 if segment_text:
                     # Extract entities from the segment
-                    # Pass the segment in the format expected by EntityExtractor
                     entities = self.graph_manager.extract_entities_from_segments([{
                         "text": segment_text,
                         "importance": segment.get("importance", 0),
@@ -512,22 +523,42 @@ class MemoryManager(BaseMemoryManager):
                             attributes=entity.get("attributes", {})
                         )
                     
-                    # Extract relationships between entities in this segment
-                    if len(entities) > 1:
-                        relationships = self.graph_manager.extract_relationships_from_segments([{
+                    # Store segment with its entities for relationship extraction
+                    if entities:
+                        segment_with_entities = {
+                            "id": f"seg_{i}",
                             "text": segment_text,
-                            "entities": entities
-                        }])
+                            "entities": entities,
+                            "importance": segment.get("importance", 0),
+                            "type": segment.get("type", "information")
+                        }
+                        segments_with_entities.append(segment_with_entities)
+                        all_segment_entities.extend(entities)
+            
+            # Second pass: Extract relationships across all segments if we have multiple entities
+            if len(all_segment_entities) > 1 and segments_with_entities:
+                try:
+                    relationships = self.graph_manager.extract_relationships_from_segments(segments_with_entities)
+                    
+                    # Add relationships to graph
+                    for rel in relationships:
+                        # Find evidence from the segments
+                        evidence = ""
+                        for seg in segments_with_entities:
+                            if any(entity.get("name") == rel.get("from_entity") for entity in seg.get("entities", [])) and \
+                               any(entity.get("name") == rel.get("to_entity") for entity in seg.get("entities", [])):
+                                evidence = seg.get("text", "")
+                                break
                         
-                        # Add relationships to graph
-                        for rel in relationships:
-                            self.graph_manager.add_edge(
-                                from_node=rel.get("from_entity", ""),
-                                to_node=rel.get("to_entity", ""),
-                                relationship_type=rel.get("relationship", "related_to"),
-                                evidence=segment_text,
-                                confidence=rel.get("confidence", 0.5)
-                            )
+                        self.graph_manager.add_edge(
+                            from_node=rel.get("from_entity", ""),
+                            to_node=rel.get("to_entity", ""),
+                            relationship_type=rel.get("relationship", "related_to"),
+                            evidence=evidence or "Cross-segment relationship",
+                            confidence=rel.get("confidence", 0.5)
+                        )
+                except Exception as e:
+                    self.logger.warning(f"Error extracting relationships: {e}")
             
             self.logger.debug(f"Updated graph memory with {len(important_segments)} segments")
             
