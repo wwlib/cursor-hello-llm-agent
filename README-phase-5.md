@@ -575,4 +575,72 @@ From the included D&D sample data:
 **Impact**: This visualization tool provides crucial insight into the graph memory system's operation, making the abstract knowledge graphs concrete and explorable. It serves both as a debugging tool for developers and a demonstration tool for understanding how conversations build structured knowledge over time.
 
 The Memory Graph Viewer completes Phase 5 by providing a comprehensive window into the graph memory system's capabilities, making the sophisticated knowledge representation accessible and actionable.
+
+
+## Phase 5 Update - June 8, 2025 - Enhanced Memory Graph Viewer with 2D/3D Toggle
+
+### Interactive Graph Viewer Enhancements Complete
+
+**Implementation Overview**: Significantly enhanced the React-based memory graph viewer with 2D/3D toggle functionality, improved drag behavior, and always-visible node labels for optimal user experience.
+
+**Major Enhancements Implemented**:
+
+• **2D/3D Toggle**: Added seamless switching between ForceGraph2D and ForceGraph3D views with unified configuration and shared force parameters
+
+• **Always-Visible Labels**: Implemented persistent node labels in both 2D (canvas rendering) and 3D (THREE.js sprites) modes for immediate entity identification
+
+• **Fixed Drag Behavior**: Resolved node spreading issues using proper d3Force constraints and onNodeDragEnd pinning, preventing graph drift during interaction
+
+• **Compact Layout**: Optimized force parameters for tight, stable graph positioning with minimal repulsion (-10), strong centering (5.0), and short link distances (25px)
+
+• **Enhanced Interactivity**: Rich tooltips showing entity metadata, detailed node information panels, and directional link arrows with relationship confidence indicators
+
+• **Pure D3 Fallback**: Created standalone d3-graph.html for debugging react-force-graph wrapper issues, validating that standard D3 patterns work correctly
+
+• **Visual Improvements**: Entity type color coding, node sizing by mention count, responsive UI controls, and professional styling with legends
+
+**Technical Implementation Details**:
+
+**2D/3D Unified Architecture**:
+- Shared configuration object for consistent behavior across view modes
+- Dynamic component rendering based on `is3D` state toggle
+- Identical force parameters and interaction handlers for both modes
+
+**Advanced Label Rendering**:
+- **2D Mode**: Custom `nodeCanvasObject` with scaled text rendering below nodes
+- **3D Mode**: THREE.js sprite textures with canvas-generated text positioned above spheres
+- Optimized sizing and positioning for readability at all zoom levels
+
+**Drag Behavior Resolution**:
+- Investigated react-force-graph wrapper interference with standard D3 drag patterns
+- Implemented `onNodeDragEnd` pinning using `fx`/`fy`/`fz` position constraints
+- Created minimal configuration approach following reference examples
+
+**Force Optimization**:
+- Weak repulsion force (-10) to minimize node spreading
+- Strong centering force (5.0) to maintain compact layout
+- High link strength (5) with short distances (25px) for tight connections
+- Collision detection with appropriate node radius calculations
+
+**Development Methodology**:
+- **Pure D3 Validation**: Created standalone implementation to isolate library-specific issues
+- **Incremental Enhancement**: Progressive feature addition with immediate testing
+- **Cross-Mode Compatibility**: Ensured feature parity between 2D and 3D views
+- **Performance Optimization**: Efficient rendering with appropriate force parameters
+
+**User Experience Improvements**:
+- **Immediate Visual Feedback**: Always-visible labels eliminate need for hover interactions
+- **Flexible Viewing**: Easy toggle between practical 2D and immersive 3D experiences
+- **Stable Interaction**: Resolved spreading issues for precise node positioning
+- **Rich Information**: Comprehensive tooltips and detail panels for entity exploration
+
+**Integration Benefits**:
+- **Seamless Data Pipeline**: Direct compatibility with existing graph memory JSON format
+- **Real-time Updates**: Dynamic loading of agent memory graphs with copy script automation
+- **Developer Debugging**: Pure D3 fallback for troubleshooting force behavior
+- **Production Ready**: Stable, performant viewer suitable for demonstration and analysis
+
+**Impact**: The enhanced Memory Graph Viewer now provides a professional, feature-rich interface for exploring knowledge graphs with both practical 2D analysis capabilities and impressive 3D visualization. The resolution of drag behavior issues and addition of always-visible labels significantly improves usability, making the graph memory system's structured knowledge representation truly accessible and interactive.
+
+This completes the comprehensive graph visualization component for Phase 5, providing essential tooling for understanding and demonstrating the sophisticated knowledge representation capabilities of the LLM Agent Framework.
   
