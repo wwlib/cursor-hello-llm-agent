@@ -1,5 +1,7 @@
 import React, { useState, useCallback, useRef } from 'react';
 import ForceGraph2D from 'react-force-graph-2d';
+import ForceGraph3D from 'react-force-graph-3d';
+import * as THREE from 'three';
 import './App.css';
 
 const App = () => {
@@ -7,6 +9,7 @@ const App = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [selectedNode, setSelectedNode] = useState(null);
+  const [is3D, setIs3D] = useState(true);
   const fgRef = useRef();
 
   // Color mapping for different entity types
@@ -22,23 +25,6 @@ const App = () => {
     return colorMap[node.type] || '#95a5a6';
   };
 
-  // Color mapping for different relationship types
-  const getLinkColor = (link) => {
-    const colorMap = {
-      located_in: '#3498db',
-      owns: '#e74c3c',
-      member_of: '#9b59b6',
-      allies_with: '#2ecc71',
-      enemies_with: '#e67e22',
-      uses: '#f39c12',
-      created_by: '#1abc9c',
-      leads_to: '#34495e',
-      participates_in: '#8e44ad',
-      related_to: '#95a5a6',
-      mentions: '#d35400'
-    };
-    return colorMap[link.relationship] || '#bdc3c7';
-  };
 
   const loadGraphData = useCallback(async (nodesFile, edgesFile) => {
     setLoading(true);
@@ -113,17 +99,146 @@ const App = () => {
     setSelectedNode(node);
   }, []);
 
-  const handleNodeRightClick = useCallback(node => {
-    // Focus camera on node
-    if (fgRef.current) {
-      fgRef.current.centerAt(node.x, node.y, 1000);
-      fgRef.current.zoom(8, 2000);
-    }
+
+  const handleNodeDragEnd = useCallback((node) => {
+    // Pin the node at its final position (react-force-graph approach)
+    node.fx = node.x;
+    node.fy = node.y;
+    node.fz = node.z;
   }, []);
+
 
   const resetView = () => {
     if (fgRef.current) {
       fgRef.current.zoomToFit(400);
+    }
+  };
+
+  const unpinAllNodes = () => {
+    if (fgRef.current) {
+      const simulation = fgRef.current.d3Force();
+      if (simulation) {
+        const nodes = simulation.nodes();
+        nodes.forEach(node => {
+          delete node.fx;
+          delete node.fy;
+          delete node.fz;
+        });
+        simulation.alpha(0.1).restart(); // Gentle restart to reposition
+      }
+    }
+  };
+
+  // Render the appropriate graph component based on 2D/3D toggle
+  const renderGraph = () => {
+    const commonProps = {
+      ref: fgRef,
+      graphData: graphData,
+      nodeLabel: "name",
+      nodeVal: node => node.val,
+      linkLabel: link => `${link.relationship} (confidence: ${link.confidence})`,
+      linkWidth: link => Math.sqrt(link.weight || 1) * 2,
+      linkDirectionalArrowLength: 4,
+      linkDirectionalArrowRelPos: 1,
+      onNodeClick: handleNodeClick,
+      onNodeDragEnd: handleNodeDragEnd,
+      d3Force: {
+        charge: { strength: -10 },
+        link: { 
+          distance: 25,
+          strength: 5
+        },
+        center: { strength: 5.0 },
+        collision: {
+          radius: node => Math.sqrt(node.val || 5) * 2.5,
+          strength: 0.9
+        }
+      },
+      width: window.innerWidth,
+      height: window.innerHeight - 200
+    };
+
+    if (is3D) {
+      return (
+        <ForceGraph3D
+          {...commonProps}
+          nodeAutoColorBy="type"
+          nodeThreeObject={node => {
+            // Create a group to hold both sphere and text
+            const group = new THREE.Group();
+            
+            // Create sphere for the node
+            const nodeGeometry = new THREE.SphereGeometry(Math.sqrt(node.val || 5) * 2);
+            const nodeMaterial = new THREE.MeshLambertMaterial({ 
+              color: getNodeColor(node)
+            });
+            const sphere = new THREE.Mesh(nodeGeometry, nodeMaterial);
+            group.add(sphere);
+            
+            // Create text sprite for always-visible label
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            const fontSize = 16;
+            context.font = `${fontSize}px Arial`;
+            context.fillStyle = '#333333';
+            context.textAlign = 'center';
+            
+            const text = node.name || 'unnamed';
+            const textWidth = context.measureText(text).width;
+            canvas.width = textWidth + 10;
+            canvas.height = fontSize + 4;
+            
+            context.font = `${fontSize}px Arial`;
+            context.fillStyle = '#333333';
+            context.textAlign = 'center';
+            context.fillText(text, canvas.width / 2, fontSize);
+            
+            const texture = new THREE.CanvasTexture(canvas);
+            const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
+            const sprite = new THREE.Sprite(spriteMaterial);
+            sprite.scale.set(canvas.width * 0.5, canvas.height * 0.5, 1);
+            sprite.position.set(0, Math.sqrt(node.val || 5) * 3, 0);
+            group.add(sprite);
+            
+            return group;
+          }}
+          showNavInfo={false}
+        />
+      );
+    } else {
+      return (
+        <ForceGraph2D
+          {...commonProps}
+          nodeColor={getNodeColor}
+          nodeCanvasObject={(node, ctx, globalScale) => {
+            // Draw the node circle
+            const label = node.name;
+            const fontSize = 12/globalScale;
+            const radius = Math.sqrt(node.val || 5) * 2;
+            
+            // Draw node circle
+            ctx.beginPath();
+            ctx.arc(node.x, node.y, radius, 0, 2 * Math.PI, false);
+            ctx.fillStyle = getNodeColor(node);
+            ctx.fill();
+            
+            // Draw node border
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 1/globalScale;
+            ctx.stroke();
+            
+            // Draw always-visible label
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = '#333';
+            ctx.font = `${fontSize}px Arial`;
+            
+            // Position label below the node
+            const labelY = node.y + radius + fontSize;
+            ctx.fillText(label, node.x, labelY);
+          }}
+        />
+      );
     }
   };
 
@@ -165,6 +280,12 @@ const App = () => {
             <button onClick={resetView} disabled={graphData.nodes.length === 0}>
               Reset View
             </button>
+            <button onClick={unpinAllNodes} disabled={graphData.nodes.length === 0}>
+              Unpin All Nodes
+            </button>
+            <button onClick={() => setIs3D(!is3D)}>
+              Switch to {is3D ? '2D' : '3D'} View
+            </button>
           </div>
         </div>
         
@@ -177,25 +298,7 @@ const App = () => {
       </header>
 
       <main className="graph-container">
-        <ForceGraph2D
-          ref={fgRef}
-          graphData={graphData}
-          nodeLabel={node => `${node.name} (${node.type})`}
-          nodeColor={getNodeColor}
-          nodeVal={node => node.val}
-          linkLabel={link => `${link.relationship} (confidence: ${link.confidence})`}
-          linkColor={getLinkColor}
-          linkWidth={link => Math.sqrt(link.weight) * 2}
-          linkDirectionalArrowLength={6}
-          linkDirectionalArrowRelPos={1}
-          onNodeClick={handleNodeClick}
-          onNodeRightClick={handleNodeRightClick}
-          cooldownTicks={100}
-          d3AlphaDecay={0.02}
-          d3VelocityDecay={0.3}
-          width={window.innerWidth}
-          height={window.innerHeight - 200}
-        />
+        {renderGraph()}
       </main>
 
       {selectedNode && (
