@@ -1,0 +1,322 @@
+{
+  "location_3ce0396c": {
+    "id": "location_3ce0396c",
+    "type": "location",
+    "name": "The Lost Valley",
+    "description": "A hidden valley concealed by mountains.",
+    "aliases": [],
+    "created_at": "2025-06-07T16:18:37.676418",
+    "updated_at": "2025-06-07T16:18:37.676427",
+    "mention_count": 1,
+    "attributes": {}
+  },
+  "location_3f0dd705": {
+    "id": "location_3f0dd705",
+    "type": "location",
+    "name": "mountains",
+    "description": "Impassable mountain range forming a barrier",
+    "aliases": [],
+    "created_at": "2025-06-07T16:18:37.756484",
+    "updated_at": "2025-06-07T16:18:37.756493",
+    "mention_count": 1,
+    "attributes": {}
+  },
+  "location_11f26f1a": {
+    "id": "location_11f26f1a",
+    "type": "location",
+    "name": "valley",
+    "description": "Ruins of a forgotten civilization emitting energy",
+    "aliases": [
+      "ancient ruins"
+    ],
+    "created_at": "2025-06-07T16:18:38.902670",
+    "updated_at": "2025-06-07T16:22:00.589504",
+    "mention_count": 3,
+    "attributes": {}
+  },
+  "location_34d2a3cd": {
+    "id": "location_34d2a3cd",
+    "type": "location",
+    "name": "ruins",
+    "description": "The remains of an ancient structure or civilization",
+    "aliases": [],
+    "created_at": "2025-06-07T16:18:39.008671",
+    "updated_at": "2025-06-07T16:22:03.872786",
+    "mention_count": 3,
+    "attributes": {}
+  },
+  "concept_43fd23a5": {
+    "id": "concept_43fd23a5",
+    "type": "concept",
+    "name": "magical anomalies",
+    "description": "A visible manifestation of magical or supernatural energy",
+    "aliases": [
+      "magical effects",
+      "pulsating energy"
+    ],
+    "created_at": "2025-06-07T16:18:39.109290",
+    "updated_at": "2025-06-07T16:24:29.197868",
+    "mention_count": 3,
+    "attributes": {}
+  },
+  "location_86702ae5": {
+    "id": "location_86702ae5",
+    "type": "location",
+    "name": "Haven",
+    "description": "A main settlement situated to the west",
+    "aliases": [
+      "Riverwatch",
+      "Mountainkeep"
+    ],
+    "created_at": "2025-06-07T16:18:40.116541",
+    "updated_at": "2025-06-07T16:18:40.379119",
+    "mention_count": 3,
+    "attributes": {}
+  },
+  "character_8925296d": {
+    "id": "character_8925296d",
+    "type": "character",
+    "name": "Elena",
+    "description": "The Mayor of Haven, a non-player character",
+    "aliases": [],
+    "created_at": "2025-06-07T16:18:41.146068",
+    "updated_at": "2025-06-07T16:18:41.146075",
+    "mention_count": 1,
+    "attributes": {}
+  },
+  "location_5004d33d": {
+    "id": "location_5004d33d",
+    "type": "location",
+    "name": "Haven",
+    "description": "A valley and the location where Elena serves as Mayor",
+    "aliases": [],
+    "created_at": "2025-06-07T16:18:41.308800",
+    "updated_at": "2025-06-07T16:18:41.308807",
+    "mention_count": 1,
+    "attributes": {}
+  },
+  "character_280ab5fe": {
+    "id": "character_280ab5fe",
+    "type": "character",
+    "name": "Theron",
+    "description": "A Master Scholar specializing in ancient ruins and artifacts.",
+    "aliases": [],
+    "created_at": "2025-06-07T16:18:42.083302",
+    "updated_at": "2025-06-07T16:24:07.099660",
+    "mention_count": 2,
+    "attributes": {}
+  },
+  "concept_19fd17aa": {
+    "id": "concept_19fd17aa",
+    "type": "concept",
+    "name": "ancient ruins and artifacts",
+    "description": "Physical remains of past civilizations and their associated objects",
+    "aliases": [],
+    "created_at": "2025-06-07T16:18:42.173862",
+    "updated_at": "2025-06-07T16:18:42.173871",
+    "mention_count": 1,
+    "attributes": {}
+  },
+  "character_3ecf7b85": {
+    "id": "character_3ecf7b85",
+    "type": "character",
+    "name": "Sara",
+    "description": "The Captain of Riverwatch, responsible for the valley's defense",
+    "aliases": [],
+    "created_at": "2025-06-07T16:18:43.035127",
+    "updated_at": "2025-06-07T16:18:43.035136",
+    "mention_count": 1,
+    "attributes": {}
+  },
+  "location_968939ce": {
+    "id": "location_968939ce",
+    "type": "location",
+    "name": "Riverwatch",
+    "description": "A valley defended by the Captain Sara",
+    "aliases": [],
+    "created_at": "2025-06-07T16:18:43.121908",
+    "updated_at": "2025-06-07T16:18:43.121918",
+    "mention_count": 1,
+    "attributes": {}
+  },
+  "location_549cd26c": {
+    "id": "location_549cd26c",
+    "type": "location",
+    "name": "settlements",
+    "description": "Named areas where trade occurs",
+    "aliases": [],
+    "created_at": "2025-06-07T16:18:43.970089",
+    "updated_at": "2025-06-07T16:18:43.970097",
+    "mention_count": 1,
+    "attributes": {}
+  },
+  "character_37151393": {
+    "id": "character_37151393",
+    "type": "character",
+    "name": "merchants",
+    "description": "Individuals involved in trade seeking protection",
+    "aliases": [],
+    "created_at": "2025-06-07T16:18:44.064519",
+    "updated_at": "2025-06-07T16:18:44.064527",
+    "mention_count": 1,
+    "attributes": {}
+  },
+  "concept_f7afbedb": {
+    "id": "concept_f7afbedb",
+    "type": "concept",
+    "name": "strange energy emanations",
+    "description": "An unusual energy field or phenomenon",
+    "aliases": [],
+    "created_at": "2025-06-07T16:18:45.235809",
+    "updated_at": "2025-06-07T16:18:45.235817",
+    "mention_count": 1,
+    "attributes": {}
+  },
+  "concept_8747b854": {
+    "id": "concept_8747b854",
+    "type": "concept",
+    "name": "wildlife",
+    "description": "Animals and plants native to a specific region",
+    "aliases": [
+      "local wildlife"
+    ],
+    "created_at": "2025-06-07T16:18:46.642658",
+    "updated_at": "2025-06-07T16:22:03.960728",
+    "mention_count": 2,
+    "attributes": {}
+  },
+  "location_e9f47f34": {
+    "id": "location_e9f47f34",
+    "type": "location",
+    "name": "ruins themselves",
+    "description": "The ancient structures causing the magical effects",
+    "aliases": [],
+    "created_at": "2025-06-07T16:18:46.728634",
+    "updated_at": "2025-06-07T16:18:46.728642",
+    "mention_count": 1,
+    "attributes": {}
+  },
+  "object_fd9a487b": {
+    "id": "object_fd9a487b",
+    "type": "object",
+    "name": "artifacts",
+    "description": "Valuable items recovered from the ruins",
+    "aliases": [],
+    "created_at": "2025-06-07T16:22:00.696240",
+    "updated_at": "2025-06-07T16:22:00.696248",
+    "mention_count": 1,
+    "attributes": {}
+  },
+  "location_4afb02df": {
+    "id": "location_4afb02df",
+    "type": "location",
+    "name": "chambers",
+    "description": "Newly discovered rooms within a larger structure",
+    "aliases": [],
+    "created_at": "2025-06-07T16:22:01.344258",
+    "updated_at": "2025-06-07T16:22:01.344265",
+    "mention_count": 1,
+    "attributes": {}
+  },
+  "character_791f762c": {
+    "id": "character_791f762c",
+    "type": "character",
+    "name": "Theron",
+    "description": "A Master Scholar",
+    "aliases": [],
+    "created_at": "2025-06-07T16:22:02.028235",
+    "updated_at": "2025-06-07T16:22:02.028242",
+    "mention_count": 1,
+    "attributes": {}
+  },
+  "location_bcaff3fa": {
+    "id": "location_bcaff3fa",
+    "type": "location",
+    "name": "ruin inscriptions",
+    "description": "A newly discovered room with inscriptions.",
+    "aliases": [
+      "chamber"
+    ],
+    "created_at": "2025-06-07T16:22:02.128364",
+    "updated_at": "2025-06-07T16:24:30.200961",
+    "mention_count": 2,
+    "attributes": {}
+  },
+  "concept_e3b6d329": {
+    "id": "concept_e3b6d329",
+    "type": "concept",
+    "name": "inscriptions",
+    "description": "Ancient writings used for decoding",
+    "aliases": [],
+    "created_at": "2025-06-07T16:22:03.601350",
+    "updated_at": "2025-06-07T16:22:03.601358",
+    "mention_count": 1,
+    "attributes": {}
+  },
+  "concept_0b3b0a58": {
+    "id": "concept_0b3b0a58",
+    "type": "concept",
+    "name": "energy emanations",
+    "description": "Sources of magical or otherworldly energy",
+    "aliases": [],
+    "created_at": "2025-06-07T16:22:03.699955",
+    "updated_at": "2025-06-07T16:22:03.699964",
+    "mention_count": 1,
+    "attributes": {}
+  },
+  "object_e7d02e90": {
+    "id": "object_e7d02e90",
+    "type": "object",
+    "name": "artifacts",
+    "description": "Historically significant objects, often magical or valuable",
+    "aliases": [],
+    "created_at": "2025-06-07T16:22:03.787036",
+    "updated_at": "2025-06-07T16:22:03.787044",
+    "mention_count": 1,
+    "attributes": {}
+  },
+  "concept_56cd2db4": {
+    "id": "concept_56cd2db4",
+    "type": "concept",
+    "name": "inscriptions",
+    "description": "Text or markings intended to convey information or meaning",
+    "aliases": [],
+    "created_at": "2025-06-07T16:24:07.842182",
+    "updated_at": "2025-06-07T16:24:07.842189",
+    "mention_count": 1,
+    "attributes": {}
+  },
+  "concept_cb7d6558": {
+    "id": "concept_cb7d6558",
+    "type": "concept",
+    "name": "energy emanations",
+    "description": "Visible or palpable release of energy",
+    "aliases": [],
+    "created_at": "2025-06-07T16:24:07.942736",
+    "updated_at": "2025-06-07T16:24:07.942743",
+    "mention_count": 1,
+    "attributes": {}
+  },
+  "location_8084ce37": {
+    "id": "location_8084ce37",
+    "type": "location",
+    "name": "crumbling stone walls",
+    "description": "The exterior walls of a structure, described as damaged and decaying",
+    "aliases": [],
+    "created_at": "2025-06-07T16:24:29.087206",
+    "updated_at": "2025-06-07T16:24:29.087214",
+    "mention_count": 1,
+    "attributes": {}
+  },
+  "character_8c7f2700": {
+    "id": "character_8c7f2700",
+    "type": "character",
+    "name": "Theron",
+    "description": "A player character meticulously examining a chamber.",
+    "aliases": [],
+    "created_at": "2025-06-07T16:24:30.107882",
+    "updated_at": "2025-06-07T16:24:30.107889",
+    "mention_count": 1,
+    "attributes": {}
+  }
+}

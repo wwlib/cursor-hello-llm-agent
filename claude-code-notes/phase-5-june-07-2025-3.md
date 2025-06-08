@@ -1174,6 +1174,11 @@ echo "Please describe the ruins in detail" | DEV_MODE=true OLLAMA_BASE_URL=http:
 
 
 
+Total cost:            $2.87
+Total duration (API):  10m 52.2s
+Total duration (wall): 39m 21.3s
+Total code changes:    297 lines added, 11 lines removed
+Token usage by model:
+    claude-3-5-haiku:  68.8k input, 1.6k output, 0 cache read, 0 cache write
+       claude-sonnet:  104 input, 18.6k output, 4.3m cache read, 326.7k cache write
 
-
-   

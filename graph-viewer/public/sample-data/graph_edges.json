@@ -1,0 +1,222 @@
+[
+  {
+    "id": "8eebe5f8-45ff-4e04-b7ba-dfee56fc4a80",
+    "from_node_id": "location_3ce0396c",
+    "to_node_id": "location_3f0dd705",
+    "relationship": "related_to",
+    "weight": 1.0,
+    "created_at": "2025-06-07T16:19:01.242584",
+    "updated_at": "2025-06-07T16:19:01.244822",
+    "confidence": 0.8,
+    "evidence": "The campaign setting is known as The Lost Valley, a hidden valley concealed by impassable mountains."
+  },
+  {
+    "id": "827f59d9-a1c6-4064-aa5c-8fb679e6d931",
+    "from_node_id": "location_11f26f1a",
+    "to_node_id": "location_34d2a3cd",
+    "relationship": "related_to",
+    "weight": 1.0,
+    "created_at": "2025-06-07T16:19:01.246755",
+    "updated_at": "2025-06-07T16:19:01.246760",
+    "confidence": 0.95,
+    "evidence": "Scattered throughout the valley are ancient ruins, and various mysterious magical anomalies are present."
+  },
+  {
+    "id": "c7ce4b85-a9d0-4891-b8c2-025abebad26b",
+    "from_node_id": "concept_43fd23a5",
+    "to_node_id": "location_11f26f1a",
+    "relationship": "related_to",
+    "weight": 1.0,
+    "created_at": "2025-06-07T16:19:01.248603",
+    "updated_at": "2025-06-07T16:19:01.248609",
+    "confidence": 0.8,
+    "evidence": "Scattered throughout the valley are ancient ruins, and various mysterious magical anomalies are present."
+  },
+  {
+    "id": "60deafff-a0ea-4c4a-bef0-0c12b80d2e77",
+    "from_node_id": "location_86702ae5",
+    "to_node_id": "location_86702ae5",
+    "relationship": "related_to",
+    "weight": 1.0,
+    "created_at": "2025-06-07T16:19:01.250420",
+    "updated_at": "2025-06-07T16:19:01.254139",
+    "confidence": 0.5,
+    "evidence": "There are three main settlements: Haven, located centrally; Riverwatch, situated to the east; and Mountainkeep, located to the west."
+  },
+  {
+    "id": "9f7c9968-1799-4467-85d2-17934a46766f",
+    "from_node_id": "character_8925296d",
+    "to_node_id": "location_86702ae5",
+    "relationship": "related_to",
+    "weight": 1.0,
+    "created_at": "2025-06-07T16:19:01.255964",
+    "updated_at": "2025-06-07T16:19:01.255970",
+    "confidence": 0.9,
+    "evidence": "Key non-player characters include Elena, who serves as the Mayor of Haven and whose motivation is to protect the valley's inhabitants;"
+  },
+  {
+    "id": "c94cc059-fdd5-44e1-9304-b36c3ad555b8",
+    "from_node_id": "character_280ab5fe",
+    "to_node_id": "concept_19fd17aa",
+    "relationship": "related_to",
+    "weight": 1.0,
+    "created_at": "2025-06-07T16:19:01.257888",
+    "updated_at": "2025-06-07T16:19:01.259662",
+    "confidence": 0.8,
+    "evidence": "Theron, a Master Scholar specializing in ancient ruins and artifacts currently researching the decoding of ruin inscriptions;"
+  },
+  {
+    "id": "80156c10-80a2-4c50-b4f2-4cd247ba8522",
+    "from_node_id": "character_3ecf7b85",
+    "to_node_id": "location_86702ae5",
+    "relationship": "related_to",
+    "weight": 1.0,
+    "created_at": "2025-06-07T16:19:01.261390",
+    "updated_at": "2025-06-07T16:19:01.263207",
+    "confidence": 0.9,
+    "evidence": "and Sara, the Captain of Riverwatch, responsible for the valley's defense and currently concerned about increased monster activity."
+  },
+  {
+    "id": "d1c2c54a-6686-46cb-ad37-bf4d3ae7a4a9",
+    "from_node_id": "location_549cd26c",
+    "to_node_id": "character_37151393",
+    "relationship": "related_to",
+    "weight": 1.0,
+    "created_at": "2025-06-07T16:19:01.265060",
+    "updated_at": "2025-06-07T16:19:01.265065",
+    "confidence": 0.9,
+    "evidence": "Currently, trade routes between the settlements are disrupted, with merchants seeking protection."
+  },
+  {
+    "id": "d83e6a35-fc7b-40ef-8042-7afbc2795dcc",
+    "from_node_id": "character_37151393",
+    "to_node_id": "location_549cd26c",
+    "relationship": "related_to",
+    "weight": 1.0,
+    "created_at": "2025-06-07T16:19:01.266888",
+    "updated_at": "2025-06-07T16:19:01.266893",
+    "confidence": 0.8,
+    "evidence": "Currently, trade routes between the settlements are disrupted, with merchants seeking protection."
+  },
+  {
+    "id": "26773436-e5ca-4aac-99de-46c63bd54bee",
+    "from_node_id": "concept_43fd23a5",
+    "to_node_id": "location_34d2a3cd",
+    "relationship": "related_to",
+    "weight": 1.0,
+    "created_at": "2025-06-07T16:19:01.268702",
+    "updated_at": "2025-06-07T16:19:01.268707",
+    "confidence": 0.7,
+    "evidence": "Valuable artifacts have been found within the ruins, and random magical effects are occurring, impacting local wildlife, potentially linked to the ruins themselves."
+  },
+  {
+    "id": "59f40a3f-54b0-4e98-a21d-458051b370f1",
+    "from_node_id": "concept_8747b854",
+    "to_node_id": "location_34d2a3cd",
+    "relationship": "related_to",
+    "weight": 1.0,
+    "created_at": "2025-06-07T16:19:01.270884",
+    "updated_at": "2025-06-07T16:19:01.270889",
+    "confidence": 0.7,
+    "evidence": "Valuable artifacts have been found within the ruins, and random magical effects are occurring, impacting local wildlife, potentially linked to the ruins themselves."
+  },
+  {
+    "id": "1ade1610-d5e7-4e10-81ce-389212a9fa99",
+    "from_node_id": "location_e9f47f34",
+    "to_node_id": "concept_43fd23a5",
+    "relationship": "related_to",
+    "weight": 1.0,
+    "created_at": "2025-06-07T16:19:01.272998",
+    "updated_at": "2025-06-07T16:19:01.273002",
+    "confidence": 0.6,
+    "evidence": "Valuable artifacts have been found within the ruins, and random magical effects are occurring, impacting local wildlife, potentially linked to the ruins themselves."
+  },
+  {
+    "id": "bd240590-7288-432a-9d54-4687c46d1f9c",
+    "from_node_id": "object_fd9a487b",
+    "to_node_id": "location_11f26f1a",
+    "relationship": "located_in",
+    "weight": 1.0,
+    "created_at": "2025-06-07T16:22:08.802359",
+    "updated_at": "2025-06-07T16:22:08.802367",
+    "evidence": "The ancient ruins are emitting strange energy emanations and have yielded valuable artifacts.",
+    "confidence": 0.9
+  },
+  {
+    "id": "a97e7be9-96f7-4ee6-ad1c-5823e43066f7",
+    "from_node_id": "character_280ab5fe",
+    "to_node_id": "location_bcaff3fa",
+    "relationship": "participates_in",
+    "weight": 1.0,
+    "created_at": "2025-06-07T16:22:08.805730",
+    "updated_at": "2025-06-07T16:24:32.461154",
+    "evidence": "Theron is already there, meticulously examining a newly discovered chamber, his attention focused on the intricate inscriptions etched into its surface.",
+    "confidence": 0.95
+  },
+  {
+    "id": "789c1137-f088-420c-86e6-197deafe5ba6",
+    "from_node_id": "concept_e3b6d329",
+    "to_node_id": "concept_0b3b0a58",
+    "relationship": "uses",
+    "weight": 1.0,
+    "created_at": "2025-06-07T16:22:08.808273",
+    "updated_at": "2025-06-07T16:24:09.387179",
+    "evidence": "He's open to assisting you - he believes deciphering the inscriptions could reveal the source of the energy emanations.",
+    "confidence": 0.95
+  },
+  {
+    "id": "77d26c19-f69c-4579-899c-bf17ccb2c011",
+    "from_node_id": "object_fd9a487b",
+    "to_node_id": "location_34d2a3cd",
+    "relationship": "related_to",
+    "weight": 1.0,
+    "created_at": "2025-06-07T16:22:08.810857",
+    "updated_at": "2025-06-07T16:22:08.810862",
+    "evidence": "Potential quests could involve deciphering the inscriptions to understand the source of the energy emanations, recovering more artifacts, or investigating the impact of the ruins on the local wildlife.",
+    "confidence": 0.7
+  },
+  {
+    "id": "5e1cdc8d-2ea7-40a4-9c84-2d694d8b38f5",
+    "from_node_id": "location_34d2a3cd",
+    "to_node_id": "concept_8747b854",
+    "relationship": "related_to",
+    "weight": 1.0,
+    "created_at": "2025-06-07T16:22:08.813453",
+    "updated_at": "2025-06-07T16:22:08.813458",
+    "evidence": "Potential quests could involve deciphering the inscriptions to understand the source of the energy emanations, recovering more artifacts, or investigating the impact of the ruins on the local wildlife.",
+    "confidence": 0.6
+  },
+  {
+    "id": "cce29eb9-3555-44f5-9216-e3a0db902242",
+    "from_node_id": "concept_e3b6d329",
+    "to_node_id": "object_fd9a487b",
+    "relationship": "related_to",
+    "weight": 1.0,
+    "created_at": "2025-06-07T16:22:08.816060",
+    "updated_at": "2025-06-07T16:22:08.816066",
+    "evidence": "Potential quests could involve deciphering the inscriptions to understand the source of the energy emanations, recovering more artifacts, or investigating the impact of the ruins on the local wildlife.",
+    "confidence": 0.5
+  },
+  {
+    "id": "c00ac7ba-ee2a-449f-b4e2-cdb5e43de817",
+    "from_node_id": "concept_0b3b0a58",
+    "to_node_id": "concept_e3b6d329",
+    "relationship": "related_to",
+    "weight": 1.0,
+    "created_at": "2025-06-07T16:24:09.390627",
+    "updated_at": "2025-06-07T16:24:09.390637",
+    "evidence": "He's open to assisting you - he believes deciphering the inscriptions could reveal the source of the energy emanations.",
+    "confidence": 0.8
+  },
+  {
+    "id": "69d7f5ae-7776-4500-8b6c-830efbc3f0dc",
+    "from_node_id": "character_280ab5fe",
+    "to_node_id": "location_bcaff3fa",
+    "relationship": "located_in",
+    "weight": 1.0,
+    "created_at": "2025-06-07T16:24:32.464581",
+    "updated_at": "2025-06-07T16:24:32.464588",
+    "evidence": "Theron is already there, meticulously examining a newly discovered chamber, his attention focused on the intricate inscriptions etched into its surface.",
+    "confidence": 0.8
+  }
+]
