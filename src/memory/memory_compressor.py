@@ -3,21 +3,22 @@
 This module provides functionality for compressing conversation history into a more
 efficient memory format while preserving important information.
 
-Design Principles:
-1. Separation of Concerns
-   - Memory compression logic is isolated from memory management
-   - Clear interface for compression operations
-   - Configurable compression parameters
+Design Principles::
 
-2. Efficient Compression
-   - Processes conversations in natural turns (user + agent pairs)
-   - Maintains conversation context and flow
-   - Preserves important information while reducing redundancy
+    1. Separation of Concerns
+       - Memory compression logic is isolated from memory management
+       - Clear interface for compression operations
+       - Configurable compression parameters
 
-3. Quality Control
-   - Uses LLM with temperature=0 for deterministic results
-   - Properly handles Unicode and special characters
-   - Maintains traceability with source GUIDs
+    2. Efficient Compression
+       - Processes conversations in natural turns (user + agent pairs)
+       - Maintains conversation context and flow
+       - Preserves important information while reducing redundancy
+
+    3. Quality Control
+       - Uses LLM with temperature=0 for deterministic results
+       - Properly handles Unicode and special characters
+       - Maintains traceability with source GUIDs
 """
 
 from typing import Any, Dict, List, Optional
