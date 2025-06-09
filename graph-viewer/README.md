@@ -2,6 +2,11 @@
 
 A React-based visualization tool for viewing knowledge graphs from the LLM Agent Framework's graph memory system.
 
+
+## TODO
+- Add a UI button to "Pin All Nodes"
+
+
 ## Features
 
 - **Interactive Graph Visualization**: Force-directed graph layout with zoom and pan
