@@ -1,0 +1,210 @@
+{
+  "location_ea89195b": {
+    "id": "location_ea89195b",
+    "type": "location",
+    "name": "The Lost Valley",
+    "description": "A hidden valley surrounded by mountains.",
+    "aliases": [],
+    "created_at": "2025-06-08T06:36:55.597514",
+    "updated_at": "2025-06-08T06:36:55.597522",
+    "mention_count": 1,
+    "attributes": {}
+  },
+  "location_206f0379": {
+    "id": "location_206f0379",
+    "type": "location",
+    "name": "mountains",
+    "description": "Impassable mountains surrounding the Lost Valley",
+    "aliases": [],
+    "created_at": "2025-06-08T06:36:55.764896",
+    "updated_at": "2025-06-08T06:36:55.764905",
+    "mention_count": 1,
+    "attributes": {}
+  },
+  "object_e7259e39": {
+    "id": "object_e7259e39",
+    "type": "object",
+    "name": "ancient ruins",
+    "description": "Ruins scattered throughout the Lost Valley",
+    "aliases": [],
+    "created_at": "2025-06-08T06:36:55.863560",
+    "updated_at": "2025-06-08T06:36:55.863569",
+    "mention_count": 1,
+    "attributes": {}
+  },
+  "concept_ab3c9bde": {
+    "id": "concept_ab3c9bde",
+    "type": "concept",
+    "name": "magical anomalies",
+    "description": "Mysterious magical occurrences within the valley",
+    "aliases": [],
+    "created_at": "2025-06-08T06:36:55.961471",
+    "updated_at": "2025-06-08T06:36:55.961480",
+    "mention_count": 1,
+    "attributes": {}
+  },
+  "location_d7a725c6": {
+    "id": "location_d7a725c6",
+    "type": "location",
+    "name": "Haven",
+    "description": "A valley requiring defense",
+    "aliases": [
+      "Riverwatch"
+    ],
+    "created_at": "2025-06-08T06:36:57.129220",
+    "updated_at": "2025-06-08T06:36:59.867784",
+    "mention_count": 2,
+    "attributes": {}
+  },
+  "location_368b578b": {
+    "id": "location_368b578b",
+    "type": "location",
+    "name": "Riverwatch",
+    "description": "A settlement located to the west",
+    "aliases": [
+      "Mountainkeep"
+    ],
+    "created_at": "2025-06-08T06:36:57.247162",
+    "updated_at": "2025-06-08T06:36:57.350076",
+    "mention_count": 2,
+    "attributes": {}
+  },
+  "character_1369e31a": {
+    "id": "character_1369e31a",
+    "type": "character",
+    "name": "Elena",
+    "description": "The Mayor of Haven, investigating strange occurrences.",
+    "aliases": [],
+    "created_at": "2025-06-08T06:36:58.167795",
+    "updated_at": "2025-06-08T06:36:58.167803",
+    "mention_count": 1,
+    "attributes": {}
+  },
+  "location_634e1752": {
+    "id": "location_634e1752",
+    "type": "location",
+    "name": "Haven",
+    "description": "A valley and the location where Elena serves as Mayor and investigates strange occurrences.",
+    "aliases": [],
+    "created_at": "2025-06-08T06:36:58.252008",
+    "updated_at": "2025-06-08T06:36:58.252017",
+    "mention_count": 1,
+    "attributes": {}
+  },
+  "character_d8603c2a": {
+    "id": "character_d8603c2a",
+    "type": "character",
+    "name": "Theron",
+    "description": "A Master Scholar specializing in ancient ruins and artifacts.",
+    "aliases": [],
+    "created_at": "2025-06-08T06:36:59.013525",
+    "updated_at": "2025-06-08T06:36:59.013534",
+    "mention_count": 1,
+    "attributes": {}
+  },
+  "location_e4730cf0": {
+    "id": "location_e4730cf0",
+    "type": "location",
+    "name": "ancient ruins",
+    "description": "Ancient remains of a structure",
+    "aliases": [
+      "ruins"
+    ],
+    "created_at": "2025-06-08T06:36:59.117068",
+    "updated_at": "2025-06-08T06:37:02.884250",
+    "mention_count": 3,
+    "attributes": {}
+  },
+  "character_2e4b84d6": {
+    "id": "character_2e4b84d6",
+    "type": "character",
+    "name": "Sara",
+    "description": "Captain of Riverwatch",
+    "aliases": [],
+    "created_at": "2025-06-08T06:36:59.775845",
+    "updated_at": "2025-06-08T06:36:59.775854",
+    "mention_count": 1,
+    "attributes": {}
+  },
+  "location_30a0811c": {
+    "id": "location_30a0811c",
+    "type": "location",
+    "name": "settlements",
+    "description": "Named locations where merchants operate and trade occurs.",
+    "aliases": [],
+    "created_at": "2025-06-08T06:37:00.636981",
+    "updated_at": "2025-06-08T06:37:00.636992",
+    "mention_count": 1,
+    "attributes": {}
+  },
+  "concept_b6787ad6": {
+    "id": "concept_b6787ad6",
+    "type": "concept",
+    "name": "energy emanations",
+    "description": "Strange, potentially magical, radiating energy",
+    "aliases": [],
+    "created_at": "2025-06-08T06:37:01.657299",
+    "updated_at": "2025-06-08T06:37:21.274047",
+    "mention_count": 2,
+    "attributes": {}
+  },
+  "object_93327b93": {
+    "id": "object_93327b93",
+    "type": "object",
+    "name": "artifacts",
+    "description": "Valuable objects discovered within the ruins",
+    "aliases": [],
+    "created_at": "2025-06-08T06:37:01.779178",
+    "updated_at": "2025-06-08T06:37:01.779187",
+    "mention_count": 1,
+    "attributes": {}
+  },
+  "concept_a60b5679": {
+    "id": "concept_a60b5679",
+    "type": "concept",
+    "name": "magical effects",
+    "description": "Mysterious occurrences attributed to magic",
+    "aliases": [
+      "magical anomalies"
+    ],
+    "created_at": "2025-06-08T06:37:02.790169",
+    "updated_at": "2025-06-08T06:37:19.780667",
+    "mention_count": 2,
+    "attributes": {}
+  },
+  "location_7e3be3dd": {
+    "id": "location_7e3be3dd",
+    "type": "location",
+    "name": "Lost Valley",
+    "description": "Ancient structures within the Lost Valley",
+    "aliases": [
+      "ruins"
+    ],
+    "created_at": "2025-06-08T06:37:19.580296",
+    "updated_at": "2025-06-08T06:37:19.678973",
+    "mention_count": 2,
+    "attributes": {}
+  },
+  "location_83e07dcd": {
+    "id": "location_83e07dcd",
+    "type": "location",
+    "name": "chambers",
+    "description": "New rooms or spaces discovered within a larger structure",
+    "aliases": [],
+    "created_at": "2025-06-08T06:37:21.181099",
+    "updated_at": "2025-06-08T06:37:21.181109",
+    "mention_count": 1,
+    "attributes": {}
+  },
+  "object_5f46a186": {
+    "id": "object_5f46a186",
+    "type": "object",
+    "name": "artifacts",
+    "description": "Valuable objects, likely magical or of historical significance",
+    "aliases": [],
+    "created_at": "2025-06-08T06:37:21.365187",
+    "updated_at": "2025-06-08T06:37:21.365196",
+    "mention_count": 1,
+    "attributes": {}
+  }
+}

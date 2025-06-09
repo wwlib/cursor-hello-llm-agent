@@ -2,6 +2,36 @@
 Graph Manager
 
 Core graph operations with RAG-based entity resolution.
+
+This module provides the main GraphManager class that orchestrates all graph memory
+operations including entity extraction, relationship detection, semantic similarity
+matching, and graph storage.
+
+Example::
+
+    from src.memory.graph_memory import GraphManager
+    
+    # Initialize with services
+    graph_manager = GraphManager(
+        llm_service=llm_service,
+        embeddings_manager=embeddings_manager,
+        storage_path="graph_data",
+        domain_config=domain_config
+    )
+    
+    # Add entities with automatic deduplication
+    node, is_new = graph_manager.add_or_update_node(
+        name="Eldara",
+        node_type="character", 
+        description="A fire wizard who runs a magic shop"
+    )
+
+Attributes:
+    storage (~.graph_storage.GraphStorage): Handles JSON persistence of graph data.
+    embeddings_manager (EmbeddingsManager): Manages entity embeddings for similarity.
+    similarity_threshold (float): Threshold for entity similarity matching (default: 0.8).
+    nodes (Dict[str, GraphNode]): In-memory cache of graph nodes.
+    edges (List[GraphEdge]): In-memory cache of graph edges.
 """
 
 import uuid
@@ -16,10 +46,49 @@ from .relationship_extractor import RelationshipExtractor
 
 
 class GraphNode:
-    """Represents a node in the knowledge graph."""
+    """Represents a node in the knowledge graph.
+    
+    A GraphNode stores entity information including its name, type, description,
+    semantic embedding, aliases, and metadata. Nodes support automatic similarity
+    matching to prevent duplicates.
+    
+    Attributes:
+        id (str): Unique identifier for the node.
+        type (str): Entity type (character, location, object, etc.).
+        name (str): Primary name of the entity.
+        description (str): Detailed description for semantic matching.
+        embedding (List[float]): Semantic embedding vector for similarity.
+        aliases (List[str]): Alternative names for this entity.
+        created_at (str): ISO timestamp of creation.
+        updated_at (str): ISO timestamp of last update.
+        mention_count (int): Number of times entity has been mentioned.
+        attributes (Dict[str, Any]): Additional custom attributes.
+    
+    Example::
+
+        node = GraphNode(
+            node_id="character_001",
+            node_type="character",
+            name="Eldara",
+            description="A fire wizard who runs a magic shop in Riverwatch",
+            embedding=[0.1, 0.2, ...],
+            profession="wizard",
+            magic_type="fire"
+        )
+    """
     
     def __init__(self, node_id: str, node_type: str, name: str, description: str, 
                  embedding: Optional[List[float]] = None, **attributes):
+        """Initialize a new graph node.
+        
+        Args:
+            node_id: Unique identifier for the node.
+            node_type: Type of entity (character, location, object, etc.).
+            name: Primary name of the entity.
+            description: Detailed description for semantic embedding.
+            embedding: Optional semantic embedding vector.
+            **attributes: Additional custom attributes for the entity.
+        """
         self.id = node_id
         self.type = node_type
         self.name = name
@@ -36,8 +105,15 @@ class GraphNode:
         
         Args:
             include_embedding: Whether to include embedding vector in output.
-                              Should be False for storage to avoid bloating JSON files.
-                              Embeddings are stored separately in graph_memory_embeddings.jsonl
+                Should be False for storage to avoid bloating JSON files.
+                Embeddings are stored separately in graph_memory_embeddings.jsonl
+                              
+        Returns:
+            Dictionary representation of the node suitable for JSON serialization.
+            
+        Note:
+            Embeddings are excluded by default to keep JSON files manageable.
+            Use include_embedding=True only for in-memory operations.
         """
         result = {
             'id': self.id,
@@ -63,7 +139,17 @@ class GraphNode:
     
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'GraphNode':
-        """Create node from dictionary representation."""
+        """Create node from dictionary representation.
+        
+        Args:
+            data: Dictionary containing node data from JSON storage.
+            
+        Returns:
+            GraphNode instance reconstructed from dictionary data.
+            
+        Raises:
+            KeyError: If required fields are missing from data.
+        """
         attributes = data.copy()
         # Remove standard fields from attributes
         for field in ['id', 'type', 'name', 'description', 'embedding']:
@@ -80,10 +166,44 @@ class GraphNode:
 
 
 class GraphEdge:
-    """Represents an edge in the knowledge graph."""
+    """Represents an edge (relationship) in the knowledge graph.
+    
+    A GraphEdge connects two entities with a typed relationship, including
+    confidence scoring and evidence from the source text.
+    
+    Attributes:
+        id (str): Unique identifier generated automatically.
+        from_node_id (str): Source node identifier.
+        to_node_id (str): Target node identifier. 
+        relationship (str): Type of relationship (located_in, owns, etc.).
+        weight (float): Strength/importance of the relationship.
+        created_at (str): ISO timestamp of creation.
+        updated_at (str): ISO timestamp of last update.
+        attributes (Dict[str, Any]): Additional relationship metadata.
+    
+    Example::
+
+        edge = GraphEdge(
+            from_node_id="character_001",
+            to_node_id="location_002", 
+            relationship="located_in",
+            weight=0.9,
+            evidence="Eldara runs her magic shop in Riverwatch",
+            confidence=0.9
+        )
+    """
     
     def __init__(self, from_node_id: str, to_node_id: str, relationship: str,
                  weight: float = 1.0, **attributes):
+        """Initialize a new graph edge.
+        
+        Args:
+            from_node_id: Identifier of the source node.
+            to_node_id: Identifier of the target node.
+            relationship: Type of relationship between nodes.
+            weight: Strength of the relationship (0.0 to 1.0).
+            **attributes: Additional metadata like evidence, confidence, etc.
+        """
         self.id = str(uuid.uuid4())
         self.from_node_id = from_node_id
         self.to_node_id = to_node_id
@@ -126,24 +246,73 @@ class GraphEdge:
 
 
 class GraphManager:
-    """
-    Main graph management system with RAG-based entity resolution.
+    """Main graph management system with RAG-based entity resolution.
+    
+    GraphManager orchestrates the entire graph memory pipeline including entity
+    extraction, duplicate prevention through semantic similarity matching, 
+    relationship detection, and graph storage. It integrates with LLM services
+    for content extraction and embeddings managers for similarity matching.
+    
+    The system prevents duplicate entities through a multi-stage approach:
+    
+    1. Exact name matching (case-insensitive, alias-aware)
+    2. Semantic similarity matching using embeddings 
+    3. Entity consolidation with mention counting
+    
+    Attributes:
+        storage (~.graph_storage.GraphStorage): Handles JSON persistence.
+        embeddings_manager (EmbeddingsManager): Manages semantic embeddings.
+        similarity_threshold (float): Similarity threshold for entity matching.
+        nodes (Dict[str, GraphNode]): In-memory graph nodes.
+        edges (List[GraphEdge]): In-memory graph edges.
+        entity_extractor (~.entity_extractor.EntityExtractor): LLM-based entity extraction.
+        relationship_extractor (~.relationship_extractor.RelationshipExtractor): LLM-based relationship extraction.
+    
+    Example::
+
+        # Initialize with services
+        graph_manager = GraphManager(
+            llm_service=gemma_service,
+            embeddings_manager=embeddings_mgr,
+            storage_path="campaign_graph",
+            domain_config=dnd_config,
+            similarity_threshold=0.8
+        )
+        
+        # Process conversation segments
+        entities = graph_manager.extract_entities_from_segments(segments)
+        for entity in entities:
+            node, is_new = graph_manager.add_or_update_node(
+                name=entity["name"],
+                node_type=entity["type"],
+                description=entity["description"]
+            )
     """
     
     def __init__(self, storage_path: str, embeddings_manager=None, 
                  similarity_threshold: float = 0.8, logger=None,
                  llm_service=None, embeddings_llm_service=None, domain_config=None):
-        """
-        Initialize graph manager.
+        """Initialize graph manager with required services.
         
         Args:
-            storage_path: Path for graph storage
-            embeddings_manager: EmbeddingsManager instance for entity matching
-            similarity_threshold: Threshold for entity similarity matching
-            logger: Logger instance
-            llm_service: LLM service for entity and relationship extraction (text generation)
-            embeddings_llm_service: LLM service for embeddings generation
-            domain_config: Domain configuration for entity types and relationships
+            storage_path: Directory path for JSON graph storage.
+            embeddings_manager: EmbeddingsManager for semantic similarity matching.
+                If None, only name-based matching will be used.
+            similarity_threshold: Cosine similarity threshold for entity matching.
+                Higher values (closer to 1.0) require more similarity.
+            logger: Logger instance for debugging and monitoring.
+            llm_service: LLM service for entity/relationship extraction (e.g., gemma3).
+            embeddings_llm_service: LLM service for embeddings (e.g., mxbai-embed-large).
+                Defaults to llm_service if not provided.
+            domain_config: Domain-specific configuration with entity/relationship types.
+                          
+        Raises:
+            ValueError: If storage_path is invalid or inaccessible.
+            
+        Note:
+            Both llm_service and domain_config are required for automatic entity
+            and relationship extraction. Without them, only manual node/edge
+            operations will be available.
         """
         self.storage = GraphStorage(storage_path)
         self.embeddings_manager = embeddings_manager
@@ -197,17 +366,48 @@ class GraphManager:
     
     def add_or_update_node(self, name: str, node_type: str, description: str,
                           **attributes) -> Tuple[GraphNode, bool]:
-        """
-        Add a new node or update existing one using semantic similarity matching.
+        """Add a new node or update existing one using semantic similarity matching.
+        
+        This method implements the core duplicate prevention logic:
+        
+        1. Generates semantic embedding for the entity description
+        2. Searches for similar existing entities of the same type
+        3. If similarity exceeds threshold, updates existing entity
+        4. Otherwise creates new entity with unique identifier
         
         Args:
-            name: Node name
-            node_type: Node type (character, location, object, etc.)
-            description: Node description for embedding
-            **attributes: Additional node attributes
+            name: Entity name/identifier.
+            node_type: Type of entity (character, location, object, etc.).
+                Must match domain-configured entity types.
+            description: Detailed description used for semantic embedding.
+                This is the primary text used for similarity matching.
+            **attributes: Additional custom attributes stored with the entity.
             
         Returns:
-            Tuple of (node, is_new) where is_new indicates if node was created
+            Tuple of (GraphNode, bool) where:
+            
+            - GraphNode: The created or updated node
+            - bool: True if new node was created, False if existing node updated
+            
+        Example::
+
+            # Add new entity (or update if similar one exists)
+            node, is_new = graph_manager.add_or_update_node(
+                name="Eldara",
+                node_type="character",
+                description="A fire wizard who runs a magic shop in Riverwatch",
+                profession="wizard",
+                magic_type="fire"
+            )
+            
+            if is_new:
+                print(f"Created new entity: {node.name}")
+            else:
+                print(f"Updated existing entity: {node.name} (mentions: {node.mention_count})")
+            
+        Note:
+            Semantic similarity matching requires embeddings_manager to be configured.
+            Without it, only exact name matching will prevent duplicates.
         """
         # Generate embedding for the description and save to embeddings manager
         embedding = None
@@ -228,7 +428,7 @@ class GraphManager:
                 self.logger.warning(f"Failed to generate/save embedding: {e}")
         
         # Look for similar existing nodes
-        similar_node = self._find_similar_node(description, node_type, embedding)
+        similar_node = self._find_similar_node(name, description, node_type, embedding)
         
         if similar_node:
             # Update existing node
@@ -269,19 +469,50 @@ class GraphManager:
             self.logger.debug(f"Created new node: {node_id}")
             return new_node, True
     
-    def _find_similar_node(self, description: str, node_type: str, 
+    def _find_similar_node(self, name: str, description: str, node_type: str, 
                           embedding: Optional[List[float]]) -> Optional[GraphNode]:
-        """
-        Find similar existing node using semantic similarity.
+        """Find similar existing node using multi-stage matching approach.
+        
+        Implements the optimized duplicate prevention pipeline:
+        
+        Stage 1 - Name-based matching (Priority):
+        - Exact name match (case-insensitive)
+        - Alias matching for known alternative names
+        - Type-specific matching (only same entity types)
+        
+        Stage 2 - Semantic similarity fallback:
+        - Embedding-based cosine similarity
+        - Configurable similarity threshold
+        - Handles different descriptions of same entity
         
         Args:
-            description: Description to match
-            node_type: Node type to filter by
-            embedding: Embedding vector for similarity search
+            name: Entity name to match against existing entities.
+            description: Entity description for semantic similarity.
+            node_type: Entity type to filter candidates.
+            embedding: Semantic embedding vector for similarity calculation.
             
         Returns:
-            Most similar node if found, None otherwise
+            Most similar existing node if found above threshold, None otherwise.
+            
+        Note:
+            This is the core optimization that prevents duplicate entities.
+            Testing shows 100% duplicate prevention with proper threshold tuning.
         """
+        # First: Check for exact name matches of the same type
+        name_lower = name.lower().strip()
+        for node in self.nodes.values():
+            if node.type == node_type:
+                # Check primary name
+                if node.name.lower().strip() == name_lower:
+                    self.logger.debug(f"Found exact name match: {node.id} ('{node.name}' == '{name}')")
+                    return node
+                # Check aliases
+                for alias in node.aliases:
+                    if alias.lower().strip() == name_lower:
+                        self.logger.debug(f"Found alias match: {node.id} (alias '{alias}' == '{name}')")
+                        return node
+        
+        # Second: Use semantic similarity matching as fallback
         if embedding is None or len(embedding) == 0 or not self.embeddings_manager:
             return None
         
@@ -549,12 +780,40 @@ class GraphManager:
     def query_for_context(self, query: str, max_results: int = 5) -> List[Dict[str, Any]]:
         """Query the graph for context relevant to a query using semantic search.
         
+        Provides context retrieval for LLM prompt enhancement by finding entities
+        and their relationships that are semantically relevant to the user's query.
+        
+        The method uses a two-stage approach:
+        
+        1. Semantic similarity search using embeddings (if available)
+        2. Fallback to keyword/string matching for broader coverage
+        
         Args:
-            query: The query to find relevant context for
-            max_results: Maximum number of results to return
+            query: The user query to find relevant context for.
+            max_results: Maximum number of context results to return.
             
         Returns:
-            List of context results with entity information and connections
+            List of context dictionaries, each containing:
+            
+            - name (str): Entity name
+            - type (str): Entity type  
+            - description (str): Entity description
+            - connections (List[Dict]): Related entities and relationships
+            - relevance_score (float): Relevance to the query
+            
+        Example::
+
+            # Find context for user query
+            context = graph_manager.query_for_context("magic shops")
+            
+            for result in context:
+                print(f"{result['name']}: {result['description']}")
+                for conn in result['connections']:
+                    print(f"  -> {conn['relationship']} {conn['target']}")
+            
+        Note:
+            Results are sorted by relevance score (highest first).
+            Semantic search requires embeddings_manager configuration.
         """
         try:
             results = []

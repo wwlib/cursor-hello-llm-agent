@@ -1,25 +1,27 @@
 """Memory Manager for Agent System
 
-Design Principles:
-1. Flexible Memory Design
-   - Maintains conversation history with importance-rated segments
-   - Uses these rated segments for memory compression over time
-   
-2. Domain-Driven Design
-   - Domain-specific guidance is provided through domain_config
-   - The LLM should use these as guidance to remember important information
-   
-3. Memory Organization
-   - static_memory: Contains foundational, unchanging information about the domain
-   - conversation_history: Contains full conversation with important segments rated
-   - context: Contains compressed important information organized by topic
-   
-4. Memory Update Process
-   - Periodically compresses conversation history to retain only important segments
-   - Organizes important information by topics for better retrieval
-   - Balances completeness with efficiency
+Design Principles::
 
-Usage:
+    1. Flexible Memory Design
+       - Maintains conversation history with importance-rated segments
+       - Uses these rated segments for memory compression over time
+       
+    2. Domain-Driven Design
+       - Domain-specific guidance is provided through domain_config
+       - The LLM should use these as guidance to remember important information
+       
+    3. Memory Organization
+       - static_memory: Contains foundational, unchanging information about the domain
+       - conversation_history: Contains full conversation with important segments rated
+       - context: Contains compressed important information organized by topic
+       
+    4. Memory Update Process
+       - Periodically compresses conversation history to retain only important segments
+       - Organizes important information by topics for better retrieval
+       - Balances completeness with efficiency
+
+Usage::
+
     memory_manager = MemoryManager(
         memory_guid=guid,
         llm_service=llm_service,
@@ -48,7 +50,7 @@ from .memory_compressor import MemoryCompressor
 from .data_preprocessor import DataPreprocessor
 from .embeddings_manager import EmbeddingsManager
 from .rag_manager import RAGManager
-from .graph_memory import GraphManager
+from .graph_memory import AltGraphManager as GraphManager
 import asyncio
 import logging
 
