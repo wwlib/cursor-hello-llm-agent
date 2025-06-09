@@ -29,45 +29,45 @@ class EmbeddingsManager:
     4. Adding new embeddings
     5. Performing semantic search
     
-    Basic Approach:
+    Basic Approach::
     
-    1. Generating Embeddings:
-       - Use a local embedding model (e.g., all-MiniLM-L6-v2) for efficiency
-       - Generate embeddings for:
-         * Full conversation entry text
-         * Individual segments from digests
-         * Topics and key concepts
-       - Store metadata with each embedding (entry GUID, timestamp, etc.)
-    
-    2. Saving Embeddings:
-       - Store in JSONL format for easy appending and reading
-       - Each line contains:
-         * embedding: vector as list of floats
-         * metadata: entry GUID, timestamp, text, etc.
-         * source: whether from full entry or segment
-       - Keep embeddings file in sync with conversation history
-    
-    3. Loading Embeddings:
-       - Load embeddings file at initialization
-       - Maintain in-memory index for quick search
-       - Handle missing or corrupted embeddings gracefully
-       - Support incremental loading for large histories
-    
-    4. Adding New Embeddings:
-       - Generate embeddings for new conversation entries
-       - Append to embeddings file
-       - Update in-memory index
-       - Handle duplicates and updates
-    
-    5. Semantic Search:
-       - Convert query to embedding
-       - Compute cosine similarity with all stored embeddings
-       - Return top-k most similar entries
-       - Support filtering by:
-         * date range
-         * importance threshold
-         * specific topics
-       - Return both similarity scores and full entry data
+        1. Generating Embeddings:
+           - Use a local embedding model (e.g., all-MiniLM-L6-v2) for efficiency
+           - Generate embeddings for:
+             * Full conversation entry text
+             * Individual segments from digests
+             * Topics and key concepts
+           - Store metadata with each embedding (entry GUID, timestamp, etc.)
+        
+        2. Saving Embeddings:
+           - Store in JSONL format for easy appending and reading
+           - Each line contains:
+             * embedding: vector as list of floats
+             * metadata: entry GUID, timestamp, text, etc.
+             * source: whether from full entry or segment
+           - Keep embeddings file in sync with conversation history
+        
+        3. Loading Embeddings:
+           - Load embeddings file at initialization
+           - Maintain in-memory index for quick search
+           - Handle missing or corrupted embeddings gracefully
+           - Support incremental loading for large histories
+        
+        4. Adding New Embeddings:
+           - Generate embeddings for new conversation entries
+           - Append to embeddings file
+           - Update in-memory index
+           - Handle duplicates and updates
+        
+        5. Semantic Search:
+           - Convert query to embedding
+           - Compute cosine similarity with all stored embeddings
+           - Return top-k most similar entries
+           - Support filtering by:
+             * date range
+             * importance threshold
+             * specific topics
+           - Return both similarity scores and full entry data
     """
     
     def __init__(self, embeddings_file: str, llm_service=None, logger=None):
