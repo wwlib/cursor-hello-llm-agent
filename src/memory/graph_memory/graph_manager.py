@@ -440,8 +440,15 @@ class GraphManager:
             if name not in similar_node.aliases and name != similar_node.name:
                 similar_node.aliases.append(name)
             
-            # Update attributes
-            similar_node.attributes.update(attributes)
+            # Update attributes with special handling for conversation history GUIDs
+            for key, value in attributes.items():
+                if key == "conversation_history_guids" and isinstance(value, list):
+                    # Merge conversation GUID lists, avoiding duplicates
+                    existing_guids = similar_node.attributes.get("conversation_history_guids", [])
+                    merged_guids = list(set(existing_guids + value))
+                    similar_node.attributes[key] = merged_guids
+                else:
+                    similar_node.attributes[key] = value
             
             # Update embedding if available
             if embedding is not None and len(embedding) > 0:

@@ -35,3 +35,12 @@ Then, during relationship_extraction:
   - Add the new relationships to the graph
     - If a relationship already exists (same type and properties) then do not add it
   - Add any new information from the conversation entry to the existing relationships referenced by the LLM
+
+
+  ## Proposed Improvements
+  - give the entity extraction prompt the most relevant (RAG) nodes so it can match them to entities referenced in the new conversation entry
+    - provide the existing node list WITH unique node ids so the LLM can build a list of referenced nodes using the unique ids
+  - all entities/nodes in the graph should maintain a list of conversation history guids in which the nodes were referenced
+  - first LLM pass should build a list of node CANDIDATES
+  - second LLM pass should match the CANDIDATES to existing nodes - using unique node ids
+    - new nodes will have a blank id so the graph manager will know to add them to the graph

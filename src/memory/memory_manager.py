@@ -582,16 +582,27 @@ class MemoryManager(BaseMemoryManager):
                         "importance": segment.get("importance", 0),
                         "type": segment.get("type", "information"),
                         "memory_worthy": segment.get("memory_worthy", True),
-                        "topics": segment.get("topics", [])
+                        "topics": segment.get("topics", []),
+                        "conversation_guid": entry.get("guid")
                     }])
                     
                     # Add entities to graph (with automatic similarity matching)
                     for entity in entities:
+                        # Prepare attributes with conversation GUID tracking
+                        entity_attributes = entity.get("attributes", {}).copy()
+                        conversation_guid = entity.get("conversation_guid")
+                        if conversation_guid:
+                            # Track conversation GUIDs where this entity was mentioned
+                            if "conversation_history_guids" not in entity_attributes:
+                                entity_attributes["conversation_history_guids"] = []
+                            if conversation_guid not in entity_attributes["conversation_history_guids"]:
+                                entity_attributes["conversation_history_guids"].append(conversation_guid)
+                        
                         self.graph_manager.add_or_update_node(
                             name=entity.get("name", ""),
                             node_type=entity.get("type", "concept"),
                             description=entity.get("description", ""),
-                            attributes=entity.get("attributes", {})
+                            **entity_attributes
                         )
                     
                     # Store segment with its entities for relationship extraction
@@ -689,11 +700,14 @@ class MemoryManager(BaseMemoryManager):
                     
                     # Add entities to graph (with automatic similarity matching)
                     for entity in entities:
+                        # For initial memory, no conversation GUID is available
+                        entity_attributes = entity.get("attributes", {}).copy()
+                        
                         self.graph_manager.add_or_update_node(
                             name=entity.get("name", ""),
                             node_type=entity.get("type", "concept"),
                             description=entity.get("description", ""),
-                            attributes=entity.get("attributes", {})
+                            **entity_attributes
                         )
                     
                     # Store segment with its entities for relationship extraction

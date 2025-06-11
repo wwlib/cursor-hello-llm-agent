@@ -502,6 +502,7 @@ Entities:"""
                 entity['source_text'] = text
                 entity['segment_importance'] = segment.get('importance', 0)
                 entity['segment_topics'] = segment.get('topics', [])
+                entity['conversation_guid'] = segment.get('conversation_guid', '')
                 all_entities.append(entity)
         
         self.logger.debug(f"Extracted {len(all_entities)} entities from {len(segments)} segments")
