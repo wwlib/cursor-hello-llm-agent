@@ -43,6 +43,7 @@ import logging
 from .graph_storage import GraphStorage
 from .entity_extractor import EntityExtractor
 from .relationship_extractor import RelationshipExtractor
+from .entity_resolver import EntityResolver
 
 
 class GraphNode:
@@ -326,9 +327,31 @@ class GraphManager:
         if llm_service and domain_config:
             self.entity_extractor = EntityExtractor(llm_service, domain_config, logger)
             self.relationship_extractor = RelationshipExtractor(llm_service, domain_config, logger)
+            
+            # Initialize entity resolver for enhanced duplicate detection (if enabled)
+            graph_config = domain_config.get("graph_memory_config", {})
+            resolver_enabled = graph_config.get("enable_entity_resolver", True)  # Default to enabled
+            
+            if resolver_enabled and embeddings_manager:
+                confidence_threshold = graph_config.get("similarity_threshold", 0.8)
+                self.entity_resolver = EntityResolver(
+                    llm_service=llm_service,
+                    embeddings_manager=embeddings_manager,
+                    storage_path=storage_path,
+                    confidence_threshold=confidence_threshold,
+                    logger=logger
+                )
+                self.logger.info("EntityResolver enabled for enhanced duplicate detection")
+            else:
+                self.entity_resolver = None
+                if not embeddings_manager:
+                    self.logger.warning("EntityResolver disabled: embeddings_manager not available")
+                else:
+                    self.logger.info("EntityResolver disabled by configuration")
         else:
             self.entity_extractor = None
             self.relationship_extractor = None
+            self.entity_resolver = None
         
         # Load existing graph data
         self._load_graph()
@@ -409,23 +432,13 @@ class GraphManager:
             Semantic similarity matching requires embeddings_manager to be configured.
             Without it, only exact name matching will prevent duplicates.
         """
-        # Generate embedding for the description and save to embeddings manager
+        # Generate embedding for the description
         embedding = None
         if self.embeddings_manager:
             try:
                 embedding = self.embeddings_manager.generate_embedding(description)
-                # Also save to embeddings manager file for persistence
-                entity_metadata = {
-                    'entity_name': name,
-                    'entity_type': node_type,
-                    'text': description,
-                    'timestamp': datetime.now().isoformat(),
-                    'source': 'graph_entity'
-                }
-                entity_metadata.update(attributes)
-                self.embeddings_manager.add_embedding(description, entity_metadata)
             except Exception as e:
-                self.logger.warning(f"Failed to generate/save embedding: {e}")
+                self.logger.warning(f"Failed to generate embedding: {e}")
         
         # Look for similar existing nodes
         similar_node = self._find_similar_node(name, description, node_type, embedding)
@@ -454,6 +467,22 @@ class GraphManager:
             if embedding is not None and len(embedding) > 0:
                 similar_node.embedding = embedding
             
+            # Save embedding to embeddings manager with the node ID
+            if self.embeddings_manager and embedding is not None:
+                try:
+                    entity_metadata = {
+                        'entity_name': name,
+                        'entity_type': node_type,
+                        'entity_id': similar_node.id,  # Include actual node ID
+                        'text': description,
+                        'timestamp': datetime.now().isoformat(),
+                        'source': 'graph_entity'
+                    }
+                    entity_metadata.update(attributes)
+                    self.embeddings_manager.add_embedding(description, entity_metadata)
+                except Exception as e:
+                    self.logger.warning(f"Failed to save embedding: {e}")
+            
             self._save_graph()
             self.logger.debug(f"Updated existing node: {similar_node.id}")
             return similar_node, False
@@ -472,6 +501,23 @@ class GraphManager:
             )
             
             self.nodes[node_id] = new_node
+            
+            # Save embedding to embeddings manager with the node ID
+            if self.embeddings_manager and embedding is not None:
+                try:
+                    entity_metadata = {
+                        'entity_name': name,
+                        'entity_type': node_type,
+                        'entity_id': node_id,  # Include actual node ID
+                        'text': description,
+                        'timestamp': datetime.now().isoformat(),
+                        'source': 'graph_entity'
+                    }
+                    entity_metadata.update(attributes)
+                    self.embeddings_manager.add_embedding(description, entity_metadata)
+                except Exception as e:
+                    self.logger.warning(f"Failed to save embedding: {e}")
+            
             self._save_graph()
             self.logger.debug(f"Created new node: {node_id}")
             return new_node, True
@@ -751,6 +797,120 @@ class GraphManager:
         except Exception as e:
             self.logger.error(f"Error extracting entities from segments: {e}")
             return []
+    
+    def extract_and_resolve_entities_from_segments(self, segments: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Extract entities and resolve them against existing graph using EntityResolver.
+        
+        This method provides enhanced entity processing with sophisticated duplicate detection
+        using the EntityResolver. It extracts entities, resolves them against existing nodes,
+        and automatically adds/updates nodes based on confidence scores.
+        
+        Args:
+            segments: List of segments with text and metadata
+            
+        Returns:
+            List of processed entities with resolution information
+        """
+        if not self.entity_extractor:
+            self.logger.warning("Entity extractor not available - LLM service or domain config missing")
+            return []
+        
+        if not self.entity_resolver:
+            self.logger.warning("Entity resolver not available - falling back to basic extraction")
+            return self.extract_entities_from_segments(segments)
+        
+        try:
+            # Step 1: Extract entities using standard extraction
+            raw_entities = self.entity_extractor.extract_entities_from_segments(segments)
+            self.logger.debug(f"Extracted {len(raw_entities)} raw entities from {len(segments)} segments")
+            
+            if not raw_entities:
+                return []
+            
+            # Step 2: Convert entities to candidates for EntityResolver
+            candidates = []
+            for i, entity in enumerate(raw_entities):
+                candidate = {
+                    "candidate_id": f"candidate_{i}_{entity.get('name', 'unknown')}",
+                    "type": entity.get("type", "concept"),
+                    "name": entity.get("name", ""),
+                    "description": entity.get("description", ""),
+                    "original_entity": entity  # Keep reference to original
+                }
+                candidates.append(candidate)
+            
+            # Step 3: Resolve candidates against existing graph
+            self.logger.debug(f"Resolving {len(candidates)} candidates using EntityResolver")
+            resolutions = self.entity_resolver.resolve_candidates(
+                candidates, 
+                process_individually=True  # Use individual processing for higher accuracy
+            )
+            
+            # Step 4: Process resolutions and update graph
+            processed_entities = []
+            for resolution, candidate in zip(resolutions, candidates):
+                original_entity = candidate["original_entity"]
+                
+                if resolution["auto_matched"] and resolution["resolved_node_id"] != "<NEW>":
+                    # High-confidence match to existing entity
+                    self.logger.debug(f"Entity '{candidate['name']}' matched to existing node "
+                                    f"{resolution['resolved_node_id']} (confidence: {resolution['confidence']:.3f})")
+                    
+                    # Update existing node with new conversation GUID and mention count
+                    existing_node = self.get_node(resolution["resolved_node_id"])
+                    if existing_node:
+                        existing_node.mention_count += 1
+                        
+                        # Update conversation history GUIDs
+                        conversation_guid = original_entity.get("conversation_guid")
+                        if conversation_guid:
+                            if "conversation_history_guids" not in existing_node.attributes:
+                                existing_node.attributes["conversation_history_guids"] = []
+                            if conversation_guid not in existing_node.attributes["conversation_history_guids"]:
+                                existing_node.attributes["conversation_history_guids"].append(conversation_guid)
+                        
+                        # Add resolution info to entity
+                        original_entity["resolved_to"] = resolution["resolved_node_id"]
+                        original_entity["resolution_confidence"] = resolution["confidence"]
+                        original_entity["resolution_type"] = "matched"
+                        
+                        processed_entities.append(original_entity)
+                else:
+                    # Create new entity (either low confidence or explicitly marked as new)
+                    self.logger.debug(f"Creating new entity for '{candidate['name']}' "
+                                    f"(confidence: {resolution['confidence']:.3f})")
+                    
+                    # Add new node to graph using existing add_or_update_node method
+                    entity_attributes = original_entity.get("attributes", {}).copy()
+                    conversation_guid = original_entity.get("conversation_guid")
+                    if conversation_guid:
+                        if "conversation_history_guids" not in entity_attributes:
+                            entity_attributes["conversation_history_guids"] = []
+                        if conversation_guid not in entity_attributes["conversation_history_guids"]:
+                            entity_attributes["conversation_history_guids"].append(conversation_guid)
+                    
+                    node, is_new = self.add_or_update_node(
+                        name=original_entity.get("name", ""),
+                        node_type=original_entity.get("type", "concept"),
+                        description=original_entity.get("description", ""),
+                        **entity_attributes
+                    )
+                    
+                    # Add resolution info to entity
+                    original_entity["resolved_to"] = node.id
+                    original_entity["resolution_confidence"] = resolution["confidence"]
+                    original_entity["resolution_type"] = "new" if is_new else "updated"
+                    
+                    processed_entities.append(original_entity)
+            
+            self.logger.debug(f"Successfully processed {len(processed_entities)} entities with EntityResolver")
+            return processed_entities
+            
+        except Exception as e:
+            self.logger.error(f"Error in extract_and_resolve_entities_from_segments: {e}")
+            # Fallback to basic extraction if resolution fails
+            self.logger.warning("Falling back to basic entity extraction")
+            return self.extract_entities_from_segments(segments)
     
     def extract_relationships_from_segments(self, segments: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """Extract relationships from conversation segments using the integrated relationship extractor.

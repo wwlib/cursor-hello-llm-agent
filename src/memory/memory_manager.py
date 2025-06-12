@@ -548,6 +548,63 @@ class MemoryManager(BaseMemoryManager):
         try:
             self.logger.debug(f"Updating graph memory for {entry['role']} entry...")
             
+            # Check if we're using AltGraphManager and if it has EntityResolver
+            if (hasattr(self.graph_manager, 'process_conversation_entry_with_resolver') and 
+                hasattr(self.graph_manager, 'alt_entity_resolver') and 
+                self.graph_manager.alt_entity_resolver):
+                # Use conversation-level processing with EntityResolver for AltGraphManager
+                await self._update_graph_memory_conversation_level(entry)
+            else:
+                # Use segment-based processing for regular GraphManager
+                await self._update_graph_memory_segment_based(entry)
+                
+        except Exception as e:
+            self.logger.error(f"Error updating graph memory: {e}")
+    
+    async def _update_graph_memory_conversation_level(self, entry: Dict[str, Any]) -> None:
+        """Update graph memory using conversation-level processing (for AltGraphManager with EntityResolver)."""
+        try:
+            # Get full conversation text and digest
+            conversation_text = entry.get("content", "")
+            digest = entry.get("digest", {})
+            digest_text = ""
+            
+            # Build digest text from important segments
+            segments = digest.get("rated_segments", [])
+            important_segments = [
+                seg for seg in segments 
+                if seg.get("importance", 0) >= DEFAULT_RAG_IMPORTANCE_THRESHOLD 
+                and seg.get("memory_worthy", True)
+                and seg.get("type") in ["information", "action"]
+            ]
+            
+            if important_segments:
+                digest_text = " ".join([seg.get("text", "") for seg in important_segments])
+            
+            if not conversation_text and not digest_text:
+                self.logger.debug("No conversation or digest text, skipping graph update")
+                return
+            
+            # Process using AltGraphManager with EntityResolver
+            self.logger.debug("Processing conversation with AltGraphManager EntityResolver")
+            results = self.graph_manager.process_conversation_entry_with_resolver(
+                conversation_text=conversation_text,
+                digest_text=digest_text,
+                conversation_guid=entry.get("guid")
+            )
+            
+            # Log results
+            stats = results.get("stats", {})
+            self.logger.info(f"Graph update completed - entities: {stats.get('entities_new', 0)} new, "
+                           f"{stats.get('entities_existing', 0)} existing, "
+                           f"relationships: {stats.get('relationships_extracted', 0)}")
+            
+        except Exception as e:
+            self.logger.error(f"Error in conversation-level graph update: {e}")
+    
+    async def _update_graph_memory_segment_based(self, entry: Dict[str, Any]) -> None:
+        """Update graph memory using segment-based processing (for regular GraphManager)."""
+        try:
             # Get segments from digest
             digest = entry.get("digest", {})
             segments = digest.get("rated_segments", [])
@@ -576,8 +633,9 @@ class MemoryManager(BaseMemoryManager):
             for i, segment in enumerate(important_segments):
                 segment_text = segment.get("text", "")
                 if segment_text:
-                    # Extract entities from the segment
-                    entities = self.graph_manager.extract_entities_from_segments([{
+                    # Extract and resolve entities from the segment using EntityResolver
+                    # This automatically handles adding/updating nodes with smart duplicate detection
+                    entities = self.graph_manager.extract_and_resolve_entities_from_segments([{
                         "text": segment_text,
                         "importance": segment.get("importance", 0),
                         "type": segment.get("type", "information"),
@@ -586,24 +644,8 @@ class MemoryManager(BaseMemoryManager):
                         "conversation_guid": entry.get("guid")
                     }])
                     
-                    # Add entities to graph (with automatic similarity matching)
-                    for entity in entities:
-                        # Prepare attributes with conversation GUID tracking
-                        entity_attributes = entity.get("attributes", {}).copy()
-                        conversation_guid = entity.get("conversation_guid")
-                        if conversation_guid:
-                            # Track conversation GUIDs where this entity was mentioned
-                            if "conversation_history_guids" not in entity_attributes:
-                                entity_attributes["conversation_history_guids"] = []
-                            if conversation_guid not in entity_attributes["conversation_history_guids"]:
-                                entity_attributes["conversation_history_guids"].append(conversation_guid)
-                        
-                        self.graph_manager.add_or_update_node(
-                            name=entity.get("name", ""),
-                            node_type=entity.get("type", "concept"),
-                            description=entity.get("description", ""),
-                            **entity_attributes
-                        )
+                    # Note: entities are already added/updated in extract_and_resolve_entities_from_segments
+                    # The returned entities include resolution information for relationship extraction
                     
                     # Store segment with its entities for relationship extraction
                     if entities:
@@ -645,7 +687,7 @@ class MemoryManager(BaseMemoryManager):
             self.logger.debug(f"Updated graph memory with {len(important_segments)} segments")
             
         except Exception as e:
-            self.logger.error(f"Error updating graph memory: {str(e)}")
+            self.logger.error(f"Error in segment-based graph update: {e}")
     
     def _process_initial_graph_memory(self, system_entry: Dict[str, Any]) -> None:
         """Process initial system entry for graph memory during memory creation.

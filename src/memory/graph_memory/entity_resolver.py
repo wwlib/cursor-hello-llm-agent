@@ -390,10 +390,12 @@ Output format: [candidate_id, existing_node_id, resolution_justification, confid
                 if metadata.get("entity_type") == candidate_type:
                     entity_name = metadata.get("entity_name", "")
                     entity_description = result.get("text", "")
+                    # Get the actual node ID from metadata
+                    actual_node_id = metadata.get("entity_id", "")
                     
-                    if entity_name and entity_description:
+                    if entity_name and entity_description and actual_node_id:
                         rag_candidates.append({
-                            "existing_node_id": f"{candidate_type}_{entity_name.lower().replace(' ', '_')}",
+                            "existing_node_id": actual_node_id,  # Use actual node ID from graph storage
                             "type": candidate_type,
                             "description": entity_description
                         })
