@@ -273,12 +273,27 @@ Output format: [candidate_id, existing_node_id, resolution_justification, confid
                 resolutions.append(resolution)
                 
                 # Add to resolved context if it was matched to existing entity
-                if resolution["resolved_node_id"] != "<NEW>":
-                    resolved_context.append({
-                        "existing_node_id": resolution["resolved_node_id"],
-                        "type": candidate.get("type", ""),
-                        "description": candidate.get("description", "")
-                    })
+                # Validate that the resolved node actually exists in graph storage
+                resolved_node_id = resolution["resolved_node_id"]
+                if resolved_node_id != "<NEW>":
+                    # Check if the resolved node ID actually exists in graph storage
+                    existing_nodes = self.storage.load_nodes()
+                    if resolved_node_id in existing_nodes:
+                        # Use the actual existing entity's data, not the candidate's data
+                        existing_entity = existing_nodes[resolved_node_id]
+                        resolved_context.append({
+                            "existing_node_id": resolved_node_id,
+                            "type": existing_entity.get("type", ""),
+                            "description": f"{existing_entity.get('name', '')} {existing_entity.get('description', '')}"
+                        })
+                        self.logger.debug(f"Added validated existing node {resolved_node_id} to resolved context")
+                    else:
+                        self.logger.warning(f"LLM returned non-existent node ID '{resolved_node_id}', treating as new entity")
+                        # Update the resolution to mark it as new since the node doesn't exist
+                        resolution["resolved_node_id"] = "<NEW>"
+                        resolution["resolution_justification"] = "LLM returned invalid node ID, creating new entity"
+                        resolution["confidence"] = 0.0
+                        resolution["auto_matched"] = False
                 
                 self.logger.debug(f"Resolved candidate {candidate.get('candidate_id')}: "
                                 f"{resolution['resolved_node_id']} (confidence: {resolution['confidence']})")
@@ -430,6 +445,10 @@ Output format: [candidate_id, existing_node_id, resolution_justification, confid
             existing_node_data += f"  type: \"{entity.get('type', '')}\"\n"
             existing_node_data += f"  description: \"{entity.get('description', '')}\"\n\n"
         
+        # Add empty marker if no existing entities
+        if not existing_context or not existing_node_data.strip():
+            existing_node_data = "[EMPTY - NO EXISTING NODES]\n"
+        
         # Format candidate data
         candidate_data = json.dumps([{
             "candidate_id": candidate.get("candidate_id", ""),
@@ -493,6 +512,10 @@ Output format: [candidate_id, existing_node_id, resolution_justification, confid
             existing_node_data += f"  existing_node_id: \"{entity.get('existing_node_id', '')}\"\n"
             existing_node_data += f"  type: \"{entity.get('type', '')}\"\n"
             existing_node_data += f"  description: \"{entity.get('description', '')}\"\n\n"
+        
+        # Add empty marker if no existing entities
+        if not existing_context or not existing_node_data.strip():
+            existing_node_data = "[EMPTY - NO EXISTING NODES]\n"
         
         # Format candidate data
         candidate_data = json.dumps([{
@@ -575,6 +598,8 @@ Output format: [candidate_id, existing_node_id, resolution_justification, confid
             parsed_data = json.loads(json_str)
             
             resolutions = []
+            seen_candidates = set()
+            
             for item in parsed_data:
                 if isinstance(item, list) and len(item) >= 3:
                     # Handle tuple format: [candidate_id, existing_node_id, justification, confidence]
@@ -582,6 +607,12 @@ Output format: [candidate_id, existing_node_id, resolution_justification, confid
                     resolved_node_id = str(item[1]) if len(item) > 1 else "<NEW>"
                     justification = str(item[2]) if len(item) > 2 else ""
                     confidence = float(item[3]) if len(item) > 3 else 0.0
+                    
+                    # Skip duplicate candidates (LLM error)
+                    if candidate_id in seen_candidates:
+                        self.logger.warning(f"LLM returned duplicate resolution for candidate {candidate_id}, skipping")
+                        continue
+                    seen_candidates.add(candidate_id)
                     
                     resolutions.append({
                         "candidate_id": candidate_id,
@@ -596,6 +627,12 @@ Output format: [candidate_id, existing_node_id, resolution_justification, confid
                     resolved_node_id = str(item.get("existing_node_id", "<NEW>"))
                     justification = str(item.get("resolution_justification", ""))
                     confidence = float(item.get("confidence", 0.0))
+                    
+                    # Skip duplicate candidates (LLM error)
+                    if candidate_id in seen_candidates:
+                        self.logger.warning(f"LLM returned duplicate resolution for candidate {candidate_id}, skipping")
+                        continue
+                    seen_candidates.add(candidate_id)
                     
                     resolutions.append({
                         "candidate_id": candidate_id,

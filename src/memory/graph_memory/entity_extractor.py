@@ -1,341 +1,267 @@
 """
 Entity Extractor
 
-LLM-based extraction of entities from conversation segments.
-
-This module provides the EntityExtractor class that uses Large Language Models
-to identify and extract domain-specific entities from unstructured text.
-The extractor supports configurable entity types for different domains
-(D&D campaigns, laboratory work, software projects) and includes validation
-and deduplication capabilities.
-
-Example:
-    Basic usage of EntityExtractor::
-
-        from src.memory.graph_memory.entity_extractor import EntityExtractor
-        
-        # Initialize with LLM service and domain configuration
-        extractor = EntityExtractor(
-            llm_service=llm_service,
-            domain_config=dnd_config
-        )
-        
-        # Extract entities from text
-        entities = extractor.extract_entities(
-            "Eldara the fire wizard runs a magic shop in Riverwatch"
-        )
-        
-        # Result: [
-        #   {"name": "Eldara", "type": "character", "description": "..."},
-        #   {"name": "Riverwatch", "type": "location", "description": "..."}
-        # ]
-
-Attributes:
-    llm_service: LLM service for entity extraction prompts.
-    domain_config (Dict[str, Any]): Domain-specific configuration.
-    entity_types (Dict[str, str]): Mapping of entity types to descriptions.
-    logger: Logger instance for debugging and monitoring.
+LLM-centric entity extraction with RAG-based entity matching.
+Implements the LLM-centric approach for entity identification and matching,
+using a two-stage process with RAG to find similar existing entities.
 """
 
 import json
 import re
-from typing import Dict, List, Any, Optional
+import os
+from typing import Dict, List, Any, Optional, Tuple
 import logging
+from datetime import datetime
 
 
 class EntityExtractor:
-    """Extracts entities from conversation segments using LLM.
+    """Entity extractor using LLM-centric approach with RAG matching."""
     
-    EntityExtractor provides LLM-driven identification of domain-specific entities
-    from unstructured conversation text. It supports configurable entity types,
-    validation of extracted entities, and basic deduplication.
-    
-    The extractor uses domain-specific prompting to identify entities relevant
-    to the configured domain (e.g., characters and locations for D&D campaigns,
-    equipment and procedures for laboratory work).
-    
-    Attributes:
-        llm_service: LLM service for generating entity extraction prompts.
-        domain_config: Domain configuration containing entity type definitions.
-        entity_types: Dictionary mapping entity type names to descriptions.
-        logger: Logger instance for debugging and error tracking.
-    
-    Example::
-
-        # Initialize for D&D domain
-        extractor = EntityExtractor(
-            llm_service=gemma_service,
-            domain_config={
-                'domain_name': 'dnd_campaign',
-                'entity_types': ['character', 'location', 'object']
-            }
-        )
-        
-        # Extract entities from conversation segment
-        entities = extractor.extract_entities(
-            "The party meets Eldara at her magic shop in Riverwatch"
-        )
-        
-        # Process multiple segments
-        segments = [
-            {"text": "...", "importance": 4, "type": "information"},
-            {"text": "...", "importance": 3, "type": "action"}
-        ]
-        all_entities = extractor.extract_entities_from_segments(segments)
-    
-    Note:
-        Requires a configured LLM service for entity extraction.
-        Domain configuration determines available entity types.
-    """
-    
-    def __init__(self, llm_service, domain_config: Optional[Dict[str, Any]] = None, logger=None):
-        """Initialize entity extractor with LLM service and domain configuration.
+    def __init__(self, llm_service, domain_config: Optional[Dict[str, Any]] = None, 
+                 graph_manager=None, logger=None):
+        """
+        Initialize entity extractor.
         
         Args:
-            llm_service: LLM service instance for entity extraction.
-                Must support text generation with structured prompts.
-            domain_config: Domain-specific configuration dictionary.
-                Should contain 'domain_name' and optionally custom entity types.
-                If None, uses general-purpose entity types.
-            logger: Logger instance for debugging and monitoring.
-                If None, creates a default logger.
-                   
-        Example::
-
-            # D&D campaign configuration
-            dnd_config = {
-                'domain_name': 'dnd_campaign',
-                'entity_types': ['character', 'location', 'object', 'event']
-            }
-            
-            extractor = EntityExtractor(
-                llm_service=llm_service,
-                domain_config=dnd_config,
-                logger=custom_logger
-            )
+            llm_service: LLM service for entity extraction and matching
+            domain_config: Domain-specific configuration with entity types
+            graph_manager: Graph manager for RAG-based entity lookup
+            logger: Logger instance
         """
         self.llm_service = llm_service
         self.domain_config = domain_config or {}
+        self.graph_manager = graph_manager
         self.logger = logger or logging.getLogger(__name__)
         
-        # Define entity types based on domain
+        # Load prompt template
+        self.prompt_template = self._load_prompt_template()
+        
+        # Get entity types from domain config
         self.entity_types = self._get_entity_types()
     
-    def _get_entity_types(self) -> Dict[str, str]:
-        """Get entity types based on domain configuration.
-        
-        Determines the appropriate entity types and their descriptions
-        based on the configured domain. Supports predefined domains
-        (D&D, laboratory, general) with fallback to general types.
-        
-        Returns:
-            Dictionary mapping entity type names to their descriptions.
-            Used for LLM prompting and entity validation.
-            
-        Example:
-            For D&D domain::
+    def _load_prompt_template(self) -> str:
+        """Load the entity extraction prompt template."""
+        try:
+            template_path = os.path.join(os.path.dirname(__file__), 
+                                       'templates', 'entity_extraction.prompt')
+            with open(template_path, 'r', encoding='utf-8') as f:
+                return f.read()
+        except Exception as e:
+            self.logger.warning(f"Failed to load prompt template: {e}")
+            return self._get_default_prompt_template()
+    
+    def _get_default_prompt_template(self) -> str:
+        """Get default prompt template if file loading fails."""
+        return """Analyze the conversation text and identify entities for knowledge graph storage.
 
-                {
-                    'character': 'People, NPCs, players, creatures, or any named individuals',
-                    'location': 'Places, regions, buildings, rooms, or geographical features',
-                    'object': 'Items, artifacts, weapons, tools, books, or physical things',
-                    'concept': 'Spells, abilities, rules, abstract ideas, or game mechanics',
-                    'event': 'Actions, occurrences, battles, meetings, or significant happenings',
-                    'organization': 'Groups, guilds, factions, or structured entities'
-                }
-            
-        Note:
-            Domain is determined by checking if keywords ('dnd', 'lab') 
-            appear in the domain_name configuration value.
-        """
+Entity Types: {entity_types}
+
+Conversation: {conversation_text}
+Digest: {digest_text}
+
+Extract entities as JSON array with fields: type, name, description, confidence.
+
+Entities:"""
+    
+    def _get_entity_types(self) -> Dict[str, str]:
+        """Get entity types from domain configuration."""
+        graph_config = self.domain_config.get('graph_memory_config', {})
+        entity_types_list = graph_config.get('entity_types', [])
+        
+        # Create descriptions based on domain
         domain_name = self.domain_config.get('domain_name', 'general')
         
         if 'dnd' in domain_name.lower():
-            return {
+            type_descriptions = {
                 'character': 'People, NPCs, players, creatures, or any named individuals',
                 'location': 'Places, regions, buildings, rooms, or geographical features',
                 'object': 'Items, artifacts, weapons, tools, books, or physical things',
                 'concept': 'Spells, abilities, rules, abstract ideas, or game mechanics',
-                'event': 'Actions, occurrences, battles, meetings, or significant happenings',
+                'event': 'Actions, occurrences, battles, meetings, or happenings',
                 'organization': 'Groups, guilds, factions, or structured entities'
             }
         elif 'lab' in domain_name.lower():
-            return {
-                'equipment': 'Laboratory instruments, tools, devices, or apparatus',
-                'material': 'Chemical compounds, biological samples, reagents, or substances',
-                'procedure': 'Experimental methods, protocols, techniques, or processes',
-                'result': 'Measurements, observations, outcomes, or data points',
-                'person': 'Researchers, collaborators, or individuals involved',
-                'concept': 'Scientific theories, principles, or abstract ideas'
+            type_descriptions = {
+                'equipment': 'Laboratory instruments, tools, or apparatus',
+                'material': 'Chemicals, samples, reagents, or substances',
+                'procedure': 'Experimental methods, protocols, or techniques',
+                'result': 'Findings, measurements, observations, or outcomes',
+                'concept': 'Theories, principles, or scientific concepts',
+                'person': 'Researchers, technicians, or laboratory personnel'
             }
         else:
-            return {
-                'person': 'Individuals, people, or named entities',
-                'place': 'Locations, regions, or geographical entities',
-                'thing': 'Objects, items, or physical entities',
-                'concept': 'Ideas, principles, or abstract entities',
-                'event': 'Actions, occurrences, or happenings'
+            type_descriptions = {
+                'person': 'People, individuals, or characters',
+                'location': 'Places, areas, or geographical features',
+                'object': 'Items, tools, or physical things',
+                'concept': 'Ideas, principles, or abstract concepts',
+                'event': 'Actions, occurrences, or happenings',
+                'organization': 'Groups, companies, or institutions'
             }
-    
-    def extract_entities(self, text: str, context: Optional[str] = None) -> List[Dict[str, Any]]:
-        """Extract entities from text using LLM with domain-specific prompting.
         
-        Analyzes the provided text to identify entities of types defined
-        in the domain configuration. Uses structured LLM prompting to
-        extract entity names, types, and descriptions.
+        # Use configured types or fall back to defaults
+        result = {}
+        for entity_type in entity_types_list:
+            result[entity_type] = type_descriptions.get(entity_type, f"{entity_type.title()} entities")
+        
+        return result or type_descriptions
+    
+    def extract_entities_from_conversation(self, conversation_text: str, digest_text: str = "") -> List[Dict[str, Any]]:
+        """
+        Extract entities from full conversation entry using two-stage LLM approach.
+        
+        Stage 1: Generate candidate entities from conversation + digest
+        Stage 2: Use RAG to find similar existing entities, then LLM decides final entities
         
         Args:
-            text: Text content to analyze for entities.
-                Should be meaningful content (not empty or whitespace only).
-            context: Optional additional context to improve extraction accuracy.
-                Can include background information or conversation history.
-                    
+            conversation_text: Full conversation entry text
+            digest_text: Digest/summary of the conversation
+            
         Returns:
-            List of entity dictionaries, each containing:
-            
-            - name (str): Entity name/identifier
-            - type (str): Entity type from domain configuration
-            - description (str): Detailed entity description
-            - Additional fields may be present based on LLM output
-            
-        Example::
-
-            # Basic extraction
-            entities = extractor.extract_entities(
-                "Eldara the fire wizard runs a magic shop in Riverwatch"
-            )
-            
-            # With context for better accuracy
-            entities = extractor.extract_entities(
-                "She sells potions and scrolls",
-                context="Previous: Eldara the fire wizard runs a magic shop"
-            )
-            
-            # Typical result:
-            # [
-            #     {
-            #         "name": "Eldara",
-            #         "type": "character", 
-            #         "description": "A fire wizard who runs a magic shop"
-            #     },
-            #     {
-            #         "name": "Riverwatch",
-            #         "type": "location",
-            #         "description": "A town where Eldara's magic shop is located"
-            #     }
-            # ]
-            
-        Note:
-            Returns empty list if text is empty or LLM extraction fails.
-            All returned entities are validated against domain entity types.
+            List of entities with existing/new classification
         """
-        if not text.strip():
-            return []
-        
         try:
-            prompt = self._build_extraction_prompt(text, context)
+            # Stage 1: Generate candidate entities
+            candidate_entities = self._extract_candidate_entities(conversation_text, digest_text)
+            
+            if not candidate_entities:
+                self.logger.debug("No candidate entities found")
+                return []
+            
+            # Stage 2: Use RAG to find similar existing entities and make final decisions
+            final_entities = self._resolve_entities_with_rag(candidate_entities, conversation_text, digest_text)
+            
+            self.logger.debug(f"Extracted {len(final_entities)} final entities from conversation")
+            return final_entities
+            
+        except Exception as e:
+            self.logger.error(f"Error in alternative entity extraction: {e}")
+            return []
+    
+    def _extract_candidate_entities(self, conversation_text: str, digest_text: str) -> List[Dict[str, Any]]:
+        """Stage 1: Extract candidate entities from conversation text."""
+        try:
+            # Build entity types description
+            entity_types_desc = "\n".join([
+                f"- {etype}: {desc}" for etype, desc in self.entity_types.items()
+            ])
+            
+            # Build prompt
+            prompt = self.prompt_template.format(
+                entity_types=entity_types_desc,
+                conversation_text=conversation_text,
+                digest_text=digest_text,
+                existing_context=""  # No existing context in stage 1
+            )
+            
+            # Get LLM response
             response = self.llm_service.generate(prompt)
             
-            entities = self._parse_extraction_response(response)
-            self.logger.debug(f"Extracted {len(entities)} entities from text")
+            # Parse entities
+            entities = self._parse_entity_response(response)
             
+            self.logger.debug(f"Stage 1: Extracted {len(entities)} candidate entities")
             return entities
             
         except Exception as e:
-            self.logger.error(f"Error extracting entities: {e}")
+            self.logger.error(f"Error extracting candidate entities: {e}")
             return []
     
-    def _build_extraction_prompt(self, text: str, context: Optional[str] = None) -> str:
-        """Build structured prompt for LLM entity extraction.
+    def _resolve_entities_with_rag(self, candidate_entities: List[Dict[str, Any]], 
+                                  conversation_text: str, digest_text: str) -> List[Dict[str, Any]]:
+        """Stage 2: Use RAG to find similar entities and make final entity decisions."""
+        if not self.graph_manager:
+            self.logger.warning("No graph manager available for RAG - returning candidates as new entities")
+            return [{"status": "new", **entity} for entity in candidate_entities]
         
-        Creates a detailed prompt that instructs the LLM to extract entities
-        according to the domain-specific entity types. Includes examples
-        and formatting requirements for consistent JSON output.
-        
-        Args:
-            text: Text to analyze for entities.
-            context: Optional context for better understanding.
+        try:
+            # For each candidate, find similar existing entities using RAG
+            existing_entities_context = []
             
-        Returns:
-            Formatted prompt string ready for LLM processing.
-            Includes entity type definitions, text to analyze,
-            and response format instructions.
+            for candidate in candidate_entities:
+                similar_entities = self._find_similar_existing_entities(candidate)
+                if similar_entities:
+                    existing_entities_context.extend(similar_entities)
             
-        Note:
-            Prompt format is optimized for structured JSON output.
-            Entity type descriptions are dynamically inserted from domain config.
-        """
-        entity_types_desc = "\\n".join([
-            f"- {etype}: {desc}" for etype, desc in self.entity_types.items()
-        ])
-        
-        prompt = f"""Extract entities from the following text. For each entity, provide:
-1. type: one of the defined types
-2. name: the entity name/identifier
-3. description: a brief description suitable for semantic matching
-
-Entity Types:
-{entity_types_desc}
-
-Text to analyze:
-{text}
-"""
-        
-        if context:
-            prompt += f"""
-Context (for better understanding):
-{context}
-"""
-        
-        prompt += """
-Respond with a JSON array of entities. Each entity should have "type", "name", and "description" fields.
-Only include entities that are clearly mentioned or implied in the text.
-Avoid generic terms - focus on specific, identifiable entities.
-
-Example response format:
-[
-    {"type": "character", "name": "Eldara", "description": "A fire wizard who runs the magic shop in Riverwatch"},
-    {"type": "location", "name": "Riverwatch", "description": "A town with a magic shop"}
-]
-
-Entities:"""
-        
-        return prompt
+            # Remove duplicates from existing entities
+            seen_ids = set()
+            unique_existing = []
+            for entity in existing_entities_context:
+                if entity['id'] not in seen_ids:
+                    seen_ids.add(entity['id'])
+                    unique_existing.append(entity)
+            
+            # Build context for existing entities
+            if unique_existing:
+                existing_context = "\n**Similar Existing Entities:**\n"
+                for entity in unique_existing:
+                    existing_context += f"- {entity['name']} ({entity['type']}): {entity['description']}\n"
+                existing_context += "\n**Instructions:** For each candidate entity, decide if it matches an existing entity above or if it should be created as new. If it matches existing, use the existing entity's name exactly."
+            else:
+                existing_context = "\n**No similar existing entities found.**"
+            
+            # Build final prompt with existing context
+            entity_types_desc = "\n".join([
+                f"- {etype}: {desc}" for etype, desc in self.entity_types.items()
+            ])
+            
+            prompt = self.prompt_template.format(
+                entity_types=entity_types_desc,
+                conversation_text=conversation_text,
+                digest_text=digest_text,
+                existing_context=existing_context
+            )
+            
+            # Get LLM response for final entities
+            response = self.llm_service.generate(prompt)
+            final_entities = self._parse_entity_response(response)
+            
+            # Return candidates without classification - EntityResolver will handle all matching
+            candidate_entities = []
+            for entity in final_entities:
+                candidate_entities.append({
+                    'status': 'candidate',  # Mark as candidate for EntityResolver
+                    **entity
+                })
+            
+            self.logger.debug(f"Stage 2: Extracted {len(candidate_entities)} candidate entities for EntityResolver")
+            return candidate_entities
+            
+        except Exception as e:
+            self.logger.error(f"Error in entity extraction: {e}")
+            return [{"status": "candidate", **entity} for entity in candidate_entities if candidate_entities] if 'candidate_entities' in locals() else []
     
-    def _parse_extraction_response(self, response: str) -> List[Dict[str, Any]]:
-        """Parse LLM response to extract entity list from JSON.
-        
-        Processes the LLM's text response to extract structured entity data.
-        Handles various response formats and validates entity structure.
-        
-        Args:
-            response: Raw text response from LLM.
-                Expected to contain JSON array of entities.
-                     
-        Returns:
-            List of validated entity dictionaries.
-            Invalid entities are filtered out with logging.
+    def _find_similar_existing_entities(self, candidate_entity: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Use RAG to find existing entities similar to the candidate."""
+        try:
+            # Search query combining name and description
+            search_query = f"{candidate_entity['name']} {candidate_entity.get('description', '')}"
             
-        Example:
-            Input response::
-
-                Here are the entities I found:
-                [
-                    {"type": "character", "name": "Eldara", "description": "..."},
-                    {"type": "location", "name": "Riverwatch", "description": "..."}
-                ]
+            # Use graph manager's query method for RAG
+            similar_results = self.graph_manager.query_for_context(search_query, max_results=3)
             
-            Output::
-
-                [
-                    {"type": "character", "name": "Eldara", "description": "..."},
-                    {"type": "location", "name": "Riverwatch", "description": "..."}
-                ]
+            # Convert to entity format
+            similar_entities = []
+            for result in similar_results:
+                # Only include entities of the same type
+                if result.get('type') == candidate_entity.get('type'):
+                    similar_entities.append({
+                        'id': f"{result['type']}_{result['name'].lower().replace(' ', '_')}",
+                        'name': result['name'],
+                        'type': result['type'],
+                        'description': result['description'],
+                        'relevance_score': result.get('relevance_score', 0.0)
+                    })
             
-        Note:
-            Uses regex to find JSON arrays in free-form text responses.
-            Gracefully handles JSON parsing errors and malformed responses.
-        """
+            return similar_entities
+            
+        except Exception as e:
+            self.logger.warning(f"Error finding similar entities for {candidate_entity.get('name', 'unknown')}: {e}")
+            return []
+    
+    
+    def _parse_entity_response(self, response: str) -> List[Dict[str, Any]]:
+        """Parse LLM response to extract entity list."""
         try:
             # Clean up response - look for JSON array
             response = response.strip()
@@ -366,45 +292,7 @@ Entities:"""
             return []
     
     def _validate_entity(self, entity: Dict[str, Any]) -> bool:
-        """Validate extracted entity structure and content.
-        
-        Ensures that extracted entities meet minimum requirements
-        for inclusion in the knowledge graph. Validates required
-        fields, data types, and content quality.
-        
-        Args:
-            entity: Entity dictionary to validate.
-                Expected to have 'type', 'name', and 'description' fields.
-                   
-        Returns:
-            True if entity is valid and should be included, False otherwise.
-            
-        Validation Rules:
-            - Required fields: 'type', 'name', 'description' must be present and non-empty
-            - Type validation: 'type' must match domain-configured entity types
-            - Content validation: 'name' and 'description' must be strings of reasonable length
-            - Minimum length: name >= 1 character, description >= 5 characters
-            
-        Example::
-
-            # Valid entity
-            valid = {
-                "type": "character",
-                "name": "Eldara", 
-                "description": "A fire wizard who runs a magic shop"
-            }
-            assert extractor._validate_entity(valid) == True
-            
-            # Invalid entity (missing description)
-            invalid = {
-                "type": "character",
-                "name": "Eldara"
-            }
-            assert extractor._validate_entity(invalid) == False
-            
-        Note:
-            Invalid entities are logged with warning level for debugging.
-        """
+        """Validate extracted entity structure."""
         required_fields = ['type', 'name', 'description']
         
         # Check required fields exist
@@ -412,189 +300,26 @@ Entities:"""
             if field not in entity or not entity[field]:
                 return False
         
-        # Check type is valid
+        # Check entity type is valid
         if entity['type'] not in self.entity_types:
             return False
         
-        # Check name and description are strings and reasonable length
-        if (not isinstance(entity['name'], str) or 
-            not isinstance(entity['description'], str) or
-            len(entity['name']) < 1 or 
-            len(entity['description']) < 5):
-            return False
+        # Check confidence is reasonable (if provided)
+        confidence = entity.get('confidence', 1.0)
+        if not isinstance(confidence, (int, float)) or not 0.0 <= confidence <= 1.0:
+            entity['confidence'] = 1.0
         
         return True
     
-    def extract_entities_from_segments(self, segments: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """Extract entities from multiple conversation segments with filtering.
-        
-        Processes a list of conversation segments to extract entities,
-        applying importance and type filtering to focus on meaningful content.
-        Only segments meeting quality criteria are processed.
-        
-        Args:
-            segments: List of conversation segment dictionaries.
-                Each segment should contain:
-                
-                - text (str): Segment content
-                - importance (int): Importance score (1-5)
-                - type (str): Segment type ('information', 'action', etc.)
-                - segment_id (str, optional): Unique identifier
-                - topics (List[str], optional): Associated topics
-                     
-        Returns:
-            List of all extracted entities with segment metadata.
-            Each entity includes:
-            
-            - All standard entity fields (name, type, description)
-            - source_segment (str): ID of originating segment
-            - source_text (str): Original text containing the entity
-            - segment_importance (int): Importance score of source segment
-            - segment_topics (List[str]): Topics associated with source segment
-            
-        Filtering Criteria:
-            - importance >= 3: Only process moderately to highly important content
-            - type in ['information', 'action']: Skip queries and commands
-            - text must be non-empty: Skip segments without content
-            
-        Example::
-
-            segments = [
-                {
-                    "text": "Eldara runs a magic shop in Riverwatch",
-                    "importance": 4,
-                    "type": "information",
-                    "segment_id": "seg_001",
-                    "topics": ["characters", "locations"]
-                },
-                {
-                    "text": "What time is it?",
-                    "importance": 1,
-                    "type": "query"  # Will be skipped
-                }
-            ]
-            
-            entities = extractor.extract_entities_from_segments(segments)
-            # Returns entities only from the first segment
-            
-        Note:
-            Segment filtering reduces processing load and improves entity quality
-            by focusing on meaningful, informational content.
-        """
-        all_entities = []
-        
-        for segment in segments:
-            # Skip low-importance or non-informational segments
-            if (segment.get('importance', 0) < 3 or 
-                segment.get('type') not in ['information', 'action']):
-                continue
-            
-            text = segment.get('text', '')
-            if not text:
-                continue
-            
-            # Extract entities from segment
-            entities = self.extract_entities(text)
-            
-            # Add segment reference to each entity
-            for entity in entities:
-                entity['source_segment'] = segment.get('segment_id', '')
-                entity['source_text'] = text
-                entity['segment_importance'] = segment.get('importance', 0)
-                entity['segment_topics'] = segment.get('topics', [])
-                entity['conversation_guid'] = segment.get('conversation_guid', '')
-                all_entities.append(entity)
-        
-        self.logger.debug(f"Extracted {len(all_entities)} entities from {len(segments)} segments")
-        return all_entities
+    def get_entity_types(self) -> Dict[str, str]:
+        """Get configured entity types."""
+        return self.entity_types.copy()
     
-    def group_entities_by_type(self, entities: List[Dict[str, Any]]) -> Dict[str, List[Dict[str, Any]]]:
-        """Group entities by their type for organized processing.
-        
-        Organizes a list of entities into a dictionary grouped by entity type.
-        Useful for type-specific processing or analysis.
-        
-        Args:
-            entities: List of entity dictionaries with 'type' field.
-            
-        Returns:
-            Dictionary mapping entity types to lists of entities of that type.
-            
-        Example::
-
-            entities = [
-                {"name": "Eldara", "type": "character", "description": "..."},
-                {"name": "Gareth", "type": "character", "description": "..."},
-                {"name": "Riverwatch", "type": "location", "description": "..."}
-            ]
-            
-            grouped = extractor.group_entities_by_type(entities)
-            # Result:
-            # {
-            #     "character": [
-            #         {"name": "Eldara", "type": "character", ...},
-            #         {"name": "Gareth", "type": "character", ...}
-            #     ],
-            #     "location": [
-            #         {"name": "Riverwatch", "type": "location", ...}
-            #     ]
-            # }
-            
-        Note:
-            Entities with missing or invalid 'type' field are grouped under 'unknown'.
-        """
-        grouped = {}
-        
-        for entity in entities:
-            entity_type = entity.get('type', 'unknown')
-            if entity_type not in grouped:
-                grouped[entity_type] = []
-            grouped[entity_type].append(entity)
-        
-        return grouped
-    
-    def deduplicate_entities(self, entities: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """Simple deduplication of entities by name and type.
-        
-        Removes basic duplicates from a list of entities using case-insensitive
-        name matching within the same entity type. This provides simple
-        deduplication before more sophisticated similarity matching in GraphManager.
-        
-        Args:
-            entities: List of entity dictionaries to deduplicate.
-                Each entity should have 'name' and 'type' fields.
-                     
-        Returns:
-            List of unique entities with duplicates removed.
-            First occurrence of each (type, name) combination is preserved.
-            
-        Example::
-
-            entities = [
-                {"name": "Eldara", "type": "character", "description": "Fire wizard"},
-                {"name": "ELDARA", "type": "character", "description": "Magic shop owner"},
-                {"name": "Riverwatch", "type": "location", "description": "Eastern town"}
-            ]
-            
-            unique = extractor.deduplicate_entities(entities)
-            # Result: Only first "Eldara" and "Riverwatch" are kept
-            # [
-            #     {"name": "Eldara", "type": "character", "description": "Fire wizard"},
-            #     {"name": "Riverwatch", "type": "location", "description": "Eastern town"}
-            # ]
-            
-        Note:
-            This is basic deduplication. More sophisticated semantic similarity
-            matching happens in GraphManager._find_similar_node().
-            Case-insensitive matching treats "Eldara" and "ELDARA" as duplicates.
-        """
-        seen_names = set()
-        unique_entities = []
-        
-        for entity in entities:
-            name_key = (entity['type'], entity['name'].lower())
-            if name_key not in seen_names:
-                seen_names.add(name_key)
-                unique_entities.append(entity)
-        
-        return unique_entities
+    def get_stats(self) -> Dict[str, Any]:
+        """Get extraction statistics."""
+        return {
+            'extractor_type': 'alternative_llm_centric',
+            'entity_types_count': len(self.entity_types),
+            'has_graph_manager': self.graph_manager is not None,
+            'domain': self.domain_config.get('domain_name', 'general')
+        } 

@@ -72,9 +72,12 @@ pip install -r requirements.txt
 ```
 
 ### Testing
+
+environment variables: DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large
+
 ```bash
 # Run all tests
-pytest tests/ -v -s
+DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large pytest tests/ -v -s
 
 # Run specific test categories
 pytest tests/memory_manager/ -v -s
@@ -92,27 +95,30 @@ python run_automated_tests.py --domain dnd      # Specific domain
 ```
 
 ### Running Examples
+
+environment variables: DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large
+
 ```bash
 # Canonical RAG example (recommended starting point)
-OLLAMA_BASE_URL=http://localhost:11434 python examples/rag_enhanced_memory_example_simple.py
+DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/rag_enhanced_memory_example_simple.py
 
 # Graph memory standalone example (demonstrates graph-only functionality)
-DEV_MODE=true OLLAMA_BASE_URL=http://localhost:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/graph_memory_example.py
+DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/graph_memory_example.py
 
-# Interactive agent with domain config (includes automatic graph memory)
-python examples/agent_usage_example.py --config dnd --guid my-campaign
+# Interactive agent with domain config (includes automatic graph memory) and interaction passed in via stdin
+# Fresh runs can be started by specifying a new guid
+# memory files are in <project-root>/agent_memories/standard/[guid]
+# graph memory files are in <project-root>/agent_memories/standard/[guid]/agent_memory_graph_data
+# logs are in <project-root>/logs/[guid]
+
+echo "Please describe the ruins" | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/agent_usage_example.py --guid dnd5g16 --config dnd 
+
 
 # List available memory files
 python examples/agent_usage_example.py --list
 
 # Use simple memory manager (no graph memory)
 python examples/agent_usage_example.py --type simple
-```
-
-### Development Mode
-```bash
-# Full debug logging with external Ollama
-DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/agent_usage_example.py --guid dnd --config dnd
 ```
 
 ## Key Implementation Details
@@ -219,11 +225,7 @@ memory_file_graph_data/
 │   ├── rag_enhanced_memory_example_simple.py  # Canonical RAG demo
 │   ├── graph_memory_example.py       # Standalone graph memory demonstration
 │   ├── domain_configs.py             # Domain configurations with graph memory configs
-│   ├── graph_memory_data/            # Graph memory example data
-│   │   ├── graph_nodes.json          # Example entity storage
-│   │   ├── graph_edges.json          # Example relationship storage
-│   │   ├── graph_metadata.json       # Example graph metadata
-│   │   └── graph_memory_embeddings.jsonl # Example entity embeddings
+│   ├── temp_data/                    # Temporary example data and example output - excluded via .gitignore
 │   └── [other examples]
 ├── tests/
 │   ├── agent/                        # Agent tests
@@ -231,6 +233,10 @@ memory_file_graph_data/
 │   ├── memory_manager/              # Memory system tests
 │   │   ├── test_graph_memory.py      # Graph memory component tests
 │   │   ├── test_graph_memory_integration.py # Graph memory integration tests
+│   ├── graph_memory/                # Graph Memory system tests
+│   │   ├── logs/                    # Test logs - excluded via .gitignore
+│   │   ├── sample_data/             # Sample data for Graph Memory tests
+│   ├── test_files/                  # Temporary test data and test output - excluded via .gitignore
 │   └── automated_agent_testing/     # Automated testing framework
 │       ├── user_simulator.py        # LLM-driven user personas
 │       ├── memory_analyzer.py       # Memory evolution analysis
@@ -243,6 +249,8 @@ memory_file_graph_data/
 ## Configuration System
 
 The system uses domain configs to adapt behavior without code changes:
+
+See: <project-root>/examples/domain_configs.py
 
 ```python
 # Example domain config with graph memory
@@ -382,6 +390,7 @@ This codebase was developed using Cursor AI assistance and maintains detailed de
 - `cursor-notes/`: Original Cursor interactions and design decisions
 - `README-phase-*.md`: Phase-specific development documentation
 - `.specstory/`: Continued development history (going forward)
+- `claude-code-notes/`: Development using Claude Code
 
 The project demonstrates "vibe-coded" development with comprehensive agent-assisted iteration and refinement.
 

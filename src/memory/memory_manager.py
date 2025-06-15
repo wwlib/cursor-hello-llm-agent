@@ -50,7 +50,7 @@ from .memory_compressor import MemoryCompressor
 from .data_preprocessor import DataPreprocessor
 from .embeddings_manager import EmbeddingsManager
 from .rag_manager import RAGManager
-from .graph_memory import AltGraphManager as GraphManager
+from .graph_memory import GraphManager
 import asyncio
 import logging
 
@@ -142,6 +142,9 @@ class MemoryManager(BaseMemoryManager):
                     logger=graph_logger  # Use dedicated graph logger
                 )
                 
+                # Determine logs base directory for graph-specific logging
+                logs_base_dir = self._determine_logs_base_dir(memory_dir)
+                
                 self.graph_manager = GraphManager(
                     storage_path=graph_storage_path,
                     embeddings_manager=graph_embeddings_manager,
@@ -149,7 +152,9 @@ class MemoryManager(BaseMemoryManager):
                     logger=graph_logger,  # Use dedicated graph logger
                     llm_service=self.llm,  # Use general LLM service (gemma3) for entity extraction
                     embeddings_llm_service=self.embeddings_llm,  # Use embeddings LLM service (mxbai-embed-large)
-                    domain_config=self.domain_config
+                    domain_config=self.domain_config,
+                    logs_dir=logs_base_dir,  # Pass logs directory for graph-specific logging
+                    memory_guid=self.memory_guid  # Pass memory GUID for creating log subdirectories
                 )
                 self.logger.debug(f"Initialized GraphManager with storage: {graph_storage_path}")
                 graph_logger.debug(f"Graph memory logger initialized for memory: {memory_base}")
@@ -333,6 +338,33 @@ class MemoryManager(BaseMemoryManager):
         # Concatenate all segment texts, separated by newlines
         return "\n".join(seg.get("text", "") for seg in rated_segments if seg.get("text"))
 
+    def _determine_logs_base_dir(self, memory_dir: str) -> str:
+        """Determine the logs base directory from the memory directory.
+        
+        Args:
+            memory_dir: Directory where the memory file is located
+            
+        Returns:
+            Base directory path for logs
+        """
+        if memory_dir and memory_dir != ".":
+            # For GUID-specific memories, use the parent directory to create logs
+            parent_dir = os.path.dirname(memory_dir)
+            if parent_dir and os.path.basename(parent_dir) in ["standard", "simple", "sync"]:
+                # We're in agent_memories/standard/guid_dir structure
+                grandparent_dir = os.path.dirname(parent_dir)  # agent_memories
+                project_root = os.path.dirname(grandparent_dir)  # project root
+                # If project_root is empty, we're already at the project root
+                logs_base_dir = project_root if project_root else "."
+            else:
+                # We're in a direct memory directory
+                logs_base_dir = os.path.dirname(memory_dir) if memory_dir != "." else "."
+        else:
+            # Default to current directory
+            logs_base_dir = "."
+        
+        return logs_base_dir
+
     def _create_graph_manager_logger(self, memory_dir: str, memory_base: str) -> logging.Logger:
         """Create a dedicated logger for graph manager operations.
         
@@ -354,19 +386,8 @@ class MemoryManager(BaseMemoryManager):
         # Set logger level
         graph_logger.setLevel(logging.DEBUG)
         
-        # Create session-specific logs directory (same pattern as agent_usage_example.py)
-        if memory_dir and memory_dir != ".":
-            # For GUID-specific memories, use the parent directory to create logs
-            parent_dir = os.path.dirname(memory_dir)
-            if parent_dir and os.path.basename(parent_dir) in ["standard", "simple", "sync"]:
-                # We're in agent_memories/standard/guid_dir structure
-                logs_base_dir = os.path.dirname(os.path.dirname(parent_dir))  # Go up to project root
-            else:
-                # We're in a direct memory directory
-                logs_base_dir = os.path.dirname(memory_dir) if memory_dir != "." else "."
-        else:
-            # Default to current directory
-            logs_base_dir = "."
+        # Determine logs base directory
+        logs_base_dir = self._determine_logs_base_dir(memory_dir)
             
         # Create session-specific logs directory using memory GUID
         session_logs_dir = os.path.join(logs_base_dir, "logs", self.memory_guid)
@@ -548,14 +569,11 @@ class MemoryManager(BaseMemoryManager):
         try:
             self.logger.debug(f"Updating graph memory for {entry['role']} entry...")
             
-            # Check if we're using AltGraphManager and if it has EntityResolver
-            if (hasattr(self.graph_manager, 'process_conversation_entry_with_resolver') and 
-                hasattr(self.graph_manager, 'alt_entity_resolver') and 
-                self.graph_manager.alt_entity_resolver):
-                # Use conversation-level processing with EntityResolver for AltGraphManager
+            # Use conversation-level processing with EntityResolver (now mandatory)
+            if hasattr(self.graph_manager, 'process_conversation_entry_with_resolver'):
                 await self._update_graph_memory_conversation_level(entry)
             else:
-                # Use segment-based processing for regular GraphManager
+                # Fallback to segment-based processing for legacy compatibility
                 await self._update_graph_memory_segment_based(entry)
                 
         except Exception as e:
@@ -723,6 +741,58 @@ class MemoryManager(BaseMemoryManager):
             
             self.logger.debug(f"Processing {len(important_segments)} important segments for initial graph memory")
             
+            # Use EntityResolver pathway for enhanced duplicate detection (now mandatory)
+            if hasattr(self.graph_manager, 'process_conversation_entry_with_resolver'):
+                
+                self.logger.debug("Using EntityResolver pathway for initial graph memory processing")
+                
+                # Construct conversation text from all important segments
+                conversation_text = "\n".join([
+                    segment.get("text", "") for segment in important_segments 
+                    if segment.get("text", "")
+                ])
+                
+                # Use the system entry content as digest text for context
+                digest_text = system_entry.get("content", "")[:500]  # Limit for context
+                
+                # Process using EntityResolver pathway for consistent duplicate detection
+                try:
+                    results = self.graph_manager.process_conversation_entry_with_resolver(
+                        conversation_text=conversation_text,
+                        digest_text=digest_text,
+                        conversation_guid="initial_data"  # Special GUID for initial data
+                    )
+                    
+                    # Log the results
+                    stats = results.get("stats", {})
+                    self.logger.debug(f"EntityResolver initial processing: {stats}")
+                    self.logger.debug(f"Added {len(results.get('new_entities', []))} new entities, "
+                                    f"matched {len(results.get('existing_entities', []))} existing entities, "
+                                    f"created {len(results.get('relationships', []))} relationships")
+                    
+                except Exception as e:
+                    self.logger.error(f"Error in EntityResolver initial processing: {e}")
+                    self.logger.warning("Falling back to basic initial graph processing")
+                    self._process_initial_graph_memory_basic(important_segments)
+            else:
+                self.logger.debug("EntityResolver not available, using basic initial graph processing")
+                self._process_initial_graph_memory_basic(important_segments)
+            
+        except Exception as e:
+            self.logger.error(f"Error processing initial graph memory: {str(e)}")
+    
+    def _process_initial_graph_memory_basic(self, important_segments: List[Dict[str, Any]]) -> None:
+        """Basic initial graph memory processing without EntityResolver (fallback method).
+        
+        This method contains the original segment-by-segment processing logic
+        for use when EntityResolver is not available.
+        
+        Args:
+            important_segments: List of important segments from the initial digest
+        """
+        try:
+            self.logger.debug(f"Processing {len(important_segments)} segments using basic graph processing")
+            
             # Process all segments together for better entity and relationship extraction
             all_segment_entities = []
             segments_with_entities = []
@@ -792,13 +862,10 @@ class MemoryManager(BaseMemoryManager):
                 except Exception as e:
                     self.logger.error(f"Error extracting relationships from initial segments: {str(e)}")
             
-            # Save graph state
-            self.graph_manager.save_graph()
-            
-            self.logger.debug(f"Initial graph memory processing complete: {len(all_segment_entities)} entities processed")
+            self.logger.debug(f"Basic initial graph memory processing complete: {len(all_segment_entities)} entities processed")
             
         except Exception as e:
-            self.logger.error(f"Error processing initial graph memory: {str(e)}")
+            self.logger.error(f"Error in basic initial graph memory processing: {str(e)}")
             
     async def _compress_memory_async(self) -> None:
         """Compress memory asynchronously."""

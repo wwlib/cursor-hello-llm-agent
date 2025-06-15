@@ -314,38 +314,54 @@ class EmbeddingsManager:
             List[Dict]: List of results with similarity scores and metadata
         """
         if not self.embeddings:
-            self.logger.debug("No embeddings available for search")
+            self.logger.debug("RAG_SEARCH: No embeddings available for search")
             return []
             
         try:
+            # Log search parameters
+            query_text = query if isinstance(query, str) else f"<embedding_vector_len_{len(query)}>"
+            self.logger.debug(f"RAG_SEARCH: Starting search for query: '{query_text}'")
+            self.logger.debug(f"RAG_SEARCH: Parameters - k={k}, min_importance={min_importance}, date_range={date_range}")
+            self.logger.debug(f"RAG_SEARCH: Total embeddings available: {len(self.embeddings)}")
+            
             # Get query embedding
             if isinstance(query, str):
                 try:
-                    self.logger.debug(f"Generating embedding for query: '{query}'")
+                    self.logger.debug(f"RAG_SEARCH: Generating embedding for query text")
                     query_embedding = self.generate_embedding(query)
+                    self.logger.debug(f"RAG_SEARCH: Generated query embedding with dimension: {len(query_embedding)}")
                 except Exception as e:
-                    self.logger.error(f"Error generating embedding for query: {str(e)}")
+                    self.logger.error(f"RAG_SEARCH: Error generating embedding for query: {str(e)}")
                     return []
             else:
                 query_embedding = query
+                self.logger.debug(f"RAG_SEARCH: Using provided embedding vector with dimension: {len(query_embedding)}")
             
             # Compute similarities
             similarities = []
+            filtered_count = 0
+            processed_count = 0
+            
             for embedding, metadata in self.embeddings:
                 try:
+                    processed_count += 1
+                    
                     # Apply filters
                     if min_importance is not None:
                         importance = metadata.get('importance', 0)
                         if importance < min_importance:
+                            filtered_count += 1
                             continue
                             
                     if date_range and 'timestamp' in metadata:
                         try:
                             entry_date = datetime.fromisoformat(metadata['timestamp'])
                             if not (date_range[0] <= entry_date <= date_range[1]):
+                                filtered_count += 1
                                 continue
                         except (ValueError, TypeError):
                             # Skip entries with invalid timestamps
+                            filtered_count += 1
                             continue
                     
                     # Compute cosine similarity
@@ -366,11 +382,17 @@ class EmbeddingsManager:
                         result_metadata
                     ))
                 except Exception as e:
-                    self.logger.debug(f"Error processing embedding: {str(e)}")
+                    self.logger.debug(f"RAG_SEARCH: Error processing embedding {processed_count}: {str(e)}")
                     continue
+            
+            self.logger.debug(f"RAG_SEARCH: Processed {processed_count} embeddings, filtered out {filtered_count}, kept {len(similarities)} for ranking")
             
             # Sort by similarity (highest first)
             similarities.sort(key=lambda x: x[0], reverse=True)
+            
+            # Log top similarities before truncating
+            if similarities:
+                self.logger.debug(f"RAG_SEARCH: Top similarity scores: {[f'{s[0]:.4f}' for s in similarities[:min(10, len(similarities))]]}")
             
             # Return top k results
             results = [
@@ -382,11 +404,25 @@ class EmbeddingsManager:
                 for score, text, metadata in similarities[:k]
             ]
             
-            self.logger.debug(f"Search found {len(results)} results out of {len(similarities)} total embeddings")
+            # Log detailed results
+            self.logger.debug(f"RAG_SEARCH: Returning {len(results)} results out of {len(similarities)} candidates")
+            for i, result in enumerate(results):
+                text_preview = result['text'][:100] + "..." if len(result['text']) > 100 else result['text']
+                entity_info = ""
+                if 'entity_id' in result['metadata']:
+                    entity_info = f" [entity_id: {result['metadata']['entity_id']}]"
+                if 'entity_name' in result['metadata']:
+                    entity_info += f" [entity_name: {result['metadata']['entity_name']}]"
+                if 'entity_type' in result['metadata']:
+                    entity_info += f" [entity_type: {result['metadata']['entity_type']}]"
+                
+                self.logger.debug(f"RAG_SEARCH: Result {i+1}: score={result['score']:.4f}{entity_info}")
+                self.logger.debug(f"RAG_SEARCH: Result {i+1} text: '{text_preview}'")
+            
             return results
             
         except Exception as e:
-            self.logger.error(f"Error in search: {str(e)}")
+            self.logger.error(f"RAG_SEARCH: Error in search: {str(e)}")
             self.logger.error(traceback.format_exc())
             return []
     

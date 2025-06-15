@@ -1,17 +1,21 @@
 """
 Relationship Extractor
 
-LLM-based extraction of relationships between entities.
+LLM-centric relationship extraction that works with entity context from the entity extractor.
+This extractor focuses on analyzing full conversation text with explicit entity context,
+rather than working with pre-segmented text.
 """
 
 import json
 import re
-from typing import Dict, List, Any, Optional, Tuple
+import os
+from typing import Dict, List, Any, Optional
 import logging
+from datetime import datetime
 
 
 class RelationshipExtractor:
-    """Extracts relationships between entities using LLM."""
+    """Relationship extractor using LLM-centric approach with entity context."""
     
     def __init__(self, llm_service, domain_config: Optional[Dict[str, Any]] = None, logger=None):
         """
@@ -19,18 +23,47 @@ class RelationshipExtractor:
         
         Args:
             llm_service: LLM service for relationship extraction
-            domain_config: Domain-specific configuration
+            domain_config: Domain-specific configuration with relationship types
             logger: Logger instance
         """
         self.llm_service = llm_service
         self.domain_config = domain_config or {}
         self.logger = logger or logging.getLogger(__name__)
         
-        # Define relationship types based on domain
+        # Load prompt template
+        self.prompt_template = self._load_prompt_template()
+        
+        # Get relationship types from domain config
         self.relationship_types = self._get_relationship_types()
     
+    def _load_prompt_template(self) -> str:
+        """Load the relationship extraction prompt template."""
+        try:
+            template_path = os.path.join(os.path.dirname(__file__), 
+                                       'templates', 'relationship_extraction.prompt')
+            with open(template_path, 'r', encoding='utf-8') as f:
+                return f.read()
+        except Exception as e:
+            self.logger.warning(f"Failed to load prompt template: {e}")
+            return self._get_default_prompt_template()
+    
+    def _get_default_prompt_template(self) -> str:
+        """Get default prompt template if file loading fails."""
+        return """Analyze the conversation text and identify relationships between the given entities.
+
+Relationship Types: {relationship_types}
+
+Conversation: {conversation_text}
+Digest: {digest_text}
+
+Entities: {entities_context}
+
+Extract relationships as JSON array with fields: from_entity, to_entity, relationship, confidence, evidence.
+
+Relationships:"""
+    
     def _get_relationship_types(self) -> Dict[str, str]:
-        """Get relationship types based on domain configuration."""
+        """Get relationship types from domain configuration."""
         domain_name = self.domain_config.get('domain_name', 'general')
         
         if 'dnd' in domain_name.lower():
@@ -73,93 +106,75 @@ class RelationshipExtractor:
                 'mentions': 'Entity is mentioned in context'
             }
     
-    def extract_relationships(self, text: str, entities: List[Dict[str, Any]], 
-                            context: Optional[str] = None) -> List[Dict[str, Any]]:
+    def extract_relationships_from_conversation(self, conversation_text: str, digest_text: str = "",
+                                              entities: List[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
         """
-        Extract relationships between entities in the given text.
+        Extract relationships from full conversation entry with entity context.
+        
+        This method analyzes the full conversation text and digest to identify relationships
+        between the provided entities, using LLM reasoning to understand context.
         
         Args:
-            text: Text to analyze for relationships
-            entities: List of entities found in the text
-            context: Optional context for better understanding
+            conversation_text: Full conversation entry text
+            digest_text: Digest/summary of the conversation
+            entities: List of entities from entity extraction phase
             
         Returns:
-            List of extracted relationships
+            List of relationships between entities
         """
-        if not text.strip() or len(entities) < 2:
+        if not entities or len(entities) < 2:
+            self.logger.debug("Need at least 2 entities to extract relationships")
             return []
         
         try:
-            prompt = self._build_relationship_prompt(text, entities, context)
+            # Build entity context
+            entities_context = self._build_entities_context(entities)
+            
+            # Build relationship types description
+            relationship_types_desc = "\n".join([
+                f"- {rtype}: {desc}" for rtype, desc in self.relationship_types.items()
+            ])
+            
+            # Build prompt
+            prompt = self.prompt_template.format(
+                relationship_types=relationship_types_desc,
+                conversation_text=conversation_text,
+                digest_text=digest_text,
+                entities_context=entities_context
+            )
+            
+            # Get LLM response
             response = self.llm_service.generate(prompt)
             
+            # Parse relationships
             relationships = self._parse_relationship_response(response, entities)
-            self.logger.debug(f"Extracted {len(relationships)} relationships from text")
             
+            self.logger.debug(f"Extracted {len(relationships)} relationships from conversation")
             return relationships
             
         except Exception as e:
-            self.logger.error(f"Error extracting relationships: {e}")
+            self.logger.error(f"Error in alternative relationship extraction: {e}")
             return []
     
-    def _build_relationship_prompt(self, text: str, entities: List[Dict[str, Any]], 
-                                 context: Optional[str] = None) -> str:
-        """Build prompt for relationship extraction."""
-        relationship_types_desc = "\\n".join([
-            f"- {rtype}: {desc}" for rtype, desc in self.relationship_types.items()
-        ])
+    def _build_entities_context(self, entities: List[Dict[str, Any]]) -> str:
+        """Build formatted entity context for the prompt."""
+        entities_lines = []
+        for entity in entities:
+            status = entity.get('status', 'new')
+            name = entity.get('name', '')
+            entity_type = entity.get('type', '')
+            description = entity.get('description', '')
+            
+            line = f"- {name} ({entity_type})"
+            if status == 'existing':
+                line += " [EXISTING]"
+            line += f": {description}"
+            
+            entities_lines.append(line)
         
-        entities_list = "\\n".join([
-            f"- {entity['name']} ({entity['type']}): {entity['description']}"
-            for entity in entities
-        ])
-        
-        prompt = f"""Analyze the following text to identify relationships between the given entities.
-
-Relationship Types:
-{relationship_types_desc}
-
-Entities in the text:
-{entities_list}
-
-Text to analyze:
-{text}
-"""
-        
-        if context:
-            prompt += f"""
-Context:
-{context}
-"""
-        
-        prompt += """
-Identify relationships between the entities based on what is explicitly stated or clearly implied in the text.
-Only include relationships that are directly supported by the text content.
-
-Respond with a JSON array of relationships. Each relationship should have:
-- "from_entity": name of the source entity
-- "to_entity": name of the target entity  
-- "relationship": type of relationship (from the defined types)
-- "confidence": confidence score from 0.0 to 1.0
-- "evidence": brief quote or description from text supporting this relationship
-
-Example response format:
-[
-    {
-        "from_entity": "Eldara",
-        "to_entity": "Riverwatch", 
-        "relationship": "located_in",
-        "confidence": 0.9,
-        "evidence": "Eldara runs the magic shop in Riverwatch"
-    }
-]
-
-Relationships:"""
-        
-        return prompt
+        return "\n".join(entities_lines)
     
-    def _parse_relationship_response(self, response: str, 
-                                   entities: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def _parse_relationship_response(self, response: str, entities: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """Parse LLM response to extract relationship list."""
         try:
             # Create entity name lookup for validation
@@ -193,8 +208,7 @@ Relationships:"""
             self.logger.error(f"Error parsing relationship extraction response: {e}")
             return []
     
-    def _validate_relationship(self, relationship: Dict[str, Any], 
-                             entity_names: set) -> bool:
+    def _validate_relationship(self, relationship: Dict[str, Any], entity_names: set) -> bool:
         """Validate extracted relationship structure."""
         required_fields = ['from_entity', 'to_entity', 'relationship']
         
@@ -203,7 +217,7 @@ Relationships:"""
             if field not in relationship or not relationship[field]:
                 return False
         
-        # Check entities exist in the entity list
+        # Check entities exist in the entity list (case-insensitive)
         from_name = relationship['from_entity'].lower()
         to_name = relationship['to_entity'].lower()
         
@@ -219,131 +233,102 @@ Relationships:"""
         if not isinstance(confidence, (int, float)) or not 0.0 <= confidence <= 1.0:
             relationship['confidence'] = 1.0
         
+        # Ensure evidence exists
+        if 'evidence' not in relationship:
+            relationship['evidence'] = "Inferred from context"
+        
         return True
     
-    def extract_relationships_from_segments(self, segments: List[Dict[str, Any]], 
-                                          entities_by_segment: Dict[str, List[Dict[str, Any]]]) -> List[Dict[str, Any]]:
+    def extract_relationships_from_entities(self, entities: List[Dict[str, Any]], 
+                                          context_text: str = "") -> List[Dict[str, Any]]:
         """
-        Extract relationships from conversation segments with their entities.
+        Extract relationships between entities with optional context.
+        
+        This is a simplified version that works with just entity information
+        and optional context text, useful for cross-conversation relationship detection.
         
         Args:
-            segments: List of conversation segments
-            entities_by_segment: Dict mapping segment IDs to their entities
+            entities: List of entities to analyze for relationships
+            context_text: Optional context text for relationship inference
             
         Returns:
-            List of all extracted relationships with segment references
+            List of relationships between entities
         """
-        all_relationships = []
+        if not entities or len(entities) < 2:
+            return []
         
-        for segment in segments:
-            # Skip low-importance or non-informational segments
-            if (segment.get('importance', 0) < 3 or 
-                segment.get('type') not in ['information', 'action']):
-                continue
+        try:
+            # Build simplified prompt
+            entities_context = self._build_entities_context(entities)
+            relationship_types_desc = "\n".join([
+                f"- {rtype}: {desc}" for rtype, desc in self.relationship_types.items()
+            ])
             
-            segment_id = segment.get('id', segment.get('segment_id', ''))
-            text = segment.get('text', '')
-            entities = entities_by_segment.get(segment_id, [])
+            prompt = f"""Analyze the following entities to identify likely relationships between them.
+
+Relationship Types:
+{relationship_types_desc}
+
+Entities:
+{entities_context}
+
+Context: {context_text}
+
+Based on the entity descriptions and any provided context, identify logical relationships.
+Only include relationships that are clearly implied by the entity information.
+
+Respond with a JSON array of relationships with fields: from_entity, to_entity, relationship, confidence, evidence.
+
+Relationships:"""
             
-            if not text or len(entities) < 2:
-                continue
+            # Get LLM response
+            response = self.llm_service.generate(prompt)
             
-            # Extract relationships from segment
-            relationships = self.extract_relationships(text, entities)
+            # Parse relationships
+            relationships = self._parse_relationship_response(response, entities)
             
-            # Add segment reference to each relationship
-            for rel in relationships:
-                rel['source_segment'] = segment_id
-                rel['source_text'] = text
-                rel['segment_importance'] = segment.get('importance', 0)
-                rel['segment_topics'] = segment.get('topics', [])
-                all_relationships.append(rel)
-        
-        self.logger.debug(f"Extracted {len(all_relationships)} relationships from {len(segments)} segments")
-        return all_relationships
+            self.logger.debug(f"Extracted {len(relationships)} relationships from entity analysis")
+            return relationships
+            
+        except Exception as e:
+            self.logger.error(f"Error extracting relationships from entities: {e}")
+            return []
     
-    def extract_temporal_relationships(self, segments: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def deduplicate_relationships(self, relationships: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """
-        Extract temporal relationships between events across segments.
+        Remove duplicate relationships based on from_entity, to_entity, and relationship type.
         
         Args:
-            segments: Ordered list of conversation segments
+            relationships: List of relationships to deduplicate
             
         Returns:
-            List of temporal relationships between events
+            List of unique relationships
         """
-        temporal_relationships = []
-        event_segments = []
+        seen_relationships = set()
+        unique_relationships = []
         
-        # Find segments that contain events
-        for segment in segments:
-            if (segment.get('type') == 'action' or 
-                segment.get('importance', 0) >= 4):
-                event_segments.append(segment)
-        
-        # Create temporal relationships between consecutive events
-        for i in range(len(event_segments) - 1):
-            current_segment = event_segments[i]
-            next_segment = event_segments[i + 1]
+        for rel in relationships:
+            # Create a key for deduplication
+            key = (
+                rel['from_entity'].lower(),
+                rel['to_entity'].lower(),
+                rel['relationship']
+            )
             
-            # Create a simple temporal relationship
-            temporal_rel = {
-                'from_entity': f"event_{current_segment.get('id', current_segment.get('segment_id', i))}",
-                'to_entity': f"event_{next_segment.get('id', next_segment.get('segment_id', i+1))}",
-                'relationship': 'occurs_before',
-                'confidence': 0.8,
-                'evidence': 'Sequential order in conversation',
-                'source_segments': [
-                    current_segment.get('id', current_segment.get('segment_id', '')),
-                    next_segment.get('id', next_segment.get('segment_id', ''))
-                ],
-                'temporal_order': i
-            }
-            
-            temporal_relationships.append(temporal_rel)
+            if key not in seen_relationships:
+                seen_relationships.add(key)
+                unique_relationships.append(rel)
         
-        return temporal_relationships
+        return unique_relationships
     
-    def find_cross_segment_relationships(self, segments: List[Dict[str, Any]], 
-                                       all_entities: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """
-        Find relationships between entities that appear in different segments.
-        
-        Args:
-            segments: List of conversation segments
-            all_entities: All entities extracted from segments
-            
-        Returns:
-            List of cross-segment relationships
-        """
-        cross_relationships = []
-        
-        # Group entities by name/type for cross-referencing
-        entity_mentions = {}
-        for entity in all_entities:
-            key = (entity['name'].lower(), entity['type'])
-            if key not in entity_mentions:
-                entity_mentions[key] = []
-            entity_mentions[key].append(entity)
-        
-        # Find entities mentioned in multiple segments
-        for (name, etype), mentions in entity_mentions.items():
-            if len(mentions) > 1:
-                # Create "mentions" relationships across segments
-                for i, mention in enumerate(mentions):
-                    for j, other_mention in enumerate(mentions[i+1:], i+1):
-                        cross_rel = {
-                            'from_entity': mention['name'],
-                            'to_entity': other_mention['name'],
-                            'relationship': 'co_mentioned',
-                            'confidence': 0.6,
-                            'evidence': f"Both mentioned across segments",
-                            'source_segments': [
-                                mention.get('source_segment', ''),
-                                other_mention.get('source_segment', '')
-                            ],
-                            'cross_segment': True
-                        }
-                        cross_relationships.append(cross_rel)
-        
-        return cross_relationships
+    def get_relationship_types(self) -> Dict[str, str]:
+        """Get configured relationship types."""
+        return self.relationship_types.copy()
+    
+    def get_stats(self) -> Dict[str, Any]:
+        """Get extraction statistics."""
+        return {
+            'extractor_type': 'alternative_llm_centric',
+            'relationship_types_count': len(self.relationship_types),
+            'domain': self.domain_config.get('domain_name', 'general')
+        } 

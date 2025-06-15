@@ -1,709 +1,961 @@
 """
 Graph Manager
 
-Core graph operations with RAG-based entity resolution.
-
-This module provides the main GraphManager class that orchestrates all graph memory
-operations including entity extraction, relationship detection, semantic similarity
-matching, and graph storage.
-
-Example::
-
-    from src.memory.graph_memory import GraphManager
-    
-    # Initialize with services
-    graph_manager = GraphManager(
-        llm_service=llm_service,
-        embeddings_manager=embeddings_manager,
-        storage_path="graph_data",
-        domain_config=domain_config
-    )
-    
-    # Add entities with automatic deduplication
-    node, is_new = graph_manager.add_or_update_node(
-        name="Eldara",
-        node_type="character", 
-        description="A fire wizard who runs a magic shop"
-    )
-
-Attributes:
-    storage (~.graph_storage.GraphStorage): Handles JSON persistence of graph data.
-    embeddings_manager (EmbeddingsManager): Manages entity embeddings for similarity.
-    similarity_threshold (float): Threshold for entity similarity matching (default: 0.8).
-    nodes (Dict[str, GraphNode]): In-memory cache of graph nodes.
-    edges (List[GraphEdge]): In-memory cache of graph edges.
+LLM-centric graph management with advanced entity and relationship extraction.
+Focuses on full conversation analysis rather than segment-based processing,
+and relies on LLM reasoning for entity and relationship identification.
 """
 
 import uuid
-import numpy as np
-from typing import Dict, List, Any, Optional, Tuple, Set
+from typing import Dict, List, Any, Optional, Tuple
 from datetime import datetime
 import logging
 
+from .graph_entities import GraphNode, GraphEdge
 from .graph_storage import GraphStorage
+from .graph_queries import GraphQueries
 from .entity_extractor import EntityExtractor
 from .relationship_extractor import RelationshipExtractor
 from .entity_resolver import EntityResolver
 
 
-class GraphNode:
-    """Represents a node in the knowledge graph.
-    
-    A GraphNode stores entity information including its name, type, description,
-    semantic embedding, aliases, and metadata. Nodes support automatic similarity
-    matching to prevent duplicates.
-    
-    Attributes:
-        id (str): Unique identifier for the node.
-        type (str): Entity type (character, location, object, etc.).
-        name (str): Primary name of the entity.
-        description (str): Detailed description for semantic matching.
-        embedding (List[float]): Semantic embedding vector for similarity.
-        aliases (List[str]): Alternative names for this entity.
-        created_at (str): ISO timestamp of creation.
-        updated_at (str): ISO timestamp of last update.
-        mention_count (int): Number of times entity has been mentioned.
-        attributes (Dict[str, Any]): Additional custom attributes.
-    
-    Example::
-
-        node = GraphNode(
-            node_id="character_001",
-            node_type="character",
-            name="Eldara",
-            description="A fire wizard who runs a magic shop in Riverwatch",
-            embedding=[0.1, 0.2, ...],
-            profession="wizard",
-            magic_type="fire"
-        )
-    """
-    
-    def __init__(self, node_id: str, node_type: str, name: str, description: str, 
-                 embedding: Optional[List[float]] = None, **attributes):
-        """Initialize a new graph node.
-        
-        Args:
-            node_id: Unique identifier for the node.
-            node_type: Type of entity (character, location, object, etc.).
-            name: Primary name of the entity.
-            description: Detailed description for semantic embedding.
-            embedding: Optional semantic embedding vector.
-            **attributes: Additional custom attributes for the entity.
-        """
-        self.id = node_id
-        self.type = node_type
-        self.name = name
-        self.description = description
-        self.embedding = embedding if embedding is not None else []
-        self.attributes = attributes
-        self.aliases = attributes.get('aliases', [])
-        self.created_at = attributes.get('created_at', datetime.now().isoformat())
-        self.updated_at = datetime.now().isoformat()
-        self.mention_count = attributes.get('mention_count', 1)
-    
-    def to_dict(self, include_embedding: bool = False) -> Dict[str, Any]:
-        """Convert node to dictionary representation.
-        
-        Args:
-            include_embedding: Whether to include embedding vector in output.
-                Should be False for storage to avoid bloating JSON files.
-                Embeddings are stored separately in graph_memory_embeddings.jsonl
-                              
-        Returns:
-            Dictionary representation of the node suitable for JSON serialization.
-            
-        Note:
-            Embeddings are excluded by default to keep JSON files manageable.
-            Use include_embedding=True only for in-memory operations.
-        """
-        result = {
-            'id': self.id,
-            'type': self.type,
-            'name': self.name,
-            'description': self.description,
-            'aliases': self.aliases,
-            'created_at': self.created_at,
-            'updated_at': self.updated_at,
-            'mention_count': self.mention_count,
-            **self.attributes
-        }
-        
-        # Only include embedding if explicitly requested (e.g., for in-memory operations)
-        if include_embedding:
-            # Convert embedding to list if it's a numpy array
-            embedding = self.embedding
-            if hasattr(embedding, 'tolist'):
-                embedding = embedding.tolist()
-            result['embedding'] = embedding
-            
-        return result
-    
-    @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'GraphNode':
-        """Create node from dictionary representation.
-        
-        Args:
-            data: Dictionary containing node data from JSON storage.
-            
-        Returns:
-            GraphNode instance reconstructed from dictionary data.
-            
-        Raises:
-            KeyError: If required fields are missing from data.
-        """
-        attributes = data.copy()
-        # Remove standard fields from attributes
-        for field in ['id', 'type', 'name', 'description', 'embedding']:
-            attributes.pop(field, None)
-        
-        return cls(
-            node_id=data['id'],
-            node_type=data['type'],
-            name=data['name'],
-            description=data['description'],
-            embedding=data.get('embedding', []),
-            **attributes
-        )
-
-
-class GraphEdge:
-    """Represents an edge (relationship) in the knowledge graph.
-    
-    A GraphEdge connects two entities with a typed relationship, including
-    confidence scoring and evidence from the source text.
-    
-    Attributes:
-        id (str): Unique identifier generated automatically.
-        from_node_id (str): Source node identifier.
-        to_node_id (str): Target node identifier. 
-        relationship (str): Type of relationship (located_in, owns, etc.).
-        weight (float): Strength/importance of the relationship.
-        created_at (str): ISO timestamp of creation.
-        updated_at (str): ISO timestamp of last update.
-        attributes (Dict[str, Any]): Additional relationship metadata.
-    
-    Example::
-
-        edge = GraphEdge(
-            from_node_id="character_001",
-            to_node_id="location_002", 
-            relationship="located_in",
-            weight=0.9,
-            evidence="Eldara runs her magic shop in Riverwatch",
-            confidence=0.9
-        )
-    """
-    
-    def __init__(self, from_node_id: str, to_node_id: str, relationship: str,
-                 weight: float = 1.0, **attributes):
-        """Initialize a new graph edge.
-        
-        Args:
-            from_node_id: Identifier of the source node.
-            to_node_id: Identifier of the target node.
-            relationship: Type of relationship between nodes.
-            weight: Strength of the relationship (0.0 to 1.0).
-            **attributes: Additional metadata like evidence, confidence, etc.
-        """
-        self.id = str(uuid.uuid4())
-        self.from_node_id = from_node_id
-        self.to_node_id = to_node_id
-        self.relationship = relationship
-        self.weight = weight
-        self.attributes = attributes
-        self.created_at = attributes.get('created_at', datetime.now().isoformat())
-        self.updated_at = datetime.now().isoformat()
-    
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert edge to dictionary representation."""
-        return {
-            'id': self.id,
-            'from_node_id': self.from_node_id,
-            'to_node_id': self.to_node_id,
-            'relationship': self.relationship,
-            'weight': self.weight,
-            'created_at': self.created_at,
-            'updated_at': self.updated_at,
-            **self.attributes
-        }
-    
-    @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'GraphEdge':
-        """Create edge from dictionary representation."""
-        attributes = data.copy()
-        # Remove standard fields from attributes
-        for field in ['id', 'from_node_id', 'to_node_id', 'relationship', 'weight']:
-            attributes.pop(field, None)
-        
-        edge = cls(
-            from_node_id=data['from_node_id'],
-            to_node_id=data['to_node_id'],
-            relationship=data['relationship'],
-            weight=data.get('weight', 1.0),
-            **attributes
-        )
-        edge.id = data.get('id', edge.id)
-        return edge
-
-
 class GraphManager:
-    """Main graph management system with RAG-based entity resolution.
-    
-    GraphManager orchestrates the entire graph memory pipeline including entity
-    extraction, duplicate prevention through semantic similarity matching, 
-    relationship detection, and graph storage. It integrates with LLM services
-    for content extraction and embeddings managers for similarity matching.
-    
-    The system prevents duplicate entities through a multi-stage approach:
-    
-    1. Exact name matching (case-insensitive, alias-aware)
-    2. Semantic similarity matching using embeddings 
-    3. Entity consolidation with mention counting
-    
-    Attributes:
-        storage (~.graph_storage.GraphStorage): Handles JSON persistence.
-        embeddings_manager (EmbeddingsManager): Manages semantic embeddings.
-        similarity_threshold (float): Similarity threshold for entity matching.
-        nodes (Dict[str, GraphNode]): In-memory graph nodes.
-        edges (List[GraphEdge]): In-memory graph edges.
-        entity_extractor (~.entity_extractor.EntityExtractor): LLM-based entity extraction.
-        relationship_extractor (~.relationship_extractor.RelationshipExtractor): LLM-based relationship extraction.
-    
-    Example::
-
-        # Initialize with services
-        graph_manager = GraphManager(
-            llm_service=gemma_service,
-            embeddings_manager=embeddings_mgr,
-            storage_path="campaign_graph",
-            domain_config=dnd_config,
-            similarity_threshold=0.8
-        )
-        
-        # Process conversation segments
-        entities = graph_manager.extract_entities_from_segments(segments)
-        for entity in entities:
-            node, is_new = graph_manager.add_or_update_node(
-                name=entity["name"],
-                node_type=entity["type"],
-                description=entity["description"]
-            )
-    """
+    """Graph manager using LLM-centric extractors for entity and relationship extraction."""
     
     def __init__(self, storage_path: str, embeddings_manager=None, 
                  similarity_threshold: float = 0.8, logger=None,
-                 llm_service=None, embeddings_llm_service=None, domain_config=None):
-        """Initialize graph manager with required services.
+                 llm_service=None, embeddings_llm_service=None, domain_config=None,
+                 logs_dir=None, memory_guid=None):
+        """
+        Initialize alternative graph manager with LLM-centric extractors.
         
         Args:
             storage_path: Directory path for JSON graph storage.
             embeddings_manager: EmbeddingsManager for semantic similarity matching.
-                If None, only name-based matching will be used.
             similarity_threshold: Cosine similarity threshold for entity matching.
-                Higher values (closer to 1.0) require more similarity.
             logger: Logger instance for debugging and monitoring.
-            llm_service: LLM service for entity/relationship extraction (e.g., gemma3).
-            embeddings_llm_service: LLM service for embeddings (e.g., mxbai-embed-large).
-                Defaults to llm_service if not provided.
-            domain_config: Domain-specific configuration with entity/relationship types.
-                          
-        Raises:
-            ValueError: If storage_path is invalid or inaccessible.
-            
-        Note:
-            Both llm_service and domain_config are required for automatic entity
-            and relationship extraction. Without them, only manual node/edge
-            operations will be available.
+            llm_service: LLM service for entity/relationship extraction.
+            embeddings_llm_service: LLM service for embeddings.
+            domain_config: Domain-specific configuration.
+            logs_dir: Directory for graph-specific log files (optional).
+            memory_guid: Memory GUID for creating dedicated log directories (optional).
         """
+        # Initialize core graph functionality
         self.storage = GraphStorage(storage_path)
         self.embeddings_manager = embeddings_manager
         self.similarity_threshold = similarity_threshold
         self.logger = logger or logging.getLogger(__name__)
-        self.llm_service = llm_service  # Text generation service (gemma3)
-        self.embeddings_llm_service = embeddings_llm_service or llm_service  # Embeddings service (mxbai-embed-large)
-        self.domain_config = domain_config
+        self.domain_config = domain_config or {}
         
-        # Initialize extractors if LLM service is provided
-        if llm_service and domain_config:
-            self.entity_extractor = EntityExtractor(llm_service, domain_config, logger)
-            self.relationship_extractor = RelationshipExtractor(llm_service, domain_config, logger)
-            
-            # Initialize entity resolver for enhanced duplicate detection (if enabled)
-            graph_config = domain_config.get("graph_memory_config", {})
-            resolver_enabled = graph_config.get("enable_entity_resolver", True)  # Default to enabled
-            
-            if resolver_enabled and embeddings_manager:
-                confidence_threshold = graph_config.get("similarity_threshold", 0.8)
-                self.entity_resolver = EntityResolver(
-                    llm_service=llm_service,
-                    embeddings_manager=embeddings_manager,
-                    storage_path=storage_path,
-                    confidence_threshold=confidence_threshold,
-                    logger=logger
-                )
-                self.logger.info("EntityResolver enabled for enhanced duplicate detection")
-            else:
-                self.entity_resolver = None
-                if not embeddings_manager:
-                    self.logger.warning("EntityResolver disabled: embeddings_manager not available")
-                else:
-                    self.logger.info("EntityResolver disabled by configuration")
-        else:
-            self.entity_extractor = None
-            self.relationship_extractor = None
-            self.entity_resolver = None
+        # Initialize graph data structures
+        self.nodes = {}  # Dict[str, GraphNode]
+        self.edges = []  # List[GraphEdge]
         
         # Load existing graph data
         self._load_graph()
+        
+        # Create dedicated LLM services with graph-specific logging if logs_dir is provided
+        self.graph_llm_service = llm_service  # Default to passed service
+        self.resolver_llm_service = llm_service  # Default to passed service
+        
+        if llm_service and logs_dir and memory_guid:
+            self._setup_graph_specific_logging(llm_service, logs_dir, memory_guid)
+        
+        # Initialize entity and relationship extractors using dedicated LLM services
+        if llm_service and domain_config:
+            self.entity_extractor = EntityExtractor(
+                self.graph_llm_service, domain_config, graph_manager=self, logger=logger)
+            self.relationship_extractor = RelationshipExtractor(
+                self.graph_llm_service, domain_config, logger)
+            
+            # Initialize EntityResolver for essential duplicate detection
+            if not embeddings_manager:
+                raise ValueError("EntityResolver requires embeddings_manager - it is mandatory for graph memory")
+            
+            graph_config = domain_config.get("graph_memory_config", {})
+            confidence_threshold = graph_config.get("similarity_threshold", 0.8)
+            self.entity_resolver = EntityResolver(
+                llm_service=self.resolver_llm_service,
+                embeddings_manager=embeddings_manager,
+                storage_path=storage_path,
+                confidence_threshold=confidence_threshold,
+                logger=logger
+            )
+            self.logger.info("EntityResolver initialized - essential component for preventing duplicate entities")
+        else:
+            raise ValueError("GraphManager requires llm_service and domain_config - these are mandatory for graph memory operations")
+        
+        self.logger.info("Initialized GraphManager with LLM-centric extractors")
     
-    def _load_graph(self) -> None:
-        """Load graph data from storage."""
-        nodes_data = self.storage.load_nodes()
-        edges_data = self.storage.load_edges()
-        
-        self.nodes = {
-            node_id: GraphNode.from_dict(node_data)
-            for node_id, node_data in nodes_data.items()
-        }
-        
-        self.edges = [
-            GraphEdge.from_dict(edge_data)
-            for edge_data in edges_data
-        ]
-        
-        self.logger.debug(f"Loaded graph: {len(self.nodes)} nodes, {len(self.edges)} edges")
-    
-    def _save_graph(self) -> None:
-        """Save graph data to storage."""
-        nodes_data = {
-            node_id: node.to_dict()
-            for node_id, node in self.nodes.items()
-        }
-        
-        edges_data = [edge.to_dict() for edge in self.edges]
-        
-        self.storage.save_nodes(nodes_data)
-        self.storage.save_edges(edges_data)
-        
-        self.logger.debug(f"Saved graph: {len(self.nodes)} nodes, {len(self.edges)} edges")
-    
-    def add_or_update_node(self, name: str, node_type: str, description: str,
-                          **attributes) -> Tuple[GraphNode, bool]:
-        """Add a new node or update existing one using semantic similarity matching.
-        
-        This method implements the core duplicate prevention logic:
-        
-        1. Generates semantic embedding for the entity description
-        2. Searches for similar existing entities of the same type
-        3. If similarity exceeds threshold, updates existing entity
-        4. Otherwise creates new entity with unique identifier
+    def _setup_graph_specific_logging(self, base_llm_service, logs_dir: str, memory_guid: str):
+        """
+        Setup dedicated LLM services with graph-specific logging.
         
         Args:
-            name: Entity name/identifier.
-            node_type: Type of entity (character, location, object, etc.).
-                Must match domain-configured entity types.
-            description: Detailed description used for semantic embedding.
-                This is the primary text used for similarity matching.
-            **attributes: Additional custom attributes stored with the entity.
-            
-        Returns:
-            Tuple of (GraphNode, bool) where:
-            
-            - GraphNode: The created or updated node
-            - bool: True if new node was created, False if existing node updated
-            
-        Example::
-
-            # Add new entity (or update if similar one exists)
-            node, is_new = graph_manager.add_or_update_node(
-                name="Eldara",
-                node_type="character",
-                description="A fire wizard who runs a magic shop in Riverwatch",
-                profession="wizard",
-                magic_type="fire"
-            )
-            
-            if is_new:
-                print(f"Created new entity: {node.name}")
+            base_llm_service: Base LLM service to clone configuration from.
+            logs_dir: Directory for log files.
+            memory_guid: Memory GUID for creating subdirectories.
+        """
+        import os
+        from src.ai.llm_ollama import OllamaService
+        
+        # Create GUID-specific logs directory if it doesn't exist  
+        # logs_dir should be project root, so we create logs/[guid] subdirectory
+        guid_logs_dir = os.path.join(logs_dir, "logs", memory_guid)
+        os.makedirs(guid_logs_dir, exist_ok=True)
+        
+        # Create graph-specific log files
+        graph_manager_debug_file = os.path.join(guid_logs_dir, "graph_manager.log")
+        entity_resolver_debug_file = os.path.join(guid_logs_dir, "entity_resolver.log")
+        
+        self.logger.debug(f"Graph manager debug log: {graph_manager_debug_file}")
+        self.logger.debug(f"Entity resolver debug log: {entity_resolver_debug_file}")
+        
+        # Get base configuration from the original service
+        base_config = {}
+        if hasattr(base_llm_service, 'config'):
+            base_config = base_llm_service.config.copy()
+        elif hasattr(base_llm_service, 'base_url'):
+            # Extract common configuration
+            base_config = {
+                "base_url": getattr(base_llm_service, 'base_url', 'http://localhost:11434'),
+                "model": getattr(base_llm_service, 'model', 'gemma3'),
+                "temperature": getattr(base_llm_service, 'temperature', 0.7),
+                "stream": getattr(base_llm_service, 'stream', False)
+            }
+        
+        # Create dedicated LLM service for general graph operations
+        graph_config = base_config.copy()
+        graph_config.update({
+            "debug": True,
+            "debug_file": graph_manager_debug_file,
+            "debug_scope": "graph_manager",
+            "console_output": False,
+            "temperature": 0  # Use deterministic temperature for graph operations
+        })
+        
+        # Create dedicated LLM service for entity resolution
+        resolver_config = base_config.copy()
+        resolver_config.update({
+            "debug": True,
+            "debug_file": entity_resolver_debug_file,
+            "debug_scope": "entity_resolver",
+            "console_output": False,
+            "temperature": 0  # Use deterministic temperature for resolution
+        })
+        
+        try:
+            # Create the dedicated LLM services
+            if isinstance(base_llm_service, OllamaService):
+                self.graph_llm_service = OllamaService(graph_config)
+                self.resolver_llm_service = OllamaService(resolver_config)
+                self.logger.info("Created dedicated graph and resolver LLM services with separate logging")
             else:
-                print(f"Updated existing entity: {node.name} (mentions: {node.mention_count})")
-            
-        Note:
-            Semantic similarity matching requires embeddings_manager to be configured.
-            Without it, only exact name matching will prevent duplicates.
+                # For other LLM service types, fall back to the original service
+                self.logger.warning(f"Graph-specific logging not implemented for {type(base_llm_service).__name__}, using original service")
+                self.graph_llm_service = base_llm_service
+                self.resolver_llm_service = base_llm_service
+        except Exception as e:
+            self.logger.error(f"Failed to create dedicated LLM services: {e}")
+            self.logger.warning("Falling back to original LLM service")
+            self.graph_llm_service = base_llm_service
+            self.resolver_llm_service = base_llm_service
+    
+    def process_conversation_entry(self, conversation_text: str, digest_text: str = "") -> Dict[str, Any]:
         """
-        # Generate embedding for the description
-        embedding = None
-        if self.embeddings_manager:
-            try:
-                embedding = self.embeddings_manager.generate_embedding(description)
-            except Exception as e:
-                self.logger.warning(f"Failed to generate embedding: {e}")
+        Process a full conversation entry using the alternative LLM-centric approach.
         
-        # Look for similar existing nodes
-        similar_node = self._find_similar_node(name, description, node_type, embedding)
+        This method implements the two-stage process described in the alternative approach:
+        1. Extract entities from conversation + digest using RAG for existing entity matching
+        2. Extract relationships between the identified entities
         
-        if similar_node:
-            # Update existing node
-            similar_node.description = description
-            similar_node.updated_at = datetime.now().isoformat()
-            similar_node.mention_count += 1
+        Args:
+            conversation_text: Full conversation entry text
+            digest_text: Digest/summary of the conversation
             
-            # Add name as alias if not already present
-            if name not in similar_node.aliases and name != similar_node.name:
-                similar_node.aliases.append(name)
+        Returns:
+            Dictionary with processing results including entities and relationships
+        """
+        if not self.entity_extractor or not self.relationship_extractor:
+            self.logger.error("Entity extractors not available - missing LLM service or domain config")
+            return {"entities": [], "relationships": [], "error": "Extractors not available"}
+        
+        try:
+            results = {
+                "entities": [],
+                "relationships": [],
+                "new_entities": [],
+                "existing_entities": [],
+                "stats": {}
+            }
             
-            # Update attributes with special handling for conversation history GUIDs
-            for key, value in attributes.items():
-                if key == "conversation_history_guids" and isinstance(value, list):
-                    # Merge conversation GUID lists, avoiding duplicates
-                    existing_guids = similar_node.attributes.get("conversation_history_guids", [])
-                    merged_guids = list(set(existing_guids + value))
-                    similar_node.attributes[key] = merged_guids
-                else:
-                    similar_node.attributes[key] = value
+            # Stage 1: Extract entities using alternative approach
+            self.logger.debug("Stage 1: Extracting entities from conversation")
+            extracted_entities = self.entity_extractor.extract_entities_from_conversation(
+                conversation_text, digest_text)
             
-            # Update embedding if available
-            if embedding is not None and len(embedding) > 0:
-                similar_node.embedding = embedding
+            if not extracted_entities:
+                self.logger.info("No entities extracted from conversation")
+                return results
             
-            # Save embedding to embeddings manager with the node ID
-            if self.embeddings_manager and embedding is not None:
+            # Process and add entities to graph
+            processed_entities = []
+            for entity in extracted_entities:
                 try:
-                    entity_metadata = {
-                        'entity_name': name,
-                        'entity_type': node_type,
-                        'entity_id': similar_node.id,  # Include actual node ID
-                        'text': description,
-                        'timestamp': datetime.now().isoformat(),
-                        'source': 'graph_entity'
-                    }
-                    entity_metadata.update(attributes)
-                    self.embeddings_manager.add_embedding(description, entity_metadata)
+                    if entity.get('status') == 'existing':
+                        # Update existing entity
+                        existing_node = self._update_existing_entity(entity)
+                        if existing_node:
+                            processed_entities.append({
+                                'node': existing_node,
+                                'status': 'existing',
+                                **entity
+                            })
+                            results["existing_entities"].append(existing_node.to_dict())
+                    else:
+                        # Create new entity
+                        new_node, is_new = self.add_or_update_node(
+                            name=entity.get("name", ""),
+                            node_type=entity.get("type", "concept"),
+                            description=entity.get("description", ""),
+                            confidence=entity.get("confidence", 1.0)
+                        )
+                        processed_entities.append({
+                            'node': new_node,
+                            'status': 'new' if is_new else 'updated',
+                            **entity
+                        })
+                        if is_new:
+                            results["new_entities"].append(new_node.to_dict())
+                
                 except Exception as e:
-                    self.logger.warning(f"Failed to save embedding: {e}")
+                    self.logger.error(f"Error processing entity {entity.get('name', 'unknown')}: {e}")
+                    continue
             
+            results["entities"] = [item['node'].to_dict() for item in processed_entities]
+            
+            # Stage 2: Extract relationships using alternative approach
+            self.logger.debug("Stage 2: Extracting relationships from conversation")
+            if len(processed_entities) >= 2:
+                entity_list = [item for item in extracted_entities]  # Use original entity format
+                extracted_relationships = self.relationship_extractor.extract_relationships_from_conversation(
+                    conversation_text, digest_text, entity_list)
+                
+                # Process and add relationships to graph
+                for relationship in extracted_relationships:
+                    try:
+                        edge = self._add_relationship_to_graph(relationship, processed_entities)
+                        if edge:
+                            results["relationships"].append(edge.to_dict())
+                    except Exception as e:
+                        self.logger.error(f"Error processing relationship: {e}")
+                        continue
+            
+            # Generate stats
+            results["stats"] = {
+                "entities_extracted": len(extracted_entities),
+                "entities_new": len(results["new_entities"]),
+                "entities_existing": len(results["existing_entities"]),
+                "relationships_extracted": len(results["relationships"]),
+                "conversation_length": len(conversation_text),
+                "digest_length": len(digest_text)
+            }
+            
+            self.logger.info(f"Processed conversation: {results['stats']}")
+            return results
+            
+        except Exception as e:
+            self.logger.error(f"Error processing conversation entry: {e}")
+            return {"entities": [], "relationships": [], "error": str(e)}
+    
+    def _update_existing_entity(self, entity_info: Dict[str, Any]) -> Optional[GraphNode]:
+        """Update an existing entity with new information from the conversation."""
+        try:
+            existing_id = entity_info.get('existing_id')
+            if not existing_id:
+                self.logger.warning("No existing_id provided for existing entity")
+                return None
+            
+            # Find the existing node
+            existing_node = self.nodes.get(existing_id)
+            if not existing_node:
+                self.logger.warning(f"Existing entity {existing_id} not found in graph")
+                return None
+            
+            # Update with new information
+            new_description = entity_info.get('description', '')
+            if new_description and new_description != existing_node.description:
+                existing_node.description = new_description
+                
+                # Update embedding if available
+                if self.embeddings_manager:
+                    try:
+                        embedding = self.embeddings_manager.generate_embedding(new_description)
+                        existing_node.embedding = embedding
+                    except Exception as e:
+                        self.logger.warning(f"Failed to update embedding: {e}")
+            
+            # Update metadata
+            existing_node.mention_count += 1
+            existing_node.updated_at = datetime.now().isoformat()
+            
+            # Add confidence as attribute if provided
+            confidence = entity_info.get('confidence')
+            if confidence is not None:
+                existing_node.attributes['last_confidence'] = confidence
+            
+            # Save changes
             self._save_graph()
-            self.logger.debug(f"Updated existing node: {similar_node.id}")
-            return similar_node, False
-        
-        else:
-            # Create new node
-            node_id = f"{node_type}_{str(uuid.uuid4())[:8]}"
-            new_node = GraphNode(
-                node_id=node_id,
-                node_type=node_type,
-                name=name,
-                description=description,
-                embedding=embedding,
-                aliases=[],
-                **attributes
+            
+            return existing_node
+            
+        except Exception as e:
+            self.logger.error(f"Error updating existing entity: {e}")
+            return None
+    
+    def _add_relationship_to_graph(self, relationship: Dict[str, Any], 
+                                  processed_entities: List[Dict[str, Any]]) -> Optional[GraphEdge]:
+        """Add a relationship to the graph."""
+        try:
+            # Find the entity nodes by name
+            from_node = None
+            to_node = None
+            
+            entity_name_to_node = {
+                item['name'].lower(): item['node'] 
+                for item in processed_entities
+            }
+            
+            from_name = relationship['from_entity'].lower()
+            to_name = relationship['to_entity'].lower()
+            
+            if from_name in entity_name_to_node:
+                from_node = entity_name_to_node[from_name]
+            if to_name in entity_name_to_node:
+                to_node = entity_name_to_node[to_name]
+            
+            if not from_node or not to_node:
+                self.logger.warning(f"Could not find nodes for relationship {relationship}")
+                return None
+            
+            # Check if relationship already exists
+            existing_edge = self._find_edge(from_node.id, to_node.id, relationship['relationship'])
+            if existing_edge:
+                # Update existing relationship
+                existing_edge.confidence = max(existing_edge.confidence, 
+                                             relationship.get('confidence', 1.0))
+                existing_edge.evidence = relationship.get('evidence', existing_edge.evidence)
+                existing_edge.updated_at = datetime.now().isoformat()
+                self._save_graph()
+                return existing_edge
+            
+            # Create new relationship
+            edge_id = f"edge_{str(uuid.uuid4())[:8]}"
+            new_edge = GraphEdge(
+                edge_id=edge_id,
+                from_node_id=from_node.id,
+                to_node_id=to_node.id,
+                relationship=relationship['relationship'],
+                confidence=relationship.get('confidence', 1.0),
+                evidence=relationship.get('evidence', ''),
+                created_at=datetime.now().isoformat()
             )
             
-            self.nodes[node_id] = new_node
+            self.edges.append(new_edge)
+            self._save_graph()
             
-            # Save embedding to embeddings manager with the node ID
-            if self.embeddings_manager and embedding is not None:
-                try:
-                    entity_metadata = {
-                        'entity_name': name,
-                        'entity_type': node_type,
-                        'entity_id': node_id,  # Include actual node ID
-                        'text': description,
-                        'timestamp': datetime.now().isoformat(),
-                        'source': 'graph_entity'
+            return new_edge
+            
+        except Exception as e:
+            self.logger.error(f"Error adding relationship to graph: {e}")
+            return None
+    
+    def compare_with_baseline(self, conversation_text: str, digest_text: str = "") -> Dict[str, Any]:
+        """
+        Compare alternative approach results with baseline approach.
+        
+        This method runs both the alternative and baseline approaches on the same input
+        to enable A/B testing and performance comparison.
+        
+        Args:
+            conversation_text: Full conversation entry text
+            digest_text: Digest/summary of the conversation
+            
+        Returns:
+            Dictionary comparing both approaches
+        """
+        comparison = {
+            "alternative": {},
+            "baseline": {},
+            "comparison_stats": {}
+        }
+        
+        try:
+            # Run alternative approach
+            self.logger.info("Running alternative approach...")
+            alt_results = self.process_conversation_entry(conversation_text, digest_text)
+            comparison["alternative"] = alt_results
+            
+            # Run baseline approach (using parent class methods)
+            self.logger.info("Running baseline approach...")
+            baseline_results = self._run_baseline_approach(conversation_text, digest_text)
+            comparison["baseline"] = baseline_results
+            
+            # Generate comparison statistics
+            comparison["comparison_stats"] = {
+                "alt_entities": len(alt_results.get("entities", [])),
+                "baseline_entities": len(baseline_results.get("entities", [])),
+                "alt_relationships": len(alt_results.get("relationships", [])),
+                "baseline_relationships": len(baseline_results.get("relationships", [])),
+                "alt_new_entities": len(alt_results.get("new_entities", [])),
+                "baseline_new_entities": len(baseline_results.get("new_entities", [])),
+            }
+            
+            return comparison
+            
+        except Exception as e:
+            self.logger.error(f"Error in comparison: {e}")
+            comparison["error"] = str(e)
+            return comparison
+    
+    def _run_baseline_approach(self, conversation_text: str, digest_text: str) -> Dict[str, Any]:
+        """Run the baseline segment-based approach for comparison."""
+        # This would need to be implemented to create segments and use the original extractors
+        # For now, return a placeholder
+        return {
+            "entities": [],
+            "relationships": [],
+            "new_entities": [],
+            "stats": {
+                "approach": "baseline_segment_based",
+                "note": "Baseline comparison not yet implemented"
+            }
+        }
+    
+    def get_extractor_stats(self) -> Dict[str, Any]:
+        """Get statistics about the alternative extractors."""
+        stats = {
+            "manager_type": "llm_centric",
+            "has_entity_extractor": self.entity_extractor is not None,
+            "has_relationship_extractor": self.relationship_extractor is not None,
+        }
+        
+        if self.entity_extractor:
+            stats["entity_extractor"] = self.entity_extractor.get_stats()
+        
+        if self.relationship_extractor:
+            stats["relationship_extractor"] = self.relationship_extractor.get_stats()
+        
+        return stats
+    
+    def process_conversation_entry_with_resolver(self, conversation_text: str, digest_text: str = "", 
+                                                conversation_guid: str = None) -> Dict[str, Any]:
+        """
+        Process conversation entry using EntityResolver for enhanced duplicate detection.
+        
+        This method combines the alternative LLM-centric approach with EntityResolver's
+        sophisticated duplicate detection capabilities. It extracts entities, resolves them
+        against existing nodes with confidence scoring, and then processes relationships.
+        
+        Args:
+            conversation_text: Full conversation entry text
+            digest_text: Digest/summary of the conversation
+            conversation_guid: GUID for tracking conversation mentions
+            
+        Returns:
+            Dictionary with processing results including resolved entities and relationships
+        """
+        if not self.entity_extractor:
+            self.logger.error("Entity extractor not available")
+            return {"entities": [], "relationships": [], "error": "Entity extractor not available"}
+        
+        # Use basic processing if EntityResolver is not available
+        if not self.entity_resolver:
+            self.logger.debug("EntityResolver not available, falling back to basic processing")
+            return self.process_conversation_entry(conversation_text, digest_text)
+        
+        try:
+            results = {
+                "entities": [],
+                "relationships": [],
+                "new_entities": [],
+                "existing_entities": [],
+                "resolved_entities": [],
+                "stats": {}
+            }
+            
+            # Stage 1: Extract entities using alternative approach
+            self.logger.debug("Stage 1: Extracting entities from conversation with EntityExtractor")
+            raw_entities = self.entity_extractor.extract_entities_from_conversation(
+                conversation_text, digest_text)
+            
+            if not raw_entities:
+                self.logger.info("No entities extracted from conversation")
+                return results
+            
+            # All entities from EntityExtractor are now candidates for EntityResolver
+            # EntityExtractor no longer does any matching - only extraction
+            if raw_entities:
+                # Stage 2: Convert to EntityResolver candidates
+                self.logger.debug(f"Stage 2: Converting {len(raw_entities)} entities to resolver candidates")
+                candidates = []
+                for i, entity in enumerate(raw_entities):
+                    candidate = {
+                        "candidate_id": f"candidate_{i}_{entity.get('name', 'unknown')}",
+                        "type": entity.get("type", "concept"),
+                        "name": entity.get("name", ""),
+                        "description": entity.get("description", ""),
+                        "original_entity": entity  # Keep reference to original
                     }
-                    entity_metadata.update(attributes)
-                    self.embeddings_manager.add_embedding(description, entity_metadata)
-                except Exception as e:
-                    self.logger.warning(f"Failed to save embedding: {e}")
-            
-            self._save_graph()
-            self.logger.debug(f"Created new node: {node_id}")
-            return new_node, True
-    
-    def _find_similar_node(self, name: str, description: str, node_type: str, 
-                          embedding: Optional[List[float]]) -> Optional[GraphNode]:
-        """Find similar existing node using multi-stage matching approach.
-        
-        Implements the optimized duplicate prevention pipeline:
-        
-        Stage 1 - Name-based matching (Priority):
-        - Exact name match (case-insensitive)
-        - Alias matching for known alternative names
-        - Type-specific matching (only same entity types)
-        
-        Stage 2 - Semantic similarity fallback:
-        - Embedding-based cosine similarity
-        - Configurable similarity threshold
-        - Handles different descriptions of same entity
-        
-        Args:
-            name: Entity name to match against existing entities.
-            description: Entity description for semantic similarity.
-            node_type: Entity type to filter candidates.
-            embedding: Semantic embedding vector for similarity calculation.
-            
-        Returns:
-            Most similar existing node if found above threshold, None otherwise.
-            
-        Note:
-            This is the core optimization that prevents duplicate entities.
-            Testing shows 100% duplicate prevention with proper threshold tuning.
-        """
-        # First: Check for exact name matches of the same type
-        name_lower = name.lower().strip()
-        for node in self.nodes.values():
-            if node.type == node_type:
-                # Check primary name
-                if node.name.lower().strip() == name_lower:
-                    self.logger.debug(f"Found exact name match: {node.id} ('{node.name}' == '{name}')")
-                    return node
-                # Check aliases
-                for alias in node.aliases:
-                    if alias.lower().strip() == name_lower:
-                        self.logger.debug(f"Found alias match: {node.id} (alias '{alias}' == '{name}')")
-                        return node
-        
-        # Second: Use semantic similarity matching as fallback
-        if embedding is None or len(embedding) == 0 or not self.embeddings_manager:
-            return None
-        
-        # Get nodes of the same type with embeddings
-        candidate_nodes = [
-            node for node in self.nodes.values()
-            if node.type == node_type and len(node.embedding) > 0
-        ]
-        
-        if not candidate_nodes:
-            return None
-        
-        best_similarity = 0.0
-        best_node = None
-        
-        for node in candidate_nodes:
-            try:
-                # Calculate cosine similarity
-                similarity = self._cosine_similarity(embedding, node.embedding)
+                    candidates.append(candidate)
                 
-                if similarity > best_similarity and similarity >= self.similarity_threshold:
-                    best_similarity = similarity
-                    best_node = node
+                # Stage 3: Resolve candidates using EntityResolver
+                self.logger.debug(f"Stage 3: Resolving {len(candidates)} candidates with EntityResolver")
+                resolutions = self.entity_resolver.resolve_candidates(
+                    candidates, 
+                    process_individually=True  # Use individual processing for highest accuracy
+                )
+                
+                # Stage 4: Process resolutions and update graph
+                processed_entities = []
+                for resolution, candidate in zip(resolutions, candidates):
+                    original_entity = candidate["original_entity"]
+                    
+                    # Add resolution metadata to the entity
+                    original_entity["resolver_candidate_id"] = resolution["candidate_id"]
+                    original_entity["resolver_confidence"] = resolution["confidence"]
+                    original_entity["resolver_matched"] = resolution["auto_matched"]
+                    original_entity["resolver_justification"] = resolution["resolution_justification"]
+                    
+                    self.logger.debug(f"Resolution for '{candidate['name']}': auto_matched={resolution.get('auto_matched', False)}, "
+                                     f"confidence={resolution.get('confidence', 0.0)}, threshold={self.entity_resolver.confidence_threshold}, "
+                                     f"resolved_to={resolution.get('resolved_node_id', 'unknown')}")
+                    
+                    if resolution["auto_matched"] and resolution["resolved_node_id"] != "<NEW>":
+                        # High-confidence match to existing entity
+                        self.logger.debug(f"Entity '{candidate['name']}' resolved to existing node "
+                                        f"{resolution['resolved_node_id']} (confidence: {resolution['confidence']:.3f})")
+                        
+                        # Update existing node
+                        existing_node = self.get_node(resolution["resolved_node_id"])
+                        self.logger.debug(f"get_node({resolution['resolved_node_id']}) returned: {existing_node is not None}")
+                        if existing_node:
+                            existing_node.mention_count += 1
+                            
+                            # Update conversation history GUIDs
+                            if conversation_guid:
+                                if "conversation_history_guids" not in existing_node.attributes:
+                                    existing_node.attributes["conversation_history_guids"] = []
+                                if conversation_guid not in existing_node.attributes["conversation_history_guids"]:
+                                    existing_node.attributes["conversation_history_guids"].append(conversation_guid)
+                            
+                            # Add to results
+                            original_entity["resolved_to"] = resolution["resolved_node_id"]
+                            original_entity["resolution_type"] = "matched"
+                            processed_entities.append({
+                                'node': existing_node,
+                                'status': 'matched',
+                                **original_entity
+                            })
+                            self.logger.debug(f"Added entity '{candidate['name']}' to processed_entities list")
+                            results["existing_entities"].append(existing_node.to_dict())
+                    else:
+                        # Create new entity or low confidence match
+                        self.logger.debug(f"Creating new entity for '{candidate['name']}' "
+                                        f"(confidence: {resolution['confidence']:.3f})")
+                        
+                        # Create new node
+                        new_node, is_new = self.add_or_update_node(
+                            name=original_entity.get("name", ""),
+                            node_type=original_entity.get("type", "concept"),
+                            description=original_entity.get("description", ""),
+                            confidence=original_entity.get("confidence", 1.0),
+                            conversation_guid=conversation_guid
+                        )
+                        
+                        # Add to results
+                        original_entity["resolved_to"] = new_node.id
+                        original_entity["resolution_type"] = "new" if is_new else "updated"
+                        processed_entities.append({
+                            'node': new_node,
+                            'status': 'new' if is_new else 'updated',
+                            **original_entity
+                        })
+                        if is_new:
+                            results["new_entities"].append(new_node.to_dict())
+                
+                # Store resolved entities for relationship extraction
+                results["resolved_entities"] = [item for item in processed_entities]
+                self.logger.debug(f"processed_entities count: {len(processed_entities)}")
+                for i, entity in enumerate(processed_entities):
+                    node = entity.get('node')
+                    node_name = node.name if node else 'unknown'
+                    self.logger.debug(f"  processed_entities[{i}]: {node_name} (status: {entity.get('status', 'unknown')})")
             
-            except Exception as e:
-                self.logger.warning(f"Error calculating similarity for node {node.id}: {e}")
-                continue
-        
-        if best_node:
-            self.logger.debug(f"Found similar node {best_node.id} with similarity {best_similarity:.3f}")
-        
-        return best_node
+            # Combine all processed entities for relationship extraction
+            all_processed_entities = []
+            
+            # Add resolved entities from EntityResolver processing
+            all_processed_entities.extend(results.get("resolved_entities", []))
+            
+            # Add any entities that were truly existing (found in _update_existing_entity)
+            for entity_dict in results.get("existing_entities", []):
+                # Convert back to the expected format
+                existing_node = self.get_node(entity_dict.get("id"))
+                if existing_node:
+                    all_processed_entities.append({
+                        "node": existing_node,
+                        "status": "existing",
+                        "name": entity_dict.get("name", ""),
+                        "type": entity_dict.get("type", "")
+                    })
+            
+            results["entities"] = [item['node'].to_dict() for item in all_processed_entities if item.get('node')]
+            
+            # Stage 5: Extract relationships if we have multiple entities
+            self.logger.debug("Stage 5: Extracting relationships from resolved entities")
+            self.logger.debug(f"all_processed_entities count: {len(all_processed_entities)}")
+            for i, entity in enumerate(all_processed_entities):
+                self.logger.debug(f"  [{i}] {entity}")
+            
+            if len(all_processed_entities) >= 2 and self.relationship_extractor:
+                # Create entity list with resolved node names for relationship extraction
+                entity_list = []
+                for processed_entity in all_processed_entities:
+                    if processed_entity.get('node'):
+                        # Use the resolved node's name and ID for relationship extraction
+                        node = processed_entity['node']
+                        entity_info = {
+                            'name': node.name,  # Use the actual node name
+                            'type': node.type,
+                            'description': node.description,
+                            'resolved_node_id': node.id,  # Add the actual node ID
+                            'status': processed_entity.get('status', 'resolved')
+                        }
+                        entity_list.append(entity_info)
+                
+                self.logger.debug(f"Calling relationship extractor with {len(entity_list)} entities:")
+                for entity in entity_list:
+                    self.logger.debug(f"  - {entity['name']} ({entity['type']}) ID: {entity.get('resolved_node_id', 'N/A')}")
+                
+                # Log the conversation text being passed to relationship extractor
+                self.logger.debug(f"Conversation text for relationship extraction: '{conversation_text}'")
+                self.logger.debug(f"Digest text for relationship extraction: '{digest_text}'")
+                
+                extracted_relationships = self.relationship_extractor.extract_relationships_from_conversation(
+                    conversation_text, digest_text, entity_list)
+                
+                self.logger.debug(f"Relationship extractor returned {len(extracted_relationships)} relationships")
+                for rel in extracted_relationships:
+                    self.logger.debug(f"  - {rel.get('from_entity', '?')} --[{rel.get('relationship', '?')}]--> {rel.get('to_entity', '?')}")
+                
+                # Process and add relationships to graph
+                # Create mapping from original entity names to resolved node IDs
+                original_to_resolved = {}
+                for processed_entity in all_processed_entities:
+                    if processed_entity.get('node'):
+                        resolved_node = processed_entity['node']
+                        
+                        # Try to get original entity name from multiple sources
+                        original_name = None
+                        if 'original_entity' in processed_entity:
+                            original_name = processed_entity['original_entity'].get('name', '').lower()
+                        elif 'name' in processed_entity:
+                            original_name = processed_entity['name'].lower()
+                        
+                        # Also map the current node name to itself (for direct matches)
+                        current_name = resolved_node.name.lower()
+                        original_to_resolved[current_name] = resolved_node
+                        
+                        # Map original name to resolved node (if different)
+                        if original_name and original_name != current_name:
+                            original_to_resolved[original_name] = resolved_node
+                            self.logger.debug(f"Mapping original '{original_name}' -> resolved '{resolved_node.name}' ({resolved_node.id})")
+                
+                for relationship in extracted_relationships:
+                    try:
+                        edge = self._add_relationship_to_graph_with_resolver(
+                            relationship, all_processed_entities, original_to_resolved)
+                        if edge:
+                            results["relationships"].append(edge.to_dict())
+                    except Exception as e:
+                        self.logger.error(f"Error processing relationship: {e}")
+                        continue
+            
+            # Generate enhanced stats
+            results["stats"] = {
+                "entities_extracted": len(raw_entities),
+                "entities_resolved": len(results.get("resolved_entities", [])),
+                "entities_new": len(results["new_entities"]),
+                "entities_existing": len(results["existing_entities"]),
+                "relationships_extracted": len(results["relationships"]),
+                "conversation_length": len(conversation_text),
+                "digest_length": len(digest_text),
+                "resolver_enabled": True,
+                "resolver_confidence_threshold": self.entity_resolver.confidence_threshold
+            }
+            
+            self.logger.info(f"Processed conversation with EntityResolver: {results['stats']}")
+            return results
+            
+        except Exception as e:
+            self.logger.error(f"Error in process_conversation_entry_with_resolver: {e}")
+            # Fallback to basic processing
+            self.logger.warning("Falling back to basic conversation processing")
+            return self.process_conversation_entry(conversation_text, digest_text)
     
-    @staticmethod
-    def _cosine_similarity(vec1: List[float], vec2: List[float]) -> float:
-        """Calculate cosine similarity between two vectors."""
-        # Handle None or empty vectors
-        if vec1 is None or vec2 is None:
-            return 0.0
+    def _add_relationship_to_graph_with_resolver(self, relationship: Dict[str, Any], 
+                                               processed_entities: List[Dict[str, Any]],
+                                               original_to_resolved: Dict[str, Any]) -> Optional[GraphEdge]:
+        """Add a relationship to the graph using resolved entity mapping.
         
-        # Convert to numpy arrays if not already
-        if hasattr(vec1, 'tolist'):
-            vec1 = vec1.tolist()
-        if hasattr(vec2, 'tolist'):
-            vec2 = vec2.tolist()
+        This method handles the case where relationship extraction refers to original entity names
+        but those entities have been resolved to existing nodes with different names/IDs.
+        """
+        try:
+            from_entity_name = relationship.get('from_entity', '').lower()
+            to_entity_name = relationship.get('to_entity', '').lower()
             
-        if len(vec1) == 0 or len(vec2) == 0 or len(vec1) != len(vec2):
-            return 0.0
-        
-        vec1_np = np.array(vec1)
-        vec2_np = np.array(vec2)
-        
-        # Calculate cosine similarity
-        dot_product = np.dot(vec1_np, vec2_np)
-        norm1 = np.linalg.norm(vec1_np)
-        norm2 = np.linalg.norm(vec2_np)
-        
-        if norm1 == 0 or norm2 == 0:
-            return 0.0
-        
-        return float(dot_product / (norm1 * norm2))
+            # First try to find nodes using the original-to-resolved mapping
+            from_node = original_to_resolved.get(from_entity_name)
+            to_node = original_to_resolved.get(to_entity_name)
+            
+            # If not found in mapping, try direct name lookup (for entities that weren't resolved)
+            if not from_node or not to_node:
+                entity_name_to_node = {
+                    item['node'].name.lower(): item['node'] 
+                    for item in processed_entities if item.get('node')
+                }
+                
+                if not from_node:
+                    from_node = entity_name_to_node.get(from_entity_name)
+                if not to_node:
+                    to_node = entity_name_to_node.get(to_entity_name)
+            
+            # If still not found, try alternative lookups
+            if not from_node or not to_node:
+                # Try partial matching or different name variations
+                for item in processed_entities:
+                    if item.get('node'):
+                        node = item['node']
+                        node_name_lower = node.name.lower()
+                        
+                        # Check if the relationship entity name is contained in the node name
+                        if not from_node and (from_entity_name in node_name_lower or node_name_lower in from_entity_name):
+                            from_node = node
+                            self.logger.debug(f"Found from_node via partial match: '{from_entity_name}' -> '{node.name}' ({node.id})")
+                        
+                        if not to_node and (to_entity_name in node_name_lower or node_name_lower in to_entity_name):
+                            to_node = node
+                            self.logger.debug(f"Found to_node via partial match: '{to_entity_name}' -> '{node.name}' ({node.id})")
+            
+            if not from_node or not to_node:
+                self.logger.warning(f"Could not find nodes for relationship {relationship}")
+                self.logger.debug(f"Available nodes: {[item['node'].name + ' (' + item['node'].id + ')' for item in processed_entities if item.get('node')]}")
+                self.logger.debug(f"Original-to-resolved mapping: {[(k, v.name + ' (' + v.id + ')') for k, v in original_to_resolved.items()]}")
+                return None
+            
+            # Create the relationship
+            evidence = relationship.get('evidence', '')
+            confidence = relationship.get('confidence', 0.5)
+            relationship_type = relationship.get('relationship', 'related_to')
+            
+            edge = self.add_edge(
+                from_node_id=from_node.id,
+                to_node_id=to_node.id,
+                relationship=relationship_type,
+                evidence=evidence,
+                confidence=confidence
+            )
+            
+            if edge:
+                self.logger.debug(f"Created relationship: {from_node.name} ({from_node.id}) --[{relationship_type}]--> {to_node.name} ({to_node.id})")
+            
+            return edge
+            
+        except Exception as e:
+            self.logger.error(f"Error adding relationship to graph: {e}")
+            return None
     
-    def add_edge(self, from_node_id: str = None, to_node_id: str = None, relationship: str = None,
-                weight: float = 1.0, from_node: str = None, to_node: str = None, 
-                relationship_type: str = None, **attributes) -> GraphEdge:
-        """
-        Add edge between nodes.
-        
-        Args:
-            from_node_id: Source node ID (legacy parameter)
-            to_node_id: Target node ID (legacy parameter)
-            relationship: Relationship type (legacy parameter)
-            from_node: Source node name (new parameter style)
-            to_node: Target node name (new parameter style)
-            relationship_type: Relationship type (new parameter style)
-            weight: Edge weight
-            **attributes: Additional edge attributes
+    def _load_graph(self):
+        """Load existing graph data from storage."""
+        try:
+            # Load nodes
+            nodes_data = self.storage.load_nodes()
+            for node_id, node_data in nodes_data.items():
+                self.nodes[node_id] = GraphNode.from_dict(node_data)
             
-        Returns:
-            Created edge
-        """
-        # Handle both parameter styles for backward compatibility
-        if from_node is not None:
-            # New style: node names instead of IDs, find the actual node IDs
-            from_nodes = self.find_nodes_by_name(from_node, exact_match=True)
-            if not from_nodes:
-                raise ValueError(f"Source node '{from_node}' not found")
-            actual_from_node_id = from_nodes[0].id
-        elif from_node_id is not None:
-            # Legacy style: direct node ID
-            actual_from_node_id = from_node_id
-        else:
-            raise ValueError("Either from_node or from_node_id must be provided")
+            # Load edges
+            edges_data = self.storage.load_edges()
+            for edge_data in edges_data:
+                self.edges.append(GraphEdge.from_dict(edge_data))
+                
+            self.logger.debug(f"Loaded {len(self.nodes)} nodes and {len(self.edges)} edges from storage")
             
-        if to_node is not None:
-            # New style: node names instead of IDs, find the actual node IDs
-            to_nodes = self.find_nodes_by_name(to_node, exact_match=True)
-            if not to_nodes:
-                raise ValueError(f"Target node '{to_node}' not found")
-            actual_to_node_id = to_nodes[0].id
-        elif to_node_id is not None:
-            # Legacy style: direct node ID
-            actual_to_node_id = to_node_id
-        else:
-            raise ValueError("Either to_node or to_node_id must be provided")
+        except Exception as e:
+            self.logger.warning(f"Failed to load existing graph data: {e}")
+            self.nodes = {}
+            self.edges = []
+    
+    def _save_graph(self):
+        """Save current graph state to storage."""
+        try:
+            # Save nodes
+            nodes_data = {node_id: node.to_dict() for node_id, node in self.nodes.items()}
+            self.storage.save_nodes(nodes_data)
             
-        # Handle relationship parameter
-        actual_relationship = relationship_type or relationship
-        if not actual_relationship:
-            raise ValueError("Either relationship or relationship_type must be provided")
-        
-        # Check if nodes exist
-        if actual_from_node_id not in self.nodes:
-            raise ValueError(f"Source node {actual_from_node_id} not found")
-        if actual_to_node_id not in self.nodes:
-            raise ValueError(f"Target node {actual_to_node_id} not found")
-        
-        # Check if edge already exists
-        existing_edge = self._find_edge(actual_from_node_id, actual_to_node_id, actual_relationship)
-        if existing_edge:
-            # Update existing edge
-            existing_edge.weight = weight
-            existing_edge.updated_at = datetime.now().isoformat()
-            existing_edge.attributes.update(attributes)
+            # Save edges
+            edges_data = [edge.to_dict() for edge in self.edges]
+            self.storage.save_edges(edges_data)
+            
+            # Update metadata
+            metadata = {
+                "total_nodes": len(self.nodes),
+                "total_edges": len(self.edges),
+                "last_updated": datetime.now().isoformat()
+            }
+            self.storage.save_metadata(metadata)
+            
+        except Exception as e:
+            self.logger.error(f"Failed to save graph data: {e}")
+    
+    def add_or_update_node(self, name: str, node_type: str, description: str, 
+                          confidence: float = 1.0, conversation_guid: str = None, 
+                          **attributes) -> Tuple[GraphNode, bool]:
+        """Add a new node or update an existing one."""
+        try:
+            # Check for existing node with same name and type
+            existing_node = None
+            for node in self.nodes.values():
+                if node.name.lower() == name.lower() and node.type == node_type:
+                    existing_node = node
+                    break
+            
+            if existing_node:
+                # Update existing node
+                existing_node.description = description
+                existing_node.mention_count += 1
+                existing_node.updated_at = datetime.now().isoformat()
+                
+                # Update conversation history if provided
+                if conversation_guid:
+                    if "conversation_history_guids" not in existing_node.attributes:
+                        existing_node.attributes["conversation_history_guids"] = []
+                    if conversation_guid not in existing_node.attributes["conversation_history_guids"]:
+                        existing_node.attributes["conversation_history_guids"].append(conversation_guid)
+                
+                # Update attributes
+                existing_node.attributes.update(attributes)
+                
+                # Update embedding if description changed
+                if self.embeddings_manager:
+                    try:
+                        embedding_text = f"{existing_node.name} {existing_node.description}"
+                        
+                        # Update in embeddings manager
+                        entity_metadata = {
+                            "entity_id": existing_node.id,
+                            "entity_name": existing_node.name,
+                            "entity_type": existing_node.type,
+                            "source": "graph_entity"
+                        }
+                        self.embeddings_manager.add_embedding(
+                            text_or_item=embedding_text,
+                            metadata=entity_metadata
+                        )
+                        self.logger.debug(f"Updated embedding for existing entity: {existing_node.name}")
+                    except Exception as e:
+                        self.logger.warning(f"Failed to update embedding for entity {existing_node.name}: {e}")
+                
+                self._save_graph()
+                return existing_node, False
+            else:
+                # Create new node
+                node_id = f"{node_type}_{name.lower().replace(' ', '_')}_{str(uuid.uuid4())[:8]}"
+                
+                new_attributes = attributes.copy()
+                if conversation_guid:
+                    new_attributes["conversation_history_guids"] = [conversation_guid]
+                
+                new_node = GraphNode(
+                    node_id=node_id,
+                    name=name,
+                    node_type=node_type,
+                    description=description,
+                    attributes=new_attributes
+                )
+                
+                # Generate embedding for the entity for RAG searches
+                if self.embeddings_manager:
+                    try:
+                        # Use name + description for embedding
+                        embedding_text = f"{name} {description}"
+                        
+                        # Also add to embeddings manager with proper metadata for RAG
+                        entity_metadata = {
+                            "entity_id": node_id,
+                            "entity_name": name,
+                            "entity_type": node_type,
+                            "source": "graph_entity"
+                        }
+                        self.embeddings_manager.add_embedding(
+                            text_or_item=embedding_text,
+                            metadata=entity_metadata
+                        )
+                        self.logger.debug(f"Generated embedding for new entity: {name} ({node_type})")
+                    except Exception as e:
+                        self.logger.warning(f"Failed to generate embedding for entity {name}: {e}")
+                
+                self.nodes[node_id] = new_node
+                self._save_graph()
+                return new_node, True
+                
+        except Exception as e:
+            self.logger.error(f"Error adding/updating node: {e}")
+            # Return a minimal node as fallback
+            fallback_id = f"{node_type}_{str(uuid.uuid4())[:8]}"
+            fallback_node = GraphNode(fallback_id, name, node_type, description)
+            return fallback_node, True
+    
+    def get_node(self, node_id: str) -> Optional[GraphNode]:
+        """Get a node by its ID."""
+        return self.nodes.get(node_id)
+    
+    def add_edge(self, from_node_id: str, to_node_id: str, relationship: str, 
+                evidence: str = "", confidence: float = 1.0) -> Optional[GraphEdge]:
+        """Add an edge between two nodes."""
+        try:
+            # Check if edge already exists
+            existing_edge = self._find_edge(from_node_id, to_node_id, relationship)
+            if existing_edge:
+                # Update existing edge
+                existing_edge.confidence = max(existing_edge.confidence, confidence)
+                existing_edge.evidence = evidence
+                existing_edge.updated_at = datetime.now().isoformat()
+                self._save_graph()
+                return existing_edge
+            
+            # Create new edge
+            edge_id = f"edge_{str(uuid.uuid4())[:8]}"
+            new_edge = GraphEdge(
+                edge_id=edge_id,
+                from_node_id=from_node_id,
+                to_node_id=to_node_id,
+                relationship=relationship,
+                evidence=evidence,
+                confidence=confidence
+            )
+            
+            self.edges.append(new_edge)
             self._save_graph()
-            return existing_edge
-        
-        # Create new edge
-        edge = GraphEdge(actual_from_node_id, actual_to_node_id, actual_relationship, weight, **attributes)
-        self.edges.append(edge)
-        self._save_graph()
-        
-        self.logger.debug(f"Added edge: {actual_from_node_id} --{actual_relationship}--> {actual_to_node_id}")
-        return edge
+            return new_edge
+            
+        except Exception as e:
+            self.logger.error(f"Error adding edge: {e}")
+            return None
     
-    def _find_edge(self, from_node_id: str, to_node_id: str, 
-                   relationship: str) -> Optional[GraphEdge]:
-        """Find existing edge with same from/to/relationship."""
+    def _find_edge(self, from_node_id: str, to_node_id: str, relationship: str) -> Optional[GraphEdge]:
+        """Find an existing edge between two nodes with a specific relationship."""
         for edge in self.edges:
             if (edge.from_node_id == from_node_id and 
                 edge.to_node_id == to_node_id and 
@@ -711,384 +963,71 @@ class GraphManager:
                 return edge
         return None
     
-    def get_node(self, node_id: str) -> Optional[GraphNode]:
-        """Get node by ID."""
-        return self.nodes.get(node_id)
-    
-    def find_nodes_by_type(self, node_type: str) -> List[GraphNode]:
-        """Find all nodes of a specific type."""
-        return [node for node in self.nodes.values() if node.type == node_type]
-    
-    def find_nodes_by_name(self, name: str, exact_match: bool = False) -> List[GraphNode]:
-        """Find nodes by name or aliases."""
-        results = []
-        name_lower = name.lower()
-        
-        for node in self.nodes.values():
-            if exact_match:
-                if (node.name.lower() == name_lower or 
-                    any(alias.lower() == name_lower for alias in node.aliases)):
-                    results.append(node)
-            else:
-                if (name_lower in node.name.lower() or 
-                    any(name_lower in alias.lower() for alias in node.aliases)):
-                    results.append(node)
-        
-        return results
-    
-    def get_connected_nodes(self, node_id: str, relationship: Optional[str] = None) -> List[Tuple[GraphNode, GraphEdge]]:
-        """
-        Get nodes connected to the given node.
-        
-        Args:
-            node_id: Source node ID
-            relationship: Optional relationship filter
-            
-        Returns:
-            List of (connected_node, edge) tuples
-        """
-        results = []
-        
-        for edge in self.edges:
-            if edge.from_node_id == node_id:
-                if relationship is None or edge.relationship == relationship:
-                    target_node = self.nodes.get(edge.to_node_id)
-                    if target_node:
-                        results.append((target_node, edge))
-        
-        return results
-    
-    def get_graph_stats(self) -> Dict[str, Any]:
-        """Get graph statistics."""
-        node_types = {}
-        relationship_types = {}
-        
-        for node in self.nodes.values():
-            node_types[node.type] = node_types.get(node.type, 0) + 1
-        
-        for edge in self.edges:
-            relationship_types[edge.relationship] = relationship_types.get(edge.relationship, 0) + 1
-        
-        return {
-            'total_nodes': len(self.nodes),
-            'total_edges': len(self.edges),
-            'node_types': node_types,
-            'relationship_types': relationship_types,
-            'storage_stats': self.storage.get_storage_stats()
-        }
-    
-    def extract_entities_from_segments(self, segments: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """Extract entities from conversation segments using the integrated entity extractor.
-        
-        Args:
-            segments: List of segments with text and metadata
-            
-        Returns:
-            List of extracted entities
-        """
-        if not self.entity_extractor:
-            self.logger.warning("Entity extractor not available - LLM service or domain config missing")
-            return []
-        
-        try:
-            entities = self.entity_extractor.extract_entities_from_segments(segments)
-            self.logger.debug(f"Extracted {len(entities)} entities from {len(segments)} segments")
-            return entities
-        except Exception as e:
-            self.logger.error(f"Error extracting entities from segments: {e}")
-            return []
-    
-    def extract_and_resolve_entities_from_segments(self, segments: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """Extract entities and resolve them against existing graph using EntityResolver.
-        
-        This method provides enhanced entity processing with sophisticated duplicate detection
-        using the EntityResolver. It extracts entities, resolves them against existing nodes,
-        and automatically adds/updates nodes based on confidence scores.
-        
-        Args:
-            segments: List of segments with text and metadata
-            
-        Returns:
-            List of processed entities with resolution information
-        """
-        if not self.entity_extractor:
-            self.logger.warning("Entity extractor not available - LLM service or domain config missing")
-            return []
-        
-        if not self.entity_resolver:
-            self.logger.warning("Entity resolver not available - falling back to basic extraction")
-            return self.extract_entities_from_segments(segments)
-        
-        try:
-            # Step 1: Extract entities using standard extraction
-            raw_entities = self.entity_extractor.extract_entities_from_segments(segments)
-            self.logger.debug(f"Extracted {len(raw_entities)} raw entities from {len(segments)} segments")
-            
-            if not raw_entities:
-                return []
-            
-            # Step 2: Convert entities to candidates for EntityResolver
-            candidates = []
-            for i, entity in enumerate(raw_entities):
-                candidate = {
-                    "candidate_id": f"candidate_{i}_{entity.get('name', 'unknown')}",
-                    "type": entity.get("type", "concept"),
-                    "name": entity.get("name", ""),
-                    "description": entity.get("description", ""),
-                    "original_entity": entity  # Keep reference to original
-                }
-                candidates.append(candidate)
-            
-            # Step 3: Resolve candidates against existing graph
-            self.logger.debug(f"Resolving {len(candidates)} candidates using EntityResolver")
-            resolutions = self.entity_resolver.resolve_candidates(
-                candidates, 
-                process_individually=True  # Use individual processing for higher accuracy
-            )
-            
-            # Step 4: Process resolutions and update graph
-            processed_entities = []
-            for resolution, candidate in zip(resolutions, candidates):
-                original_entity = candidate["original_entity"]
-                
-                if resolution["auto_matched"] and resolution["resolved_node_id"] != "<NEW>":
-                    # High-confidence match to existing entity
-                    self.logger.debug(f"Entity '{candidate['name']}' matched to existing node "
-                                    f"{resolution['resolved_node_id']} (confidence: {resolution['confidence']:.3f})")
-                    
-                    # Update existing node with new conversation GUID and mention count
-                    existing_node = self.get_node(resolution["resolved_node_id"])
-                    if existing_node:
-                        existing_node.mention_count += 1
-                        
-                        # Update conversation history GUIDs
-                        conversation_guid = original_entity.get("conversation_guid")
-                        if conversation_guid:
-                            if "conversation_history_guids" not in existing_node.attributes:
-                                existing_node.attributes["conversation_history_guids"] = []
-                            if conversation_guid not in existing_node.attributes["conversation_history_guids"]:
-                                existing_node.attributes["conversation_history_guids"].append(conversation_guid)
-                        
-                        # Add resolution info to entity
-                        original_entity["resolved_to"] = resolution["resolved_node_id"]
-                        original_entity["resolution_confidence"] = resolution["confidence"]
-                        original_entity["resolution_type"] = "matched"
-                        
-                        processed_entities.append(original_entity)
-                else:
-                    # Create new entity (either low confidence or explicitly marked as new)
-                    self.logger.debug(f"Creating new entity for '{candidate['name']}' "
-                                    f"(confidence: {resolution['confidence']:.3f})")
-                    
-                    # Add new node to graph using existing add_or_update_node method
-                    entity_attributes = original_entity.get("attributes", {}).copy()
-                    conversation_guid = original_entity.get("conversation_guid")
-                    if conversation_guid:
-                        if "conversation_history_guids" not in entity_attributes:
-                            entity_attributes["conversation_history_guids"] = []
-                        if conversation_guid not in entity_attributes["conversation_history_guids"]:
-                            entity_attributes["conversation_history_guids"].append(conversation_guid)
-                    
-                    node, is_new = self.add_or_update_node(
-                        name=original_entity.get("name", ""),
-                        node_type=original_entity.get("type", "concept"),
-                        description=original_entity.get("description", ""),
-                        **entity_attributes
-                    )
-                    
-                    # Add resolution info to entity
-                    original_entity["resolved_to"] = node.id
-                    original_entity["resolution_confidence"] = resolution["confidence"]
-                    original_entity["resolution_type"] = "new" if is_new else "updated"
-                    
-                    processed_entities.append(original_entity)
-            
-            self.logger.debug(f"Successfully processed {len(processed_entities)} entities with EntityResolver")
-            return processed_entities
-            
-        except Exception as e:
-            self.logger.error(f"Error in extract_and_resolve_entities_from_segments: {e}")
-            # Fallback to basic extraction if resolution fails
-            self.logger.warning("Falling back to basic entity extraction")
-            return self.extract_entities_from_segments(segments)
-    
-    def extract_relationships_from_segments(self, segments: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """Extract relationships from conversation segments using the integrated relationship extractor.
-        
-        Args:
-            segments: List of segments with text, entities, and metadata
-            
-        Returns:
-            List of extracted relationships
-        """
-        if not self.relationship_extractor:
-            self.logger.warning("Relationship extractor not available - LLM service or domain config missing")
-            return []
-        
-        try:
-            # Build entities_by_segment dictionary from segments
-            entities_by_segment = {}
-            for i, segment in enumerate(segments):
-                segment_id = segment.get("id", f"seg_{i}")
-                entities = segment.get("entities", [])
-                entities_by_segment[segment_id] = entities
-                # Ensure segment has an id
-                if "id" not in segment:
-                    segment["id"] = segment_id
-            
-            relationships = self.relationship_extractor.extract_relationships_from_segments(
-                segments, entities_by_segment)
-            self.logger.debug(f"Extracted {len(relationships)} relationships from {len(segments)} segments")
-            return relationships
-        except Exception as e:
-            self.logger.error(f"Error extracting relationships from segments: {e}")
-            return []
-    
     def query_for_context(self, query: str, max_results: int = 5) -> List[Dict[str, Any]]:
-        """Query the graph for context relevant to a query using semantic search.
-        
-        Provides context retrieval for LLM prompt enhancement by finding entities
-        and their relationships that are semantically relevant to the user's query.
-        
-        The method uses a two-stage approach:
-        
-        1. Semantic similarity search using embeddings (if available)
-        2. Fallback to keyword/string matching for broader coverage
-        
-        Args:
-            query: The user query to find relevant context for.
-            max_results: Maximum number of context results to return.
-            
-        Returns:
-            List of context dictionaries, each containing:
-            
-            - name (str): Entity name
-            - type (str): Entity type  
-            - description (str): Entity description
-            - connections (List[Dict]): Related entities and relationships
-            - relevance_score (float): Relevance to the query
-            
-        Example::
-
-            # Find context for user query
-            context = graph_manager.query_for_context("magic shops")
-            
-            for result in context:
-                print(f"{result['name']}: {result['description']}")
-                for conn in result['connections']:
-                    print(f"  -> {conn['relationship']} {conn['target']}")
-            
-        Note:
-            Results are sorted by relevance score (highest first).
-            Semantic search requires embeddings_manager configuration.
-        """
-        try:
+        """Query the graph for relevant context."""
+        if not self.embeddings_manager:
+            # Simple text matching fallback
             results = []
-            
-            # Use embeddings for semantic search if available
-            if self.embeddings_manager:
-                try:
-                    # Generate embedding for the query
-                    query_embedding = self.embeddings_manager.generate_embedding(query)
-                    
-                    # Find semantically similar entities
-                    for node in self.nodes.values():
-                        if node.embedding is not None and len(node.embedding) > 0:
-                            # Calculate similarity with node embedding
-                            similarity = self._cosine_similarity(query_embedding, node.embedding)
-                            
-                            if similarity > 0.1:  # Minimum similarity threshold
-                                # Get connections for this entity
-                                connections = self.get_connected_nodes(node.id)
-                                connection_info = []
-                                
-                                for connected_node, edge in connections[:3]:  # Limit to top 3 connections
-                                    connection_info.append({
-                                        "relationship": edge.relationship,
-                                        "target": connected_node.name,
-                                        "target_type": connected_node.type
-                                    })
-                                
-                                results.append({
-                                    "name": node.name,
-                                    "type": node.type,
-                                    "description": node.description,
-                                    "connections": connection_info,
-                                    "relevance_score": similarity
-                                })
-                    
-                    # Sort by similarity score and limit results
-                    results.sort(key=lambda x: x["relevance_score"], reverse=True)
-                    return results[:max_results]
-                    
-                except Exception as e:
-                    self.logger.warning(f"Embeddings-based search failed, falling back to string matching: {e}")
-            
-            # Fallback to string matching if embeddings not available
             query_lower = query.lower()
-            
-            # Extract potential entity names from the query
-            query_words = [word.strip().lower() for word in query_lower.replace('?', '').replace('.', '').replace(',', '').split()]
-            
-            # Find entities that match the query
             for node in self.nodes.values():
-                relevance_score = 0
-                node_name_lower = node.name.lower()
-                node_desc_lower = node.description.lower()
-                
-                # Check exact name match in query
-                if node_name_lower in query_lower:
-                    relevance_score += 5
-                
-                # Check if any query word matches the node name
-                for word in query_words:
-                    if word == node_name_lower:
-                        relevance_score += 4
-                    elif word in node_name_lower:
-                        relevance_score += 3
-                
-                # Check description match
-                if query_lower in node_desc_lower:
-                    relevance_score += 2
-                    
-                # Check if any query word appears in description
-                for word in query_words:
-                    if len(word) > 2 and word in node_desc_lower:  # Skip very short words
-                        relevance_score += 1
-                
-                # Check aliases match
-                for alias in node.aliases:
-                    alias_lower = alias.lower()
-                    if query_lower in alias_lower:
-                        relevance_score += 1
-                    for word in query_words:
-                        if word == alias_lower:
-                            relevance_score += 2
-                
-                if relevance_score > 0:
-                    # Get connections for this entity
-                    connections = self.get_connected_nodes(node.id)
-                    connection_info = []
-                    
-                    for connected_node, edge in connections[:3]:  # Limit to top 3 connections
-                        connection_info.append({
-                            "relationship": edge.relationship,
-                            "target": connected_node.name,
-                            "target_type": connected_node.type
-                        })
-                    
+                if (query_lower in node.name.lower() or 
+                    query_lower in node.description.lower()):
                     results.append({
-                        "name": node.name,
-                        "type": node.type,
-                        "description": node.description,
-                        "connections": connection_info,
-                        "relevance_score": relevance_score
+                        'name': node.name,
+                        'type': node.type,
+                        'description': node.description,
+                        'relevance_score': 1.0
                     })
+                    if len(results) >= max_results:
+                        break
+            return results
+        
+        try:
+            # Use embeddings for semantic search
+            query_embedding = self.embeddings_manager.generate_embedding(query)
+            similarities = []
             
-            # Sort by relevance score and limit results
-            results.sort(key=lambda x: x["relevance_score"], reverse=True)
-            return results[:max_results]
+            for node in self.nodes.values():
+                if node.embedding:
+                    similarity = self._cosine_similarity(query_embedding, node.embedding)
+                    similarities.append((similarity, node))
+            
+            # Sort by similarity and return top results
+            similarities.sort(key=lambda x: x[0], reverse=True)
+            results = []
+            for similarity, node in similarities[:max_results]:
+                results.append({
+                    'name': node.name,
+                    'type': node.type,
+                    'description': node.description,
+                    'relevance_score': similarity
+                })
+            
+            return results
             
         except Exception as e:
-            self.logger.error(f"Error querying graph for context: {e}")
+            self.logger.error(f"Error in graph query: {e}")
             return []
+    
+    def _cosine_similarity(self, vec1: List[float], vec2: List[float]) -> float:
+        """Calculate cosine similarity between two vectors."""
+        try:
+            import numpy as np
+            
+            # Convert to numpy arrays
+            a = np.array(vec1)
+            b = np.array(vec2)
+            
+            # Calculate cosine similarity
+            return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
+            
+        except Exception:
+            # Fallback to simple calculation
+            dot_product = sum(x * y for x, y in zip(vec1, vec2))
+            magnitude1 = sum(x * x for x in vec1) ** 0.5
+            magnitude2 = sum(x * x for x in vec2) ** 0.5
+            
+            if magnitude1 == 0 or magnitude2 == 0:
+                return 0.0
+            
+            return dot_product / (magnitude1 * magnitude2) 
