@@ -16,7 +16,7 @@ Based on analysis of the README-entity-resolution-prompt.md document, here's a c
 - [ ] **Add iterative single-candidate resolution mode**
   - Current: Processes all candidates in batch
   - Recommended: Process one candidate at a time for higher accuracy
-  - **Action**: Add `process_individually` parameter to `AltEntityExtractor`
+  - **Action**: Add `process_individually` parameter to `EntityExtractor`
   - **Action**: Implement `_resolve_single_candidate()` method
 
 ### 1.3 Conversation History GUID Tracking
@@ -43,7 +43,7 @@ Based on analysis of the README-entity-resolution-prompt.md document, here's a c
 
 ### 3.1 Implement Structured Resolution Process
 - [ ] **Create dedicated resolution pipeline using entity_resolution.prompt**
-  - **Action**: Create `EntityResolver` class separate from `AltEntityExtractor`
+  - **Action**: Create `EntityResolver` class separate from `EntityExtractor`
   - **Action**: Use structured prompt format with proper existing node data formatting
   - **Action**: Parse tuple array responses: `[candidate_id, existing_node_id, justification, confidence]`
 
@@ -84,7 +84,7 @@ Based on analysis of the README-entity-resolution-prompt.md document, here's a c
 
 ## Phase 6: Integration and Testing
 
-### 6.1 Update AltEntityExtractor Class
+### 6.1 Update EntityExtractor Class
 - [ ] **Refactor to use new resolution pipeline**
   - **Action**: Replace current `_resolve_entities_with_rag()` with structured resolver
   - **Action**: Add conversation GUID parameter to extraction methods

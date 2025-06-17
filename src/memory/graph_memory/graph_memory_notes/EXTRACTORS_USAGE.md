@@ -1,18 +1,18 @@
-# Alternative Extractors Usage Guide
+# Extractors Usage Guide
 
-This document explains how to use the new alternative LLM-centric extractors for A/B testing against the baseline extractors.
+This document explains how to use the new LLM-centric extractors for A/B testing against the baseline extractors.
 
 ## Overview
 
-The alternative extractors implement the approach described in `ALT_ENTITY_AND_RELATIONSHIP_EXTRACTION_APPROACH.md`:
+The extractors implement the approach described in `ENTITY_AND_RELATIONSHIP_EXTRACTION_APPROACH.md`:
 
-- **AltEntityExtractor**: LLM-centric entity extraction with RAG-based duplicate prevention
-- **AltRelationshipExtractor**: Full conversation relationship extraction with entity context
-- **AltGraphManager**: Orchestrates the alternative approach for complete conversation processing
+- **EntityExtractor**: LLM-centric entity extraction with RAG-based duplicate prevention
+- **RelationshipExtractor**: Full conversation relationship extraction with entity context
+- **GraphManager**: Orchestrates the approach for complete conversation processing
 
 ## Key Differences from Baseline
 
-| Aspect | Baseline Approach | Alternative Approach |
+| Aspect | Baseline Approach | Approach |
 |--------|------------------|---------------------|
 | **Processing Unit** | Conversation segments | Full conversation + digest |
 | **Entity Matching** | Algorithmic (name + embedding similarity) | LLM reasoning with RAG context |
@@ -25,11 +25,11 @@ The alternative extractors implement the approach described in `ALT_ENTITY_AND_R
 ### Basic Usage
 
 ```python
-from src.memory.graph_memory import AltGraphManager
+from src.memory.graph_memory import GraphManager
 
-# Initialize alternative graph manager
-alt_graph_manager = AltGraphManager(
-    storage_path="alt_graph_data",
+# Initialize graph manager
+graph_manager = GraphManager(
+    storage_path="graph_data",
     embeddings_manager=embeddings_manager,
     llm_service=llm_service,
     domain_config=domain_config,
@@ -40,7 +40,7 @@ alt_graph_manager = AltGraphManager(
 conversation_text = "Elena, the Mayor of Haven, discovered ancient ruins beneath the town square..."
 digest_text = "Elena finds ruins and investigates strange magical phenomena in Haven"
 
-results = alt_graph_manager.process_conversation_entry(conversation_text, digest_text)
+results = graph_manager.process_conversation_entry(conversation_text, digest_text)
 
 print(f"Entities: {len(results['entities'])}")
 print(f"New entities: {len(results['new_entities'])}")
@@ -51,7 +51,7 @@ print(f"Relationships: {len(results['relationships'])}")
 ### A/B Testing Setup
 
 ```python
-from src.memory.graph_memory import GraphManager, AltGraphManager
+from src.memory.graph_memory import GraphManager, GraphManager
 
 # Initialize both managers with same configuration
 baseline_manager = GraphManager(
@@ -61,8 +61,8 @@ baseline_manager = GraphManager(
     domain_config=domain_config
 )
 
-alt_manager = AltGraphManager(
-    storage_path="alt_graph", 
+manager = GraphManager(
+    storage_path="graph", 
     embeddings_manager=embeddings_manager,
     llm_service=llm_service,
     domain_config=domain_config
@@ -77,21 +77,21 @@ baseline_segments = create_segments(conversation)  # Your segmentation logic
 baseline_entities = baseline_manager.extract_entities_from_segments(baseline_segments)
 # ... process baseline results
 
-# Run alternative approach  
-alt_results = alt_manager.process_conversation_entry(conversation, digest)
+# Run approach  
+results = manager.process_conversation_entry(conversation, digest)
 
 # Compare results
 print("Baseline entities:", len(baseline_entities))
-print("Alternative entities:", len(alt_results['entities']))
+print("entities:", len(results['entities']))
 ```
 
 ### Individual Extractor Usage
 
 ```python
-from src.memory.graph_memory import AltEntityExtractor, AltRelationshipExtractor
+from src.memory.graph_memory import EntityExtractor, RelationshipExtractor
 
 # Entity extraction only
-entity_extractor = AltEntityExtractor(
+entity_extractor = EntityExtractor(
     llm_service=llm_service,
     domain_config=domain_config,
     graph_manager=graph_manager,  # For RAG functionality
@@ -104,7 +104,7 @@ entities = entity_extractor.extract_entities_from_conversation(
 )
 
 # Relationship extraction only
-rel_extractor = AltRelationshipExtractor(
+rel_extractor = RelationshipExtractor(
     llm_service=llm_service,
     domain_config=domain_config,
     logger=logger
@@ -121,7 +121,7 @@ relationships = rel_extractor.extract_relationships_from_conversation(
 
 ### Prompt Templates
 
-The alternative extractors use configurable prompt templates:
+The extractors use configurable prompt templates:
 
 - **Entity Extraction**: `src/memory/graph_memory/templates/entity_extraction.prompt`
 - **Relationship Extraction**: `src/memory/graph_memory/templates/relationship_extraction.prompt`
@@ -180,55 +180,7 @@ When comparing approaches, measure:
 - **Relationship Evidence**: Quality of evidence supporting relationships
 - **Graph Connectivity**: How well entities are connected through relationships
 
-## Sample Test Script
-
-```python
-def compare_extractors(conversation_text, digest_text, expected_entities=None):
-    """Compare baseline and alternative extractors on the same input."""
-    
-    results = {
-        "baseline": {},
-        "alternative": {},
-        "comparison": {}
-    }
-    
-    # Time baseline approach
-    start_time = time.time()
-    # ... run baseline extraction
-    baseline_time = time.time() - start_time
-    
-    # Time alternative approach
-    start_time = time.time()
-    alt_results = alt_manager.process_conversation_entry(conversation_text, digest_text)
-    alt_time = time.time() - start_time
-    
-    # Calculate metrics
-    results["comparison"] = {
-        "baseline_time": baseline_time,
-        "alternative_time": alt_time,
-        "baseline_entities": len(baseline_entities),
-        "alternative_entities": len(alt_results['entities']),
-        "time_ratio": alt_time / baseline_time if baseline_time > 0 else float('inf')
-    }
-    
-    if expected_entities:
-        # Calculate accuracy metrics
-        baseline_recall = calculate_recall(baseline_entities, expected_entities)
-        alt_recall = calculate_recall(alt_results['entities'], expected_entities)
-        results["comparison"]["baseline_recall"] = baseline_recall
-        results["comparison"]["alternative_recall"] = alt_recall
-    
-    return results
-```
-
 ## Troubleshooting
-
-### Common Issues
-
-1. **Empty Entities List**: Check that conversation_text is not empty and domain_config is properly set
-2. **RAG Not Working**: Ensure graph_manager is passed to AltEntityExtractor constructor
-3. **Template Not Found**: Verify prompt template files exist in `templates/` directory
-4. **JSON Parsing Errors**: Check LLM responses in logs - may need prompt engineering
 
 ### Debug Logging
 
@@ -253,4 +205,4 @@ logging.basicConfig(level=logging.DEBUG)
 4. **Cross-Conversation Entity Linking**: Connect entities across multiple conversations
 5. **Performance Optimization**: Cache RAG results, batch processing
 
-This alternative approach provides a foundation for testing whether LLM reasoning can improve entity and relationship extraction quality compared to the current algorithmic approach. 
+This approach provides a foundation for testing whether LLM reasoning can improve entity and relationship extraction quality compared to the current algorithmic approach. 

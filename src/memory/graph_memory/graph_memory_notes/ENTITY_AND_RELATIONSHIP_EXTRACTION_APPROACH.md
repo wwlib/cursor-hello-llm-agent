@@ -2,13 +2,15 @@
 
 ## Overview
 
-Rely on the LLM to identify entities/nodes and relationsips and match them to existing nodes and relationships
+Rely on the LLM to identify entities/nodes and relationships and match them to existing nodes and relationships
 
 Note: This is the most important function of the graph manager and only an LLM can do it well.
 
 ## Proposal
 
 Create an alternative entity extractor class: alt_entity_extractor.py
+
+### Entity Extraction
 
 Implement this approach:
 - Whenever the MemoryManager generates a new conversation entry - with a digest
@@ -25,19 +27,21 @@ Implement this approach:
   - Add the new nodes to the graph
   - Add any new information from the conversation entry to the existing nodes referenced by the LLM
 
+### Relationship Extraction
+
 Then, during relationship_extraction:
-- Have the LLM analyze the full text of the entry AND the digest for repationsips between nodes
+- Have the LLM analyze the full text of the entry AND the digest for relationships between nodes
     - Using a specialized templates/relationship_extraction.prompt
-  - Include in the prompt context the list of nodes from the entity_extraction phase
+  - Important: Include in the prompt context the list of nodes from the entity_extraction phase
   - The LLM should reference only these nodes
-  - The LLM should return a list of relationsipt
+  - The LLM should return a list of relationships
     - i.e. a proper JSON array of relationship objects
   - Add the new relationships to the graph
     - If a relationship already exists (same type and properties) then do not add it
   - Add any new information from the conversation entry to the existing relationships referenced by the LLM
 
 
-  ## Proposed Improvements
+  ### Proposed Improvements to Entity Extraction
   - give the entity extraction prompt the most relevant (RAG) nodes so it can match them to entities referenced in the new conversation entry
     - provide the existing node list WITH unique node ids so the LLM can build a list of referenced nodes using the unique ids
   - all entities/nodes in the graph should maintain a list of conversation history guids in which the nodes were referenced

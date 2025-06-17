@@ -877,3 +877,73 @@ This represents a significant advancement in the graph memory system's sophistic
 
 This debugging effort resolved the final critical issue preventing the EntityResolver from performing its core function, completing the graph memory system's entity deduplication capabilities essential for building clean, accurate knowledge graphs from conversational data.
 
+
+## Phase 5 Update - June 17, 2025 - RelationshipExtractor Entity Context Optimization
+
+### Enhanced Entity Context Processing for Relationship Extraction
+
+**Implementation Overview**: Optimized the RelationshipExtractor to better utilize resolved entity information from the 2-pass entity extraction system, ensuring relationships reference actual existing nodes rather than allowing LLM hallucination of entity names.
+
+**Core Problem Addressed**: 
+The existing RelationshipExtractor was receiving entities from the entity resolution phase but not fully leveraging the resolved node IDs and entity context. This could lead to relationships referencing entity names that don't exactly match the resolved entities in the graph, reducing relationship accuracy and graph integrity.
+
+**Key Optimization Implemented**:
+
+• **Enhanced Entity Context Format** (`_build_entities_context()` method):
+  - Now includes resolved node IDs in the prompt context for precise entity reference
+  - Added clear header: "AVAILABLE ENTITIES (use exact names):"
+  - Format: `"- EntityName (type, ID: node_id): description [STATUS]"`
+  - Added explicit constraints: "Only create relationships between entities listed above"
+
+• **Strict Entity Reference Constraints**:
+  - Enhanced prompt with clear instructions to use exact entity names as provided
+  - Added warning: "Do not reference any entities not in this list"
+  - Prevents LLM from inventing or modifying entity names during relationship extraction
+
+• **Improved Validation and Debugging**:
+  - Enhanced `_validate_relationship()` method with detailed debug logging
+  - Added entity context analysis capabilities for troubleshooting
+  - Improved error messages showing available vs. referenced entities
+
+• **Optimization Feature Tracking**:
+  - Added optimization metadata to `get_stats()` method
+  - Features tracked: entity_id_context, strict_entity_validation, enhanced_prompt_constraints
+  - Enables monitoring of optimization effectiveness
+
+**Technical Implementation Details**:
+
+**Before Optimization**:
+```
+- Gandalf (character): A wise wizard who guides the Fellowship
+- Frodo (character): A hobbit who carries the One Ring
+```
+
+**After Optimization**:
+```
+AVAILABLE ENTITIES (use exact names):
+- Gandalf (character, ID: char_gandalf_abc123): A wise wizard who guides the Fellowship [EXISTING]
+- Frodo (character, ID: char_frodo_def456): A hobbit who carries the One Ring [EXISTING]
+- The One Ring (object, ID: obj_ring_ghi789): A powerful ring that must be destroyed [NEW]
+
+IMPORTANT: Only create relationships between entities listed above.
+Use the exact entity names as shown.
+Do not reference any entities not in this list.
+```
+
+**Integration Benefits**:
+
+• **Graph Integrity**: Ensures relationships only reference entities that actually exist in the graph with precise node IDs
+• **Reduced Hallucination**: LLM constrained to use provided entity names, preventing creation of non-existent entity references
+• **Enhanced Accuracy**: Clear context with resolved node information improves relationship extraction precision
+• **Debugging Support**: Comprehensive logging and analysis tools for troubleshooting relationship extraction issues
+
+**Verification Results**:
+✅ **Enhanced entity context** includes resolved node IDs and status indicators  
+✅ **Strict validation** prevents relationships with unknown entity references  
+✅ **Improved debugging** with detailed logging for entity context analysis  
+✅ **Seamless integration** with existing 2-pass entity resolution system  
+
+**Impact**: This optimization completes the integration between the entity resolution and relationship extraction phases, ensuring that the sophisticated 2-pass entity system (EntityExtractor → EntityResolver → RelationshipExtractor) works as a cohesive pipeline. The RelationshipExtractor now properly leverages the resolved entity context, making the graph memory system more accurate and reliable for building high-quality knowledge graphs from conversational data.
+
+This represents the final optimization needed to fully realize the benefits of the advanced entity resolution system implemented in the earlier phases, providing a complete end-to-end solution for LLM-driven knowledge graph construction.
+

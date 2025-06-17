@@ -394,10 +394,10 @@ class MemoryManager(BaseMemoryManager):
         os.makedirs(session_logs_dir, exist_ok=True)
         
         # Create graph manager log file in the session directory
-        log_file_path = os.path.join(session_logs_dir, "graph_manager.log")
+        graph_manager_log_file_path = os.path.join(session_logs_dir, "graph_manager.log")
         
         # Create file handler
-        file_handler = logging.FileHandler(log_file_path)
+        file_handler = logging.FileHandler(graph_manager_log_file_path)
         file_handler.setLevel(logging.DEBUG)
         
         # Create formatter
@@ -410,7 +410,7 @@ class MemoryManager(BaseMemoryManager):
         # Prevent propagation to avoid duplicate logs in parent loggers
         graph_logger.propagate = False
         
-        self.logger.debug(f"Created graph memory logger: {logger_name} -> {log_file_path}")
+        self.logger.debug(f"Created graph memory logger: {logger_name} -> {graph_manager_log_file_path}")
         
         return graph_logger
 

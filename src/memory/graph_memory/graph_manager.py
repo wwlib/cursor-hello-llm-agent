@@ -57,6 +57,8 @@ class GraphManager:
         # Create dedicated LLM services with graph-specific logging if logs_dir is provided
         self.graph_llm_service = llm_service  # Default to passed service
         self.resolver_llm_service = llm_service  # Default to passed service
+        self.relationship_llm_service = llm_service  # Default to passed service
+        self.relationship_extractor_logger = logger  # Default to passed logger
         
         if llm_service and logs_dir and memory_guid:
             self._setup_graph_specific_logging(llm_service, logs_dir, memory_guid)
@@ -66,7 +68,8 @@ class GraphManager:
             self.entity_extractor = EntityExtractor(
                 self.graph_llm_service, domain_config, graph_manager=self, logger=logger)
             self.relationship_extractor = RelationshipExtractor(
-                self.graph_llm_service, domain_config, logger)
+                self.graph_llm_service, domain_config, self.relationship_extractor_logger, 
+                relationship_llm_service=self.relationship_llm_service)
             
             # Initialize EntityResolver for essential duplicate detection
             if not embeddings_manager:
@@ -105,11 +108,19 @@ class GraphManager:
         os.makedirs(guid_logs_dir, exist_ok=True)
         
         # Create graph-specific log files
-        graph_manager_debug_file = os.path.join(guid_logs_dir, "graph_manager.log")
-        entity_resolver_debug_file = os.path.join(guid_logs_dir, "entity_resolver.log")
+        llm_graph_manager_debug_file = os.path.join(guid_logs_dir, "ollama_graph_manager.log")
+        llm_entity_resolver_debug_file = os.path.join(guid_logs_dir, "ollama_entity_resolver.log")
+        relationship_extractor_debug_file = os.path.join(guid_logs_dir, "relationship_extractor.log")
+        llm_relationship_extractor_debug_file = os.path.join(guid_logs_dir, "ollama_relationship_extractor.log")
         
-        self.logger.debug(f"Graph manager debug log: {graph_manager_debug_file}")
-        self.logger.debug(f"Entity resolver debug log: {entity_resolver_debug_file}")
+        self.logger.debug(f"Graph manager debug log: {llm_graph_manager_debug_file}")
+        self.logger.debug(f"Entity resolver debug log: {llm_entity_resolver_debug_file}")
+        self.logger.debug(f"Relationship extractor debug log: {relationship_extractor_debug_file}")
+        self.logger.debug(f"Ollama relationship extractor debug log: {llm_relationship_extractor_debug_file}")
+        
+        # Create dedicated logger for RelationshipExtractor
+        self.relationship_extractor_logger = self._create_component_logger(
+            "relationship_extractor", memory_guid, relationship_extractor_debug_file)
         
         # Get base configuration from the original service
         base_config = {}
@@ -128,7 +139,7 @@ class GraphManager:
         graph_config = base_config.copy()
         graph_config.update({
             "debug": True,
-            "debug_file": graph_manager_debug_file,
+            "debug_file": llm_graph_manager_debug_file,
             "debug_scope": "graph_manager",
             "console_output": False,
             "temperature": 0  # Use deterministic temperature for graph operations
@@ -138,10 +149,20 @@ class GraphManager:
         resolver_config = base_config.copy()
         resolver_config.update({
             "debug": True,
-            "debug_file": entity_resolver_debug_file,
+            "debug_file": llm_entity_resolver_debug_file,
             "debug_scope": "entity_resolver",
             "console_output": False,
             "temperature": 0  # Use deterministic temperature for resolution
+        })
+        
+        # Create dedicated LLM service for relationship extraction
+        relationship_llm_config = base_config.copy()
+        relationship_llm_config.update({
+            "debug": True,
+            "debug_file": llm_relationship_extractor_debug_file,
+            "debug_scope": "relationship_extractor",
+            "console_output": False,
+            "temperature": 0.1  # Use slightly higher temperature for relationship creativity
         })
         
         try:
@@ -149,17 +170,61 @@ class GraphManager:
             if isinstance(base_llm_service, OllamaService):
                 self.graph_llm_service = OllamaService(graph_config)
                 self.resolver_llm_service = OllamaService(resolver_config)
-                self.logger.info("Created dedicated graph and resolver LLM services with separate logging")
+                self.relationship_llm_service = OllamaService(relationship_llm_config)
+                self.logger.info("Created dedicated graph, resolver, and relationship LLM services with separate logging")
             else:
                 # For other LLM service types, fall back to the original service
                 self.logger.warning(f"Graph-specific logging not implemented for {type(base_llm_service).__name__}, using original service")
                 self.graph_llm_service = base_llm_service
                 self.resolver_llm_service = base_llm_service
+                self.relationship_llm_service = base_llm_service
         except Exception as e:
             self.logger.error(f"Failed to create dedicated LLM services: {e}")
             self.logger.warning("Falling back to original LLM service")
             self.graph_llm_service = base_llm_service
             self.resolver_llm_service = base_llm_service
+            self.relationship_llm_service = base_llm_service
+    
+    def _create_component_logger(self, component_name: str, memory_guid: str, log_file_path: str) -> logging.Logger:
+        """
+        Create a dedicated logger for a graph component.
+        
+        Args:
+            component_name: Name of the component (e.g., 'relationship_extractor')
+            memory_guid: Memory GUID for unique logger naming
+            log_file_path: Path to the log file
+            
+        Returns:
+            Configured logger instance
+        """
+        # Create logger name based on component and memory GUID
+        logger_name = f"graph_memory.{component_name}.{memory_guid}"
+        component_logger = logging.getLogger(logger_name)
+        
+        # Avoid duplicate handlers if logger already exists
+        if component_logger.handlers:
+            return component_logger
+            
+        # Set logger level
+        component_logger.setLevel(logging.DEBUG)
+        
+        # Create file handler
+        file_handler = logging.FileHandler(log_file_path)
+        file_handler.setLevel(logging.DEBUG)
+        
+        # Create formatter
+        formatter = logging.Formatter('%(asctime)s %(levelname)s:%(name)s:%(message)s')
+        file_handler.setFormatter(formatter)
+        
+        # Add handler to logger
+        component_logger.addHandler(file_handler)
+        
+        # Prevent propagation to avoid duplicate logs in parent loggers
+        component_logger.propagate = False
+        
+        self.logger.debug(f"Created dedicated logger for {component_name}: {logger_name} -> {log_file_path}")
+        
+        return component_logger
     
     def process_conversation_entry(self, conversation_text: str, digest_text: str = "") -> Dict[str, Any]:
         """
@@ -446,7 +511,81 @@ class GraphManager:
         if self.relationship_extractor:
             stats["relationship_extractor"] = self.relationship_extractor.get_stats()
         
+        # Add LLM service information
+        stats["llm_services"] = self.get_llm_services_info()
+        
         return stats
+    
+    def get_llm_services_info(self) -> Dict[str, Any]:
+        """Get information about all LLM services used by this GraphManager."""
+        services_info = {}
+        
+        # Graph LLM service
+        if hasattr(self, 'graph_llm_service') and self.graph_llm_service:
+            services_info['graph_llm'] = {
+                'service_type': type(self.graph_llm_service).__name__,
+                'model': getattr(self.graph_llm_service, 'model', 'unknown'),
+                'debug_scope': getattr(self.graph_llm_service, 'debug_scope', None),
+                'debug_file': getattr(self.graph_llm_service, 'debug_file', None)
+            }
+        
+        # Resolver LLM service
+        if hasattr(self, 'resolver_llm_service') and self.resolver_llm_service:
+            services_info['resolver_llm'] = {
+                'service_type': type(self.resolver_llm_service).__name__,
+                'model': getattr(self.resolver_llm_service, 'model', 'unknown'),
+                'debug_scope': getattr(self.resolver_llm_service, 'debug_scope', None),
+                'debug_file': getattr(self.resolver_llm_service, 'debug_file', None)
+            }
+        
+        # Relationship LLM service
+        if hasattr(self, 'relationship_llm_service') and self.relationship_llm_service:
+            services_info['relationship_llm'] = {
+                'service_type': type(self.relationship_llm_service).__name__,
+                'model': getattr(self.relationship_llm_service, 'model', 'unknown'),
+                'debug_scope': getattr(self.relationship_llm_service, 'debug_scope', None),
+                'debug_file': getattr(self.relationship_llm_service, 'debug_file', None)
+            }
+        
+        # Relationship ExtractorLogger information
+        if hasattr(self, 'relationship_extractor_logger') and self.relationship_extractor_logger:
+            services_info['relationship_extractor_logger'] = {
+                'logger_name': self.relationship_extractor_logger.name,
+                'logger_level': logging.getLevelName(self.relationship_extractor_logger.level),
+                'has_handlers': len(self.relationship_extractor_logger.handlers) > 0,
+                'log_files': [
+                    handler.baseFilename for handler in self.relationship_extractor_logger.handlers 
+                    if hasattr(handler, 'baseFilename')
+                ]
+            }
+        
+        # Check if services are distinct
+        services_info['using_dedicated_services'] = self._are_services_distinct()
+        
+        return services_info
+    
+    def _are_services_distinct(self) -> Dict[str, bool]:
+        """Check which services are using dedicated instances vs shared instances."""
+        distinct_services = {}
+        
+        # Check if services are the same object (shared) or different (dedicated)
+        base_service = getattr(self, 'graph_llm_service', None)
+        resolver_service = getattr(self, 'resolver_llm_service', None)
+        relationship_service = getattr(self, 'relationship_llm_service', None)
+        
+        distinct_services['resolver_dedicated'] = (
+            resolver_service is not None and 
+            base_service is not None and 
+            resolver_service is not base_service
+        )
+        
+        distinct_services['relationship_dedicated'] = (
+            relationship_service is not None and 
+            base_service is not None and 
+            relationship_service is not base_service
+        )
+        
+        return distinct_services
     
     def process_conversation_entry_with_resolver(self, conversation_text: str, digest_text: str = "", 
                                                 conversation_guid: str = None) -> Dict[str, Any]:

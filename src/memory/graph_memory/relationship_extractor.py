@@ -17,18 +17,32 @@ from datetime import datetime
 class RelationshipExtractor:
     """Relationship extractor using LLM-centric approach with entity context."""
     
-    def __init__(self, llm_service, domain_config: Optional[Dict[str, Any]] = None, logger=None):
+    def __init__(self, llm_service, domain_config: Optional[Dict[str, Any]] = None, logger=None,
+                 relationship_llm_service=None):
         """
         Initialize relationship extractor.
         
         Args:
-            llm_service: LLM service for relationship extraction
+            llm_service: Default LLM service for relationship extraction
             domain_config: Domain-specific configuration with relationship types
             logger: Logger instance
+            relationship_llm_service: Optional dedicated LLM service for relationship extraction.
+                                    If provided, this will be used instead of llm_service.
+                                    This allows for separate logging and model configuration.
         """
-        self.llm_service = llm_service
+        # Use dedicated relationship LLM service if provided, otherwise fall back to default
+        self.llm_service = relationship_llm_service if relationship_llm_service else llm_service
         self.domain_config = domain_config or {}
         self.logger = logger or logging.getLogger(__name__)
+        
+        # Store reference to the default LLM service for backwards compatibility
+        self._default_llm_service = llm_service
+        self._dedicated_relationship_llm = relationship_llm_service is not None
+        
+        if self._dedicated_relationship_llm:
+            self.logger.info("RelationshipExtractor initialized with dedicated LLM service")
+        else:
+            self.logger.debug("RelationshipExtractor initialized with default LLM service")
         
         # Load prompt template
         self.prompt_template = self._load_prompt_template()
@@ -157,20 +171,33 @@ Relationships:"""
             return []
     
     def _build_entities_context(self, entities: List[Dict[str, Any]]) -> str:
-        """Build formatted entity context for the prompt."""
-        entities_lines = []
+        """Build formatted entity context for the prompt with resolved node IDs."""
+        entities_lines = ["AVAILABLE ENTITIES (use exact names):"]
+        
         for entity in entities:
-            status = entity.get('status', 'new')
             name = entity.get('name', '')
             entity_type = entity.get('type', '')
             description = entity.get('description', '')
+            node_id = entity.get('resolved_node_id', '')
+            status = entity.get('status', 'resolved')
             
-            line = f"- {name} ({entity_type})"
+            # Format: "- EntityName (type, ID: node_id): description"
+            line = f"- {name} ({entity_type}"
+            if node_id:
+                line += f", ID: {node_id}"
+            line += f"): {description}"
+            
+            # Add status indicator for clarity
             if status == 'existing':
                 line += " [EXISTING]"
-            line += f": {description}"
+            elif status == 'new':
+                line += " [NEW]"
             
             entities_lines.append(line)
+        
+        entities_lines.append("\nIMPORTANT: Only create relationships between entities listed above.")
+        entities_lines.append("Use the exact entity names as shown.")
+        entities_lines.append("Do not reference any entities not in this list.")
         
         return "\n".join(entities_lines)
     
@@ -209,23 +236,28 @@ Relationships:"""
             return []
     
     def _validate_relationship(self, relationship: Dict[str, Any], entity_names: set) -> bool:
-        """Validate extracted relationship structure."""
+        """Validate extracted relationship structure and entity references."""
         required_fields = ['from_entity', 'to_entity', 'relationship']
         
         # Check required fields exist
         for field in required_fields:
             if field not in relationship or not relationship[field]:
+                self.logger.debug(f"Relationship missing required field: {field}")
                 return False
         
         # Check entities exist in the entity list (case-insensitive)
-        from_name = relationship['from_entity'].lower()
-        to_name = relationship['to_entity'].lower()
+        from_name = relationship['from_entity'].lower().strip()
+        to_name = relationship['to_entity'].lower().strip()
         
         if from_name not in entity_names or to_name not in entity_names:
+            self.logger.debug(f"Relationship references unknown entities: {relationship['from_entity']} -> {relationship['to_entity']}")
+            available_entities = ", ".join(sorted(entity_names))
+            self.logger.debug(f"Available entities: {available_entities}")
             return False
         
         # Check relationship type is valid
         if relationship['relationship'] not in self.relationship_types:
+            self.logger.debug(f"Invalid relationship type: {relationship['relationship']}")
             return False
         
         # Check confidence is reasonable (if provided)
@@ -327,8 +359,88 @@ Relationships:"""
     
     def get_stats(self) -> Dict[str, Any]:
         """Get extraction statistics."""
-        return {
+        stats = {
             'extractor_type': 'alternative_llm_centric',
             'relationship_types_count': len(self.relationship_types),
-            'domain': self.domain_config.get('domain_name', 'general')
-        } 
+            'domain': self.domain_config.get('domain_name', 'general'),
+            'uses_dedicated_llm': self._dedicated_relationship_llm
+        }
+        
+        # Add LLM service information if available
+        if hasattr(self.llm_service, 'model'):
+            stats['llm_model'] = self.llm_service.model
+        if hasattr(self.llm_service, 'debug_scope'):
+            stats['llm_debug_scope'] = self.llm_service.debug_scope
+        if hasattr(self.llm_service, 'debug_file'):
+            stats['llm_debug_file'] = self.llm_service.debug_file
+        
+        # Add optimization information
+        stats['optimization_features'] = {
+            'entity_id_context': True,
+            'strict_entity_validation': True,
+            'enhanced_prompt_constraints': True
+        }
+            
+        return stats
+    
+    def analyze_entity_context(self, entities: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Analyze the entity context to provide debugging information.
+        
+        Args:
+            entities: List of entities from entity extraction phase
+            
+        Returns:
+            Dictionary with entity context analysis
+        """
+        if not entities:
+            return {
+                'total_entities': 0,
+                'entities_with_ids': 0,
+                'entity_types': {},
+                'status_breakdown': {}
+            }
+        
+        analysis = {
+            'total_entities': len(entities),
+            'entities_with_ids': 0,
+            'entity_types': {},
+            'status_breakdown': {}
+        }
+        
+        for entity in entities:
+            # Count entities with resolved node IDs
+            if entity.get('resolved_node_id'):
+                analysis['entities_with_ids'] += 1
+            
+            # Count by entity type
+            entity_type = entity.get('type', 'unknown')
+            analysis['entity_types'][entity_type] = analysis['entity_types'].get(entity_type, 0) + 1
+            
+            # Count by status
+            status = entity.get('status', 'unknown')
+            analysis['status_breakdown'][status] = analysis['status_breakdown'].get(status, 0) + 1
+        
+        return analysis
+    
+    def is_using_dedicated_llm(self) -> bool:
+        """Check if this extractor is using a dedicated LLM service."""
+        return self._dedicated_relationship_llm
+    
+    def get_llm_service_info(self) -> Dict[str, Any]:
+        """Get information about the LLM service being used."""
+        info = {
+            'using_dedicated_service': self._dedicated_relationship_llm,
+            'service_type': type(self.llm_service).__name__
+        }
+        
+        # Add model information if available
+        if hasattr(self.llm_service, 'model'):
+            info['model'] = self.llm_service.model
+        if hasattr(self.llm_service, 'temperature'):
+            info['temperature'] = self.llm_service.temperature
+        if hasattr(self.llm_service, 'debug_scope'):
+            info['debug_scope'] = self.llm_service.debug_scope
+        if hasattr(self.llm_service, 'debug_file'):
+            info['debug_file'] = self.llm_service.debug_file
+            
+        return info 
