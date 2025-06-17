@@ -2,8 +2,8 @@
 Relationship Extractor
 
 LLM-centric relationship extraction that works with entity context from the entity extractor.
-This extractor focuses on analyzing full conversation text with explicit entity context,
-rather than working with pre-segmented text.
+This extractor analyzes full conversation text with explicit entity context to identify
+meaningful relationships between entities in knowledge graphs.
 """
 
 import json
@@ -72,7 +72,7 @@ Digest: {digest_text}
 
 Entities: {entities_context}
 
-Extract relationships as JSON array with fields: from_entity, to_entity, relationship, confidence, evidence.
+Extract relationships as JSON array with fields: from_entity_id, to_entity_id, relationship, confidence, evidence.
 
 Relationships:"""
     
@@ -172,7 +172,7 @@ Relationships:"""
     
     def _build_entities_context(self, entities: List[Dict[str, Any]]) -> str:
         """Build formatted entity context for the prompt with resolved node IDs."""
-        entities_lines = ["AVAILABLE ENTITIES (use exact names):"]
+        entities_lines = ["AVAILABLE ENTITIES (use exact IDs):"]
         
         for entity in entities:
             name = entity.get('name', '')
@@ -181,11 +181,12 @@ Relationships:"""
             node_id = entity.get('resolved_node_id', '')
             status = entity.get('status', 'resolved')
             
-            # Format: "- EntityName (type, ID: node_id): description"
-            line = f"- {name} ({entity_type}"
+            # Format: "- ID: node_id | Name: EntityName (type): description"
             if node_id:
-                line += f", ID: {node_id}"
-            line += f"): {description}"
+                line = f"- ID: {node_id} | Name: {name} ({entity_type}): {description}"
+            else:
+                # Fallback if no ID available
+                line = f"- Name: {name} ({entity_type}): {description} [NO ID]"
             
             # Add status indicator for clarity
             if status == 'existing':
@@ -196,7 +197,7 @@ Relationships:"""
             entities_lines.append(line)
         
         entities_lines.append("\nIMPORTANT: Only create relationships between entities listed above.")
-        entities_lines.append("Use the exact entity names as shown.")
+        entities_lines.append("Use the exact entity IDs as shown (from_entity_id and to_entity_id fields).")
         entities_lines.append("Do not reference any entities not in this list.")
         
         return "\n".join(entities_lines)
@@ -204,8 +205,8 @@ Relationships:"""
     def _parse_relationship_response(self, response: str, entities: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """Parse LLM response to extract relationship list."""
         try:
-            # Create entity name lookup for validation
-            entity_names = {entity['name'].lower() for entity in entities}
+            # Create entity ID lookup for validation
+            entity_ids = {entity.get('resolved_node_id', '') for entity in entities if entity.get('resolved_node_id')}
             
             # Clean up response - look for JSON array
             response = response.strip()
@@ -219,7 +220,7 @@ Relationships:"""
                 # Validate and clean relationships
                 valid_relationships = []
                 for rel in relationships:
-                    if self._validate_relationship(rel, entity_names):
+                    if self._validate_relationship(rel, entity_ids):
                         valid_relationships.append(rel)
                 
                 return valid_relationships
@@ -235,9 +236,9 @@ Relationships:"""
             self.logger.error(f"Error parsing relationship extraction response: {e}")
             return []
     
-    def _validate_relationship(self, relationship: Dict[str, Any], entity_names: set) -> bool:
+    def _validate_relationship(self, relationship: Dict[str, Any], entity_ids: set) -> bool:
         """Validate extracted relationship structure and entity references."""
-        required_fields = ['from_entity', 'to_entity', 'relationship']
+        required_fields = ['from_entity_id', 'to_entity_id', 'relationship']
         
         # Check required fields exist
         for field in required_fields:
@@ -245,14 +246,14 @@ Relationships:"""
                 self.logger.debug(f"Relationship missing required field: {field}")
                 return False
         
-        # Check entities exist in the entity list (case-insensitive)
-        from_name = relationship['from_entity'].lower().strip()
-        to_name = relationship['to_entity'].lower().strip()
+        # Check entities exist in the entity list by ID
+        from_id = relationship['from_entity_id'].strip()
+        to_id = relationship['to_entity_id'].strip()
         
-        if from_name not in entity_names or to_name not in entity_names:
-            self.logger.debug(f"Relationship references unknown entities: {relationship['from_entity']} -> {relationship['to_entity']}")
-            available_entities = ", ".join(sorted(entity_names))
-            self.logger.debug(f"Available entities: {available_entities}")
+        if from_id not in entity_ids or to_id not in entity_ids:
+            self.logger.debug(f"Relationship references unknown entity IDs: {relationship['from_entity_id']} -> {relationship['to_entity_id']}")
+            available_ids = ", ".join(sorted(entity_ids))
+            self.logger.debug(f"Available entity IDs: {available_ids}")
             return False
         
         # Check relationship type is valid
@@ -271,87 +272,7 @@ Relationships:"""
         
         return True
     
-    def extract_relationships_from_entities(self, entities: List[Dict[str, Any]], 
-                                          context_text: str = "") -> List[Dict[str, Any]]:
-        """
-        Extract relationships between entities with optional context.
-        
-        This is a simplified version that works with just entity information
-        and optional context text, useful for cross-conversation relationship detection.
-        
-        Args:
-            entities: List of entities to analyze for relationships
-            context_text: Optional context text for relationship inference
-            
-        Returns:
-            List of relationships between entities
-        """
-        if not entities or len(entities) < 2:
-            return []
-        
-        try:
-            # Build simplified prompt
-            entities_context = self._build_entities_context(entities)
-            relationship_types_desc = "\n".join([
-                f"- {rtype}: {desc}" for rtype, desc in self.relationship_types.items()
-            ])
-            
-            prompt = f"""Analyze the following entities to identify likely relationships between them.
 
-Relationship Types:
-{relationship_types_desc}
-
-Entities:
-{entities_context}
-
-Context: {context_text}
-
-Based on the entity descriptions and any provided context, identify logical relationships.
-Only include relationships that are clearly implied by the entity information.
-
-Respond with a JSON array of relationships with fields: from_entity, to_entity, relationship, confidence, evidence.
-
-Relationships:"""
-            
-            # Get LLM response
-            response = self.llm_service.generate(prompt)
-            
-            # Parse relationships
-            relationships = self._parse_relationship_response(response, entities)
-            
-            self.logger.debug(f"Extracted {len(relationships)} relationships from entity analysis")
-            return relationships
-            
-        except Exception as e:
-            self.logger.error(f"Error extracting relationships from entities: {e}")
-            return []
-    
-    def deduplicate_relationships(self, relationships: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """
-        Remove duplicate relationships based on from_entity, to_entity, and relationship type.
-        
-        Args:
-            relationships: List of relationships to deduplicate
-            
-        Returns:
-            List of unique relationships
-        """
-        seen_relationships = set()
-        unique_relationships = []
-        
-        for rel in relationships:
-            # Create a key for deduplication
-            key = (
-                rel['from_entity'].lower(),
-                rel['to_entity'].lower(),
-                rel['relationship']
-            )
-            
-            if key not in seen_relationships:
-                seen_relationships.add(key)
-                unique_relationships.append(rel)
-        
-        return unique_relationships
     
     def get_relationship_types(self) -> Dict[str, str]:
         """Get configured relationship types."""
@@ -360,7 +281,7 @@ Relationships:"""
     def get_stats(self) -> Dict[str, Any]:
         """Get extraction statistics."""
         stats = {
-            'extractor_type': 'alternative_llm_centric',
+            'extractor_type': 'llm_centric',
             'relationship_types_count': len(self.relationship_types),
             'domain': self.domain_config.get('domain_name', 'general'),
             'uses_dedicated_llm': self._dedicated_relationship_llm
@@ -374,11 +295,11 @@ Relationships:"""
         if hasattr(self.llm_service, 'debug_file'):
             stats['llm_debug_file'] = self.llm_service.debug_file
         
-        # Add optimization information
-        stats['optimization_features'] = {
-            'entity_id_context': True,
-            'strict_entity_validation': True,
-            'enhanced_prompt_constraints': True
+        # Add core features
+        stats['features'] = {
+            'entity_context_validation': True,
+            'domain_specific_relationships': True,
+            'dedicated_llm_support': True
         }
             
         return stats

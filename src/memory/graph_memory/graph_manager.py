@@ -2,8 +2,8 @@
 Graph Manager
 
 LLM-centric graph management with advanced entity and relationship extraction.
-Focuses on full conversation analysis rather than segment-based processing,
-and relies on LLM reasoning for entity and relationship identification.
+Provides sophisticated conversation processing with EntityResolver for duplicate detection
+and RelationshipExtractor for semantic relationship identification.
 """
 
 import uuid
@@ -226,112 +226,7 @@ class GraphManager:
         
         return component_logger
     
-    def process_conversation_entry(self, conversation_text: str, digest_text: str = "") -> Dict[str, Any]:
-        """
-        Process a full conversation entry using the alternative LLM-centric approach.
-        
-        This method implements the two-stage process described in the alternative approach:
-        1. Extract entities from conversation + digest using RAG for existing entity matching
-        2. Extract relationships between the identified entities
-        
-        Args:
-            conversation_text: Full conversation entry text
-            digest_text: Digest/summary of the conversation
-            
-        Returns:
-            Dictionary with processing results including entities and relationships
-        """
-        if not self.entity_extractor or not self.relationship_extractor:
-            self.logger.error("Entity extractors not available - missing LLM service or domain config")
-            return {"entities": [], "relationships": [], "error": "Extractors not available"}
-        
-        try:
-            results = {
-                "entities": [],
-                "relationships": [],
-                "new_entities": [],
-                "existing_entities": [],
-                "stats": {}
-            }
-            
-            # Stage 1: Extract entities using alternative approach
-            self.logger.debug("Stage 1: Extracting entities from conversation")
-            extracted_entities = self.entity_extractor.extract_entities_from_conversation(
-                conversation_text, digest_text)
-            
-            if not extracted_entities:
-                self.logger.info("No entities extracted from conversation")
-                return results
-            
-            # Process and add entities to graph
-            processed_entities = []
-            for entity in extracted_entities:
-                try:
-                    if entity.get('status') == 'existing':
-                        # Update existing entity
-                        existing_node = self._update_existing_entity(entity)
-                        if existing_node:
-                            processed_entities.append({
-                                'node': existing_node,
-                                'status': 'existing',
-                                **entity
-                            })
-                            results["existing_entities"].append(existing_node.to_dict())
-                    else:
-                        # Create new entity
-                        new_node, is_new = self.add_or_update_node(
-                            name=entity.get("name", ""),
-                            node_type=entity.get("type", "concept"),
-                            description=entity.get("description", ""),
-                            confidence=entity.get("confidence", 1.0)
-                        )
-                        processed_entities.append({
-                            'node': new_node,
-                            'status': 'new' if is_new else 'updated',
-                            **entity
-                        })
-                        if is_new:
-                            results["new_entities"].append(new_node.to_dict())
-                
-                except Exception as e:
-                    self.logger.error(f"Error processing entity {entity.get('name', 'unknown')}: {e}")
-                    continue
-            
-            results["entities"] = [item['node'].to_dict() for item in processed_entities]
-            
-            # Stage 2: Extract relationships using alternative approach
-            self.logger.debug("Stage 2: Extracting relationships from conversation")
-            if len(processed_entities) >= 2:
-                entity_list = [item for item in extracted_entities]  # Use original entity format
-                extracted_relationships = self.relationship_extractor.extract_relationships_from_conversation(
-                    conversation_text, digest_text, entity_list)
-                
-                # Process and add relationships to graph
-                for relationship in extracted_relationships:
-                    try:
-                        edge = self._add_relationship_to_graph(relationship, processed_entities)
-                        if edge:
-                            results["relationships"].append(edge.to_dict())
-                    except Exception as e:
-                        self.logger.error(f"Error processing relationship: {e}")
-                        continue
-            
-            # Generate stats
-            results["stats"] = {
-                "entities_extracted": len(extracted_entities),
-                "entities_new": len(results["new_entities"]),
-                "entities_existing": len(results["existing_entities"]),
-                "relationships_extracted": len(results["relationships"]),
-                "conversation_length": len(conversation_text),
-                "digest_length": len(digest_text)
-            }
-            
-            self.logger.info(f"Processed conversation: {results['stats']}")
-            return results
-            
-        except Exception as e:
-            self.logger.error(f"Error processing conversation entry: {e}")
-            return {"entities": [], "relationships": [], "error": str(e)}
+
     
     def _update_existing_entity(self, entity_info: Dict[str, Any]) -> Optional[GraphNode]:
         """Update an existing entity with new information from the conversation."""
@@ -378,124 +273,9 @@ class GraphManager:
             self.logger.error(f"Error updating existing entity: {e}")
             return None
     
-    def _add_relationship_to_graph(self, relationship: Dict[str, Any], 
-                                  processed_entities: List[Dict[str, Any]]) -> Optional[GraphEdge]:
-        """Add a relationship to the graph."""
-        try:
-            # Find the entity nodes by name
-            from_node = None
-            to_node = None
-            
-            entity_name_to_node = {
-                item['name'].lower(): item['node'] 
-                for item in processed_entities
-            }
-            
-            from_name = relationship['from_entity'].lower()
-            to_name = relationship['to_entity'].lower()
-            
-            if from_name in entity_name_to_node:
-                from_node = entity_name_to_node[from_name]
-            if to_name in entity_name_to_node:
-                to_node = entity_name_to_node[to_name]
-            
-            if not from_node or not to_node:
-                self.logger.warning(f"Could not find nodes for relationship {relationship}")
-                return None
-            
-            # Check if relationship already exists
-            existing_edge = self._find_edge(from_node.id, to_node.id, relationship['relationship'])
-            if existing_edge:
-                # Update existing relationship
-                existing_edge.confidence = max(existing_edge.confidence, 
-                                             relationship.get('confidence', 1.0))
-                existing_edge.evidence = relationship.get('evidence', existing_edge.evidence)
-                existing_edge.updated_at = datetime.now().isoformat()
-                self._save_graph()
-                return existing_edge
-            
-            # Create new relationship
-            edge_id = f"edge_{str(uuid.uuid4())[:8]}"
-            new_edge = GraphEdge(
-                edge_id=edge_id,
-                from_node_id=from_node.id,
-                to_node_id=to_node.id,
-                relationship=relationship['relationship'],
-                confidence=relationship.get('confidence', 1.0),
-                evidence=relationship.get('evidence', ''),
-                created_at=datetime.now().isoformat()
-            )
-            
-            self.edges.append(new_edge)
-            self._save_graph()
-            
-            return new_edge
-            
-        except Exception as e:
-            self.logger.error(f"Error adding relationship to graph: {e}")
-            return None
+
     
-    def compare_with_baseline(self, conversation_text: str, digest_text: str = "") -> Dict[str, Any]:
-        """
-        Compare alternative approach results with baseline approach.
-        
-        This method runs both the alternative and baseline approaches on the same input
-        to enable A/B testing and performance comparison.
-        
-        Args:
-            conversation_text: Full conversation entry text
-            digest_text: Digest/summary of the conversation
-            
-        Returns:
-            Dictionary comparing both approaches
-        """
-        comparison = {
-            "alternative": {},
-            "baseline": {},
-            "comparison_stats": {}
-        }
-        
-        try:
-            # Run alternative approach
-            self.logger.info("Running alternative approach...")
-            alt_results = self.process_conversation_entry(conversation_text, digest_text)
-            comparison["alternative"] = alt_results
-            
-            # Run baseline approach (using parent class methods)
-            self.logger.info("Running baseline approach...")
-            baseline_results = self._run_baseline_approach(conversation_text, digest_text)
-            comparison["baseline"] = baseline_results
-            
-            # Generate comparison statistics
-            comparison["comparison_stats"] = {
-                "alt_entities": len(alt_results.get("entities", [])),
-                "baseline_entities": len(baseline_results.get("entities", [])),
-                "alt_relationships": len(alt_results.get("relationships", [])),
-                "baseline_relationships": len(baseline_results.get("relationships", [])),
-                "alt_new_entities": len(alt_results.get("new_entities", [])),
-                "baseline_new_entities": len(baseline_results.get("new_entities", [])),
-            }
-            
-            return comparison
-            
-        except Exception as e:
-            self.logger.error(f"Error in comparison: {e}")
-            comparison["error"] = str(e)
-            return comparison
-    
-    def _run_baseline_approach(self, conversation_text: str, digest_text: str) -> Dict[str, Any]:
-        """Run the baseline segment-based approach for comparison."""
-        # This would need to be implemented to create segments and use the original extractors
-        # For now, return a placeholder
-        return {
-            "entities": [],
-            "relationships": [],
-            "new_entities": [],
-            "stats": {
-                "approach": "baseline_segment_based",
-                "note": "Baseline comparison not yet implemented"
-            }
-        }
+
     
     def get_extractor_stats(self) -> Dict[str, Any]:
         """Get statistics about the alternative extractors."""
@@ -608,10 +388,10 @@ class GraphManager:
             self.logger.error("Entity extractor not available")
             return {"entities": [], "relationships": [], "error": "Entity extractor not available"}
         
-        # Use basic processing if EntityResolver is not available
+        # Return error if EntityResolver is not available since it's essential
         if not self.entity_resolver:
-            self.logger.debug("EntityResolver not available, falling back to basic processing")
-            return self.process_conversation_entry(conversation_text, digest_text)
+            self.logger.error("EntityResolver not available - this is required for graph memory operations")
+            return {"entities": [], "relationships": [], "error": "EntityResolver required but not available"}
         
         try:
             results = {
@@ -786,35 +566,13 @@ class GraphManager:
                 
                 self.logger.debug(f"Relationship extractor returned {len(extracted_relationships)} relationships")
                 for rel in extracted_relationships:
-                    self.logger.debug(f"  - {rel.get('from_entity', '?')} --[{rel.get('relationship', '?')}]--> {rel.get('to_entity', '?')}")
+                    self.logger.debug(f"  - {rel.get('from_entity_id', '?')} --[{rel.get('relationship', '?')}]--> {rel.get('to_entity_id', '?')}")
                 
-                # Process and add relationships to graph
-                # Create mapping from original entity names to resolved node IDs
-                original_to_resolved = {}
-                for processed_entity in all_processed_entities:
-                    if processed_entity.get('node'):
-                        resolved_node = processed_entity['node']
-                        
-                        # Try to get original entity name from multiple sources
-                        original_name = None
-                        if 'original_entity' in processed_entity:
-                            original_name = processed_entity['original_entity'].get('name', '').lower()
-                        elif 'name' in processed_entity:
-                            original_name = processed_entity['name'].lower()
-                        
-                        # Also map the current node name to itself (for direct matches)
-                        current_name = resolved_node.name.lower()
-                        original_to_resolved[current_name] = resolved_node
-                        
-                        # Map original name to resolved node (if different)
-                        if original_name and original_name != current_name:
-                            original_to_resolved[original_name] = resolved_node
-                            self.logger.debug(f"Mapping original '{original_name}' -> resolved '{resolved_node.name}' ({resolved_node.id})")
-                
+                # Process and add relationships to graph using entity IDs
                 for relationship in extracted_relationships:
                     try:
                         edge = self._add_relationship_to_graph_with_resolver(
-                            relationship, all_processed_entities, original_to_resolved)
+                            relationship, all_processed_entities)
                         if edge:
                             results["relationships"].append(edge.to_dict())
                     except Exception as e:
@@ -839,59 +597,30 @@ class GraphManager:
             
         except Exception as e:
             self.logger.error(f"Error in process_conversation_entry_with_resolver: {e}")
-            # Fallback to basic processing
-            self.logger.warning("Falling back to basic conversation processing")
-            return self.process_conversation_entry(conversation_text, digest_text)
+            return {"entities": [], "relationships": [], "error": f"Processing failed: {str(e)}"}
     
     def _add_relationship_to_graph_with_resolver(self, relationship: Dict[str, Any], 
-                                               processed_entities: List[Dict[str, Any]],
-                                               original_to_resolved: Dict[str, Any]) -> Optional[GraphEdge]:
-        """Add a relationship to the graph using resolved entity mapping.
+                                               processed_entities: List[Dict[str, Any]]) -> Optional[GraphEdge]:
+        """Add a relationship to the graph using entity IDs.
         
-        This method handles the case where relationship extraction refers to original entity names
-        but those entities have been resolved to existing nodes with different names/IDs.
+        This method uses the entity IDs directly from the relationship extraction output,
+        which provides cleaner and more reliable entity matching.
         """
         try:
-            from_entity_name = relationship.get('from_entity', '').lower()
-            to_entity_name = relationship.get('to_entity', '').lower()
+            from_entity_id = relationship.get('from_entity_id', '').strip()
+            to_entity_id = relationship.get('to_entity_id', '').strip()
             
-            # First try to find nodes using the original-to-resolved mapping
-            from_node = original_to_resolved.get(from_entity_name)
-            to_node = original_to_resolved.get(to_entity_name)
+            if not from_entity_id or not to_entity_id:
+                self.logger.warning(f"Relationship missing entity IDs: {relationship}")
+                return None
             
-            # If not found in mapping, try direct name lookup (for entities that weren't resolved)
-            if not from_node or not to_node:
-                entity_name_to_node = {
-                    item['node'].name.lower(): item['node'] 
-                    for item in processed_entities if item.get('node')
-                }
-                
-                if not from_node:
-                    from_node = entity_name_to_node.get(from_entity_name)
-                if not to_node:
-                    to_node = entity_name_to_node.get(to_entity_name)
-            
-            # If still not found, try alternative lookups
-            if not from_node or not to_node:
-                # Try partial matching or different name variations
-                for item in processed_entities:
-                    if item.get('node'):
-                        node = item['node']
-                        node_name_lower = node.name.lower()
-                        
-                        # Check if the relationship entity name is contained in the node name
-                        if not from_node and (from_entity_name in node_name_lower or node_name_lower in from_entity_name):
-                            from_node = node
-                            self.logger.debug(f"Found from_node via partial match: '{from_entity_name}' -> '{node.name}' ({node.id})")
-                        
-                        if not to_node and (to_entity_name in node_name_lower or node_name_lower in to_entity_name):
-                            to_node = node
-                            self.logger.debug(f"Found to_node via partial match: '{to_entity_name}' -> '{node.name}' ({node.id})")
+            # Find nodes by their IDs directly
+            from_node = self.get_node(from_entity_id)
+            to_node = self.get_node(to_entity_id)
             
             if not from_node or not to_node:
-                self.logger.warning(f"Could not find nodes for relationship {relationship}")
+                self.logger.warning(f"Could not find nodes for relationship: from_id={from_entity_id}, to_id={to_entity_id}")
                 self.logger.debug(f"Available nodes: {[item['node'].name + ' (' + item['node'].id + ')' for item in processed_entities if item.get('node')]}")
-                self.logger.debug(f"Original-to-resolved mapping: {[(k, v.name + ' (' + v.id + ')') for k, v in original_to_resolved.items()]}")
                 return None
             
             # Create the relationship
