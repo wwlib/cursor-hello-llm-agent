@@ -4,21 +4,22 @@ This module provides functionality for segmenting text content into meaningful c
 The ContentSegmenter uses LLM to intelligently break down text while preserving context
 and maintaining the original meaning.
 
-Design Principles:
-1. Separation of Concerns
-   - Focused solely on text segmentation
-   - Clear interface for segmentation operations
-   - Robust error handling and fallback mechanisms
+Design Principles::
 
-2. Quality Segmentation
-   - Preserves context between related ideas
-   - Maintains complete coverage of input text
-   - Handles different types of content appropriately
+    1. Separation of Concerns
+       - Focused solely on text segmentation
+       - Clear interface for segmentation operations
+       - Robust error handling and fallback mechanisms
 
-3. Error Recovery
-   - Graceful degradation when segmentation fails
-   - Fallback to simpler segmentation methods
-   - Comprehensive validation of results
+    2. Quality Segmentation
+       - Preserves context between related ideas
+       - Maintains complete coverage of input text
+       - Handles different types of content appropriately
+
+    3. Error Recovery
+       - Graceful degradation when segmentation fails
+       - Fallback to simpler segmentation methods
+       - Comprehensive validation of results
 """
 
 from typing import List, Optional

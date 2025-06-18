@@ -1,0 +1,213 @@
+.App {
+  text-align: center;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.App-header {
+  background-color: #282c34;
+  padding: 20px;
+  color: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.App-header h1 {
+  margin: 0 0 20px 0;
+  font-size: 24px;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.file-controls {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.file-input-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.file-input-group label {
+  font-size: 12px;
+  color: #ccc;
+}
+
+.sample-controls {
+  display: flex;
+  gap: 10px;
+}
+
+button {
+  background-color: #61dafb;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s;
+}
+
+button:hover:not(:disabled) {
+  background-color: #21a9c7;
+}
+
+button:disabled {
+  background-color: #666;
+  cursor: not-allowed;
+}
+
+input[type="file"] {
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  background-color: white;
+  font-size: 12px;
+}
+
+.loading {
+  color: #61dafb;
+  font-weight: bold;
+  margin: 10px 0;
+}
+
+.error {
+  color: #ff6b6b;
+  font-weight: bold;
+  margin: 10px 0;
+  background-color: rgba(255, 107, 107, 0.1);
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.stats {
+  font-size: 14px;
+  color: #ccc;
+  margin-top: 10px;
+}
+
+.graph-container {
+  flex: 1;
+  position: relative;
+  background-color: #f8f9fa;
+  border-top: 1px solid #dee2e6;
+}
+
+.node-details {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  border: 2px solid #61dafb;
+  border-radius: 10px;
+  padding: 20px;
+  max-width: 400px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+}
+
+.node-details h3 {
+  margin-top: 0;
+  color: #282c34;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+}
+
+.node-details p {
+  margin: 10px 0;
+  text-align: left;
+}
+
+.node-details button {
+  margin-top: 15px;
+  background-color: #282c34;
+  color: white;
+}
+
+.legend {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 100;
+  max-width: 200px;
+}
+
+.legend h4 {
+  margin: 0 0 10px 0;
+  font-size: 14px;
+  color: #333;
+}
+
+.legend-items {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1px solid #ccc;
+}
+
+.legend p {
+  margin: 10px 0 0 0;
+  font-size: 11px;
+  color: #666;
+  font-style: italic;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .controls {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .file-controls {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .legend {
+    position: relative;
+    bottom: auto;
+    left: auto;
+    margin: 10px;
+    align-self: center;
+  }
+  
+  .App-header {
+    padding: 15px;
+  }
+  
+  .App-header h1 {
+    font-size: 20px;
+  }
+}

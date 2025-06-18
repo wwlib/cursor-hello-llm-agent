@@ -3,16 +3,17 @@
 This module defines the abstract base class for memory management implementations.
 All concrete memory managers should inherit from this class and implement its abstract methods.
 
-Design Principles:
-1. Separation of Concerns
-   - Core memory persistence functionality in base class
-   - Specific memory operations defined as abstract methods
-   - Concrete implementations provide domain-specific logic
+Design Principles::
 
-2. Common Interface
-   - All memory managers share the same public interface
-   - Implementation details can vary while maintaining consistent API
-   - Makes memory managers interchangeable in the agent system
+    1. Separation of Concerns
+       - Core memory persistence functionality in base class
+       - Specific memory operations defined as abstract methods
+       - Concrete implementations provide domain-specific logic
+
+    2. Common Interface
+       - All memory managers share the same public interface
+       - Implementation details can vary while maintaining consistent API
+       - Makes memory managers interchangeable in the agent system
 """
 
 from typing import Any, Dict, Optional, List
@@ -268,3 +269,23 @@ class BaseMemoryManager(ABC):
             str: The memory GUID if available, None otherwise
         """
         return self.memory_guid
+    
+    def has_pending_operations(self) -> bool:
+        """Check if there are any pending async operations.
+        
+        Returns:
+            bool: True if there are pending operations
+        """
+        return False  # Default implementation for synchronous managers
+    
+    def get_graph_context(self, query: str, max_entities: int = 5) -> str:
+        """Get graph-based context for a query.
+        
+        Args:
+            query: The query to find relevant graph context for
+            max_entities: Maximum number of entities to include in context
+            
+        Returns:
+            str: Formatted graph context string
+        """
+        return ""  # Default implementation returns empty context

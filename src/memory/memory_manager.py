@@ -1,25 +1,27 @@
 """Memory Manager for Agent System
 
-Design Principles:
-1. Flexible Memory Design
-   - Maintains conversation history with importance-rated segments
-   - Uses these rated segments for memory compression over time
-   
-2. Domain-Driven Design
-   - Domain-specific guidance is provided through domain_config
-   - The LLM should use these as guidance to remember important information
-   
-3. Memory Organization
-   - static_memory: Contains foundational, unchanging information about the domain
-   - conversation_history: Contains full conversation with important segments rated
-   - context: Contains compressed important information organized by topic
-   
-4. Memory Update Process
-   - Periodically compresses conversation history to retain only important segments
-   - Organizes important information by topics for better retrieval
-   - Balances completeness with efficiency
+Design Principles::
 
-Usage:
+    1. Flexible Memory Design
+       - Maintains conversation history with importance-rated segments
+       - Uses these rated segments for memory compression over time
+       
+    2. Domain-Driven Design
+       - Domain-specific guidance is provided through domain_config
+       - The LLM should use these as guidance to remember important information
+       
+    3. Memory Organization
+       - static_memory: Contains foundational, unchanging information about the domain
+       - conversation_history: Contains full conversation with important segments rated
+       - context: Contains compressed important information organized by topic
+       
+    4. Memory Update Process
+       - Periodically compresses conversation history to retain only important segments
+       - Organizes important information by topics for better retrieval
+       - Balances completeness with efficiency
+
+Usage::
+
     memory_manager = MemoryManager(
         memory_guid=guid,
         llm_service=llm_service,
@@ -48,6 +50,7 @@ from .memory_compressor import MemoryCompressor
 from .data_preprocessor import DataPreprocessor
 from .embeddings_manager import EmbeddingsManager
 from .rag_manager import RAGManager
+from .graph_memory import GraphManager
 import asyncio
 import logging
 
@@ -64,7 +67,8 @@ class MemoryManager(BaseMemoryManager):
 
     def __init__(self, memory_guid: str, memory_file: str = "memory.json", domain_config: Optional[Dict[str, Any]] = None, 
                  llm_service = None, digest_llm_service = None, embeddings_llm_service = None, 
-                 max_recent_conversation_entries: int = 8, importance_threshold: int = DEFAULT_COMPRESSION_IMPORTANCE_THRESHOLD, logger=None):
+                 max_recent_conversation_entries: int = 8, importance_threshold: int = DEFAULT_COMPRESSION_IMPORTANCE_THRESHOLD, 
+                 enable_graph_memory: bool = True, logger=None):
         """Initialize the MemoryManager with LLM service instances and domain configuration.
         
         Args:
@@ -79,6 +83,7 @@ class MemoryManager(BaseMemoryManager):
             memory_guid: Required GUID to identify this memory instance.
             max_recent_conversation_entries: Maximum number of recent conversation entries to keep before compression
             importance_threshold: Threshold for segment importance (1-5 scale) to keep during compression
+            enable_graph_memory: Whether to enable graph memory functionality (default: True)
             logger: Optional logger instance for this MemoryManager
         """
         if llm_service is None:
@@ -101,12 +106,71 @@ class MemoryManager(BaseMemoryManager):
         self.memory_compressor = MemoryCompressor(self.llm, importance_threshold, logger=logger)
         self.logger.debug("Initialized MemoryCompressor")
         
-        # Initialize EmbeddingsManager and RAGManager with dedicated embeddings LLM service
+        # Initialize EmbeddingsManager first
         embeddings_file = os.path.splitext(memory_file)[0] + "_embeddings.jsonl"
         self.embeddings_manager = EmbeddingsManager(embeddings_file, self.embeddings_llm, logger=logger)
-        self.rag_manager = RAGManager(self.embeddings_llm, self.embeddings_manager, logger=logger)
-        self.logger.debug("Initialized EmbeddingsManager and RAGManager")
+        self.logger.debug("Initialized EmbeddingsManager")
         self.logger.debug(f"Embeddings file: {embeddings_file}")
+        
+        # Initialize GraphManager if enabled
+        self.enable_graph_memory = enable_graph_memory
+        self.graph_manager = None
+        if enable_graph_memory:
+            try:
+                # Create graph storage path based on memory file
+                memory_dir = os.path.dirname(memory_file) or "."
+                memory_base = os.path.basename(memory_file).split(".")[0]
+                graph_storage_path = os.path.join(memory_dir, f"{memory_base}_graph_data")
+                graph_embeddings_file = os.path.join(graph_storage_path, "graph_memory_embeddings.jsonl")
+                
+                # Create directory for graph storage
+                os.makedirs(graph_storage_path, exist_ok=True)
+                
+                # Create dedicated logger for graph manager
+                graph_logger = self._create_graph_manager_logger(memory_dir, memory_base)
+                
+                # Get similarity threshold from domain config
+                similarity_threshold = 0.8
+                if self.domain_config and "graph_memory_config" in self.domain_config:
+                    similarity_threshold = self.domain_config["graph_memory_config"].get("similarity_threshold", 0.8)
+                
+                # Create separate embeddings manager for graph memory
+                graph_embeddings_file = os.path.join(graph_storage_path, "graph_memory_embeddings.jsonl")
+                graph_embeddings_manager = EmbeddingsManager(
+                    embeddings_file=graph_embeddings_file,
+                    llm_service=self.embeddings_llm,
+                    logger=graph_logger  # Use dedicated graph logger
+                )
+                
+                # Determine logs base directory for graph-specific logging
+                logs_base_dir = self._determine_logs_base_dir(memory_dir)
+                
+                self.graph_manager = GraphManager(
+                    storage_path=graph_storage_path,
+                    embeddings_manager=graph_embeddings_manager,
+                    similarity_threshold=similarity_threshold,
+                    logger=graph_logger,  # Use dedicated graph logger
+                    llm_service=self.llm,  # Use general LLM service (gemma3) for entity extraction
+                    embeddings_llm_service=self.embeddings_llm,  # Use embeddings LLM service (mxbai-embed-large)
+                    domain_config=self.domain_config,
+                    logs_dir=logs_base_dir,  # Pass logs directory for graph-specific logging
+                    memory_guid=self.memory_guid  # Pass memory GUID for creating log subdirectories
+                )
+                self.logger.debug(f"Initialized GraphManager with storage: {graph_storage_path}")
+                graph_logger.debug(f"Graph memory logger initialized for memory: {memory_base}")
+            except Exception as e:
+                self.logger.warning(f"Failed to initialize GraphManager: {e}. Graph memory disabled.")
+                self.enable_graph_memory = False
+                self.graph_manager = None
+        
+        # Initialize RAGManager with optional graph manager
+        self.rag_manager = RAGManager(
+            llm_service=self.embeddings_llm, 
+            embeddings_manager=self.embeddings_manager, 
+            graph_manager=self.graph_manager,
+            logger=logger
+        )
+        self.logger.debug("Initialized RAGManager with graph integration")
         
         # Ensure memory has a GUID
         self._ensure_memory_guid()
@@ -114,7 +178,7 @@ class MemoryManager(BaseMemoryManager):
         # Configurable memory parameters
         self.max_recent_conversation_entries = max_recent_conversation_entries
         self.importance_threshold = importance_threshold
-        self.logger.debug(f"Memory configuration: max_recent_conversation_entries={max_recent_conversation_entries}, importance_threshold={importance_threshold}")
+        self.logger.debug(f"Memory configuration: max_recent_conversation_entries={max_recent_conversation_entries}, importance_threshold={importance_threshold}, graph_memory={enable_graph_memory}")
 
     def _ensure_memory_guid(self):
         """Ensure that the memory has a GUID, prioritizing the provided GUID if available."""
@@ -236,6 +300,11 @@ class MemoryManager(BaseMemoryManager):
             # Generate and save embeddings for the initial system entry
             self.embeddings_manager.add_new_embeddings([system_entry])
 
+            # Process static memory with graph memory system if enabled
+            if self.enable_graph_memory and self.graph_manager:
+                self.logger.debug("Processing static memory for graph memory...")
+                self._process_initial_graph_memory(system_entry)
+
             self.logger.debug("Memory created and initialized with static knowledge")
             return True
         except Exception as e:
@@ -268,6 +337,82 @@ class MemoryManager(BaseMemoryManager):
             return initial_entry.get("content", "")
         # Concatenate all segment texts, separated by newlines
         return "\n".join(seg.get("text", "") for seg in rated_segments if seg.get("text"))
+
+    def _determine_logs_base_dir(self, memory_dir: str) -> str:
+        """Determine the logs base directory from the memory directory.
+        
+        Args:
+            memory_dir: Directory where the memory file is located
+            
+        Returns:
+            Base directory path for logs
+        """
+        if memory_dir and memory_dir != ".":
+            # For GUID-specific memories, use the parent directory to create logs
+            parent_dir = os.path.dirname(memory_dir)
+            if parent_dir and os.path.basename(parent_dir) in ["standard", "simple", "sync"]:
+                # We're in agent_memories/standard/guid_dir structure
+                grandparent_dir = os.path.dirname(parent_dir)  # agent_memories
+                project_root = os.path.dirname(grandparent_dir)  # project root
+                # If project_root is empty, we're already at the project root
+                logs_base_dir = project_root if project_root else "."
+            else:
+                # We're in a direct memory directory
+                logs_base_dir = os.path.dirname(memory_dir) if memory_dir != "." else "."
+        else:
+            # Default to current directory
+            logs_base_dir = "."
+        
+        return logs_base_dir
+
+    def _create_graph_manager_logger(self, memory_dir: str, memory_base: str) -> logging.Logger:
+        """Create a dedicated logger for graph manager operations.
+        
+        Args:
+            memory_dir: Directory where the memory file is located
+            memory_base: Base name of the memory file (without extension) - kept for compatibility
+            
+        Returns:
+            Logger instance configured for graph memory operations
+        """
+        # Create logger name based on memory GUID for session-specific logging
+        logger_name = f"graph_memory.{self.memory_guid}"
+        graph_logger = logging.getLogger(logger_name)
+        
+        # Avoid duplicate handlers if logger already exists
+        if graph_logger.handlers:
+            return graph_logger
+            
+        # Set logger level
+        graph_logger.setLevel(logging.DEBUG)
+        
+        # Determine logs base directory
+        logs_base_dir = self._determine_logs_base_dir(memory_dir)
+            
+        # Create session-specific logs directory using memory GUID
+        session_logs_dir = os.path.join(logs_base_dir, "logs", self.memory_guid)
+        os.makedirs(session_logs_dir, exist_ok=True)
+        
+        # Create graph manager log file in the session directory
+        graph_manager_log_file_path = os.path.join(session_logs_dir, "graph_manager.log")
+        
+        # Create file handler
+        file_handler = logging.FileHandler(graph_manager_log_file_path)
+        file_handler.setLevel(logging.DEBUG)
+        
+        # Create formatter
+        formatter = logging.Formatter('%(asctime)s %(levelname)s:%(name)s:%(message)s')
+        file_handler.setFormatter(formatter)
+        
+        # Add handler to logger
+        graph_logger.addHandler(file_handler)
+        
+        # Prevent propagation to avoid duplicate logs in parent loggers
+        graph_logger.propagate = False
+        
+        self.logger.debug(f"Created graph memory logger: {logger_name} -> {graph_manager_log_file_path}")
+        
+        return graph_logger
 
     def query_memory(self, query_context: Dict[str, Any]) -> Dict[str, Any]:
         """Query memory with the given context.
@@ -321,6 +466,17 @@ class MemoryManager(BaseMemoryManager):
             else:
                 self.logger.debug("Using RAG-enhanced context for memory query (provided)")
             
+            # Get graph context if enabled
+            graph_context = ""
+            if self.enable_graph_memory and self.graph_manager:
+                try:
+                    graph_context = self.get_graph_context(query)
+                    if graph_context:
+                        self.logger.debug("Added graph context to memory query")
+                except Exception as e:
+                    self.logger.warning(f"Failed to get graph context: {e}")
+                    graph_context = ""
+            
             # Get domain-specific instructions (use provided or get from config)
             domain_specific_prompt_instructions = query_context.get("domain_specific_prompt_instructions", "")
             domain_specific_query_prompt_instructions = domain_specific_prompt_instructions
@@ -335,7 +491,8 @@ class MemoryManager(BaseMemoryManager):
                 conversation_history_text=conversation_history_text,
                 query=query,
                 domain_specific_prompt_instructions=domain_specific_query_prompt_instructions,
-                rag_context=rag_context  # Include RAG context in the prompt
+                rag_context=rag_context,  # Include RAG context in the prompt
+                graph_context=graph_context  # Include graph context in the prompt
             )
             
             # Get response from LLM
@@ -381,20 +538,334 @@ class MemoryManager(BaseMemoryManager):
             return {"response": f"Error processing query: {str(e)}", "error": str(e)}
             
     async def _process_entry_async(self, entry: Dict[str, Any]) -> None:
-        """Process a conversation entry asynchronously (digest generation and embeddings)."""
+        """Process a conversation entry asynchronously (digest generation, embeddings, and graph updates)."""
         try:
             # Generate digest if not already present
             if "digest" not in entry:
                 self.logger.debug(f"Generating digest for {entry['role']} entry...")
                 entry["digest"] = self.digest_generator.generate_digest(entry, self.memory)
+                
+                # Update conversation history file with the digest
+                self._update_conversation_history_entry(entry)
+                
                 self.save_memory("async_digest_generation")
             
             # Update embeddings
             self.logger.debug(f"Updating embeddings for {entry['role']} entry...")
             self.embeddings_manager.add_new_embeddings([entry])
             
+            # Update graph memory if enabled
+            if self.enable_graph_memory and self.graph_manager:
+                try:
+                    await self._update_graph_memory_async(entry)
+                except Exception as e:
+                    self.logger.warning(f"Error updating graph memory: {e}")
+            
         except Exception as e:
             self.logger.error(f"Error in async entry processing: {str(e)}")
+    
+    async def _update_graph_memory_async(self, entry: Dict[str, Any]) -> None:
+        """Update graph memory with entities and relationships from a conversation entry."""
+        try:
+            self.logger.debug(f"Updating graph memory for {entry['role']} entry...")
+            
+            # Use conversation-level processing with EntityResolver (now mandatory)
+            if hasattr(self.graph_manager, 'process_conversation_entry_with_resolver'):
+                await self._update_graph_memory_conversation_level(entry)
+            else:
+                # Fallback to segment-based processing for legacy compatibility
+                await self._update_graph_memory_segment_based(entry)
+                
+        except Exception as e:
+            self.logger.error(f"Error updating graph memory: {e}")
+    
+    async def _update_graph_memory_conversation_level(self, entry: Dict[str, Any]) -> None:
+        """Update graph memory using conversation-level processing (for AltGraphManager with EntityResolver)."""
+        try:
+            # Get full conversation text and digest
+            conversation_text = entry.get("content", "")
+            digest = entry.get("digest", {})
+            digest_text = ""
+            
+            # Build digest text from important segments
+            segments = digest.get("rated_segments", [])
+            important_segments = [
+                seg for seg in segments 
+                if seg.get("importance", 0) >= DEFAULT_RAG_IMPORTANCE_THRESHOLD 
+                and seg.get("memory_worthy", True)
+                and seg.get("type") in ["information", "action"]
+            ]
+            
+            if important_segments:
+                digest_text = " ".join([seg.get("text", "") for seg in important_segments])
+            
+            if not conversation_text and not digest_text:
+                self.logger.debug("No conversation or digest text, skipping graph update")
+                return
+            
+            # Process using AltGraphManager with EntityResolver
+            self.logger.debug("Processing conversation with AltGraphManager EntityResolver")
+            results = self.graph_manager.process_conversation_entry_with_resolver(
+                conversation_text=conversation_text,
+                digest_text=digest_text,
+                conversation_guid=entry.get("guid")
+            )
+            
+            # Log results
+            stats = results.get("stats", {})
+            self.logger.info(f"Graph update completed - entities: {stats.get('entities_new', 0)} new, "
+                           f"{stats.get('entities_existing', 0)} existing, "
+                           f"relationships: {stats.get('relationships_extracted', 0)}")
+            
+        except Exception as e:
+            self.logger.error(f"Error in conversation-level graph update: {e}")
+    
+    async def _update_graph_memory_segment_based(self, entry: Dict[str, Any]) -> None:
+        """Update graph memory using segment-based processing (for regular GraphManager)."""
+        try:
+            # Get segments from digest
+            digest = entry.get("digest", {})
+            segments = digest.get("rated_segments", [])
+            
+            if not segments:
+                self.logger.debug("No segments found in digest, skipping graph update")
+                return
+            
+            # Filter for important segments
+            important_segments = [
+                seg for seg in segments 
+                if seg.get("importance", 0) >= DEFAULT_RAG_IMPORTANCE_THRESHOLD 
+                and seg.get("memory_worthy", True)
+                and seg.get("type") in ["information", "action"]
+            ]
+            
+            if not important_segments:
+                self.logger.debug("No important segments found, skipping graph update")
+                return
+            
+            # Process all segments together for better entity and relationship extraction
+            all_segment_entities = []
+            segments_with_entities = []
+            
+            # First pass: Extract entities from all segments
+            for i, segment in enumerate(important_segments):
+                segment_text = segment.get("text", "")
+                if segment_text:
+                    # Extract and resolve entities from the segment using EntityResolver
+                    # This automatically handles adding/updating nodes with smart duplicate detection
+                    entities = self.graph_manager.extract_and_resolve_entities_from_segments([{
+                        "text": segment_text,
+                        "importance": segment.get("importance", 0),
+                        "type": segment.get("type", "information"),
+                        "memory_worthy": segment.get("memory_worthy", True),
+                        "topics": segment.get("topics", []),
+                        "conversation_guid": entry.get("guid")
+                    }])
+                    
+                    # Note: entities are already added/updated in extract_and_resolve_entities_from_segments
+                    # The returned entities include resolution information for relationship extraction
+                    
+                    # Store segment with its entities for relationship extraction
+                    if entities:
+                        segment_with_entities = {
+                            "id": f"seg_{i}",
+                            "text": segment_text,
+                            "entities": entities,
+                            "importance": segment.get("importance", 0),
+                            "type": segment.get("type", "information")
+                        }
+                        segments_with_entities.append(segment_with_entities)
+                        all_segment_entities.extend(entities)
+            
+            # Second pass: Extract relationships across all segments if we have multiple entities
+            if len(all_segment_entities) > 1 and segments_with_entities:
+                try:
+                    relationships = self.graph_manager.extract_relationships_from_segments(segments_with_entities)
+                    
+                    # Add relationships to graph
+                    for rel in relationships:
+                        # Find evidence from the segments
+                        evidence = ""
+                        for seg in segments_with_entities:
+                            if any(entity.get("name") == rel.get("from_entity") for entity in seg.get("entities", [])) and \
+                               any(entity.get("name") == rel.get("to_entity") for entity in seg.get("entities", [])):
+                                evidence = seg.get("text", "")
+                                break
+                        
+                        self.graph_manager.add_edge(
+                            from_node=rel.get("from_entity", ""),
+                            to_node=rel.get("to_entity", ""),
+                            relationship_type=rel.get("relationship", "related_to"),
+                            evidence=evidence or "Cross-segment relationship",
+                            confidence=rel.get("confidence", 0.5)
+                        )
+                except Exception as e:
+                    self.logger.warning(f"Error extracting relationships: {e}")
+            
+            self.logger.debug(f"Updated graph memory with {len(important_segments)} segments")
+            
+        except Exception as e:
+            self.logger.error(f"Error in segment-based graph update: {e}")
+    
+    def _process_initial_graph_memory(self, system_entry: Dict[str, Any]) -> None:
+        """Process initial system entry for graph memory during memory creation.
+        
+        This is a synchronous version of the graph memory processing specifically 
+        for the initial static memory that contains domain knowledge.
+        
+        Args:
+            system_entry: The initial system entry containing static memory content
+        """
+        try:
+            self.logger.debug("Processing initial system entry for graph memory...")
+            
+            # Get segments from digest
+            digest = system_entry.get("digest", {})
+            segments = digest.get("rated_segments", [])
+            
+            if not segments:
+                self.logger.debug("No segments found in initial digest, skipping initial graph processing")
+                return
+            
+            # Filter for important segments (same criteria as async processing)
+            important_segments = [
+                seg for seg in segments 
+                if seg.get("importance", 0) >= DEFAULT_RAG_IMPORTANCE_THRESHOLD 
+                and seg.get("memory_worthy", True)
+                and seg.get("type") in ["information", "action"]
+            ]
+            
+            if not important_segments:
+                self.logger.debug("No important segments found in initial content, skipping graph processing")
+                return
+            
+            self.logger.debug(f"Processing {len(important_segments)} important segments for initial graph memory")
+            
+            # Use EntityResolver pathway for enhanced duplicate detection (now mandatory)
+            if hasattr(self.graph_manager, 'process_conversation_entry_with_resolver'):
+                
+                self.logger.debug("Using EntityResolver pathway for initial graph memory processing")
+                
+                # Construct conversation text from all important segments
+                conversation_text = "\n".join([
+                    segment.get("text", "") for segment in important_segments 
+                    if segment.get("text", "")
+                ])
+                
+                # Use the system entry content as digest text for context
+                digest_text = system_entry.get("content", "")[:500]  # Limit for context
+                
+                # Process using EntityResolver pathway for consistent duplicate detection
+                try:
+                    results = self.graph_manager.process_conversation_entry_with_resolver(
+                        conversation_text=conversation_text,
+                        digest_text=digest_text,
+                        conversation_guid="initial_data"  # Special GUID for initial data
+                    )
+                    
+                    # Log the results
+                    stats = results.get("stats", {})
+                    self.logger.debug(f"EntityResolver initial processing: {stats}")
+                    self.logger.debug(f"Added {len(results.get('new_entities', []))} new entities, "
+                                    f"matched {len(results.get('existing_entities', []))} existing entities, "
+                                    f"created {len(results.get('relationships', []))} relationships")
+                    
+                except Exception as e:
+                    self.logger.error(f"Error in EntityResolver initial processing: {e}")
+                    self.logger.warning("Falling back to basic initial graph processing")
+                    self._process_initial_graph_memory_basic(important_segments)
+            else:
+                self.logger.debug("EntityResolver not available, using basic initial graph processing")
+                self._process_initial_graph_memory_basic(important_segments)
+            
+        except Exception as e:
+            self.logger.error(f"Error processing initial graph memory: {str(e)}")
+    
+    def _process_initial_graph_memory_basic(self, important_segments: List[Dict[str, Any]]) -> None:
+        """Basic initial graph memory processing without EntityResolver (fallback method).
+        
+        This method contains the original segment-by-segment processing logic
+        for use when EntityResolver is not available.
+        
+        Args:
+            important_segments: List of important segments from the initial digest
+        """
+        try:
+            self.logger.debug(f"Processing {len(important_segments)} segments using basic graph processing")
+            
+            # Process all segments together for better entity and relationship extraction
+            all_segment_entities = []
+            segments_with_entities = []
+            
+            # First pass: Extract entities from all segments
+            for i, segment in enumerate(important_segments):
+                segment_text = segment.get("text", "")
+                if segment_text:
+                    # Extract entities from the segment
+                    entities = self.graph_manager.extract_entities_from_segments([{
+                        "text": segment_text,
+                        "importance": segment.get("importance", 0),
+                        "type": segment.get("type", "information"),
+                        "memory_worthy": segment.get("memory_worthy", True),
+                        "topics": segment.get("topics", [])
+                    }])
+                    
+                    # Add entities to graph (with automatic similarity matching)
+                    for entity in entities:
+                        # For initial memory, no conversation GUID is available
+                        entity_attributes = entity.get("attributes", {}).copy()
+                        
+                        self.graph_manager.add_or_update_node(
+                            name=entity.get("name", ""),
+                            node_type=entity.get("type", "concept"),
+                            description=entity.get("description", ""),
+                            **entity_attributes
+                        )
+                    
+                    # Store segment with its entities for relationship extraction
+                    if entities:
+                        segment_with_entities = {
+                            "id": f"seg_{i}",
+                            "text": segment_text,
+                            "entities": entities,
+                            "importance": segment.get("importance", 0),
+                            "type": segment.get("type", "information")
+                        }
+                        segments_with_entities.append(segment_with_entities)
+                        all_segment_entities.extend(entities)
+            
+            # Second pass: Extract relationships across all segments if we have multiple entities
+            if len(all_segment_entities) > 1 and segments_with_entities:
+                try:
+                    relationships = self.graph_manager.extract_relationships_from_segments(segments_with_entities)
+                    
+                    # Add relationships to graph
+                    for rel in relationships:
+                        # Find evidence from the segments
+                        evidence = ""
+                        for seg in segments_with_entities:
+                            if any(entity.get("name") == rel.get("from_entity") for entity in seg.get("entities", [])) and \
+                               any(entity.get("name") == rel.get("to_entity") for entity in seg.get("entities", [])):
+                                evidence = seg.get("text", "")
+                                break
+                        
+                        self.graph_manager.add_edge(
+                            from_node=rel.get("from_entity", ""),
+                            to_node=rel.get("to_entity", ""),
+                            relationship_type=rel.get("relationship_type", "related_to"),
+                            confidence=rel.get("confidence", 0.5),
+                            evidence=evidence
+                        )
+                    
+                    self.logger.debug(f"Added {len(relationships)} relationships from initial static memory")
+                    
+                except Exception as e:
+                    self.logger.error(f"Error extracting relationships from initial segments: {str(e)}")
+            
+            self.logger.debug(f"Basic initial graph memory processing complete: {len(all_segment_entities)} entities processed")
+            
+        except Exception as e:
+            self.logger.error(f"Error in basic initial graph memory processing: {str(e)}")
             
     async def _compress_memory_async(self) -> None:
         """Compress memory asynchronously."""
@@ -636,6 +1107,56 @@ class MemoryManager(BaseMemoryManager):
         except Exception as e:
             self.logger.error(f"Error updating memory with conversations: {str(e)}")
             return False
+    
+    def get_graph_context(self, query: str, max_entities: int = 5) -> str:
+        """Get graph-based context for a query.
+        
+        Args:
+            query: The query to find relevant graph context for
+            max_entities: Maximum number of entities to include in context
+            
+        Returns:
+            str: Formatted graph context string
+        """
+        if not self.enable_graph_memory or not self.graph_manager:
+            return ""
+        
+        try:
+            # Query the graph for relevant context
+            context_results = self.graph_manager.query_for_context(query, max_results=max_entities)
+            
+            if not context_results:
+                return ""
+            
+            # Format graph context for the prompt
+            context_lines = []
+            context_lines.append("Relevant entities and relationships:")
+            
+            for result in context_results:
+                entity_name = result.get("name", "Unknown")
+                entity_type = result.get("type", "unknown")
+                description = result.get("description", "")
+                connections = result.get("connections", [])
+                
+                # Add entity info
+                entity_line = f"• {entity_name} ({entity_type})"
+                if description:
+                    entity_line += f": {description}"
+                context_lines.append(entity_line)
+                
+                # Add key relationships
+                if connections:
+                    for conn in connections[:3]:  # Limit to top 3 connections
+                        rel_type = conn.get("relationship", "related_to")
+                        target = conn.get("target", "")
+                        if target:
+                            context_lines.append(f"  - {rel_type} {target}")
+                
+            return "\n".join(context_lines)
+            
+        except Exception as e:
+            self.logger.warning(f"Error getting graph context: {e}")
+            return ""
 
 class AsyncMemoryManager(MemoryManager):
     """Asynchronous version of MemoryManager that handles digest generation and embeddings updates asynchronously."""
@@ -644,6 +1165,7 @@ class AsyncMemoryManager(MemoryManager):
         super().__init__(*args, **kwargs)
         self._pending_digests = {}  # guid -> entry
         self._pending_embeddings = set()  # set of guids
+        self._pending_graph_updates = set()  # set of guids
         
     async def add_conversation_entry(self, entry: Dict[str, Any]) -> bool:
         """Add a conversation entry with asynchronous digest generation and embeddings update.
@@ -694,8 +1216,10 @@ class AsyncMemoryManager(MemoryManager):
                 self._pending_digests[entry["guid"]] = entry
                 asyncio.create_task(self._generate_digest_async(entry))
             else:
-                # If digest exists, start embeddings update
+                # If digest exists, start embeddings and graph updates
                 self._pending_embeddings.add(entry["guid"])
+                if self.enable_graph_memory and self.graph_manager:
+                    self._pending_graph_updates.add(entry["guid"])
                 asyncio.create_task(self._update_embeddings_async(entry))
 
             return True
@@ -710,11 +1234,16 @@ class AsyncMemoryManager(MemoryManager):
             # Generate digest
             entry["digest"] = self.digest_generator.generate_digest(entry, self.memory)
             
+            # Update conversation history file with the digest
+            self._update_conversation_history_entry(entry)
+            
             # Remove from pending digests
             self._pending_digests.pop(entry["guid"], None)
             
-            # Start embeddings update
+            # Start embeddings and graph updates
             self._pending_embeddings.add(entry["guid"])
+            if self.enable_graph_memory and self.graph_manager:
+                self._pending_graph_updates.add(entry["guid"])
             await self._update_embeddings_async(entry)
             
             # Save memory to persist the digest
@@ -723,8 +1252,49 @@ class AsyncMemoryManager(MemoryManager):
         except Exception as e:
             self.logger.error(f"Error in async digest generation: {str(e)}")
     
+    def _update_conversation_history_entry(self, entry: Dict[str, Any]) -> bool:
+        """Update an existing entry in the conversation history file.
+        
+        Args:
+            entry: Updated conversation entry with digest
+            
+        Returns:
+            bool: True if entry was updated successfully
+        """
+        try:
+            # Load current conversation history
+            conversation_data = self._load_conversation_history()
+            
+            # Find and update the entry by GUID
+            entry_guid = entry.get("guid")
+            if not entry_guid:
+                self.logger.error("Cannot update conversation history entry without GUID")
+                return False
+                
+            # Find the entry to update
+            updated = False
+            for i, existing_entry in enumerate(conversation_data["entries"]):
+                if existing_entry.get("guid") == entry_guid:
+                    conversation_data["entries"][i] = entry
+                    updated = True
+                    break
+            
+            if not updated:
+                self.logger.warning(f"Could not find conversation history entry with GUID {entry_guid} to update")
+                return False
+            
+            # Save updated history
+            success = self._save_conversation_history(conversation_data)
+            if success:
+                self.logger.debug(f"Updated conversation history entry {entry_guid} with digest")
+            return success
+            
+        except Exception as e:
+            self.logger.error(f"Error updating conversation history entry: {str(e)}")
+            return False
+    
     async def _update_embeddings_async(self, entry: Dict[str, Any]) -> None:
-        """Asynchronously update embeddings for an entry."""
+        """Asynchronously update embeddings and graph memory for an entry."""
         try:
             # Update embeddings
             self.embeddings_manager.add_new_embeddings([entry])
@@ -732,21 +1302,35 @@ class AsyncMemoryManager(MemoryManager):
             # Remove from pending embeddings
             self._pending_embeddings.discard(entry["guid"])
             
+            # Update graph memory if enabled
+            if self.enable_graph_memory and self.graph_manager and entry["guid"] in self._pending_graph_updates:
+                await self._update_graph_memory_async(entry)
+                self._pending_graph_updates.discard(entry["guid"])
+            
         except Exception as e:
-            self.logger.error(f"Error in async embeddings update: {str(e)}")
+            self.logger.error(f"Error in async embeddings/graph update: {str(e)}")
     
     def get_pending_operations(self) -> Dict[str, Any]:
         """Get information about pending async operations.
         
         Returns:
-            Dict with counts of pending digests and embeddings
+            Dict with counts of pending digests, embeddings, and graph updates
         """
         return {
             "pending_digests": len(self._pending_digests),
-            "pending_embeddings": len(self._pending_embeddings)
+            "pending_embeddings": len(self._pending_embeddings),
+            "pending_graph_updates": len(self._pending_graph_updates)
         }
+    
+    def has_pending_operations(self) -> bool:
+        """Check if there are any pending async operations.
+        
+        Returns:
+            bool: True if there are pending operations
+        """
+        return bool(self._pending_digests or self._pending_embeddings or self._pending_graph_updates)
     
     async def wait_for_pending_operations(self) -> None:
         """Wait for all pending async operations to complete."""
-        while self._pending_digests or self._pending_embeddings:
+        while self._pending_digests or self._pending_embeddings or self._pending_graph_updates:
             await asyncio.sleep(0.1)  # Small delay to prevent busy waiting

@@ -1,0 +1,189 @@
+[
+  {
+    "id": "0aeb36c4-420a-4815-b131-9681b25afaf7",
+    "from_node_id": "location_ea89195b",
+    "to_node_id": "location_206f0379",
+    "relationship": "related_to",
+    "weight": 1.0,
+    "created_at": "2025-06-08T06:37:14.231250",
+    "updated_at": "2025-06-08T06:37:14.231260",
+    "confidence": 0.95,
+    "evidence": "The Lost Valley is a campaign setting defined by a hidden valley, completely surrounded by impassable mountains. Scattered throughout the valley are ancient ruins, and the area is punctuated by mysterious magical anomalies."
+  },
+  {
+    "id": "a7dcf578-5dbc-4fa1-9f43-e286bca6452a",
+    "from_node_id": "location_ea89195b",
+    "to_node_id": "object_e7259e39",
+    "relationship": "related_to",
+    "weight": 1.0,
+    "created_at": "2025-06-08T06:37:14.233524",
+    "updated_at": "2025-06-08T06:37:14.233530",
+    "confidence": 0.9,
+    "evidence": "The Lost Valley is a campaign setting defined by a hidden valley, completely surrounded by impassable mountains. Scattered throughout the valley are ancient ruins, and the area is punctuated by mysterious magical anomalies."
+  },
+  {
+    "id": "e7bfb4a0-8924-430e-bee0-b321ce6407a3",
+    "from_node_id": "location_ea89195b",
+    "to_node_id": "concept_ab3c9bde",
+    "relationship": "related_to",
+    "weight": 1.0,
+    "created_at": "2025-06-08T06:37:14.235426",
+    "updated_at": "2025-06-08T06:37:14.235432",
+    "confidence": 0.9,
+    "evidence": "The Lost Valley is a campaign setting defined by a hidden valley, completely surrounded by impassable mountains. Scattered throughout the valley are ancient ruins, and the area is punctuated by mysterious magical anomalies."
+  },
+  {
+    "id": "f0c89f70-7db1-4279-bf93-3e18fce93931",
+    "from_node_id": "location_d7a725c6",
+    "to_node_id": "location_d7a725c6",
+    "relationship": "related_to",
+    "weight": 1.0,
+    "created_at": "2025-06-08T06:37:14.237257",
+    "updated_at": "2025-06-08T06:37:14.238869",
+    "confidence": 1.0,
+    "evidence": "There are three main settlements: Haven, located at the valley's center; Riverwatch, situated to the east; and Mountainkeep, located to the west."
+  },
+  {
+    "id": "68026883-3623-4a11-acc0-426fb5edc5af",
+    "from_node_id": "location_368b578b",
+    "to_node_id": "location_368b578b",
+    "relationship": "related_to",
+    "weight": 1.0,
+    "created_at": "2025-06-08T06:37:14.240832",
+    "updated_at": "2025-06-08T06:37:14.240837",
+    "confidence": 1.0,
+    "evidence": "There are three main settlements: Haven, located at the valley's center; Riverwatch, situated to the east; and Mountainkeep, located to the west."
+  },
+  {
+    "id": "b9c0fba5-db40-41f0-89da-37d1a954fc18",
+    "from_node_id": "character_1369e31a",
+    "to_node_id": "location_d7a725c6",
+    "relationship": "related_to",
+    "weight": 1.0,
+    "created_at": "2025-06-08T06:37:14.242423",
+    "updated_at": "2025-06-08T06:37:14.242429",
+    "confidence": 0.95,
+    "evidence": "Key non-player characters include Elena, who serves as the Mayor of Haven and is motivated by a desire to protect the valley's inhabitants. She is currently investigating strange occurrences within Haven."
+  },
+  {
+    "id": "2a07816e-f158-4d7e-934f-44c3e7ce5611",
+    "from_node_id": "character_d8603c2a",
+    "to_node_id": "object_e7259e39",
+    "relationship": "related_to",
+    "weight": 1.0,
+    "created_at": "2025-06-08T06:37:14.244012",
+    "updated_at": "2025-06-08T06:37:14.245603",
+    "confidence": 0.8,
+    "evidence": "Theron is a Master Scholar with expertise in ancient ruins and artifacts, and he is presently focused on decoding inscriptions found within the ruins."
+  },
+  {
+    "id": "2fe8de73-1321-429d-bdaf-36cac3b2032b",
+    "from_node_id": "character_2e4b84d6",
+    "to_node_id": "location_d7a725c6",
+    "relationship": "related_to",
+    "weight": 1.0,
+    "created_at": "2025-06-08T06:37:14.247165",
+    "updated_at": "2025-06-08T06:37:14.250411",
+    "confidence": 0.9,
+    "evidence": "Finally, Sara is the Captain of Riverwatch, responsible for the valley's defense, and she is concerned by an increase in monster activity."
+  },
+  {
+    "id": "926fd25a-435f-4c49-9703-d0a97888e23e",
+    "from_node_id": "object_e7259e39",
+    "to_node_id": "concept_b6787ad6",
+    "relationship": "related_to",
+    "weight": 1.0,
+    "created_at": "2025-06-08T06:37:14.251993",
+    "updated_at": "2025-06-08T06:37:14.251999",
+    "confidence": 0.9,
+    "evidence": "Explorers have recently discovered new chambers within the ancient ruins, accompanied by strange energy emanations, and valuable artifacts have been found."
+  },
+  {
+    "id": "99261dfb-d436-4d46-ac24-268bc69e8c67",
+    "from_node_id": "object_e7259e39",
+    "to_node_id": "object_93327b93",
+    "relationship": "related_to",
+    "weight": 1.0,
+    "created_at": "2025-06-08T06:37:14.253733",
+    "updated_at": "2025-06-08T06:37:14.253739",
+    "confidence": 0.9,
+    "evidence": "Explorers have recently discovered new chambers within the ancient ruins, accompanied by strange energy emanations, and valuable artifacts have been found."
+  },
+  {
+    "id": "f4f619be-5cfd-40ca-a1ef-73fe138cd0fe",
+    "from_node_id": "object_93327b93",
+    "to_node_id": "object_e7259e39",
+    "relationship": "related_to",
+    "weight": 1.0,
+    "created_at": "2025-06-08T06:37:14.255453",
+    "updated_at": "2025-06-08T06:37:14.255458",
+    "confidence": 0.9,
+    "evidence": "Explorers have recently discovered new chambers within the ancient ruins, accompanied by strange energy emanations, and valuable artifacts have been found."
+  },
+  {
+    "id": "9b00aca7-81f4-4e70-9cb0-ba9724c25bd4",
+    "from_node_id": "concept_a60b5679",
+    "to_node_id": "location_e4730cf0",
+    "relationship": "related_to",
+    "weight": 1.0,
+    "created_at": "2025-06-08T06:37:14.257157",
+    "updated_at": "2025-06-08T06:37:14.257162",
+    "confidence": 0.8,
+    "evidence": "Furthermore, random magical effects are occurring, impacting the local wildlife, and there is a suspected connection between these anomalies and the ruins."
+  },
+  {
+    "id": "85c3e27e-277e-45b4-9717-c5a04e23abed",
+    "from_node_id": "location_e4730cf0",
+    "to_node_id": "location_7e3be3dd",
+    "relationship": "located_in",
+    "weight": 1.0,
+    "created_at": "2025-06-08T06:37:24.818443",
+    "updated_at": "2025-06-08T06:37:24.818453",
+    "evidence": "Scattered throughout the Lost Valley are ancient ruins, punctuated by mysterious magical anomalies.",
+    "confidence": 1.0
+  },
+  {
+    "id": "e2ce4c0c-91f9-4227-a037-2b3c6171e3c1",
+    "from_node_id": "concept_ab3c9bde",
+    "to_node_id": "location_7e3be3dd",
+    "relationship": "located_in",
+    "weight": 1.0,
+    "created_at": "2025-06-08T06:37:24.821329",
+    "updated_at": "2025-06-08T06:37:24.821336",
+    "evidence": "Scattered throughout the Lost Valley are ancient ruins, punctuated by mysterious magical anomalies.",
+    "confidence": 0.9
+  },
+  {
+    "id": "5763fec3-1d50-402c-9f6b-9321be915d1b",
+    "from_node_id": "location_83e07dcd",
+    "to_node_id": "concept_b6787ad6",
+    "relationship": "participates_in",
+    "weight": 1.0,
+    "created_at": "2025-06-08T06:37:24.823580",
+    "updated_at": "2025-06-08T06:37:24.823586",
+    "evidence": "Explorers have recently discovered new chambers within them, accompanied by strange energy emanations and valuable artifacts have been found.",
+    "confidence": 0.8
+  },
+  {
+    "id": "3da2d6eb-a122-4551-8891-33e0b148aa0c",
+    "from_node_id": "location_83e07dcd",
+    "to_node_id": "object_93327b93",
+    "relationship": "participates_in",
+    "weight": 1.0,
+    "created_at": "2025-06-08T06:37:24.825602",
+    "updated_at": "2025-06-08T06:37:24.825608",
+    "evidence": "Explorers have recently discovered new chambers within them, accompanied by strange energy emanations and valuable artifacts have been found.",
+    "confidence": 0.8
+  },
+  {
+    "id": "d72370c0-d4df-44b9-be35-0a44c9c0ff4d",
+    "from_node_id": "concept_b6787ad6",
+    "to_node_id": "object_93327b93",
+    "relationship": "related_to",
+    "weight": 1.0,
+    "created_at": "2025-06-08T06:37:24.827713",
+    "updated_at": "2025-06-08T06:37:24.827719",
+    "evidence": "Explorers have recently discovered new chambers within them, accompanied by strange energy emanations and valuable artifacts have been found.",
+    "confidence": 0.6
+  }
+]

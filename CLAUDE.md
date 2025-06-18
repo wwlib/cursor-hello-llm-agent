@@ -4,16 +4,17 @@ This document provides a comprehensive guide for Claude Code instances working w
 
 ## Project Overview
 
-This is a modern, extensible framework for building domain-agnostic LLM-powered agents with persistent, semantically searchable memory. The system supports Retrieval Augmented Generation (RAG), segment-level embeddings, and robust memory compression.
+This is a modern, extensible framework for building domain-agnostic LLM-powered agents with persistent, semantically searchable memory. The system supports Retrieval Augmented Generation (RAG), segment-level embeddings, structured knowledge graphs, and robust memory compression.
 
 **Key Capabilities:**
-- RAG-enabled memory with semantic search
-- Three-stage memory filtering pipeline (relevance gate → importance → type)
-- Turn-based memory compression with importance filtering  
-- Provider-agnostic LLM service (Ollama/OpenAI)
-- Domain-configurable agents (no code changes needed)
-- Comprehensive async test suite
-- Modular, extensible architecture
+- **Graph Memory System**: Automatic entity extraction and relationship mapping for structured knowledge representation
+- **RAG-enabled memory** with semantic search and graph-enhanced context
+- **Three-stage memory filtering pipeline** (relevance gate → importance → type)
+- **Turn-based memory compression** with importance filtering  
+- **Provider-agnostic LLM service** (Ollama/OpenAI)
+- **Domain-configurable agents** (no code changes needed)
+- **Comprehensive async test suite** with automated agent testing framework
+- **Modular, extensible architecture** with seamless graph memory integration
 
 ## Architecture Overview
 
@@ -23,13 +24,18 @@ The system follows a layered architecture with clear separation of concerns:
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │     Agent       │    │   Memory        │    │    LLM          │
 │   (Phase-driven)│◄──►│   Manager       │◄──►│   Service       │
-│                 │    │   (RAG-enabled) │    │ (Provider-agnostic)│
+│                 │    │(RAG+Graph-enabled)│   │ (Provider-agnostic)│
 └─────────────────┘    └─────────────────┘    └─────────────────┘
                               │
-                       ┌──────▼──────┐
-                       │ Embeddings  │
-                       │   Manager   │
-                       └─────────────┘
+                    ┌─────────▼─────────┐
+                    │   Embeddings      │
+                    │     Manager       │
+                    └───────────────────┘
+                              │
+                    ┌─────────▼─────────┐
+                    │   Graph Memory    │
+                    │     Manager       │
+                    └───────────────────┘
 ```
 
 ### Core Components
@@ -41,11 +47,12 @@ The system follows a layered architecture with clear separation of concerns:
 
 2. **Memory System** (`src/memory/`)
    - **BaseMemoryManager**: Abstract base with persistence and GUID management
-   - **MemoryManager**: Full implementation with RAG, compression, and segmentation
+   - **MemoryManager**: Full implementation with RAG, graph memory, compression, and segmentation
    - **SimpleMemoryManager**: Flat memory for testing/simple use cases
    - **DigestGenerator**: Memory relevance gate with importance and type classification
    - **EmbeddingsManager**: Segment-level embedding storage and semantic search
-   - **RAGManager**: Context retrieval and prompt enhancement
+   - **RAGManager**: Context retrieval and prompt enhancement with graph integration
+   - **GraphManager**: Structured knowledge representation with entity/relationship extraction
 
 3. **LLM Service** (`src/ai/`)
    - **LLMService**: Abstract base class with response cleaning and debug logging
@@ -65,9 +72,12 @@ pip install -r requirements.txt
 ```
 
 ### Testing
+
+environment variables: DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large
+
 ```bash
 # Run all tests
-pytest tests/ -v -s
+DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large pytest tests/ -v -s
 
 # Run specific test categories
 pytest tests/memory_manager/ -v -s
@@ -76,27 +86,39 @@ pytest tests/ai/ -v -s
 
 # Run integration tests (requires running Ollama)
 pytest tests/ -v -s -m integration
+
+# Run automated agent testing framework
+python run_automated_tests.py --quick           # Quick test
+python run_automated_tests.py                   # Full suite
+python run_automated_tests.py --persona curious # Specific persona
+python run_automated_tests.py --domain dnd      # Specific domain
 ```
 
 ### Running Examples
+
+environment variables: DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large
+
 ```bash
 # Canonical RAG example (recommended starting point)
-OLLAMA_BASE_URL=http://localhost:11434 python examples/rag_enhanced_memory_example_simple.py
+DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/rag_enhanced_memory_example_simple.py
 
-# Interactive agent with domain config
-python examples/agent_usage_example.py --config dnd --guid my-campaign
+# Graph memory standalone example (demonstrates graph-only functionality)
+DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/graph_memory_example.py
+
+# Interactive agent with domain config (includes automatic graph memory) and interaction passed in via stdin
+# Fresh runs can be started by specifying a new guid
+# memory files are in <project-root>/agent_memories/standard/[guid]
+# graph memory files are in <project-root>/agent_memories/standard/[guid]/agent_memory_graph_data
+# logs are in <project-root>/logs/[guid]
+
+echo "Please describe the ruins" | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/agent_usage_example.py --guid dnd5g16 --config dnd 
+
 
 # List available memory files
 python examples/agent_usage_example.py --list
 
-# Use simple memory manager
+# Use simple memory manager (no graph memory)
 python examples/agent_usage_example.py --type simple
-```
-
-### Development Mode
-```bash
-# Full debug logging with external Ollama
-DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/agent_usage_example.py --guid dnd --config dnd
 ```
 
 ## Key Implementation Details
@@ -134,10 +156,38 @@ All conversation entries are processed into importance-rated segments:
 4. Pre-qualified context injected into LLM prompt
 5. Enhanced response generated
 
+### Graph Memory System
+The graph memory system provides structured knowledge representation alongside RAG:
+
+**Key Features:**
+- **Automatic Entity Extraction**: LLM-driven identification of characters, locations, objects, events, concepts, and organizations
+- **Relationship Detection**: Automatic discovery of relationships between entities (located_in, owns, allies_with, etc.)
+- **Semantic Entity Matching**: RAG-based similarity matching prevents duplicate entities (configurable threshold: 0.8)
+- **Domain-Specific Configuration**: Entity types and relationships adapted for D&D, software projects, lab work, etc.
+- **Graph-Enhanced Context**: Structured entity context added to LLM prompts alongside RAG results
+
+**Processing Pipeline:**
+1. Conversation segments processed for important content (importance ≥ 3)
+2. Entities extracted using domain-specific LLM prompts
+3. Entity descriptions embedded for similarity matching with existing nodes
+4. New entities added or existing entities updated based on similarity
+5. Relationships extracted between entities in the same conversation segment
+6. Graph context retrieved for queries and added to memory prompts
+
+**Storage Structure:**
+```
+memory_file_graph_data/
+├── graph_nodes.json              # Entity storage with attributes
+├── graph_edges.json              # Relationship storage with evidence
+├── graph_metadata.json           # Graph statistics and configuration
+└── graph_memory_embeddings.jsonl # Entity description embeddings
+```
+
 ### Async Processing
 - Digest generation runs asynchronously after conversation entries
 - Embedding updates happen in background
-- Agent tracks pending operations with `has_pending_operations()`
+- **Graph memory updates** happen asynchronously (entity/relationship extraction)
+- Agent tracks pending operations with `has_pending_operations()` (includes graph updates)
 
 ## File Structure Reference
 
@@ -153,25 +203,46 @@ All conversation entries are processed into importance-rated segments:
 │   │   └── README-ai.md         # LLM service documentation
 │   └── memory/
 │       ├── base_memory_manager.py    # Abstract base class
-│       ├── memory_manager.py         # Full memory implementation
+│       ├── memory_manager.py         # Full memory implementation with graph integration
 │       ├── simple_memory_manager.py  # Simplified implementation
 │       ├── embeddings_manager.py     # Embedding storage/search
-│       ├── rag_manager.py            # RAG context retrieval
+│       ├── rag_manager.py            # RAG context retrieval with graph integration
 │       ├── digest_generator.py       # Segment processing
 │       ├── content_segmenter.py      # Content analysis
 │       ├── data_preprocessor.py      # Data preparation
 │       ├── memory_compressor.py      # Turn-based compression
+│       ├── graph_memory/             # Graph memory system
+│       │   ├── __init__.py           # Module initialization
+│       │   ├── graph_manager.py      # Main graph operations with RAG-based entity resolution
+│       │   ├── entity_extractor.py   # LLM-driven entity identification
+│       │   ├── relationship_extractor.py # LLM-driven relationship detection
+│       │   ├── graph_queries.py      # Context retrieval and graph navigation
+│       │   └── graph_storage.py      # JSON persistence layer
 │       ├── templates/                # LLM prompt templates
 │       └── README-memory-manager.md  # Memory system docs
 ├── examples/
-│   ├── agent_usage_example.py        # Main interactive example
+│   ├── agent_usage_example.py        # Main interactive example (includes graph memory)
 │   ├── rag_enhanced_memory_example_simple.py  # Canonical RAG demo
-│   ├── domain_configs.py             # Domain configurations
+│   ├── graph_memory_example.py       # Standalone graph memory demonstration
+│   ├── domain_configs.py             # Domain configurations with graph memory configs
+│   ├── temp_data/                    # Temporary example data and example output - excluded via .gitignore
 │   └── [other examples]
 ├── tests/
 │   ├── agent/                        # Agent tests
 │   ├── ai/                          # LLM service tests
-│   └── memory_manager/              # Memory system tests
+│   ├── memory_manager/              # Memory system tests
+│   │   ├── test_graph_memory.py      # Graph memory component tests
+│   │   ├── test_graph_memory_integration.py # Graph memory integration tests
+│   ├── graph_memory/                # Graph Memory system tests
+│   │   ├── logs/                    # Test logs - excluded via .gitignore
+│   │   ├── sample_data/             # Sample data for Graph Memory tests
+│   ├── test_files/                  # Temporary test data and test output - excluded via .gitignore
+│   └── automated_agent_testing/     # Automated testing framework
+│       ├── user_simulator.py        # LLM-driven user personas
+│       ├── memory_analyzer.py       # Memory evolution analysis
+│       ├── log_analyzer.py          # System log analysis
+│       └── test_runner.py           # Main test orchestrator
+├── run_automated_tests.py           # Simple CLI runner script
 └── docs/                            # Additional documentation
 ```
 
@@ -179,8 +250,10 @@ All conversation entries are processed into importance-rated segments:
 
 The system uses domain configs to adapt behavior without code changes:
 
+See: <project-root>/examples/domain_configs.py
+
 ```python
-# Example domain config
+# Example domain config with graph memory
 DND_CONFIG = {
     "domain_name": "dnd_campaign",
     "domain_specific_prompt_instructions": {
@@ -191,21 +264,61 @@ DND_CONFIG = {
     "topic_taxonomy": {
         "world": ["setting", "geography", "location"],
         "characters": ["npc", "player", "personality"]
+    },
+    "graph_memory_config": {
+        "enabled": True,
+        "entity_types": ["character", "location", "object", "event", "concept", "organization"],
+        "relationship_types": ["located_in", "owns", "member_of", "allies_with", "enemies_with", 
+                              "uses", "created_by", "leads_to", "participates_in", "related_to"],
+        "entity_extraction_prompt": "Extract entities from this D&D campaign text...",
+        "relationship_extraction_prompt": "Identify relationships between entities...",
+        "similarity_threshold": 0.8
     }
 }
 ```
 
 Available configs in `examples/domain_configs.py`:
-- `dnd`: D&D campaign management
-- `user_story`: Software requirements gathering
-- `lab_assistant`: Laboratory notebook assistant
+- `dnd`: D&D campaign management with characters, locations, objects, events
+- `user_story`: Software requirements gathering with features, stakeholders, technologies
+- `lab_assistant`: Laboratory notebook assistant with equipment, materials, procedures
+
+**Graph Memory Configuration:**
+Each domain config includes `graph_memory_config` with:
+- `enabled`: Boolean to enable/disable graph memory
+- `entity_types`: Domain-specific entity categories for extraction
+- `relationship_types`: Relevant relationship types for the domain
+- `entity_extraction_prompt`: Domain-specific instructions for entity identification
+- `relationship_extraction_prompt`: Domain-specific instructions for relationship detection
+- `similarity_threshold`: Threshold for entity matching (0.0-1.0, default: 0.8)
 
 ## Testing Strategy
 
 - **Unit Tests**: Individual component testing with mocks
 - **Integration Tests**: End-to-end with real LLM services (marked with `@pytest.mark.integration`)
+- **Graph Memory Tests**: Comprehensive testing of entity extraction, relationship detection, and graph queries
 - **Memory Snapshots**: Canonical test data in `tests/memory_manager/memory_snapshots/`
-- **Async Testing**: Full async support with pytest-asyncio
+- **Async Testing**: Full async support with pytest-asyncio including graph memory operations
+- **Automated Agent Testing**: LLM-driven user simulation for comprehensive system validation
+
+### Automated Testing Framework
+The system includes a comprehensive automated testing framework that uses LLMs to simulate realistic user interactions:
+
+**Core Components:**
+- **UserSimulator**: 6 different personas (curious beginner, experienced user, testing user, confused user, detailed user, rapid-fire user)
+- **MemoryAnalyzer**: Tracks memory evolution, quality, and organization
+- **LogAnalyzer**: Monitors system health, errors, and performance
+- **TestRunner**: Orchestrates test execution and result analysis
+
+**Quality Metrics:**
+- Interaction Quality: Response appropriateness, error rates
+- Memory Quality: Organization and usefulness
+- System Health: Operational stability
+- Overall Quality: Combined weighted score
+
+**Generated Outputs:**
+- Memory files: `agent_memories/standard/autotest_*`
+- Log files: `logs/autotest_*`
+- Test reports: `logs/test_summary_*.json`
 
 ## Common Development Patterns
 
@@ -247,9 +360,12 @@ Logs are organized by:
 
 - **Memory Filtering**: Three-stage pipeline prevents non-valuable content from entering system
 - **Embeddings**: Only high-importance (≥3) information/action segments are embedded
+- **Graph Memory**: Entity extraction and relationship detection only on important, memory-worthy segments
+- **Semantic Entity Matching**: Prevents duplicate graph nodes through embedding similarity (configurable threshold)
 - **Compression**: Automatic turn-based compression with type filtering keeps memory manageable
 - **Caching**: Embedding files use JSONL for efficient append operations
-- **Async**: Background processing prevents blocking user interactions
+- **Async Processing**: Background processing for digests, embeddings, and graph updates prevents blocking
+- **JSON Storage**: Memory-efficient graph storage with incremental updates
 
 ## Integration Points
 
@@ -274,6 +390,7 @@ This codebase was developed using Cursor AI assistance and maintains detailed de
 - `cursor-notes/`: Original Cursor interactions and design decisions
 - `README-phase-*.md`: Phase-specific development documentation
 - `.specstory/`: Continued development history (going forward)
+- `claude-code-notes/`: Development using Claude Code
 
 The project demonstrates "vibe-coded" development with comprehensive agent-assisted iteration and refinement.
 
@@ -281,9 +398,10 @@ The project demonstrates "vibe-coded" development with comprehensive agent-assis
 
 1. **Read the main README.md** for project overview
 2. **Run the canonical example**: `examples/rag_enhanced_memory_example_simple.py`
-3. **Explore with interactive agent**: `python examples/agent_usage_example.py --config dnd`
-4. **Review component docs**: `src/*/README-*.md` files
-5. **Run tests to understand expected behavior**: `pytest tests/ -v -s`
+3. **Try graph memory**: `python examples/graph_memory_example.py` (requires Ollama)
+4. **Explore with interactive agent**: `python examples/agent_usage_example.py --config dnd` (includes graph memory)
+5. **Review component docs**: `src/*/README-*.md` files
+6. **Run tests to understand expected behavior**: `pytest tests/ -v -s`
 
 ## Common Debugging Scenarios
 
@@ -315,6 +433,20 @@ The project demonstrates "vibe-coded" development with comprehensive agent-assis
 - Review segment type distribution in generated digests
 - Test with simple vs complex content to validate filtering effectiveness
 
+### Graph Memory Issues
+- **Graph Not Updating**: Check that `enable_graph_memory=True` in MemoryManager initialization
+- **No Entities Extracted**: Verify segment importance scores meet threshold (≥3) and are memory_worthy
+- **Duplicate Entities**: Adjust similarity threshold in domain config (default: 0.8)
+- **Missing Graph Files**: Check graph storage directory creation and permissions
+- **Graph Context Empty**: Verify entity extraction is working and entities exist in graph storage
+- **Relationship Extraction Failing**: Check that multiple entities exist in conversation segments
+
+### Automated Testing Issues
+- Ensure automated testing framework has access to running Ollama service
+- Check memory analyzer for context data structure handling (should be array format)
+- Verify user simulator personas are generating appropriate interactions
+- Review test summary files for detailed failure analysis
+
 ## Recent Enhancements (Phase 4)
 
 ### Enhanced Digest System
@@ -342,4 +474,68 @@ The digest system has been significantly improved with a comprehensive filtering
 
 This creates a highly efficient pipeline ensuring only valuable information influences agent responses, significantly improving both performance and response quality.
 
-This framework provides a solid foundation for building sophisticated LLM agents with persistent, searchable memory. The modular design makes it easy to extend and adapt for new domains and use cases.
+### Automated Testing Framework (Phase 4)
+A comprehensive automated testing system was implemented that uses LLMs to simulate realistic user interactions:
+
+**Framework Architecture:**
+- **UserSimulator**: 6 personas simulating different user types and interaction patterns
+- **MemoryAnalyzer**: Comprehensive analysis of memory evolution, quality, and organization
+- **LogAnalyzer**: System health monitoring, error detection, and performance analysis
+- **TestRunner**: Orchestrates test execution with configurable scenarios and success criteria
+
+**Key Features:**
+- Realistic user simulation with authentic interaction patterns
+- Comprehensive monitoring of memory evolution and system health
+- Automated analysis with quality scoring and success evaluation
+- Flexible configuration for custom scenarios and success criteria
+- Rich reporting with detailed analysis and actionable insights
+
+**Quality Metrics:**
+Each test generates comprehensive scores (0-100):
+- Interaction Quality: Response appropriateness and error rates
+- Memory Quality: Organization effectiveness and information usefulness
+- System Health: Operational stability and performance
+- Overall Quality: Combined weighted score
+
+**Bug Fixes:**
+- Fixed memory analyzer bug with context data format handling (array vs dictionary)
+- Standardized context data structure handling across memory analyzer
+- Eliminated unreachable code and simplified logic
+- Verified automated testing framework is fully operational with 100% success rate
+
+The framework automatically validates agent performance across different user types, memory development patterns, and system health metrics, providing deep insights into agent capabilities and identifying areas for improvement.
+
+## Recent Enhancements (Phase 5)
+
+### Graph Memory System Integration
+A comprehensive graph memory system has been fully integrated with the main memory manager:
+
+**Core Integration:**
+- **Seamless MemoryManager Integration**: Graph memory automatically enabled by default in all memory managers
+- **Async Processing Pipeline**: Entity extraction and relationship detection happen asynchronously with digests and embeddings
+- **RAG + Graph Context**: Memory queries now receive both semantic (RAG) and structural (graph) context
+- **Domain-Specific Configuration**: Graph memory adapts to D&D campaigns, software projects, lab work, etc.
+
+**Automatic Processing:**
+- **Entity Extraction**: LLM-driven identification of domain-specific entities from conversation segments
+- **Relationship Detection**: Automatic discovery of relationships between entities within conversations
+- **Semantic Entity Matching**: RAG-based similarity matching prevents duplicate entities (configurable threshold)
+- **Graph Context Enhancement**: Structured entity context automatically added to all memory queries
+
+**Technical Implementation:**
+- **Modular Architecture**: Complete graph memory system in `src/memory/graph_memory/` with clean separation
+- **JSON Persistence**: Memory-efficient storage with incremental updates and backup capabilities
+- **Error Handling**: Robust error handling with graceful degradation when graph operations fail
+- **Comprehensive Testing**: Full test suite including integration tests and mock LLM services
+
+**Impact:**
+- **Enhanced Memory**: Conversations automatically build structured knowledge graphs alongside flat memory
+- **Improved Context**: Queries benefit from both semantic search and relationship-based context
+- **No Breaking Changes**: All existing examples and code work with enhanced capabilities
+- **Foundation for Advanced Features**: Enables future graph-based reasoning and visualization
+
+This represents a major advancement in the agent framework's memory capabilities, providing structured knowledge representation that significantly enhances the system's ability to understand and reason about conversational context.
+
+## Summary
+
+This framework provides a solid foundation for building sophisticated LLM agents with persistent, searchable memory enhanced by structured knowledge graphs. The modular design makes it easy to extend and adapt for new domains and use cases, while the graph memory system adds powerful relationship-aware context to improve agent reasoning and response quality.

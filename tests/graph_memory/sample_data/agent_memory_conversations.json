@@ -1,0 +1,164 @@
+{
+  "memory_file_guid": "dnd5g7",
+  "entries": [
+    {
+      "guid": "8fc34427-13db-4a88-a703-12446fe33ed4",
+      "role": "system",
+      "content": "\nCampaign Setting: The Lost Valley\n\nWorld Details:\n- Hidden valley surrounded by impassable mountains\n- Ancient ruins scattered throughout\n- Mysterious magical anomalies\n- Three main settlements: Haven (central), Riverwatch (east), Mountainkeep (west)\n\nKey NPCs:\n1. Elena\n   - Role: Mayor of Haven\n   - Motivation: Protect the valley's inhabitants\n   - Current Quest: Investigate strange occurrences in Haven\n\n2. Theron\n   - Role: Master Scholar\n   - Expertise: Ancient ruins and artifacts\n   - Current Research: Decoding ruin inscriptions\n\n3. Sara\n   - Role: Captain of Riverwatch\n   - Responsibility: Valley's defense\n   - Current Concern: Increased monster activity\n\nCurrent Situations:\n1. Trade Routes\n   - Main road between settlements disrupted\n   - Merchants seeking protection\n   - Alternative routes needed\n\n2. Ancient Ruins\n   - New chambers discovered\n   - Strange energy emanations\n   - Valuable artifacts found\n\n3. Magical Anomalies\n   - Random magical effects\n   - Affecting local wildlife\n   - Possible connection to ruins",
+      "timestamp": "2025-06-08T06:36:45.786651",
+      "digest": {
+        "conversation_history_entry_guid": "8fc34427-13db-4a88-a703-12446fe33ed4",
+        "role": "system",
+        "rated_segments": [
+          {
+            "text": "The Lost Valley is a campaign setting defined by a hidden valley, completely surrounded by impassable mountains. Scattered throughout the valley are ancient ruins, and the area is punctuated by mysterious magical anomalies.",
+            "importance": 4,
+            "topics": [
+              "Setting",
+              "Location",
+              "Magic"
+            ],
+            "type": "information",
+            "memory_worthy": true
+          },
+          {
+            "text": "There are three main settlements: Haven, located at the valley's center; Riverwatch, situated to the east; and Mountainkeep, located to the west.",
+            "importance": 3,
+            "topics": [
+              "Location",
+              "Society"
+            ],
+            "type": "information",
+            "memory_worthy": true
+          },
+          {
+            "text": "Key non-player characters include Elena, who serves as the Mayor of Haven and is motivated by a desire to protect the valley's inhabitants. She is currently investigating strange occurrences within Haven.",
+            "importance": 4,
+            "topics": [
+              "Characters",
+              "Location",
+              "Investigation"
+            ],
+            "type": "information",
+            "memory_worthy": true
+          },
+          {
+            "text": "Theron is a Master Scholar with expertise in ancient ruins and artifacts, and he is presently focused on decoding inscriptions found within the ruins.",
+            "importance": 4,
+            "topics": [
+              "Characters",
+              "Location",
+              "Magic"
+            ],
+            "type": "information",
+            "memory_worthy": true
+          },
+          {
+            "text": "Finally, Sara is the Captain of Riverwatch, responsible for the valley's defense, and she is concerned by an increase in monster activity.",
+            "importance": 4,
+            "topics": [
+              "Characters",
+              "Location",
+              "Threats"
+            ],
+            "type": "information",
+            "memory_worthy": true
+          },
+          {
+            "text": "Currently, trade routes between the settlements have been disrupted, and merchants are seeking protection.",
+            "importance": 3,
+            "topics": [
+              "Location",
+              "Trade",
+              "Threats"
+            ],
+            "type": "information",
+            "memory_worthy": true
+          },
+          {
+            "text": "Explorers have recently discovered new chambers within the ancient ruins, accompanied by strange energy emanations, and valuable artifacts have been found.",
+            "importance": 5,
+            "topics": [
+              "Location",
+              "Magic",
+              "Archaeology",
+              "Investigation"
+            ],
+            "type": "information",
+            "memory_worthy": true
+          },
+          {
+            "text": "Furthermore, random magical effects are occurring, impacting the local wildlife, and there is a suspected connection between these anomalies and the ruins.",
+            "importance": 5,
+            "topics": [
+              "Location",
+              "Magic",
+              "Threats"
+            ],
+            "type": "information",
+            "memory_worthy": true
+          }
+        ],
+        "timestamp": "2025-06-08T06:36:52.170719"
+      }
+    },
+    {
+      "guid": "cf688f7f-a96d-4d42-aa4a-7c26d65c34f9",
+      "role": "user",
+      "content": "Please describe the ruins",
+      "timestamp": "2025-06-08T06:37:14.259639",
+      "digest": {
+        "conversation_history_entry_guid": "cf688f7f-a96d-4d42-aa4a-7c26d65c34f9",
+        "role": "user",
+        "rated_segments": [
+          {
+            "text": "Please describe the ruins",
+            "importance": 3,
+            "topics": [
+              "Archaeology",
+              "Investigation"
+            ],
+            "type": "query",
+            "memory_worthy": true
+          }
+        ],
+        "timestamp": "2025-06-08T06:37:16.246421"
+      }
+    },
+    {
+      "guid": "821918f0-a237-46ec-ab05-40f4ba022337",
+      "role": "agent",
+      "content": "Scattered throughout the Lost Valley are ancient ruins, punctuated by mysterious magical anomalies. Explorers have recently discovered new chambers within them, accompanied by strange energy emanations and valuable artifacts have been found.",
+      "timestamp": "2025-06-08T06:37:15.199178",
+      "digest": {
+        "conversation_history_entry_guid": "821918f0-a237-46ec-ab05-40f4ba022337",
+        "role": "agent",
+        "rated_segments": [
+          {
+            "text": "Scattered throughout the Lost Valley are ancient ruins, punctuated by mysterious magical anomalies.",
+            "importance": 3,
+            "topics": [
+              "Archaeology",
+              "Environment",
+              "Magic"
+            ],
+            "type": "information",
+            "memory_worthy": true
+          },
+          {
+            "text": "Explorers have recently discovered new chambers within them, accompanied by strange energy emanations and valuable artifacts have been found.",
+            "importance": 4,
+            "topics": [
+              "Archaeology",
+              "Magic",
+              "Investigation"
+            ],
+            "type": "information",
+            "memory_worthy": true
+          }
+        ],
+        "timestamp": "2025-06-08T06:37:18.528099"
+      }
+    }
+  ]
+}

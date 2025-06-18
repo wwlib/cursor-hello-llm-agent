@@ -34,7 +34,7 @@ def test_create_initial_memory_success(memory_manager):
     assert isinstance(memory_manager.memory["static_memory"], str)
     assert "Initial test data" in memory_manager.memory["static_memory"]
 
-def test_query_memory_success(memory_manager):
+async def test_query_memory_success(memory_manager):
     # Create initial memory
     memory_manager.create_initial_memory("Initial test data")
     
