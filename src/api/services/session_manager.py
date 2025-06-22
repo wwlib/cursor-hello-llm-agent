@@ -150,6 +150,24 @@ class AgentSession:
                         'debug_file': log_files['ollama_embed']
                     })
                     
+                    # Add WebSocket handlers for LLM service logs if they have loggers
+                    try:
+                        from ..websocket.log_streamer import WebSocketLogHandler, log_streamer
+                        formatter = logging.Formatter('%(asctime)s %(levelname)s:%(name)s:%(message)s')
+                        
+                        # Add handlers for Ollama loggers if they exist
+                        for log_source, service in [
+                            ("ollama_general", general_llm_service),
+                            ("ollama_digest", digest_llm_service), 
+                            ("ollama_embed", embeddings_llm_service)
+                        ]:
+                            if hasattr(service, 'logger') and service.logger:
+                                ws_handler = WebSocketLogHandler(self.session_id, log_source, log_streamer)
+                                ws_handler.setFormatter(formatter)
+                                service.logger.addHandler(ws_handler)
+                    except Exception as e:
+                        logger.warning(f"Could not add WebSocket log handlers for LLM services: {e}")
+                    
                     # Set up memory manager logging
                     memory_manager_logger = logging.getLogger(f"memory_manager.session_{self.session_id}")
                     memory_manager_logger.setLevel(logging.DEBUG)
@@ -158,6 +176,15 @@ class AgentSession:
                     formatter = logging.Formatter('%(asctime)s %(levelname)s:%(name)s:%(message)s')
                     memory_manager_log_handler.setFormatter(formatter)
                     memory_manager_logger.addHandler(memory_manager_log_handler)
+                    
+                    # Add WebSocket log handler for memory manager
+                    try:
+                        from ..websocket.log_streamer import WebSocketLogHandler, log_streamer
+                        ws_memory_handler = WebSocketLogHandler(self.session_id, "memory_manager", log_streamer)
+                        ws_memory_handler.setFormatter(formatter)
+                        memory_manager_logger.addHandler(ws_memory_handler)
+                    except Exception as e:
+                        logger.warning(f"Could not add WebSocket log handler for memory_manager: {e}")
                     
                     # Create memory manager with session-specific GUID, LLM service, and proper file path
                     debug_info = f"""
@@ -190,6 +217,23 @@ SessionManager Debug Info for {self.session_id}:
                     agent_handler = logging.FileHandler(log_files['agent'])
                     agent_handler.setFormatter(formatter)
                     agent_logger.addHandler(agent_handler)
+                    
+                    # Add WebSocket log handler for agent
+                    try:
+                        from ..websocket.log_streamer import WebSocketLogHandler, log_streamer
+                        ws_agent_handler = WebSocketLogHandler(self.session_id, "agent", log_streamer)
+                        ws_agent_handler.setFormatter(formatter)
+                        agent_logger.addHandler(ws_agent_handler)
+                        
+                        # Also add API logger WebSocket handler
+                        api_logger = logging.getLogger("src.api")
+                        ws_api_handler = WebSocketLogHandler(self.session_id, "api", log_streamer)
+                        ws_api_handler.setFormatter(formatter)
+                        api_logger.addHandler(ws_api_handler)
+                        logger.info(f"Added WebSocket log handlers for session {self.session_id}")
+                        
+                    except Exception as e:
+                        logger.warning(f"Could not add WebSocket log handler for agent: {e}")
                     
                     # Create agent with the memory manager and LLM service
                     self._agent = Agent(

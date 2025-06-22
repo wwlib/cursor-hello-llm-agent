@@ -16,7 +16,7 @@ class Agent:
         
         Args:
             llm_service: Service for LLM operations
-            memory_manager: Service for memory operations (should be AsyncMemoryManager)
+            memory_manager: Service for memory operations
             domain_name: Name of the domain (e.g., "dnd_campaign", "user_stories")
         """
         self.llm = llm_service

@@ -407,7 +407,7 @@ Relevant entities and relationships:
 When integrated with MemoryManager, graph updates happen asynchronously:
 
 ```python
-# In AsyncMemoryManager, graph updates are tracked as pending operations
+# In MemoryManager, graph updates are tracked as pending operations
 async def _update_graph_memory_async(self, entry):
     """Update graph memory with entities and relationships from a conversation entry."""
     # 1. Extract important segments (importance ≥ 3, memory_worthy=True)
@@ -627,12 +627,12 @@ if __name__ == "__main__":
 ### Integration Example: Enhanced Memory Manager
 
 ```python
-from src.memory.memory_manager import AsyncMemoryManager
+from src.memory.memory_manager import MemoryManager
 from src.ai.llm_ollama import OllamaService
 from examples.domain_configs import DND_CONFIG
 
 # Create enhanced memory manager with graph memory
-memory_manager = AsyncMemoryManager(
+memory_manager = MemoryManager(
     memory_guid="enhanced-campaign",
     memory_file="enhanced_campaign.json", 
     domain_config=DND_CONFIG,

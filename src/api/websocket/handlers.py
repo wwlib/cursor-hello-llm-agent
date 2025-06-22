@@ -13,6 +13,7 @@ from fastapi import WebSocket
 
 from ..services.session_manager import SessionManager
 from .manager import manager
+from .log_streamer import log_streamer
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +30,9 @@ class MessageHandler:
             "search_memory": self.handle_search_memory,
             "get_graph": self.handle_get_graph,
             "ping": self.handle_ping,
+            "subscribe_logs": self.handle_subscribe_logs,
+            "unsubscribe_logs": self.handle_unsubscribe_logs,
+            "get_log_sources": self.handle_get_log_sources,
         }
     
     async def handle_message(self, websocket: WebSocket, session_id: str, message: Dict[str, Any], session_manager):
@@ -318,6 +322,97 @@ class MessageHandler:
                 "message": data.get("message", "pong")
             }
         }, websocket)
+    
+    async def handle_subscribe_logs(self, websocket: WebSocket, session_id: str, data: Dict[str, Any], session_manager):
+        """Handle log subscription requests."""
+        try:
+            log_sources = data.get("log_sources", [])
+            connection_id = data.get("connection_id")
+            
+            if not log_sources:
+                await self.send_error(websocket, "Missing log_sources in subscribe_logs request")
+                return
+            
+            if not connection_id:
+                # Generate a connection ID if not provided
+                connection_id = f"{session_id}_{datetime.now().timestamp()}"
+            
+            # Validate log sources
+            available_sources = log_streamer.get_available_log_sources(session_id)
+            invalid_sources = [source for source in log_sources if source not in available_sources]
+            
+            if invalid_sources:
+                await self.send_error(websocket, f"Invalid log sources: {invalid_sources}")
+                return
+            
+            # Subscribe to logs
+            log_streamer.subscribe_to_logs(session_id, connection_id, log_sources)
+            
+            # Generate a test log message to verify the system is working
+            logger.info(f"Log streaming subscribed for session {session_id}, sources: {log_sources}")
+            
+            # Send confirmation
+            await manager.send_personal_message({
+                "type": "logs_subscribed",
+                "data": {
+                    "session_id": session_id,
+                    "connection_id": connection_id,
+                    "log_sources": log_sources,
+                    "timestamp": datetime.now().isoformat()
+                }
+            }, websocket)
+            
+        except Exception as e:
+            logger.error(f"Error subscribing to logs: {e}")
+            await self.send_error(websocket, f"Log subscription error: {str(e)}")
+    
+    async def handle_unsubscribe_logs(self, websocket: WebSocket, session_id: str, data: Dict[str, Any], session_manager):
+        """Handle log unsubscription requests."""
+        try:
+            log_sources = data.get("log_sources")  # None means unsubscribe from all
+            connection_id = data.get("connection_id")
+            
+            if not connection_id:
+                await self.send_error(websocket, "Missing connection_id in unsubscribe_logs request")
+                return
+            
+            # Unsubscribe from logs
+            log_streamer.unsubscribe_from_logs(session_id, connection_id, log_sources)
+            
+            # Send confirmation
+            await manager.send_personal_message({
+                "type": "logs_unsubscribed",
+                "data": {
+                    "session_id": session_id,
+                    "connection_id": connection_id,
+                    "log_sources": log_sources or "all",
+                    "timestamp": datetime.now().isoformat()
+                }
+            }, websocket)
+            
+        except Exception as e:
+            logger.error(f"Error unsubscribing from logs: {e}")
+            await self.send_error(websocket, f"Log unsubscription error: {str(e)}")
+    
+    async def handle_get_log_sources(self, websocket: WebSocket, session_id: str, data: Dict[str, Any], session_manager):
+        """Handle get available log sources requests."""
+        try:
+            available_sources = log_streamer.get_available_log_sources(session_id)
+            subscription_status = log_streamer.get_subscription_status(session_id)
+            
+            await manager.send_personal_message({
+                "type": "log_sources_response",
+                "data": {
+                    "session_id": session_id,
+                    "available_sources": available_sources,
+                    "subscription_status": subscription_status,
+                    "timestamp": datetime.now().isoformat()
+                }
+            }, websocket)
+            
+        except Exception as e:
+            logger.error(f"Error getting log sources: {e}")
+            await self.send_error(websocket, f"Log sources error: {str(e)}")
     
     async def send_error(self, websocket: WebSocket, error_message: str):
         """Send error message to WebSocket client."""

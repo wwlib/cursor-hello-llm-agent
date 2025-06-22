@@ -400,6 +400,91 @@ class WebSocketAPITester:
             self.print_result(False, f"Heartbeat test failed: {e}")
             return False
     
+    async def test_log_streaming(self, session_id: str) -> bool:
+        """Test log streaming functionality"""
+        self.print_test_header("Log Streaming Test")
+        
+        ws_url = f"{self.ws_base_url}/api/v1/ws/sessions/{session_id}"
+        
+        try:
+            async with websockets.connect(ws_url) as websocket:
+                # Skip connection message and get connection ID
+                connection_id = None
+                try:
+                    initial_msg = await asyncio.wait_for(websocket.recv(), timeout=1.0)
+                    connection_data = json.loads(initial_msg)
+                    connection_id = connection_data.get("data", {}).get("connection_id")
+                except asyncio.TimeoutError:
+                    connection_id = f"{session_id}_test"
+                
+                # Test 1: Get log sources
+                await websocket.send(json.dumps({
+                    "type": "get_log_sources",
+                    "data": {}
+                }))
+                
+                response = await asyncio.wait_for(websocket.recv(), timeout=5.0)
+                response_data = json.loads(response)
+                
+                if response_data.get("type") == "log_sources_response":
+                    available_sources = response_data.get("data", {}).get("available_sources", [])
+                    self.print_result(True, f"Got log sources: {available_sources}")
+                else:
+                    self.print_result(False, f"Failed to get log sources: {response_data}")
+                    return False
+                
+                # Test 2: Subscribe to logs
+                await websocket.send(json.dumps({
+                    "type": "subscribe_logs",
+                    "data": {
+                        "connection_id": connection_id,
+                        "log_sources": ["agent", "api"]
+                    }
+                }))
+                
+                response = await asyncio.wait_for(websocket.recv(), timeout=5.0)
+                response_data = json.loads(response)
+                
+                if response_data.get("type") == "logs_subscribed":
+                    self.print_result(True, f"Subscribed to logs successfully")
+                else:
+                    self.print_result(False, f"Failed to subscribe to logs: {response_data}")
+                    return False
+                
+                # Test 3: Unsubscribe from logs
+                await websocket.send(json.dumps({
+                    "type": "unsubscribe_logs",
+                    "data": {
+                        "connection_id": connection_id,
+                        "log_sources": ["api"]
+                    }
+                }))
+                
+                # Look for unsubscribe response among possible log stream messages
+                unsubscribe_success = False
+                for _ in range(5):  # Check up to 5 messages
+                    try:
+                        response = await asyncio.wait_for(websocket.recv(), timeout=2.0)
+                        response_data = json.loads(response)
+                        
+                        if response_data.get("type") == "logs_unsubscribed":
+                            unsubscribe_success = True
+                            break
+                        elif response_data.get("type") == "log_stream":
+                            # Skip log stream messages and continue looking
+                            continue
+                    except asyncio.TimeoutError:
+                        break
+                
+                success = unsubscribe_success
+                self.print_result(success, f"Log streaming functionality", {"unsubscribe_received": unsubscribe_success})
+                
+                return success
+                
+        except Exception as e:
+            self.print_result(False, f"Log streaming test failed: {e}")
+            return False
+    
     async def test_monitor_websocket(self) -> bool:
         """Test the monitor WebSocket endpoint"""
         self.print_test_header("Monitor WebSocket Test")
@@ -502,6 +587,7 @@ class WebSocketAPITester:
         
         # Connection management tests
         results["heartbeat"] = await self.test_heartbeat(session_id)
+        results["log_streaming"] = await self.test_log_streaming(session_id)
         results["monitor_websocket"] = await self.test_monitor_websocket()
         results["invalid_session"] = await self.test_invalid_session_websocket()
         

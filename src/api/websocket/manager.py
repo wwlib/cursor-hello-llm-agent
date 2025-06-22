@@ -82,6 +82,13 @@ class ConnectionManager:
                 break
         
         if connection_id:
+            # Clean up log subscriptions
+            try:
+                from .log_streamer import log_streamer
+                log_streamer.cleanup_connection(session_id, connection_id)
+            except Exception as e:
+                logger.warning(f"Error cleaning up log subscriptions: {e}")
+            
             del self.connection_metadata[connection_id]
             if connection_id in self.heartbeats:
                 del self.heartbeats[connection_id]

@@ -26,6 +26,22 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Add WebSocket handler for API logs
+try:
+    from .websocket.log_streamer import WebSocketLogHandler, log_streamer
+    
+    def add_api_log_handler(session_id: str):
+        """Add WebSocket log handler for API logs to a specific session."""
+        api_logger = logging.getLogger("src.api")
+        formatter = logging.Formatter('%(asctime)s %(levelname)s:%(name)s:%(message)s')
+        ws_api_handler = WebSocketLogHandler(session_id, "api", log_streamer)
+        ws_api_handler.setFormatter(formatter)
+        api_logger.addHandler(ws_api_handler)
+        return ws_api_handler
+        
+except ImportError:
+    logger.warning("Could not import WebSocket log streamer")
+
 # Global session manager instance
 session_manager = None
 
