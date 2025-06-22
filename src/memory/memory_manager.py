@@ -545,8 +545,9 @@ class MemoryManager(BaseMemoryManager):
                 self.logger.debug(f"Generating digest for {entry['role']} entry...")
                 entry["digest"] = self.digest_generator.generate_digest(entry, self.memory)
                 
-                # Update conversation history file with the digest
-                self._update_conversation_history_entry(entry)
+                # Update conversation history file with the digest (only available in AsyncMemoryManager)
+                if hasattr(self, '_update_conversation_history_entry'):
+                    self._update_conversation_history_entry(entry)
                 
                 self.save_memory("async_digest_generation")
             
