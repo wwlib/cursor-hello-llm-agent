@@ -7,9 +7,11 @@ Manages agent sessions, lifecycle, and multi-tenant access patterns.
 import uuid
 import asyncio
 import logging
+import os
 from datetime import datetime, timedelta
 from typing import Dict, Optional, List
 from threading import Lock
+from pathlib import Path
 
 from ..models.sessions import SessionInfo, SessionStatus, SessionConfig
 from ...agent.agent import Agent
@@ -17,6 +19,11 @@ from ...memory.memory_manager import MemoryManager, AsyncMemoryManager
 from ...ai.llm_ollama import OllamaService
 
 logger = logging.getLogger(__name__)
+
+# Constants for directory structure (matching agent_usage_example.py)
+BASE_MEMORY_DIR = "agent_memories"
+MEMORY_FILE_PREFIX = "agent_memory"
+BASE_LOGS_DIR = "logs"
 
 class AgentSession:
     """Represents an active agent session"""
@@ -42,36 +49,163 @@ class AgentSession:
         """Check if session has expired"""
         return (datetime.now() - self.last_activity).total_seconds() > timeout_seconds
         
+    def get_memory_dir(self, memory_type: str = "standard") -> str:
+        """Get the directory path for a specific memory manager type"""
+        # Use absolute path to ensure files are created in the correct location
+        current_dir = os.getcwd()
+        dir_path = os.path.join(current_dir, BASE_MEMORY_DIR, memory_type)
+        os.makedirs(dir_path, exist_ok=True)
+        return dir_path
+
+    def get_memory_filename(self, memory_type: str = "standard") -> str:
+        """Generate a memory filename based on memory manager type and session GUID"""
+        # Create memory directory for this type if it doesn't exist
+        memory_dir = self.get_memory_dir(memory_type)
+        
+        # Create GUID directory if it doesn't exist
+        guid_dir = os.path.join(memory_dir, self.session_id)
+        os.makedirs(guid_dir, exist_ok=True)
+        file_path = os.path.join(guid_dir, f"{MEMORY_FILE_PREFIX}.json")
+        return file_path
+
+    def setup_session_logging(self) -> Dict[str, str]:
+        """Set up logging directories and files for this session"""
+        # Create logs directory structure
+        logs_dir = BASE_LOGS_DIR
+        os.makedirs(logs_dir, exist_ok=True)
+        
+        # Create GUID-specific logs directory
+        guid_logs_dir = os.path.join(logs_dir, self.session_id)
+        os.makedirs(guid_logs_dir, exist_ok=True)
+        
+        # Define log file paths
+        log_files = {
+            'ollama_general': os.path.join(guid_logs_dir, "ollama_general.log"),
+            'ollama_digest': os.path.join(guid_logs_dir, "ollama_digest.log"),
+            'ollama_embed': os.path.join(guid_logs_dir, "ollama_embed.log"),
+            'memory_manager': os.path.join(guid_logs_dir, "memory_manager.log"),
+            'agent': os.path.join(guid_logs_dir, "agent.log")
+        }
+        
+        return log_files
+        
     async def initialize_agent(self):
         """Initialize the agent for this session"""
+        # Simple debug marker to confirm this method is called
+        debug_file = f"debug_init_{self.session_id[:8]}.txt"
+        with open(debug_file, "w") as f:
+            f.write(f"initialize_agent called for {self.session_id}\n")
+        
         with self._lock:
             if self._agent is None:
                 try:
+                    # Set up logging and data paths
+                    log_files = self.setup_session_logging()
+                    
+                    # Get memory file path using the same structure as agent_usage_example
+                    memory_type = "standard"  # Default to standard for now
+                    memory_file = self.get_memory_filename(memory_type)
+                    
+                    # Ensure the memory file directory exists
+                    memory_file_dir = os.path.dirname(memory_file)
+                    os.makedirs(memory_file_dir, exist_ok=True)
+                    
+                    # Debug logging to session log directory
+                    debug_log_path = os.path.join(os.path.dirname(log_files['agent']), "debug_memory_file.log")
+                    with open(debug_log_path, "w") as f:
+                        f.write(f"Session ID: {self.session_id}\n")
+                        f.write(f"Memory file path: {memory_file}\n")
+                        f.write(f"Memory file dir: {memory_file_dir}\n")
+                        f.write(f"Memory file is absolute: {os.path.isabs(memory_file)}\n")
+                        f.write(f"Current working directory: {os.getcwd()}\n")
+                    
                     # Create LLM service for this session
                     # Use environment variables or defaults
-                    import os
-                    llm_service = OllamaService({
+                    
+                    # Create separate OllamaService instances for different purposes (like agent_usage_example)
+                    general_llm_service = OllamaService({
                         'base_url': os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
                         'model': self.config.llm_model or os.getenv("OLLAMA_MODEL", "llama2"),
                         'temperature': 0.7,
-                        'debug': os.getenv("DEV_MODE", "false").lower() == "true"
+                        'stream': False,
+                        'debug': os.getenv("DEV_MODE", "false").lower() == "true",
+                        'debug_file': log_files['ollama_general'],
+                        'debug_scope': f"session_{self.session_id}_general",
+                        'console_output': False
                     })
                     
-                    # Create memory manager with session-specific GUID and LLM service
-                    # Use AsyncMemoryManager for better conversation tracking and persistence
+                    # Digest generation service
+                    digest_llm_service = OllamaService({
+                        'base_url': os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
+                        'model': self.config.llm_model or os.getenv("OLLAMA_MODEL", "llama2"),
+                        'temperature': 0,
+                        'stream': False,
+                        'debug': os.getenv("DEV_MODE", "false").lower() == "true",
+                        'debug_file': log_files['ollama_digest'],
+                        'debug_scope': f"session_{self.session_id}_digest",
+                        'console_output': False
+                    })
+                    
+                    # Embeddings service
+                    embeddings_llm_service = OllamaService({
+                        'base_url': os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
+                        'model': os.getenv("OLLAMA_EMBED_MODEL", "mxbai-embed-large"),
+                        'debug': False,
+                        'debug_file': log_files['ollama_embed']
+                    })
+                    
+                    # Set up memory manager logging
+                    memory_manager_logger = logging.getLogger(f"memory_manager.session_{self.session_id}")
+                    memory_manager_logger.setLevel(logging.DEBUG)
+                    memory_manager_log_handler = logging.FileHandler(log_files['memory_manager'])
+                    memory_manager_log_handler.setLevel(logging.DEBUG)
+                    formatter = logging.Formatter('%(asctime)s %(levelname)s:%(name)s:%(message)s')
+                    memory_manager_log_handler.setFormatter(formatter)
+                    memory_manager_logger.addHandler(memory_manager_log_handler)
+                    
+                    # Create memory manager with session-specific GUID, LLM service, and proper file path
+                    debug_info = f"""
+SessionManager Debug Info for {self.session_id}:
+- Memory file path: {memory_file}
+- Memory file exists: {os.path.exists(memory_file)}
+- Memory file directory: {os.path.dirname(memory_file)}
+- Memory file directory exists: {os.path.exists(os.path.dirname(memory_file))}
+- Current working directory: {os.getcwd()}
+"""
+                    logger.info(debug_info)
+                    
+                    # Also write to a debug file for easier inspection
+                    with open("session_manager_debug.log", "a") as f:
+                        f.write(f"{datetime.now()}: {debug_info}\n")
+                    
                     self._memory_manager = AsyncMemoryManager(
                         memory_guid=self.session_id,
-                        llm_service=llm_service
+                        memory_file=memory_file,  # Use the properly structured file path
+                        llm_service=general_llm_service,
+                        max_recent_conversation_entries=4,
+                        digest_llm_service=digest_llm_service,
+                        embeddings_llm_service=embeddings_llm_service,
+                        logger=memory_manager_logger
                     )
+                    
+                    # Set up agent logging
+                    agent_logger = logging.getLogger(f"agent.session_{self.session_id}")
+                    agent_logger.setLevel(logging.DEBUG)
+                    agent_handler = logging.FileHandler(log_files['agent'])
+                    agent_handler.setFormatter(formatter)
+                    agent_logger.addHandler(agent_handler)
                     
                     # Create agent with the memory manager and LLM service
                     self._agent = Agent(
-                        llm_service=llm_service,
+                        llm_service=general_llm_service,
                         memory_manager=self._memory_manager,
-                        domain_name=self.config.domain
+                        domain_name=self.config.domain,
+                        logger=agent_logger
                     )
                     
                     logger.info(f"Initialized agent for session {self.session_id}")
+                    logger.info(f"Memory file: {memory_file}")
+                    logger.info(f"Log files: {log_files}")
                     
                 except Exception as e:
                     logger.error(f"Failed to initialize agent for session {self.session_id}: {e}")

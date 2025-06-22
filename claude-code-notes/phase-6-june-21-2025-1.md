@@ -10,6 +10,10 @@ OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODE
 
 scripts/copy_graph_to_viewer.sh --guid testAgent14
 
+DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python -m uvicorn src.api.main:app --host 0.0.0.0 --port 8000
+
+
+
 
 
 > Take a look at @README-phase-6.md and @README-phase-6-implementation-plan.md. What do you think of the goals 
