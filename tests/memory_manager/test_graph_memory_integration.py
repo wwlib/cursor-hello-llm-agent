@@ -10,7 +10,7 @@ import json
 import tempfile
 import os
 
-from src.memory.memory_manager import MemoryManager, AsyncMemoryManager
+from src.memory.memory_manager import MemoryManager
 from src.ai.llm_ollama import OllamaService
 from examples.domain_configs import DND_CONFIG
 
@@ -138,7 +138,7 @@ async def test_async_graph_memory_updates(real_llm_service, temp_memory_dir, dom
     """Test that async memory manager updates graph memory"""
     memory_file = os.path.join(temp_memory_dir, "test_memory.json")
     
-    async_memory_manager = AsyncMemoryManager(
+    async_memory_manager = MemoryManager(
         memory_guid="test-guid",
         memory_file=memory_file,
         domain_config=domain_config,
@@ -180,7 +180,7 @@ def test_has_pending_operations_includes_graph(real_llm_service, temp_memory_dir
     """Test that pending operations include graph updates"""
     memory_file = os.path.join(temp_memory_dir, "test_memory.json")
     
-    async_memory_manager = AsyncMemoryManager(
+    async_memory_manager = MemoryManager(
         memory_guid="test-guid",
         memory_file=memory_file,
         domain_config=domain_config,
@@ -222,7 +222,7 @@ async def test_end_to_end_graph_integration(real_llm_service, temp_memory_dir, d
     memory_file = os.path.join(temp_memory_dir, "test_memory.json")
     
     # Create async memory manager with graph memory
-    memory_manager = AsyncMemoryManager(
+    memory_manager = MemoryManager(
         memory_guid="test-guid",
         memory_file=memory_file,
         domain_config=domain_config,

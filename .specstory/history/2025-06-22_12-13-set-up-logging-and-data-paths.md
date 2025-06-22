@@ -3351,11 +3351,543 @@ I'll start the server and then run the WebSocket test script to see what errors 
 
 ---
 
+```bash
+DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python -m uvicorn src.api.main:app --host 0.0.0.0 --port 8000
+```
 
+---
+
+Let me wait a moment for the server to start up and then run the WebSocket test script.
+
+---
+
+```bash
+sleep 5 && python scripts/api/test_websocket_api.py
+```
+
+```
+🚀 Starting WebSocket API Comprehensive Tests
+API URL: http://localhost:8000
+WebSocket URL: ws://localhost:8000
+Test User ID: test_user_websocket
+❌ Failed to create session: 500 - {"error":"Failed to create session: local variable 'os' referenced before
+ assignment","status_code":500}
+❌ Cannot create session. Aborting tests.
+
+============================================================
+  WEBSOCKET TEST SUMMARY
+============================================================
+Total Tests: 1
+Passed: 0
+Failed: 1
+Success Rate: 0.0%
+
+Detailed Results:
+  ❌ FAIL: session_creation
+
+⚠️  1 tests failed. Check the output above for details.
+
+```
+
+---
+
+There's a clear error: `local variable 'os' referenced before assignment` in the session creation. This suggests there's an import issue in the session manager. Let me check the current state of the server and then examine the session manager code more closely.
+
+---
+
+```bash
+curl -s http://localhost:8000/health | head -20
+```
+
+```
+{"status":"healthy","version":"1.0.0","active_sessions":1,"websocket_connections":0}%
+
+
+```
+
+---
+
+The server is running, but there's an issue with session creation. Let me look at the session manager code to find the `os` reference issue:
+
+---
+
+<details>
+            <summary>Grep search for "import os" • **1** files</summary>
+        
+| File | Line | Match |
+|------|------|-------|
+| `file:///Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/api/services/session_manager.py` | L9 | `import os` |
+| `file:///Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/api/services/session_manager.py` | L123 | `import os` |
+
+</details>
+
+---
+
+There are two `import os` statements! Let me look at the specific area around line 123 to see what's happening:
+
+---
+
+Read file: src/api/services/session_manager.py
+
+---
+
+I found the issue! There's a redundant `import os` statement inside the `initialize_agent` method at line 123. This is creating a local variable `os` that shadows the module-level import. Let me fix this:
 
 ---
 
 
+
+---
+
+Now let me test the WebSocket API again to see if this fixes the session creation issue:
+
+---
+
+```bash
+python scripts/api/test_websocket_api.py
+```
+
+```
+🚀 Starting WebSocket API Comprehensive Tests
+API URL: http://localhost:8000
+WebSocket URL: ws://localhost:8000
+Test User ID: test_user_websocket
+❌ Failed to create session: 500 - {"error":"Failed to create session: local variable 'os' referenced before
+ assignment","status_code":500}
+❌ Cannot create session. Aborting tests.
+
+============================================================
+  WEBSOCKET TEST SUMMARY
+============================================================
+Total Tests: 1
+Passed: 0
+Failed: 1
+Success Rate: 0.0%
+
+Detailed Results:
+  ❌ FAIL: session_creation
+
+⚠️  1 tests failed. Check the output above for details.
+
+```
+
+---
+
+The error persists. Let me restart the server since the change might not have been reflected yet:
+
+---
+
+```bash
+pkill -f uvicorn
+```
+
+```
+(.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent % 
+
+```
+
+---
+
+```bash
+sleep 2 && DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python -m uvicorn src.api.main:app --host 0.0.0.0 --port 8000
+```
+
+---
+
+```bash
+sleep 5 && python scripts/api/test_websocket_api.py
+```
+
+```
+🚀 Starting WebSocket API Comprehensive Tests
+API URL: http://localhost:8000
+WebSocket URL: ws://localhost:8000
+Test User ID: test_user_websocket
+✅ Test session created: 9d9a45c1-abf3-497b-93c4-f42b6508685c
+
+============================================================
+  WebSocket Connection
+============================================================
+✅ PASS: WebSocket connected successfully
+   Data: {'type': 'connection_established', 'data': {'connection_id': '9d9a45c1-abf3-497b-93c4-f42b6508685c_
+1750600339.763002', 'session_id': '9d9a45c1-abf3-497b-93c4-f42b6508685c', 'timestamp': '2025-06-22T09...
+
+============================================================
+  Ping/Pong Test
+============================================================
+✅ PASS: Ping/Pong exchange
+   Data: {'type': 'pong', 'data': {'timestamp': '2025-06-22T09:52:19.769445', 'session_id': '9d9a45c1-abf3-4
+97b-93c4-f42b6508685c', 'message': 'Hello WebSocket!'}}...
+
+============================================================
+  Get Status Test
+============================================================
+🔍 Connected to WebSocket for status test
+🔍 Skipped initial message: {"type": "connection_established", "data": {"connection_id": "9d9a45c1-abf3-497b
+-93c4-f42b6508685c_1...
+🔍 Sending status message: {'type': 'get_status', 'data': {}}
+🔍 Status message sent, waiting for response...
+🔍 Received status response: {"type": "status_response", "data": {"session_id": "9d9a45c1-abf3-497b-93c4-f42
+b6508685c", "agent_initialized": true, "memory_manager_initialized": true, "last_activity": "2025-06-22T09:5
+2:19.776795",...
+✅ PASS: Status retrieval
+   Data: {'type': 'status_response', 'data': {'session_id': '9d9a45c1-abf3-497b-93c4-f42b6508685c', 'agent_i
+nitialized': True, 'memory_manager_initialized': True, 'last_activity': '2025-06-22T09:52:19.776795',...
+
+============================================================
+  Agent Query Test
+============================================================
+📨 Received: typing_start
+📨 Received: query_response
+✅ PASS: Agent query (received 2 responses)
+   Data: [{'type': 'typing_start', 'data': {'session_id': '9d9a45c1-abf3-497b-93c4-f42b6508685c', 'timestamp
+': '2025-06-22T09:52:19.783364'}}, {'type': 'query_response', 'data': {'message': 'Hello! Can you tel...
+
+============================================================
+  Get Memory Test
+============================================================
+✅ PASS: Memory retrieval
+   Data: {'type': 'memory_response', 'data': {'session_id': '9d9a45c1-abf3-497b-93c4-f42b6508685c', 'type': 
+'conversations', 'data': {'conversations': [{'guid': '41ec6b3a-6f0b-43ca-bad3-0b3cf6f89956', 'role': ...
+
+============================================================
+  Search Memory Test
+============================================================
+✅ PASS: Memory search
+   Data: {'type': 'search_response', 'data': {'session_id': '9d9a45c1-abf3-497b-93c4-f42b6508685c', 'query':
+ 'dragon', 'results': [], 'total_results': 0, 'timestamp': '2025-06-22T09:52:27.763886'}}...
+
+============================================================
+  Get Graph Test
+============================================================
+✅ PASS: Graph retrieval
+   Data: {'type': 'graph_response', 'data': {'session_id': '9d9a45c1-abf3-497b-93c4-f42b6508685c', 'format':
+ 'json', 'graph_data': {'nodes': [], 'edges': [], 'metadata': {'graph_disabled': True, 'message': 'Gr...
+
+============================================================
+  Heartbeat Test
+============================================================
+✅ PASS: Heartbeat with response
+   Data: {'type': 'heartbeat_response', 'data': {'timestamp': '2025-06-22T09:52:27.776271', 'session_id': '9
+d9a45c1-abf3-497b-93c4-f42b6508685c'}}...
+
+============================================================
+  Monitor WebSocket Test
+============================================================
+✅ PASS: Monitor connected
+   Data: {'type': 'monitor_connected', 'data': {'active_sessions': 1, 'active_connections': 0, 'timestamp': 
+'now'}}...
+✅ PASS: Monitor ping/pong
+   Data: {'type': 'pong', 'data': {'active_sessions': 1, 'active_connections': 0, 'timestamp': 'now'}}...
+
+============================================================
+  Invalid Session WebSocket Test
+============================================================
+✅ PASS: Invalid session rejected: server rejected WebSocket connection: HTTP 403
+
+============================================================
+  WEBSOCKET TEST SUMMARY
+============================================================
+Total Tests: 10
+Passed: 10
+Failed: 0
+Success Rate: 100.0%
+
+Detailed Results:
+  ✅ PASS: websocket_connection
+  ✅ PASS: ping_pong
+  ✅ PASS: get_status
+  ✅ PASS: agent_query
+  ✅ PASS: get_memory
+  ✅ PASS: search_memory
+  ✅ PASS: get_graph
+  ✅ PASS: heartbeat
+  ✅ PASS: monitor_websocket
+  ✅ PASS: invalid_session
+
+🎉 All WebSocket tests passed! The WebSocket API is working correctly.
+
+Cleaning up 1 remaining sessions...
+✅ Session 9d9a45c1-abf3-497b-93c4-f42b6508685c cleaned up
+
+```
+
+---
+
+Excellent! 🎉 The fix worked perfectly! All 10 WebSocket tests are now passing with a 100% success rate.
+
+## Summary of the Issue and Fix
+
+**Problem**: The SessionManager had a duplicate `import os` statement inside the `initialize_agent` method that was creating a local variable `os` which shadowed the module-level import. This caused a "local variable 'os' referenced before assignment" error when trying to create sessions.
+
+**Solution**: Removed the redundant `import os` statement at line 123 in the `initialize_agent` method since `os` was already imported at the module level.
+
+## WebSocket API Test Results ✅
+
+The comprehensive WebSocket API test now shows **100% success** across all test categories:
+
+### ✅ **Connection Tests** (3/3 passed)
+- **WebSocket Connection**: Successfully establishes connection and receives connection confirmation
+- **Ping/Pong**: Proper ping/pong message exchange working
+- **Get Status**: Status retrieval working with proper agent and memory manager initialization
+
+### ✅ **Agent Interaction Tests** (1/1 passed)  
+- **Agent Query**: Query processing working with typing indicators and streaming responses
+
+### ✅ **Data Retrieval Tests** (3/3 passed)
+- **Get Memory**: Memory data retrieval working (conversation history accessible)
+- **Search Memory**: Memory search functionality working (though no results yet, which is expected for new session)
+- **Get Graph**: Graph data retrieval working (shows graph disabled, which is expected)
+
+### ✅ **Connection Management Tests** (3/3 passed)
+- **Heartbeat**: Heartbeat functionality working with proper responses
+- **Monitor WebSocket**: Monitor endpoint working with system statistics
+- **Invalid Session**: Proper rejection of invalid session IDs with HTTP 403
+
+## Key Observations
+
+1. **Session Management**: Sessions are being created properly with the updated SessionManager
+2. **Memory Persistence**: The AsyncMemoryManager integration is working correctly
+3. **Real-time Communication**: WebSocket bidirectional communication is functioning as expected
+4. **Error Handling**: Invalid sessions are properly rejected
+5. **Logging and Monitoring**: The monitor endpoint provides system statistics
+
+The API server is now fully functional and ready for browser app integration! The fix was simple but critical - removing that duplicate import resolved the session creation issue completely.
+
+---
+
+_**User**_
+
+OK. Let's merge MemoryManager and AsyncMemoryManager using the plan you suggested.
+
+---
+
+_**Assistant**_
+
+Perfect! Let's merge `MemoryManager` and `AsyncMemoryManager` into a single async `MemoryManager` class. Based on my analysis, this will eliminate confusion and provide a cleaner, more maintainable codebase.
+
+## Implementation Plan
+
+1. **Move async methods from AsyncMemoryManager into MemoryManager**
+2. **Add pending operations tracking to MemoryManager**
+3. **Keep both sync and async versions of `add_conversation_entry()`**
+4. **Update imports and references throughout the codebase**
+5. **Remove the separate AsyncMemoryManager class**
+
+Let's start:
+
+---
+
+```diff
+  
+  class MemoryManager(BaseMemoryManager):
+-     """LLM-driven memory manager implementation.
++     """LLM-driven memory manager implementation with both sync and async capabilities.
+      
+      Extends BaseMemoryManager to provide LLM-driven memory operations with domain-specific configuration.
++     Supports both synchronous and asynchronous operation modes for flexibility.
+      """
+  
+```
+
+```diff
+          self.embeddings_llm = embeddings_llm_service or llm_service
+          self._load_templates()
++         
++         # Initialize async operation tracking (merged from AsyncMemoryManager)
++         self._pending_digests = {}  # guid -> entry
++         self._pending_embeddings = set()  # set of guids
++         self._pending_graph_updates = set()  # set of guids
+          
+          # Initialize DigestGenerator with dedicated LLM service and domain config
+```
+
+```diff
+              self.logger.warning(f"Error getting graph context: {e}")
+              return ""
+- 
+- class AsyncMemoryManager(MemoryManager):
+-     """Asynchronous version of MemoryManager that handles digest generation and embeddings updates asynchronously."""
+-     
+-     def __init__(self, *args, **kwargs):
+-         super().__init__(*args, **kwargs)
+-         self._pending_digests = {}  # guid -> entry
+-         self._pending_embeddings = set()  # set of guids
+-         self._pending_graph_updates = set()  # set of guids
+-         
+-     async def add_conversation_entry(self, entry: Dict[str, Any]) -> bool:
+-         """Add a conversation entry with asynchronous digest generation and embeddings update.
+-         
+-         Args:
+-             entry: Dictionary containing the conversation entry:
+-                   - guid: Optional unique identifier (will be generated if missing)
+-                   - role: Role (e.g., "user", "agent", "system")
+-                   - content: Entry content text
+-                   - timestamp: Optional timestamp (will be generated if missing)
+-                   
+-         Returns:
+-             bool: True if the entry was added successfully
+-         """
+-         try:
+-             # Ensure basic fields exist
+-             if "content" not in entry:
+-                 self.logger.error("Error: Conversation entry must have 'content'")
+-                 return False
+-                 
+-             if "role" not in entry:
+-                 self.logger.error("Error: Conversation entry must have 'role'")
+-                 return False
+-                 
+-             # Ensure GUID
+-             if "guid" not in entry:
+-                 entry["guid"] = str(uuid.uuid4())
+-                 
+-             # Ensure timestamp
+-             if "timestamp" not in entry:
+-                 entry["timestamp"] = datetime.now().isoformat()
+-             
+-             # Add to conversation history file and memory immediately
+-             self.add_to_conversation_history(entry)
+-             
+-             if "conversation_history" not in self.memory:
+-                 self.memory["conversation_history"] = []
+-                 
+-             self.memory["conversation_history"].append(entry)
+-             self.logger.debug(f"Added {entry['role']} entry to conversation history")
+-             
+-             # Save to persist memory updates
+-             self.save_memory("add_conversation_entry")
+-             
+-             # Start async digest generation if not already present
+-             if "digest" not in entry:
+-                 self.logger.debug(f"Starting async digest generation for {entry['role']} entry...")
+-                 self._pending_digests[entry["guid"]] = entry
+-                 asyncio.create_task(self._generate_digest_async(entry))
+-             else:
+-                 # If digest exists, start embeddings and graph updates
+-                 self._pending_embeddings.add(entry["guid"])
+-                 if self.enable_graph_memory and self.graph_manager:
+-                     self._pending_graph_updates.add(entry["guid"])
+-                 asyncio.create_task(self._update_embeddings_async(entry))
+- 
+-             return True
+-             
+-         except Exception as e:
+-             self.logger.error(f"Error adding conversation entry: {str(e)}")
+-             return False
+-     
+-     async def _generate_digest_async(self, entry: Dict[str, Any]) -> None:
+-         """Asynchronously generate digest for an entry."""
+-         try:
+-             # Generate digest
+-             entry["digest"] = self.digest_generator.generate_digest(entry, self.memory)
+-             
+-             # Update conversation history file with the digest
+-             self._update_conversation_history_entry(entry)
+-             
+-             # Remove from pending digests
+-             self._pending_digests.pop(entry["guid"], None)
+-             
+-             # Start embeddings and graph updates
+-             self._pending_embeddings.add(entry["guid"])
+-             if self.enable_graph_memory and self.graph_manager:
+-                 self._pending_graph_updates.add(entry["guid"])
+-             await self._update_embeddings_async(entry)
+-             
+-             # Save memory to persist the digest
+-             self.save_memory("async_digest_generation")
+-             
+-         except Exception as e:
+-             self.logger.error(f"Error in async digest generation: {str(e)}")
+-     
+-     def _update_conversation_history_entry(self, entry: Dict[str, Any]) -> bool:
+-         """Update an existing entry in the conversation history file.
+-         
+-         Args:
+-             entry: Updated conversation entry with digest
+-             
+-         Returns:
+-             bool: True if entry was updated successfully
+-         """
+-         try:
+-             # Load current conversation history
+-             conversation_data = self._load_conversation_history()
+-             
+-             # Find and update the entry by GUID
+-             entry_guid = entry.get("guid")
+-             if not entry_guid:
+-                 self.logger.error("Cannot update conversation history entry without GUID")
+-                 return False
+-                 
+-             # Find the entry to update
+-             updated = False
+-             for i, existing_entry in enumerate(conversation_data["entries"]):
+-                 if existing_entry.get("guid") == entry_guid:
+-                     conversation_data["entries"][i] = entry
+-                     updated = True
+-                     break
+-             
+-             if not updated:
+-                 self.logger.warning(f"Could not find conversation history entry with GUID {entry_guid} to update")
+-                 return False
+-             
+-             # Save updated history
+-             success = self._save_conversation_history(conversation_data)
+-             if success:
+-                 self.logger.debug(f"Updated conversation history entry {entry_guid} with digest")
+-             return success
+-             
+-         except Exception as e:
+-             self.logger.error(f"Error updating conversation history entry: {str(e)}")
+-             return False
+-     
+-     async def _update_embeddings_async(self, entry: Dict[str, Any]) -> None:
+-         """Asynchronously update embeddings and graph memory for an entry."""
+-         try:
+-             # Update embeddings
+-             self.embeddings_manager.add_new_embeddings([entry])
+-             
+-             # Remove from pending embeddings
+-             self._pending_embeddings.discard(entry["guid"])
+-             
+-             # Update graph memory if enabled
+-             if self.enable_graph_memory and self.graph_manager and entry["guid"] in self._pending_graph_updates:
+-                 await self._update_graph_memory_async(entry)
+-                 self._pending_graph_updates.discard(entry["guid"])
+-             
+-         except Exception as e:
+-             self.logger.error(f"Error in async embeddings/graph update: {str(e)}")
+-     
+-     def get_pending_operations(self) -> Dict[str, Any]:
+-         """Get information about pending async operations.
+-         
+-         Returns:
+-             Dict with counts of pending digests, embeddings, and graph updates
+-         """
+-         return {
+-             "pending_digests": len(self._pending_digests),
+-             "pending_embeddings": len(self._pending_embeddings),
+-             "pending_graph_updates": len(self._pending_graph_updates)
+-         }
+-     
+-     def has_pending_operations(self) -> bool:
+-         """Check if there are any pending async operations.
+-         
+-         Returns:
+-             bool: True if there are pending operations
+-         """
+-         return bool(self._pending_digests or self._pending_embeddings or self._pending_graph_updates)
+-     
+-     async def wait_for_pending_operations(self) -> None:
+-         """Wait for all pending async operations to complete."""
+-         while self._pending_digests or self._pending_embeddings or self._pending_graph_updates:
+-             await asyncio.sleep(0.1)  # Small delay to prevent busy waiting
+  
+```
+
+---
+
+Now
 
 ---
 

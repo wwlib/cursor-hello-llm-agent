@@ -60,9 +60,10 @@ DEFAULT_RAG_IMPORTANCE_THRESHOLD = 3  # Standardized to match compression
 DEFAULT_EMBEDDINGS_IMPORTANCE_THRESHOLD = 3  # Only embed important segments
 
 class MemoryManager(BaseMemoryManager):
-    """LLM-driven memory manager implementation.
+    """LLM-driven memory manager implementation with both sync and async capabilities.
     
     Extends BaseMemoryManager to provide LLM-driven memory operations with domain-specific configuration.
+    Supports both synchronous and asynchronous operation modes for flexibility.
     """
 
     def __init__(self, memory_guid: str, memory_file: str = "memory.json", domain_config: Optional[Dict[str, Any]] = None, 
@@ -96,6 +97,11 @@ class MemoryManager(BaseMemoryManager):
         self.digest_llm = digest_llm_service or llm_service
         self.embeddings_llm = embeddings_llm_service or llm_service
         self._load_templates()
+        
+        # Initialize async operation tracking
+        self._pending_digests = {}  # guid -> entry
+        self._pending_embeddings = set()  # set of guids
+        self._pending_graph_updates = set()  # set of guids
         
         # Initialize DigestGenerator with dedicated LLM service and domain config
         domain_name = self.domain_config.get("domain_name", "general") if self.domain_config else "general"
@@ -545,7 +551,7 @@ class MemoryManager(BaseMemoryManager):
                 self.logger.debug(f"Generating digest for {entry['role']} entry...")
                 entry["digest"] = self.digest_generator.generate_digest(entry, self.memory)
                 
-                # Update conversation history file with the digest (only available in AsyncMemoryManager)
+                # Update conversation history file with the digest
                 if hasattr(self, '_update_conversation_history_entry'):
                     self._update_conversation_history_entry(entry)
                 
@@ -1031,7 +1037,7 @@ class MemoryManager(BaseMemoryManager):
             return False
             
     def add_conversation_entry(self, entry: Dict[str, Any]) -> bool:
-        """Add a conversation entry with automatic digest generation.
+        """Add a conversation entry with automatic digest generation (synchronous version).
         
         Args:
             entry: Dictionary containing the conversation entry:
@@ -1086,89 +1092,8 @@ class MemoryManager(BaseMemoryManager):
         except Exception as e:
             self.logger.error(f"Error adding conversation entry: {str(e)}")
             return False
-            
-    def update_memory_with_conversations(self) -> bool:
-        """Update memory with current conversation history.
-        
-        This method processes the conversation history to extract important information
-        and update the memory context.
-        
-        Returns:
-            bool: True if memory was updated successfully
-        """
-        try:
-            # Check if we need to compress based on conversation count
-            conversation_entries = len(self.memory.get("conversation_history", []))
-            if conversation_entries > self.max_recent_conversation_entries:
-                self.logger.debug(f"Memory has {conversation_entries} conversations, compressing...")
-                return self.update_memory({"operation": "update"})
-            else:
-                self.logger.debug(f"Memory has only {conversation_entries} conversations, compression not needed yet")
-                return True
-        except Exception as e:
-            self.logger.error(f"Error updating memory with conversations: {str(e)}")
-            return False
-    
-    def get_graph_context(self, query: str, max_entities: int = 5) -> str:
-        """Get graph-based context for a query.
-        
-        Args:
-            query: The query to find relevant graph context for
-            max_entities: Maximum number of entities to include in context
-            
-        Returns:
-            str: Formatted graph context string
-        """
-        if not self.enable_graph_memory or not self.graph_manager:
-            return ""
-        
-        try:
-            # Query the graph for relevant context
-            context_results = self.graph_manager.query_for_context(query, max_results=max_entities)
-            
-            if not context_results:
-                return ""
-            
-            # Format graph context for the prompt
-            context_lines = []
-            context_lines.append("Relevant entities and relationships:")
-            
-            for result in context_results:
-                entity_name = result.get("name", "Unknown")
-                entity_type = result.get("type", "unknown")
-                description = result.get("description", "")
-                connections = result.get("connections", [])
-                
-                # Add entity info
-                entity_line = f"• {entity_name} ({entity_type})"
-                if description:
-                    entity_line += f": {description}"
-                context_lines.append(entity_line)
-                
-                # Add key relationships
-                if connections:
-                    for conn in connections[:3]:  # Limit to top 3 connections
-                        rel_type = conn.get("relationship", "related_to")
-                        target = conn.get("target", "")
-                        if target:
-                            context_lines.append(f"  - {rel_type} {target}")
-                
-            return "\n".join(context_lines)
-            
-        except Exception as e:
-            self.logger.warning(f"Error getting graph context: {e}")
-            return ""
 
-class AsyncMemoryManager(MemoryManager):
-    """Asynchronous version of MemoryManager that handles digest generation and embeddings updates asynchronously."""
-    
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._pending_digests = {}  # guid -> entry
-        self._pending_embeddings = set()  # set of guids
-        self._pending_graph_updates = set()  # set of guids
-        
-    async def add_conversation_entry(self, entry: Dict[str, Any]) -> bool:
+    async def add_conversation_entry_async(self, entry: Dict[str, Any]) -> bool:
         """Add a conversation entry with asynchronous digest generation and embeddings update.
         
         Args:
@@ -1335,3 +1260,75 @@ class AsyncMemoryManager(MemoryManager):
         """Wait for all pending async operations to complete."""
         while self._pending_digests or self._pending_embeddings or self._pending_graph_updates:
             await asyncio.sleep(0.1)  # Small delay to prevent busy waiting
+
+    def update_memory_with_conversations(self) -> bool:
+        """Update memory with current conversation history.
+        
+        This method processes the conversation history to extract important information
+        and update the memory context.
+        
+        Returns:
+            bool: True if memory was updated successfully
+        """
+        try:
+            # Check if we need to compress based on conversation count
+            conversation_entries = len(self.memory.get("conversation_history", []))
+            if conversation_entries > self.max_recent_conversation_entries:
+                self.logger.debug(f"Memory has {conversation_entries} conversations, compressing...")
+                return self.update_memory({"operation": "update"})
+            else:
+                self.logger.debug(f"Memory has only {conversation_entries} conversations, compression not needed yet")
+                return True
+        except Exception as e:
+            self.logger.error(f"Error updating memory with conversations: {str(e)}")
+            return False
+
+    def get_graph_context(self, query: str, max_entities: int = 5) -> str:
+        """Get graph-based context for a query.
+        
+        Args:
+            query: The query to find relevant graph context for
+            max_entities: Maximum number of entities to include in context
+            
+        Returns:
+            str: Formatted graph context string
+        """
+        if not self.enable_graph_memory or not self.graph_manager:
+            return ""
+        
+        try:
+            # Query the graph for relevant context
+            context_results = self.graph_manager.query_for_context(query, max_results=max_entities)
+            
+            if not context_results:
+                return ""
+            
+            # Format graph context for the prompt
+            context_lines = []
+            context_lines.append("Relevant entities and relationships:")
+            
+            for result in context_results:
+                entity_name = result.get("name", "Unknown")
+                entity_type = result.get("type", "unknown")
+                description = result.get("description", "")
+                connections = result.get("connections", [])
+                
+                # Add entity info
+                entity_line = f"• {entity_name} ({entity_type})"
+                if description:
+                    entity_line += f": {description}"
+                context_lines.append(entity_line)
+                
+                # Add key relationships
+                if connections:
+                    for conn in connections[:3]:  # Limit to top 3 connections
+                        rel_type = conn.get("relationship", "related_to")
+                        target = conn.get("target", "")
+                        if target:
+                            context_lines.append(f"  - {rel_type} {target}")
+                
+            return "\n".join(context_lines)
+            
+        except Exception as e:
+            self.logger.warning(f"Error getting graph context: {e}")
+            return ""

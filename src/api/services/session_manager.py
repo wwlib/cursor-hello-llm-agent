@@ -15,7 +15,7 @@ from pathlib import Path
 
 from ..models.sessions import SessionInfo, SessionStatus, SessionConfig
 from ...agent.agent import Agent
-from ...memory.memory_manager import MemoryManager, AsyncMemoryManager
+from ...memory.memory_manager import MemoryManager
 from ...ai.llm_ollama import OllamaService
 
 logger = logging.getLogger(__name__)
@@ -38,7 +38,7 @@ class AgentSession:
         
         # Initialize agent and memory manager
         self._agent: Optional[Agent] = None
-        self._memory_manager: Optional[AsyncMemoryManager] = None
+        self._memory_manager: Optional[MemoryManager] = None
         self._lock = Lock()
         
     def update_activity(self):
@@ -91,10 +91,6 @@ class AgentSession:
         
     async def initialize_agent(self):
         """Initialize the agent for this session"""
-        # Simple debug marker to confirm this method is called
-        debug_file = f"debug_init_{self.session_id[:8]}.txt"
-        with open(debug_file, "w") as f:
-            f.write(f"initialize_agent called for {self.session_id}\n")
         
         with self._lock:
             if self._agent is None:
@@ -178,7 +174,7 @@ SessionManager Debug Info for {self.session_id}:
                     with open("session_manager_debug.log", "a") as f:
                         f.write(f"{datetime.now()}: {debug_info}\n")
                     
-                    self._memory_manager = AsyncMemoryManager(
+                    self._memory_manager = MemoryManager(
                         memory_guid=self.session_id,
                         memory_file=memory_file,  # Use the properly structured file path
                         llm_service=general_llm_service,
@@ -218,7 +214,7 @@ SessionManager Debug Info for {self.session_id}:
         return self._agent
         
     @property
-    def memory_manager(self) -> Optional[AsyncMemoryManager]:
+    def memory_manager(self) -> Optional[MemoryManager]:
         """Get the memory manager instance"""
         return self._memory_manager
         

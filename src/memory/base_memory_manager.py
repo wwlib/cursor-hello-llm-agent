@@ -278,6 +278,18 @@ class BaseMemoryManager(ABC):
         """
         return False  # Default implementation for synchronous managers
     
+    def get_pending_operations(self) -> Dict[str, Any]:
+        """Get information about pending async operations.
+        
+        Returns:
+            Dict with counts of pending digests, embeddings, and graph updates
+        """
+        return {
+            "pending_digests": 0,
+            "pending_embeddings": 0,
+            "pending_graph_updates": 0
+        }  # Default implementation for synchronous managers
+    
     def get_graph_context(self, query: str, max_entities: int = 5) -> str:
         """Get graph-based context for a query.
         
