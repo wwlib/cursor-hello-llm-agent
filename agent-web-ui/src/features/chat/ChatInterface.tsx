@@ -5,6 +5,7 @@ import MessageList from './MessageList'
 import MessageInput from './MessageInput'
 import TypingIndicator from './TypingIndicator'
 import ChatHeader from './ChatHeader'
+import LogPanel from '../monitoring/LogPanel'
 
 const ChatInterface: React.FC = () => {
   const { currentSession } = useSessionStore()
@@ -57,57 +58,63 @@ const ChatInterface: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col h-full bg-white rounded-lg shadow-sm border border-gray-200">
-      <ChatHeader 
-        session={currentSession} 
-        isConnected={isConnected}
-        onClearHistory={clearHistory}
-      />
-      
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          {messages.length === 0 ? (
-            <div className="text-center text-gray-500 mt-8">
-              <div className="text-lg mb-2">👋 Welcome!</div>
-              <div className="text-sm">
-                Start a conversation with your agent. Try asking about your {currentSession.config.domain} campaign!
-              </div>
-            </div>
-          ) : (
-            <MessageList messages={messages} />
-          )}
-          
-          {isTyping && <TypingIndicator />}
-          
-          {error && (
-            <div className="bg-red-50 border border-red-200 rounded-md p-3">
-              <div className="flex items-center justify-between">
-                <div className="text-sm text-red-800">{error}</div>
-                <button
-                  onClick={() => setError(null)}
-                  className="text-red-400 hover:text-red-600"
-                >
-                  ✕
-                </button>
-              </div>
-            </div>
-          )}
-          
-          <div ref={messagesEndRef} />
-        </div>
+    <div className="flex flex-col h-full space-y-4">
+      {/* Main Chat Area */}
+      <div className="flex-1 flex flex-col bg-white rounded-lg shadow-sm border border-gray-200">
+        <ChatHeader 
+          session={currentSession} 
+          isConnected={isConnected}
+          onClearHistory={clearHistory}
+        />
         
-        <div className="border-t border-gray-200 p-4">
-          <MessageInput 
-            onSend={handleSendMessage} 
-            disabled={isTyping || !isConnected}
-            placeholder={
-              isConnected 
-                ? "Type your message..." 
-                : "Connecting to session..."
-            }
-          />
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            {messages.length === 0 ? (
+              <div className="text-center text-gray-500 mt-8">
+                <div className="text-lg mb-2">👋 Welcome!</div>
+                <div className="text-sm">
+                  Start a conversation with your agent. Try asking about your {currentSession.config.domain} campaign!
+                </div>
+              </div>
+            ) : (
+              <MessageList messages={messages} />
+            )}
+            
+            {isTyping && <TypingIndicator />}
+            
+            {error && (
+              <div className="bg-red-50 border border-red-200 rounded-md p-3">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-red-800">{error}</div>
+                  <button
+                    onClick={() => setError(null)}
+                    className="text-red-400 hover:text-red-600"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+            )}
+            
+            <div ref={messagesEndRef} />
+          </div>
+          
+          <div className="border-t border-gray-200 p-4">
+            <MessageInput 
+              onSend={handleSendMessage} 
+              disabled={isTyping || !isConnected}
+              placeholder={
+                isConnected 
+                  ? "Type your message..." 
+                  : "Connecting to session..."
+              }
+            />
+          </div>
         </div>
       </div>
+
+      {/* Log Panel */}
+      <LogPanel className="flex-shrink-0" maxHeight="max-h-48" />
     </div>
   )
 }

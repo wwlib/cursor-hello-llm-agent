@@ -135,7 +135,7 @@ export interface GraphStatsResponse {
 
 // WebSocket Types
 export interface WebSocketMessage {
-  type: 'query' | 'heartbeat' | 'get_status' | 'get_memory' | 'search_memory' | 'get_graph' | 'ping'
+  type: 'query' | 'heartbeat' | 'get_status' | 'get_memory' | 'search_memory' | 'get_graph' | 'ping' | 'get_log_sources' | 'subscribe_logs' | 'unsubscribe_logs'
   data: any
 }
 
@@ -144,6 +144,42 @@ export interface WebSocketResponse {
   data: any
   session_id?: string
   timestamp?: string
+}
+
+// Log Streaming Types
+export interface LogEntry {
+  timestamp: string
+  level: 'DEBUG' | 'INFO' | 'WARNING' | 'ERROR' | 'CRITICAL'
+  logger: string
+  message: string
+  source: string
+  session_id: string
+  module: string
+  function: string
+  line: number
+}
+
+export interface LogSubscriptionRequest {
+  connection_id: string
+  log_sources: string[]
+}
+
+export interface LogSourcesResponse {
+  available_sources: string[]
+}
+
+export interface LogStreamMessage {
+  type: 'log_stream'
+  data: LogEntry
+}
+
+export interface LogSubscriptionResponse {
+  type: 'logs_subscribed' | 'logs_unsubscribed'
+  data: {
+    connection_id: string
+    subscribed_sources?: string[]
+    unsubscribed_sources?: string[]
+  }
 }
 
 // Chat Types

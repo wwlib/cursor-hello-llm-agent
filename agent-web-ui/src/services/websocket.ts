@@ -1,16 +1,18 @@
-import type { WebSocketMessage, WebSocketResponse } from '../types/api'
+import type { WebSocketMessage, WebSocketResponse, LogSubscriptionRequest } from '../types/api'
 
 type WebSocketEventHandler = (data: WebSocketResponse) => void
 
 export class WebSocketService {
   private socket: WebSocket | null = null
   private sessionId: string | null = null
+  private connectionId: string | null = null
   private eventHandlers: Map<string, WebSocketEventHandler[]> = new Map()
   private reconnectAttempts = 0
   private maxReconnectAttempts = 5
   private reconnectDelay = 1000
   private heartbeatInterval: number | null = null
   private isConnecting = false
+  private subscribedLogSources: string[] = []
 
   constructor() {
     this.setupEventHandlers()
@@ -28,7 +30,12 @@ export class WebSocketService {
       'graph_response',
       'memory_update',
       'graph_update',
-      'error'
+      'error',
+      'connection_established',
+      'log_sources_response',
+      'logs_subscribed',
+      'logs_unsubscribed',
+      'log_stream'
     ]
     
     eventTypes.forEach(type => {
@@ -120,7 +127,13 @@ export class WebSocketService {
   }
 
   private handleMessage(response: WebSocketResponse) {
+    // Extract connection ID from connection_established message
+    if (response.type === 'connection_established' && response.data?.connection_id) {
+      this.connectionId = response.data.connection_id
+    }
+
     const handlers = this.eventHandlers.get(response.type) || []
+    
     handlers.forEach(handler => {
       try {
         handler(response)
@@ -206,13 +219,82 @@ export class WebSocketService {
     }
   }
 
+  // Log streaming methods
+  getLogSources() {
+    return this.sendMessage({
+      type: 'get_log_sources',
+      data: {}
+    })
+  }
+
+  subscribeToLogs(logSources: string[]) {
+    if (!this.connectionId) {
+      console.warn('🔍 WS_SERVICE: Cannot subscribe to logs: no connection ID available')
+      return false
+    }
+
+    const success = this.sendMessage({
+      type: 'subscribe_logs',
+      data: {
+        connection_id: this.connectionId,
+        log_sources: logSources
+      }
+    })
+
+    if (success) {
+      this.subscribedLogSources = [...new Set([...this.subscribedLogSources, ...logSources])]
+    }
+
+    return success
+  }
+
+  unsubscribeFromLogs(logSources?: string[]) {
+    if (!this.connectionId) {
+      console.warn('Cannot unsubscribe from logs: no connection ID available')
+      return false
+    }
+
+    const sourcesToUnsubscribe = logSources || this.subscribedLogSources
+
+    const success = this.sendMessage({
+      type: 'unsubscribe_logs',
+      data: {
+        connection_id: this.connectionId,
+        log_sources: sourcesToUnsubscribe
+      }
+    })
+
+    if (success) {
+      if (logSources) {
+        this.subscribedLogSources = this.subscribedLogSources.filter(
+          source => !logSources.includes(source)
+        )
+      } else {
+        this.subscribedLogSources = []
+      }
+    }
+
+    return success
+  }
+
+  getSubscribedLogSources(): string[] {
+    return [...this.subscribedLogSources]
+  }
+
   disconnect() {
+    // Unsubscribe from logs before disconnecting
+    if (this.subscribedLogSources.length > 0) {
+      this.unsubscribeFromLogs()
+    }
+
     this.stopHeartbeat()
     if (this.socket) {
       this.socket.close(1000, 'Client disconnect')
       this.socket = null
     }
     this.sessionId = null
+    this.connectionId = null
+    this.subscribedLogSources = []
     this.reconnectAttempts = 0
   }
 

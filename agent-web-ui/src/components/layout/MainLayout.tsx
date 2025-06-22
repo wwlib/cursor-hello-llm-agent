@@ -6,6 +6,7 @@ import {
   ChatBubbleLeftRightIcon,
   CircleStackIcon,
   ShareIcon,
+  DocumentTextIcon,
   Cog6ToothIcon,
   QuestionMarkCircleIcon
 } from '@heroicons/react/24/outline'
@@ -23,6 +24,7 @@ const navigation: SidebarItem[] = [
   { name: 'Chat', href: '/chat', icon: ChatBubbleLeftRightIcon },
   { name: 'Memory', href: '/memory', icon: CircleStackIcon },
   { name: 'Graph', href: '/graph', icon: ShareIcon },
+  { name: 'Logs', href: '/logs', icon: DocumentTextIcon },
   { name: 'Settings', href: '/settings', icon: Cog6ToothIcon },
   { name: 'Help', href: '/help', icon: QuestionMarkCircleIcon },
 ]
