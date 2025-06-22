@@ -35,16 +35,16 @@ const MainLayout: React.FC = () => {
   const { currentSession } = useSessionStore()
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       {/* Mobile sidebar */}
       <div className={`fixed inset-0 z-50 lg:hidden ${sidebarOpen ? 'block' : 'hidden'}`}>
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-75" onClick={() => setSidebarOpen(false)} />
-        <div className="fixed inset-y-0 left-0 flex w-full max-w-xs flex-col bg-white">
-          <div className="flex h-16 items-center justify-between px-4">
-            <h1 className="text-xl font-semibold text-gray-900">Agent System</h1>
+        <div className="fixed inset-0 bg-gray-900/80 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
+        <div className="fixed inset-y-0 left-0 flex w-full max-w-xs flex-col bg-white shadow-2xl">
+          <div className="flex h-16 items-center justify-between px-6 bg-gradient-to-r from-blue-600 to-indigo-600">
+            <h1 className="text-xl font-bold text-white">Agent System</h1>
             <button
               type="button"
-              className="text-gray-400 hover:text-gray-600"
+              className="text-blue-100 hover:text-white transition-colors"
               onClick={() => setSidebarOpen(false)}
             >
               <XMarkIcon className="h-6 w-6" />
@@ -55,22 +55,27 @@ const MainLayout: React.FC = () => {
       </div>
 
       {/* Desktop sidebar */}
-      <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col">
-        <div className="flex min-h-0 flex-1 flex-col bg-white border-r border-gray-200">
-          <div className="flex h-16 items-center px-4 border-b border-gray-200">
-            <h1 className="text-xl font-semibold text-gray-900">Agent System</h1>
+      <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-72 lg:flex-col">
+        <div className="flex min-h-0 flex-1 flex-col bg-white/80 backdrop-blur-xl border-r border-gray-200/50 shadow-xl">
+          <div className="flex h-16 items-center px-6 bg-gradient-to-r from-blue-600 to-indigo-600">
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-lg">🤖</span>
+              </div>
+              <h1 className="text-xl font-bold text-white">Agent System</h1>
+            </div>
           </div>
           <SidebarContent currentPath={location.pathname} />
         </div>
       </div>
 
       {/* Main content */}
-      <div className="lg:pl-64">
+      <div className="lg:pl-72">
         {/* Header */}
-        <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
+        <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200/50 bg-white/80 backdrop-blur-xl px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
           <button
             type="button"
-            className="-m-2.5 p-2.5 text-gray-700 lg:hidden"
+            className="-m-2.5 p-2.5 text-gray-700 hover:text-gray-900 lg:hidden transition-colors"
             onClick={() => setSidebarOpen(true)}
           >
             <Bars3Icon className="h-6 w-6" />
@@ -83,10 +88,10 @@ const MainLayout: React.FC = () => {
             
             <div className="flex items-center gap-x-4 lg:gap-x-6 ml-auto">
               {currentSession && (
-                <div className="flex items-center text-sm text-gray-500">
-                  <div className="flex items-center gap-x-2">
-                    <div className="h-2 w-2 bg-green-400 rounded-full"></div>
-                    <span>Active Session</span>
+                <div className="flex items-center text-sm text-gray-600">
+                  <div className="flex items-center gap-x-2 bg-green-50 px-3 py-1.5 rounded-full border border-green-200">
+                    <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <span className="font-medium text-green-700">Active Session</span>
                   </div>
                 </div>
               )}
@@ -95,7 +100,7 @@ const MainLayout: React.FC = () => {
         </div>
 
         {/* Page content */}
-        <main className="py-10">
+        <main className="py-8">
           <div className="px-4 sm:px-6 lg:px-8">
             <Outlet />
           </div>
@@ -111,33 +116,44 @@ interface SidebarContentProps {
 
 const SidebarContent: React.FC<SidebarContentProps> = ({ currentPath }) => {
   return (
-    <nav className="flex flex-1 flex-col">
-      <ul role="list" className="flex flex-1 flex-col gap-y-7">
+    <nav className="flex flex-1 flex-col p-4">
+      <ul role="list" className="flex flex-1 flex-col gap-y-2">
         <li>
-          <ul role="list" className="-mx-2 space-y-1">
+          <ul role="list" className="space-y-1">
             {navigation.map((item) => {
               const isCurrent = currentPath === item.href
               return (
                 <li key={item.name}>
                   <Link
                     to={item.href}
-                    className={`group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold ${
+                    className={`group flex gap-x-3 rounded-xl p-3 text-sm font-semibold transition-all duration-200 ${
                       isCurrent
-                        ? 'bg-gray-50 text-indigo-600'
-                        : 'text-gray-700 hover:text-indigo-600 hover:bg-gray-50'
+                        ? 'bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 border border-blue-200 shadow-sm'
+                        : 'text-gray-700 hover:text-blue-700 hover:bg-gray-50 hover:scale-105'
                     }`}
                   >
                     <item.icon
-                      className={`h-6 w-6 shrink-0 ${
-                        isCurrent ? 'text-indigo-600' : 'text-gray-400 group-hover:text-indigo-600'
+                      className={`h-6 w-6 shrink-0 transition-colors ${
+                        isCurrent ? 'text-blue-600' : 'text-gray-500 group-hover:text-blue-600'
                       }`}
                     />
                     {item.name}
+                    {isCurrent && (
+                      <div className="ml-auto w-2 h-2 bg-blue-500 rounded-full"></div>
+                    )}
                   </Link>
                 </li>
               )
             })}
           </ul>
+        </li>
+        
+        {/* Footer section */}
+        <li className="mt-auto">
+          <div className="text-xs text-gray-500 px-3 py-2 border-t border-gray-200 bg-gray-50/50 rounded-lg">
+            <div className="font-medium">Agent System v1.0</div>
+            <div className="mt-1">Intelligent conversation platform</div>
+          </div>
         </li>
       </ul>
     </nav>

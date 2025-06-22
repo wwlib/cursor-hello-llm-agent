@@ -186,24 +186,29 @@ const LogViewer: React.FC = () => {
   }
 
   return (
-    <div className="h-full flex flex-col bg-white">
+    <div className="h-full flex flex-col bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200/50 overflow-hidden">
       {/* Header Controls */}
-      <div className="border-b border-gray-200 p-4 space-y-4">
+      <div className="border-b border-gray-200/50 p-6 space-y-6 bg-gradient-to-r from-white to-blue-50/30">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-900">System Logs</h2>
-          <div className="flex items-center space-x-2">
-            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+              <span className="text-white text-sm">📊</span>
+            </div>
+            <h2 className="text-xl font-bold text-gray-900">System Logs</h2>
+          </div>
+          <div className="flex items-center space-x-3">
+            <span className={`px-3 py-1.5 rounded-full text-xs font-semibold ${
               isSubscribed 
-                ? 'bg-green-100 text-green-800' 
-                : 'bg-gray-100 text-gray-800'
+                ? 'bg-green-100 text-green-800 border border-green-200' 
+                : 'bg-gray-100 text-gray-800 border border-gray-200'
             }`}>
-              {isSubscribed ? 'Streaming' : 'Not Connected'}
+              {isSubscribed ? '🟢 Streaming' : '⚫ Not Connected'}
             </span>
             <button
               onClick={clearLogs}
-              className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded-md text-gray-700 transition-colors"
+              className="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg text-gray-700 transition-all duration-200 hover:scale-105 border border-gray-200"
             >
-              Clear Logs
+              🗑️ Clear Logs
             </button>
           </div>
         </div>
@@ -211,28 +216,33 @@ const LogViewer: React.FC = () => {
         {/* Search and Controls */}
         <div className="flex items-center space-x-4">
           <div className="flex-1">
-            <input
-              type="text"
-              placeholder="Search logs..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <span className="text-gray-400">🔍</span>
+              </div>
+              <input
+                type="text"
+                placeholder="Search logs..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/80 backdrop-blur-sm shadow-sm"
+              />
+            </div>
           </div>
-          <label className="flex items-center space-x-2">
+          <label className="flex items-center space-x-3 bg-white/80 backdrop-blur-sm px-4 py-3 rounded-xl border border-gray-200 shadow-sm">
             <input
               type="checkbox"
               checked={autoScroll}
               onChange={(e) => setAutoScroll(e.target.checked)}
-              className="rounded"
+              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
             />
-            <span className="text-sm text-gray-700">Auto-scroll</span>
+            <span className="text-sm font-medium text-gray-700">Auto-scroll</span>
           </label>
         </div>
 
         {/* Log Levels */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-700">Log Levels:</label>
+        <div className="space-y-3">
+          <label className="text-sm font-semibold text-gray-700">Filter by Level:</label>
           <div className="flex flex-wrap gap-2">
             {logLevels.map((level) => {
               const config = LOG_LEVEL_CONFIG[level]
@@ -241,10 +251,10 @@ const LogViewer: React.FC = () => {
                 <button
                   key={level}
                   onClick={() => handleLevelToggle(level)}
-                  className={`px-3 py-1 rounded-md text-sm font-medium transition-colors flex items-center space-x-1 ${
+                  className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 flex items-center space-x-2 hover:scale-105 ${
                     isActive
-                      ? `${config.bgColor} ${config.color} border`
-                      : 'bg-gray-100 text-gray-400 border border-gray-300 hover:bg-gray-200'
+                      ? `${config.bgColor} ${config.color} border border-current shadow-sm`
+                      : 'bg-gray-100 text-gray-500 border border-gray-200 hover:bg-gray-200'
                   }`}
                 >
                   <span>{config.icon}</span>
@@ -257,8 +267,8 @@ const LogViewer: React.FC = () => {
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-gray-200">
-        <nav className="flex space-x-8 px-4" aria-label="Tabs">
+      <div className="border-b border-gray-200/50 bg-gradient-to-r from-gray-50/50 to-blue-50/30">
+        <nav className="flex space-x-1 px-6 py-2" aria-label="Tabs">
           {LOG_TABS.map((tab) => {
             const tabLogCount = getTabLogs(tab.id).length
             const isActive = activeTab === tab.id
@@ -269,17 +279,17 @@ const LogViewer: React.FC = () => {
                 onClick={() => setActiveTab(tab.id)}
                 className={`${
                   isActive
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                } whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm flex items-center space-x-2`}
+                    ? 'bg-white border-blue-500 text-blue-700 shadow-sm'
+                    : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-white/50'
+                } whitespace-nowrap py-3 px-4 border-b-2 font-semibold text-sm flex items-center space-x-2 rounded-t-lg transition-all duration-200`}
               >
                 <span className="text-base">{tab.icon}</span>
                 <span>{tab.name}</span>
                 {tabLogCount > 0 && (
-                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                  <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-bold ${
                     isActive 
                       ? 'bg-blue-100 text-blue-800' 
-                      : 'bg-gray-100 text-gray-800'
+                      : 'bg-gray-200 text-gray-700'
                   }`}>
                     {tabLogCount}
                   </span>
@@ -293,9 +303,9 @@ const LogViewer: React.FC = () => {
       {/* Tab Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Tab Description */}
-        <div className="px-4 py-2 bg-gray-50 border-b border-gray-200">
-          <p className="text-sm text-gray-600">
-            {LOG_TABS.find(t => t.id === activeTab)?.description}
+        <div className="px-6 py-3 bg-gradient-to-r from-blue-50/50 to-indigo-50/30 border-b border-gray-200/50">
+          <p className="text-sm text-gray-700 font-medium">
+            📋 {LOG_TABS.find(t => t.id === activeTab)?.description}
           </p>
         </div>
 
@@ -303,13 +313,16 @@ const LogViewer: React.FC = () => {
         <div 
           ref={logsContainerRef}
           onScroll={handleScroll}
-          className="flex-1 overflow-y-auto bg-gray-50"
+          className="flex-1 overflow-y-auto bg-gradient-to-br from-gray-50/30 to-blue-50/20"
         >
           {activeTabLogs.length === 0 ? (
             <div className="flex items-center justify-center h-full">
-              <div className="text-center">
-                <div className="text-gray-500 text-lg mb-2">No Logs</div>
-                <div className="text-gray-400 text-sm">
+              <div className="text-center p-8 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/50">
+                <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-gray-100 to-blue-100 rounded-full flex items-center justify-center">
+                  <span className="text-2xl">📋</span>
+                </div>
+                <div className="text-gray-600 text-lg font-semibold mb-2">No Logs</div>
+                <div className="text-gray-500 text-sm max-w-sm">
                   {subscribedLogSources.length === 0 
                     ? 'Waiting for log sources to be available...'
                     : `No ${LOG_TABS.find(t => t.id === activeTab)?.name.toLowerCase()} logs match your current filters.`
@@ -318,7 +331,7 @@ const LogViewer: React.FC = () => {
               </div>
             </div>
           ) : (
-            <div className="p-4 space-y-1">
+            <div className="p-6 space-y-3">
               {activeTabLogs.map((log, index) => {
                 const config = LOG_LEVEL_CONFIG[log.level] || LOG_LEVEL_CONFIG.INFO
                 return (
@@ -337,13 +350,13 @@ const LogViewer: React.FC = () => {
       </div>
 
       {/* Footer Stats */}
-      <div className="border-t border-gray-200 px-4 py-2 bg-gray-50">
+      <div className="border-t border-gray-200/50 px-6 py-4 bg-gradient-to-r from-gray-50/50 to-blue-50/30">
         <div className="flex items-center justify-between text-sm text-gray-600">
-          <span>
-            Showing {activeTabLogs.length} {LOG_TABS.find(t => t.id === activeTab)?.name.toLowerCase()} logs of {logs.length} total
+          <span className="font-medium">
+            📊 Showing {activeTabLogs.length} {LOG_TABS.find(t => t.id === activeTab)?.name.toLowerCase()} logs of {logs.length} total
           </span>
-          <span>
-            Sources: {subscribedLogSources.join(', ') || 'None'}
+          <span className="text-xs bg-white/80 px-3 py-1 rounded-full border border-gray-200">
+            🔗 Sources: {subscribedLogSources.join(', ') || 'None'}
           </span>
         </div>
       </div>
@@ -361,42 +374,46 @@ const LogEntryRow: React.FC<LogEntryRowProps> = ({ log, config, formatTimestamp 
   const [expanded, setExpanded] = useState(false)
 
   return (
-    <div className={`border rounded-md p-3 ${config.bgColor} border-gray-200 hover:shadow-sm transition-shadow`}>
+    <div className={`border rounded-xl p-4 ${config.bgColor} border-gray-200/50 hover:shadow-lg transition-all duration-200 hover:scale-[1.02] bg-white/80 backdrop-blur-sm`}>
       <div 
-        className="flex items-start space-x-3 cursor-pointer" 
+        className="flex items-start space-x-4 cursor-pointer" 
         onClick={() => setExpanded(!expanded)}
       >
-        <span className="text-lg flex-shrink-0">{config.icon}</span>
+        <div className="flex-shrink-0 w-8 h-8 bg-white/80 rounded-lg flex items-center justify-center border border-gray-200/50">
+          <span className="text-lg">{config.icon}</span>
+        </div>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center space-x-2 text-sm">
-            <span className="font-mono text-gray-500">
+          <div className="flex items-center space-x-3 text-sm">
+            <span className="font-mono text-gray-600 bg-gray-100/80 px-2 py-1 rounded-md">
               {formatTimestamp(log.timestamp)}
             </span>
-            <span className={`font-medium ${config.color}`}>
+            <span className={`font-bold px-2 py-1 rounded-md ${config.color} bg-white/80`}>
               {log.level}
             </span>
-            <span className="text-gray-600 font-medium">
+            <span className="text-gray-700 font-semibold bg-blue-50/80 px-2 py-1 rounded-md">
               {log.source}
             </span>
-            <span className="text-gray-500 text-xs">
+            <span className="text-gray-500 text-xs bg-gray-50/80 px-2 py-1 rounded-md">
               {log.logger}
             </span>
           </div>
-          <div className="mt-1">
-            <p className={`text-sm ${expanded ? '' : 'truncate'} ${config.color}`}>
+          <div className="mt-3">
+            <p className={`text-sm leading-relaxed ${expanded ? '' : 'truncate'} ${config.color} font-medium`}>
               {log.message}
             </p>
           </div>
           {expanded && (
-            <div className="mt-2 text-xs text-gray-500 bg-white bg-opacity-50 rounded p-2">
-              <div><strong>Module:</strong> {log.module}</div>
-              <div><strong>Function:</strong> {log.function}</div>
-              <div><strong>Line:</strong> {log.line}</div>
-              <div><strong>Source:</strong> {log.source}</div>
+            <div className="mt-4 text-xs text-gray-600 bg-gradient-to-r from-gray-50/80 to-blue-50/50 rounded-lg p-3 border border-gray-200/50">
+              <div className="grid grid-cols-2 gap-3">
+                <div><strong>Module:</strong> <code className="bg-gray-100 px-1 rounded">{log.module}</code></div>
+                <div><strong>Function:</strong> <code className="bg-gray-100 px-1 rounded">{log.function}</code></div>
+                <div><strong>Line:</strong> <code className="bg-gray-100 px-1 rounded">{log.line}</code></div>
+                <div><strong>Source:</strong> <code className="bg-gray-100 px-1 rounded">{log.source}</code></div>
+              </div>
             </div>
           )}
         </div>
-        <button className="text-gray-400 hover:text-gray-600 flex-shrink-0">
+        <button className="text-gray-400 hover:text-gray-700 flex-shrink-0 p-2 hover:bg-white/80 rounded-lg transition-colors">
           {expanded ? '▲' : '▼'}
         </button>
       </div>
