@@ -14,6 +14,7 @@ from ..models.sessions import (
     SessionListResponse, DeleteSessionResponse
 )
 from ..services.session_manager import SessionManager
+from ..configs import get_available_domains, get_domain_config
 
 logger = logging.getLogger(__name__)
 
@@ -126,4 +127,61 @@ async def cleanup_expired_sessions(
         
     except Exception as e:
         logger.error(f"Failed to cleanup sessions: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to cleanup sessions: {str(e)}") 
+        raise HTTPException(status_code=500, detail=f"Failed to cleanup sessions: {str(e)}")
+
+@router.get("/domains")
+async def list_available_domains():
+    """List available domain configurations"""
+    try:
+        domains = get_available_domains()
+        domain_info = {}
+        
+        for domain_name in domains:
+            config = get_domain_config(domain_name)
+            if config:
+                domain_info[domain_name] = {
+                    "name": config.get("domain_name", domain_name),
+                    "description": config.get("description", "No description available"),
+                    "has_graph_memory": config.get("graph_memory_config", {}).get("enabled", False),
+                    "entity_types": config.get("graph_memory_config", {}).get("entity_types", []),
+                    "relationship_types": config.get("graph_memory_config", {}).get("relationship_types", [])
+                }
+        
+        return JSONResponse({
+            "domains": domain_info,
+            "available_count": len(domains)
+        })
+        
+    except Exception as e:
+        logger.error(f"Failed to list domains: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to list domains: {str(e)}")
+
+@router.get("/domains/{domain_name}")
+async def get_domain_configuration(domain_name: str):
+    """Get detailed configuration for a specific domain"""
+    try:
+        config = get_domain_config(domain_name)
+        if not config:
+            raise HTTPException(status_code=404, detail=f"Domain '{domain_name}' not found")
+        
+        # Return a sanitized version of the config (exclude potentially sensitive data)
+        safe_config = {
+            "domain_name": config.get("domain_name", domain_name),
+            "description": config.get("description", "No description available"),
+            "has_initial_data": bool(config.get("initial_data")),
+            "topic_taxonomy": config.get("topic_taxonomy", {}),
+            "topic_normalizations": config.get("topic_normalizations", {}),
+            "graph_memory_config": config.get("graph_memory_config", {}),
+            "domain_specific_prompt_instructions": {
+                "has_query_instructions": bool(config.get("domain_specific_prompt_instructions", {}).get("query")),
+                "has_update_instructions": bool(config.get("domain_specific_prompt_instructions", {}).get("update"))
+            }
+        }
+        
+        return JSONResponse(safe_config)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to get domain config for {domain_name}: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to get domain config: {str(e)}") 

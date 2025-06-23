@@ -14,6 +14,7 @@ from threading import Lock
 from pathlib import Path
 
 from ..models.sessions import SessionInfo, SessionStatus, SessionConfig
+from ..configs import get_domain_config, get_default_domain
 from ...agent.agent import Agent
 from ...memory.memory_manager import MemoryManager
 from ...ai.llm_ollama import OllamaService
@@ -95,6 +96,18 @@ class AgentSession:
         with self._lock:
             if self._agent is None:
                 try:
+                    # Resolve domain configuration
+                    domain_config = get_domain_config(self.config.domain)
+                    if not domain_config:
+                        logger.warning(f"Unknown domain '{self.config.domain}', using default")
+                        default_domain = get_default_domain()
+                        domain_config = get_domain_config(default_domain)
+                        if not domain_config:
+                            raise ValueError(f"No domain configuration available for '{self.config.domain}' or default '{default_domain}'")
+                        # Update config to reflect the fallback
+                        self.config.domain = default_domain
+                    
+                    logger.info(f"Using domain config: {self.config.domain} - {domain_config.get('domain_name', 'unnamed')}")
                     # Set up logging and data paths
                     log_files = self.setup_session_logging()
                     
@@ -204,6 +217,7 @@ SessionManager Debug Info for {self.session_id}:
                     self._memory_manager = MemoryManager(
                         memory_guid=self.session_id,
                         memory_file=memory_file,  # Use the properly structured file path
+                        domain_config=domain_config,  # Pass the resolved domain configuration
                         llm_service=general_llm_service,
                         max_recent_conversation_entries=4,
                         digest_llm_service=digest_llm_service,
@@ -236,10 +250,11 @@ SessionManager Debug Info for {self.session_id}:
                         logger.warning(f"Could not add WebSocket log handler for agent: {e}")
                     
                     # Create agent with the memory manager and LLM service
+                    domain_name = domain_config.get("domain_name", self.config.domain)
                     self._agent = Agent(
                         llm_service=general_llm_service,
                         memory_manager=self._memory_manager,
-                        domain_name=self.config.domain,
+                        domain_name=domain_name,
                         logger=agent_logger
                     )
                     
@@ -247,10 +262,46 @@ SessionManager Debug Info for {self.session_id}:
                     logger.info(f"Memory file: {memory_file}")
                     logger.info(f"Log files: {log_files}")
                     
+                    # Initialize memory with domain-specific initial data (like agent_usage_example.py)
+                    await self._initialize_memory_with_domain_data(domain_config)
+                    
                 except Exception as e:
                     logger.error(f"Failed to initialize agent for session {self.session_id}: {e}")
                     self.status = SessionStatus.ERROR
                     raise
+    async def _initialize_memory_with_domain_data(self, domain_config: dict):
+        """Initialize memory with domain-specific initial data (like agent_usage_example.py)"""
+        try:
+            logger.info(f"Initializing memory with domain data for session {self.session_id}")
+            
+            # Check if memory already exists and has content
+            memory = self._memory_manager.get_memory()
+            if memory and memory.get("conversation_history"):
+                logger.info("Memory already initialized, using existing memory")
+                # Ensure we're in INTERACTION phase
+                if self._agent.get_current_phase().name == "INITIALIZATION":
+                    logger.info("Moving to INTERACTION phase for existing memory")
+                    from ...agent.agent import AgentPhase
+                    self._agent.current_phase = AgentPhase.INTERACTION
+                return True
+            
+            # If no existing memory, create new memory with domain initial data
+            logger.info("Creating new memory with domain-specific initial data")
+            initial_data = domain_config.get("initial_data", "")
+            if initial_data:
+                success = await self._agent.learn(initial_data)
+                if not success:
+                    logger.error("Failed to initialize memory with domain data!")
+                    return False
+                logger.info("Memory initialized successfully with domain-specific initial data")
+            else:
+                logger.warning("No initial_data found in domain config")
+                
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error initializing memory with domain data: {e}")
+            return False
                     
     @property
     def agent(self) -> Optional[Agent]:

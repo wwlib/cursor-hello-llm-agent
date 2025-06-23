@@ -96,8 +96,9 @@ export interface GraphQueryParams {
 
 export interface GraphNode {
   id: string
+  name: string
   type: string
-  properties: Record<string, any>
+  description: string
   metadata?: Record<string, any>
 }
 
@@ -106,13 +107,20 @@ export interface GraphEdge {
   source: string
   target: string
   type: string
-  properties: Record<string, any>
+  description: string
+  metadata?: Record<string, any>
 }
 
 export interface GraphDataResponse {
   nodes: GraphNode[]
   edges: GraphEdge[]
   metadata: Record<string, any>
+  stats?: {
+    nodes: number
+    edges: number
+    total_entities: number
+    total_relationships: number
+  }
 }
 
 export interface EntityDetailsResponse {

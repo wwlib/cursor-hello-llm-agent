@@ -50,9 +50,9 @@ async def get_graph_data(
         graph_manager = session.memory_manager.graph_manager
         
         try:
-            # Get entities (nodes)
-            entities = graph_manager.get_all_entities()
-            relationships = graph_manager.get_all_relationships()
+            # Get entities (nodes) and relationships (edges) from graph manager
+            entities = graph_manager.nodes  # Dictionary of entity_id -> GraphNode
+            relationships = graph_manager.edges  # List of GraphEdge objects
             
             # Convert entities to nodes
             nodes = []
@@ -63,12 +63,12 @@ async def get_graph_data(
                 node_data = {
                     "id": entity_id,
                     "name": entity.name,
-                    "type": entity.entity_type,
+                    "type": entity.type,
                     "description": entity.description
                 }
                 
                 if include_metadata:
-                    node_data["metadata"] = entity.metadata
+                    node_data["metadata"] = getattr(entity, 'attributes', {})
                     
                 # Format for D3 if requested
                 if format == "d3":
@@ -78,20 +78,24 @@ async def get_graph_data(
             
             # Convert relationships to edges
             edges = []
-            for rel_id, relationship in relationships.items():
+            for relationship in relationships:
                 if edge_limit and len(edges) >= edge_limit:
                     break
                     
                 edge_data = {
-                    "id": rel_id,
-                    "source": relationship.source_id,
-                    "target": relationship.target_id,
-                    "type": relationship.relationship_type,
-                    "description": relationship.description
+                    "id": relationship.id,
+                    "source": relationship.from_node_id,
+                    "target": relationship.to_node_id,
+                    "type": relationship.relationship,
+                    "description": getattr(relationship, 'evidence', relationship.relationship)
                 }
                 
                 if include_metadata:
-                    edge_data["metadata"] = relationship.metadata
+                    edge_data["metadata"] = {
+                        "confidence": getattr(relationship, 'confidence', 1.0),
+                        "created_at": getattr(relationship, 'created_at', ''),
+                        "updated_at": getattr(relationship, 'updated_at', '')
+                    }
                     
                 # Format for D3 if requested
                 if format == "d3":
@@ -166,25 +170,25 @@ async def get_entity_details(
         graph_manager = session.memory_manager.graph_manager
         
         # Get entity
-        entities = graph_manager.get_all_entities()
+        entities = graph_manager.nodes
         if entity_id not in entities:
             raise HTTPException(status_code=404, detail="Entity not found")
             
         entity = entities[entity_id]
         
         # Get relationships for this entity
-        relationships = graph_manager.get_all_relationships()
+        relationships = graph_manager.edges
         entity_relationships = []
         
-        for rel_id, relationship in relationships.items():
-            if relationship.source_id == entity_id or relationship.target_id == entity_id:
+        for relationship in relationships:
+            if relationship.from_node_id == entity_id or relationship.to_node_id == entity_id:
                 entity_relationships.append({
-                    "id": rel_id,
-                    "type": relationship.relationship_type,
-                    "description": relationship.description,
-                    "source": relationship.source_id,
-                    "target": relationship.target_id,
-                    "is_source": relationship.source_id == entity_id
+                    "id": relationship.id,
+                    "type": relationship.relationship,
+                    "description": getattr(relationship, 'evidence', relationship.relationship),
+                    "source": relationship.from_node_id,
+                    "target": relationship.to_node_id,
+                    "is_source": relationship.from_node_id == entity_id
                 })
         
         return JSONResponse({
@@ -226,19 +230,19 @@ async def get_graph_stats(
         graph_manager = session.memory_manager.graph_manager
         
         try:
-            entities = graph_manager.get_all_entities()
-            relationships = graph_manager.get_all_relationships()
+            entities = graph_manager.nodes
+            relationships = graph_manager.edges
             
             # Count entity types
             entity_types = {}
             for entity in entities.values():
-                entity_type = entity.entity_type
+                entity_type = entity.type
                 entity_types[entity_type] = entity_types.get(entity_type, 0) + 1
             
             # Count relationship types
             relationship_types = {}
-            for relationship in relationships.values():
-                rel_type = relationship.relationship_type
+            for relationship in relationships:
+                rel_type = relationship.relationship
                 relationship_types[rel_type] = relationship_types.get(rel_type, 0) + 1
         
             return JSONResponse({
