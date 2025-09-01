@@ -432,200 +432,244 @@ class MemoryManager(BaseMemoryManager):
         Returns:
             Dict[str, Any]: Response with the LLM's answer
         """
-        try:
-            self.logger.debug("Querying memory...")
-            
-            # Extract query text
-            query = query_context.get("query", "")
+        # Import performance tracker
+        from src.utils.performance_tracker import get_performance_tracker
+        
+        # Get performance tracker for this session
+        performance_tracker = get_performance_tracker(self.memory_guid, self.logger)
+        
+        with performance_tracker.track_operation("memory_query_total"):
+            try:
+                self.logger.debug("Querying memory...")
+                
+                # Extract query text
+                query = query_context.get("query", "")
 
-            # Add user message to history immediately
-            if query:
-                user_entry = {
-                    "guid": str(uuid.uuid4()),
-                    "role": "user",
-                    "content": query,
-                    "timestamp": datetime.now().isoformat()
-                }
-                # Add to conversation history file and memory immediately
-                self.add_to_conversation_history(user_entry)
-                if "conversation_history" not in self.memory:
-                    self.memory["conversation_history"] = []
-                self.memory["conversation_history"].append(user_entry)
-                self.save_memory("add_user_entry")
-            
-            # Use concatenated initial segments for static memory in prompts
-            static_memory_text = query_context.get("static_memory", "") or self._get_initial_segments_text() or self._format_static_memory_as_text()
-            
-            # Format context as text (use provided or get from memory)
-            previous_context_text = query_context.get("previous_context", "") or self._format_context_as_text()
-            
-            # Format recent conversation history as text (use provided or get from memory)
-            conversation_history_text = query_context.get("conversation_history", "") or self._format_conversation_history_as_text()
-            
-            # Get or generate RAG context
-            rag_context = query_context.get("rag_context")
-            if not rag_context:
-                enhanced_context = self.rag_manager.enhance_memory_query(query_context)
-                rag_context = enhanced_context.get("rag_context", "")
-                if rag_context:
-                    self.logger.debug("Using RAG-enhanced context for memory query (auto-generated)")
-            else:
-                self.logger.debug("Using RAG-enhanced context for memory query (provided)")
-            
-            # Get graph context if enabled
-            graph_context = ""
-            if self.enable_graph_memory and self.graph_manager:
-                try:
-                    graph_context = self.get_graph_context(query)
-                    if graph_context:
-                        self.logger.debug("Added graph context to memory query")
-                except Exception as e:
-                    self.logger.warning(f"Failed to get graph context: {e}")
-                    graph_context = ""
-            
-            # Get domain-specific instructions (use provided or get from config)
-            domain_specific_prompt_instructions = query_context.get("domain_specific_prompt_instructions", "")
-            domain_specific_query_prompt_instructions = domain_specific_prompt_instructions
-            if not domain_specific_prompt_instructions and self.domain_config:
-                domain_specific_prompt_instructions = self.domain_config.get("domain_specific_prompt_instructions", "")
-                domain_specific_query_prompt_instructions = domain_specific_prompt_instructions.get("query", "") if isinstance(domain_specific_prompt_instructions, dict) else ""
-            
-            # Create prompt with formatted text
-            prompt = self.templates["query"].format(
-                static_memory_text=static_memory_text,
-                previous_context_text=previous_context_text,
-                conversation_history_text=conversation_history_text,
-                query=query,
-                domain_specific_prompt_instructions=domain_specific_query_prompt_instructions,
-                rag_context=rag_context,  # Include RAG context in the prompt
-                graph_context=graph_context  # Include graph context in the prompt
-            )
-            
-            # Get response from LLM
-            self.logger.debug("Generating response using LLM...")
-            llm_response = self.llm.generate(
-                prompt,
-                options={"temperature": 0.7}
-            )
-            
-            # Start background processing for user entry and agent response
-            if query:
-                # Start background processing for user entry
-                asyncio.create_task(self._process_entry_async(user_entry))
-            
-            # Create agent entry
-            agent_entry = {
-                "guid": str(uuid.uuid4()),
-                "role": "agent",
-                "content": llm_response,
-                "timestamp": datetime.now().isoformat()
-            }
-            
-            # Add agent response to history immediately
-            self.add_to_conversation_history(agent_entry)
-            if "conversation_history" not in self.memory:
-                self.memory["conversation_history"] = []
-            self.memory["conversation_history"].append(agent_entry)
-            self.save_memory("add_agent_entry")
-            
-            # Start background processing for agent entry
-            asyncio.create_task(self._process_entry_async(agent_entry))
-            
-            # Check if we should compress memory based on number of conversations
-            conversation_entries = len(self.memory["conversation_history"])
-            if conversation_entries > self.max_recent_conversation_entries:
-                self.logger.debug(f"Memory has {conversation_entries} conversations, scheduling compression...")
-                asyncio.create_task(self._compress_memory_async())
-            
-            return {"response": llm_response}
+                # Add user message to history immediately
+                user_entry = None
+                if query:
+                    with performance_tracker.track_operation("add_user_entry"):
+                        user_entry = {
+                            "guid": str(uuid.uuid4()),
+                            "role": "user",
+                            "content": query,
+                            "timestamp": datetime.now().isoformat()
+                        }
+                        # Add to conversation history file and memory immediately
+                        self.add_to_conversation_history(user_entry)
+                        if "conversation_history" not in self.memory:
+                            self.memory["conversation_history"] = []
+                        self.memory["conversation_history"].append(user_entry)
+                        self.save_memory("add_user_entry")
+                
+                # Format memory components
+                with performance_tracker.track_operation("format_memory_components"):
+                    # Use concatenated initial segments for static memory in prompts
+                    static_memory_text = query_context.get("static_memory", "") or self._get_initial_segments_text() or self._format_static_memory_as_text()
+                    
+                    # Format context as text (use provided or get from memory)
+                    previous_context_text = query_context.get("previous_context", "") or self._format_context_as_text()
+                    
+                    # Format recent conversation history as text (use provided or get from memory)
+                    conversation_history_text = query_context.get("conversation_history", "") or self._format_conversation_history_as_text()
+                
+                # Get or generate RAG context
+                rag_context = query_context.get("rag_context")
+                if not rag_context:
+                    with performance_tracker.track_operation("rag_enhancement"):
+                        enhanced_context = self.rag_manager.enhance_memory_query(query_context)
+                        rag_context = enhanced_context.get("rag_context", "")
+                        if rag_context:
+                            self.logger.debug("Using RAG-enhanced context for memory query (auto-generated)")
+                else:
+                    self.logger.debug("Using RAG-enhanced context for memory query (provided)")
+                
+                # Get graph context if enabled
+                graph_context = ""
+                if self.enable_graph_memory and self.graph_manager:
+                    with performance_tracker.track_operation("graph_context"):
+                        try:
+                            graph_context = self.get_graph_context(query)
+                            if graph_context:
+                                self.logger.debug("Added graph context to memory query")
+                        except Exception as e:
+                            self.logger.warning(f"Failed to get graph context: {e}")
+                            graph_context = ""
+                
+                # Get domain-specific instructions (use provided or get from config)
+                with performance_tracker.track_operation("format_prompt"):
+                    domain_specific_prompt_instructions = query_context.get("domain_specific_prompt_instructions", "")
+                    domain_specific_query_prompt_instructions = domain_specific_prompt_instructions
+                    if not domain_specific_prompt_instructions and self.domain_config:
+                        domain_specific_prompt_instructions = self.domain_config.get("domain_specific_prompt_instructions", "")
+                        domain_specific_query_prompt_instructions = domain_specific_prompt_instructions.get("query", "") if isinstance(domain_specific_prompt_instructions, dict) else ""
+                    
+                    # Create prompt with formatted text
+                    prompt = self.templates["query"].format(
+                        static_memory_text=static_memory_text,
+                        previous_context_text=previous_context_text,
+                        conversation_history_text=conversation_history_text,
+                        query=query,
+                        domain_specific_prompt_instructions=domain_specific_query_prompt_instructions,
+                        rag_context=rag_context,  # Include RAG context in the prompt
+                        graph_context=graph_context  # Include graph context in the prompt
+                    )
+                
+                # Get response from LLM
+                self.logger.debug("Generating response using LLM...")
+                with performance_tracker.track_operation("llm_generation", {"prompt_length": len(prompt)}):
+                    llm_response = self.llm.generate(
+                        prompt,
+                        options={"temperature": 0.7}
+                    )
+                
+                # Create agent entry and add to history
+                with performance_tracker.track_operation("add_agent_entry"):
+                    agent_entry = {
+                        "guid": str(uuid.uuid4()),
+                        "role": "agent",
+                        "content": llm_response,
+                        "timestamp": datetime.now().isoformat()
+                    }
+                    
+                    # Add agent response to history immediately
+                    self.add_to_conversation_history(agent_entry)
+                    if "conversation_history" not in self.memory:
+                        self.memory["conversation_history"] = []
+                    self.memory["conversation_history"].append(agent_entry)
+                    self.save_memory("add_agent_entry")
+                
+                # Start background processing for entries
+                with performance_tracker.track_operation("start_async_operations"):
+                    if user_entry:
+                        # Start background processing for user entry
+                        asyncio.create_task(self._process_entry_async(user_entry))
+                    
+                    # Start background processing for agent entry
+                    asyncio.create_task(self._process_entry_async(agent_entry))
+                    
+                    # Check if we should compress memory based on number of conversations
+                    conversation_entries = len(self.memory["conversation_history"])
+                    if conversation_entries > self.max_recent_conversation_entries:
+                        self.logger.debug(f"Memory has {conversation_entries} conversations, scheduling compression...")
+                        asyncio.create_task(self._compress_memory_async())
+                
+                return {"response": llm_response}
 
-        except Exception as e:
-            self.logger.error(f"Error in query_memory: {str(e)}")
-            return {"response": f"Error processing query: {str(e)}", "error": str(e)}
+            except Exception as e:
+                self.logger.error(f"Error in query_memory: {str(e)}")
+                return {"response": f"Error processing query: {str(e)}", "error": str(e)}
             
     async def _process_entry_async(self, entry: Dict[str, Any]) -> None:
         """Process a conversation entry asynchronously (digest generation, embeddings, and graph updates)."""
-        try:
-            # Generate digest if not already present
-            if "digest" not in entry:
-                self.logger.debug(f"Generating digest for {entry['role']} entry...")
-                entry["digest"] = self.digest_generator.generate_digest(entry, self.memory)
+        # Import performance tracker
+        from src.utils.performance_tracker import get_performance_tracker
+        
+        # Get performance tracker for this session
+        performance_tracker = get_performance_tracker(self.memory_guid, self.logger)
+        
+        with performance_tracker.track_operation(f"async_process_entry_{entry.get('role', 'unknown')}"):
+            try:
+                # Generate digest if not already present
+                if "digest" not in entry:
+                    with performance_tracker.track_operation("async_digest_generation"):
+                        self.logger.debug(f"Generating digest for {entry['role']} entry...")
+                        entry["digest"] = self.digest_generator.generate_digest(entry, self.memory)
+                        
+                        # Update conversation history file with the digest
+                        if hasattr(self, '_update_conversation_history_entry'):
+                            self._update_conversation_history_entry(entry)
+                        
+                        self.save_memory("async_digest_generation")
                 
-                # Update conversation history file with the digest
-                if hasattr(self, '_update_conversation_history_entry'):
-                    self._update_conversation_history_entry(entry)
+                # Update embeddings
+                with performance_tracker.track_operation("async_embeddings_update"):
+                    self.logger.debug(f"Updating embeddings for {entry['role']} entry...")
+                    self.embeddings_manager.add_new_embeddings([entry])
                 
-                self.save_memory("async_digest_generation")
-            
-            # Update embeddings
-            self.logger.debug(f"Updating embeddings for {entry['role']} entry...")
-            self.embeddings_manager.add_new_embeddings([entry])
-            
-            # Update graph memory if enabled
-            if self.enable_graph_memory and self.graph_manager:
-                try:
-                    await self._update_graph_memory_async(entry)
-                except Exception as e:
-                    self.logger.warning(f"Error updating graph memory: {e}")
-            
-        except Exception as e:
-            self.logger.error(f"Error in async entry processing: {str(e)}")
+                # Update graph memory if enabled
+                if self.enable_graph_memory and self.graph_manager:
+                    try:
+                        await self._update_graph_memory_async(entry)
+                    except Exception as e:
+                        self.logger.warning(f"Error updating graph memory: {e}")
+                
+            except Exception as e:
+                self.logger.error(f"Error in async entry processing: {str(e)}")
     
     async def _update_graph_memory_async(self, entry: Dict[str, Any]) -> None:
         """Update graph memory with entities and relationships from a conversation entry."""
-        try:
-            self.logger.debug(f"Updating graph memory for {entry['role']} entry...")
-            
-            # Use conversation-level processing with EntityResolver (now mandatory)
-            if hasattr(self.graph_manager, 'process_conversation_entry_with_resolver'):
-                await self._update_graph_memory_conversation_level(entry)
-            else:
-                # Fallback to segment-based processing for legacy compatibility
-                await self._update_graph_memory_segment_based(entry)
+        # Import performance tracker
+        from src.utils.performance_tracker import get_performance_tracker
+        
+        # Get performance tracker for this session
+        performance_tracker = get_performance_tracker(self.memory_guid, self.logger)
+        
+        with performance_tracker.track_operation("async_graph_memory_update"):
+            try:
+                self.logger.debug(f"Updating graph memory for {entry['role']} entry...")
                 
-        except Exception as e:
-            self.logger.error(f"Error updating graph memory: {e}")
+                # Use conversation-level processing with EntityResolver (now mandatory)
+                if hasattr(self.graph_manager, 'process_conversation_entry_with_resolver'):
+                    await self._update_graph_memory_conversation_level(entry)
+                else:
+                    # Fallback to segment-based processing for legacy compatibility
+                    await self._update_graph_memory_segment_based(entry)
+                    
+            except Exception as e:
+                self.logger.error(f"Error updating graph memory: {e}")
     
     async def _update_graph_memory_conversation_level(self, entry: Dict[str, Any]) -> None:
         """Update graph memory using conversation-level processing (for GraphManager with EntityResolver)."""
-        try:
-            # Get full conversation text and digest
-            conversation_text = entry.get("content", "")
-            digest = entry.get("digest", {})
-            digest_text = ""
-            
-            # Build digest text from important segments
-            segments = digest.get("rated_segments", [])
-            important_segments = [
-                seg for seg in segments 
-                if seg.get("importance", 0) >= DEFAULT_RAG_IMPORTANCE_THRESHOLD 
-                and seg.get("memory_worthy", True)
-                and seg.get("type") in ["information", "action"]
-            ]
-            
-            if important_segments:
-                digest_text = " ".join([seg.get("text", "") for seg in important_segments])
-            
-            if not conversation_text and not digest_text:
-                self.logger.debug("No conversation or digest text, skipping graph update")
-                return
-            
-            # Process using GraphManager with EntityResolver
-            self.logger.debug("Processing conversation with GraphManager EntityResolver")
-            results = self.graph_manager.process_conversation_entry_with_resolver(
-                conversation_text=conversation_text,
-                digest_text=digest_text,
-                conversation_guid=entry.get("guid")
-            )
-            
-            # Log results
-            stats = results.get("stats", {})
-            self.logger.info(f"Graph update completed - entities: {stats.get('entities_new', 0)} new, "
-                           f"{stats.get('entities_existing', 0)} existing, "
-                           f"relationships: {stats.get('relationships_extracted', 0)}")
-            
-        except Exception as e:
-            self.logger.error(f"Error in conversation-level graph update: {e}")
+        # Import performance tracker
+        from src.utils.performance_tracker import get_performance_tracker
+        
+        # Get performance tracker for this session
+        performance_tracker = get_performance_tracker(self.memory_guid, self.logger)
+        
+        with performance_tracker.track_operation("graph_conversation_level_processing"):
+            try:
+                # Get full conversation text and digest
+                with performance_tracker.track_operation("prepare_graph_input"):
+                    conversation_text = entry.get("content", "")
+                    digest = entry.get("digest", {})
+                    digest_text = ""
+                    
+                    # Build digest text from important segments
+                    segments = digest.get("rated_segments", [])
+                    important_segments = [
+                        seg for seg in segments 
+                        if seg.get("importance", 0) >= DEFAULT_RAG_IMPORTANCE_THRESHOLD 
+                        and seg.get("memory_worthy", True)
+                        and seg.get("type") in ["information", "action"]
+                    ]
+                    
+                    if important_segments:
+                        digest_text = " ".join([seg.get("text", "") for seg in important_segments])
+                    
+                    if not conversation_text and not digest_text:
+                        self.logger.debug("No conversation or digest text, skipping graph update")
+                        return
+                
+                # Process using GraphManager with EntityResolver
+                with performance_tracker.track_operation("graph_entity_resolver", 
+                                                        {"conversation_length": len(conversation_text), 
+                                                         "digest_length": len(digest_text)}):
+                    self.logger.debug("Processing conversation with GraphManager EntityResolver")
+                    results = self.graph_manager.process_conversation_entry_with_resolver(
+                        conversation_text=conversation_text,
+                        digest_text=digest_text,
+                        conversation_guid=entry.get("guid")
+                    )
+                
+                # Log results
+                stats = results.get("stats", {})
+                self.logger.info(f"Graph update completed - entities: {stats.get('entities_new', 0)} new, "
+                               f"{stats.get('entities_existing', 0)} existing, "
+                               f"relationships: {stats.get('relationships_extracted', 0)}")
+                
+            except Exception as e:
+                self.logger.error(f"Error in conversation-level graph update: {e}")
     
     async def _update_graph_memory_segment_based(self, entry: Dict[str, Any]) -> None:
         """Update graph memory using segment-based processing (for regular GraphManager)."""

@@ -154,6 +154,8 @@ def print_help():
     print("guid        - Show the current memory GUID")
     print("type        - Show memory manager type")
     print("list        - List available memory files")
+    print("perf        - Show performance report for current session")
+    print("perfdetail  - Show detailed performance analysis")
     print("quit        - End session")
 
 def get_memory_dir(memory_type):
@@ -249,6 +251,42 @@ def print_memory_files(memory_type=None):
         print(f"Type: {mem_type}")
         print(f"File: {filename}")
         print("-" * 50)
+
+def print_performance_report(session_guid):
+    """Print performance report for the current session"""
+    try:
+        from src.utils.performance_tracker import get_performance_tracker
+        
+        # Check if performance data exists
+        performance_file = os.path.join("logs", session_guid, "performance_data.jsonl")
+        if not os.path.exists(performance_file):
+            print(f"\nNo performance data available yet for session {session_guid}")
+            print("Performance tracking starts after the first message.")
+            return
+        
+        # Get performance tracker and print report
+        tracker = get_performance_tracker(session_guid)
+        tracker.print_performance_report()
+        
+    except Exception as e:
+        print(f"Error generating performance report: {e}")
+
+def print_detailed_performance_analysis(session_guid):
+    """Print detailed performance analysis for the current session"""
+    try:
+        from src.utils.performance_analyzer import print_performance_analysis
+        
+        # Check if performance data exists
+        performance_file = os.path.join("logs", session_guid, "performance_data.jsonl")
+        if not os.path.exists(performance_file):
+            print(f"\nNo performance data available yet for session {session_guid}")
+            print("Performance tracking starts after the first message.")
+            return
+        
+        print_performance_analysis(session_guid)
+        
+    except Exception as e:
+        print(f"Error generating detailed performance analysis: {e}")
 
 def get_memory_file_by_guid(guid, memory_type=None):
     """Get the full path to a memory file by its GUID and verify memory_type
@@ -542,6 +580,18 @@ async def process_piped_input(agent, _memory_manager):
             await agent.wait_for_pending_operations()
             logger.debug("All operations completed.")
         
+        # Show performance report after processing
+        print("\n" + "="*60)
+        print("SESSION PERFORMANCE REPORT")
+        print("="*60)
+        try:
+            from src.utils.performance_tracker import get_performance_tracker
+            tracker = get_performance_tracker(agent.memory.get_memory_guid())
+            tracker.print_performance_report()
+            tracker.save_performance_summary()
+        except Exception as e:
+            print(f"Could not generate performance report: {e}")
+        
     except Exception as e:
         logger.error(f"Error processing piped input: {str(e)}")
         print(f"Error: {str(e)}")
@@ -605,6 +655,12 @@ async def interactive_session(agent, memory_manager):
             elif user_input == 'list':
                 print_memory_files()
                 continue
+            elif user_input == 'perf':
+                print_performance_report(session_guid)
+                continue
+            elif user_input == 'perfdetail':
+                print_detailed_performance_analysis(session_guid)
+                continue
             
             print(f"\nProcessing message...")
             response = await agent.process_message(user_input)
@@ -623,6 +679,19 @@ async def interactive_session(agent, memory_manager):
         except Exception as e:
             logger.error(f"\nError during interaction: {str(e)}")
             continue
+    
+    # Show performance report at end of session
+    print("\n" + "="*60)
+    print("SESSION PERFORMANCE REPORT")
+    print("="*60)
+    try:
+        from src.utils.performance_tracker import get_performance_tracker
+        tracker = get_performance_tracker(memory_manager.get_memory_guid())
+        tracker.print_performance_report()
+        tracker.save_performance_summary()
+        print(f"\nDetailed performance data saved to: logs/{memory_manager.get_memory_guid()}/")
+    except Exception as e:
+        print(f"Could not generate performance report: {e}")
 
 async def main():
     """Main function to run the agent example"""

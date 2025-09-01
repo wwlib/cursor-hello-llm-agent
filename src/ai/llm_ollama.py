@@ -67,7 +67,7 @@ class OllamaService(LLMService):
             self.logger.debug(f":[init]:Initialized Ollama service with model: {self.model}")
     
     def _generate_impl(self, prompt: str, options: Dict[str, Any], debug_generate_scope: str = "") -> str:
-        """Generate a response using Ollama.
+        """Generate a response using Ollama with performance tracking.
         
         Args:
             prompt: The input prompt
@@ -84,6 +84,9 @@ class OllamaService(LLMService):
         """
         import requests
         
+        # Track overall LLM generation performance
+        start_time = time.time()
+        
         try:
             # Prepare request
             url = f"{self.base_url}/api/generate"
@@ -97,25 +100,66 @@ class OllamaService(LLMService):
             if self.debug:
                 self.logger.debug(f":[{debug_generate_scope}]:Sending request to Ollama API:\nURL: {url}\nData: {json.dumps(data, indent=2)}")
             
-            # Make request
+            # Make request with timing
+            request_start = time.time()
             try:
                 response = requests.post(url, json=data)
                 response.raise_for_status()
             except requests.exceptions.RequestException as e:
+                duration = time.time() - start_time
+                if self.debug:
+                    self.logger.debug(f":[{debug_generate_scope}]:TIMING - Request failed after {duration:.3f}s: {str(e)}")
                 raise LLMServiceError(f"Failed to make request to Ollama API: {str(e)}")
+            
+            request_duration = time.time() - request_start
             
             # Parse response
             try:
                 result = response.json()
             except json.JSONDecodeError as e:
+                duration = time.time() - start_time
+                if self.debug:
+                    self.logger.debug(f":[{debug_generate_scope}]:TIMING - JSON parse failed after {duration:.3f}s: {str(e)}")
                 raise LLMServiceError(f"Failed to parse Ollama API response: {str(e)}")
+            
+            # Extract and log timing metrics from Ollama response
+            total_duration = time.time() - start_time
+            ollama_metrics = {}
+            
+            if isinstance(result, dict):
+                # Extract Ollama's internal timing metrics (in nanoseconds, convert to seconds)
+                ollama_metrics = {
+                    "total_duration": result.get("total_duration", 0) / 1e9,
+                    "load_duration": result.get("load_duration", 0) / 1e9,
+                    "prompt_eval_duration": result.get("prompt_eval_duration", 0) / 1e9,
+                    "eval_duration": result.get("eval_duration", 0) / 1e9,
+                    "prompt_eval_count": result.get("prompt_eval_count", 0),
+                    "eval_count": result.get("eval_count", 0),
+                    "network_duration": request_duration
+                }
+                
+                # Calculate tokens per second
+                if ollama_metrics["eval_duration"] > 0 and ollama_metrics["eval_count"] > 0:
+                    ollama_metrics["tokens_per_second"] = ollama_metrics["eval_count"] / ollama_metrics["eval_duration"]
+                else:
+                    ollama_metrics["tokens_per_second"] = 0
             
             if self.debug:
                 # Clean up context data before logging
                 debug_result = result.copy()
                 if 'context' in debug_result:
                     del debug_result['context']
+                
+                # Enhanced logging with performance metrics
                 self.logger.debug(f":[{debug_generate_scope}]:Received response from Ollama API:\n{json.dumps(debug_result, indent=2)}")
+                self.logger.debug(f":[{debug_generate_scope}]:TIMING BREAKDOWN - "
+                                f"Total: {total_duration:.3f}s, "
+                                f"Ollama Total: {ollama_metrics.get('total_duration', 0):.3f}s, "
+                                f"Model Load: {ollama_metrics.get('load_duration', 0):.3f}s, "
+                                f"Prompt Eval: {ollama_metrics.get('prompt_eval_duration', 0):.3f}s ({ollama_metrics.get('prompt_eval_count', 0)} tokens), "
+                                f"Generation: {ollama_metrics.get('eval_duration', 0):.3f}s ({ollama_metrics.get('eval_count', 0)} tokens), "
+                                f"Network: {ollama_metrics.get('network_duration', 0):.3f}s, "
+                                f"Tokens/sec: {ollama_metrics.get('tokens_per_second', 0):.1f}")
             
             if not isinstance(result, dict) or 'response' not in result:
                 raise LLMServiceError("Invalid response format from Ollama API")
@@ -123,6 +167,10 @@ class OllamaService(LLMService):
             return result['response']
             
         except Exception as e:
+            duration = time.time() - start_time
+            if self.debug:
+                self.logger.debug(f":[{debug_generate_scope}]:TIMING - Error after {duration:.3f}s: {str(e)}")
+            
             if not isinstance(e, LLMServiceError):
                 raise LLMServiceError(f"Unexpected error in Ollama API call: {str(e)}")
             raise
