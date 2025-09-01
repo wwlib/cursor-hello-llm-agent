@@ -7,7 +7,6 @@ using semantic similarity matching.
 Uses LLM-centric extractors as the primary approach.
 """
 
-# Primary LLM-centric classes (renamed from Alt* classes)
 from .graph_manager import GraphManager
 from .entity_extractor import EntityExtractor
 from .relationship_extractor import RelationshipExtractor

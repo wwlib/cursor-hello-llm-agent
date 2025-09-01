@@ -587,7 +587,7 @@ class MemoryManager(BaseMemoryManager):
             self.logger.error(f"Error updating graph memory: {e}")
     
     async def _update_graph_memory_conversation_level(self, entry: Dict[str, Any]) -> None:
-        """Update graph memory using conversation-level processing (for AltGraphManager with EntityResolver)."""
+        """Update graph memory using conversation-level processing (for GraphManager with EntityResolver)."""
         try:
             # Get full conversation text and digest
             conversation_text = entry.get("content", "")
@@ -610,8 +610,8 @@ class MemoryManager(BaseMemoryManager):
                 self.logger.debug("No conversation or digest text, skipping graph update")
                 return
             
-            # Process using AltGraphManager with EntityResolver
-            self.logger.debug("Processing conversation with AltGraphManager EntityResolver")
+            # Process using GraphManager with EntityResolver
+            self.logger.debug("Processing conversation with GraphManager EntityResolver")
             results = self.graph_manager.process_conversation_entry_with_resolver(
                 conversation_text=conversation_text,
                 digest_text=digest_text,
