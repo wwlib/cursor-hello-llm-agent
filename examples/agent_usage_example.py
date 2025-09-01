@@ -44,6 +44,10 @@ logging.getLogger().setLevel(logging.WARNING)
 # Constants
 BASE_MEMORY_DIR = "agent_memories"
 MEMORY_FILE_PREFIX = "agent_memory"
+BASE_URL = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
+GENERATE_URL = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434") + "/api/generate"
+MODEL = os.environ.get("OLLAMA_MODEL", "gemma3")
+EMBEDDING_MODEL = os.environ.get("OLLAMA_EMBED_MODEL", "mxbai-embed-large")
 
 # Memory manager types
 MEMORY_MANAGER_TYPES = {
@@ -385,8 +389,8 @@ async def setup_services(domain_config, memory_guid=None, memory_type="standard"
     
     # General query service with logging enabled
     general_llm_service = OllamaService({
-        "base_url": "http://192.168.1.173:11434",
-        "model": "gemma3",
+        "base_url": BASE_URL,
+        "model": MODEL,
         "temperature": 0.7,
         "stream": False,
         "debug": True,
@@ -397,8 +401,8 @@ async def setup_services(domain_config, memory_guid=None, memory_type="standard"
     
     # Digest generation service with logging enabled
     digest_llm_service = OllamaService({
-        "base_url": "http://192.168.1.173:11434",
-        "model": "gemma3",
+        "base_url": BASE_URL,
+        "model": MODEL,
         "temperature": 0,
         "stream": False,
         "debug": True,
@@ -409,8 +413,8 @@ async def setup_services(domain_config, memory_guid=None, memory_type="standard"
     
     # Initialize embeddings service
     embeddings_llm_service = OllamaService({
-        "base_url": "http://192.168.1.173:11434",
-        "model": "mxbai-embed-large",
+        "base_url": BASE_URL,
+        "model": EMBEDDING_MODEL,
         "debug": False,
         "debug_file": ollama_embed_debug_file  # Still specify the file even though logging is disabled
     })
