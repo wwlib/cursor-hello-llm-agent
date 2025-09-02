@@ -29,6 +29,9 @@ class Agent:
         
         # Track pending operations
         self._pending_operations = False
+        
+        # Get verbose handler if memory manager has one
+        self.verbose_handler = getattr(memory_manager, 'verbose_handler', None)
 
     def get_current_phase(self) -> AgentPhase:
         """Get the current agent phase"""
@@ -94,6 +97,8 @@ class Agent:
             
             # Create initial memory if needed
             if self.current_phase == AgentPhase.INITIALIZATION:
+                if self.verbose_handler:
+                    self.verbose_handler.status("Converting domain data to prose format...", 1)
                 success = self.memory.create_initial_memory(information)
                 if success:
                     self.logger.debug("Initial memory created")

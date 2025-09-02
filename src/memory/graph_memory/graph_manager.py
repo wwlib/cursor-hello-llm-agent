@@ -403,20 +403,38 @@ class GraphManager:
                 "stats": {}
             }
             
+            # Get verbose handler if available from memory manager
+            verbose_handler = getattr(self, 'verbose_handler', None)
+            if not verbose_handler:
+                # Try to get it from the memory manager if it was passed
+                if hasattr(self, '_memory_manager') and hasattr(self._memory_manager, 'verbose_handler'):
+                    verbose_handler = self._memory_manager.verbose_handler
+            
             # Stage 1: Extract entities using alternative approach
             self.logger.debug("Stage 1: Extracting entities from conversation with EntityExtractor")
+            if verbose_handler:
+                verbose_handler.status("Stage 1: Extracting candidate entities...", 4)
+            
             raw_entities = self.entity_extractor.extract_entities_from_conversation(
                 conversation_text, digest_text)
             
             if not raw_entities:
                 self.logger.info("No entities extracted from conversation")
+                if verbose_handler:
+                    verbose_handler.warning("No entities found in conversation", 4)
                 return results
+            
+            if verbose_handler:
+                verbose_handler.success(f"Found {len(raw_entities)} candidate entities", level=4)
             
             # All entities from EntityExtractor are now candidates for EntityResolver
             # EntityExtractor no longer does any matching - only extraction
             if raw_entities:
                 # Stage 2: Convert to EntityResolver candidates
                 self.logger.debug(f"Stage 2: Converting {len(raw_entities)} entities to resolver candidates")
+                if verbose_handler:
+                    verbose_handler.status("Stage 2: Converting to resolver candidates...", 4)
+                
                 candidates = []
                 for i, entity in enumerate(raw_entities):
                     candidate = {
@@ -428,12 +446,26 @@ class GraphManager:
                     }
                     candidates.append(candidate)
                 
+                if verbose_handler:
+                    verbose_handler.success(f"Prepared {len(candidates)} candidates for resolution", level=4)
+                
                 # Stage 3: Resolve candidates using EntityResolver
                 self.logger.debug(f"Stage 3: Resolving {len(candidates)} candidates with EntityResolver")
+                if verbose_handler:
+                    verbose_handler.status("Stage 3: Resolving entities (this may take time)...", 4)
+                
+                # Pass verbose handler to entity resolver for detailed logging
+                if verbose_handler:
+                    self.entity_resolver.verbose_handler = verbose_handler
+                    self.logger.debug(f"Passed verbose handler to EntityResolver: {verbose_handler is not None}")
+                
                 resolutions = self.entity_resolver.resolve_candidates(
                     candidates, 
                     process_individually=True  # Use individual processing for highest accuracy
                 )
+                
+                if verbose_handler:
+                    verbose_handler.success(f"Resolved {len(resolutions)} entities", level=4)
                 
                 # Stage 4: Process resolutions and update graph
                 processed_entities = []

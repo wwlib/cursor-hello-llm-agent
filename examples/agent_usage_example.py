@@ -5,6 +5,7 @@ import json
 import uuid
 import os
 import argparse
+import time
 from datetime import datetime
 from pathlib import Path
 import sys
@@ -386,12 +387,14 @@ def initialize_session(provided_guid=None, memory_type="standard"):
     print("Done initializing session")
     return session_guid, memory_file, memory_type
 
-async def setup_services(domain_config, memory_guid=None, memory_type="standard"):
+async def setup_services(domain_config, memory_guid=None, memory_type="standard", performance_profile="balanced", verbose=False):
     """Initialize the LLM service and memory manager
     
     Args:
         memory_guid: Optional GUID to identify which memory file to use
         memory_type: Type of memory manager to use ('standard' or 'simple')
+        performance_profile: Performance profile to use ('speed', 'balanced', 'comprehensive')
+        verbose: Enable verbose status messages
         
     Returns:
         tuple: (agent, memory_manager) instances
@@ -477,16 +480,26 @@ async def setup_services(domain_config, memory_guid=None, memory_type="standard"
         memory_manager_logger.addHandler(memory_manager_log_handler)
         memory_manager_logger.info("This should only appear in the log file")
         
-        # Create memory manager instance based on type
+        # Apply performance profile configuration
+        from src.utils.performance_profiles import get_memory_manager_config
+        perf_config = get_memory_manager_config(performance_profile)
+        
+        print(f"Using performance profile: {performance_profile}")
+        print(f"Graph memory: {'enabled' if perf_config['enable_graph_memory'] else 'disabled'}")
+        if perf_config['enable_graph_memory']:
+            print(f"Graph processing level: {perf_config['graph_memory_processing_level']}")
+        
+        # Create memory manager instance based on type with performance configuration
         memory_manager = memory_manager_class(
             memory_guid=guid,
             memory_file=memory_file,
             domain_config=domain_config,
             llm_service=general_llm_service,  # Use general service for main queries
-            max_recent_conversation_entries=4,
             digest_llm_service=digest_llm_service,  # Use digest service for memory compression
             embeddings_llm_service=embeddings_llm_service,  # Use embeddings service for embeddings
-            logger=memory_manager_logger
+            logger=memory_manager_logger,
+            verbose=verbose,  # Pass verbose flag
+            **perf_config  # Apply performance profile settings
         )
 
         # Set up logging for the agent
@@ -510,7 +523,7 @@ async def setup_services(domain_config, memory_guid=None, memory_type="standard"
         print(f"Error initializing services: {str(e)}")
         raise
 
-async def initialize_memory(agent, memory_manager, domain_config):
+async def initialize_memory(agent, memory_manager, domain_config, verbose=False):
     """Set up initial memory state"""
     logger.debug("\nInitializing memory...")
     print("Initializing memory...")
@@ -530,6 +543,13 @@ async def initialize_memory(agent, memory_manager, domain_config):
     # If no existing memory, create new memory
     logger.debug("Creating new memory...")
     print("Creating new memory...")
+    
+    if verbose:
+        from src.utils.verbose_status import get_verbose_handler
+        verbose_handler = get_verbose_handler(enabled=True)
+        verbose_handler.status("Processing initial domain data...")
+        verbose_handler.status("This may take a moment for complex domains...", 1)
+    
     success = await agent.learn(domain_config["initial_data"])
     if not success:
         logger.error("Failed to initialize memory!")
@@ -666,8 +686,51 @@ async def interactive_session(agent, memory_manager):
             response = await agent.process_message(user_input)
             print(f"\nAgent: {response}")
             
-            # Add a small delay to allow background processing to start
-            await asyncio.sleep(0.1)
+            # Check for background processing and show verbose status
+            if agent.has_pending_operations():
+                from src.utils.verbose_status import get_verbose_handler
+                verbose_handler = get_verbose_handler()
+                if verbose_handler and verbose_handler.enabled:
+                    pending = agent.memory.get_pending_operations()
+                    operations = []
+                    if pending.get("pending_digests", 0) > 0:
+                        operations.append("digest generation")
+                    if pending.get("pending_embeddings", 0) > 0:
+                        operations.append("embeddings update")
+                    if pending.get("pending_graph_updates", 0) > 0:
+                        operations.append("graph memory processing")
+                    
+                    if operations:
+                        verbose_handler.status(f"Background processing: {', '.join(operations)}...")
+                        
+                        # Wait and show progress
+                        start_time = time.time()
+                        last_status_time = start_time
+                        while agent.has_pending_operations():
+                            await asyncio.sleep(0.5)
+                            current_time = time.time()
+                            
+                            # Show periodic status updates
+                            if current_time - last_status_time >= 5.0:  # Every 5 seconds
+                                elapsed = current_time - start_time
+                                remaining_ops = agent.memory.get_pending_operations()
+                                remaining = []
+                                if remaining_ops.get("pending_digests", 0) > 0:
+                                    remaining.append("digest")
+                                if remaining_ops.get("pending_embeddings", 0) > 0:
+                                    remaining.append("embeddings")
+                                if remaining_ops.get("pending_graph_updates", 0) > 0:
+                                    remaining.append("graph")
+                                
+                                if remaining:
+                                    verbose_handler.status(f"Still processing: {', '.join(remaining)} ({elapsed:.1f}s elapsed)...")
+                                last_status_time = current_time
+                        
+                        total_time = time.time() - start_time
+                        verbose_handler.success(f"Background processing completed", total_time)
+            else:
+                # Add a small delay to allow background processing to start
+                await asyncio.sleep(0.1)
             
         except KeyboardInterrupt:
             logger.debug("\nSession interrupted by user.")
@@ -705,6 +768,10 @@ async def main():
                        help='List memory files for a specific memory manager type')
     parser.add_argument('--config', type=str, choices=list(CONFIG_MAP.keys()), default='dnd',
                        help='Select domain config: ' + ', '.join(CONFIG_MAP.keys()))
+    parser.add_argument('--performance', type=str, choices=['speed', 'balanced', 'comprehensive'], default='balanced',
+                       help='Select performance profile: speed, balanced, comprehensive')
+    parser.add_argument('--verbose', '-v', action='store_true',
+                       help='Enable verbose status messages showing processing steps and timing')
     args = parser.parse_args()
 
     # If list flag is set, just list available memory files and exit
@@ -723,10 +790,10 @@ async def main():
             domain_config = next(iter(CONFIG_MAP.values()))
         print(f"Using domain config: {args.config}")
         print(f"Domain config: {domain_config}")
-        agent, memory_manager = await setup_services(domain_config, args.guid, args.type)
+        agent, memory_manager = await setup_services(domain_config, args.guid, args.type, args.performance, args.verbose)
         
         # Initialize memory
-        if not await initialize_memory(agent, memory_manager, domain_config):
+        if not await initialize_memory(agent, memory_manager, domain_config, args.verbose):
             return
         
         # Interactive session

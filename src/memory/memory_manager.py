@@ -69,7 +69,8 @@ class MemoryManager(BaseMemoryManager):
     def __init__(self, memory_guid: str, memory_file: str = "memory.json", domain_config: Optional[Dict[str, Any]] = None, 
                  llm_service = None, digest_llm_service = None, embeddings_llm_service = None, 
                  max_recent_conversation_entries: int = 8, importance_threshold: int = DEFAULT_COMPRESSION_IMPORTANCE_THRESHOLD, 
-                 enable_graph_memory: bool = True, logger=None):
+                 enable_graph_memory: bool = True, enable_graph_memory_fast_mode: bool = False, 
+                 graph_memory_processing_level: str = "balanced", verbose: bool = False, logger=None):
         """Initialize the MemoryManager with LLM service instances and domain configuration.
         
         Args:
@@ -85,6 +86,9 @@ class MemoryManager(BaseMemoryManager):
             max_recent_conversation_entries: Maximum number of recent conversation entries to keep before compression
             importance_threshold: Threshold for segment importance (1-5 scale) to keep during compression
             enable_graph_memory: Whether to enable graph memory functionality (default: True)
+            enable_graph_memory_fast_mode: Use fast mode for graph processing (default: False)
+            graph_memory_processing_level: Processing level - "speed", "balanced", "comprehensive" (default: "balanced")
+            verbose: Enable verbose status messages (default: False)
             logger: Optional logger instance for this MemoryManager
         """
         if llm_service is None:
@@ -96,12 +100,28 @@ class MemoryManager(BaseMemoryManager):
         self.llm = llm_service
         self.digest_llm = digest_llm_service or llm_service
         self.embeddings_llm = embeddings_llm_service or llm_service
+        
+        # Initialize verbose status handler FIRST (needed by GraphManager)
+        self.verbose = verbose
+        if verbose:
+            from src.utils.verbose_status import get_verbose_handler
+            self.verbose_handler = get_verbose_handler(enabled=True)
+        else:
+            self.verbose_handler = None
+        
         self._load_templates()
         
         # Initialize async operation tracking
         self._pending_digests = {}  # guid -> entry
         self._pending_embeddings = set()  # set of guids
         self._pending_graph_updates = set()  # set of guids
+        
+        # Batch processing configuration
+        self._enable_batch_processing = graph_memory_processing_level in ["balanced", "speed"]
+        self._batch_size = 3 if graph_memory_processing_level == "speed" else 2
+        self._batch_timeout = 2.0  # seconds to wait before processing incomplete batch
+        self._pending_batch = []
+        self._batch_timer = None
         
         # Initialize DigestGenerator with dedicated LLM service and domain config
         domain_name = self.domain_config.get("domain_name", "general") if self.domain_config else "general"
@@ -120,6 +140,8 @@ class MemoryManager(BaseMemoryManager):
         
         # Initialize GraphManager if enabled
         self.enable_graph_memory = enable_graph_memory
+        self.enable_graph_memory_fast_mode = enable_graph_memory_fast_mode
+        self.graph_memory_processing_level = graph_memory_processing_level
         self.graph_manager = None
         if enable_graph_memory:
             try:
@@ -162,6 +184,9 @@ class MemoryManager(BaseMemoryManager):
                     logs_dir=logs_base_dir,  # Pass logs directory for graph-specific logging
                     memory_guid=self.memory_guid  # Pass memory GUID for creating log subdirectories
                 )
+                # Pass verbose handler to graph manager for detailed logging
+                if self.verbose_handler:
+                    self.graph_manager.verbose_handler = self.verbose_handler
                 self.logger.debug(f"Initialized GraphManager with storage: {graph_storage_path}")
                 graph_logger.debug(f"Graph memory logger initialized for memory: {memory_base}")
             except Exception as e:
@@ -177,6 +202,16 @@ class MemoryManager(BaseMemoryManager):
             logger=logger
         )
         self.logger.debug("Initialized RAGManager with graph integration")
+        
+        # Verbose handler already initialized above
+        
+        # Initialize cache manager for performance optimization
+        if graph_memory_processing_level in ["speed", "balanced"]:
+            from src.memory.cache_manager import get_cache_manager
+            self.cache_manager = get_cache_manager(logger)
+            self.logger.debug("Initialized cache manager for performance optimization")
+        else:
+            self.cache_manager = None
         
         # Ensure memory has a GUID
         self._ensure_memory_guid()
@@ -261,9 +296,14 @@ class MemoryManager(BaseMemoryManager):
             self.logger.debug("Creating initial memory structure...")
 
             # Use DataPreprocessor to segment the input data
-            data_preprocessor = DataPreprocessor(self.llm)
-            preprocessed_prose, preprocessed_segments = data_preprocessor.preprocess_data(input_data)
-            self.logger.debug(f"Preprocessed segments: {preprocessed_segments}")
+            if self.verbose_handler:
+                with self.verbose_handler.operation("Preprocessing domain data", level=2):
+                    data_preprocessor = DataPreprocessor(self.llm)
+                    preprocessed_prose, preprocessed_segments = data_preprocessor.preprocess_data(input_data)
+                    self.logger.debug(f"Preprocessed segments: {preprocessed_segments}")
+            else:
+                data_preprocessor = DataPreprocessor(self.llm)
+                preprocessed_prose, preprocessed_segments = data_preprocessor.preprocess_data(input_data)
 
             # Create system entry for initial data
             system_entry = {
@@ -275,8 +315,13 @@ class MemoryManager(BaseMemoryManager):
             
             # Generate digest for initial data using pre-segmented content
             self.logger.debug("Generating digest for initial data with pre-segmented content...")
-            initial_digest = self.digest_generator.generate_digest(system_entry, segments=preprocessed_segments)
-            system_entry["digest"] = initial_digest
+            if self.verbose_handler:
+                with self.verbose_handler.operation("Generating digest for domain data", level=2):
+                    initial_digest = self.digest_generator.generate_digest(system_entry, segments=preprocessed_segments)
+                    system_entry["digest"] = initial_digest
+            else:
+                initial_digest = self.digest_generator.generate_digest(system_entry, segments=preprocessed_segments)
+                system_entry["digest"] = initial_digest
                         
             # Create static memory from digest
             static_memory = self._create_static_memory_from_digest(initial_digest)
@@ -304,12 +349,20 @@ class MemoryManager(BaseMemoryManager):
             self.add_to_conversation_history(system_entry)
             
             # Generate and save embeddings for the initial system entry
-            self.embeddings_manager.add_new_embeddings([system_entry])
+            if self.verbose_handler:
+                with self.verbose_handler.operation("Creating embeddings for semantic search", level=2):
+                    self.embeddings_manager.add_new_embeddings([system_entry])
+            else:
+                self.embeddings_manager.add_new_embeddings([system_entry])
 
             # Process static memory with graph memory system if enabled
             if self.enable_graph_memory and self.graph_manager:
                 self.logger.debug("Processing static memory for graph memory...")
-                self._process_initial_graph_memory(system_entry)
+                if self.verbose_handler:
+                    with self.verbose_handler.operation("Building knowledge graph from domain data", level=2):
+                        self._process_initial_graph_memory(system_entry)
+                else:
+                    self._process_initial_graph_memory(system_entry)
 
             self.logger.debug("Memory created and initialized with static knowledge")
             return True
@@ -442,6 +495,10 @@ class MemoryManager(BaseMemoryManager):
             try:
                 self.logger.debug("Querying memory...")
                 
+                # Verbose status
+                if self.verbose_handler:
+                    self.verbose_handler.status(f"Processing query: '{query_context.get('query', '')[:50]}...'")
+                
                 # Extract query text
                 query = query_context.get("query", "")
 
@@ -473,26 +530,66 @@ class MemoryManager(BaseMemoryManager):
                     # Format recent conversation history as text (use provided or get from memory)
                     conversation_history_text = query_context.get("conversation_history", "") or self._format_conversation_history_as_text()
                 
-                # Get or generate RAG context
+                # Get or generate RAG context with caching
                 rag_context = query_context.get("rag_context")
                 if not rag_context:
                     with performance_tracker.track_operation("rag_enhancement"):
-                        enhanced_context = self.rag_manager.enhance_memory_query(query_context)
-                        rag_context = enhanced_context.get("rag_context", "")
+                        if self.verbose_handler:
+                            self.verbose_handler.status("Enhancing query with relevant context (RAG)...", 1)
+                        
+                        # Try to get from cache first
+                        if self.cache_manager:
+                            memory_state_hash = self.cache_manager.get_memory_state_hash(self.memory)
+                            rag_context = self.cache_manager.get_rag_context(query, memory_state_hash)
+                            if rag_context and self.verbose_handler:
+                                self.verbose_handler.success("Found cached RAG context", level=2)
+                        
+                        if not rag_context:
+                            # Generate RAG context
+                            enhanced_context = self.rag_manager.enhance_memory_query(query_context)
+                            rag_context = enhanced_context.get("rag_context", "")
+                            
+                            # Cache the result
+                            if rag_context and self.cache_manager:
+                                self.cache_manager.set_rag_context(query, memory_state_hash, rag_context)
+                                if self.verbose_handler:
+                                    self.verbose_handler.success("Generated and cached RAG context", level=2)
+                        
                         if rag_context:
                             self.logger.debug("Using RAG-enhanced context for memory query (auto-generated)")
                 else:
                     self.logger.debug("Using RAG-enhanced context for memory query (provided)")
                 
-                # Get graph context if enabled
+                # Get graph context if enabled with caching
                 graph_context = ""
                 if self.enable_graph_memory and self.graph_manager:
                     with performance_tracker.track_operation("graph_context"):
                         try:
-                            graph_context = self.get_graph_context(query)
+                            if self.verbose_handler:
+                                self.verbose_handler.status("Retrieving graph context...", 1)
+                            
+                            # Try to get from cache first
+                            if self.cache_manager:
+                                # For graph context, we use a simpler hash since graph changes less frequently
+                                graph_state_hash = f"graph_{len(self.memory.get('conversation_history', []))}"
+                                graph_context = self.cache_manager.get_graph_context(query, graph_state_hash)
+                                if graph_context and self.verbose_handler:
+                                    self.verbose_handler.success("Found cached graph context", level=2)
+                            
+                            if not graph_context:
+                                graph_context = self.get_graph_context(query)
+                                
+                                # Cache the result
+                                if graph_context and self.cache_manager:
+                                    self.cache_manager.set_graph_context(query, graph_state_hash, graph_context)
+                                    if self.verbose_handler:
+                                        self.verbose_handler.success("Generated and cached graph context", level=2)
+                            
                             if graph_context:
                                 self.logger.debug("Added graph context to memory query")
                         except Exception as e:
+                            if self.verbose_handler:
+                                self.verbose_handler.warning(f"Graph context failed: {str(e)}", 1)
                             self.logger.warning(f"Failed to get graph context: {e}")
                             graph_context = ""
                 
@@ -517,11 +614,15 @@ class MemoryManager(BaseMemoryManager):
                 
                 # Get response from LLM
                 self.logger.debug("Generating response using LLM...")
+                if self.verbose_handler:
+                    self.verbose_handler.status("Generating response with LLM...", 1)
                 with performance_tracker.track_operation("llm_generation", {"prompt_length": len(prompt)}):
                     llm_response = self.llm.generate(
                         prompt,
                         options={"temperature": 0.7}
                     )
+                    if self.verbose_handler:
+                        self.verbose_handler.success(f"Generated response ({len(llm_response)} chars)", level=2)
                 
                 # Create agent entry and add to history
                 with performance_tracker.track_operation("add_agent_entry"):
@@ -541,12 +642,24 @@ class MemoryManager(BaseMemoryManager):
                 
                 # Start background processing for entries
                 with performance_tracker.track_operation("start_async_operations"):
+                    entries_to_process = []
                     if user_entry:
-                        # Start background processing for user entry
-                        asyncio.create_task(self._process_entry_async(user_entry))
+                        entries_to_process.append(user_entry)
+                    entries_to_process.append(agent_entry)
                     
-                    # Start background processing for agent entry
-                    asyncio.create_task(self._process_entry_async(agent_entry))
+                    if self.verbose_handler:
+                        processing_mode = "batch" if self._enable_batch_processing and len(entries_to_process) > 1 else "individual"
+                        graph_mode = self.graph_memory_processing_level if self.enable_graph_memory else "disabled"
+                        self.verbose_handler.status(f"Starting background processing ({processing_mode}, graph: {graph_mode})...", 1)
+                    
+                    if self._enable_batch_processing and len(entries_to_process) > 1:
+                        # Use batch processing for multiple entries
+                        self.logger.debug(f"Using batch processing for {len(entries_to_process)} entries")
+                        asyncio.create_task(self._process_entries_batch(entries_to_process))
+                    else:
+                        # Process entries individually
+                        for entry in entries_to_process:
+                            asyncio.create_task(self._process_entry_async(entry))
                     
                     # Check if we should compress memory based on number of conversations
                     conversation_entries = len(self.memory["conversation_history"])
@@ -597,6 +710,68 @@ class MemoryManager(BaseMemoryManager):
             except Exception as e:
                 self.logger.error(f"Error in async entry processing: {str(e)}")
     
+    async def _process_entries_batch(self, entries: List[Dict[str, Any]]) -> None:
+        """Process multiple entries in an optimized batch."""
+        # Import performance tracker
+        from src.utils.performance_tracker import get_performance_tracker
+        
+        # Get performance tracker for this session
+        performance_tracker = get_performance_tracker(self.memory_guid, self.logger)
+        
+        with performance_tracker.track_operation("batch_entry_processing", {"batch_size": len(entries)}):
+            try:
+                self.logger.debug(f"Processing batch of {len(entries)} entries")
+                
+                # Phase 1: Batch digest generation for entries that need it
+                entries_needing_digests = [entry for entry in entries if "digest" not in entry]
+                if entries_needing_digests:
+                    with performance_tracker.track_operation("batch_digest_generation"):
+                        await self._batch_generate_digests(entries_needing_digests)
+                
+                # Phase 2: Batch embeddings update for all entries
+                with performance_tracker.track_operation("batch_embeddings_update"):
+                    self.embeddings_manager.add_new_embeddings(entries)
+                
+                # Phase 3: Process graph updates (can't easily batch these due to complexity)
+                if self.enable_graph_memory and self.graph_manager:
+                    with performance_tracker.track_operation("batch_graph_updates"):
+                        # Process graph updates in parallel but separately
+                        graph_tasks = []
+                        for entry in entries:
+                            if self.graph_memory_processing_level == "speed":
+                                # In speed mode, only process every other entry for graph memory
+                                if hash(entry.get("guid", "")) % 2 == 0:
+                                    graph_tasks.append(self._update_graph_memory_async(entry))
+                            else:
+                                graph_tasks.append(self._update_graph_memory_async(entry))
+                        
+                        if graph_tasks:
+                            # Run graph updates in parallel
+                            await asyncio.gather(*graph_tasks, return_exceptions=True)
+                
+                self.logger.debug(f"Batch processing completed for {len(entries)} entries")
+                
+            except Exception as e:
+                self.logger.error(f"Error in batch entry processing: {str(e)}")
+    
+    async def _batch_generate_digests(self, entries: List[Dict[str, Any]]) -> None:
+        """Generate digests for multiple entries efficiently."""
+        try:
+            # Generate digests sequentially (can't easily parallelize due to LLM service limitations)
+            for entry in entries:
+                self.logger.debug(f"Generating digest for {entry['role']} entry in batch...")
+                entry["digest"] = self.digest_generator.generate_digest(entry, self.memory)
+                
+                # Update conversation history file with the digest
+                if hasattr(self, '_update_conversation_history_entry'):
+                    self._update_conversation_history_entry(entry)
+            
+            # Save memory once for all entries
+            self.save_memory("batch_digest_generation")
+            
+        except Exception as e:
+            self.logger.error(f"Error in batch digest generation: {str(e)}")
+    
     async def _update_graph_memory_async(self, entry: Dict[str, Any]) -> None:
         """Update graph memory with entities and relationships from a conversation entry."""
         # Import performance tracker
@@ -607,20 +782,24 @@ class MemoryManager(BaseMemoryManager):
         
         with performance_tracker.track_operation("async_graph_memory_update"):
             try:
-                self.logger.debug(f"Updating graph memory for {entry['role']} entry...")
+                self.logger.debug(f"Updating graph memory for {entry['role']} entry (mode: {self.graph_memory_processing_level})...")
                 
-                # Use conversation-level processing with EntityResolver (now mandatory)
-                if hasattr(self.graph_manager, 'process_conversation_entry_with_resolver'):
-                    await self._update_graph_memory_conversation_level(entry)
+                # Choose processing mode based on configuration
+                if self.graph_memory_processing_level == "speed" or self.enable_graph_memory_fast_mode:
+                    # Fast mode: minimal graph processing
+                    await self._update_graph_memory_fast_mode(entry)
+                elif self.graph_memory_processing_level == "comprehensive":
+                    # Full mode: complete EntityResolver processing
+                    await self._update_graph_memory_comprehensive_mode(entry)
                 else:
-                    # Fallback to segment-based processing for legacy compatibility
-                    await self._update_graph_memory_segment_based(entry)
+                    # Balanced mode: optimized EntityResolver processing
+                    await self._update_graph_memory_balanced_mode(entry)
                     
             except Exception as e:
                 self.logger.error(f"Error updating graph memory: {e}")
     
-    async def _update_graph_memory_conversation_level(self, entry: Dict[str, Any]) -> None:
-        """Update graph memory using conversation-level processing (for GraphManager with EntityResolver)."""
+    async def _update_graph_memory_comprehensive_mode(self, entry: Dict[str, Any]) -> None:
+        """Update graph memory using full EntityResolver processing (comprehensive mode)."""
         # Import performance tracker
         from src.utils.performance_tracker import get_performance_tracker
         
@@ -669,7 +848,119 @@ class MemoryManager(BaseMemoryManager):
                                f"relationships: {stats.get('relationships_extracted', 0)}")
                 
             except Exception as e:
-                self.logger.error(f"Error in conversation-level graph update: {e}")
+                self.logger.error(f"Error in comprehensive graph update: {e}")
+    
+    async def _update_graph_memory_balanced_mode(self, entry: Dict[str, Any]) -> None:
+        """Update graph memory using optimized EntityResolver processing (balanced mode)."""
+        # Import performance tracker
+        from src.utils.performance_tracker import get_performance_tracker
+        
+        # Get performance tracker for this session
+        performance_tracker = get_performance_tracker(self.memory_guid, self.logger)
+        
+        with performance_tracker.track_operation("graph_balanced_processing"):
+            try:
+                # Get full conversation text and digest
+                with performance_tracker.track_operation("prepare_graph_input"):
+                    conversation_text = entry.get("content", "")
+                    digest = entry.get("digest", {})
+                    digest_text = ""
+                    
+                    # Build digest text from important segments
+                    segments = digest.get("rated_segments", [])
+                    important_segments = [
+                        seg for seg in segments 
+                        if seg.get("importance", 0) >= DEFAULT_RAG_IMPORTANCE_THRESHOLD 
+                        and seg.get("memory_worthy", True)
+                        and seg.get("type") in ["information", "action"]
+                    ]
+                    
+                    if important_segments:
+                        # Limit text length for faster processing
+                        digest_text = " ".join([seg.get("text", "") for seg in important_segments])[:500]
+                    
+                    if not conversation_text and not digest_text:
+                        self.logger.debug("No conversation or digest text, skipping graph update")
+                        return
+                    
+                    # Limit conversation text for balanced processing
+                    if len(conversation_text) > 300:
+                        conversation_text = conversation_text[:300] + "..."
+                
+                # Process using GraphManager with limited context for speed
+                with performance_tracker.track_operation("graph_entity_resolver_balanced", 
+                                                        {"conversation_length": len(conversation_text), 
+                                                         "digest_length": len(digest_text)}):
+                    self.logger.debug("Processing conversation with GraphManager (balanced mode)")
+                    
+                    # Check if we have the resolver method
+                    if hasattr(self.graph_manager, 'process_conversation_entry_with_resolver'):
+                        results = self.graph_manager.process_conversation_entry_with_resolver(
+                            conversation_text=conversation_text,
+                            digest_text=digest_text,
+                            conversation_guid=entry.get("guid")
+                        )
+                    else:
+                        # Fallback to segment-based processing
+                        await self._update_graph_memory_segment_based(entry)
+                        return
+                
+                # Log results
+                stats = results.get("stats", {})
+                self.logger.info(f"Graph balanced update completed - entities: {stats.get('entities_new', 0)} new, "
+                               f"{stats.get('entities_existing', 0)} existing, "
+                               f"relationships: {stats.get('relationships_extracted', 0)}")
+                
+            except Exception as e:
+                self.logger.error(f"Error in balanced graph update: {e}")
+    
+    async def _update_graph_memory_fast_mode(self, entry: Dict[str, Any]) -> None:
+        """Update graph memory using minimal processing (fast mode)."""
+        # Import performance tracker
+        from src.utils.performance_tracker import get_performance_tracker
+        
+        # Get performance tracker for this session
+        performance_tracker = get_performance_tracker(self.memory_guid, self.logger)
+        
+        with performance_tracker.track_operation("graph_fast_processing"):
+            try:
+                # Fast mode: Only process very important content and skip complex operations
+                conversation_text = entry.get("content", "")
+                
+                # Skip short or unimportant content
+                if len(conversation_text) < 50:
+                    self.logger.debug("Content too short for fast graph processing, skipping")
+                    return
+                
+                # Only process first 100 characters for speed
+                conversation_text = conversation_text[:100]
+                
+                with performance_tracker.track_operation("graph_fast_basic_extraction"):
+                    self.logger.debug("Processing conversation with GraphManager (fast mode)")
+                    
+                    # In fast mode, we skip EntityResolver entirely and do basic processing
+                    # Check if we have a simple extraction method
+                    if hasattr(self.graph_manager, 'extract_entities_simple'):
+                        # Use a hypothetical simple extraction method
+                        entities = self.graph_manager.extract_entities_simple(conversation_text)
+                        
+                        # Add entities directly without complex resolution
+                        for entity in entities[:3]:  # Limit to 3 entities for speed
+                            if entity.get("name"):
+                                self.graph_manager.add_or_update_node(
+                                    name=entity.get("name", ""),
+                                    node_type=entity.get("type", "concept"),
+                                    description=entity.get("description", "")[:100]  # Limit description
+                                )
+                    else:
+                        # Fallback: skip graph processing entirely in fast mode
+                        self.logger.debug("Fast mode: skipping graph processing (no simple extraction available)")
+                        return
+                
+                self.logger.debug("Fast graph update completed")
+                
+            except Exception as e:
+                self.logger.error(f"Error in fast graph update: {e}")
     
     async def _update_graph_memory_segment_based(self, entry: Dict[str, Any]) -> None:
         """Update graph memory using segment-based processing (for regular GraphManager)."""
@@ -770,12 +1061,17 @@ class MemoryManager(BaseMemoryManager):
         try:
             self.logger.debug("Processing initial system entry for graph memory...")
             
+            if self.verbose_handler:
+                self.verbose_handler.status("Analyzing digest segments...", 3)
+            
             # Get segments from digest
             digest = system_entry.get("digest", {})
             segments = digest.get("rated_segments", [])
             
             if not segments:
                 self.logger.debug("No segments found in initial digest, skipping initial graph processing")
+                if self.verbose_handler:
+                    self.verbose_handler.warning("No segments found in digest", 3)
                 return
             
             # Filter for important segments (same criteria as async processing)
@@ -788,14 +1084,21 @@ class MemoryManager(BaseMemoryManager):
             
             if not important_segments:
                 self.logger.debug("No important segments found in initial content, skipping graph processing")
+                if self.verbose_handler:
+                    self.verbose_handler.warning("No important segments found", 3)
                 return
             
             self.logger.debug(f"Processing {len(important_segments)} important segments for initial graph memory")
+            if self.verbose_handler:
+                self.verbose_handler.success(f"Found {len(important_segments)} important segments", level=3)
             
             # Use EntityResolver pathway for enhanced duplicate detection (now mandatory)
             if hasattr(self.graph_manager, 'process_conversation_entry_with_resolver'):
                 
                 self.logger.debug("Using EntityResolver pathway for initial graph memory processing")
+                
+                if self.verbose_handler:
+                    self.verbose_handler.status("Preparing text for entity extraction...", 3)
                 
                 # Construct conversation text from all important segments
                 conversation_text = "\n".join([
@@ -805,6 +1108,10 @@ class MemoryManager(BaseMemoryManager):
                 
                 # Use the system entry content as digest text for context
                 digest_text = system_entry.get("content", "")[:500]  # Limit for context
+                
+                if self.verbose_handler:
+                    self.verbose_handler.success(f"Prepared {len(conversation_text)} chars for processing", level=3)
+                    self.verbose_handler.status("Extracting entities and relationships...", 3)
                 
                 # Process using EntityResolver pathway for consistent duplicate detection
                 try:
@@ -821,12 +1128,23 @@ class MemoryManager(BaseMemoryManager):
                                     f"matched {len(results.get('existing_entities', []))} existing entities, "
                                     f"created {len(results.get('relationships', []))} relationships")
                     
+                    if self.verbose_handler:
+                        new_entities = len(results.get('new_entities', []))
+                        existing_entities = len(results.get('existing_entities', []))
+                        relationships = len(results.get('relationships', []))
+                        self.verbose_handler.success(f"Extracted {new_entities} entities, {relationships} relationships", level=3)
+                    
                 except Exception as e:
                     self.logger.error(f"Error in EntityResolver initial processing: {e}")
+                    if self.verbose_handler:
+                        self.verbose_handler.warning(f"Entity extraction failed: {str(e)}", 3)
+                        self.verbose_handler.status("Falling back to basic processing...", 3)
                     self.logger.warning("Falling back to basic initial graph processing")
                     self._process_initial_graph_memory_basic(important_segments)
             else:
                 self.logger.debug("EntityResolver not available, using basic initial graph processing")
+                if self.verbose_handler:
+                    self.verbose_handler.warning("EntityResolver not available, using basic processing", 3)
                 self._process_initial_graph_memory_basic(important_segments)
             
         except Exception as e:
