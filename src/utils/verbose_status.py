@@ -7,8 +7,10 @@ Shows users what operations are happening and how long they take.
 
 import time
 import threading
+import json
 from typing import Optional, Callable, Dict, Any
 from contextlib import contextmanager
+from datetime import datetime
 
 
 class VerboseStatusHandler:
@@ -22,15 +24,17 @@ class VerboseStatusHandler:
     - Hierarchical operation tracking
     """
     
-    def __init__(self, enabled: bool = True, output_handler: Optional[Callable[[str], None]] = None):
+    def __init__(self, enabled: bool = True, output_handler: Optional[Callable[[str], None]] = None, websocket_callback: Optional[Callable[[Dict[str, Any]], None]] = None):
         """
         Initialize the verbose status handler.
         
         Args:
             enabled: Whether verbose messages are enabled
             output_handler: Function to handle output messages (defaults to print)
+            websocket_callback: Optional callback for WebSocket message streaming
         """
         self.enabled = enabled
+        self.websocket_callback = websocket_callback
         self.output_handler = output_handler or print
         self._lock = threading.Lock()
         self._operation_stack = []
@@ -39,6 +43,26 @@ class VerboseStatusHandler:
         """Enable or disable verbose messages."""
         with self._lock:
             self.enabled = enabled
+    
+    def _send_websocket_message(self, message_type: str, message: str, level: int = 0, duration: Optional[float] = None):
+        """Send a message to WebSocket clients if callback is configured."""
+        if self.websocket_callback:
+            try:
+                websocket_data = {
+                    "type": "verbose_status",
+                    "data": {
+                        "message_type": message_type,  # "status", "success", "warning", "error"
+                        "message": message,
+                        "level": level,
+                        "duration": duration,
+                        "timestamp": datetime.now().isoformat(),
+                        "operation_stack": [op[0] for op in self._operation_stack] if self._operation_stack else []
+                    }
+                }
+                self.websocket_callback(websocket_data)
+            except Exception as e:
+                # Don't let WebSocket errors break the verbose handler
+                print(f"Error sending WebSocket message: {e}")
     
     def set_output_handler(self, handler: Callable[[str], None]):
         """Set the output handler for messages."""
@@ -60,6 +84,7 @@ class VerboseStatusHandler:
             indent = "  " * level
             formatted_message = f"🔄 {indent}{message}"
             self.output_handler(formatted_message)
+            self._send_websocket_message("status", message, level)
     
     def success(self, message: str, duration: Optional[float] = None, level: int = 0):
         """
@@ -80,6 +105,7 @@ class VerboseStatusHandler:
             else:
                 formatted_message = f"✅ {indent}{message}"
             self.output_handler(formatted_message)
+            self._send_websocket_message("success", message, level, duration)
     
     def warning(self, message: str, level: int = 0):
         """
@@ -96,6 +122,7 @@ class VerboseStatusHandler:
             indent = "  " * level
             formatted_message = f"⚠️  {indent}{message}"
             self.output_handler(formatted_message)
+            self._send_websocket_message("warning", message, level)
     
     def error(self, message: str, level: int = 0):
         """
@@ -112,6 +139,7 @@ class VerboseStatusHandler:
             indent = "  " * level
             formatted_message = f"❌ {indent}{message}"
             self.output_handler(formatted_message)
+            self._send_websocket_message("error", message, level)
     
     @contextmanager
     def operation(self, operation_name: str, level: int = 0, show_start: bool = True, show_elapsed: bool = True):

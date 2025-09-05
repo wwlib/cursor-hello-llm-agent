@@ -8,9 +8,11 @@ export class WebSocketService {
   private connectionId: string | null = null
   private eventHandlers: Map<string, WebSocketEventHandler[]> = new Map()
   private reconnectAttempts = 0
-  private maxReconnectAttempts = 5
-  private reconnectDelay = 1000
+  private maxReconnectAttempts = 10
+  private reconnectDelay = 2000
   private heartbeatInterval: number | null = null
+  private connectionTimeout = 10000 // 10 seconds for initial connection
+  private heartbeatTimeout = 60000 // 60 seconds for heartbeat
   private isConnecting = false
   private subscribedLogSources: string[] = []
 
@@ -35,7 +37,10 @@ export class WebSocketService {
       'log_sources_response',
       'logs_subscribed',
       'logs_unsubscribed',
-      'log_stream'
+      'log_stream',
+      'verbose_status',
+      'verbose_subscribed',
+      'verbose_unsubscribed'
     ]
     
     eventTypes.forEach(type => {
@@ -55,14 +60,30 @@ export class WebSocketService {
     const url = `${wsUrl}/api/v1/ws/sessions/${sessionId}`
 
     return new Promise((resolve, reject) => {
+      let connectionTimer: number | null = null
+      
       try {
         this.socket = new WebSocket(url)
 
+        // Set connection timeout
+        connectionTimer = setTimeout(() => {
+          if (this.socket && this.socket.readyState !== WebSocket.OPEN) {
+            console.warn('WebSocket connection timeout')
+            this.socket.close()
+            this.isConnecting = false
+            reject(new Error('Connection timeout'))
+          }
+        }, this.connectionTimeout)
+
         this.socket.onopen = () => {
-          console.log('WebSocket connected')
+          console.log('WebSocket connected to session:', sessionId)
           this.isConnecting = false
           this.reconnectAttempts = 0
-          this.startHeartbeat()
+          if (connectionTimer) {
+            clearTimeout(connectionTimer)
+            connectionTimer = null
+          }
+          // Heartbeat will start when we receive connection_established message with connection_id
           resolve()
         }
 
@@ -80,18 +101,36 @@ export class WebSocketService {
           this.isConnecting = false
           this.stopHeartbeat()
           
-          if (event.code !== 1000 && this.reconnectAttempts < this.maxReconnectAttempts) {
-            setTimeout(() => this.reconnect(), this.reconnectDelay)
+          if (connectionTimer) {
+            clearTimeout(connectionTimer)
+            connectionTimer = null
+          }
+          
+          // Only attempt reconnection if it wasn't a normal close and we haven't exceeded max attempts
+          if (event.code !== 1000 && event.code !== 1001 && this.reconnectAttempts < this.maxReconnectAttempts) {
+            const delay = this.reconnectDelay * Math.min(this.reconnectAttempts + 1, 5) // Exponential backoff, max 10s
+            console.log(`Scheduling reconnection attempt ${this.reconnectAttempts + 1} in ${delay}ms`)
+            setTimeout(() => this.reconnect(), delay)
+          } else if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+            console.error('Max reconnection attempts reached, giving up')
           }
         }
 
         this.socket.onerror = (error) => {
           console.error('WebSocket error:', error)
           this.isConnecting = false
+          if (connectionTimer) {
+            clearTimeout(connectionTimer)
+            connectionTimer = null
+          }
           reject(error)
         }
       } catch (error) {
         this.isConnecting = false
+        if (connectionTimer) {
+          clearTimeout(connectionTimer)
+          connectionTimer = null
+        }
         reject(error)
       }
     })
@@ -115,8 +154,16 @@ export class WebSocketService {
 
   private startHeartbeat() {
     this.heartbeatInterval = setInterval(() => {
-      this.sendMessage({ type: 'heartbeat', data: {} })
-    }, 30000) // 30 seconds
+      if (this.socket && this.socket.readyState === WebSocket.OPEN && this.connectionId) {
+        this.sendMessage({ 
+          type: 'heartbeat', 
+          data: { 
+            timestamp: Date.now(),
+            connection_id: this.connectionId // Include connection_id for server-side heartbeat tracking
+          } 
+        })
+      }
+    }, this.heartbeatTimeout / 2) // Send heartbeat every 30 seconds
   }
 
   private stopHeartbeat() {
@@ -130,6 +177,10 @@ export class WebSocketService {
     // Extract connection ID from connection_established message
     if (response.type === 'connection_established' && response.data?.connection_id) {
       this.connectionId = response.data.connection_id
+      // Now that we have a connection ID, ensure heartbeat is running
+      if (!this.heartbeatInterval) {
+        this.startHeartbeat()
+      }
     }
 
     const handlers = this.eventHandlers.get(response.type) || []
@@ -154,6 +205,11 @@ export class WebSocketService {
       return true
     } catch (error) {
       console.error('Failed to send WebSocket message:', error)
+      // If sending fails, the connection might be broken - stop heartbeat to prevent spam
+      if (message.type === 'heartbeat') {
+        console.warn('Heartbeat failed, stopping heartbeat timer')
+        this.stopHeartbeat()
+      }
       return false
     }
   }
@@ -219,6 +275,18 @@ export class WebSocketService {
     }
   }
 
+  // Clear all event handlers for a specific event type
+  clearEventHandlers(eventType?: string) {
+    if (eventType) {
+      this.eventHandlers.set(eventType, [])
+    } else {
+      // Clear all handlers
+      this.eventHandlers.forEach((handlers, type) => {
+        this.eventHandlers.set(type, [])
+      })
+    }
+  }
+
   // Log streaming methods
   getLogSources() {
     return this.sendMessage({
@@ -279,6 +347,21 @@ export class WebSocketService {
 
   getSubscribedLogSources(): string[] {
     return [...this.subscribedLogSources]
+  }
+
+  // Verbose status streaming methods
+  subscribeToVerboseStatus() {
+    return this.sendMessage({
+      type: 'subscribe_verbose',
+      data: {}
+    })
+  }
+
+  unsubscribeFromVerboseStatus() {
+    return this.sendMessage({
+      type: 'unsubscribe_verbose',
+      data: {}
+    })
   }
 
   disconnect() {

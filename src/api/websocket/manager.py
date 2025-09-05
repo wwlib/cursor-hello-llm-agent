@@ -89,6 +89,13 @@ class ConnectionManager:
             except Exception as e:
                 logger.warning(f"Error cleaning up log subscriptions: {e}")
             
+            # Clean up verbose subscriptions
+            try:
+                from .verbose_streamer import verbose_streamer
+                verbose_streamer.cleanup_connection(session_id, connection_id)
+            except Exception as e:
+                logger.warning(f"Error cleaning up verbose subscriptions: {e}")
+            
             del self.connection_metadata[connection_id]
             if connection_id in self.heartbeats:
                 del self.heartbeats[connection_id]
@@ -133,6 +140,13 @@ class ConnectionManager:
     def get_connection_count(self) -> int:
         """Get total number of active connections."""
         return sum(len(connections) for connections in self.active_connections.values())
+    
+    def get_connection_id(self, websocket: WebSocket) -> Optional[str]:
+        """Get connection ID for a specific WebSocket connection."""
+        for connection_id, metadata in self.connection_metadata.items():
+            if metadata["websocket"] == websocket:
+                return connection_id
+        return None
     
     def update_heartbeat(self, connection_id: str):
         """Update heartbeat timestamp for a connection."""

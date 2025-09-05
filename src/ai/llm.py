@@ -158,6 +158,45 @@ class LLMService:
         """
         raise NotImplementedError("_generate_impl must be implemented by derived class")
     
+    async def generate_async(self, prompt: str, options: Optional[Dict[str, Any]] = None, debug_generate_scope: str = "") -> str:
+        """Generate a response for the given prompt asynchronously.
+        
+        Args:
+            prompt: The input prompt
+            options: Optional dictionary of generation options:
+                    - temperature: float - Sampling temperature (0.0 to 1.0)
+                    - max_tokens: int - Maximum tokens to generate
+                    - stream: bool - Whether to stream the response
+            debug_generate_scope: Optional scope identifier for this specific generate call
+            
+        Returns:
+            str: The generated response
+        """
+        if self.debug:
+            self.logger.debug(f":[{debug_generate_scope}]:Generating async response for prompt:\n{prompt}")
+            if options:
+                self.logger.debug(f":[{debug_generate_scope}]:Generation options:\n{json.dumps(options, indent=2)}")
+        
+        try:
+            response = await self._generate_impl_async(prompt, options or {}, debug_generate_scope)
+            
+            # Clean the response
+            cleaned_response = self._clean_response(response)
+            
+            if self.debug:
+                self.logger.debug(f":[{debug_generate_scope}]:Generated async response:\n{response}\n\n\n\n\n")
+            
+            return cleaned_response
+            
+        except Exception as e:
+            if self.debug:
+                self.logger.debug(f":[{debug_generate_scope}]:Error generating async response: {str(e)}")
+            raise
+    
+    async def _generate_impl_async(self, prompt: str, options: Dict[str, Any], debug_generate_scope: str = "") -> str:
+        """Implementation-specific async generation logic. Must be overridden by subclasses."""
+        raise NotImplementedError("Subclasses must implement _generate_impl_async")
+    
     def validate_response(self, response: str) -> bool:
         """Validate LLM response format.
         

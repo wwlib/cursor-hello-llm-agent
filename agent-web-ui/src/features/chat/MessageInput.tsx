@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useCallback } from 'react'
 import { PaperAirplaneIcon } from '@heroicons/react/24/outline'
 
 interface MessageInputProps {
@@ -30,14 +30,18 @@ const MessageInput: React.FC<MessageInputProps> = ({
     }
   }
 
-  // Auto-resize textarea
-  useEffect(() => {
-    const textarea = textareaRef.current
-    if (textarea) {
+  // Auto-resize textarea - optimized to avoid per-keystroke DOM manipulation
+  const handleTextareaChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const textarea = e.target
+    setMessage(textarea.value)
+    
+    // Only resize when necessary - batch DOM operations
+    requestAnimationFrame(() => {
       textarea.style.height = 'auto'
-      textarea.style.height = `${Math.min(textarea.scrollHeight, 120)}px`
-    }
-  }, [message])
+      const newHeight = Math.min(textarea.scrollHeight, 120)
+      textarea.style.height = `${newHeight}px`
+    })
+  }, [])
 
   return (
     <form onSubmit={handleSubmit} className="flex items-end gap-3">
@@ -45,7 +49,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
         <textarea
           ref={textareaRef}
           value={message}
-          onChange={(e) => setMessage(e.target.value)}
+          onChange={handleTextareaChange}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           disabled={disabled}

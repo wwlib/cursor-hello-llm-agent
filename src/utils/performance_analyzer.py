@@ -483,3 +483,4 @@ def print_performance_analysis(session_id: str):
                       f"{util['total_time']:.3f}s total, {util['avg_time']:.3f}s average")
     
     print("="*80)
+

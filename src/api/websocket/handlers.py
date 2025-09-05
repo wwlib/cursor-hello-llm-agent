@@ -14,6 +14,7 @@ from fastapi import WebSocket
 from ..services.session_manager import SessionManager
 from .manager import manager
 from .log_streamer import log_streamer
+from .verbose_streamer import verbose_streamer
 
 logger = logging.getLogger(__name__)
 
@@ -33,6 +34,8 @@ class MessageHandler:
             "subscribe_logs": self.handle_subscribe_logs,
             "unsubscribe_logs": self.handle_unsubscribe_logs,
             "get_log_sources": self.handle_get_log_sources,
+            "subscribe_verbose": self.handle_subscribe_verbose,
+            "unsubscribe_verbose": self.handle_unsubscribe_verbose,
         }
     
     async def handle_message(self, websocket: WebSocket, session_id: str, message: Dict[str, Any], session_manager):
@@ -413,6 +416,54 @@ class MessageHandler:
         except Exception as e:
             logger.error(f"Error getting log sources: {e}")
             await self.send_error(websocket, f"Log sources error: {str(e)}")
+    
+    async def handle_subscribe_verbose(self, websocket: WebSocket, session_id: str, data: Dict[str, Any], session_manager):
+        """Handle verbose status subscription requests."""
+        try:
+            connection_id = manager.get_connection_id(websocket)
+            if not connection_id:
+                await self.send_error(websocket, "Connection not found")
+                return
+            
+            # Subscribe to verbose status updates
+            verbose_streamer.subscribe_to_verbose_status(session_id, connection_id)
+            
+            await manager.send_personal_message({
+                "type": "verbose_subscribed",
+                "data": {
+                    "session_id": session_id,
+                    "connection_id": connection_id,
+                    "timestamp": datetime.now().isoformat()
+                }
+            }, websocket)
+            
+        except Exception as e:
+            logger.error(f"Error subscribing to verbose status: {e}")
+            await self.send_error(websocket, f"Verbose subscription error: {str(e)}")
+    
+    async def handle_unsubscribe_verbose(self, websocket: WebSocket, session_id: str, data: Dict[str, Any], session_manager):
+        """Handle verbose status unsubscription requests."""
+        try:
+            connection_id = manager.get_connection_id(websocket)
+            if not connection_id:
+                await self.send_error(websocket, "Connection not found")
+                return
+            
+            # Unsubscribe from verbose status updates
+            verbose_streamer.unsubscribe_from_verbose_status(session_id, connection_id)
+            
+            await manager.send_personal_message({
+                "type": "verbose_unsubscribed",
+                "data": {
+                    "session_id": session_id,
+                    "connection_id": connection_id,
+                    "timestamp": datetime.now().isoformat()
+                }
+            }, websocket)
+            
+        except Exception as e:
+            logger.error(f"Error unsubscribing from verbose status: {e}")
+            await self.send_error(websocket, f"Verbose unsubscription error: {str(e)}")
     
     async def send_error(self, websocket: WebSocket, error_message: str):
         """Send error message to WebSocket client."""

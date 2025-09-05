@@ -143,7 +143,7 @@ export interface GraphStatsResponse {
 
 // WebSocket Types
 export interface WebSocketMessage {
-  type: 'query' | 'heartbeat' | 'get_status' | 'get_memory' | 'search_memory' | 'get_graph' | 'ping' | 'get_log_sources' | 'subscribe_logs' | 'unsubscribe_logs'
+  type: 'query' | 'heartbeat' | 'get_status' | 'get_memory' | 'search_memory' | 'get_graph' | 'ping' | 'get_log_sources' | 'subscribe_logs' | 'unsubscribe_logs' | 'subscribe_verbose' | 'unsubscribe_verbose'
   data: any
 }
 
@@ -187,6 +187,31 @@ export interface LogSubscriptionResponse {
     connection_id: string
     subscribed_sources?: string[]
     unsubscribed_sources?: string[]
+  }
+}
+
+// Verbose Status Types
+export interface VerboseStatusMessage {
+  message_type: 'status' | 'success' | 'warning' | 'error'
+  message: string
+  level: number
+  duration?: number
+  timestamp: string
+  session_id: string
+  operation_stack: string[]
+}
+
+export interface VerboseStatusResponse {
+  type: 'verbose_status'
+  data: VerboseStatusMessage
+}
+
+export interface VerboseSubscriptionResponse {
+  type: 'verbose_subscribed' | 'verbose_unsubscribed'
+  data: {
+    session_id: string
+    connection_id: string
+    timestamp: string
   }
 }
 

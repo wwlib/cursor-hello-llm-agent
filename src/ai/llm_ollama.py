@@ -189,6 +189,73 @@ class OllamaService(LLMService):
             self.logger.warning(f"Invalid response format: {response}")
         return is_valid
 
+    async def _generate_impl_async(self, prompt: str, options: Dict[str, Any], debug_generate_scope: str = "") -> str:
+        """Generate a response using Ollama asynchronously with performance tracking.
+        
+        Args:
+            prompt: The input prompt
+            options: Dictionary of generation options:
+                    - temperature: float - Sampling temperature (0.0 to 1.0)
+                    - stream: bool - Whether to stream the response
+            debug_generate_scope: Optional scope identifier for debugging
+            
+        Returns:
+            str: The generated response
+            
+        Raises:
+            LLMServiceError: If the API call fails
+        """
+        import httpx
+        import json
+        import time
+        
+        # Track overall LLM generation performance
+        start_time = time.time()
+        
+        try:
+            # Prepare request
+            url = f"{self.base_url}/api/generate"
+            
+            # Use options to override defaults
+            request_data = {
+                "model": options.get("model", self.model),
+                "prompt": prompt,
+                "stream": options.get("stream", False),
+                "options": {
+                    "temperature": options.get("temperature", self.temperature)
+                }
+            }
+            
+            if self.debug:
+                self.logger.debug(f":[{debug_generate_scope}]:Sending async request to Ollama: {url}")
+                self.logger.debug(f":[{debug_generate_scope}]:Request data: {json.dumps(request_data, indent=2)}")
+            
+            # Make async HTTP request
+            async with httpx.AsyncClient(timeout=300.0) as client:  # 5 minute timeout
+                response = await client.post(url, json=request_data)
+                response.raise_for_status()
+                
+                response_data = response.json()
+                
+                if self.debug:
+                    self.logger.debug(f":[{debug_generate_scope}]:Received async response from Ollama")
+                
+                if "response" not in response_data:
+                    raise LLMServiceError("Invalid response format from Ollama API")
+                
+                return response_data["response"]
+                
+        except httpx.RequestError as e:
+            raise LLMServiceError(f"Ollama async API request error: {str(e)}")
+        except httpx.HTTPStatusError as e:
+            raise LLMServiceError(f"Ollama async API HTTP error: {e.response.status_code}")
+        except Exception as e:
+            raise LLMServiceError(f"Ollama async API error: {str(e)}")
+            
+        finally:
+            if self.debug:
+                self.logger.debug(f":[{debug_generate_scope}]:Total async LLM generation time: {time.time() - start_time:.3f}s")
+
     def _generate_embedding_impl(self, text: str, options: Dict[str, Any]) -> List[float]:
         """Generate an embedding vector using Ollama.
         

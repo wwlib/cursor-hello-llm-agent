@@ -9,7 +9,7 @@ import asyncio
 import logging
 import os
 from datetime import datetime, timedelta
-from typing import Dict, Optional, List
+from typing import Dict, Optional, List, Any
 from threading import Lock
 from pathlib import Path
 
@@ -18,6 +18,7 @@ from ..configs import get_domain_config, get_default_domain
 from ...agent.agent import Agent
 from ...memory.memory_manager import MemoryManager
 from ...ai.llm_ollama import OllamaService
+from .session_registry import SessionRegistry, SessionState
 
 logger = logging.getLogger(__name__)
 
@@ -214,6 +215,9 @@ SessionManager Debug Info for {self.session_id}:
                     with open("session_manager_debug.log", "a") as f:
                         f.write(f"{datetime.now()}: {debug_info}\n")
                     
+                    # Check if verbose mode should be enabled (from environment or config)
+                    verbose_enabled = os.environ.get("VERBOSE", "false").lower() in ["true", "1", "yes"]
+                    
                     self._memory_manager = MemoryManager(
                         memory_guid=self.session_id,
                         memory_file=memory_file,  # Use the properly structured file path
@@ -222,8 +226,26 @@ SessionManager Debug Info for {self.session_id}:
                         max_recent_conversation_entries=4,
                         digest_llm_service=digest_llm_service,
                         embeddings_llm_service=embeddings_llm_service,
+                        verbose=verbose_enabled,  # Enable verbose logging for WebSocket streaming
+                        enable_graph_memory=self.config.enable_graph,  # Respect user's graph memory setting
                         logger=memory_manager_logger
                     )
+                    
+                    # Configure WebSocket verbose streaming if enabled
+                    if verbose_enabled and hasattr(self._memory_manager, 'verbose_handler'):
+                        try:
+                            from ..websocket.verbose_streamer import get_websocket_verbose_handler
+                            # Replace the default verbose handler with WebSocket-enabled one
+                            self._memory_manager.verbose_handler = get_websocket_verbose_handler(
+                                session_id=self.session_id,
+                                enabled=True
+                            )
+                            # Also pass it to the graph manager if it exists
+                            if hasattr(self._memory_manager, 'graph_manager') and self._memory_manager.graph_manager:
+                                self._memory_manager.graph_manager.verbose_handler = self._memory_manager.verbose_handler
+                            logger.info(f"Configured WebSocket verbose streaming for session {self.session_id}")
+                        except Exception as e:
+                            logger.warning(f"Could not configure WebSocket verbose streaming: {e}")
                     
                     # Set up agent logging
                     agent_logger = logging.getLogger(f"agent.session_{self.session_id}")
@@ -337,18 +359,48 @@ class SessionManager:
         self.active_sessions: Dict[str, AgentSession] = {}
         self._lock = Lock()
         
-        # Start cleanup task
+        # Initialize session registry
+        self.registry = SessionRegistry(BASE_MEMORY_DIR)
+        
+        # Cleanup task will be started when event loop is available
         self._cleanup_task: Optional[asyncio.Task] = None
-        self._start_cleanup_task()
+        self._cleanup_started = False
+        
+        # Initialize registry on startup
+        self._initialize_registry()
+        
+    def _initialize_registry(self):
+        """Initialize session registry by scanning existing sessions"""
+        try:
+            new_sessions = self.registry.scan_existing_sessions()
+            if new_sessions > 0:
+                logger.info(f"Registry initialized with {new_sessions} new sessions")
+            else:
+                logger.info("Registry initialized, no new sessions found")
+        except Exception as e:
+            logger.error(f"Failed to initialize session registry: {e}")
         
     def _start_cleanup_task(self):
         """Start background task for session cleanup"""
+        if self._cleanup_started:
+            return
+            
         try:
             loop = asyncio.get_event_loop()
-            self._cleanup_task = loop.create_task(self._periodic_cleanup())
+            if loop.is_running():
+                self._cleanup_task = asyncio.create_task(self._periodic_cleanup())
+                self._cleanup_started = True
+                logger.info("Started session cleanup task")
+            else:
+                logger.warning("Event loop not running, cleanup task will start later")
         except RuntimeError:
             # No event loop running, cleanup will be manual
             logger.warning("No event loop available for automatic session cleanup")
+    
+    def _ensure_cleanup_task_started(self):
+        """Ensure cleanup task is started when event loop is available"""
+        if not self._cleanup_started:
+            self._start_cleanup_task()
             
     async def _periodic_cleanup(self):
         """Periodically clean up expired sessions"""
@@ -360,9 +412,13 @@ class SessionManager:
                 break
             except Exception as e:
                 logger.error(f"Error in periodic cleanup: {e}")
+                await asyncio.sleep(30)  # Wait 30 seconds before retrying after error
                 
     async def create_session(self, config: SessionConfig, user_id: Optional[str] = None) -> str:
         """Create a new agent session"""
+        
+        # Ensure cleanup task is running
+        self._ensure_cleanup_task_started()
         
         with self._lock:
             # Check session limit
@@ -385,10 +441,22 @@ class SessionManager:
         # Initialize agent (outside lock to avoid blocking)
         await session.initialize_agent()
         
+        # Register session in registry
+        try:
+            self.registry.add_session(
+                session_id=session_id,
+                user_id=user_id,
+                domain=config.domain,
+                enable_graph=config.enable_graph,
+                memory_path=session.get_memory_dir()
+            )
+        except Exception as e:
+            logger.warning(f"Failed to register session in registry: {e}")
+        
         return session_id
         
     async def get_session(self, session_id: str) -> Optional[AgentSession]:
-        """Get an existing session"""
+        """Get an existing session, restoring from registry if needed"""
         with self._lock:
             session = self.active_sessions.get(session_id)
             if session:
@@ -398,7 +466,68 @@ class SessionManager:
                     return None
                 else:
                     session.update_activity()
+                return session
+        
+        # Check if session exists in registry and can be restored
+        registry_entry = self.registry.get_session(session_id)
+        if registry_entry and registry_entry.state in [SessionState.DORMANT, SessionState.ARCHIVED]:
+            logger.info(f"Attempting to restore session {session_id} from registry")
+            restored_session = await self.restore_session(session_id)
+            return restored_session
+        
+        return None
+    
+    async def restore_session(self, session_id: str) -> Optional[AgentSession]:
+        """Restore a dormant session from the registry"""
+        registry_entry = self.registry.get_session(session_id)
+        if not registry_entry:
+            logger.warning(f"Session {session_id} not found in registry")
+            return None
+        
+        if registry_entry.state == SessionState.ACTIVE:
+            logger.warning(f"Session {session_id} is already active")
+            return self.active_sessions.get(session_id)
+        
+        try:
+            # Check if we have room for another session
+            with self._lock:
+                if len(self.active_sessions) >= self.max_sessions:
+                    await self.cleanup_expired_sessions()
+                    if len(self.active_sessions) >= self.max_sessions:
+                        logger.error(f"Cannot restore session {session_id}: max sessions reached")
+                        return None
+            
+            # Create session config from registry entry
+            config = SessionConfig(
+                domain=registry_entry.domain,
+                enable_graph=registry_entry.enable_graph
+            )
+            
+            # Create AgentSession instance
+            session = AgentSession(session_id, registry_entry.user_id, config)
+            
+            # Verify memory files exist
+            memory_file = os.path.join(registry_entry.memory_path, "agent_memory.json")
+            if not os.path.exists(memory_file):
+                logger.error(f"Memory file not found for session {session_id}: {memory_file}")
+                return None
+            
+            # Initialize agent with existing memory
+            await session.initialize_agent()
+            
+            # Add to active sessions
+            with self._lock:
+                self.active_sessions[session_id] = session
+            
+            # Update registry state
+            self.registry.set_session_state(session_id, SessionState.ACTIVE)
+            
+            logger.info(f"Successfully restored session {session_id}")
             return session
+            
+        except Exception as e:
+            logger.error(f"Failed to restore session {session_id}: {e}")
+            return None
             
     async def delete_session(self, session_id: str) -> bool:
         """Delete a session"""
@@ -411,7 +540,14 @@ class SessionManager:
         if session:
             await session.cleanup()
             del self.active_sessions[session_id]
-            logger.info(f"Removed session {session_id}")
+            
+            # Update registry state to dormant (session data is preserved)
+            try:
+                self.registry.set_session_state(session_id, SessionState.DORMANT)
+                logger.info(f"Removed session {session_id} from active sessions, marked as dormant")
+            except Exception as e:
+                logger.warning(f"Failed to update registry state for session {session_id}: {e}")
+            
             return True
         return False
         
@@ -445,6 +581,47 @@ class SessionManager:
                         config=session.config
                     ))
             return sessions
+    
+    def list_dormant_sessions(self, user_id: Optional[str] = None) -> List[Dict[str, Any]]:
+        """List sessions that can be restored from registry"""
+        try:
+            dormant_sessions = self.registry.get_sessions_by_state(SessionState.DORMANT)
+            archived_sessions = self.registry.get_sessions_by_state(SessionState.ARCHIVED)
+            
+            all_restorable = dormant_sessions + archived_sessions
+            
+            # Filter by user_id if provided
+            if user_id is not None:
+                all_restorable = [s for s in all_restorable if s.user_id == user_id]
+            
+            # Convert to dict format for API response
+            return [
+                {
+                    "session_id": session.session_id,
+                    "user_id": session.user_id,
+                    "domain": session.domain,
+                    "enable_graph": session.enable_graph,
+                    "created_at": session.created_at,
+                    "last_activity": session.last_activity,
+                    "state": session.state.value,
+                    "conversation_count": session.conversation_count,
+                    "memory_size_mb": round(session.memory_size_mb, 2),
+                    "last_message": session.last_message,
+                    "age_days": session.get_age_days()
+                }
+                for session in all_restorable
+            ]
+        except Exception as e:
+            logger.error(f"Failed to list dormant sessions: {e}")
+            return []
+    
+    def get_registry_stats(self) -> Dict[str, Any]:
+        """Get session registry statistics"""
+        try:
+            return self.registry.get_stats()
+        except Exception as e:
+            logger.error(f"Failed to get registry stats: {e}")
+            return {}
             
     def get_session_count(self) -> int:
         """Get the number of active sessions"""

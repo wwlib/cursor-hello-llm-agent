@@ -81,6 +81,12 @@ export const useLogStore = create<LogStore>()(
       
       // WebSocket actions
       initializeLogStreaming: () => {
+        // Clear existing log-related event handlers to prevent duplicates
+        wsService.clearEventHandlers('log_sources_response')
+        wsService.clearEventHandlers('logs_subscribed')
+        wsService.clearEventHandlers('logs_unsubscribed')
+        wsService.clearEventHandlers('log_stream')
+        
         // Set up WebSocket event listeners
         wsService.on('log_sources_response', (response) => {
           const { available_sources } = response.data

@@ -45,6 +45,60 @@ async def create_session(
         logger.error(f"Failed to create session: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to create session: {str(e)}")
 
+@router.get("/sessions/dormant")
+async def list_dormant_sessions(
+    user_id: Optional[str] = None,
+    session_manager: SessionManager = Depends(get_session_manager)
+):
+    """List sessions that can be restored from registry"""
+    try:
+        sessions = session_manager.list_dormant_sessions(user_id=user_id)
+        
+        return JSONResponse({
+            "sessions": sessions,
+            "total": len(sessions),
+            "status": "success"
+        })
+        
+    except Exception as e:
+        logger.error(f"Failed to list dormant sessions: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to list dormant sessions: {str(e)}")
+
+@router.get("/sessions/registry/stats")
+async def get_registry_stats(
+    session_manager: SessionManager = Depends(get_session_manager)
+):
+    """Get session registry statistics"""
+    try:
+        stats = session_manager.get_registry_stats()
+        
+        return JSONResponse({
+            "stats": stats,
+            "status": "success"
+        })
+        
+    except Exception as e:
+        logger.error(f"Failed to get registry stats: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to get registry stats: {str(e)}")
+
+@router.post("/sessions/cleanup")
+async def cleanup_expired_sessions(
+    session_manager: SessionManager = Depends(get_session_manager)
+):
+    """Manually trigger cleanup of expired sessions"""
+    try:
+        await session_manager.cleanup_expired_sessions()
+        
+        return JSONResponse({
+            "status": "success",
+            "message": "Expired sessions cleaned up",
+            "active_sessions": session_manager.get_session_count()
+        })
+        
+    except Exception as e:
+        logger.error(f"Failed to cleanup sessions: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to cleanup sessions: {str(e)}")
+
 @router.get("/sessions/{session_id}", response_model=SessionInfo)
 async def get_session(
     session_id: str,
@@ -110,6 +164,36 @@ async def list_sessions(
     except Exception as e:
         logger.error(f"Failed to list sessions: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to list sessions: {str(e)}")
+
+@router.post("/sessions/{session_id}/restore")
+async def restore_session(
+    session_id: str,
+    session_manager: SessionManager = Depends(get_session_manager)
+):
+    """Restore a dormant session"""
+    try:
+        session = await session_manager.restore_session(session_id)
+        if not session:
+            raise HTTPException(status_code=404, detail="Session not found or cannot be restored")
+            
+        return JSONResponse({
+            "status": "success",
+            "message": f"Session {session_id} restored successfully",
+            "session_info": {
+                "session_id": session.session_id,
+                "user_id": session.user_id,
+                "domain": session.config.domain,
+                "enable_graph": session.config.enable_graph,
+                "created_at": session.created_at.isoformat(),
+                "last_activity": session.last_activity.isoformat()
+            }
+        })
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to restore session {session_id}: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to restore session: {str(e)}")
 
 @router.post("/sessions/cleanup")
 async def cleanup_expired_sessions(

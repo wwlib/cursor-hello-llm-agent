@@ -3,9 +3,24 @@ import { devtools } from 'zustand/middleware'
 import apiClient from '../services/api'
 import type { SessionInfo, SessionConfig, CreateSessionRequest } from '../types/api'
 
+interface DormantSession {
+  session_id: string
+  user_id?: string
+  domain: string
+  enable_graph: boolean
+  created_at: string
+  last_activity: string
+  state: string
+  conversation_count: number
+  memory_size_mb: number
+  last_message: string
+  age_days: number
+}
+
 interface SessionStore {
   // State
   sessions: SessionInfo[]
+  dormantSessions: DormantSession[]
   currentSession: SessionInfo | null
   isLoading: boolean
   error: string | null
@@ -15,6 +30,8 @@ interface SessionStore {
   selectSession: (sessionId: string) => Promise<void>
   deleteSession: (sessionId: string) => Promise<void>
   refreshSessions: () => Promise<void>
+  refreshDormantSessions: () => Promise<void>
+  restoreSession: (sessionId: string) => Promise<SessionInfo>
   clearError: () => void
   cleanup: () => Promise<void>
 }
@@ -24,6 +41,7 @@ export const useSessionStore = create<SessionStore>()(
     (set, get) => ({
       // Initial state
       sessions: [],
+      dormantSessions: [],
       currentSession: null,
       isLoading: false,
       error: null,
@@ -116,6 +134,37 @@ export const useSessionStore = create<SessionStore>()(
           }))
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Failed to refresh sessions'
+          set({ error: errorMessage, isLoading: false })
+          throw error
+        }
+      },
+
+      refreshDormantSessions: async () => {
+        try {
+          const response = await apiClient.listDormantSessions()
+          set({ dormantSessions: response.sessions })
+        } catch (error) {
+          console.error('Failed to refresh dormant sessions:', error)
+        }
+      },
+
+      restoreSession: async (sessionId: string) => {
+        set({ isLoading: true, error: null })
+        
+        try {
+          const restoreResponse = await apiClient.restoreSession(sessionId)
+          const sessionInfo = await apiClient.getSession(sessionId)
+          
+          set(state => ({
+            sessions: [sessionInfo, ...state.sessions],
+            currentSession: sessionInfo,
+            dormantSessions: state.dormantSessions.filter(s => s.session_id !== sessionId),
+            isLoading: false
+          }))
+          
+          return sessionInfo
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Failed to restore session'
           set({ error: errorMessage, isLoading: false })
           throw error
         }

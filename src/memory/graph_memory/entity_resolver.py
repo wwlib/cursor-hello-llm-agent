@@ -233,23 +233,10 @@ Output format: [candidate_id, existing_node_id, resolution_justification, confid
         # Use override threshold if provided
         threshold = confidence_threshold if confidence_threshold is not None else self.confidence_threshold
         
-        # Get verbose handler if available
-        verbose_handler = getattr(self, 'verbose_handler', None)
-        
         if process_individually:
-            if verbose_handler:
-                verbose_handler.status(f"Processing {len(candidates)} entities individually...", 5)
-            result = self._resolve_individually(candidates, threshold)
-            if verbose_handler:
-                verbose_handler.success(f"Individual processing completed", level=5)
-            return result
+            return self._resolve_individually(candidates, threshold)
         else:
-            if verbose_handler:
-                verbose_handler.status(f"Processing {len(candidates)} entities in batch...", 5)
-            result = self._resolve_batch(candidates, threshold)
-            if verbose_handler:
-                verbose_handler.success(f"Batch processing completed", level=5)
-            return result
+            return self._resolve_batch(candidates, threshold)
     
     def _resolve_individually(self, candidates: List[Dict[str, Any]], 
                             confidence_threshold: float) -> List[Dict[str, Any]]:
@@ -273,47 +260,17 @@ Output format: [candidate_id, existing_node_id, resolution_justification, confid
         resolutions = []
         resolved_context = []  # Track resolved entities for subsequent candidates
         
-        verbose_handler = getattr(self, 'verbose_handler', None)
-        
-        for i, candidate in enumerate(candidates):
+        for candidate in candidates:
             try:
-                candidate_name = candidate.get('name', 'unnamed')
+                # Get RAG candidates for this specific entity
+                rag_candidates = self._get_rag_candidates_for_entity(candidate)
                 
-                if verbose_handler:
-                    with verbose_handler.operation(f"Resolving entity {i+1}/{len(candidates)}: {candidate_name}", level=6):
-                        # Get RAG candidates for this specific entity
-                        if verbose_handler:
-                            verbose_handler.status("Searching for similar entities...", 7)
-                        rag_candidates = self._get_rag_candidates_for_entity(candidate)
-                        
-                        if verbose_handler and rag_candidates:
-                            verbose_handler.success(f"Found {len(rag_candidates)} similar entities", level=7)
-                        elif verbose_handler:
-                            verbose_handler.success("No similar entities found", level=7)
-                        
-                        # Combine with previously resolved entities in this session
-                        existing_context = rag_candidates + resolved_context
-                        
-                        # Resolve single candidate
-                        if verbose_handler:
-                            verbose_handler.status("Calling LLM for entity resolution...", 7)
-                        
-                        resolution = self._resolve_single_candidate(candidate, existing_context, confidence_threshold)
-                        resolutions.append(resolution)
-                        
-                        if verbose_handler:
-                            confidence = resolution.get('confidence', 0.0)
-                            resolved_to = resolution.get('resolved_node_id', 'unknown')
-                            if resolved_to == "<NEW>":
-                                verbose_handler.success(f"Will create new entity (confidence: {confidence:.2f})", level=7)
-                            else:
-                                verbose_handler.success(f"Matched to existing: {resolved_to} (confidence: {confidence:.2f})", level=7)
-                else:
-                    # Non-verbose path
-                    rag_candidates = self._get_rag_candidates_for_entity(candidate)
-                    existing_context = rag_candidates + resolved_context
-                    resolution = self._resolve_single_candidate(candidate, existing_context, confidence_threshold)
-                    resolutions.append(resolution)
+                # Combine with previously resolved entities in this session
+                existing_context = rag_candidates + resolved_context
+                
+                # Resolve single candidate
+                resolution = self._resolve_single_candidate(candidate, existing_context, confidence_threshold)
+                resolutions.append(resolution)
                 
                 # Add to resolved context if it was matched to existing entity
                 # Validate that the resolved node actually exists in graph storage

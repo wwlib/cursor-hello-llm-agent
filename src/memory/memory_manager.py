@@ -1240,7 +1240,7 @@ class MemoryManager(BaseMemoryManager):
         """Compress memory asynchronously."""
         try:
             self.logger.debug("Starting async memory compression...")
-            self._compress_conversation_history()
+            await self._compress_conversation_history_async()
         except Exception as e:
             self.logger.error(f"Error in async memory compression: {str(e)}")
 
@@ -1396,6 +1396,49 @@ class MemoryManager(BaseMemoryManager):
             
         except Exception as e:
             self.logger.error(f"Error compressing conversation history: {str(e)}")
+            return False
+    
+    async def _compress_conversation_history_async(self) -> bool:
+        """Compress conversation history by keeping only important segments and updating context asynchronously."""
+        try:
+            # Get current memory state
+            conversation_history = self.memory.get("conversation_history", [])
+            # Use concatenated initial segments for static memory in compression
+            static_memory = self._get_initial_segments_text() or self.memory.get("static_memory", "")
+            current_context = self.memory.get("context", [])
+            
+            # Use MemoryCompressor to compress the conversation history asynchronously
+            compressed_state = await self.memory_compressor.compress_conversation_history_async(
+                conversation_history=conversation_history,
+                static_memory=static_memory,
+                current_context=current_context
+            )
+            
+            # Update memory with compressed state
+            self.memory["conversation_history"] = compressed_state.get("conversation_history", conversation_history)
+            self.memory["context"] = compressed_state.get("context", current_context)
+            
+            # Update the compressed entries tracker
+            if "compressed_entries" not in self.memory["metadata"]:
+                self.memory["metadata"]["compressed_entries"] = []
+            # Defensive: ensure it's a list
+            if not isinstance(self.memory["metadata"]["compressed_entries"], list):
+                self.memory["metadata"]["compressed_entries"] = []
+            compressed_entries = compressed_state.get("compressed_entries", [])
+            self.memory["metadata"]["compressed_entries"].extend(compressed_entries)
+            
+            # Update metadata
+            self.memory["metadata"]["updated_at"] = datetime.now().isoformat()
+            self.memory["metadata"]["compression_count"] = self.memory["metadata"].get("compression_count", 0) + 1
+            
+            # Save to persist memory updates
+            self.save_memory("compress_conversation_history_async")
+            
+            self.logger.debug(f"Async compressed conversation history. Remaining entries: {len(self.memory['conversation_history'])}")
+            return True
+            
+        except Exception as e:
+            self.logger.error(f"Error in async compressing conversation history: {str(e)}")
             return False
             
     def add_conversation_entry(self, entry: Dict[str, Any]) -> bool:
@@ -1618,10 +1661,23 @@ class MemoryManager(BaseMemoryManager):
         """
         return bool(self._pending_digests or self._pending_embeddings or self._pending_graph_updates)
     
-    async def wait_for_pending_operations(self) -> None:
-        """Wait for all pending async operations to complete."""
+    async def wait_for_pending_operations(self, timeout: float = 60.0) -> None:
+        """Wait for all pending async operations to complete.
+        
+        Args:
+            timeout: Maximum time to wait in seconds (default: 60)
+        """
+        start_time = asyncio.get_event_loop().time()
+        
         while self._pending_digests or self._pending_embeddings or self._pending_graph_updates:
-            await asyncio.sleep(0.1)  # Small delay to prevent busy waiting
+            current_time = asyncio.get_event_loop().time()
+            if current_time - start_time > timeout:
+                self.logger.warning(f"Timeout waiting for pending operations after {timeout}s. "
+                                  f"Remaining: digests={len(self._pending_digests)}, "
+                                  f"embeddings={len(self._pending_embeddings)}, "
+                                  f"graph_updates={len(self._pending_graph_updates)}")
+                break
+            await asyncio.sleep(0.2)  # Slightly longer delay to reduce CPU usage
 
     def update_memory_with_conversations(self) -> bool:
         """Update memory with current conversation history.

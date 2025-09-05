@@ -1,11 +1,13 @@
 import React, { useEffect, useRef } from 'react'
 import { useSessionStore } from '../../stores/sessionStore'
 import { useChatStore } from '../../stores/chatStore'
+import { useVerboseStore } from '../../stores/verboseStore'
 import MessageList from './MessageList'
 import MessageInput from './MessageInput'
 import TypingIndicator from './TypingIndicator'
 import ChatHeader from './ChatHeader'
 import LogPanel from '../monitoring/LogPanel'
+import VerboseStatusDisplay from '../../components/ui/VerboseStatusDisplay'
 
 const ChatInterface: React.FC = () => {
   const { currentSession } = useSessionStore()
@@ -20,24 +22,50 @@ const ChatInterface: React.FC = () => {
     setError
   } = useChatStore()
 
+  const {
+    messages: verboseMessages,
+    isVisible: verboseVisible,
+    setVisible: setVerboseVisible,
+    setSession: setVerboseSession,
+    subscribeToVerboseStatus,
+    clearMessages: clearVerboseMessages
+  } = useVerboseStore()
+
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   // Connect to session when current session changes
   useEffect(() => {
     if (currentSession?.session_id) {
       setSession(currentSession.session_id)
+      setVerboseSession(currentSession.session_id)
     }
-  }, [currentSession?.session_id, setSession])
+  }, [currentSession?.session_id, setSession, setVerboseSession])
 
-  // Auto-scroll to bottom when new messages arrive
+  // Subscribe to verbose status when connected
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages, isTyping])
+    if (isConnected && currentSession?.session_id) {
+      // Small delay to ensure WebSocket connection is fully established
+      const timer = setTimeout(() => {
+        subscribeToVerboseStatus()
+      }, 1000)
+      return () => clearTimeout(timer)
+    }
+  }, [isConnected, currentSession?.session_id, subscribeToVerboseStatus])
+
+  // Auto-scroll to bottom when new messages arrive - optimized to reduce unnecessary scrolling
+  useEffect(() => {
+    // Only scroll if there are messages and we're not currently typing (to avoid scroll during typing indicator)
+    if (messages.length > 0) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    }
+  }, [messages.length]) // Only depend on message count, not the entire messages array
 
   const handleSendMessage = async (message: string) => {
     if (!message.trim()) return
     
     try {
+      // Clear previous verbose messages when sending a new message
+      clearVerboseMessages()
       await sendMessage(message)
     } catch (error) {
       console.error('Failed to send message:', error)
@@ -121,6 +149,15 @@ const ChatInterface: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Verbose Status Display */}
+      <VerboseStatusDisplay
+        messages={verboseMessages}
+        isVisible={verboseVisible}
+        onToggle={() => setVerboseVisible(!verboseVisible)}
+        className="flex-shrink-0"
+        maxHeight="max-h-48"
+      />
 
       {/* Log Panel */}
       <LogPanel className="flex-shrink-0" maxHeight="max-h-64" />

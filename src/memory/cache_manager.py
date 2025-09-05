@@ -249,3 +249,4 @@ def get_cache_manager(logger: Optional[logging.Logger] = None) -> CacheManager:
     if _global_cache_manager is None:
         _global_cache_manager = CacheManager(logger=logger)
     return _global_cache_manager
+

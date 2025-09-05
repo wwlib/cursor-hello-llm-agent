@@ -29,7 +29,7 @@ class AgentAPIClient {
     
     this.axiosInstance = axios.create({
       baseURL: this.baseURL,
-      timeout: 30000,
+      timeout: 180000, // Increase to 3 minutes for session creation
       headers: {
         'Content-Type': 'application/json',
       },
@@ -96,6 +96,27 @@ class AgentAPIClient {
 
   async cleanupSessions(): Promise<{ status: string; cleaned_count: number }> {
     const response = await this.axiosInstance.post('/api/v1/sessions/cleanup')
+    return response.data
+  }
+
+  async listDormantSessions(): Promise<{ sessions: any[]; total: number; status: string }> {
+    const response: AxiosResponse<{ sessions: any[]; total: number; status: string }> = await this.axiosInstance.get(
+      '/api/v1/sessions/dormant'
+    )
+    return response.data
+  }
+
+  async restoreSession(sessionId: string): Promise<{ status: string; message: string; session_info: any }> {
+    const response: AxiosResponse<{ status: string; message: string; session_info: any }> = await this.axiosInstance.post(
+      `/api/v1/sessions/${sessionId}/restore`
+    )
+    return response.data
+  }
+
+  async getRegistryStats(): Promise<{ stats: any; status: string }> {
+    const response: AxiosResponse<{ stats: any; status: string }> = await this.axiosInstance.get(
+      '/api/v1/sessions/registry/stats'
+    )
     return response.data
   }
 

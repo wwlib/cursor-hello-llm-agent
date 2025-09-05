@@ -12,6 +12,8 @@ interface ChatStore {
   isConnected: boolean
   error: string | null
   currentSessionId: string | null
+  isLongOperation: boolean
+  operationStartTime: number | null
 
   // Actions
   setSession: (sessionId: string) => Promise<void>
@@ -20,6 +22,7 @@ interface ChatStore {
   clearHistory: () => void
   setTyping: (isTyping: boolean) => void
   setError: (error: string | null) => void
+  setLongOperation: (isLong: boolean) => void
   disconnect: () => void
 }
 
@@ -32,6 +35,8 @@ export const useChatStore = create<ChatStore>()(
       isConnected: false,
       error: null,
       currentSessionId: null,
+      isLongOperation: false,
+      operationStartTime: null,
 
       // Actions
       setSession: async (sessionId: string) => {
@@ -40,6 +45,13 @@ export const useChatStore = create<ChatStore>()(
           if (get().currentSessionId && get().currentSessionId !== sessionId) {
             wsService.disconnect()
           }
+          
+          // Clear only chat-related event handlers to prevent duplicates
+          wsService.clearEventHandlers('query_response')
+          wsService.clearEventHandlers('typing_start')
+          wsService.clearEventHandlers('typing_end')
+          wsService.clearEventHandlers('error')
+          wsService.clearEventHandlers('connection_established')
           
           set({ 
             currentSessionId: sessionId,
@@ -51,9 +63,10 @@ export const useChatStore = create<ChatStore>()(
           // Connect to WebSocket for this session
           await wsService.connect(sessionId)
           
-          // Set up event handlers
+          // Set up event handlers (these will be fresh handlers)
           wsService.on('query_response', (response: WebSocketResponse) => {
             get().setTyping(false)
+            get().setLongOperation(false)
             get().addMessage({
               type: 'agent',
               content: response.data.message || response.data.response || '',
@@ -63,16 +76,37 @@ export const useChatStore = create<ChatStore>()(
           })
 
           wsService.on('typing_start', () => {
-            get().setTyping(true)
+            const startTime = Date.now()
+            // Only update operationStartTime if we're currently typing (to avoid race conditions)
+            if (get().isTyping) {
+              set({ 
+                operationStartTime: startTime,
+                isLongOperation: false
+              })
+            }
+            
+            // If typing continues for more than 10 seconds, consider it a long operation
+            setTimeout(() => {
+              if (get().isTyping && !get().isLongOperation) {
+                get().setLongOperation(true)
+              }
+            }, 10000)
           })
 
           wsService.on('typing_end', () => {
             get().setTyping(false)
+            get().setLongOperation(false)
           })
 
           wsService.on('error', (response: WebSocketResponse) => {
             get().setTyping(false)
-            get().setError(response.data.message || 'An error occurred')
+            get().setError(response.data.message || response.data.error || 'An error occurred')
+          })
+
+          // Handle connection state changes
+          wsService.on('connection_established', (response: WebSocketResponse) => {
+            console.log('WebSocket connection established:', response.data)
+            set({ isConnected: true, error: null })
           })
 
           set({ isConnected: true })
@@ -99,8 +133,14 @@ export const useChatStore = create<ChatStore>()(
           session_id: currentSessionId
         })
 
-        // Set typing indicator
-        set({ isTyping: true, error: null })
+        // Set typing indicator with immediate timer start as fallback
+        const messageStartTime = Date.now()
+        set({ 
+          isTyping: true, 
+          error: null,
+          isLongOperation: false,
+          operationStartTime: messageStartTime  // Start timer immediately, will be updated by typing_start if received
+        })
 
         try {
           if (wsService.isConnected) {
@@ -152,11 +192,23 @@ export const useChatStore = create<ChatStore>()(
       },
 
       setTyping: (isTyping: boolean) => {
-        set({ isTyping })
+        set({ 
+          isTyping,
+          // Reset operationStartTime when typing stops
+          operationStartTime: isTyping ? get().operationStartTime : null
+        })
       },
 
       setError: (error: string | null) => {
         set({ error })
+      },
+
+      setLongOperation: (isLong: boolean) => {
+        set({ 
+          isLongOperation: isLong,
+          // Reset operationStartTime when long operation ends
+          operationStartTime: isLong ? get().operationStartTime : null
+        })
       },
 
       disconnect: () => {
