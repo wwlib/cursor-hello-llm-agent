@@ -107,6 +107,23 @@ class VerboseStatusHandler:
             self.output_handler(formatted_message)
             self._send_websocket_message("success", message, level, duration)
     
+    def info(self, message: str, level: int = 0):
+        """
+        Send an info message.
+        
+        Args:
+            message: The info message
+            level: Indentation level for hierarchical display
+        """
+        if not self.enabled:
+            return
+            
+        with self._lock:
+            indent = "  " * level
+            formatted_message = f"ℹ️  {indent}{message}"
+            self.output_handler(formatted_message)
+            self._send_websocket_message("info", message, level)
+    
     def warning(self, message: str, level: int = 0):
         """
         Send a warning message.

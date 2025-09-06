@@ -116,6 +116,11 @@ class MemoryManager(BaseMemoryManager):
         self._pending_embeddings = set()  # set of guids
         self._pending_graph_updates = set()  # set of guids
         
+        # Initialize background graph processor
+        self._background_graph_processor = None
+        self._graph_config_manager = None
+        self._optimized_context_retriever = None
+        
         # Batch processing configuration
         self._enable_batch_processing = graph_memory_processing_level in ["balanced", "speed"]
         self._batch_size = 3 if graph_memory_processing_level == "speed" else 2
@@ -189,6 +194,13 @@ class MemoryManager(BaseMemoryManager):
                     self.graph_manager.verbose_handler = self.verbose_handler
                 self.logger.debug(f"Initialized GraphManager with storage: {graph_storage_path}")
                 graph_logger.debug(f"Graph memory logger initialized for memory: {memory_base}")
+                
+                # Initialize background graph processor
+                self._initialize_background_graph_processor()
+                
+                # Initialize optimized context retriever
+                self._initialize_optimized_context_retriever()
+                
             except Exception as e:
                 self.logger.warning(f"Failed to initialize GraphManager: {e}. Graph memory disabled.")
                 self.enable_graph_memory = False
@@ -424,6 +436,89 @@ class MemoryManager(BaseMemoryManager):
         
         return logs_base_dir
 
+    def _initialize_background_graph_processor(self):
+        """Initialize the background graph processor with configuration."""
+        try:
+            from src.memory.graph_memory.background_processor import BackgroundGraphProcessor, ProcessingPriority
+            from src.memory.graph_memory.config import GraphConfigManager
+            
+            # Initialize configuration manager
+            self._graph_config_manager = GraphConfigManager()
+            
+            # Apply profile based on processing level
+            profile_mapping = {
+                "speed": "realtime",
+                "balanced": "balanced", 
+                "comprehensive": "comprehensive"
+            }
+            profile = profile_mapping.get(self.graph_memory_processing_level, "balanced")
+            self._graph_config_manager.apply_profile(profile)
+            
+            # Create status callback for monitoring
+            def status_callback(status_type: str, data: dict):
+                if self.verbose_handler:
+                    if status_type == "started":
+                        self.verbose_handler.success(f"Background graph processing started (frequency: {data.get('frequency', 'unknown')}s)")
+                    elif status_type == "stopped":
+                        self.verbose_handler.warning(f"Background graph processing stopped (queue: {data.get('queue_size', 0)})")
+                    elif status_type == "configured":
+                        self.verbose_handler.info(f"Graph processing configuration updated")
+            
+            # Initialize background processor
+            self._background_graph_processor = BackgroundGraphProcessor(
+                graph_manager=self.graph_manager,
+                processing_frequency=self._graph_config_manager.config.processing_frequency,
+                batch_size=self._graph_config_manager.config.batch_size,
+                max_queue_size=self._graph_config_manager.config.max_queue_size,
+                enable_priority_processing=self._graph_config_manager.config.enable_priority_processing,
+                status_callback=status_callback,
+                logger=self.logger
+            )
+            
+            # Start background processing if enabled
+            if self._graph_config_manager.config.enable_background_processing:
+                self._background_graph_processor.start()
+                self.logger.info(f"Started background graph processor with {profile} profile")
+            else:
+                self.logger.info("Background graph processing disabled by configuration")
+                
+        except Exception as e:
+            self.logger.error(f"Failed to initialize background graph processor: {e}")
+            self._background_graph_processor = None
+            self._graph_config_manager = None
+
+    def _initialize_optimized_context_retriever(self):
+        """Initialize the optimized graph context retriever."""
+        try:
+            from src.memory.graph_memory.context_retriever import OptimizedGraphContextRetriever
+            
+            # Initialize with configuration from graph config manager
+            cache_size = 100
+            default_ttl = 300.0  # 5 minutes
+            max_context_length = 2000
+            
+            if self._graph_config_manager:
+                config = self._graph_config_manager.config
+                cache_size = getattr(config, 'context_cache_size', cache_size)
+                default_ttl = getattr(config, 'context_cache_ttl', default_ttl)
+                max_context_length = getattr(config, 'max_context_results', max_context_length) * 200
+            
+            self._optimized_context_retriever = OptimizedGraphContextRetriever(
+                graph_manager=self.graph_manager,
+                cache_size=cache_size,
+                default_ttl=default_ttl,
+                max_context_length=max_context_length,
+                enable_semantic_caching=True,
+                logger=self.logger
+            )
+            
+            self.logger.info(f"Initialized optimized graph context retriever: "
+                           f"cache_size={cache_size}, ttl={default_ttl}s")
+            
+        except Exception as e:
+            self.logger.error(f"Failed to initialize optimized context retriever: {e}")
+            self._optimized_context_retriever = None
+
     def _create_graph_manager_logger(self, memory_dir: str, memory_base: str) -> logging.Logger:
         """Create a dedicated logger for graph manager operations.
         
@@ -577,13 +672,27 @@ class MemoryManager(BaseMemoryManager):
                                     self.verbose_handler.success("Found cached graph context", level=2)
                             
                             if not graph_context:
-                                graph_context = self.get_graph_context(query)
+                                # Use optimized context retriever if available
+                                if self._optimized_context_retriever:
+                                    graph_context, context_metadata = self._optimized_context_retriever.get_context(
+                                        query, 
+                                        max_results=self._graph_config_manager.config.max_context_results if self._graph_config_manager else 5,
+                                        use_cache=True
+                                    )
+                                    
+                                    if self.verbose_handler and context_metadata.get("cache_hit"):
+                                        self.verbose_handler.success("Found cached graph context (optimized)", level=2)
+                                    elif self.verbose_handler:
+                                        self.verbose_handler.success("Generated graph context (optimized)", level=2)
+                                else:
+                                    # Fallback to standard method
+                                    graph_context = self.get_graph_context(query)
                                 
-                                # Cache the result
+                                # Cache the result (for backward compatibility)
                                 if graph_context and self.cache_manager:
                                     self.cache_manager.set_graph_context(query, graph_state_hash, graph_context)
                                     if self.verbose_handler:
-                                        self.verbose_handler.success("Generated and cached graph context", level=2)
+                                        self.verbose_handler.success("Cached graph context", level=2)
                             
                             if graph_context:
                                 self.logger.debug("Added graph context to memory query")
@@ -773,7 +882,11 @@ class MemoryManager(BaseMemoryManager):
             self.logger.error(f"Error in batch digest generation: {str(e)}")
     
     async def _update_graph_memory_async(self, entry: Dict[str, Any]) -> None:
-        """Update graph memory with entities and relationships from a conversation entry."""
+        """Update graph memory with entities and relationships from a conversation entry.
+        
+        This method now uses the background processor for non-blocking graph updates.
+        If background processing is disabled, it falls back to direct processing.
+        """
         # Import performance tracker
         from src.utils.performance_tracker import get_performance_tracker
         
@@ -784,19 +897,194 @@ class MemoryManager(BaseMemoryManager):
             try:
                 self.logger.debug(f"Updating graph memory for {entry['role']} entry (mode: {self.graph_memory_processing_level})...")
                 
-                # Choose processing mode based on configuration
-                if self.graph_memory_processing_level == "speed" or self.enable_graph_memory_fast_mode:
-                    # Fast mode: minimal graph processing
-                    await self._update_graph_memory_fast_mode(entry)
-                elif self.graph_memory_processing_level == "comprehensive":
-                    # Full mode: complete EntityResolver processing
-                    await self._update_graph_memory_comprehensive_mode(entry)
+                # Use background processor if available and enabled
+                if (self._background_graph_processor and 
+                    self._graph_config_manager and 
+                    self._graph_config_manager.config.enable_background_processing):
+                    
+                    # Determine priority based on entry type
+                    from src.memory.graph_memory.background_processor import ProcessingPriority
+                    priority = ProcessingPriority.HIGH if entry.get("role") == "user" else ProcessingPriority.NORMAL
+                    
+                    # Add task to background processor
+                    success = self._background_graph_processor.add_task(
+                        entry_id=entry.get("guid", ""),
+                        entry_data=entry,
+                        priority=priority,
+                        processing_mode=self.graph_memory_processing_level
+                    )
+                    
+                    if success:
+                        self.logger.debug(f"Added graph processing task to background queue: {entry.get('guid', 'unknown')}")
+                        if self.verbose_handler:
+                            self.verbose_handler.info(f"Queued graph processing for background", level=3)
+                    else:
+                        self.logger.warning(f"Failed to queue graph processing task, falling back to direct processing")
+                        # Fall back to direct processing
+                        await self._update_graph_memory_direct(entry)
                 else:
-                    # Balanced mode: optimized EntityResolver processing
-                    await self._update_graph_memory_balanced_mode(entry)
+                    # Direct processing fallback
+                    await self._update_graph_memory_direct(entry)
                     
             except Exception as e:
                 self.logger.error(f"Error updating graph memory: {e}")
+    
+    async def _update_graph_memory_direct(self, entry: Dict[str, Any]) -> None:
+        """Direct graph memory update (fallback when background processing is not available)."""
+        try:
+            # Choose processing mode based on configuration
+            if self.graph_memory_processing_level == "speed" or self.enable_graph_memory_fast_mode:
+                # Fast mode: minimal graph processing
+                await self._update_graph_memory_fast_mode(entry)
+            elif self.graph_memory_processing_level == "comprehensive":
+                # Full mode: complete EntityResolver processing
+                await self._update_graph_memory_comprehensive_mode(entry)
+            else:
+                # Balanced mode: optimized EntityResolver processing
+                await self._update_graph_memory_balanced_mode(entry)
+        except Exception as e:
+            self.logger.error(f"Error in direct graph memory update: {e}")
+    
+    def get_graph_processing_status(self) -> Dict[str, Any]:
+        """Get current status of background graph processing."""
+        if not self._background_graph_processor:
+            return {
+                "enabled": False,
+                "reason": "Background processor not initialized"
+            }
+        
+        stats = self._background_graph_processor.get_stats()
+        queue_status = self._background_graph_processor.get_queue_status()
+        
+        return {
+            "enabled": self._graph_config_manager.config.enable_background_processing if self._graph_config_manager else False,
+            "is_running": stats.get("is_running", False),
+            "queue_size": stats.get("queue_size", 0),
+            "total_processed": stats.get("total_processed", 0),
+            "total_failed": stats.get("total_failed", 0),
+            "processing_rate": stats.get("processing_rate", 0.0),
+            "backlog_age": stats.get("backlog_age", 0.0),
+            "queue_details": queue_status,
+            "config": self._graph_config_manager.get_config_dict() if self._graph_config_manager else {}
+        }
+    
+    def configure_graph_processing(self, **kwargs) -> bool:
+        """Configure background graph processing settings."""
+        if not self._graph_config_manager:
+            self.logger.warning("Graph configuration manager not available")
+            return False
+        
+        try:
+            # Update configuration
+            self._graph_config_manager.update_config(**kwargs)
+            self._graph_config_manager.validate_config()
+            
+            # Update background processor if it exists
+            if self._background_graph_processor:
+                self._background_graph_processor.configure(
+                    processing_frequency=kwargs.get("processing_frequency"),
+                    batch_size=kwargs.get("batch_size"),
+                    max_queue_size=kwargs.get("max_queue_size")
+                )
+            
+            self.logger.info(f"Updated graph processing configuration: {kwargs}")
+            return True
+            
+        except Exception as e:
+            self.logger.error(f"Failed to configure graph processing: {e}")
+            return False
+    
+    def apply_graph_processing_profile(self, profile_name: str) -> bool:
+        """Apply a predefined graph processing profile."""
+        if not self._graph_config_manager:
+            self.logger.warning("Graph configuration manager not available")
+            return False
+        
+        try:
+            self._graph_config_manager.apply_profile(profile_name)
+            
+            # Restart background processor with new configuration
+            if self._background_graph_processor:
+                self._background_graph_processor.stop()
+                
+                # Update processor configuration
+                config = self._graph_config_manager.config
+                self._background_graph_processor.configure(
+                    processing_frequency=config.processing_frequency,
+                    batch_size=config.batch_size,
+                    max_queue_size=config.max_queue_size
+                )
+                
+                # Restart if enabled
+                if config.enable_background_processing:
+                    self._background_graph_processor.start()
+            
+            self.logger.info(f"Applied graph processing profile: {profile_name}")
+            return True
+            
+        except Exception as e:
+            self.logger.error(f"Failed to apply graph processing profile {profile_name}: {e}")
+            return False
+    
+    def stop_graph_processing(self) -> None:
+        """Stop background graph processing."""
+        if self._background_graph_processor:
+            self._background_graph_processor.stop()
+            self.logger.info("Stopped background graph processing")
+    
+    def start_graph_processing(self) -> None:
+        """Start background graph processing."""
+        if self._background_graph_processor and self._graph_config_manager:
+            if self._graph_config_manager.config.enable_background_processing:
+                self._background_graph_processor.start()
+                self.logger.info("Started background graph processing")
+            else:
+                self.logger.warning("Background graph processing is disabled in configuration")
+        else:
+            self.logger.warning("Background graph processor not available")
+    
+    def clear_graph_processing_queue(self) -> int:
+        """Clear all pending graph processing tasks."""
+        if self._background_graph_processor:
+            cleared_count = self._background_graph_processor.clear_queue()
+            self.logger.info(f"Cleared {cleared_count} graph processing tasks from queue")
+            return cleared_count
+        return 0
+    
+    def get_context_retriever_stats(self) -> Dict[str, Any]:
+        """Get statistics for the optimized context retriever."""
+        if not self._optimized_context_retriever:
+            return {"enabled": False, "reason": "Context retriever not initialized"}
+        
+        return {
+            "enabled": True,
+            "stats": self._optimized_context_retriever.get_cache_stats(),
+            "performance": self._optimized_context_retriever.get_performance_report()
+        }
+    
+    def clear_context_cache(self) -> int:
+        """Clear the graph context cache."""
+        if self._optimized_context_retriever:
+            cleared_count = self._optimized_context_retriever.clear_cache()
+            self.logger.info(f"Cleared {cleared_count} context cache entries")
+            return cleared_count
+        return 0
+    
+    def invalidate_context_cache(self, pattern: Optional[str] = None) -> int:
+        """Invalidate context cache entries matching a pattern."""
+        if self._optimized_context_retriever:
+            invalidated_count = self._optimized_context_retriever.invalidate_cache(pattern)
+            self.logger.info(f"Invalidated {invalidated_count} context cache entries")
+            return invalidated_count
+        return 0
+    
+    def optimize_context_cache(self) -> Dict[str, Any]:
+        """Optimize the context cache."""
+        if self._optimized_context_retriever:
+            optimization_result = self._optimized_context_retriever.optimize_cache()
+            self.logger.info(f"Optimized context cache: {optimization_result}")
+            return optimization_result
+        return {"error": "Context retriever not available"}
     
     async def _update_graph_memory_comprehensive_mode(self, entry: Dict[str, Any]) -> None:
         """Update graph memory using full EntityResolver processing (comprehensive mode)."""

@@ -222,7 +222,7 @@ class OllamaService(LLMService):
                 "prompt": prompt,
                 "stream": options.get("stream", False),
                 "options": {
-                    "temperature": options.get("temperature", self.temperature)
+                    "temperature": options.get("temperature", self.default_temperature)
                 }
             }
             
