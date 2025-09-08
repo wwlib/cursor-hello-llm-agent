@@ -85,6 +85,10 @@ class GraphStorage:
         """Load graph metadata."""
         return self._load_json(self.metadata_file)
     
+    def save_metadata(self, metadata: Dict[str, Any]) -> None:
+        """Save complete metadata to storage."""
+        self._save_json(self.metadata_file, metadata)
+    
     def _update_metadata(self, **kwargs) -> None:
         """Update metadata with provided fields."""
         metadata = self.load_metadata()

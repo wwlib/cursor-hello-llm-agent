@@ -2,6 +2,8 @@
 
 This document provides a comprehensive guide for Claude Code instances working with this LLM-driven agent framework codebase.
 
+DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large
+
 ## Project Overview
 
 This is a modern, extensible framework for building domain-agnostic LLM-powered agents with persistent, semantically searchable memory. The system supports Retrieval Augmented Generation (RAG), segment-level embeddings, structured knowledge graphs, and robust memory compression.
@@ -73,11 +75,11 @@ pip install -r requirements.txt
 
 ### Testing
 
-environment variables: DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large
+environment variables: DEV_MODE=true OLLAMA_BASE_URL=http://192.168.0.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large
 
 ```bash
 # Run all tests
-DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large pytest tests/ -v -s
+DEV_MODE=true OLLAMA_BASE_URL=http://192.168.0.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large pytest tests/ -v -s
 
 # Run specific test categories
 pytest tests/memory_manager/ -v -s
@@ -96,14 +98,14 @@ python run_automated_tests.py --domain dnd      # Specific domain
 
 ### Running Examples
 
-environment variables: DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large
+environment variables: DEV_MODE=true OLLAMA_BASE_URL=http://192.168.0.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large
 
 ```bash
 # Canonical RAG example (recommended starting point)
-DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/rag_enhanced_memory_example_simple.py
+DEV_MODE=true OLLAMA_BASE_URL=http://192.168.0.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/rag_enhanced_memory_example_simple.py
 
 # Graph memory standalone example (demonstrates graph-only functionality)
-DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/graph_memory_example.py
+DEV_MODE=true OLLAMA_BASE_URL=http://192.168.0.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/graph_memory_example.py
 
 # Interactive agent with domain config (includes automatic graph memory) and interaction passed in via stdin
 # Fresh runs can be started by specifying a new guid
@@ -111,7 +113,7 @@ DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLL
 # graph memory files are in <project-root>/agent_memories/standard/[guid]/agent_memory_graph_data
 # logs are in <project-root>/logs/[guid]
 
-echo "Please describe the ruins" | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/agent_usage_example.py --guid dnd5g16 --config dnd 
+echo "Please describe the ruins" | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.0.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/agent_usage_example.py --guid dnd5g16 --config dnd 
 
 
 # List available memory files

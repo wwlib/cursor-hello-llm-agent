@@ -367,6 +367,56 @@ class GraphManager:
         
         return distinct_services
     
+    def queue_background_processing(self, conversation_text: str, digest_text: str = "", 
+                                   conversation_guid: str = None) -> Dict[str, Any]:
+        """
+        Queue conversation entry for background graph processing.
+        
+        This method returns immediately and schedules entity/relationship extraction
+        to happen in the background. The results will be available for future queries.
+        
+        Args:
+            conversation_text: Full conversation entry text
+            digest_text: Digest/summary of the conversation  
+            conversation_guid: GUID for tracking conversation mentions
+            
+        Returns:
+            Dictionary with queuing status (non-blocking)
+        """
+        try:
+            # Create processing task data
+            task_data = {
+                "conversation_text": conversation_text,
+                "digest_text": digest_text,
+                "conversation_guid": conversation_guid,
+                "queued_at": datetime.now().isoformat(),
+                "task_id": str(uuid.uuid4())
+            }
+            
+            # For now, add to a simple in-memory queue
+            # TODO: Integrate with proper background processor
+            if not hasattr(self, '_background_queue'):
+                self._background_queue = []
+            
+            self._background_queue.append(task_data)
+            
+            self.logger.info(f"Queued graph processing task {task_data['task_id']} for background processing")
+            
+            return {
+                "status": "queued",
+                "task_id": task_data["task_id"],
+                "queue_size": len(self._background_queue),
+                "message": "Graph processing queued for background execution"
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Error queuing background graph processing: {e}")
+            return {
+                "status": "error", 
+                "error": str(e),
+                "message": "Failed to queue background processing"
+            }
+
     def process_conversation_entry_with_resolver(self, conversation_text: str, digest_text: str = "", 
                                                 conversation_guid: str = None) -> Dict[str, Any]:
         """
@@ -700,8 +750,13 @@ class GraphManager:
     def _save_graph(self):
         """Save current graph state to storage."""
         try:
-            # Save nodes
-            nodes_data = {node_id: node.to_dict() for node_id, node in self.nodes.items()}
+            # Save nodes (exclude embeddings - they're stored separately)
+            nodes_data = {}
+            for node_id, node in self.nodes.items():
+                node_dict = node.to_dict()
+                # Remove embedding from storage - it's handled by embeddings manager
+                node_dict.pop('embedding', None)
+                nodes_data[node_id] = node_dict
             self.storage.save_nodes(nodes_data)
             
             # Save edges
@@ -752,7 +807,11 @@ class GraphManager:
                     try:
                         embedding_text = f"{existing_node.name} {existing_node.description}"
                         
-                        # Update in embeddings manager
+                        # Generate embedding for the node
+                        new_embedding = self.embeddings_manager.generate_embedding(embedding_text)
+                        existing_node.update_embedding(new_embedding)
+                        
+                        # Also add to embeddings manager for RAG searches
                         entity_metadata = {
                             "entity_id": existing_node.id,
                             "entity_name": existing_node.name,
@@ -763,7 +822,7 @@ class GraphManager:
                             text_or_item=embedding_text,
                             metadata=entity_metadata
                         )
-                        self.logger.debug(f"Updated embedding for existing entity: {existing_node.name}")
+                        self.logger.debug(f"Updated embedding for existing entity: {existing_node.name} (embedding length: {len(new_embedding) if new_embedding else 0})")
                     except Exception as e:
                         self.logger.warning(f"Failed to update embedding for entity {existing_node.name}: {e}")
                 
@@ -785,13 +844,17 @@ class GraphManager:
                     attributes=new_attributes
                 )
                 
-                # Generate embedding for the entity for RAG searches
+                # Generate embedding for the entity
                 if self.embeddings_manager:
                     try:
                         # Use name + description for embedding
                         embedding_text = f"{name} {description}"
                         
-                        # Also add to embeddings manager with proper metadata for RAG
+                        # Generate embedding and set it on the node
+                        entity_embedding = self.embeddings_manager.generate_embedding(embedding_text)
+                        new_node.update_embedding(entity_embedding)
+                        
+                        # Also add to embeddings manager for RAG searches
                         entity_metadata = {
                             "entity_id": node_id,
                             "entity_name": name,
@@ -802,7 +865,7 @@ class GraphManager:
                             text_or_item=embedding_text,
                             metadata=entity_metadata
                         )
-                        self.logger.debug(f"Generated embedding for new entity: {name} ({node_type})")
+                        self.logger.debug(f"Generated embedding for new entity: {name} ({node_type}) (embedding length: {len(entity_embedding) if entity_embedding else 0})")
                     except Exception as e:
                         self.logger.warning(f"Failed to generate embedding for entity {name}: {e}")
                 
@@ -864,9 +927,14 @@ class GraphManager:
         return None
     
     def query_for_context(self, query: str, max_results: int = 5) -> List[Dict[str, Any]]:
-        """Query the graph for relevant context."""
+        """
+        Query the graph for relevant context using CURRENT data only.
+        
+        This method is non-blocking and returns immediately with available graph data.
+        It does not wait for any background processing to complete.
+        """
         if not self.embeddings_manager:
-            # Simple text matching fallback
+            # Simple text matching fallback - always non-blocking
             results = []
             query_lower = query.lower()
             for node in self.nodes.values():
@@ -876,19 +944,20 @@ class GraphManager:
                         'name': node.name,
                         'type': node.type,
                         'description': node.description,
-                        'relevance_score': 1.0
+                        'relevance_score': 1.0,
+                        'source': 'text_match'
                     })
                     if len(results) >= max_results:
                         break
             return results
         
         try:
-            # Use embeddings for semantic search
+            # Use embeddings for semantic search - non-blocking, uses current data
             query_embedding = self.embeddings_manager.generate_embedding(query)
             similarities = []
             
             for node in self.nodes.values():
-                if node.embedding:
+                if node.embedding is not None and len(node.embedding) > 0:
                     similarity = self._cosine_similarity(query_embedding, node.embedding)
                     similarities.append((similarity, node))
             
@@ -900,8 +969,17 @@ class GraphManager:
                     'name': node.name,
                     'type': node.type,
                     'description': node.description,
-                    'relevance_score': similarity
+                    'relevance_score': similarity,
+                    'source': 'semantic_search'
                 })
+            
+            # Add metadata about current graph state
+            if results and len(results) > 0:
+                results[0]['graph_metadata'] = {
+                    'total_nodes': len(self.nodes),
+                    'total_edges': len(self.edges),
+                    'query_timestamp': datetime.now().isoformat()
+                }
             
             return results
             
@@ -930,4 +1008,100 @@ class GraphManager:
             if magnitude1 == 0 or magnitude2 == 0:
                 return 0.0
             
-            return dot_product / (magnitude1 * magnitude2) 
+            return dot_product / (magnitude1 * magnitude2)
+    
+    def process_background_queue(self, max_tasks: int = 1) -> Dict[str, Any]:
+        """
+        Process queued background tasks.
+        
+        This method processes a limited number of queued graph processing tasks.
+        It's designed to be called periodically to avoid blocking the main thread.
+        
+        Args:
+            max_tasks: Maximum number of tasks to process in this call
+            
+        Returns:
+            Dictionary with processing results
+        """
+        if not hasattr(self, '_background_queue') or not self._background_queue:
+            return {
+                "processed": 0,
+                "remaining": 0,
+                "results": [],
+                "message": "No tasks in queue"
+            }
+        
+        results = []
+        processed = 0
+        errors = 0
+        
+        # Process up to max_tasks from the queue
+        for _ in range(min(max_tasks, len(self._background_queue))):
+            if not self._background_queue:
+                break
+                
+            task = self._background_queue.pop(0)  # FIFO processing
+            
+            try:
+                # Process the task using the original synchronous method
+                result = self.process_conversation_entry_with_resolver(
+                    conversation_text=task["conversation_text"],
+                    digest_text=task["digest_text"],
+                    conversation_guid=task["conversation_guid"]
+                )
+                
+                # Add task metadata to result
+                result["task_id"] = task["task_id"]
+                result["queued_at"] = task["queued_at"]
+                result["processed_at"] = datetime.now().isoformat()
+                
+                results.append(result)
+                processed += 1
+                
+                self.logger.info(f"Processed background graph task {task['task_id']}: "
+                               f"{len(result.get('entities', []))} entities, "
+                               f"{len(result.get('relationships', []))} relationships")
+                
+            except Exception as e:
+                self.logger.error(f"Error processing background task {task.get('task_id', 'unknown')}: {e}")
+                errors += 1
+                results.append({
+                    "task_id": task.get("task_id", "unknown"),
+                    "error": str(e),
+                    "processed_at": datetime.now().isoformat()
+                })
+        
+        return {
+            "processed": processed,
+            "errors": errors,
+            "remaining": len(self._background_queue),
+            "results": results,
+            "message": f"Processed {processed} tasks, {errors} errors, {len(self._background_queue)} remaining"
+        }
+    
+    def get_background_processing_status(self) -> Dict[str, Any]:
+        """Get current status of background graph processing."""
+        if not hasattr(self, '_background_queue'):
+            self._background_queue = []
+        
+        return {
+            "queue_size": len(self._background_queue),
+            "oldest_task": self._background_queue[0]["queued_at"] if self._background_queue else None,
+            "newest_task": self._background_queue[-1]["queued_at"] if self._background_queue else None,
+            "graph_stats": {
+                "total_nodes": len(self.nodes),
+                "total_edges": len(self.edges)
+            },
+            "status": "active" if self._background_queue else "idle"
+        }
+    
+    def clear_background_queue(self) -> int:
+        """Clear all pending background tasks and return count of cleared tasks."""
+        if not hasattr(self, '_background_queue'):
+            return 0
+        
+        cleared_count = len(self._background_queue)
+        self._background_queue.clear()
+        
+        self.logger.info(f"Cleared {cleared_count} pending background graph processing tasks")
+        return cleared_count 

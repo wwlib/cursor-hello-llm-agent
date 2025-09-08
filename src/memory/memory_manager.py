@@ -895,39 +895,33 @@ class MemoryManager(BaseMemoryManager):
         
         with performance_tracker.track_operation("async_graph_memory_update"):
             try:
-                self.logger.debug(f"Updating graph memory for {entry['role']} entry (mode: {self.graph_memory_processing_level})...")
+                self.logger.info(f"[BACKGROUND_QUEUE_DEBUG] Queueing graph memory processing for {entry['role']} entry (non-blocking)...")
                 
-                # Use background processor if available and enabled
-                if (self._background_graph_processor and 
-                    self._graph_config_manager and 
-                    self._graph_config_manager.config.enable_background_processing):
+                # Always use non-blocking approach for graph processing
+                if self.graph_manager:
+                    # Extract relevant text from the entry
+                    entry_text = entry.get("content", "")
+                    digest_text = ""  # Could extract from digest if available
+                    conversation_guid = entry.get("guid", "")
                     
-                    # Determine priority based on entry type
-                    from src.memory.graph_memory.background_processor import ProcessingPriority
-                    priority = ProcessingPriority.HIGH if entry.get("role") == "user" else ProcessingPriority.NORMAL
-                    
-                    # Add task to background processor
-                    success = self._background_graph_processor.add_task(
-                        entry_id=entry.get("guid", ""),
-                        entry_data=entry,
-                        priority=priority,
-                        processing_mode=self.graph_memory_processing_level
+                    # Queue for background processing - this returns immediately
+                    result = self.graph_manager.queue_background_processing(
+                        conversation_text=entry_text,
+                        digest_text=digest_text,
+                        conversation_guid=conversation_guid
                     )
                     
-                    if success:
-                        self.logger.debug(f"Added graph processing task to background queue: {entry.get('guid', 'unknown')}")
+                    if result.get("status") == "queued":
+                        self.logger.info(f"[BACKGROUND_QUEUE_DEBUG] Successfully queued graph processing: task_id={result.get('task_id')}, queue_size={result.get('queue_size')}")
                         if self.verbose_handler:
-                            self.verbose_handler.info(f"Queued graph processing for background", level=3)
+                            self.verbose_handler.info(f"Graph processing queued (queue size: {result.get('queue_size', 'unknown')})", level=3)
                     else:
-                        self.logger.warning(f"Failed to queue graph processing task, falling back to direct processing")
-                        # Fall back to direct processing
-                        await self._update_graph_memory_direct(entry)
+                        self.logger.warning(f"[BACKGROUND_QUEUE_DEBUG] Failed to queue graph processing: {result.get('error', 'Unknown error')}")
                 else:
-                    # Direct processing fallback
-                    await self._update_graph_memory_direct(entry)
+                    self.logger.debug("Graph manager not available, skipping graph processing")
                     
             except Exception as e:
-                self.logger.error(f"Error updating graph memory: {e}")
+                self.logger.error(f"Error queueing graph memory processing: {e}")
     
     async def _update_graph_memory_direct(self, entry: Dict[str, Any]) -> None:
         """Direct graph memory update (fallback when background processing is not available)."""
@@ -1850,6 +1844,8 @@ class MemoryManager(BaseMemoryManager):
     async def _generate_digest_async(self, entry: Dict[str, Any]) -> None:
         """Asynchronously generate digest for an entry."""
         try:
+            self.logger.info(f"[DIGEST_DEBUG] Starting digest generation for {entry.get('guid', 'unknown')}")
+            
             # Generate digest
             entry["digest"] = self.digest_generator.generate_digest(entry, self.memory)
             
@@ -1863,6 +1859,9 @@ class MemoryManager(BaseMemoryManager):
             self._pending_embeddings.add(entry["guid"])
             if self.enable_graph_memory and self.graph_manager:
                 self._pending_graph_updates.add(entry["guid"])
+                self.logger.info(f"[DIGEST_DEBUG] Added {entry.get('guid')} to pending graph updates")
+            
+            self.logger.info(f"[DIGEST_DEBUG] Calling embeddings update for {entry.get('guid', 'unknown')}")
             await self._update_embeddings_async(entry)
             
             # Save memory to persist the digest
@@ -1915,6 +1914,8 @@ class MemoryManager(BaseMemoryManager):
     async def _update_embeddings_async(self, entry: Dict[str, Any]) -> None:
         """Asynchronously update embeddings and graph memory for an entry."""
         try:
+            self.logger.info(f"[EMBEDDINGS_DEBUG] Starting embeddings update for {entry.get('guid', 'unknown')}")
+            
             # Update embeddings
             self.embeddings_manager.add_new_embeddings([entry])
             
@@ -1923,8 +1924,11 @@ class MemoryManager(BaseMemoryManager):
             
             # Update graph memory if enabled
             if self.enable_graph_memory and self.graph_manager and entry["guid"] in self._pending_graph_updates:
+                self.logger.info(f"[EMBEDDINGS_DEBUG] Calling graph memory update for {entry.get('guid', 'unknown')}")
                 await self._update_graph_memory_async(entry)
                 self._pending_graph_updates.discard(entry["guid"])
+            else:
+                self.logger.info(f"[EMBEDDINGS_DEBUG] Skipping graph update: enable_graph_memory={self.enable_graph_memory}, has_graph_manager={self.graph_manager is not None}, in_pending={entry['guid'] in self._pending_graph_updates}")
             
         except Exception as e:
             self.logger.error(f"Error in async embeddings/graph update: {str(e)}")
@@ -1947,7 +1951,16 @@ class MemoryManager(BaseMemoryManager):
         Returns:
             bool: True if there are pending operations
         """
-        return bool(self._pending_digests or self._pending_embeddings or self._pending_graph_updates)
+        # Check traditional pending operations
+        has_traditional_pending = bool(self._pending_digests or self._pending_embeddings or self._pending_graph_updates)
+        
+        # Check graph memory background queue
+        has_graph_queue_pending = False
+        if self.graph_manager:
+            status = self.graph_manager.get_background_processing_status()
+            has_graph_queue_pending = status.get("queue_size", 0) > 0
+        
+        return has_traditional_pending or has_graph_queue_pending
     
     async def wait_for_pending_operations(self, timeout: float = 60.0) -> None:
         """Wait for all pending async operations to complete.
@@ -1966,6 +1979,62 @@ class MemoryManager(BaseMemoryManager):
                                   f"graph_updates={len(self._pending_graph_updates)}")
                 break
             await asyncio.sleep(0.2)  # Slightly longer delay to reduce CPU usage
+    
+    def process_background_graph_queue(self, max_tasks: int = 1) -> Dict[str, Any]:
+        """
+        Process queued background graph processing tasks.
+        
+        This method processes a limited number of graph processing tasks from the queue.
+        It should be called periodically to gradually process the background work.
+        
+        Args:
+            max_tasks: Maximum number of tasks to process in this call
+            
+        Returns:
+            Dictionary with processing results
+        """
+        if not self.graph_manager:
+            return {
+                "processed": 0,
+                "message": "Graph manager not available"
+            }
+        
+        try:
+            result = self.graph_manager.process_background_queue(max_tasks)
+            
+            if result.get("processed", 0) > 0:
+                self.logger.info(f"Processed {result['processed']} background graph tasks: {result.get('message', '')}")
+            
+            return result
+            
+        except Exception as e:
+            self.logger.error(f"Error processing background graph queue: {e}")
+            return {
+                "processed": 0,
+                "errors": 1,
+                "message": f"Error processing queue: {str(e)}"
+            }
+    
+    def get_graph_processing_status(self) -> Dict[str, Any]:
+        """Get comprehensive status of graph processing including background queue."""
+        if not self.graph_manager:
+            return {
+                "available": False,
+                "message": "Graph manager not available"
+            }
+        
+        try:
+            status = self.graph_manager.get_background_processing_status()
+            status["available"] = True
+            return status
+            
+        except Exception as e:
+            self.logger.error(f"Error getting graph processing status: {e}")
+            return {
+                "available": False,
+                "error": str(e),
+                "message": "Error getting status"
+            }
 
     def update_memory_with_conversations(self) -> bool:
         """Update memory with current conversation history.
