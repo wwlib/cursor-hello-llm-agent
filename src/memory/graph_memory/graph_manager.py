@@ -750,13 +750,8 @@ class GraphManager:
     def _save_graph(self):
         """Save current graph state to storage."""
         try:
-            # Save nodes (exclude embeddings - they're stored separately)
-            nodes_data = {}
-            for node_id, node in self.nodes.items():
-                node_dict = node.to_dict()
-                # Remove embedding from storage - it's handled by embeddings manager
-                node_dict.pop('embedding', None)
-                nodes_data[node_id] = node_dict
+            # Save nodes (embeddings are handled separately by EmbeddingsManager)
+            nodes_data = {node_id: node.to_dict() for node_id, node in self.nodes.items()}
             self.storage.save_nodes(nodes_data)
             
             # Save edges
@@ -807,11 +802,10 @@ class GraphManager:
                     try:
                         embedding_text = f"{existing_node.name} {existing_node.description}"
                         
-                        # Generate embedding for the node
+                        # Generate embedding for embeddings manager
                         new_embedding = self.embeddings_manager.generate_embedding(embedding_text)
-                        existing_node.update_embedding(new_embedding)
                         
-                        # Also add to embeddings manager for RAG searches
+                        # Add to embeddings manager for RAG searches
                         entity_metadata = {
                             "entity_id": existing_node.id,
                             "entity_name": existing_node.name,
@@ -850,11 +844,10 @@ class GraphManager:
                         # Use name + description for embedding
                         embedding_text = f"{name} {description}"
                         
-                        # Generate embedding and set it on the node
+                        # Generate embedding for embeddings manager
                         entity_embedding = self.embeddings_manager.generate_embedding(embedding_text)
-                        new_node.update_embedding(entity_embedding)
                         
-                        # Also add to embeddings manager for RAG searches
+                        # Add to embeddings manager for RAG searches
                         entity_metadata = {
                             "entity_id": node_id,
                             "entity_name": name,
@@ -931,7 +924,7 @@ class GraphManager:
         Query the graph for relevant context using CURRENT data only.
         
         This method is non-blocking and returns immediately with available graph data.
-        It does not wait for any background processing to complete.
+        Uses EmbeddingsManager for semantic search of graph entities.
         """
         if not self.embeddings_manager:
             # Simple text matching fallback - always non-blocking
@@ -952,63 +945,47 @@ class GraphManager:
             return results
         
         try:
-            # Use embeddings for semantic search - non-blocking, uses current data
-            query_embedding = self.embeddings_manager.generate_embedding(query)
-            similarities = []
+            # Use EmbeddingsManager for semantic search - more entities than max_results 
+            # to account for filtering
+            search_results = self.embeddings_manager.search(
+                query=query, 
+                k=max_results * 3  # Get more results to account for filtering
+            )
             
-            for node in self.nodes.values():
-                if node.embedding is not None and len(node.embedding) > 0:
-                    similarity = self._cosine_similarity(query_embedding, node.embedding)
-                    similarities.append((similarity, node))
-            
-            # Sort by similarity and return top results
-            similarities.sort(key=lambda x: x[0], reverse=True)
-            results = []
-            for similarity, node in similarities[:max_results]:
-                results.append({
-                    'name': node.name,
-                    'type': node.type,
-                    'description': node.description,
-                    'relevance_score': similarity,
-                    'source': 'semantic_search'
-                })
+            # Filter for graph entities only
+            graph_results = []
+            for result in search_results:
+                metadata = result.get('metadata', {})
+                if metadata.get('source') == 'graph_entity':
+                    # Get the corresponding node for additional data
+                    entity_id = metadata.get('entity_id')
+                    node = self.nodes.get(entity_id) if entity_id else None
+                    
+                    if node:
+                        graph_results.append({
+                            'name': node.name,
+                            'type': node.type,
+                            'description': node.description,
+                            'relevance_score': result.get('score', 0.0),
+                            'source': 'semantic_search'
+                        })
+                    
+                    if len(graph_results) >= max_results:
+                        break
             
             # Add metadata about current graph state
-            if results and len(results) > 0:
-                results[0]['graph_metadata'] = {
+            if graph_results and len(graph_results) > 0:
+                graph_results[0]['graph_metadata'] = {
                     'total_nodes': len(self.nodes),
                     'total_edges': len(self.edges),
                     'query_timestamp': datetime.now().isoformat()
                 }
             
-            return results
+            return graph_results
             
         except Exception as e:
             self.logger.error(f"Error in graph query: {e}")
             return []
-    
-    def _cosine_similarity(self, vec1: List[float], vec2: List[float]) -> float:
-        """Calculate cosine similarity between two vectors."""
-        try:
-            import numpy as np
-            
-            # Convert to numpy arrays
-            a = np.array(vec1)
-            b = np.array(vec2)
-            
-            # Calculate cosine similarity
-            return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
-            
-        except Exception:
-            # Fallback to simple calculation
-            dot_product = sum(x * y for x, y in zip(vec1, vec2))
-            magnitude1 = sum(x * x for x in vec1) ** 0.5
-            magnitude2 = sum(x * x for x in vec2) ** 0.5
-            
-            if magnitude1 == 0 or magnitude2 == 0:
-                return 0.0
-            
-            return dot_product / (magnitude1 * magnitude2)
     
     def process_background_queue(self, max_tasks: int = 1) -> Dict[str, Any]:
         """

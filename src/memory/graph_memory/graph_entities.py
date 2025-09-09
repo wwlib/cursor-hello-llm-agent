@@ -11,15 +11,15 @@ from datetime import datetime
 class GraphNode:
     """Represents a node in the knowledge graph.
     
-    A node encapsulates an entity (character, location, object, etc.) with its metadata,
-    embedding vector for semantic similarity matching, and relationship tracking.
+    A node encapsulates an entity (character, location, object, etc.) with its metadata
+    and relationship tracking. Embeddings for semantic similarity are handled separately
+    by the EmbeddingsManager.
     
     Attributes:
         id (str): Unique identifier for the node.
         name (str): Human-readable name of the entity.
         type (str): Entity type (character, location, object, etc.).
         description (str): Detailed description for semantic matching.
-        embedding (Optional[List[float]]): Embedding vector for similarity computation.
         attributes (Dict[str, Any]): Additional domain-specific attributes.
         aliases (List[str]): Alternative names for this entity.
         mention_count (int): Number of times this entity has been mentioned.
@@ -28,7 +28,7 @@ class GraphNode:
     """
     
     def __init__(self, node_id: str, name: str, node_type: str, description: str,
-                 embedding: Optional[List[float]] = None, attributes: Optional[Dict[str, Any]] = None,
+                 attributes: Optional[Dict[str, Any]] = None,
                  aliases: Optional[List[str]] = None, mention_count: int = 1,
                  created_at: Optional[str] = None, updated_at: Optional[str] = None):
         """Initialize a graph node."""
@@ -36,7 +36,6 @@ class GraphNode:
         self.name = name
         self.type = node_type
         self.description = description
-        self.embedding = embedding or []
         self.attributes = attributes or {}
         self.aliases = aliases or []
         self.mention_count = mention_count
@@ -50,7 +49,6 @@ class GraphNode:
             "name": self.name,
             "type": self.type,
             "description": self.description,
-            "embedding": self.embedding,
             "attributes": self.attributes,
             "aliases": self.aliases,
             "mention_count": self.mention_count,
@@ -66,18 +64,12 @@ class GraphNode:
             name=data["name"],
             node_type=data["type"],
             description=data["description"],
-            embedding=data.get("embedding", []),
             attributes=data.get("attributes", {}),
             aliases=data.get("aliases", []),
             mention_count=data.get("mention_count", 1),
             created_at=data.get("created_at"),
             updated_at=data.get("updated_at")
         )
-    
-    def update_embedding(self, new_embedding: List[float]):
-        """Update the node's embedding vector."""
-        self.embedding = new_embedding
-        self.updated_at = datetime.now().isoformat()
     
     def add_alias(self, alias: str):
         """Add an alternative name for this entity."""
