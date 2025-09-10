@@ -171,7 +171,9 @@ class EmbeddingsManager:
             embedding_array = np.array(embedding)
             
             # Normalize if requested (though LLM service should already do this)
-            if normalize and options.get('normalize', True):
+            # Ensure normalize is a boolean to avoid numpy array ambiguity
+            should_normalize = bool(normalize) and bool(options.get('normalize', True))
+            if should_normalize:
                 norm = np.linalg.norm(embedding_array)
                 if norm > 0:
                     embedding_array = embedding_array / norm

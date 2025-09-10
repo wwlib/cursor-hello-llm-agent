@@ -157,6 +157,8 @@ def print_help():
     print("list        - List available memory files")
     print("perf        - Show performance report for current session")
     print("perfdetail  - Show detailed performance analysis")
+    print("process     - Process some background graph tasks manually")
+    print("status      - Show background processing status")
     print("quit        - End session")
 
 def get_memory_dir(memory_type):
@@ -581,24 +583,15 @@ async def process_piped_input(agent, _memory_manager):
         logger.debug(f"Received piped input: {user_input}")
         print(f"Processing: {user_input}")
         
-        # Check for pending operations before processing
-        if agent.has_pending_operations():
-            pending = agent.memory.get_pending_operations()
-            logger.debug(f"Waiting for background operations to complete...")
-            logger.debug(f"Pending digests: {pending['pending_digests']}")
-            logger.debug(f"Pending embeddings: {pending['pending_embeddings']}")
-            await agent.wait_for_pending_operations()
-            logger.debug("Background operations completed.")
+        # Note: No longer waiting for background operations before processing
+        # This allows truly non-blocking operation
         
         # Process the message
         response = await agent.process_message(user_input)
         print(f"\nAgent: {response}")
         
-        # Wait for any background processing to complete before exiting
-        if agent.has_pending_operations():
-            logger.debug("Waiting for final background operations to complete...")
-            await agent.wait_for_pending_operations()
-            logger.debug("All operations completed.")
+        # Note: No longer waiting for background operations to complete
+        # Background processing continues naturally
         
         # Show performance report after processing
         print("\n" + "="*60)
@@ -635,23 +628,15 @@ async def interactive_session(agent, memory_manager):
     
     while True:
         try:
-            # Check for pending operations before getting user input
-            if agent.has_pending_operations():
-                pending = agent.memory.get_pending_operations()
-                logger.debug(f"\nWaiting for background operations to complete...")
-                logger.debug(f"Pending digests: {pending['pending_digests']}")
-                logger.debug(f"Pending embeddings: {pending['pending_embeddings']}")
-                await agent.wait_for_pending_operations()
-                logger.debug("Background operations completed.")
+            # Note: No longer blocking on pending operations before user input
+            # This allows true non-blocking interaction
             
             user_input = input("\nYou: ").strip().lower()
             
             if user_input == 'quit' or user_input == 'exit' or user_input == 'q':
                 logger.debug("\nEnding session...")
-                # Wait for any pending operations before exiting
-                if agent.has_pending_operations():
-                    logger.debug("Waiting for background operations to complete before exiting...")
-                    await agent.wait_for_pending_operations()
+                # Note: No longer waiting for background operations before exiting
+                # Background processing will continue naturally
                 break
             elif user_input == 'help':
                 print_help()
@@ -681,12 +666,44 @@ async def interactive_session(agent, memory_manager):
             elif user_input == 'perfdetail':
                 print_detailed_performance_analysis(session_guid)
                 continue
+            elif user_input == 'process':
+                # Manual background processing
+                if hasattr(memory_manager, 'process_background_graph_queue'):
+                    print("\nProcessing background graph tasks...")
+                    result = memory_manager.process_background_graph_queue(max_tasks=3)
+                    print(f"✅ Processed: {result.get('processed', 0)}, Errors: {result.get('errors', 0)}")
+                    if result.get('processed', 0) == 0:
+                        print("ℹ️  No tasks in queue")
+                else:
+                    print("Background graph processing not available")
+                continue
+            elif user_input == 'status':
+                # Show background processing status
+                if hasattr(memory_manager, 'get_graph_processing_status'):
+                    status = memory_manager.get_graph_processing_status()
+                    pending = memory_manager.get_pending_operations()
+                    print(f"\nBackground Processing Status:")
+                    print(f"Queue Status: {status.get('status', 'unknown')}")
+                    print(f"Queue Size: {status.get('queue_size', 0)}")
+                    print(f"Pending Operations:")
+                    print(f"  - Digests: {pending.get('pending_digests', 0)}")
+                    print(f"  - Embeddings: {pending.get('pending_embeddings', 0)}")
+                    print(f"  - Graph Updates: {pending.get('pending_graph_updates', 0)}")
+                    
+                    graph_stats = status.get('graph_stats', {})
+                    if graph_stats:
+                        print(f"Graph Statistics:")
+                        print(f"  - Nodes: {graph_stats.get('total_nodes', 0)}")
+                        print(f"  - Edges: {graph_stats.get('total_edges', 0)}")
+                else:
+                    print("Background graph processing not available")
+                continue
             
             print(f"\nProcessing message...")
             response = await agent.process_message(user_input)
             print(f"\nAgent: {response}")
             
-            # Check for background processing and show verbose status
+            # Show non-blocking background processing status
             if agent.has_pending_operations():
                 from src.utils.verbose_status import get_verbose_handler
                 verbose_handler = get_verbose_handler()
@@ -701,43 +718,26 @@ async def interactive_session(agent, memory_manager):
                         operations.append("graph memory processing")
                     
                     if operations:
-                        verbose_handler.status(f"Background processing: {', '.join(operations)}...")
-                        
-                        # Wait and show progress
-                        start_time = time.time()
-                        last_status_time = start_time
-                        while agent.has_pending_operations():
-                            await asyncio.sleep(0.5)
-                            current_time = time.time()
-                            
-                            # Show periodic status updates
-                            if current_time - last_status_time >= 5.0:  # Every 5 seconds
-                                elapsed = current_time - start_time
-                                remaining_ops = agent.memory.get_pending_operations()
-                                remaining = []
-                                if remaining_ops.get("pending_digests", 0) > 0:
-                                    remaining.append("digest")
-                                if remaining_ops.get("pending_embeddings", 0) > 0:
-                                    remaining.append("embeddings")
-                                if remaining_ops.get("pending_graph_updates", 0) > 0:
-                                    remaining.append("graph")
-                                
-                                if remaining:
-                                    verbose_handler.status(f"Still processing: {', '.join(remaining)} ({elapsed:.1f}s elapsed)...")
-                                last_status_time = current_time
-                        
-                        total_time = time.time() - start_time
-                        verbose_handler.success(f"Background processing completed", total_time)
-            else:
-                # Add a small delay to allow background processing to start
-                await asyncio.sleep(0.1)
+                        verbose_handler.status(f"Background processing started: {', '.join(operations)}...")
+                        verbose_handler.info("Processing continues in background, you can continue chatting")
+                
+                # Optionally process a small amount of background work
+                # This is non-blocking and processes just a few tasks
+                if hasattr(agent.memory, 'process_background_graph_queue'):
+                    try:
+                        result = agent.memory.process_background_graph_queue(max_tasks=1)
+                        if result.get('processed', 0) > 0:
+                            logger.debug(f"Processed {result.get('processed', 0)} background graph tasks")
+                    except Exception as e:
+                        logger.debug(f"Background processing error (non-critical): {e}")
+            
+            # Small delay to allow background operations to start
+            await asyncio.sleep(0.1)
             
         except KeyboardInterrupt:
             logger.debug("\nSession interrupted by user.")
-            # Wait for any pending operations before exiting
-            if agent.has_pending_operations():
-                logger.debug("Waiting for background operations to complete before exiting...")
-                await agent.wait_for_pending_operations()
+            # Note: No longer waiting for background operations before exiting
+            # Background processing is truly non-blocking now
             break
         except Exception as e:
             logger.error(f"\nError during interaction: {str(e)}")

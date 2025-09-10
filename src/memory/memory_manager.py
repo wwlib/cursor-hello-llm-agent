@@ -475,10 +475,11 @@ class MemoryManager(BaseMemoryManager):
                 logger=self.logger
             )
             
-            # Start background processing if enabled
+            # Don't auto-start the background processor during __init__ to avoid event loop issues
+            # The processor will be started lazily when the first async operation occurs
+            self._background_processor_started = False
             if self._graph_config_manager.config.enable_background_processing:
-                self._background_graph_processor.start()
-                self.logger.info(f"Started background graph processor with {profile} profile")
+                self.logger.info(f"Background graph processor initialized with {profile} profile (will start on first use)")
             else:
                 self.logger.info("Background graph processing disabled by configuration")
                 
