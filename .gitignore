@@ -11,7 +11,7 @@ hide
 /agent_memories
 /example_memory*
 /user_story_memory*
-/test_memory*
+/test_output_archive
 /tests/test_files
 /examples/temp_data
 # SpecStory explanation file

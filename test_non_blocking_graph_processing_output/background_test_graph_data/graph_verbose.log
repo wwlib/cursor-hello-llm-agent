@@ -1,0 +1,31 @@
+2025-09-13 21:37:31.301443 [QUEUE] Starting to queue background processing
+2025-09-13 21:37:31.301678 [QUEUE] Conversation GUID: test_entry_001
+2025-09-13 21:37:31.301868 [QUEUE] Conversation text length: 110
+2025-09-13 21:37:31.302017 [QUEUE] Digest text length: 0
+2025-09-13 21:37:31.302142 [BACKGROUND_PROCESSOR] add_task called with GUID: test_entry_001
+2025-09-13 21:37:31.302267 [BACKGROUND_PROCESSOR] Putting task in queue, current queue size: 0
+2025-09-13 21:37:31.302379 [BACKGROUND_PROCESSOR] Task queued, new queue size: 1
+2025-09-13 21:37:31.302646 [QUEUE] Successfully queued task with background processor
+2025-09-13 21:37:31.302768 [QUEUE] Background processor stats: {'is_running': True, 'queue_size': 1, 'active_tasks': 0, 'max_concurrent_tasks': 3, 'total_processed': 0, 'total_failed': 0, 'average_processing_time': 0.0}
+2025-09-13 21:37:31.303680 [BACKGROUND_PROCESSOR] Starting continuous processing loop, is_running: True
+2025-09-13 21:37:31.303787 [BACKGROUND_PROCESSOR] Waiting for task, queue size: 1
+2025-09-13 21:37:31.303898 [BACKGROUND_PROCESSOR] Got task from queue: test_entry_001
+2025-09-13 21:37:31.303985 [BACKGROUND_PROCESSOR] Starting task processing
+2025-09-13 21:37:31.304121 [BACKGROUND_PROCESSOR] Task started, active tasks: 1
+2025-09-13 21:37:31.304227 [BACKGROUND_PROCESSOR] Waiting for task, queue size: 0
+2025-09-13 21:37:31.304357 [BACKGROUND_PROCESSOR] _process_task starting for GUID: test_entry_001
+2025-09-13 21:37:31.304447 [BACKGROUND_PROCESSOR] Calling graph_manager.process_conversation_entry_with_resolver_async
+2025-09-13 21:37:31.305359 [STAGE1] Starting entity extraction (async)
+2025-09-13 21:37:31.305467 [STAGE1] Conversation GUID: test_entry_001
+2025-09-13 21:37:31.305585 [STAGE1] Conversation text: Alice lives in New York and works as a software engineer. She loves playing chess and owns a beautiful garden....
+2025-09-13 21:37:31.305690 [STAGE1] Digest text: ...
+2025-09-13 21:37:31.305820 [STAGE1] Calling entity_extractor.extract_entities_from_conversation_async()
+2025-09-13 21:37:31.305909 [ENTITY_EXTRACTOR] Starting async entity extraction
+2025-09-13 21:37:31.305991 [ENTITY_EXTRACTOR] Conversation length: 110
+2025-09-13 21:37:31.306070 [ENTITY_EXTRACTOR] Digest length: 0
+2025-09-13 21:37:31.306147 [ENTITY_EXTRACTOR] Stage 1: Extracting candidate entities
+2025-09-13 21:37:31.306226 [ENTITY_EXTRACTOR] _extract_candidate_entities_async: Starting
+2025-09-13 21:37:31.306308 [ENTITY_EXTRACTOR] Entity types: 5 types
+2025-09-13 21:37:31.306395 [ENTITY_EXTRACTOR] Built prompt length: 2029 characters
+2025-09-13 21:37:31.306472 [ENTITY_EXTRACTOR] Calling LLM service async...
+2025-09-13 21:37:31.457761 [BACKGROUND_PROCESSOR] Continuous processing loop cancelled

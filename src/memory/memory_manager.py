@@ -192,6 +192,9 @@ class MemoryManager(BaseMemoryManager):
                 # Pass verbose handler to graph manager for detailed logging
                 if self.verbose_handler:
                     self.graph_manager.verbose_handler = self.verbose_handler
+                
+                # Start background processing immediately (non-blocking)
+                self._start_graph_background_processing()
                 self.logger.debug(f"Initialized GraphManager with storage: {graph_storage_path}")
                 graph_logger.debug(f"Graph memory logger initialized for memory: {memory_base}")
                 
@@ -367,14 +370,17 @@ class MemoryManager(BaseMemoryManager):
             else:
                 self.embeddings_manager.add_new_embeddings([system_entry])
 
-            # Process static memory with graph memory system if enabled
+            # Queue static memory for background graph processing (non-blocking)
             if self.enable_graph_memory and self.graph_manager:
-                self.logger.debug("Processing static memory for graph memory...")
+                self.logger.debug("Queueing static memory for background graph processing...")
                 if self.verbose_handler:
-                    with self.verbose_handler.operation("Building knowledge graph from domain data", level=2):
-                        self._process_initial_graph_memory(system_entry)
-                else:
-                    self._process_initial_graph_memory(system_entry)
+                    self.verbose_handler.status("Queueing knowledge graph processing for background...", 2)
+                
+                # Use background processing for initial graph memory (now that timeout fix is in place)
+                self._queue_initial_graph_memory_background(system_entry)
+                
+                if self.verbose_handler:
+                    self.verbose_handler.success("Graph processing queued for background", 0.001)
 
             self.logger.debug("Memory created and initialized with static knowledge")
             return True
@@ -437,56 +443,56 @@ class MemoryManager(BaseMemoryManager):
         return logs_base_dir
 
     def _initialize_background_graph_processor(self):
-        """Initialize the background graph processor with configuration."""
+        """Initialize the background graph processor with configuration.
+        
+        NOTE: This method is now deprecated. The GraphManager has its own built-in
+        SimpleGraphProcessor that handles background processing directly.
+        """
         try:
-            from src.memory.graph_memory.background_processor import BackgroundGraphProcessor, ProcessingPriority
-            from src.memory.graph_memory.config import GraphConfigManager
+            # Skip initialization - GraphManager has its own SimpleGraphProcessor
+            self.logger.info("Background graph processor initialization skipped - using GraphManager's built-in processor")
             
-            # Initialize configuration manager
-            self._graph_config_manager = GraphConfigManager()
-            
-            # Apply profile based on processing level
-            profile_mapping = {
-                "speed": "realtime",
-                "balanced": "balanced", 
-                "comprehensive": "comprehensive"
-            }
-            profile = profile_mapping.get(self.graph_memory_processing_level, "balanced")
-            self._graph_config_manager.apply_profile(profile)
-            
-            # Create status callback for monitoring
-            def status_callback(status_type: str, data: dict):
-                if self.verbose_handler:
-                    if status_type == "started":
-                        self.verbose_handler.success(f"Background graph processing started (frequency: {data.get('frequency', 'unknown')}s)")
-                    elif status_type == "stopped":
-                        self.verbose_handler.warning(f"Background graph processing stopped (queue: {data.get('queue_size', 0)})")
-                    elif status_type == "configured":
-                        self.verbose_handler.info(f"Graph processing configuration updated")
-            
-            # Initialize background processor
-            self._background_graph_processor = BackgroundGraphProcessor(
-                graph_manager=self.graph_manager,
-                processing_frequency=self._graph_config_manager.config.processing_frequency,
-                batch_size=self._graph_config_manager.config.batch_size,
-                max_queue_size=self._graph_config_manager.config.max_queue_size,
-                enable_priority_processing=self._graph_config_manager.config.enable_priority_processing,
-                status_callback=status_callback,
-                logger=self.logger
-            )
-            
-            # Don't auto-start the background processor during __init__ to avoid event loop issues
-            # The processor will be started lazily when the first async operation occurs
+            # Set default values for compatibility
+            self._background_graph_processor = None
+            self._graph_config_manager = None
             self._background_processor_started = False
-            if self._graph_config_manager.config.enable_background_processing:
-                self.logger.info(f"Background graph processor initialized with {profile} profile (will start on first use)")
-            else:
-                self.logger.info("Background graph processing disabled by configuration")
                 
         except Exception as e:
             self.logger.error(f"Failed to initialize background graph processor: {e}")
             self._background_graph_processor = None
             self._graph_config_manager = None
+
+    def _start_graph_background_processing(self):
+        """Start the GraphManager's background processor (non-blocking)."""
+        if self.enable_graph_memory and self.graph_manager:
+            try:
+                import asyncio
+                try:
+                    # Get the current event loop
+                    loop = asyncio.get_running_loop()
+                    # Create task but DON'T await it - starts background loop without blocking
+                    loop.create_task(self.graph_manager.start_background_processing())
+                    self.logger.debug("Graph background processor started (non-blocking)")
+                except RuntimeError:
+                    # No event loop running during initialization - this is expected
+                    # The background processor will be started later when async context is available
+                    self.logger.debug("No event loop available during initialization - background processor will start on first async operation")
+                    
+            except Exception as e:
+                self.logger.error(f"Failed to start graph background processor: {e}")
+
+    def _ensure_background_processor_started(self):
+        """Ensure the background processor is started (lazy startup).
+        
+        NOTE: This method is deprecated. Background processing should start 
+        automatically when GraphManager is initialized.
+        """
+        # Background processor should already be started in initialization
+        if self.enable_graph_memory and self.graph_manager:
+            status = self.graph_manager.get_background_processing_status()
+            if not status.get("is_running", False):
+                self.logger.warning("Background processor not running - attempting restart")
+                self._start_graph_background_processing()
 
     def _initialize_optimized_context_retriever(self):
         """Initialize the optimized graph context retriever."""
@@ -842,22 +848,29 @@ class MemoryManager(BaseMemoryManager):
                 with performance_tracker.track_operation("batch_embeddings_update"):
                     self.embeddings_manager.add_new_embeddings(entries)
                 
-                # Phase 3: Process graph updates (can't easily batch these due to complexity)
+                # Phase 3: Fire off graph updates as independent background tasks (truly non-blocking)
                 if self.enable_graph_memory and self.graph_manager:
                     with performance_tracker.track_operation("batch_graph_updates"):
-                        # Process graph updates in parallel but separately
-                        graph_tasks = []
+                        # Fire individual graph tasks independently - no waiting!
+                        tasks_fired = 0
+                        graph_tasks = []  # Keep references to prevent garbage collection
                         for entry in entries:
+                            should_process = True
                             if self.graph_memory_processing_level == "speed":
                                 # In speed mode, only process every other entry for graph memory
-                                if hash(entry.get("guid", "")) % 2 == 0:
-                                    graph_tasks.append(self._update_graph_memory_async(entry))
-                            else:
-                                graph_tasks.append(self._update_graph_memory_async(entry))
+                                should_process = hash(entry.get("guid", "")) % 2 == 0
+                            
+                            if should_process:
+                                # Create independent background task - keep reference to prevent GC
+                                task = asyncio.create_task(self._update_graph_memory_async(entry))
+                                # Add completion callback to log results
+                                task.add_done_callback(lambda t: self._log_graph_task_completion(t, entry.get("guid", "unknown")))
+                                graph_tasks.append(task)
+                                tasks_fired += 1
                         
-                        if graph_tasks:
-                            # Run graph updates in parallel
-                            await asyncio.gather(*graph_tasks, return_exceptions=True)
+                        if tasks_fired > 0:
+                            self.logger.debug(f"Fired {tasks_fired} independent graph processing tasks")
+                        # Return immediately - tasks complete in background independently
                 
                 self.logger.debug(f"Batch processing completed for {len(entries)} entries")
                 
@@ -905,8 +918,11 @@ class MemoryManager(BaseMemoryManager):
                     digest_text = ""  # Could extract from digest if available
                     conversation_guid = entry.get("guid", "")
                     
+                    # Ensure background processor is started (lazy startup)
+                    self._ensure_background_processor_started()
+                    
                     # Queue for background processing - this returns immediately
-                    result = self.graph_manager.queue_background_processing(
+                    result = await self.graph_manager.queue_background_processing(
                         conversation_text=entry_text,
                         digest_text=digest_text,
                         conversation_guid=conversation_guid
@@ -923,6 +939,20 @@ class MemoryManager(BaseMemoryManager):
                     
             except Exception as e:
                 self.logger.error(f"Error queueing graph memory processing: {e}")
+    
+    def _log_graph_task_completion(self, task, entry_guid: str):
+        """Log completion of graph processing task."""
+        try:
+            if task.cancelled():
+                self.logger.info(f"[GRAPH_TASK] Task cancelled for entry {entry_guid}")
+            elif task.done():
+                exception = task.exception()
+                if exception:
+                    self.logger.error(f"[GRAPH_TASK] Task failed for entry {entry_guid}: {exception}")
+                else:
+                    self.logger.info(f"[GRAPH_TASK] Task completed successfully for entry {entry_guid}")
+        except Exception as e:
+            self.logger.error(f"[GRAPH_TASK] Error logging task completion: {e}")
     
     async def _update_graph_memory_direct(self, entry: Dict[str, Any]) -> None:
         """Direct graph memory update (fallback when background processing is not available)."""
@@ -1332,6 +1362,121 @@ class MemoryManager(BaseMemoryManager):
         except Exception as e:
             self.logger.error(f"Error in segment-based graph update: {e}")
     
+    async def _process_initial_graph_memory_async(self, system_entry: Dict[str, Any]) -> None:
+        """Process initial system entry for graph memory in background (async version).
+        
+        This async version allows initial graph processing to happen in background
+        without blocking the memory creation process.
+        
+        Args:
+            system_entry: The initial system entry containing static memory content
+        """
+        try:
+            self.logger.debug("Processing initial system entry for graph memory in background...")
+            
+            # Get segments from digest
+            digest = system_entry.get("digest", {})
+            segments = digest.get("rated_segments", [])
+            
+            if not segments:
+                self.logger.debug("No segments found in initial digest, skipping initial graph processing")
+                return
+            
+            # Filter for important segments (same criteria as async processing)
+            important_segments = [
+                seg for seg in segments 
+                if seg.get("importance", 0) >= DEFAULT_RAG_IMPORTANCE_THRESHOLD 
+                and seg.get("memory_worthy", True)
+                and seg.get("type") in ["information", "action"]
+            ]
+            
+            if not important_segments:
+                self.logger.debug("No important segments found for initial graph processing")
+                return
+                
+            self.logger.debug(f"Processing {len(important_segments)} important segments for initial graph memory")
+            
+            # Use the background processing system instead of direct processing
+            # This ensures consistency with regular graph processing
+            entry_text = " ".join([seg.get("text", "") for seg in important_segments])
+            digest_text = system_entry.get("content", "")
+            
+            # Ensure background processor is started (lazy startup)
+            self._ensure_background_processor_started()
+            
+            # Queue for background processing using existing infrastructure
+            result = await self.graph_manager.queue_background_processing(
+                conversation_text=entry_text,
+                digest_text=digest_text,
+                conversation_guid="initial_memory"
+            )
+            
+            if result.get("status") == "queued":
+                self.logger.debug("Initial graph processing queued successfully")
+            else:
+                self.logger.warning(f"Failed to queue initial graph processing: {result}")
+                
+        except Exception as e:
+            self.logger.error(f"Error in async initial graph memory processing: {str(e)}")
+
+    def _queue_initial_graph_memory_background(self, system_entry: Dict[str, Any]) -> None:
+        """Queue initial system entry for background graph memory processing.
+        
+        This queues the initial graph processing as a background task to avoid blocking
+        memory initialization.
+        
+        Args:
+            system_entry: The initial system entry containing static memory content
+        """
+        try:
+            self.logger.debug("Queueing initial system entry for background graph processing...")
+            
+            # Get segments from digest
+            digest = system_entry.get("digest", {})
+            segments = digest.get("rated_segments", [])
+            
+            if not segments:
+                self.logger.debug("No segments found in initial digest, skipping initial graph processing")
+                return
+            
+            # Filter for important segments (same criteria as async processing)
+            important_segments = [
+                seg for seg in segments 
+                if seg.get("importance", 0) >= DEFAULT_RAG_IMPORTANCE_THRESHOLD 
+                and seg.get("memory_worthy", True)
+                and seg.get("type") in ["information", "action"]
+            ]
+            
+            if not important_segments:
+                self.logger.debug("No important segments found for initial graph processing")
+                return
+            
+            self.logger.debug(f"Processing {len(important_segments)} important segments for initial graph memory")
+            
+            # Combine segments into entry text
+            entry_text = " ".join([seg.get("text", "") for seg in important_segments])
+            digest_text = entry_text  # Use same text as digest for initial processing
+            
+            # Ensure background processor is available
+            self._ensure_background_processor_started()
+            
+            # Queue for background processing using existing infrastructure (synchronous call)
+            import asyncio
+            
+            # Create a background task to queue the processing
+            asyncio.create_task(
+                self.graph_manager.queue_background_processing(
+                    conversation_text=entry_text,
+                    digest_text=digest_text,
+                    conversation_guid="initial_memory"
+                )
+            )
+            
+            self.logger.debug("Initial graph processing queued for background")
+                
+        except Exception as e:
+            self.logger.error(f"Error queuing initial graph memory processing: {str(e)}")
+
     def _process_initial_graph_memory(self, system_entry: Dict[str, Any]) -> None:
         """Process initial system entry for graph memory during memory creation.
         

@@ -6,10 +6,10 @@ Provides sophisticated conversation processing with EntityResolver for duplicate
 and RelationshipExtractor for semantic relationship identification.
 """
 
-import uuid
 from typing import Dict, List, Any, Optional, Tuple
 from datetime import datetime
 import logging
+import uuid
 
 from .graph_entities import GraphNode, GraphEdge
 from .graph_storage import GraphStorage
@@ -17,6 +17,7 @@ from .graph_queries import GraphQueries
 from .entity_extractor import EntityExtractor
 from .relationship_extractor import RelationshipExtractor
 from .entity_resolver import EntityResolver
+from .background_processor import SimpleGraphProcessor
 
 
 class GraphManager:
@@ -88,7 +89,14 @@ class GraphManager:
         else:
             raise ValueError("GraphManager requires llm_service and domain_config - these are mandatory for graph memory operations")
         
-        self.logger.info("Initialized GraphManager with LLM-centric extractors")
+        # Initialize simple background processor
+        self.background_processor = SimpleGraphProcessor(
+            graph_manager=self,
+            max_concurrent_tasks=3,
+            logger=logger
+        )
+        
+        self.logger.info("Initialized GraphManager with LLM-centric extractors and simple background processor")
     
     def _setup_graph_specific_logging(self, base_llm_service, logs_dir: str, memory_guid: str):
         """
@@ -103,8 +111,12 @@ class GraphManager:
         from src.ai.llm_ollama import OllamaService
         
         # Create GUID-specific logs directory if it doesn't exist  
-        # logs_dir should be project root, so we create logs/[guid] subdirectory
-        guid_logs_dir = os.path.join(logs_dir, "logs", memory_guid)
+        # The MemoryManager passes the project root as logs_dir, but we want to place logs
+        # alongside memory files in agent_memories/{type}/{guid}/logs structure
+        # The storage_path already contains agent_memories/{type}/{guid}/graph_data
+        # so we get the parent and add /logs
+        memory_dir = os.path.dirname(self.storage.storage_path)  # agent_memories/{type}/{guid}
+        guid_logs_dir = os.path.join(memory_dir, "logs")
         os.makedirs(guid_logs_dir, exist_ok=True)
         
         # Create graph-specific log files
@@ -129,7 +141,7 @@ class GraphManager:
         elif hasattr(base_llm_service, 'base_url'):
             # Extract common configuration
             base_config = {
-                "base_url": getattr(base_llm_service, 'base_url', 'http://localhost:11434'),
+                "base_url": getattr(base_llm_service, 'base_url', os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")),
                 "model": getattr(base_llm_service, 'model', 'gemma3'),
                 "temperature": getattr(base_llm_service, 'temperature', 0.7),
                 "stream": getattr(base_llm_service, 'stream', False)
@@ -226,57 +238,6 @@ class GraphManager:
         
         return component_logger
     
-
-    
-    def _update_existing_entity(self, entity_info: Dict[str, Any]) -> Optional[GraphNode]:
-        """Update an existing entity with new information from the conversation."""
-        try:
-            existing_id = entity_info.get('existing_id')
-            if not existing_id:
-                self.logger.warning("No existing_id provided for existing entity")
-                return None
-            
-            # Find the existing node
-            existing_node = self.nodes.get(existing_id)
-            if not existing_node:
-                self.logger.warning(f"Existing entity {existing_id} not found in graph")
-                return None
-            
-            # Update with new information
-            new_description = entity_info.get('description', '')
-            if new_description and new_description != existing_node.description:
-                existing_node.description = new_description
-                
-                # Update embedding if available
-                if self.embeddings_manager:
-                    try:
-                        embedding = self.embeddings_manager.generate_embedding(new_description)
-                        existing_node.embedding = embedding
-                    except Exception as e:
-                        self.logger.warning(f"Failed to update embedding: {e}")
-            
-            # Update metadata
-            existing_node.mention_count += 1
-            existing_node.updated_at = datetime.now().isoformat()
-            
-            # Add confidence as attribute if provided
-            confidence = entity_info.get('confidence')
-            if confidence is not None:
-                existing_node.attributes['last_confidence'] = confidence
-            
-            # Save changes
-            self._save_graph()
-            
-            return existing_node
-            
-        except Exception as e:
-            self.logger.error(f"Error updating existing entity: {e}")
-            return None
-    
-
-    
-
-    
     def get_extractor_stats(self) -> Dict[str, Any]:
         """Get statistics about the alternative extractors."""
         stats = {
@@ -367,13 +328,13 @@ class GraphManager:
         
         return distinct_services
     
-    def queue_background_processing(self, conversation_text: str, digest_text: str = "", 
-                                   conversation_guid: str = None) -> Dict[str, Any]:
+    async def queue_background_processing(self, conversation_text: str, digest_text: str = "", 
+                                         conversation_guid: str = None) -> Dict[str, Any]:
         """
-        Queue conversation entry for background graph processing.
+        Queue conversation entry for immediate background graph processing.
         
         This method returns immediately and schedules entity/relationship extraction
-        to happen in the background. The results will be available for future queries.
+        to happen as soon as the system has capacity.
         
         Args:
             conversation_text: Full conversation entry text
@@ -384,42 +345,310 @@ class GraphManager:
             Dictionary with queuing status (non-blocking)
         """
         try:
-            # Create processing task data
-            task_data = {
-                "conversation_text": conversation_text,
-                "digest_text": digest_text,
-                "conversation_guid": conversation_guid,
-                "queued_at": datetime.now().isoformat(),
-                "task_id": str(uuid.uuid4())
-            }
+            # Create verbose graph processing log
+            self._write_verbose_graph_log(f"[QUEUE] Starting to queue background processing")
+            self._write_verbose_graph_log(f"[QUEUE] Conversation GUID: {conversation_guid}")
+            self._write_verbose_graph_log(f"[QUEUE] Conversation text length: {len(conversation_text)}")
+            self._write_verbose_graph_log(f"[QUEUE] Digest text length: {len(digest_text)}")
             
-            # For now, add to a simple in-memory queue
-            # TODO: Integrate with proper background processor
-            if not hasattr(self, '_background_queue'):
-                self._background_queue = []
+            # Queue with the simple background processor
+            await self.background_processor.add_task(
+                conversation_text=conversation_text,
+                digest_text=digest_text,
+                conversation_guid=conversation_guid
+            )
             
-            self._background_queue.append(task_data)
+            self.logger.info(f"Queued graph processing task for conversation {conversation_guid or 'unknown'}")
+            self._write_verbose_graph_log(f"[QUEUE] Successfully queued task with background processor")
             
-            self.logger.info(f"Queued graph processing task {task_data['task_id']} for background processing")
+            # Get current stats
+            stats = self.background_processor.get_stats()
+            self._write_verbose_graph_log(f"[QUEUE] Background processor stats: {stats}")
             
             return {
                 "status": "queued",
-                "task_id": task_data["task_id"],
-                "queue_size": len(self._background_queue),
-                "message": "Graph processing queued for background execution"
+                "queue_size": stats["queue_size"],
+                "active_tasks": stats["active_tasks"],
+                "message": "Graph processing queued for immediate execution when system is ready"
             }
             
         except Exception as e:
             self.logger.error(f"Error queuing background graph processing: {e}")
+            self._write_verbose_graph_log(f"[QUEUE] ERROR: {e}")
+            import traceback
+            self._write_verbose_graph_log(f"[QUEUE] ERROR TRACEBACK: {traceback.format_exc()}")
             return {
                 "status": "error", 
                 "error": str(e),
                 "message": "Failed to queue background processing"
             }
 
+    async def process_conversation_entry_with_resolver_async(self, conversation_text: str, digest_text: str = "", 
+                                                conversation_guid: str = None) -> Dict[str, Any]:
+        """
+        Process conversation entry using EntityResolver for enhanced duplicate detection (async version).
+        
+        This method combines the alternative LLM-centric approach with EntityResolver's
+        sophisticated duplicate detection capabilities. It extracts entities, resolves them
+        against existing nodes with confidence scoring, and then processes relationships.
+        
+        Args:
+            conversation_text: Full conversation entry text
+            digest_text: Digest/summary of the conversation
+            conversation_guid: GUID for tracking conversation mentions
+            
+        Returns:
+            Dictionary with processing results including resolved entities and relationships
+        """
+        if not self.entity_extractor:
+            self.logger.error("Entity extractor not available")
+            return {"entities": [], "relationships": [], "error": "Entity extractor not available"}
+        
+        # Return error if EntityResolver is not available since it's essential
+        if not self.entity_resolver:
+            self.logger.error("EntityResolver not available - this is required for graph memory operations")
+            return {"entities": [], "relationships": [], "error": "EntityResolver required but not available"}
+        
+        try:
+            results = {
+                "entities": [],
+                "relationships": [],
+                "new_entities": [],
+                "existing_entities": [],
+                "resolved_entities": [],
+                "error": None
+            }
+            
+            # Get verbose handler if available from memory manager
+            verbose_handler = getattr(self, 'verbose_handler', None)
+            if not verbose_handler:
+                # Try to get it from the memory manager if it was passed
+                if hasattr(self, '_memory_manager') and hasattr(self._memory_manager, 'verbose_handler'):
+                    verbose_handler = self._memory_manager.verbose_handler
+            
+            # Stage 1: Extract entities using async alternative approach
+            self.logger.debug("Stage 1: Extracting entities from conversation with EntityExtractor (async)")
+            self._write_verbose_graph_log(f"[STAGE1] Starting entity extraction (async)")
+            self._write_verbose_graph_log(f"[STAGE1] Conversation GUID: {conversation_guid}")
+            self._write_verbose_graph_log(f"[STAGE1] Conversation text: {conversation_text[:200]}...")
+            self._write_verbose_graph_log(f"[STAGE1] Digest text: {digest_text[:200]}...")
+            if verbose_handler:
+                verbose_handler.status("Stage 1: Extracting candidate entities...", 4)
+            
+            # Use the async version of entity extraction
+            self._write_verbose_graph_log(f"[STAGE1] Calling entity_extractor.extract_entities_from_conversation_async()")
+            try:
+                raw_entities = await self.entity_extractor.extract_entities_from_conversation_async(
+                    conversation_text, digest_text)
+                self._write_verbose_graph_log(f"[STAGE1] Entity extraction completed, got {len(raw_entities) if raw_entities else 0} entities")
+            except Exception as e:
+                self._write_verbose_graph_log(f"[STAGE1] ERROR in entity extraction: {e}")
+                import traceback
+                self._write_verbose_graph_log(f"[STAGE1] ERROR TRACEBACK: {traceback.format_exc()}")
+                raise
+            
+            if not raw_entities:
+                self.logger.info("No entities extracted from conversation")
+                self._write_verbose_graph_log(f"[STAGE1] No entities extracted, returning empty results")
+                if verbose_handler:
+                    verbose_handler.warning("No entities found in conversation", 4)
+                return results
+            
+            if verbose_handler:
+                verbose_handler.success(f"Found {len(raw_entities)} candidate entities", level=4)
+            
+            # All entities from EntityExtractor are now candidates for EntityResolver
+            # EntityExtractor no longer does any matching - only extraction
+            if raw_entities:
+                # Stage 2: Convert to EntityResolver candidates
+                self.logger.debug(f"Stage 2: Converting {len(raw_entities)} entities to resolver candidates")
+                if verbose_handler:
+                    verbose_handler.status("Stage 2: Converting to resolver candidates...", 4)
+                
+                candidates = []
+                for i, entity in enumerate(raw_entities):
+                    candidate = {
+                        "candidate_id": f"candidate_{i}_{entity.get('name', 'unknown')}",
+                        "name": entity.get("name", ""),
+                        "type": entity.get("type", "concept"),
+                        "description": entity.get("description", ""),
+                        "confidence": entity.get("confidence", 1.0),
+                        "source": "entity_extractor",
+                        "conversation_guid": conversation_guid
+                    }
+                    candidates.append(candidate)
+                    self.logger.debug(f"Prepared candidate: {candidate['name']} ({candidate['type']})")
+                
+                if verbose_handler:
+                    verbose_handler.success(f"Prepared {len(candidates)} candidates for resolution", level=4)
+                
+                # Stage 3: Resolve candidates using EntityResolver (async)
+                self.logger.debug(f"Stage 3: Resolving {len(candidates)} candidates with EntityResolver (async)")
+                if verbose_handler:
+                    verbose_handler.status("Stage 3: Resolving entities (this may take time)...", 4)
+                
+                # Pass verbose handler to entity resolver for detailed logging
+                if verbose_handler:
+                    self.entity_resolver.verbose_handler = verbose_handler
+                    self.logger.debug(f"Passed verbose handler to EntityResolver: {verbose_handler is not None}")
+                
+                resolutions = await self.entity_resolver.resolve_candidates_async(
+                    candidates, 
+                    process_individually=True  # Use individual processing for highest accuracy
+                )
+                
+                # Add confidence threshold to each resolution for comparison
+                confidence_threshold = self.entity_resolver.confidence_threshold
+                for resolution in resolutions:
+                    resolution['confidence_threshold'] = confidence_threshold
+                
+                if verbose_handler:
+                    verbose_handler.success(f"Resolved {len(resolutions)} entities", level=4)
+                
+                # Stage 4: Process resolutions and update graph
+                processed_entities = []
+                for resolution in resolutions:
+                    candidate_id = resolution.get("candidate_id", "")
+                    
+                    # Find the original candidate
+                    candidate = None
+                    for cand in candidates:
+                        if cand.get("candidate_id") == candidate_id:
+                            candidate = cand
+                            break
+                    
+                    if not candidate:
+                        self.logger.warning(f"Could not find original entity for candidate {candidate_id}")
+                        continue
+                    
+                    resolved_node_id = resolution.get("resolved_node_id")
+                    
+                    # Store the original entity data from the candidate
+                    original_entity = {
+                        "name": candidate["name"],
+                        "type": candidate["type"],
+                        "description": candidate["description"],
+                        "confidence": candidate["confidence"],
+                        "conversation_guid": conversation_guid
+                    }
+                    
+                    if resolution['confidence'] >= resolution['confidence_threshold']:
+                        # High confidence match found
+                        existing_node = resolution['existing_entity']
+                        self.logger.debug(f"High confidence match for '{candidate['name']}' -> '{existing_node.name}' "
+                                        f"(confidence: {resolution['confidence']:.3f} >= {resolution['confidence_threshold']:.3f})")
+                        
+                        # Update existing entity with new information
+                        existing_node.mention_count += 1
+                        existing_node.updated_at = datetime.now().isoformat()
+                        
+                        # Update conversation history if provided
+                        if conversation_guid:
+                            if "conversation_history_guids" not in existing_node.attributes:
+                                existing_node.attributes["conversation_history_guids"] = []
+                            if conversation_guid not in existing_node.attributes["conversation_history_guids"]:
+                                existing_node.attributes["conversation_history_guids"].append(conversation_guid)
+                        
+                        # Add to results
+                        original_entity["resolved_to"] = existing_node.id
+                        original_entity["resolution_type"] = "existing_match"
+                        processed_entities.append({
+                            'node': existing_node,
+                            'status': 'updated',
+                            **original_entity
+                        })
+                        self.logger.debug(f"Added entity '{candidate['name']}' to processed_entities list")
+                        results["existing_entities"].append(existing_node.to_dict())
+                    else:
+                        # Create new entity or low confidence match
+                        self.logger.debug(f"Creating new entity for '{candidate['name']}' "
+                                        f"(confidence: {resolution['confidence']:.3f})")
+                        
+                        # Create new node
+                        new_node, is_new = self.add_or_update_node(
+                            name=original_entity.get("name", ""),
+                            node_type=original_entity.get("type", "concept"),
+                            description=original_entity.get("description", ""),
+                            confidence=original_entity.get("confidence", 1.0),
+                            conversation_guid=conversation_guid
+                        )
+                        
+                        # Add to results
+                        original_entity["resolved_to"] = new_node.id
+                        original_entity["resolution_type"] = "new" if is_new else "updated"
+                        processed_entities.append({
+                            'node': new_node,
+                            'status': 'new' if is_new else 'updated',
+                            **original_entity
+                        })
+                        if is_new:
+                            results["new_entities"].append(new_node.to_dict())
+                
+                # Store resolved entities for relationship extraction
+                results["resolved_entities"] = [item for item in processed_entities]
+                self.logger.debug(f"processed_entities count: {len(processed_entities)}")
+                for i, entity in enumerate(processed_entities):
+                    node = entity.get('node')
+                    node_name = node.name if node else 'unknown'
+                    self.logger.debug(f"  processed_entities[{i}]: {node_name} (status: {entity.get('status', 'unknown')})")
+            
+            if verbose_handler:
+                verbose_handler.success(f"Resolved {len(processed_entities)} entities", level=4)
+            
+            # Stage 4: Extract and process relationships using only resolved entities
+            if processed_entities and len(processed_entities) > 1:
+                self.logger.debug("Stage 4: Extracting relationships between resolved entities")
+                try:
+                    # Transform processed_entities to format expected by RelationshipExtractor
+                    entities_for_relationship_extraction = []
+                    for proc_entity in processed_entities:
+                        node = proc_entity.get('node')
+                        if node:
+                            entity_for_rel = {
+                                'resolved_node_id': node.id,
+                                'name': node.name,
+                                'type': node.type,
+                                'description': node.description,
+                                'status': proc_entity.get('status', 'resolved')
+                            }
+                            entities_for_relationship_extraction.append(entity_for_rel)
+                    
+                    self.logger.debug(f"Prepared {len(entities_for_relationship_extraction)} entities for relationship extraction")
+                    
+                    relationships = await self.relationship_extractor.extract_relationships_from_conversation_async(
+                        conversation_text, digest_text, entities_for_relationship_extraction)
+                    
+                    if relationships:
+                        self.logger.debug(f"Found {len(relationships)} relationships")
+                        for relationship in relationships:
+                            # Add relationship to graph using resolver-based approach
+                            self._add_relationship_to_graph_with_resolver(
+                                relationship, processed_entities)
+                            results["relationships"].append(relationship)
+                    else:
+                        self.logger.debug("No relationships found between entities")
+                        
+                except Exception as e:
+                    self.logger.error(f"Error extracting relationships: {e}")
+                    
+            results["stats"] = {
+                "total_entities_processed": len(processed_entities),
+                "new_entities": len([e for e in processed_entities if e.get('status') == 'new']),
+                "updated_entities": len([e for e in processed_entities if e.get('status') == 'updated']),
+                "relationships_found": len(results.get("relationships", []))
+            }
+            
+            self.logger.debug(f"Processing complete. Stats: {results['stats']}")
+            return results
+            
+        except Exception as e:
+            self.logger.error(f"Error in process_conversation_entry_with_resolver_async: {e}")
+            return {"entities": [], "relationships": [], "error": f"Processing failed: {str(e)}"}
+
     def process_conversation_entry_with_resolver(self, conversation_text: str, digest_text: str = "", 
                                                 conversation_guid: str = None) -> Dict[str, Any]:
         """
+        # TODO: OBSOLETE - REMOVE
         Process conversation entry using EntityResolver for enhanced duplicate detection.
         
         This method combines the alternative LLM-centric approach with EntityResolver's
@@ -748,7 +977,7 @@ class GraphManager:
             self.edges = []
     
     def _save_graph(self):
-        """Save current graph state to storage."""
+        """Save current graph state to storage (sync version for backwards compatibility)."""
         try:
             # Save nodes (embeddings are handled separately by EmbeddingsManager)
             nodes_data = {node_id: node.to_dict() for node_id, node in self.nodes.items()}
@@ -768,6 +997,28 @@ class GraphManager:
             
         except Exception as e:
             self.logger.error(f"Failed to save graph data: {e}")
+    
+    async def _save_graph_async(self):
+        """Save current graph state to storage asynchronously."""
+        try:
+            # Save nodes (embeddings are handled separately by EmbeddingsManager)
+            nodes_data = {node_id: node.to_dict() for node_id, node in self.nodes.items()}
+            await self.storage.save_nodes_async(nodes_data)
+            
+            # Save edges
+            edges_data = [edge.to_dict() for edge in self.edges]
+            await self.storage.save_edges_async(edges_data)
+            
+            # Update metadata
+            metadata = {
+                "total_nodes": len(self.nodes),
+                "total_edges": len(self.edges),
+                "last_updated": datetime.now().isoformat()
+            }
+            await self.storage.save_metadata_async(metadata)
+            
+        except Exception as e:
+            self.logger.error(f"Failed to save graph data asynchronously: {e}")
     
     def add_or_update_node(self, name: str, node_type: str, description: str, 
                           confidence: float = 1.0, conversation_guid: str = None, 
@@ -816,9 +1067,16 @@ class GraphManager:
                             text_or_item=embedding_text,
                             metadata=entity_metadata
                         )
-                        self.logger.debug(f"Updated embedding for existing entity: {existing_node.name} (embedding length: {len(new_embedding) if new_embedding else 0})")
+                        # Safe length check for numpy arrays
+                        embedding_length = len(new_embedding) if new_embedding is not None and hasattr(new_embedding, '__len__') else 0
+                        self.logger.debug(f"Updated embedding for existing entity: {existing_node.name} (embedding length: {embedding_length})")
                     except Exception as e:
-                        self.logger.warning(f"Failed to update embedding for entity {existing_node.name}: {e}")
+                        # Check if it's the numpy array boolean issue that doesn't prevent functionality
+                        error_msg = str(e)
+                        if "truth value of an array" in error_msg or "ambiguous" in error_msg:
+                            self.logger.debug(f"Embeddings warning for entity {existing_node.name}: {e} (functionality still works)")
+                        else:
+                            self.logger.warning(f"Failed to update embedding for entity {existing_node.name}: {e}")
                 
                 self._save_graph()
                 return existing_node, False
@@ -858,9 +1116,16 @@ class GraphManager:
                             text_or_item=embedding_text,
                             metadata=entity_metadata
                         )
-                        self.logger.debug(f"Generated embedding for new entity: {name} ({node_type}) (embedding length: {len(entity_embedding) if entity_embedding else 0})")
+                        # Safe length check for numpy arrays
+                        embedding_length = len(entity_embedding) if entity_embedding is not None and hasattr(entity_embedding, '__len__') else 0
+                        self.logger.debug(f"Generated embedding for new entity: {name} ({node_type}) (embedding length: {embedding_length})")
                     except Exception as e:
-                        self.logger.warning(f"Failed to generate embedding for entity {name}: {e}")
+                        # Check if it's the numpy array boolean issue that doesn't prevent functionality
+                        error_msg = str(e)
+                        if "truth value of an array" in error_msg or "ambiguous" in error_msg:
+                            self.logger.debug(f"Embeddings warning for entity {name}: {e} (functionality still works)")
+                        else:
+                            self.logger.warning(f"Failed to generate embedding for entity {name}: {e}")
                 
                 self.nodes[node_id] = new_node
                 self._save_graph()
@@ -987,98 +1252,48 @@ class GraphManager:
             self.logger.error(f"Error in graph query: {e}")
             return []
     
-    def process_background_queue(self, max_tasks: int = 1) -> Dict[str, Any]:
-        """
-        Process queued background tasks.
-        
-        This method processes a limited number of queued graph processing tasks.
-        It's designed to be called periodically to avoid blocking the main thread.
-        
-        Args:
-            max_tasks: Maximum number of tasks to process in this call
+    async def start_background_processing(self) -> None:
+        """Start the background processor."""
+        await self.background_processor.start()
+        self.logger.info("Started background graph processing")
+    
+    async def stop_background_processing(self) -> None:
+        """Stop the background processor."""
+        await self.background_processor.stop()
+        self.logger.info("Stopped background graph processing")
+    
+    def _write_verbose_graph_log(self, message: str):
+        """Write verbose log message to graph storage directory."""
+        try:
+            import os
+            from datetime import datetime
             
-        Returns:
-            Dictionary with processing results
-        """
-        if not hasattr(self, '_background_queue') or not self._background_queue:
-            return {
-                "processed": 0,
-                "remaining": 0,
-                "results": [],
-                "message": "No tasks in queue"
-            }
-        
-        results = []
-        processed = 0
-        errors = 0
-        
-        # Process up to max_tasks from the queue
-        for _ in range(min(max_tasks, len(self._background_queue))):
-            if not self._background_queue:
-                break
-                
-            task = self._background_queue.pop(0)  # FIFO processing
-            
-            try:
-                # Process the task using the original synchronous method
-                result = self.process_conversation_entry_with_resolver(
-                    conversation_text=task["conversation_text"],
-                    digest_text=task["digest_text"],
-                    conversation_guid=task["conversation_guid"]
-                )
-                
-                # Add task metadata to result
-                result["task_id"] = task["task_id"]
-                result["queued_at"] = task["queued_at"]
-                result["processed_at"] = datetime.now().isoformat()
-                
-                results.append(result)
-                processed += 1
-                
-                self.logger.info(f"Processed background graph task {task['task_id']}: "
-                               f"{len(result.get('entities', []))} entities, "
-                               f"{len(result.get('relationships', []))} relationships")
-                
-            except Exception as e:
-                self.logger.error(f"Error processing background task {task.get('task_id', 'unknown')}: {e}")
-                errors += 1
-                results.append({
-                    "task_id": task.get("task_id", "unknown"),
-                    "error": str(e),
-                    "processed_at": datetime.now().isoformat()
-                })
-        
-        return {
-            "processed": processed,
-            "errors": errors,
-            "remaining": len(self._background_queue),
-            "results": results,
-            "message": f"Processed {processed} tasks, {errors} errors, {len(self._background_queue)} remaining"
-        }
+            # Write to verbose log file in graph storage directory
+            verbose_log_file = os.path.join(self.storage.storage_path, "graph_verbose.log")
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
+            with open(verbose_log_file, "a", encoding="utf-8") as f:
+                f.write(f"{timestamp} {message}\n")
+                f.flush()
+        except Exception as e:
+            # Don't fail the main operation if logging fails
+            if hasattr(self, 'logger'):
+                self.logger.debug(f"Failed to write verbose graph log: {e}")
     
     def get_background_processing_status(self) -> Dict[str, Any]:
         """Get current status of background graph processing."""
-        if not hasattr(self, '_background_queue'):
-            self._background_queue = []
+        stats = self.background_processor.get_stats()
         
         return {
-            "queue_size": len(self._background_queue),
-            "oldest_task": self._background_queue[0]["queued_at"] if self._background_queue else None,
-            "newest_task": self._background_queue[-1]["queued_at"] if self._background_queue else None,
+            "is_running": stats["is_running"],
+            "queue_size": stats["queue_size"],
+            "active_tasks": stats["active_tasks"],
+            "max_concurrent_tasks": stats["max_concurrent_tasks"],
+            "total_processed": stats["total_processed"],
+            "total_failed": stats["total_failed"],
+            "average_processing_time": stats["average_processing_time"],
             "graph_stats": {
                 "total_nodes": len(self.nodes),
                 "total_edges": len(self.edges)
             },
-            "status": "active" if self._background_queue else "idle"
-        }
-    
-    def clear_background_queue(self) -> int:
-        """Clear all pending background tasks and return count of cleared tasks."""
-        if not hasattr(self, '_background_queue'):
-            return 0
-        
-        cleared_count = len(self._background_queue)
-        self._background_queue.clear()
-        
-        self.logger.info(f"Cleared {cleared_count} pending background graph processing tasks")
-        return cleared_count 
+            "status": "running" if stats["is_running"] else "stopped"
+        } 

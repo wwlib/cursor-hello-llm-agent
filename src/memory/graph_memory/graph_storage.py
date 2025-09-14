@@ -2,6 +2,7 @@
 Graph Storage
 
 Handles persistence of graph data with JSON serialization.
+Uses async file operations for non-blocking I/O.
 """
 
 import json
@@ -9,6 +10,13 @@ import os
 import uuid
 from typing import Dict, List, Any, Optional
 from datetime import datetime
+import asyncio
+
+try:
+    import aiofiles
+    AIOFILES_AVAILABLE = True
+except ImportError:
+    AIOFILES_AVAILABLE = False
 
 
 class GraphStorage:
@@ -51,7 +59,7 @@ class GraphStorage:
             self._save_json(self.metadata_file, metadata)
     
     def _load_json(self, file_path: str) -> Any:
-        """Load JSON data from file."""
+        """Load JSON data from file (sync version for backwards compatibility)."""
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
                 return json.load(f)
@@ -59,9 +67,35 @@ class GraphStorage:
             return {} if 'nodes' in file_path else []
     
     def _save_json(self, file_path: str, data: Any) -> None:
-        """Save data to JSON file."""
+        """Save data to JSON file (sync version for backwards compatibility)."""
         with open(file_path, 'w', encoding='utf-8') as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
+    
+    async def _load_json_async(self, file_path: str) -> Any:
+        """Load JSON data from file asynchronously."""
+        if not AIOFILES_AVAILABLE:
+            # Fall back to sync version in thread pool
+            loop = asyncio.get_event_loop()
+            return await loop.run_in_executor(None, self._load_json, file_path)
+        
+        try:
+            async with aiofiles.open(file_path, 'r', encoding='utf-8') as f:
+                content = await f.read()
+                return json.loads(content)
+        except (FileNotFoundError, json.JSONDecodeError):
+            return {} if 'nodes' in file_path else []
+    
+    async def _save_json_async(self, file_path: str, data: Any) -> None:
+        """Save data to JSON file asynchronously."""
+        if not AIOFILES_AVAILABLE:
+            # Fall back to sync version in thread pool
+            loop = asyncio.get_event_loop()
+            await loop.run_in_executor(None, self._save_json, file_path, data)
+            return
+        
+        content = json.dumps(data, indent=2, ensure_ascii=False)
+        async with aiofiles.open(file_path, 'w', encoding='utf-8') as f:
+            await f.write(content)
     
     def load_nodes(self) -> Dict[str, Dict[str, Any]]:
         """Load all nodes from storage."""
@@ -89,12 +123,46 @@ class GraphStorage:
         """Save complete metadata to storage."""
         self._save_json(self.metadata_file, metadata)
     
+    # Async versions for non-blocking operations
+    async def load_nodes_async(self) -> Dict[str, Dict[str, Any]]:
+        """Load all nodes from storage asynchronously."""
+        return await self._load_json_async(self.nodes_file)
+    
+    async def save_nodes_async(self, nodes: Dict[str, Dict[str, Any]]) -> None:
+        """Save nodes to storage asynchronously."""
+        await self._save_json_async(self.nodes_file, nodes)
+        await self._update_metadata_async(node_count=len(nodes))
+    
+    async def load_edges_async(self) -> List[Dict[str, Any]]:
+        """Load all edges from storage asynchronously."""
+        return await self._load_json_async(self.edges_file)
+    
+    async def save_edges_async(self, edges: List[Dict[str, Any]]) -> None:
+        """Save edges to storage asynchronously."""
+        await self._save_json_async(self.edges_file, edges)
+        await self._update_metadata_async(edge_count=len(edges))
+    
+    async def load_metadata_async(self) -> Dict[str, Any]:
+        """Load graph metadata asynchronously."""
+        return await self._load_json_async(self.metadata_file)
+    
+    async def save_metadata_async(self, metadata: Dict[str, Any]) -> None:
+        """Save complete metadata to storage asynchronously."""
+        await self._save_json_async(self.metadata_file, metadata)
+    
     def _update_metadata(self, **kwargs) -> None:
         """Update metadata with provided fields."""
         metadata = self.load_metadata()
         metadata["last_updated"] = datetime.now().isoformat()
         metadata.update(kwargs)
         self._save_json(self.metadata_file, metadata)
+    
+    async def _update_metadata_async(self, **kwargs) -> None:
+        """Update metadata with provided fields asynchronously."""
+        metadata = await self.load_metadata_async()
+        metadata["last_updated"] = datetime.now().isoformat()
+        metadata.update(kwargs)
+        await self._save_json_async(self.metadata_file, metadata)
     
     def create_backup(self, backup_suffix: str = None) -> str:
         """

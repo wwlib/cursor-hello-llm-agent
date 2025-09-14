@@ -171,17 +171,35 @@ class EmbeddingsManager:
             embedding_array = np.array(embedding)
             
             # Normalize if requested (though LLM service should already do this)
-            # Ensure normalize is a boolean to avoid numpy array ambiguity
-            should_normalize = bool(normalize) and bool(options.get('normalize', True))
-            if should_normalize:
-                norm = np.linalg.norm(embedding_array)
-                if norm > 0:
-                    embedding_array = embedding_array / norm
+            # Simple normalization logic to avoid any numpy array comparison issues
+            try:
+                should_normalize = options.get('normalize', True)
+                
+                # Force to a simple boolean - handle any numpy array edge cases
+                if should_normalize is True or should_normalize is False:
+                    pass  # Already a boolean
+                elif str(should_normalize).lower() in ['true', '1']:
+                    should_normalize = True
+                else:
+                    should_normalize = False
+                    
+                if should_normalize:
+                    norm = np.linalg.norm(embedding_array)
+                    # Convert norm to a simple float to avoid any numpy array issues
+                    norm_value = float(norm)
+                    if norm_value > 0:
+                        embedding_array = embedding_array / norm_value
+            except Exception as norm_error:
+                # If normalization fails, just continue without it
+                self.logger.debug(f"Normalization skipped due to error: {norm_error}")
                     
             return embedding_array
             
         except Exception as e:
             self.logger.error(f"Error generating embedding: {str(e)}")
+            self.logger.error(f"Error location details - normalize: {normalize}, options: {options}")
+            import traceback
+            self.logger.error(f"Full traceback: {traceback.format_exc()}")
             raise
     
     def _extract_text(self, item: Union[Dict[str, Any], str]) -> str:
@@ -264,8 +282,17 @@ class EmbeddingsManager:
             # Append to file - create file if it doesn't exist
             file_mode = 'a' if os.path.exists(self.embeddings_file) else 'w'
             with open(self.embeddings_file, file_mode) as f:
+                # Ensure embedding is a numpy array before calling tolist()
+                if hasattr(embedding, 'tolist'):
+                    embedding_list = embedding.tolist()
+                elif isinstance(embedding, list):
+                    embedding_list = embedding
+                else:
+                    # Convert to list safely
+                    embedding_list = list(np.array(embedding))
+                    
                 json.dump({
-                    'embedding': embedding.tolist(),
+                    'embedding': embedding_list,
                     'metadata': metadata,
                     'text': text[:100] + '...' if len(text) > 100 else text  # Store text preview for debugging
                 }, f)

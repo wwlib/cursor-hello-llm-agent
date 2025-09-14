@@ -1,416 +1,251 @@
 """
-Background Graph Processor
+Simple Graph Processor
 
-Configurable background processing system for graph memory updates.
-Allows graph memory to be processed asynchronously without blocking user interactions,
-while still providing enhanced context when available.
+Event-driven background processing system for graph memory updates.
+Processes tasks immediately when the system has capacity, with no artificial delays
+or complex configuration.
 
 Key Features:
-- Configurable processing frequency and batch sizes
-- Priority-based processing queue
-- Real-time status monitoring
-- Graceful degradation when processing is behind
-- Performance metrics and optimization
+- Event-driven processing (no polling/frequency)
+- Simple concurrency control
+- Immediate processing when system is idle
+- All operations are fully async and non-blocking
 """
 
 import asyncio
 import time
-from typing import Dict, List, Any, Optional, Callable
-from datetime import datetime, timedelta
-from dataclasses import dataclass, field
-from enum import Enum
+from typing import Dict, Any, Optional
 import logging
-import threading
-from collections import deque, defaultdict
 
 
-class ProcessingPriority(Enum):
-    """Priority levels for graph processing tasks."""
-    LOW = 1
-    NORMAL = 2
-    HIGH = 3
-    URGENT = 4
-
-
-@dataclass
-class GraphProcessingTask:
-    """Represents a single graph processing task."""
-    entry_id: str
-    entry_data: Dict[str, Any]
-    priority: ProcessingPriority = ProcessingPriority.NORMAL
-    created_at: float = field(default_factory=time.time)
-    retry_count: int = 0
-    max_retries: int = 3
-    processing_mode: str = "balanced"  # speed, balanced, comprehensive
-
-
-@dataclass
-class ProcessingStats:
-    """Statistics for graph processing performance."""
-    total_processed: int = 0
-    total_failed: int = 0
-    average_processing_time: float = 0.0
-    queue_size: int = 0
-    last_processing_time: Optional[float] = None
-    processing_rate: float = 0.0  # tasks per minute
-    backlog_age: float = 0.0  # age of oldest unprocessed task
-
-
-class BackgroundGraphProcessor:
-    """Configurable background processor for graph memory updates.
+class SimpleGraphProcessor:
+    """Simple event-driven processor for graph memory updates.
     
-    This processor manages a queue of graph processing tasks and processes them
-    in the background according to configurable schedules and priorities.
+    Processes tasks immediately when the system has capacity, with simple
+    concurrency control and no artificial delays.
     
     Features:
-    - Configurable processing frequency (every N seconds)
-    - Batch processing with configurable batch sizes
-    - Priority-based task scheduling
-    - Real-time performance monitoring
-    - Graceful handling of processing delays
-    - Status callbacks for monitoring
+    - Event-driven processing (no polling)
+    - Simple concurrency limits
+    - Immediate processing when idle
+    - Full async operation
     """
     
     def __init__(self, 
                  graph_manager,
-                 processing_frequency: float = 30.0,  # seconds between processing cycles
-                 batch_size: int = 5,
-                 max_queue_size: int = 100,
-                 enable_priority_processing: bool = True,
-                 status_callback: Optional[Callable] = None,
+                 max_concurrent_tasks: int = 3,
                  logger: Optional[logging.Logger] = None):
         """
-        Initialize the background graph processor.
+        Initialize the simple graph processor.
         
         Args:
             graph_manager: GraphManager instance for processing tasks
-            processing_frequency: Seconds between processing cycles (default: 30)
-            batch_size: Maximum tasks to process in one batch (default: 5)
-            max_queue_size: Maximum tasks to keep in queue (default: 100)
-            enable_priority_processing: Whether to use priority-based scheduling
-            status_callback: Optional callback for status updates
+            max_concurrent_tasks: Maximum concurrent processing tasks (default: 3)
             logger: Logger instance for debugging
         """
         self.graph_manager = graph_manager
-        self.processing_frequency = processing_frequency
-        self.batch_size = batch_size
-        self.max_queue_size = max_queue_size
-        self.enable_priority_processing = enable_priority_processing
-        self.status_callback = status_callback
+        self.max_concurrent_tasks = max_concurrent_tasks
         self.logger = logger or logging.getLogger(__name__)
         
         # Processing state
-        self._task_queue = deque()
-        self._processing_stats = ProcessingStats()
+        self._task_queue = asyncio.Queue()
+        self._active_tasks = set()
         self._is_running = False
-        self._processing_task = None
-        self._lock = threading.Lock()
+        self._processor_task = None
         
-        # Configuration
-        self._processing_modes = {
-            "speed": {"batch_size": 10, "timeout": 5.0},
-            "balanced": {"batch_size": 5, "timeout": 15.0},
-            "comprehensive": {"batch_size": 3, "timeout": 30.0}
-        }
+        # Statistics
+        self._total_processed = 0
+        self._total_failed = 0
+        self._processing_times = []
         
-        # Performance tracking
-        self._processing_times = deque(maxlen=100)  # Keep last 100 processing times
-        self._last_processing_cycle = 0.0
-        
-        self.logger.info(f"Initialized BackgroundGraphProcessor: "
-                        f"frequency={processing_frequency}s, batch_size={batch_size}, "
-                        f"max_queue={max_queue_size}")
+        self.logger.info(f"Initialized SimpleGraphProcessor: "
+                        f"max_concurrent_tasks={max_concurrent_tasks}")
     
-    def start(self) -> None:
+    async def start(self) -> None:
         """Start the background processing loop."""
         if self._is_running:
-            self.logger.warning("Background processor is already running")
+            self.logger.warning("Simple processor is already running")
             return
         
         self._is_running = True
-        self._processing_task = asyncio.create_task(self._processing_loop())
-        self.logger.info("Started background graph processing")
-        
-        if self.status_callback:
-            self.status_callback("started", {"frequency": self.processing_frequency})
+        self._processor_task = asyncio.create_task(self._process_continuously())
+        self.logger.info("Started simple graph processing")
     
-    def stop(self) -> None:
+    async def stop(self) -> None:
         """Stop the background processing loop."""
         if not self._is_running:
             return
         
         self._is_running = False
-        if self._processing_task:
-            self._processing_task.cancel()
+        if self._processor_task:
+            self._processor_task.cancel()
+            try:
+                await self._processor_task
+            except asyncio.CancelledError:
+                pass
         
-        self.logger.info("Stopped background graph processing")
+        # Wait for active tasks to complete
+        while self._active_tasks:
+            await asyncio.sleep(0.1)
         
-        if self.status_callback:
-            self.status_callback("stopped", {"queue_size": len(self._task_queue)})
+        self.logger.info("Stopped simple graph processing")
     
-    def add_task(self, 
-                 entry_id: str, 
-                 entry_data: Dict[str, Any],
-                 priority: ProcessingPriority = ProcessingPriority.NORMAL,
-                 processing_mode: str = "balanced") -> bool:
+    def _write_verbose_log(self, message: str):
+        """Write verbose log message to graph storage directory if available."""
+        try:
+            if self.graph_manager and hasattr(self.graph_manager, '_write_verbose_graph_log'):
+                self.graph_manager._write_verbose_graph_log(message)
+            else:
+                # Fallback to regular logger if graph manager not available
+                self.logger.debug(message)
+        except Exception as e:
+            # Don't fail the main operation if logging fails
+            self.logger.debug(f"Failed to write verbose log: {e}")
+    
+    async def add_task(self, 
+                       conversation_text: str,
+                       digest_text: str = "",
+                       conversation_guid: str = None) -> None:
         """
-        Add a graph processing task to the queue.
+        Add a graph processing task to the queue for immediate processing.
         
         Args:
-            entry_id: Unique identifier for the entry
-            entry_data: Entry data to process
-            priority: Processing priority
-            processing_mode: Processing mode (speed, balanced, comprehensive)
-            
-        Returns:
-            True if task was added, False if queue is full
+            conversation_text: Full conversation entry text
+            digest_text: Digest/summary of the conversation
+            conversation_guid: GUID for tracking conversation mentions
         """
-        with self._lock:
-            if len(self._task_queue) >= self.max_queue_size:
-                self.logger.warning(f"Task queue full ({self.max_queue_size}), dropping task {entry_id}")
-                return False
-            
-            task = GraphProcessingTask(
-                entry_id=entry_id,
-                entry_data=entry_data,
-                priority=priority,
-                processing_mode=processing_mode
-            )
-            
-            if self.enable_priority_processing:
-                # Insert task based on priority
-                inserted = False
-                for i, existing_task in enumerate(self._task_queue):
-                    if task.priority.value > existing_task.priority.value:
-                        self._task_queue.insert(i, task)
-                        inserted = True
-                        break
-                
-                if not inserted:
-                    self._task_queue.append(task)
-            else:
-                self._task_queue.append(task)
-            
-            self.logger.debug(f"Added task {entry_id} with priority {priority.name}")
-            return True
+        self._write_verbose_log(f"[BACKGROUND_PROCESSOR] add_task called with GUID: {conversation_guid}")
+        
+        task_data = {
+            "conversation_text": conversation_text,
+            "digest_text": digest_text,
+            "conversation_guid": conversation_guid,
+            "queued_at": time.time()
+        }
+        
+        self._write_verbose_log(f"[BACKGROUND_PROCESSOR] Putting task in queue, current queue size: {self._task_queue.qsize()}")
+        await self._task_queue.put(task_data)
+        self._write_verbose_log(f"[BACKGROUND_PROCESSOR] Task queued, new queue size: {self._task_queue.qsize()}")
+        self.logger.debug(f"Queued graph processing task for conversation {conversation_guid or 'unknown'}")
     
     def get_stats(self) -> Dict[str, Any]:
         """Get current processing statistics."""
-        with self._lock:
-            current_time = time.time()
-            
-            # Calculate backlog age
-            backlog_age = 0.0
-            if self._task_queue:
-                oldest_task = self._task_queue[0]
-                backlog_age = current_time - oldest_task.created_at
-            
-            # Calculate processing rate
-            processing_rate = 0.0
-            if self._processing_times:
-                recent_times = [t for t in self._processing_times if current_time - t < 300]  # Last 5 minutes
-                processing_rate = len(recent_times) / 5.0  # tasks per minute
-            
-            return {
-                "is_running": self._is_running,
-                "queue_size": len(self._task_queue),
-                "total_processed": self._processing_stats.total_processed,
-                "total_failed": self._processing_stats.total_failed,
-                "average_processing_time": self._processing_stats.average_processing_time,
-                "processing_rate": processing_rate,
-                "backlog_age": backlog_age,
-                "last_processing_time": self._processing_stats.last_processing_time,
-                "processing_frequency": self.processing_frequency,
-                "batch_size": self.batch_size
-            }
+        return {
+            "is_running": self._is_running,
+            "queue_size": self._task_queue.qsize(),
+            "active_tasks": len(self._active_tasks),
+            "max_concurrent_tasks": self.max_concurrent_tasks,
+            "total_processed": self._total_processed,
+            "total_failed": self._total_failed,
+            "average_processing_time": (
+                sum(self._processing_times) / len(self._processing_times) 
+                if self._processing_times else 0.0
+            )
+        }
     
-    def get_queue_status(self) -> Dict[str, Any]:
-        """Get detailed queue status information."""
-        with self._lock:
-            priority_counts = defaultdict(int)
-            mode_counts = defaultdict(int)
-            
-            for task in self._task_queue:
-                priority_counts[task.priority.name] += 1
-                mode_counts[task.processing_mode] += 1
-            
-            return {
-                "total_tasks": len(self._task_queue),
-                "priority_distribution": dict(priority_counts),
-                "mode_distribution": dict(mode_counts),
-                "oldest_task_age": (
-                    time.time() - self._task_queue[0].created_at 
-                    if self._task_queue else 0.0
-                )
-            }
-    
-    async def _processing_loop(self) -> None:
-        """Main processing loop that runs in the background."""
-        self.logger.info("Started background processing loop")
+    async def _process_continuously(self) -> None:
+        """Main processing loop that processes tasks as they arrive."""
+        self.logger.info("Started continuous processing loop")
+        self._write_verbose_log(f"[BACKGROUND_PROCESSOR] Starting continuous processing loop, is_running: {self._is_running}")
         
         while self._is_running:
             try:
-                start_time = time.time()
+                self._write_verbose_log(f"[BACKGROUND_PROCESSOR] Waiting for task, queue size: {self._task_queue.qsize()}")
                 
-                # Process available tasks
-                processed_count = await self._process_batch()
+                # Wait for a task to become available
+                task_data = await self._task_queue.get()
+                self._write_verbose_log(f"[BACKGROUND_PROCESSOR] Got task from queue: {task_data.get('conversation_guid', 'unknown')}")
                 
-                if processed_count > 0:
-                    self.logger.debug(f"Processed {processed_count} tasks in background")
+                # Wait for an available slot if at max concurrency
+                while len(self._active_tasks) >= self.max_concurrent_tasks:
+                    self._write_verbose_log(f"[BACKGROUND_PROCESSOR] Waiting for available slot, active: {len(self._active_tasks)}, max: {self.max_concurrent_tasks}")
+                    await asyncio.sleep(0.1)
                 
-                # Update statistics
-                self._update_stats(processed_count, time.time() - start_time)
+                # Start processing immediately
+                self._write_verbose_log(f"[BACKGROUND_PROCESSOR] Starting task processing")
+                processing_task = asyncio.create_task(self._process_task(task_data))
+                self._active_tasks.add(processing_task)
+                self._write_verbose_log(f"[BACKGROUND_PROCESSOR] Task started, active tasks: {len(self._active_tasks)}")
                 
-                # Wait for next processing cycle
-                await asyncio.sleep(self.processing_frequency)
+                # Clean up completed tasks
+                processing_task.add_done_callback(self._cleanup_task)
                 
             except asyncio.CancelledError:
-                self.logger.info("Background processing loop cancelled")
+                self.logger.info("Continuous processing loop cancelled")
+                self._write_verbose_log(f"[BACKGROUND_PROCESSOR] Continuous processing loop cancelled")
                 break
             except Exception as e:
-                self.logger.error(f"Error in background processing loop: {e}")
-                await asyncio.sleep(min(self.processing_frequency, 10.0))  # Shorter sleep on error
+                self.logger.error(f"Error in continuous processing loop: {e}")
+                self._write_verbose_log(f"[BACKGROUND_PROCESSOR] ERROR in continuous processing loop: {e}")
+                await asyncio.sleep(0.1)  # Brief pause on error
     
-    async def _process_batch(self) -> int:
-        """Process a batch of tasks from the queue."""
-        if not self._task_queue:
-            return 0
+    def _cleanup_task(self, task):
+        """Clean up completed task and update statistics."""
+        self._active_tasks.discard(task)
         
-        # Get tasks to process
-        tasks_to_process = []
-        with self._lock:
-            batch_size = min(self.batch_size, len(self._task_queue))
-            for _ in range(batch_size):
-                if self._task_queue:
-                    tasks_to_process.append(self._task_queue.popleft())
-        
-        if not tasks_to_process:
-            return 0
-        
-        # Process tasks
-        processed_count = 0
-        for task in tasks_to_process:
-            try:
-                success = await self._process_single_task(task)
-                if success:
-                    processed_count += 1
-                    self._processing_stats.total_processed += 1
-                else:
-                    # Retry logic
-                    if task.retry_count < task.max_retries:
-                        task.retry_count += 1
-                        with self._lock:
-                            self._task_queue.append(task)  # Re-queue for retry
-                        self.logger.warning(f"Retrying task {task.entry_id} (attempt {task.retry_count})")
-                    else:
-                        self._processing_stats.total_failed += 1
-                        self.logger.error(f"Failed to process task {task.entry_id} after {task.max_retries} retries")
-                
-            except Exception as e:
-                self.logger.error(f"Error processing task {task.entry_id}: {e}")
-                self._processing_stats.total_failed += 1
-        
-        return processed_count
-    
-    async def _process_single_task(self, task: GraphProcessingTask) -> bool:
-        """Process a single graph processing task."""
+        # Update statistics based on task result
         try:
-            # Get processing configuration for this mode
-            mode_config = self._processing_modes.get(task.processing_mode, self._processing_modes["balanced"])
+            # Task completed successfully if no exception
+            task.result()  # This will raise if task failed
+            self._total_processed += 1
+        except Exception:
+            self._total_failed += 1
+    
+    async def _process_task(self, task_data: Dict[str, Any]) -> None:
+        """Process a single graph processing task."""
+        start_time = time.time()
+        conversation_guid = task_data.get("conversation_guid", "unknown")
+        
+        try:
+            self._write_verbose_log(f"[BACKGROUND_PROCESSOR] _process_task starting for GUID: {conversation_guid}")
             
-            # Process with timeout
-            processing_start = time.time()
+            # Extract task data
+            conversation_text = task_data.get("conversation_text", "")
+            digest_text = task_data.get("digest_text", "")
             
-            # Use the GraphManager's conversation processing method
-            # Extract conversation text and digest from entry data
-            conversation_text = task.entry_data.get("content", "")
-            digest_text = task.entry_data.get("digest", {}).get("summary", "") if isinstance(task.entry_data.get("digest"), dict) else ""
-            conversation_guid = task.entry_data.get("guid", "")
+            self._write_verbose_log(f"[BACKGROUND_PROCESSOR] Calling graph_manager.process_conversation_entry_with_resolver_async")
             
-            # Process the conversation entry using GraphManager's method
-            # This method handles all the entity extraction and relationship processing
-            results = self.graph_manager.process_conversation_entry_with_resolver(
-                conversation_text=conversation_text,
-                digest_text=digest_text,
-                conversation_guid=conversation_guid
+            # Process using GraphManager's async method with timeout to prevent hanging
+            results = await asyncio.wait_for(
+                self.graph_manager.process_conversation_entry_with_resolver_async(
+                    conversation_text=conversation_text,
+                    digest_text=digest_text,
+                    conversation_guid=conversation_guid
+                ), 
+                timeout=300.0  # 5 minute timeout
             )
             
-            # Log the results
+            self._write_verbose_log(f"[BACKGROUND_PROCESSOR] Graph manager processing completed")
+            
+            # Log results
             if results and not results.get("error"):
                 entities_count = len(results.get("entities", []))
                 relationships_count = len(results.get("relationships", []))
                 self.logger.debug(f"Graph processing completed: {entities_count} entities, {relationships_count} relationships")
+                self._write_verbose_log(f"[BACKGROUND_PROCESSOR] Success: {entities_count} entities, {relationships_count} relationships")
             else:
                 self.logger.warning(f"Graph processing failed: {results.get('error', 'Unknown error')}")
-            
-            processing_time = time.time() - processing_start
+                self._write_verbose_log(f"[BACKGROUND_PROCESSOR] ERROR: {results.get('error', 'Unknown error')}")
+                raise Exception(f"Graph processing failed: {results.get('error', 'Unknown error')}")
             
             # Track processing time
-            self._processing_times.append(time.time())
+            processing_time = time.time() - start_time
+            self._processing_times.append(processing_time)
+            self._write_verbose_log(f"[BACKGROUND_PROCESSOR] Task completed successfully in {processing_time:.2f}s")
             
-            self.logger.debug(f"Processed task {task.entry_id} in {processing_time:.2f}s "
-                            f"(mode: {task.processing_mode})")
+            # Keep only recent processing times (last 100)
+            if len(self._processing_times) > 100:
+                self._processing_times.pop(0)
             
-            return True
+            self.logger.debug(f"Processed graph task in {processing_time:.2f}s")
             
         except asyncio.TimeoutError:
-            self.logger.warning(f"Task {task.entry_id} timed out after {mode_config['timeout']}s")
-            return False
+            self.logger.error(f"Graph processing timed out for GUID: {conversation_guid} after 5 minutes")
+            self._write_verbose_log(f"[BACKGROUND_PROCESSOR] TIMEOUT ERROR for GUID: {conversation_guid}")
+            raise  # Re-raise so cleanup_task can track the failure
         except Exception as e:
-            self.logger.error(f"Error processing task {task.entry_id}: {e}")
-            return False
-    
-    def _update_stats(self, processed_count: int, cycle_time: float) -> None:
-        """Update processing statistics."""
-        if processed_count > 0:
-            self._processing_stats.last_processing_time = time.time()
-            
-            # Update average processing time
-            if self._processing_times:
-                recent_times = list(self._processing_times)[-processed_count:]
-                avg_time = sum(recent_times) / len(recent_times) if recent_times else 0.0
-                self._processing_stats.average_processing_time = avg_time
-    
-    def configure(self, 
-                  processing_frequency: Optional[float] = None,
-                  batch_size: Optional[int] = None,
-                  max_queue_size: Optional[int] = None) -> None:
-        """
-        Update processor configuration.
-        
-        Args:
-            processing_frequency: New processing frequency in seconds
-            batch_size: New batch size
-            max_queue_size: New maximum queue size
-        """
-        if processing_frequency is not None:
-            self.processing_frequency = processing_frequency
-            self.logger.info(f"Updated processing frequency to {processing_frequency}s")
-        
-        if batch_size is not None:
-            self.batch_size = batch_size
-            self.logger.info(f"Updated batch size to {batch_size}")
-        
-        if max_queue_size is not None:
-            self.max_queue_size = max_queue_size
-            self.logger.info(f"Updated max queue size to {max_queue_size}")
-        
-        if self.status_callback:
-            self.status_callback("configured", self.get_stats())
-    
-    def clear_queue(self) -> int:
-        """Clear all pending tasks from the queue."""
-        with self._lock:
-            cleared_count = len(self._task_queue)
-            self._task_queue.clear()
-            self.logger.info(f"Cleared {cleared_count} tasks from queue")
-            return cleared_count
-    
-    def get_processing_mode_config(self, mode: str) -> Dict[str, Any]:
-        """Get configuration for a specific processing mode."""
-        return self._processing_modes.get(mode, self._processing_modes["balanced"])
-    
-    def set_processing_mode_config(self, mode: str, config: Dict[str, Any]) -> None:
-        """Update configuration for a specific processing mode."""
-        self._processing_modes[mode] = config
-        self.logger.info(f"Updated {mode} mode configuration: {config}")
+            self.logger.error(f"Error processing graph task for GUID {conversation_guid}: {e}")
+            self._write_verbose_log(f"[BACKGROUND_PROCESSOR] ERROR for GUID {conversation_guid}: {e}")
+            import traceback
+            self._write_verbose_log(f"[BACKGROUND_PROCESSOR] ERROR TRACEBACK: {traceback.format_exc()}")
+            raise  # Re-raise so cleanup_task can track the failure

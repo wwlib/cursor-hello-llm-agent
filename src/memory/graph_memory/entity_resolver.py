@@ -238,6 +238,43 @@ Output format: [candidate_id, existing_node_id, resolution_justification, confid
         else:
             return self._resolve_batch(candidates, threshold)
     
+    async def resolve_candidates_async(self, candidates: List[Dict[str, Any]], 
+                          process_individually: bool = False,
+                          confidence_threshold: Optional[float] = None) -> List[Dict[str, Any]]:
+        """Resolve candidate entities against existing nodes (async version).
+        
+        Main async entry point for entity resolution. Processes candidates using either
+        batch or individual resolution modes with confidence-based decision making.
+        
+        Args:
+            candidates: List of candidate entity dictionaries.
+                Each candidate should contain:
+                - candidate_id (str): Unique identifier for the candidate
+                - type (str): Entity type (character, location, etc.)
+                - description (str): Entity description for matching
+                - name (str, optional): Entity name if available
+                
+            process_individually: If True, process candidates one at a time
+                for higher accuracy. If False, process in batch mode.
+                Default False for compatibility.
+                
+            confidence_threshold: Override the default similarity threshold.
+                If None, uses domain config threshold.
+        
+        Returns:
+            List[Dict[str, Any]]: Resolution results with status and entity information.
+        """
+        if not candidates:
+            return []
+        
+        # Use configured threshold if not overridden
+        threshold = confidence_threshold or self.confidence_threshold
+        
+        if process_individually:
+            return await self._resolve_individually_async(candidates, threshold)
+        else:
+            return await self._resolve_batch_async(candidates, threshold)
+    
     def _resolve_individually(self, candidates: List[Dict[str, Any]], 
                             confidence_threshold: float) -> List[Dict[str, Any]]:
         """Process candidates one at a time for higher accuracy.
@@ -300,6 +337,63 @@ Output format: [candidate_id, existing_node_id, resolution_justification, confid
                 
             except Exception as e:
                 self.logger.error(f"Error resolving candidate {candidate.get('candidate_id')}: {e}")
+                # Fallback: mark as new entity
+                resolutions.append({
+                    "candidate_id": candidate.get("candidate_id", "unknown"),
+                    "resolved_node_id": "<NEW>",
+                    "resolution_justification": f"Error during resolution: {e}",
+                    "confidence": 0.0,
+                    "auto_matched": False
+                })
+        
+        return resolutions
+    
+    async def _resolve_individually_async(self, candidates: List[Dict[str, Any]], 
+                            confidence_threshold: float) -> List[Dict[str, Any]]:
+        """Process candidates one at a time for higher accuracy (async version).
+        
+        Implements the recommended one-at-a-time processing approach from
+        the entity resolution plan. Each candidate is processed with its
+        own RAG context and LLM resolution call.
+        
+        Args:
+            candidates: List of candidate dictionaries
+            confidence_threshold: Minimum similarity score for matching
+            
+        Returns:
+            List of resolution dictionaries with status and node information
+        """
+        resolutions = []
+        resolved_context = []  # Build context of previously resolved entities
+        
+        for candidate in candidates:
+            try:
+                # Create resolution request including previously resolved context
+                resolution = await self._resolve_single_candidate_async(
+                    candidate, resolved_context, confidence_threshold
+                )
+                resolutions.append(resolution)
+                
+                # Add to resolved context if it was matched to existing entity
+                # Validate that the resolved node actually exists in graph storage
+                resolved_node_id = resolution["resolved_node_id"]
+                if resolved_node_id != "<NEW>":
+                    # Check if the resolved node ID actually exists in graph storage
+                    existing_nodes = self.storage.load_nodes()
+                    if resolved_node_id in existing_nodes:
+                        # Use the actual existing entity's data, not the candidate's data
+                        existing_entity = existing_nodes[resolved_node_id]
+                        resolved_context.append({
+                            "existing_node_id": resolved_node_id,
+                            "type": existing_entity.get("type", ""),
+                            "description": f"{existing_entity.get('name', '')} {existing_entity.get('description', '')}"
+                        })
+                    else:
+                        # Node doesn't exist - this is unexpected
+                        self.logger.warning(f"Resolved node {resolved_node_id} doesn't exist in storage")
+                        
+            except Exception as e:
+                self.logger.error(f"Error resolving candidate {candidate.get('candidate_id', 'unknown')}: {e}")
                 # Fallback: mark as new entity
                 resolutions.append({
                     "candidate_id": candidate.get("candidate_id", "unknown"),
@@ -490,6 +584,74 @@ Output format: [candidate_id, existing_node_id, resolution_justification, confid
                 "auto_matched": False
             }
     
+    async def _resolve_single_candidate_async(self, candidate: Dict[str, Any], 
+                                 existing_context: List[Dict[str, Any]],
+                                 confidence_threshold: float) -> Dict[str, Any]:
+        """Resolve a single candidate using LLM with structured prompt (async version).
+        
+        Uses the entity_resolution.prompt template to resolve one candidate
+        against a list of existing entities with confidence scoring.
+        
+        Args:
+            candidate: Single candidate entity to resolve.
+            existing_context: List of existing entities for comparison.
+            confidence_threshold: Minimum confidence for auto-matching.
+            
+        Returns:
+            Resolution dictionary with confidence score and auto-match flag.
+        """
+        # Format existing node data
+        existing_node_data = ""
+        for entity in existing_context:
+            existing_node_data += f"  existing_node_id: \"{entity.get('existing_node_id', '')}\"\n"
+            existing_node_data += f"  type: \"{entity.get('type', '')}\"\n"
+            existing_node_data += f"  description: \"{entity.get('description', '')}\"\n\n"
+        
+        # Add empty marker if no existing entities
+        if not existing_context or not existing_node_data.strip():
+            existing_node_data = "[EMPTY - NO EXISTING NODES]\n"
+        
+        # Format candidate data
+        candidate_data = json.dumps([{
+            "candidate_id": candidate.get("candidate_id", ""),
+            "type": candidate.get("type", ""),
+            "description": candidate.get("description", "")
+        }], indent=2)
+        
+        # Build prompt from template
+        prompt = self.resolution_template.replace("{{existing_node_data}}", existing_node_data)
+        prompt = prompt.replace("{{candidate_nodes}}", candidate_data)
+        
+        # Get LLM resolution (async)
+        try:
+            response = await self.llm_service.generate_async(prompt)
+            resolutions = self._parse_resolution_response(response)
+            
+            if resolutions and len(resolutions) > 0:
+                resolution = resolutions[0]
+                # Add auto-match flag based on confidence
+                resolution["auto_matched"] = resolution.get("confidence", 0.0) >= confidence_threshold
+                return resolution
+            else:
+                # Fallback if parsing failed
+                return {
+                    "candidate_id": candidate.get("candidate_id", ""),
+                    "resolved_node_id": "<NEW>",
+                    "resolution_justification": "Failed to parse LLM response",
+                    "confidence": 0.0,
+                    "auto_matched": False
+                }
+                
+        except Exception as e:
+            self.logger.error(f"Error in LLM resolution: {e}")
+            return {
+                "candidate_id": candidate.get("candidate_id", ""),
+                "resolved_node_id": "<NEW>",
+                "resolution_justification": f"LLM error: {e}",
+                "confidence": 0.0,
+                "auto_matched": False
+            }
+    
     def _resolve_candidates_batch(self, candidates: List[Dict[str, Any]], 
                                  existing_context: List[Dict[str, Any]],
                                  confidence_threshold: float) -> List[Dict[str, Any]]:
@@ -531,6 +693,94 @@ Output format: [candidate_id, existing_node_id, resolution_justification, confid
         # Get LLM resolution
         try:
             response = self.llm_service.generate(prompt)
+            resolutions = self._parse_resolution_response(response)
+            
+            # Add auto-match flags and ensure all candidates are covered
+            for resolution in resolutions:
+                resolution["auto_matched"] = resolution.get("confidence", 0.0) >= confidence_threshold
+            
+            # Handle missing candidates (fallback)
+            resolved_ids = {r.get("candidate_id") for r in resolutions}
+            for candidate in candidates:
+                candidate_id = candidate.get("candidate_id", "")
+                if candidate_id not in resolved_ids:
+                    resolutions.append({
+                        "candidate_id": candidate_id,
+                        "resolved_node_id": "<NEW>",
+                        "resolution_justification": "Not resolved by LLM",
+                        "confidence": 0.0,
+                        "auto_matched": False
+                    })
+            
+            return resolutions
+            
+        except Exception as e:
+            self.logger.error(f"Error in batch LLM resolution: {e}")
+            # Fallback: mark all as new
+            return [{
+                "candidate_id": candidate.get("candidate_id", ""),
+                "resolved_node_id": "<NEW>",
+                "resolution_justification": f"Batch resolution error: {e}",
+                "confidence": 0.0,
+                "auto_matched": False
+            } for candidate in candidates]
+    
+    async def _resolve_batch_async(self, candidates: List[Dict[str, Any]], 
+                      confidence_threshold: float) -> List[Dict[str, Any]]:
+        """Process all candidates in a single batch resolution (async version).
+        
+        Batch processing mode that resolves multiple candidates simultaneously.
+        Faster than individual processing but may have lower accuracy for
+        complex matching scenarios.
+        
+        Args:
+            candidates: List of candidate dictionaries
+            existing_context: List of existing entities for comparison
+            confidence_threshold: Minimum similarity score for matching
+            
+        Returns:
+            List of resolution dictionaries with status and node information
+        """
+        # Get existing context using RAG search for all candidates
+        existing_context = []
+        for candidate in candidates:
+            rag_matches = self._get_rag_candidates_for_entity(candidate)
+            existing_context.extend(rag_matches)
+        
+        # Remove duplicates from existing context
+        seen_ids = set()
+        unique_existing = []
+        for entity in existing_context:
+            entity_id = entity.get('existing_node_id', '')
+            if entity_id not in seen_ids:
+                seen_ids.add(entity_id)
+                unique_existing.append(entity)
+        
+        # Format existing node data
+        existing_node_data = ""
+        for entity in unique_existing:
+            existing_node_data += f"  existing_node_id: \"{entity.get('existing_node_id', '')}\"\n"
+            existing_node_data += f"  type: \"{entity.get('type', '')}\"\n"
+            existing_node_data += f"  description: \"{entity.get('description', '')}\"\n\n"
+        
+        # Add empty marker if no existing entities
+        if not unique_existing or not existing_node_data.strip():
+            existing_node_data = "[EMPTY - NO EXISTING NODES]\n"
+        
+        # Format candidate data
+        candidate_data = json.dumps([{
+            "candidate_id": candidate.get("candidate_id", ""),
+            "type": candidate.get("type", ""),
+            "description": candidate.get("description", "")
+        } for candidate in candidates], indent=2)
+        
+        # Build prompt from template
+        prompt = self.resolution_template.replace("{{existing_node_data}}", existing_node_data)
+        prompt = prompt.replace("{{candidate_nodes}}", candidate_data)
+        
+        # Get LLM resolution (async)
+        try:
+            response = await self.llm_service.generate_async(prompt)
             resolutions = self._parse_resolution_response(response)
             
             # Add auto-match flags and ensure all candidates are covered

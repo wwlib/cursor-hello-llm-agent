@@ -5,6 +5,7 @@ from .llm import LLMService, LLMServiceError
 import time
 import numpy as np
 import os
+import asyncio
 
 # CURL example
 # curl http://localhost:11434/api/embed -d '{
@@ -216,34 +217,115 @@ class OllamaService(LLMService):
             # Prepare request
             url = f"{self.base_url}/api/generate"
             
-            # Use options to override defaults
+            # Use options to override defaults - enable streaming by default for better progress monitoring
+            use_streaming = options.get("stream", True)  # Default to streaming for async calls
             request_data = {
                 "model": options.get("model", self.model),
                 "prompt": prompt,
-                "stream": options.get("stream", False),
+                "stream": use_streaming,
                 "options": {
                     "temperature": options.get("temperature", self.default_temperature)
                 }
             }
             
             if self.debug:
-                self.logger.debug(f":[{debug_generate_scope}]:Sending async request to Ollama: {url}")
-                self.logger.debug(f":[{debug_generate_scope}]:Request data: {json.dumps(request_data, indent=2)}")
+                self.logger.debug(f":[{debug_generate_scope}]:🚀 Starting Ollama request - {url}")
+                self.logger.debug(f":[{debug_generate_scope}]:📋 Request: {request_data['model']}, streaming={use_streaming}, prompt={len(prompt)} chars")
+                if len(prompt) < 200:
+                    self.logger.debug(f":[{debug_generate_scope}]:💬 Prompt: {prompt}")
+                else:
+                    self.logger.debug(f":[{debug_generate_scope}]:💬 Prompt preview: {prompt[:200]}...")
             
-            # Make async HTTP request
-            async with httpx.AsyncClient(timeout=300.0) as client:  # 5 minute timeout
-                response = await client.post(url, json=request_data)
-                response.raise_for_status()
-                
-                response_data = response.json()
-                
-                if self.debug:
-                    self.logger.debug(f":[{debug_generate_scope}]:Received async response from Ollama")
-                
-                if "response" not in response_data:
-                    raise LLMServiceError("Invalid response format from Ollama API")
-                
-                return response_data["response"]
+            # Make async HTTP request with retry logic and better timeout configuration
+            timeout = httpx.Timeout(
+                timeout=300.0,  # 5 minute timeout
+                connect=30.0,   # 30 second connect timeout
+                read=300.0,     # 5 minute read timeout
+                write=60.0      # 1 minute write timeout
+            )
+            
+            # Retry up to 3 times for connection issues
+            max_retries = 3
+            for attempt in range(max_retries):
+                try:
+                    async with httpx.AsyncClient(timeout=timeout) as client:
+                        if use_streaming:
+                            # Streaming request with progress monitoring
+                            if self.debug:
+                                connect_start = time.time()
+                                self.logger.debug(f":[{debug_generate_scope}]:⏳ Connecting to Ollama (may queue if server busy)...")
+                            
+                            response_text = ""
+                            last_progress_time = time.time()
+                            
+                            async with client.stream('POST', url, json=request_data) as response:
+                                response.raise_for_status()
+                                
+                                if self.debug:
+                                    connect_time = time.time() - connect_start
+                                    self.logger.debug(f":[{debug_generate_scope}]:✅ Connected! (waited {connect_time:.1f}s) Starting stream...")
+                                
+                                chunk_count = 0
+                                async for chunk in response.aiter_text():
+                                    if chunk.strip():
+                                        chunk_count += 1
+                                        try:
+                                            chunk_data = json.loads(chunk.strip())
+                                            if "response" in chunk_data:
+                                                response_text += chunk_data["response"]
+                                            
+                                            # Progress logging every 2 seconds or every 20 chunks
+                                            current_time = time.time()
+                                            if (chunk_count % 20 == 0 or 
+                                                current_time - last_progress_time > 2.0):
+                                                if self.debug:
+                                                    elapsed = current_time - start_time
+                                                    rate = len(response_text) / elapsed if elapsed > 0 else 0
+                                                    self.logger.debug(f":[{debug_generate_scope}]:📊 Progress: {len(response_text)} chars ({rate:.0f} chars/s), {chunk_count} chunks, {elapsed:.1f}s")
+                                                last_progress_time = current_time
+                                            
+                                            # Check if done
+                                            if chunk_data.get("done", False):
+                                                if self.debug:
+                                                    elapsed = time.time() - start_time
+                                                    rate = len(response_text) / elapsed if elapsed > 0 else 0
+                                                    self.logger.debug(f":[{debug_generate_scope}]:✅ Streaming complete! {len(response_text)} chars in {elapsed:.1f}s ({rate:.0f} chars/s)")
+                                                break
+                                                
+                                        except json.JSONDecodeError:
+                                            # Skip invalid JSON chunks
+                                            continue
+                            
+                            if not response_text:
+                                raise LLMServiceError("No response received from Ollama streaming API")
+                            
+                            return response_text
+                            
+                        else:
+                            # Non-streaming request (original behavior)
+                            response = await client.post(url, json=request_data)
+                            response.raise_for_status()
+                            
+                            response_data = response.json()
+                            
+                            if self.debug:
+                                self.logger.debug(f":[{debug_generate_scope}]:Received non-streaming response from Ollama")
+                            
+                            if "response" not in response_data:
+                                raise LLMServiceError("Invalid response format from Ollama API")
+                            
+                            return response_data["response"]
+                        
+                except (httpx.ConnectError, httpx.ReadError, httpx.RemoteProtocolError) as e:
+                    if attempt < max_retries - 1:
+                        wait_time = 2 ** attempt  # Exponential backoff: 1s, 2s, 4s
+                        if self.debug:
+                            self.logger.debug(f":[{debug_generate_scope}]:Connection error (attempt {attempt + 1}/{max_retries}): {e}. Retrying in {wait_time}s...")
+                        await asyncio.sleep(wait_time)
+                        continue
+                    else:
+                        # Re-raise on final attempt
+                        raise
                 
         except httpx.RequestError as e:
             raise LLMServiceError(f"Ollama async API request error: {str(e)}")
@@ -254,7 +336,8 @@ class OllamaService(LLMService):
             
         finally:
             if self.debug:
-                self.logger.debug(f":[{debug_generate_scope}]:Total async LLM generation time: {time.time() - start_time:.3f}s")
+                total_time = time.time() - start_time
+                self.logger.debug(f":[{debug_generate_scope}]:🏁 Total async LLM generation time: {total_time:.1f}s")
 
     def _generate_embedding_impl(self, text: str, options: Dict[str, Any]) -> List[float]:
         """Generate an embedding vector using Ollama.

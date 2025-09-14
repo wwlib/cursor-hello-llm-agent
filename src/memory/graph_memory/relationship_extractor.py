@@ -11,7 +11,6 @@ import re
 import os
 from typing import Dict, List, Any, Optional
 import logging
-from datetime import datetime
 
 
 class RelationshipExtractor:
@@ -75,6 +74,12 @@ Entities: {entities_context}
 Extract relationships as JSON array with fields: from_entity_id, to_entity_id, relationship, confidence, evidence.
 
 Relationships:"""
+    
+    def _get_relationship_types_desc(self) -> str:
+        """Get formatted relationship types description for prompts."""
+        return "\\n".join([
+            f"- {rtype}: {desc}" for rtype, desc in self.relationship_types.items()
+        ])
     
     def _get_relationship_types(self) -> Dict[str, str]:
         """Get relationship types from domain configuration."""
@@ -168,6 +173,51 @@ Relationships:"""
             
         except Exception as e:
             self.logger.error(f"Error in alternative relationship extraction: {e}")
+            return []
+    
+    async def extract_relationships_from_conversation_async(self, conversation_text: str, digest_text: str = "",
+                                              entities: List[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
+        """
+        Extract relationships from full conversation entry with entity context (async version).
+        
+        This method analyzes the full conversation text and digest to identify relationships
+        between the provided entities, using LLM reasoning to understand context.
+        
+        Args:
+            conversation_text: Full conversation entry text
+            digest_text: Digest/summary of the conversation
+            entities: List of entities from entity extraction phase
+            
+        Returns:
+            List of relationships between entities
+        """
+        if not entities or len(entities) < 2:
+            self.logger.debug("Need at least 2 entities to extract relationships")
+            return []
+        
+        try:
+            # Build entity context for prompt
+            entities_context = self._build_entities_context(entities)
+            
+            # Build prompt
+            prompt = self.prompt_template.format(
+                relationship_types=self._get_relationship_types_desc(),
+                conversation_text=conversation_text,
+                digest_text=digest_text,
+                entities_context=entities_context
+            )
+            
+            # Get LLM response (async)
+            response = await self.llm_service.generate_async(prompt)
+            
+            # Parse relationships
+            relationships = self._parse_relationship_response(response, entities)
+            
+            self.logger.debug(f"Extracted {len(relationships)} relationships from conversation (async)")
+            return relationships
+            
+        except Exception as e:
+            self.logger.error(f"Error in alternative relationship extraction (async): {e}")
             return []
     
     def _build_entities_context(self, entities: List[Dict[str, Any]]) -> str:
