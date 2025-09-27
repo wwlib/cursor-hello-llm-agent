@@ -68,8 +68,15 @@ class SimpleGraphProcessor:
             return
         
         self._is_running = True
-        self._processor_task = asyncio.create_task(self._process_continuously())
-        self.logger.info("Started simple graph processing")
+        try:
+            self._processor_task = asyncio.create_task(self._process_continuously())
+            # Keep a reference to prevent garbage collection
+            self._processor_task.add_done_callback(self._on_processor_task_done)
+            self.logger.info("Started simple graph processing")
+        except Exception as e:
+            self._is_running = False
+            self.logger.error(f"Failed to start background processor: {e}")
+            raise
     
     async def stop(self) -> None:
         """Stop the background processing loop."""
@@ -171,9 +178,19 @@ class SimpleGraphProcessor:
                 processing_task.add_done_callback(self._cleanup_task)
                 
             except asyncio.CancelledError:
-                self.logger.info("Continuous processing loop cancelled")
-                self._write_verbose_log(f"[BACKGROUND_PROCESSOR] Continuous processing loop cancelled")
-                break
+                self.logger.warning("Processing loop cancelled - checking if restart needed")
+                self._write_verbose_log(f"[BACKGROUND_PROCESSOR] Processing loop cancelled - checking restart")
+                
+                # If we're still supposed to be running but got cancelled, restart
+                if self._is_running:
+                    self.logger.info("Restarting background processor after unexpected cancellation")
+                    self._write_verbose_log(f"[BACKGROUND_PROCESSOR] Restarting after unexpected cancellation")
+                    await asyncio.sleep(0.1)  # Brief pause
+                    continue  # Restart the loop
+                else:
+                    # Legitimate shutdown
+                    self._write_verbose_log(f"[BACKGROUND_PROCESSOR] Continuous processing loop cancelled (shutdown)")
+                    break
             except Exception as e:
                 self.logger.error(f"Error in continuous processing loop: {e}")
                 self._write_verbose_log(f"[BACKGROUND_PROCESSOR] ERROR in continuous processing loop: {e}")
@@ -190,6 +207,24 @@ class SimpleGraphProcessor:
             self._total_processed += 1
         except Exception:
             self._total_failed += 1
+    
+    def _on_processor_task_done(self, task):
+        """Handle completion of the main processor task."""
+        try:
+            if task.cancelled():
+                self.logger.warning("Background processor task was cancelled")
+                self._write_verbose_log("[BACKGROUND_PROCESSOR] Main processor task cancelled")
+            elif task.exception():
+                self.logger.error(f"Background processor task failed: {task.exception()}")
+                self._write_verbose_log(f"[BACKGROUND_PROCESSOR] Main processor task failed: {task.exception()}")
+            else:
+                self.logger.info("Background processor task completed normally")
+                self._write_verbose_log("[BACKGROUND_PROCESSOR] Main processor task completed normally")
+        except Exception as e:
+            self.logger.error(f"Error in processor task completion handler: {e}")
+            
+        # Reset the task reference
+        self._processor_task = None
     
     async def _process_task(self, task_data: Dict[str, Any]) -> None:
         """Process a single graph processing task."""

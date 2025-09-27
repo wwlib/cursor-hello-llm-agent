@@ -149,18 +149,18 @@ class RAGManager:
     recency or exact keyword matches.
     """
     
-    def __init__(self, llm_service, embeddings_manager, graph_manager=None, logger=None):
+    def __init__(self, llm_service, embeddings_manager, graph_queries=None, logger=None):
         """Initialize the RAGManager.
         
         Args:
             llm_service: Service for LLM operations
             embeddings_manager: Manager for embeddings and semantic search
-            graph_manager: Optional graph manager for structured context
+            graph_queries: Optional standalone graph queries for structured context
             logger: Optional logger instance
         """
         self.llm_service = llm_service
         self.embeddings_manager = embeddings_manager
-        self.graph_manager = graph_manager
+        self.graph_queries = graph_queries
         self.logger = logger or logging.getLogger(__name__)
     
     def query(self, query_text: str, limit: int = 5, min_importance: Optional[int] = None) -> List[Dict[str, Any]]:
@@ -372,11 +372,11 @@ class RAGManager:
         # First enhance with standard RAG
         enhanced_context = self.enhance_memory_query(query_context)
         
-        # Add graph context if graph manager is available
-        if self.graph_manager:
+        # Add graph context if graph queries are available
+        if self.graph_queries:
             try:
                 query_text = query_context.get("query", "")
-                graph_results = self.graph_manager.query_for_context(query_text, max_results=5)
+                graph_results = self.graph_queries.query_for_context(query_text, max_results=5)
                 
                 if graph_results:
                     graph_context = self._format_graph_context(query_text, graph_results)

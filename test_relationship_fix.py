@@ -20,7 +20,7 @@ if project_root not in sys.path:
     sys.path.append(project_root)
 
 from src.ai.llm_ollama import OllamaService
-from src.memory.memory_manager import AsyncMemoryManager
+from src.memory.memory_manager import MemoryManager
 from examples.domain_configs import DND_CONFIG
 
 async def test_relationship_with_resolved_entities():
@@ -34,7 +34,7 @@ async def test_relationship_with_resolved_entities():
     try:
         # Create LLM service
         llm_service = OllamaService({
-            "base_url": "http://192.168.1.173:11434",
+            "base_url": "http://192.168.10.28:11434",
             "model": "gemma3",
             "temperature": 0.7,
             "debug": True,
@@ -42,7 +42,7 @@ async def test_relationship_with_resolved_entities():
         })
         
         # Create memory manager with graph memory enabled
-        memory_manager = AsyncMemoryManager(
+        memory_manager = MemoryManager(
             memory_guid="test-relationship-fix",
             memory_file=memory_file,
             domain_config=DND_CONFIG,

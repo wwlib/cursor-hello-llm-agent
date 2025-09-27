@@ -8,5 +8,6 @@ pytest>=7.4.0
 pytest-asyncio>=0.23.0
 openai>=1.0.0  # For OpenAI API integration
 urllib3<2.0.0 # macOS uses LibreSSL. Downgrading to urllib3 1.26.x
+filelock>=3.12.0  # For file-based queue synchronization
 
 -e .

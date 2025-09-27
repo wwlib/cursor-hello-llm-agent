@@ -53,25 +53,18 @@ graph_manager = GraphManager(
     domain_config=domain_config
 )
 
-# Extract entities from conversation segments
-entities = graph_manager.extract_entities_from_segments(segments)
+# Process conversation entry with automatic entity and relationship extraction
+conversation_text = "Eldara the fire wizard runs a magic shop in Riverwatch"
+result = await graph_manager.process_conversation_entry_with_resolver_async(
+    conversation_text=conversation_text,
+    conversation_guid="example_conversation"
+)
 
-# Add entities with automatic similarity matching
-for entity in entities:
-    graph_manager.add_or_update_node(
-        name=entity["name"],
-        node_type=entity["type"],
-        description=entity["description"]
-    )
+# Results contain extracted entities and relationships
+entities = result.get("entities", [])
+relationships = result.get("relationships", [])
 
-# Extract and add relationships
-relationships = graph_manager.extract_relationships_from_segments(segments)
-for rel in relationships:
-    graph_manager.add_edge(
-        from_node=rel["from_entity"],
-        to_node=rel["to_entity"],
-        relationship_type=rel["relationship"]
-    )
+print(f"Extracted {len(entities)} entities and {len(relationships)} relationships")
 
 # Query for context
 context = graph_manager.query_for_context("Tell me about the wizard")
@@ -85,24 +78,28 @@ from src.memory.graph_memory.entity_extractor import EntityExtractor
 
 extractor = EntityExtractor(llm_service, domain_config)
 
-# Extract entities from text segments
-segments = [{"text": "Eldara the fire wizard runs a magic shop in Riverwatch"}]
-entities = extractor.extract_entities(segments)
+# Extract entities from conversation text
+conversation_text = "Eldara the fire wizard runs a magic shop in Riverwatch"
+entities = await extractor.extract_entities_from_conversation_async(conversation_text)
 
-# Result:
-# [
-#   {
-#     "name": "Eldara",
-#     "type": "character",
-#     "description": "A fire wizard who runs a magic shop",
-#     "attributes": {"profession": "wizard", "magic_type": "fire"}
-#   },
-#   {
-#     "name": "Riverwatch", 
-#     "type": "location",
-#     "description": "A settlement where Eldara's magic shop is located"
+# Result: Nodes (entities) are stored as a dictionary
+# {
+#   "equipment_soldering_irons_29404bd4": {
+#     "id": "equipment_soldering_irons_29404bd4",
+#     "name": "Soldering Irons",
+#     "type": "equipment",
+#     "description": "Handheld electrical devices used to melt solder and join metal parts.",
+#     "attributes": {
+#       "conversation_history_guids": [
+#         "initial_memory"
+#       ]
+#     },
+#     "aliases": [],
+#     "mention_count": 1,
+#     "created_at": "2025-09-14T23:28:00.655433",
+#     "updated_at": "2025-09-14T23:28:00.655439"
 #   }
-# ]
+# }
 ```
 
 ### 3. RelationshipExtractor (`relationship_extractor.py`)
@@ -113,25 +110,29 @@ from src.memory.graph_memory.relationship_extractor import RelationshipExtractor
 
 extractor = RelationshipExtractor(llm_service, domain_config)
 
-# Extract relationships from segments with entities
-segments = [{
-    "text": "Eldara runs her magic shop in the eastern settlement of Riverwatch",
-    "entities": [
-        {"name": "Eldara", "type": "character"},
-        {"name": "Riverwatch", "type": "location"}
-    ]
-}]
+# Extract relationships from conversation text with entities
+conversation_text = "Eldara runs her magic shop in the eastern settlement of Riverwatch"
+entities = [
+    {"name": "Eldara", "type": "character"},
+    {"name": "Riverwatch", "type": "location"}
+]
 
-relationships = extractor.extract_relationships(segments)
+relationships = await extractor.extract_relationships_from_conversation_async(
+    conversation_text, 
+    entities=entities
+)
 
-# Result:
+# Result: Relationships (edges) are stored as an array
 # [
 #   {
-#     "from_entity": "Eldara",
-#     "to_entity": "Riverwatch",
-#     "relationship": "located_in",
-#     "confidence": 0.9,
-#     "evidence": "Eldara runs her magic shop in the eastern settlement of Riverwatch"
+#     "id": "edge_85d5069f",
+#     "from_node_id": "equipment_3d_printers_b1c7b8c7",
+#     "to_node_id": "equipment_soldering_irons_29404bd4",
+#     "relationship": "related_to",
+#     "evidence": "It contains cool equipment, including 3D printers, soldering irons, woodworking tools, and more.",
+#     "confidence": 0.7,
+#     "created_at": "2025-09-14T23:29:33.578066",
+#     "updated_at": "2025-09-14T23:29:33.578072"
 #   }
 # ]
 ```
@@ -145,16 +146,16 @@ from src.memory.graph_memory.graph_queries import GraphQueries
 queries = GraphQueries(storage)
 
 # Find entity context with relationships
-context = queries.get_entity_context("Eldara", max_depth=2)
+context = queries.find_entity_context("Eldara", max_depth=2)
 
 # Find path between entities
-path = queries.find_path("Eldara", "Riverwatch")
+path = queries.find_path_between_entities("Eldara", "Riverwatch")
 
 # Query-based context retrieval
-results = queries.query_for_context("magic shops", max_results=5)
+results = queries.get_context_for_query("magic shops", max_entities=5)
 
 # Search entities by type
-characters = queries.get_entities_by_type("character")
+characters = queries.find_entities_by_type("character")
 ```
 
 ### 5. GraphStorage (`graph_storage.py`)
@@ -212,32 +213,23 @@ graph_manager = GraphManager(
     domain_config=domain_config
 )
 
-# Process conversation segments
-segments = [
-    {"text": "The party meets Eldara, a fire wizard in Riverwatch"},
-    {"text": "Eldara owns a magic shop filled with scrolls and potions"},
-    {"text": "Riverwatch is the eastern settlement in the Lost Valley"}
+# Process conversation entries
+conversations = [
+    "The party meets Eldara, a fire wizard in Riverwatch",
+    "Eldara owns a magic shop filled with scrolls and potions", 
+    "Riverwatch is the eastern settlement in the Lost Valley"
 ]
 
-# Extract and store entities and relationships
-entities = graph_manager.extract_entities_from_segments(segments)
-for entity in entities:
-    graph_manager.add_or_update_node(
-        name=entity["name"],
-        node_type=entity["type"], 
-        description=entity["description"],
-        attributes=entity.get("attributes", {})
+# Process each conversation entry to extract entities and relationships
+for i, conversation_text in enumerate(conversations):
+    result = await graph_manager.process_conversation_entry_with_resolver_async(
+        conversation_text=conversation_text,
+        conversation_guid=f"conversation_{i}"
     )
-
-relationships = graph_manager.extract_relationships_from_segments(segments)
-for rel in relationships:
-    graph_manager.add_edge(
-        from_node=rel["from_entity"],
-        to_node=rel["to_entity"],
-        relationship_type=rel["relationship"],
-        evidence=rel.get("evidence", ""),
-        confidence=rel.get("confidence", 0.5)
-    )
+    
+    entities = result.get("entities", [])
+    relationships = result.get("relationships", [])
+    print(f"Conversation {i}: {len(entities)} entities, {len(relationships)} relationships")
 
 # Query the graph
 context = graph_manager.query_for_context("Tell me about magic shops")
@@ -427,24 +419,23 @@ Rich query capabilities for different use cases:
 
 ```python
 # Entity context with relationship traversal
-context = graph_queries.get_entity_context("Eldara", max_depth=2)
+context = graph_queries.find_entity_context("Eldara", max_depth=2)
 # Returns: Entity info + all directly connected entities + their connections
 
 # Path finding between entities  
-path = graph_queries.find_path("Player", "Ancient Artifact")
+path = graph_queries.find_path_between_entities("Player", "Ancient Artifact")
 # Returns: Shortest path through relationships with natural language summary
 
 # Query-based context retrieval
-results = graph_queries.query_for_context("magic items", max_results=5)
+results = graph_queries.get_context_for_query("magic items", max_entities=5)
 # Returns: Entities and relationships relevant to the query
 
 # Type-based filtering
-all_characters = graph_queries.get_entities_by_type("character")
-all_locations = graph_queries.get_entities_by_type("location")
+all_characters = graph_queries.find_entities_by_type("character")
+all_locations = graph_queries.find_entities_by_type("location")
 
-# Relationship analysis
-incoming_rels = graph_queries.get_incoming_relationships("Riverwatch")
-outgoing_rels = graph_queries.get_outgoing_relationships("Eldara")
+# Recent entity retrieval
+recent_entities = graph_queries.get_recent_entities(limit=10, entity_type="character")
 ```
 
 ## Performance Considerations
@@ -473,11 +464,14 @@ The graph memory system includes robust error handling:
 # GraphManager handles common error scenarios:
 
 try:
-    entities = graph_manager.extract_entities_from_segments(segments)
+    result = await graph_manager.process_conversation_entry_with_resolver_async(
+        conversation_text=conversation_text,
+        conversation_guid=conversation_guid
+    )
 except LLMServiceError:
     # LLM service unavailable - skip graph update, log warning
-    logger.warning("LLM service unavailable, skipping entity extraction")
-    return []
+    logger.warning("LLM service unavailable, skipping graph processing")
+    return {"entities": [], "relationships": []}
 
 try:
     graph_manager.add_or_update_node(name, node_type, description)
@@ -564,44 +558,37 @@ async def main():
         domain_config=DND_CONFIG
     )
     
-    # Sample campaign conversation
-    segments = [
-        {"text": "The party arrives in Riverwatch, the eastern settlement of the Lost Valley"},
-        {"text": "Eldara the fire wizard greets them at her magic shop"},
-        {"text": "She offers to sell them healing potions and fire resistance scrolls"},
-        {"text": "The ancient ruins north of town are said to contain powerful artifacts"}
+    # Sample campaign conversations
+    conversations = [
+        "The party arrives in Riverwatch, the eastern settlement of the Lost Valley",
+        "Eldara the fire wizard greets them at her magic shop", 
+        "She offers to sell them healing potions and fire resistance scrolls",
+        "The ancient ruins north of town are said to contain powerful artifacts"
     ]
     
-    print("Processing campaign segments...")
+    print("Processing campaign conversations...")
     
-    # Extract entities
-    entities = graph_manager.extract_entities_from_segments(segments)
-    print(f"Extracted {len(entities)} entities:")
-    for entity in entities:
-        print(f"  - {entity['name']} ({entity['type']}): {entity['description']}")
-        
-        # Add to graph
-        graph_manager.add_or_update_node(
-            name=entity["name"],
-            node_type=entity["type"],
-            description=entity["description"],
-            attributes=entity.get("attributes", {})
-        )
+    # Process each conversation entry
+    all_entities = []
+    all_relationships = []
     
-    # Extract relationships
-    relationships = graph_manager.extract_relationships_from_segments(segments)
-    print(f"\nExtracted {len(relationships)} relationships:")
-    for rel in relationships:
-        print(f"  - {rel['from_entity']} {rel['relationship']} {rel['to_entity']}")
+    for i, conversation_text in enumerate(conversations):
+        print(f"\nProcessing conversation {i+1}: '{conversation_text[:50]}...'")
         
-        # Add to graph
-        graph_manager.add_edge(
-            from_node=rel["from_entity"],
-            to_node=rel["to_entity"],
-            relationship_type=rel["relationship"],
-            evidence=rel.get("evidence", ""),
-            confidence=rel.get("confidence", 0.5)
+        result = await graph_manager.process_conversation_entry_with_resolver_async(
+            conversation_text=conversation_text,
+            conversation_guid=f"campaign_conversation_{i}"
         )
+        
+        entities = result.get("entities", [])
+        relationships = result.get("relationships", [])
+        
+        all_entities.extend(entities)
+        all_relationships.extend(relationships)
+        
+        print(f"  Extracted: {len(entities)} entities, {len(relationships)} relationships")
+    
+    print(f"\nTotal extracted: {len(all_entities)} entities, {len(all_relationships)} relationships")
     
     # Query for context
     print("\nQuerying graph for context...")

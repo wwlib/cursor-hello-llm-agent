@@ -8,10 +8,14 @@ This script demonstrates the new background processing approach where:
 3. New data becomes available for future queries
 """
 
+# global OUTPUT_DIR = "test_non_blocking_graph_processing_output"
+OUTPUT_DIR = "test_non_blocking_graph_processing_output"
+
 import os
 import sys
 import asyncio
 import time
+import shutil
 from typing import Dict, Any
 
 # Add the src directory to the path
@@ -60,7 +64,8 @@ def setup_test_environment():
 
 async def test_non_blocking_processing():
     """Test the non-blocking graph processing approach."""
-    print("=== Non-Blocking Graph Processing Test ===\n")
+    start_script = time.time()
+    print(f"[{time.time()-start_script:.3f}s] === Non-Blocking Graph Processing Test ===\n")
     
     # Setup
     llm_service, domain_config = setup_test_environment()
@@ -68,31 +73,34 @@ async def test_non_blocking_processing():
     # Create memory manager with background processing
     memory_manager = MemoryManager(
         memory_guid="bg_test_001",
-        memory_file="test_memories/background_test.json",
+        memory_file=f"{OUTPUT_DIR}/background_test.json",
         llm_service=llm_service,
         domain_config=domain_config,
         enable_graph_memory=True,
         graph_memory_processing_level="balanced"
     )
     
-    print("✅ Memory manager initialized")
+    print(f"[{time.time()-start_script:.3f}s] ✅ Memory manager initialized")
     
     # Test 1: Initial query with empty graph
-    print("\n--- Test 1: Query empty graph ---")
+    print(f"\n[{time.time()-start_script:.3f}s] --- Test 1: Query empty graph ---")
     start_time = time.time()
     
     result = memory_manager.query_memory("What do we know about Alice?")
     query_time = time.time() - start_time
     
-    print(f"⚡ Query completed in {query_time:.3f}s (should be very fast)")
-    print(f"📝 Response length: {len(result.get('response', ''))}")
+    print(f"[{time.time()-start_script:.3f}s] ⚡ Query completed in {query_time:.3f}s (should be very fast)")
+    print(f"[{time.time()-start_script:.3f}s] 📝 Response length: {len(result if isinstance(result, str) else result.get('response', ''))}")
     
     # Check graph status
-    graph_status = memory_manager.get_graph_processing_status()
-    print(f"📊 Graph status: {graph_status.get('status', 'unknown')}, queue: {graph_status.get('queue_size', 0)}")
+    if memory_manager.graph_manager:
+        graph_status = memory_manager.graph_manager.get_background_processing_status()
+        print(f"[{time.time()-start_script:.3f}s] 📊 Graph status: {graph_status.get('status', 'unknown')}, queue: {graph_status.get('queue_size', 0)}")
+    else:
+        print(f"[{time.time()-start_script:.3f}s] 📊 Graph status: not available, queue: 0")
     
     # Test 2: Add conversation entry (should queue background processing)
-    print("\n--- Test 2: Add conversation entry ---")
+    print(f"\n[{time.time()-start_script:.3f}s] --- Test 2: Add conversation entry ---")
     
     test_conversation = {
         "role": "user",
@@ -108,79 +116,92 @@ async def test_non_blocking_processing():
     })
     add_time = time.time() - start_time
     
-    print(f"⚡ Conversation added in {add_time:.3f}s (should be fast - queued for background)")
+    print(f"[{time.time()-start_script:.3f}s] ⚡ Conversation added in {add_time:.3f}s (should be fast - queued for background)")
     
     # Give async tasks a moment to start
     await asyncio.sleep(0.1)
     
     # Check if processing was queued
-    graph_status = memory_manager.get_graph_processing_status()
-    print(f"📊 Graph status after add: queue size = {graph_status.get('queue_size', 0)}")
-    print(f"📋 Queue status: {graph_status.get('status', 'unknown')}")
+    if memory_manager.graph_manager:
+        graph_status = memory_manager.graph_manager.get_background_processing_status()
+        print(f"[{time.time()-start_script:.3f}s] 📊 Graph status after add: queue size = {graph_status.get('queue_size', 0)}")
+        print(f"[{time.time()-start_script:.3f}s] 📋 Queue status: {graph_status.get('status', 'unknown')}")
+    else:
+        print(f"[{time.time()-start_script:.3f}s] 📊 Graph status after add: queue size = 0")
+        print(f"[{time.time()-start_script:.3f}s] 📋 Queue status: not available")
     
     # Test 3: Query again (should still be fast, using current graph data)
-    print("\n--- Test 3: Query with pending background work ---")
+    print(f"\n[{time.time()-start_script:.3f}s] --- Test 3: Query with pending background work ---")
     
     start_time = time.time()
     result = memory_manager.query_memory("Tell me about Alice")
     query_time = time.time() - start_time
     
-    print(f"⚡ Query completed in {query_time:.3f}s (should still be fast)")
-    print(f"📝 Response mentions Alice: {'alice' in result.get('response', '').lower()}")
+    print(f"[{time.time()-start_script:.3f}s] ⚡ Query completed in {query_time:.3f}s (should still be fast)")
+    response_text = result if isinstance(result, str) else result.get('response', '')
+    print(f"[{time.time()-start_script:.3f}s] 📝 Response mentions Alice: {'alice' in response_text.lower()}")
     
     # Check if we have pending operations
     has_pending = memory_manager.has_pending_operations()
-    print(f"⏳ Has pending operations: {has_pending}")
+    print(f"[{time.time()-start_script:.3f}s] ⏳ Has pending operations: {has_pending}")
     
-    # Test 4: Process some background tasks
-    print("\n--- Test 4: Process background queue ---")
+    # Test 4: Wait for background processing to complete
+    print(f"\n[{time.time()-start_script:.3f}s] --- Test 4: Wait for background processing ---")
     
-    print("🔄 Processing 1 background task...")
-    process_result = memory_manager.process_background_graph_queue(max_tasks=1)
-    print(f"📊 Processing result: {process_result.get('message', 'No message')}")
-    print(f"✅ Processed: {process_result.get('processed', 0)}, Errors: {process_result.get('errors', 0)}")
+    print(f"[{time.time()-start_script:.3f}s] 🔄 Waiting for background processing to complete...")
+    # Wait for background processing to finish
+    wait_start = time.time()
+    while memory_manager.has_pending_operations():
+        await asyncio.sleep(0.5)
+        wait_time = time.time() - wait_start
+        if wait_time > 30:  # 30 second timeout
+            print(f"[{time.time()-start_script:.3f}s] ⏱️ Timeout waiting for background processing")
+            break
+    
+    wait_time = time.time() - wait_start
+    print(f"[{time.time()-start_script:.3f}s] ✅ Background processing completed in {wait_time:.1f}s")
     
     # Check status after processing
-    graph_status = memory_manager.get_graph_processing_status()
-    print(f"📊 Queue size after processing: {graph_status.get('queue_size', 0)}")
+    if memory_manager.graph_manager:
+        graph_status = memory_manager.graph_manager.get_background_processing_status()
+        print(f"[{time.time()-start_script:.3f}s] 📊 Queue size after processing: {graph_status.get('queue_size', 0)}")
+    else:
+        print(f"[{time.time()-start_script:.3f}s] 📊 Queue size after processing: 0")
     
     # Test 5: Query after some processing (should have more context)
-    print("\n--- Test 5: Query after background processing ---")
+    print(f"\n[{time.time()-start_script:.3f}s] --- Test 5: Query after background processing ---")
     
     start_time = time.time()
     result = memory_manager.query_memory("What do you know about Alice and her interests?")
     query_time = time.time() - start_time
     
-    print(f"⚡ Query completed in {query_time:.3f}s")
-    print(f"📝 Response length: {len(result.get('response', ''))}")
-    print(f"🎯 Mentions chess: {'chess' in result.get('response', '').lower()}")
-    print(f"🏠 Mentions New York: {'new york' in result.get('response', '').lower()}")
+    print(f"[{time.time()-start_script:.3f}s] ⚡ Query completed in {query_time:.3f}s")
+    response_text = result if isinstance(result, str) else result.get('response', '')
+    print(f"[{time.time()-start_script:.3f}s] 📝 Response length: {len(response_text)}")
+    print(f"[{time.time()-start_script:.3f}s] 🎯 Mentions chess: {'chess' in response_text.lower()}")
+    print(f"[{time.time()-start_script:.3f}s] 🏠 Mentions New York: {'new york' in response_text.lower()}")
     
-    # Test 6: Process remaining queue
-    print("\n--- Test 6: Process remaining background tasks ---")
-    
-    while memory_manager.has_pending_operations():
-        process_result = memory_manager.process_background_graph_queue(max_tasks=2)
-        if process_result.get('processed', 0) == 0:
-            break
-        print(f"🔄 Processed {process_result.get('processed', 0)} more tasks")
-        
-        # Small delay to avoid busy waiting
-        await asyncio.sleep(0.1)
+    # Test 6: Final status
+    print(f"\n[{time.time()-start_script:.3f}s] --- Test 6: Final Status ---")
     
     # Final status
-    graph_status = memory_manager.get_graph_processing_status()
-    print(f"🎉 Final queue size: {graph_status.get('queue_size', 0)}")
-    print(f"📈 Graph nodes: {graph_status.get('graph_stats', {}).get('total_nodes', 0)}")
-    print(f"🔗 Graph edges: {graph_status.get('graph_stats', {}).get('total_edges', 0)}")
+    if memory_manager.graph_manager:
+        graph_status = memory_manager.graph_manager.get_background_processing_status()
+        print(f"[{time.time()-start_script:.3f}s] 🎉 Final queue size: {graph_status.get('queue_size', 0)}")
+        print(f"[{time.time()-start_script:.3f}s] 📈 Graph nodes: {graph_status.get('graph_stats', {}).get('total_nodes', 0)}")
+        print(f"[{time.time()-start_script:.3f}s] 🔗 Graph edges: {graph_status.get('graph_stats', {}).get('total_edges', 0)}")
+    else:
+        print(f"[{time.time()-start_script:.3f}s] 🎉 Final queue size: 0")
+        print(f"[{time.time()-start_script:.3f}s] 📈 Graph nodes: 0")
+        print(f"[{time.time()-start_script:.3f}s] 🔗 Graph edges: 0")
     
-    print("\n=== Test Complete ===")
-    print("✅ Non-blocking graph processing is working!")
-    print("🔍 Key benefits demonstrated:")
-    print("   - Queries return immediately using current graph data")
-    print("   - Graph processing happens in background queue") 
-    print("   - New data becomes available progressively")
-    print("   - System remains responsive during heavy processing")
+    print(f"\n[{time.time()-start_script:.3f}s] === Test Complete ===")
+    print(f"[{time.time()-start_script:.3f}s] ✅ Non-blocking graph processing is working!")
+    print(f"[{time.time()-start_script:.3f}s] 🔍 Key benefits demonstrated:")
+    print(f"[{time.time()-start_script:.3f}s]    - Queries return immediately using current graph data")
+    print(f"[{time.time()-start_script:.3f}s]    - Graph processing happens in background queue") 
+    print(f"[{time.time()-start_script:.3f}s]    - New data becomes available progressively")
+    print(f"[{time.time()-start_script:.3f}s]    - System remains responsive during heavy processing")
 
 async def main():
     """Main test runner."""
@@ -192,8 +213,12 @@ async def main():
         traceback.print_exc()
 
 if __name__ == "__main__":
+    # Remove existing test directory to start fresh
+    if os.path.exists(OUTPUT_DIR):
+        shutil.rmtree(OUTPUT_DIR)
+    
     # Create test directories
-    os.makedirs("test_memories", exist_ok=True)
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
     
     # Run the test
     asyncio.run(main())

@@ -50,7 +50,8 @@ from .memory_compressor import MemoryCompressor
 from .data_preprocessor import DataPreprocessor
 from .embeddings_manager import EmbeddingsManager
 from .rag_manager import RAGManager
-from .graph_memory import GraphManager
+from .graph_memory.queue_writer import QueueWriter
+from .graph_memory.standalone_graph_queries import StandaloneGraphQueries
 import asyncio
 import logging
 
@@ -143,80 +144,63 @@ class MemoryManager(BaseMemoryManager):
         self.logger.debug("Initialized EmbeddingsManager")
         self.logger.debug(f"Embeddings file: {embeddings_file}")
         
-        # Initialize GraphManager if enabled
+        # Initialize standalone graph memory components if enabled
         self.enable_graph_memory = enable_graph_memory
         self.enable_graph_memory_fast_mode = enable_graph_memory_fast_mode
         self.graph_memory_processing_level = graph_memory_processing_level
-        self.graph_manager = None
+        self.graph_queue_writer = None
+        self.graph_queries = None
         if enable_graph_memory:
             try:
                 # Create graph storage path based on memory file
                 memory_dir = os.path.dirname(memory_file) or "."
                 memory_base = os.path.basename(memory_file).split(".")[0]
                 graph_storage_path = os.path.join(memory_dir, f"{memory_base}_graph_data")
-                graph_embeddings_file = os.path.join(graph_storage_path, "graph_memory_embeddings.jsonl")
                 
                 # Create directory for graph storage
                 os.makedirs(graph_storage_path, exist_ok=True)
                 
-                # Create dedicated logger for graph manager
+                # Create dedicated logger for graph components
                 graph_logger = self._create_graph_manager_logger(memory_dir, memory_base)
-                
-                # Get similarity threshold from domain config
-                similarity_threshold = 0.8
-                if self.domain_config and "graph_memory_config" in self.domain_config:
-                    similarity_threshold = self.domain_config["graph_memory_config"].get("similarity_threshold", 0.8)
                 
                 # Create separate embeddings manager for graph memory
                 graph_embeddings_file = os.path.join(graph_storage_path, "graph_memory_embeddings.jsonl")
                 graph_embeddings_manager = EmbeddingsManager(
                     embeddings_file=graph_embeddings_file,
                     llm_service=self.embeddings_llm,
-                    logger=graph_logger  # Use dedicated graph logger
+                    logger=graph_logger
                 )
                 
-                # Determine logs base directory for graph-specific logging
-                logs_base_dir = self._determine_logs_base_dir(memory_dir)
+                # Initialize queue writer for sending data to standalone process
+                self.graph_queue_writer = QueueWriter(
+                    storage_path=graph_storage_path,
+                    logger=graph_logger
+                )
                 
-                self.graph_manager = GraphManager(
+                # Initialize standalone graph queries for reading data
+                self.graph_queries = StandaloneGraphQueries(
                     storage_path=graph_storage_path,
                     embeddings_manager=graph_embeddings_manager,
-                    similarity_threshold=similarity_threshold,
-                    logger=graph_logger,  # Use dedicated graph logger
-                    llm_service=self.llm,  # Use general LLM service (gemma3) for entity extraction
-                    embeddings_llm_service=self.embeddings_llm,  # Use embeddings LLM service (mxbai-embed-large)
-                    domain_config=self.domain_config,
-                    logs_dir=logs_base_dir,  # Pass logs directory for graph-specific logging
-                    memory_guid=self.memory_guid  # Pass memory GUID for creating log subdirectories
+                    logger=graph_logger
                 )
-                # Pass verbose handler to graph manager for detailed logging
-                if self.verbose_handler:
-                    self.graph_manager.verbose_handler = self.verbose_handler
                 
-                # Start background processing immediately (non-blocking)
-                self._start_graph_background_processing()
-                self.logger.debug(f"Initialized GraphManager with storage: {graph_storage_path}")
-                graph_logger.debug(f"Graph memory logger initialized for memory: {memory_base}")
-                
-                # Initialize background graph processor
-                self._initialize_background_graph_processor()
-                
-                # Initialize optimized context retriever
-                self._initialize_optimized_context_retriever()
+                self.logger.debug(f"Initialized standalone graph components with storage: {graph_storage_path}")
+                graph_logger.debug(f"Graph memory components initialized for memory: {memory_base}")
                 
             except Exception as e:
-                self.logger.warning(f"Failed to initialize GraphManager: {e}. Graph memory disabled.")
+                self.logger.warning(f"Failed to initialize graph components: {e}. Graph memory disabled.")
                 self.enable_graph_memory = False
-                self.graph_manager = None
+                self.graph_queue_writer = None
+                self.graph_queries = None
         
-        # Initialize RAGManager with optional graph manager
+        # Initialize RAGManager with optional graph queries
         self.rag_manager = RAGManager(
             llm_service=self.embeddings_llm, 
             embeddings_manager=self.embeddings_manager, 
-            graph_manager=self.graph_manager,
+            graph_queries=self.graph_queries,
             logger=logger
         )
-        self.logger.debug("Initialized RAGManager with graph integration")
+        self.logger.debug("Initialized RAGManager with standalone graph integration")
         
         # Verbose handler already initialized above
         
@@ -371,7 +355,7 @@ class MemoryManager(BaseMemoryManager):
                 self.embeddings_manager.add_new_embeddings([system_entry])
 
             # Queue static memory for background graph processing (non-blocking)
-            if self.enable_graph_memory and self.graph_manager:
+            if self.enable_graph_memory and self.graph_queue_writer:
                 self.logger.debug("Queueing static memory for background graph processing...")
                 if self.verbose_handler:
                     self.verbose_handler.status("Queueing knowledge graph processing for background...", 2)
@@ -443,56 +427,23 @@ class MemoryManager(BaseMemoryManager):
         return logs_base_dir
 
     def _initialize_background_graph_processor(self):
-        """Initialize the background graph processor with configuration.
-        
-        NOTE: This method is now deprecated. The GraphManager has its own built-in
-        SimpleGraphProcessor that handles background processing directly.
-        """
-        try:
-            # Skip initialization - GraphManager has its own SimpleGraphProcessor
-            self.logger.info("Background graph processor initialization skipped - using GraphManager's built-in processor")
-            
-            # Set default values for compatibility
-            self._background_graph_processor = None
-            self._graph_config_manager = None
-            self._background_processor_started = False
-                
-        except Exception as e:
-            self.logger.error(f"Failed to initialize background graph processor: {e}")
-            self._background_graph_processor = None
-            self._graph_config_manager = None
+        """Initialize background graph processor (deprecated - using standalone process)."""
+        # Background processing now handled by standalone GraphManager process
+        self.logger.info("Background graph processor initialization skipped - using standalone GraphManager process")
+        self._background_graph_processor = None
+        self._graph_config_manager = None
+        self._background_processor_started = False
 
     def _start_graph_background_processing(self):
-        """Start the GraphManager's background processor (non-blocking)."""
-        if self.enable_graph_memory and self.graph_manager:
-            try:
-                import asyncio
-                try:
-                    # Get the current event loop
-                    loop = asyncio.get_running_loop()
-                    # Create task but DON'T await it - starts background loop without blocking
-                    loop.create_task(self.graph_manager.start_background_processing())
-                    self.logger.debug("Graph background processor started (non-blocking)")
-                except RuntimeError:
-                    # No event loop running during initialization - this is expected
-                    # The background processor will be started later when async context is available
-                    self.logger.debug("No event loop available during initialization - background processor will start on first async operation")
-                    
-            except Exception as e:
-                self.logger.error(f"Failed to start graph background processor: {e}")
+        """Start background processing (deprecated - using standalone process)."""
+        # Background processing now handled by standalone GraphManager process
+        self.logger.debug("Background processing handled by standalone GraphManager process")
 
     def _ensure_background_processor_started(self):
-        """Ensure the background processor is started (lazy startup).
-        
-        NOTE: This method is deprecated. Background processing should start 
-        automatically when GraphManager is initialized.
-        """
-        # Background processor should already be started in initialization
-        if self.enable_graph_memory and self.graph_manager:
-            status = self.graph_manager.get_background_processing_status()
-            if not status.get("is_running", False):
-                self.logger.warning("Background processor not running - attempting restart")
-                self._start_graph_background_processing()
+        """Ensure background processor is started (deprecated - using standalone process)."""
+        # Background processing now handled by standalone GraphManager process
+        # No action needed - standalone process should be running independently
+        pass
 
     def _initialize_optimized_context_retriever(self):
         """Initialize the optimized graph context retriever."""
@@ -511,7 +462,7 @@ class MemoryManager(BaseMemoryManager):
                 max_context_length = getattr(config, 'max_context_results', max_context_length) * 200
             
             self._optimized_context_retriever = OptimizedGraphContextRetriever(
-                graph_manager=self.graph_manager,
+                graph_manager=self.graph_queue_writer,
                 cache_size=cache_size,
                 default_ttl=default_ttl,
                 max_context_length=max_context_length,
@@ -664,7 +615,7 @@ class MemoryManager(BaseMemoryManager):
                 
                 # Get graph context if enabled with caching
                 graph_context = ""
-                if self.enable_graph_memory and self.graph_manager:
+                if self.enable_graph_memory and self.graph_queue_writer:
                     with performance_tracker.track_operation("graph_context"):
                         try:
                             if self.verbose_handler:
@@ -817,7 +768,7 @@ class MemoryManager(BaseMemoryManager):
                     self.embeddings_manager.add_new_embeddings([entry])
                 
                 # Update graph memory if enabled
-                if self.enable_graph_memory and self.graph_manager:
+                if self.enable_graph_memory and self.graph_queue_writer:
                     try:
                         await self._update_graph_memory_async(entry)
                     except Exception as e:
@@ -849,7 +800,7 @@ class MemoryManager(BaseMemoryManager):
                     self.embeddings_manager.add_new_embeddings(entries)
                 
                 # Phase 3: Fire off graph updates as independent background tasks (truly non-blocking)
-                if self.enable_graph_memory and self.graph_manager:
+                if self.enable_graph_memory and self.graph_queue_writer:
                     with performance_tracker.track_operation("batch_graph_updates"):
                         # Fire individual graph tasks independently - no waiting!
                         tasks_fired = 0
@@ -912,28 +863,26 @@ class MemoryManager(BaseMemoryManager):
                 self.logger.info(f"[BACKGROUND_QUEUE_DEBUG] Queueing graph memory processing for {entry['role']} entry (non-blocking)...")
                 
                 # Always use non-blocking approach for graph processing
-                if self.graph_manager:
+                if self.graph_queue_writer:
                     # Extract relevant text from the entry
                     entry_text = entry.get("content", "")
                     digest_text = ""  # Could extract from digest if available
                     conversation_guid = entry.get("guid", "")
                     
-                    # Ensure background processor is started (lazy startup)
-                    self._ensure_background_processor_started()
-                    
-                    # Queue for background processing - this returns immediately
-                    result = await self.graph_manager.queue_background_processing(
+                    # Queue for standalone graph processing - this returns immediately
+                    success = self.graph_queue_writer.write_conversation_entry(
                         conversation_text=entry_text,
                         digest_text=digest_text,
                         conversation_guid=conversation_guid
                     )
                     
-                    if result.get("status") == "queued":
-                        self.logger.info(f"[BACKGROUND_QUEUE_DEBUG] Successfully queued graph processing: task_id={result.get('task_id')}, queue_size={result.get('queue_size')}")
+                    if success:
+                        queue_size = self.graph_queue_writer.get_queue_size()
+                        self.logger.info(f"[STANDALONE_QUEUE_DEBUG] Successfully queued graph processing: entry_guid={conversation_guid}, queue_size={queue_size}")
                         if self.verbose_handler:
-                            self.verbose_handler.info(f"Graph processing queued (queue size: {result.get('queue_size', 'unknown')})", level=3)
+                            self.verbose_handler.info(f"Graph processing queued for standalone process (queue size: {queue_size})", level=3)
                     else:
-                        self.logger.warning(f"[BACKGROUND_QUEUE_DEBUG] Failed to queue graph processing: {result.get('error', 'Unknown error')}")
+                        self.logger.warning(f"[STANDALONE_QUEUE_DEBUG] Failed to queue graph processing for entry {conversation_guid}")
                 else:
                     self.logger.debug("Graph manager not available, skipping graph processing")
                     
@@ -1148,7 +1097,7 @@ class MemoryManager(BaseMemoryManager):
                                                         {"conversation_length": len(conversation_text), 
                                                          "digest_length": len(digest_text)}):
                     self.logger.debug("Processing conversation with GraphManager EntityResolver")
-                    results = self.graph_manager.process_conversation_entry_with_resolver(
+                    results = self.graph_queue_writer.process_conversation_entry_with_resolver(
                         conversation_text=conversation_text,
                         digest_text=digest_text,
                         conversation_guid=entry.get("guid")
@@ -1207,8 +1156,8 @@ class MemoryManager(BaseMemoryManager):
                     self.logger.debug("Processing conversation with GraphManager (balanced mode)")
                     
                     # Check if we have the resolver method
-                    if hasattr(self.graph_manager, 'process_conversation_entry_with_resolver'):
-                        results = self.graph_manager.process_conversation_entry_with_resolver(
+                    if hasattr(self.graph_queue_writer, 'process_conversation_entry_with_resolver'):
+                        results = self.graph_queue_writer.process_conversation_entry_with_resolver(
                             conversation_text=conversation_text,
                             digest_text=digest_text,
                             conversation_guid=entry.get("guid")
@@ -1253,14 +1202,14 @@ class MemoryManager(BaseMemoryManager):
                     
                     # In fast mode, we skip EntityResolver entirely and do basic processing
                     # Check if we have a simple extraction method
-                    if hasattr(self.graph_manager, 'extract_entities_simple'):
+                    if hasattr(self.graph_queue_writer, 'extract_entities_simple'):
                         # Use a hypothetical simple extraction method
-                        entities = self.graph_manager.extract_entities_simple(conversation_text)
+                        entities = self.graph_queue_writer.extract_entities_simple(conversation_text)
                         
                         # Add entities directly without complex resolution
                         for entity in entities[:3]:  # Limit to 3 entities for speed
                             if entity.get("name"):
-                                self.graph_manager.add_or_update_node(
+                                self.graph_queue_writer.add_or_update_node(
                                     name=entity.get("name", ""),
                                     node_type=entity.get("type", "concept"),
                                     description=entity.get("description", "")[:100]  # Limit description
@@ -1308,7 +1257,7 @@ class MemoryManager(BaseMemoryManager):
                 if segment_text:
                     # Extract and resolve entities from the segment using EntityResolver
                     # This automatically handles adding/updating nodes with smart duplicate detection
-                    entities = self.graph_manager.extract_and_resolve_entities_from_segments([{
+                    entities = self.graph_queue_writer.extract_and_resolve_entities_from_segments([{
                         "text": segment_text,
                         "importance": segment.get("importance", 0),
                         "type": segment.get("type", "information"),
@@ -1335,7 +1284,7 @@ class MemoryManager(BaseMemoryManager):
             # Second pass: Extract relationships across all segments if we have multiple entities
             if len(all_segment_entities) > 1 and segments_with_entities:
                 try:
-                    relationships = self.graph_manager.extract_relationships_from_segments(segments_with_entities)
+                    relationships = self.graph_queue_writer.extract_relationships_from_segments(segments_with_entities)
                     
                     # Add relationships to graph
                     for rel in relationships:
@@ -1347,7 +1296,7 @@ class MemoryManager(BaseMemoryManager):
                                 evidence = seg.get("text", "")
                                 break
                         
-                        self.graph_manager.add_edge(
+                        self.graph_queue_writer.add_edge(
                             from_node=rel.get("from_entity", ""),
                             to_node=rel.get("to_entity", ""),
                             relationship_type=rel.get("relationship", "related_to"),
@@ -1404,17 +1353,17 @@ class MemoryManager(BaseMemoryManager):
             # Ensure background processor is started (lazy startup)
             self._ensure_background_processor_started()
             
-            # Queue for background processing using existing infrastructure
-            result = await self.graph_manager.queue_background_processing(
+            # Queue for standalone graph processing
+            success = self.graph_queue_writer.write_conversation_entry(
                 conversation_text=entry_text,
                 digest_text=digest_text,
                 conversation_guid="initial_memory"
             )
             
-            if result.get("status") == "queued":
-                self.logger.debug("Initial graph processing queued successfully")
+            if success:
+                self.logger.debug("Initial graph processing queued successfully for standalone process")
             else:
-                self.logger.warning(f"Failed to queue initial graph processing: {result}")
+                self.logger.warning("Failed to queue initial graph processing for standalone process")
                 
         except Exception as e:
             self.logger.error(f"Error in async initial graph memory processing: {str(e)}")
@@ -1463,14 +1412,17 @@ class MemoryManager(BaseMemoryManager):
             # Queue for background processing using existing infrastructure (synchronous call)
             import asyncio
             
-            # Create a background task to queue the processing
-            asyncio.create_task(
-                self.graph_manager.queue_background_processing(
-                    conversation_text=entry_text,
-                    digest_text=digest_text,
-                    conversation_guid="initial_memory"
-                )
+            # Queue for standalone graph processing
+            success = self.graph_queue_writer.write_conversation_entry(
+                conversation_text=entry_text,
+                digest_text=digest_text,
+                conversation_guid="initial_memory"
             )
+            
+            if success:
+                self.logger.debug("Initial graph processing queued successfully for standalone process")
+            else:
+                self.logger.warning("Failed to queue initial graph processing for standalone process")
             
             self.logger.debug("Initial graph processing queued for background")
                 
@@ -1521,7 +1473,7 @@ class MemoryManager(BaseMemoryManager):
                 self.verbose_handler.success(f"Found {len(important_segments)} important segments", level=3)
             
             # Use EntityResolver pathway for enhanced duplicate detection (now mandatory)
-            if hasattr(self.graph_manager, 'process_conversation_entry_with_resolver'):
+            if hasattr(self.graph_queue_writer, 'process_conversation_entry_with_resolver'):
                 
                 self.logger.debug("Using EntityResolver pathway for initial graph memory processing")
                 
@@ -1543,7 +1495,7 @@ class MemoryManager(BaseMemoryManager):
                 
                 # Process using EntityResolver pathway for consistent duplicate detection
                 try:
-                    results = self.graph_manager.process_conversation_entry_with_resolver(
+                    results = self.graph_queue_writer.process_conversation_entry_with_resolver(
                         conversation_text=conversation_text,
                         digest_text=digest_text,
                         conversation_guid="initial_data"  # Special GUID for initial data
@@ -1599,7 +1551,7 @@ class MemoryManager(BaseMemoryManager):
                 segment_text = segment.get("text", "")
                 if segment_text:
                     # Extract entities from the segment
-                    entities = self.graph_manager.extract_entities_from_segments([{
+                    entities = self.graph_queue_writer.extract_entities_from_segments([{
                         "text": segment_text,
                         "importance": segment.get("importance", 0),
                         "type": segment.get("type", "information"),
@@ -1612,7 +1564,7 @@ class MemoryManager(BaseMemoryManager):
                         # For initial memory, no conversation GUID is available
                         entity_attributes = entity.get("attributes", {}).copy()
                         
-                        self.graph_manager.add_or_update_node(
+                        self.graph_queue_writer.add_or_update_node(
                             name=entity.get("name", ""),
                             node_type=entity.get("type", "concept"),
                             description=entity.get("description", ""),
@@ -1634,7 +1586,7 @@ class MemoryManager(BaseMemoryManager):
             # Second pass: Extract relationships across all segments if we have multiple entities
             if len(all_segment_entities) > 1 and segments_with_entities:
                 try:
-                    relationships = self.graph_manager.extract_relationships_from_segments(segments_with_entities)
+                    relationships = self.graph_queue_writer.extract_relationships_from_segments(segments_with_entities)
                     
                     # Add relationships to graph
                     for rel in relationships:
@@ -1646,7 +1598,7 @@ class MemoryManager(BaseMemoryManager):
                                 evidence = seg.get("text", "")
                                 break
                         
-                        self.graph_manager.add_edge(
+                        self.graph_queue_writer.add_edge(
                             from_node=rel.get("from_entity", ""),
                             to_node=rel.get("to_entity", ""),
                             relationship_type=rel.get("relationship_type", "related_to"),
@@ -1977,7 +1929,7 @@ class MemoryManager(BaseMemoryManager):
             else:
                 # If digest exists, start embeddings and graph updates
                 self._pending_embeddings.add(entry["guid"])
-                if self.enable_graph_memory and self.graph_manager:
+                if self.enable_graph_memory and self.graph_queue_writer:
                     self._pending_graph_updates.add(entry["guid"])
                 asyncio.create_task(self._update_embeddings_async(entry))
 
@@ -2003,7 +1955,7 @@ class MemoryManager(BaseMemoryManager):
             
             # Start embeddings and graph updates
             self._pending_embeddings.add(entry["guid"])
-            if self.enable_graph_memory and self.graph_manager:
+            if self.enable_graph_memory and self.graph_queue_writer:
                 self._pending_graph_updates.add(entry["guid"])
                 self.logger.info(f"[DIGEST_DEBUG] Added {entry.get('guid')} to pending graph updates")
             
@@ -2069,12 +2021,12 @@ class MemoryManager(BaseMemoryManager):
             self._pending_embeddings.discard(entry["guid"])
             
             # Update graph memory if enabled
-            if self.enable_graph_memory and self.graph_manager and entry["guid"] in self._pending_graph_updates:
+            if self.enable_graph_memory and self.graph_queue_writer and entry["guid"] in self._pending_graph_updates:
                 self.logger.info(f"[EMBEDDINGS_DEBUG] Calling graph memory update for {entry.get('guid', 'unknown')}")
                 await self._update_graph_memory_async(entry)
                 self._pending_graph_updates.discard(entry["guid"])
             else:
-                self.logger.info(f"[EMBEDDINGS_DEBUG] Skipping graph update: enable_graph_memory={self.enable_graph_memory}, has_graph_manager={self.graph_manager is not None}, in_pending={entry['guid'] in self._pending_graph_updates}")
+                self.logger.info(f"[EMBEDDINGS_DEBUG] Skipping graph update: enable_graph_memory={self.enable_graph_memory}, has_graph_manager={self.graph_queue_writer is not None}, in_pending={entry['guid'] in self._pending_graph_updates}")
             
         except Exception as e:
             self.logger.error(f"Error in async embeddings/graph update: {str(e)}")
@@ -2102,8 +2054,8 @@ class MemoryManager(BaseMemoryManager):
         
         # Check graph memory background queue
         has_graph_queue_pending = False
-        if self.graph_manager:
-            status = self.graph_manager.get_background_processing_status()
+        if self.graph_queue_writer:
+            status = self.graph_queue_writer.get_background_processing_status()
             has_graph_queue_pending = status.get("queue_size", 0) > 0
         
         return has_traditional_pending or has_graph_queue_pending
@@ -2139,14 +2091,14 @@ class MemoryManager(BaseMemoryManager):
         Returns:
             Dictionary with processing results
         """
-        if not self.graph_manager:
+        if not self.graph_queue_writer:
             return {
                 "processed": 0,
                 "message": "Graph manager not available"
             }
         
         try:
-            result = self.graph_manager.process_background_queue(max_tasks)
+            result = self.graph_queue_writer.process_background_queue(max_tasks)
             
             if result.get("processed", 0) > 0:
                 self.logger.info(f"Processed {result['processed']} background graph tasks: {result.get('message', '')}")
@@ -2163,14 +2115,14 @@ class MemoryManager(BaseMemoryManager):
     
     def get_graph_processing_status(self) -> Dict[str, Any]:
         """Get comprehensive status of graph processing including background queue."""
-        if not self.graph_manager:
+        if not self.graph_queue_writer:
             return {
                 "available": False,
                 "message": "Graph manager not available"
             }
         
         try:
-            status = self.graph_manager.get_background_processing_status()
+            status = self.graph_queue_writer.get_background_processing_status()
             status["available"] = True
             return status
             
@@ -2214,12 +2166,12 @@ class MemoryManager(BaseMemoryManager):
         Returns:
             str: Formatted graph context string
         """
-        if not self.enable_graph_memory or not self.graph_manager:
+        if not self.enable_graph_memory or not self.graph_queue_writer:
             return ""
         
         try:
             # Query the graph for relevant context
-            context_results = self.graph_manager.query_for_context(query, max_results=max_entities)
+            context_results = self.graph_queue_writer.query_for_context(query, max_results=max_entities)
             
             if not context_results:
                 return ""
