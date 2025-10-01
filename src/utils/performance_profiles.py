@@ -13,9 +13,6 @@ from typing import Dict, Any
 PERFORMANCE_PROFILES = {
     "speed": {
         "description": "Maximum speed, minimal features",
-        "enable_graph_memory": False,
-        "enable_graph_memory_fast_mode": True,
-        "graph_memory_processing_level": "speed",
         "rag_limit": 3,
         "max_recent_conversation_entries": 2,
         "enable_digest_generation": False,
@@ -25,9 +22,6 @@ PERFORMANCE_PROFILES = {
     },
     "balanced": {
         "description": "Good performance with essential features",
-        "enable_graph_memory": True,
-        "enable_graph_memory_fast_mode": False,
-        "graph_memory_processing_level": "balanced",
         "rag_limit": 5,
         "max_recent_conversation_entries": 4,
         "enable_digest_generation": True,
@@ -37,9 +31,6 @@ PERFORMANCE_PROFILES = {
     },
     "comprehensive": {
         "description": "Full features, complete processing",
-        "enable_graph_memory": True,
-        "enable_graph_memory_fast_mode": False,
-        "graph_memory_processing_level": "comprehensive",
         "rag_limit": 10,
         "max_recent_conversation_entries": 8,
         "enable_digest_generation": True,
@@ -114,9 +105,6 @@ def get_memory_manager_config(profile_name: str) -> Dict[str, Any]:
     profile = get_performance_profile(profile_name)
     
     return {
-        "enable_graph_memory": profile["enable_graph_memory"],
-        "enable_graph_memory_fast_mode": profile["enable_graph_memory_fast_mode"], 
-        "graph_memory_processing_level": profile["graph_memory_processing_level"],
         "max_recent_conversation_entries": profile["max_recent_conversation_entries"],
         "importance_threshold": profile["importance_threshold"]
     }
@@ -128,9 +116,6 @@ def print_performance_profiles():
     
     for name, config in PERFORMANCE_PROFILES.items():
         print(f"\n{name.upper()}: {config['description']}")
-        print(f"  Graph Memory: {'Enabled' if config['enable_graph_memory'] else 'Disabled'}")
-        if config['enable_graph_memory']:
-            print(f"  Graph Mode: {config['graph_memory_processing_level']}")
         print(f"  RAG Limit: {config['rag_limit']}")
         print(f"  Memory Entries: {config['max_recent_conversation_entries']}")
         print(f"  Digest Generation: {'Enabled' if config['enable_digest_generation'] else 'Disabled'}")

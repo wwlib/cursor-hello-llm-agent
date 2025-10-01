@@ -113,12 +113,13 @@ def main():
         }
 
         # Enhance with RAG
-        enhanced_context = rag_manager.enhance_memory_query(query_context)
-        print("\n--- RAG CONTEXT ---")
-        print(enhanced_context.get("rag_context", "No RAG context generated"))
+        # UPDATE: rag_manager.enhance_memory_query() is called in memory_manager.query_memory()
+        # enhanced_context = rag_manager.enhance_memory_query(query_context)
+        # print("\n--- RAG CONTEXT ---")
+        # print(enhanced_context.get("rag_context", "No RAG context generated"))
 
         # Query memory with RAG context
-        response = memory_manager.query_memory(enhanced_context)
+        response = memory_manager.query_memory(query_context)
         print("\n--- FINAL RESPONSE ---")
         print(response.get("response", "No response generated"))
 

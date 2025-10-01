@@ -49,8 +49,7 @@ class Agent:
         elif hasattr(self.memory, 'get_pending_operations'):
             pending = self.memory.get_pending_operations()
             return (pending.get("pending_digests", 0) > 0 or 
-                   pending.get("pending_embeddings", 0) > 0 or
-                   pending.get("pending_graph_updates", 0) > 0)
+                   pending.get("pending_embeddings", 0) > 0)
         return False
 
     async def process_message(self, message: str) -> str:

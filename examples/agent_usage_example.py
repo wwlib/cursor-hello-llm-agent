@@ -157,7 +157,7 @@ def print_help():
     print("list        - List available memory files")
     print("perf        - Show performance report for current session")
     print("perfdetail  - Show detailed performance analysis")
-    print("process     - Process some background graph tasks manually")
+    print("process     - (Graph processing handled by standalone process)")
     print("status      - Show background processing status")
     print("quit        - End session")
 
@@ -487,9 +487,6 @@ async def setup_services(domain_config, memory_guid=None, memory_type="standard"
         perf_config = get_memory_manager_config(performance_profile)
         
         print(f"Using performance profile: {performance_profile}")
-        print(f"Graph memory: {'enabled' if perf_config['enable_graph_memory'] else 'disabled'}")
-        if perf_config['enable_graph_memory']:
-            print(f"Graph processing level: {perf_config['graph_memory_processing_level']}")
         
         # Create memory manager instance based on type with performance configuration
         memory_manager = memory_manager_class(
@@ -667,36 +664,17 @@ async def interactive_session(agent, memory_manager):
                 print_detailed_performance_analysis(session_guid)
                 continue
             elif user_input == 'process':
-                # Manual background processing
-                if hasattr(memory_manager, 'process_background_graph_queue'):
-                    print("\nProcessing background graph tasks...")
-                    result = memory_manager.process_background_graph_queue(max_tasks=3)
-                    print(f"✅ Processed: {result.get('processed', 0)}, Errors: {result.get('errors', 0)}")
-                    if result.get('processed', 0) == 0:
-                        print("ℹ️  No tasks in queue")
-                else:
-                    print("Background graph processing not available")
+                # Manual background processing not available - handled by standalone process
+                print("ℹ️  Background processing is handled by standalone graph manager process")
                 continue
             elif user_input == 'status':
-                # Show background processing status
-                if hasattr(memory_manager, 'get_graph_processing_status'):
-                    status = memory_manager.get_graph_processing_status()
-                    pending = memory_manager.get_pending_operations()
-                    print(f"\nBackground Processing Status:")
-                    print(f"Queue Status: {status.get('status', 'unknown')}")
-                    print(f"Queue Size: {status.get('queue_size', 0)}")
-                    print(f"Pending Operations:")
-                    print(f"  - Digests: {pending.get('pending_digests', 0)}")
-                    print(f"  - Embeddings: {pending.get('pending_embeddings', 0)}")
-                    print(f"  - Graph Updates: {pending.get('pending_graph_updates', 0)}")
-                    
-                    graph_stats = status.get('graph_stats', {})
-                    if graph_stats:
-                        print(f"Graph Statistics:")
-                        print(f"  - Nodes: {graph_stats.get('total_nodes', 0)}")
-                        print(f"  - Edges: {graph_stats.get('total_edges', 0)}")
-                else:
-                    print("Background graph processing not available")
+                # Show memory processing status (agent is aware of digest/embeddings only)
+                pending = memory_manager.get_pending_operations()
+                print(f"\nMemory Processing Status:")
+                print(f"Pending Operations:")
+                print(f"  - Digests: {pending.get('pending_digests', 0)}")
+                print(f"  - Embeddings: {pending.get('pending_embeddings', 0)}")
+                print(f"\nGraph processing handled by standalone process")
                 continue
             
             print(f"\nProcessing message...")
@@ -714,22 +692,13 @@ async def interactive_session(agent, memory_manager):
                         operations.append("digest generation")
                     if pending.get("pending_embeddings", 0) > 0:
                         operations.append("embeddings update")
-                    if pending.get("pending_graph_updates", 0) > 0:
-                        operations.append("graph memory processing")
                     
                     if operations:
                         verbose_handler.status(f"Background processing started: {', '.join(operations)}...")
                         verbose_handler.info("Processing continues in background, you can continue chatting")
                 
-                # Optionally process a small amount of background work
-                # This is non-blocking and processes just a few tasks
-                if hasattr(agent.memory, 'process_background_graph_queue'):
-                    try:
-                        result = agent.memory.process_background_graph_queue(max_tasks=1)
-                        if result.get('processed', 0) > 0:
-                            logger.debug(f"Processed {result.get('processed', 0)} background graph tasks")
-                    except Exception as e:
-                        logger.debug(f"Background processing error (non-critical): {e}")
+                # Background processing happens automatically
+                # Agent is not aware of graph-specific operations
             
             # Small delay to allow background operations to start
             await asyncio.sleep(0.1)

@@ -1,16 +1,5 @@
 # README-phase-6
 
-## Utils
-
-
-DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/agent_usage_example.py --guid p6a --config dnd 
-
-echo "Please tell me more about Theron" | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/agent_usage_example.py --guid p6 --config dnd 
-
-OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large pytest tests/memory_manager/test_memory_manager_integration.py -s -v
-
-scripts/copy_graph_to_viewer.sh --guid p6
-
 ## Phase 6 Goals - Add an API so the Agent System Can Act as a Service
 
 Add an API so the Agent System Can Act as a Service. This will allow a Browser-based front end to provide an interacgive UI for the agent
@@ -193,4 +182,35 @@ The system now provides seamless domain-specific behavior through both the CLI i
 
 
 
+### Status of Phase-6 Optimizations - September 1-30, 2025
 
+This latest phase has been a struggle with agents - primarily Claude Code - to make improvements to the graph processing system. The overarching goal has been to have conversation data processed by the graph system in teh background because it is too slow to be synchronous. Ultimately, the graph processing has been moved to its own process which is started separately from the agent_usage_example CLI.
+
+Status:
+- when started separately, graph processing works and graph files are updated independent of the agent
+- graph construction has lost some effectiveness compared to the late June version (June 8-23)
+- the Web UI probably does not work because it has not been updated with the graph processing
+- last working Web UI was ~June 23
+- any improvements during this phase are overshadowed by convoluted, confusing iteration by the agents
+- it is probably best to abandon the phase-6-optimization branch 
+- overall, the code is a mess and the best options is manual reconstructing by cherry picking any useful parts
+- the AI prompts, conversation parsing, graph parsing, etc. are all very good
+- the Web UI is good and probably usable
+- most important: make everything more modular and avoid having the agents make broad architectural changes
+- maintain working tests
+
+
+Useful commands:
+
+scripts/copy_graph_to_viewer.sh --guid test_cleanup_1
+
+export DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large; python examples/agent_usage_example.py --verbose --guid test_cleanup_1 --config dnd
+
+export DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large; python launcher.py --create-storage --guid test_cleanup_1
+
+export DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large; python examples/call_ollama.py
+
+scripts/copy_graph_to_viewer.sh --guid p6
+
+cd graph-viewer
+npm run start

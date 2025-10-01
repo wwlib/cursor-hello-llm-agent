@@ -119,12 +119,7 @@ class PerformanceAnalyzer:
                 bottleneck_reasons.append(f"Called {len(durations)} times with {avg_duration:.2f}s average")
                 if severity == "low":
                     severity = "medium"
-            
-            # Graph memory specific checks
-            if "graph" in op_name.lower() and avg_duration > 2.0:
-                bottleneck_reasons.append("Graph memory processing is slow")
-                severity = "high"
-            
+                        
             # LLM generation specific checks
             if "llm" in op_name.lower() or "generation" in op_name.lower():
                 if avg_duration > 3.0:
@@ -215,7 +210,6 @@ class PerformanceAnalyzer:
         """Analyze resource utilization patterns"""
         llm_operations = [op for op in operations if self._is_llm_operation(op)]
         memory_operations = [op for op in operations if self._is_memory_operation(op)]
-        graph_operations = [op for op in operations if self._is_graph_operation(op)]
         
         return {
             "llm_utilization": {
@@ -227,11 +221,6 @@ class PerformanceAnalyzer:
                 "count": len(memory_operations),
                 "total_time": sum(op.get("duration_seconds", 0) for op in memory_operations),
                 "avg_time": sum(op.get("duration_seconds", 0) for op in memory_operations) / len(memory_operations) if memory_operations else 0
-            },
-            "graph_utilization": {
-                "count": len(graph_operations),
-                "total_time": sum(op.get("duration_seconds", 0) for op in graph_operations),
-                "avg_time": sum(op.get("duration_seconds", 0) for op in graph_operations) / len(graph_operations) if graph_operations else 0
             }
         }
     
@@ -243,22 +232,7 @@ class PerformanceAnalyzer:
             op_name = bottleneck["operation_name"]
             severity = bottleneck["severity"]
             stats = bottleneck["statistics"]
-            
-            # Generate specific recommendations based on operation type and patterns
-            if "graph" in op_name.lower():
-                recommendations.append({
-                    "priority": severity,
-                    "category": "graph_optimization",
-                    "title": "Optimize Graph Memory Processing",
-                    "description": f"Graph operation '{op_name}' is taking {stats['avg_duration']:.2f}s on average",
-                    "suggestions": [
-                        "Enable graph memory fast mode to skip complex EntityResolver processing",
-                        "Consider batching graph operations",
-                        "Implement caching for entity similarity computations",
-                        "Use async processing for non-critical graph updates"
-                    ],
-                    "estimated_improvement": "50-70% reduction in graph processing time"
-                })
+        
             
             elif "llm" in op_name.lower() or "generation" in op_name.lower():
                 recommendations.append({
@@ -412,11 +386,6 @@ class PerformanceAnalyzer:
         """Check if operation is memory-related"""
         op_name = operation.get("operation_name", "").lower()
         return "memory" in op_name or "digest" in op_name or "embedding" in op_name
-    
-    def _is_graph_operation(self, operation: Dict[str, Any]) -> bool:
-        """Check if operation is graph-related"""
-        op_name = operation.get("operation_name", "").lower()
-        return "graph" in op_name or "entity" in op_name or "relationship" in op_name
 
 
 def analyze_session_performance(session_id: str) -> Dict[str, Any]:
