@@ -249,7 +249,20 @@ Environment Variables:
     # Check if Ollama is accessible
     print(f"\n🔍 Checking Ollama connection...")
     from src.ai.llm_ollama import OllamaService
-    test_llm = OllamaService({"base_url": llm_config["base_url"], "model": llm_config["model"]})
+    from src.utils.logging_config import LoggingConfig
+    
+    # Create a simple logger for the connection test
+    test_logger = LoggingConfig.get_component_file_logger(
+        "automated_tests_runner",
+        "ollama_connection_test",
+        log_to_console=False
+    )
+    
+    test_llm = OllamaService({
+        "base_url": llm_config["base_url"],
+        "model": llm_config["model"],
+        "logger": test_logger
+    })
     
     try:
         # Try a simple generation to test connection

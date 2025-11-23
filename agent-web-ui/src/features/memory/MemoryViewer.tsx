@@ -110,11 +110,6 @@ const MemoryViewer: React.FC = () => {
                 <div className="font-medium">{memoryStats?.memory_type || 'N/A'}</div>
               </div>
             </div>
-            {memoryStats?.has_graph_memory && (
-              <div className="mt-2 text-sm text-blue-600">
-                ✓ Graph Memory Enabled
-              </div>
-            )}
           </div>
 
           {/* Raw JSON Data */}

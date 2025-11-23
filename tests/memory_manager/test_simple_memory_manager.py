@@ -15,6 +15,10 @@ from datetime import datetime
 from pathlib import Path
 from unittest.mock import Mock
 from src.memory.simple_memory_manager import SimpleMemoryManager
+from src.utils.logging_config import LoggingConfig
+from examples.domain_configs import USER_STORY_CONFIG
+
+TEST_GUID = "test_simple_memory_manager"
 
 @pytest.fixture
 def mock_llm():
@@ -39,16 +43,40 @@ def initial_data():
 @pytest.fixture
 def memory_manager(memory_file, mock_llm):
     """Fixture to provide a SimpleMemoryManager instance."""
-    return SimpleMemoryManager(memory_file=memory_file, llm_service=mock_llm)
+    memory_logger = LoggingConfig.get_component_file_logger(
+        TEST_GUID,
+        "simple_memory_manager",
+        log_to_console=False
+    )
+    
+    return SimpleMemoryManager(
+        memory_guid=TEST_GUID,
+        memory_file=memory_file,
+        domain_config=USER_STORY_CONFIG,
+        llm_service=mock_llm,
+        logger=memory_logger
+    )
 
 def test_initialization_requires_llm(memory_file):
     """Test that SimpleMemoryManager requires an LLM service."""
     with pytest.raises(ValueError, match="llm_service is required"):
-        SimpleMemoryManager(memory_file=memory_file)
+        SimpleMemoryManager(memory_guid=TEST_GUID, memory_file=memory_file)
 
 def test_initialization_with_llm(memory_file, mock_llm):
     """Test basic initialization of SimpleMemoryManager."""
-    manager = SimpleMemoryManager(memory_file=memory_file, llm_service=mock_llm)
+    memory_logger = LoggingConfig.get_component_file_logger(
+        TEST_GUID,
+        "simple_memory_manager",
+        log_to_console=False
+    )
+    
+    manager = SimpleMemoryManager(
+        memory_guid=TEST_GUID,
+        memory_file=memory_file,
+        domain_config=USER_STORY_CONFIG,
+        llm_service=mock_llm,
+        logger=memory_logger
+    )
     assert manager.memory == {}
     assert manager.memory_file == memory_file
     assert isinstance(manager.domain_config, dict)
@@ -81,8 +109,8 @@ def test_query_memory_adds_messages(memory_manager, mock_llm):
     # Setup initial memory
     memory_manager.create_initial_memory("Initial test data")
     
-    # Create a query
-    query = json.dumps({"user_message": "Test question"})
+    # Create a query - pass dict, not JSON string
+    query = {"user_message": "Test question"}
     response = memory_manager.query_memory(query)
     
     # Verify LLM was called with correct prompt
@@ -102,7 +130,7 @@ def test_query_memory_adds_messages(memory_manager, mock_llm):
 def test_query_memory_saves_after_response(memory_manager, memory_file):
     """Test that memory is saved after each query."""
     memory_manager.create_initial_memory("Initial test data")
-    query = json.dumps({"user_message": "Test question"})
+    query = {"user_message": "Test question"}  # Pass dict, not JSON string
     memory_manager.query_memory(query)
     
     # Read the file directly
@@ -117,8 +145,8 @@ def test_update_memory_no_reflection(memory_manager):
     """Test that update_memory doesn't process reflection updates."""
     memory_manager.create_initial_memory("Initial test data")
     
-    # Create update context with reflection
-    update_context = json.dumps({
+    # Create update context - pass dict, not JSON string
+    update_context = {
         "operation": "update",
         "messages": [
             {
@@ -127,7 +155,7 @@ def test_update_memory_no_reflection(memory_manager):
                 "timestamp": datetime.now().isoformat()
             }
         ]
-    })
+    }
     
     success = memory_manager.update_memory(update_context)
     assert success
@@ -145,34 +173,60 @@ def test_clear_memory(memory_manager, memory_file):
 
 def test_memory_persistence_across_instances(memory_file, mock_llm):
     """Test that memory persists between different instances."""
+    memory_logger = LoggingConfig.get_component_file_logger(
+        TEST_GUID,
+        "simple_memory_manager",
+        log_to_console=False
+    )
+    
     # Create and setup first instance
-    manager1 = SimpleMemoryManager(memory_file=memory_file, llm_service=mock_llm)
+    manager1 = SimpleMemoryManager(
+        memory_guid=TEST_GUID,
+        memory_file=memory_file,
+        domain_config=USER_STORY_CONFIG,
+        llm_service=mock_llm,
+        logger=memory_logger
+    )
     manager1.create_initial_memory("Test data")
-    query = json.dumps({"user_message": "Test question"})
+    query = {"user_message": "Test question"}  # Pass dict, not JSON string
     manager1.query_memory(query)
     
     # Create second instance and verify data
-    manager2 = SimpleMemoryManager(memory_file=memory_file, llm_service=mock_llm)
+    manager2 = SimpleMemoryManager(
+        memory_guid=TEST_GUID,
+        memory_file=memory_file,
+        domain_config=USER_STORY_CONFIG,
+        llm_service=mock_llm,
+        logger=memory_logger
+    )
     assert manager2.memory["initial_data"] == "Test data"
     assert len(manager2.memory["conversation_history"]) == 2  # User message + response
 
 def test_invalid_json_query(memory_manager):
-    """Test handling of invalid JSON in query."""
+    """Test handling of invalid query format."""
     memory_manager.create_initial_memory("Test data")
     
-    response = memory_manager.query_memory("invalid json")
+    # Pass invalid query (not a dict)
+    response = memory_manager.query_memory("invalid query")
     assert "response" in response
     assert "Error" in response["response"]
 
 def test_invalid_json_update(memory_manager):
-    """Test handling of invalid JSON in update."""
+    """Test handling of invalid update format."""
     memory_manager.create_initial_memory("Test data")
     
-    success = memory_manager.update_memory("invalid json")
+    # Pass invalid update (not a dict)
+    success = memory_manager.update_memory("invalid update")
     assert not success
 
 def test_load_existing_valid_memory(memory_file, mock_llm):
     """Test that existing valid memory is loaded and not overwritten."""
+    memory_logger = LoggingConfig.get_component_file_logger(
+        TEST_GUID,
+        "simple_memory_manager",
+        log_to_console=False
+    )
+    
     # Create initial memory file
     initial_memory = {
         "initial_data": "test data",
@@ -190,7 +244,13 @@ def test_load_existing_valid_memory(memory_file, mock_llm):
         json.dump(initial_memory, f)
     
     # Create new manager instance
-    manager = SimpleMemoryManager(memory_file=memory_file, llm_service=mock_llm)
+    manager = SimpleMemoryManager(
+        memory_guid=TEST_GUID,
+        memory_file=memory_file,
+        domain_config=USER_STORY_CONFIG,
+        llm_service=mock_llm,
+        logger=memory_logger
+    )
     
     # Try to create new memory - should not overwrite
     result = manager.create_initial_memory("new data")
@@ -202,6 +262,12 @@ def test_load_existing_valid_memory(memory_file, mock_llm):
 
 def test_load_existing_invalid_memory(memory_file, mock_llm):
     """Test that invalid memory structure is replaced with new memory."""
+    memory_logger = LoggingConfig.get_component_file_logger(
+        TEST_GUID,
+        "simple_memory_manager",
+        log_to_console=False
+    )
+    
     # Create initial memory file with invalid structure
     invalid_memory = {
         "initial_data": "test data",
@@ -212,7 +278,13 @@ def test_load_existing_invalid_memory(memory_file, mock_llm):
         json.dump(invalid_memory, f)
     
     # Create new manager instance
-    manager = SimpleMemoryManager(memory_file=memory_file, llm_service=mock_llm)
+    manager = SimpleMemoryManager(
+        memory_guid=TEST_GUID,
+        memory_file=memory_file,
+        domain_config=USER_STORY_CONFIG,
+        llm_service=mock_llm,
+        logger=memory_logger
+    )
     
     # Try to create new memory - should replace invalid memory
     result = manager.create_initial_memory("new data")
@@ -225,6 +297,12 @@ def test_load_existing_invalid_memory(memory_file, mock_llm):
 
 def test_load_existing_partial_memory(memory_file, mock_llm):
     """Test that partially complete memory structure is replaced with new memory."""
+    memory_logger = LoggingConfig.get_component_file_logger(
+        TEST_GUID,
+        "simple_memory_manager",
+        log_to_console=False
+    )
+    
     # Create initial memory file with partial structure
     partial_memory = {
         "initial_data": "test data",
@@ -236,7 +314,13 @@ def test_load_existing_partial_memory(memory_file, mock_llm):
         json.dump(partial_memory, f)
     
     # Create new manager instance
-    manager = SimpleMemoryManager(memory_file=memory_file, llm_service=mock_llm)
+    manager = SimpleMemoryManager(
+        memory_guid=TEST_GUID,
+        memory_file=memory_file,
+        domain_config=USER_STORY_CONFIG,
+        llm_service=mock_llm,
+        logger=memory_logger
+    )
     
     # Try to create new memory - should replace partial memory
     result = manager.create_initial_memory("new data")

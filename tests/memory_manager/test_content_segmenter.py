@@ -3,6 +3,7 @@
 import pytest
 from src.memory.content_segmenter import ContentSegmenter
 from src.ai.llm_ollama import OllamaService
+from src.utils.logging_config import LoggingConfig
 import os
 
 # Configure Ollama connection
@@ -13,32 +14,33 @@ OLLAMA_LLM_MODEL = os.getenv("OLLAMA_LLM_MODEL", "gemma3")
 @pytest.fixture
 def llm_service():
     """Create an LLM service for testing."""
-    # Create logs directory structure
-    logs_dir = os.path.join(os.path.dirname(__file__), "logs")
-    guid = "content_segmenter_test"
-    guid_logs_dir = os.path.join(logs_dir, guid)
-    os.makedirs(guid_logs_dir, exist_ok=True)
-    
-    # Create separate debug files for each service
-    general_debug_file = os.path.join(guid_logs_dir, "general.log")
-    digest_debug_file = os.path.join(guid_logs_dir, "digest.log")
-    embed_debug_file = os.path.join(guid_logs_dir, "embed.log")
+    # Use LoggingConfig for consistent logging
+    test_guid = "content_segmenter_test"
+    llm_logger = LoggingConfig.get_component_file_logger(
+        test_guid,
+        "ollama_content_segmenter",
+        log_to_console=False
+    )
     
     return OllamaService({
         "base_url": OLLAMA_BASE_URL,
         "model": OLLAMA_LLM_MODEL,
         "temperature": 0,
         "stream": False,
-        "debug": True,
-        "debug_file": general_debug_file,
-        "debug_scope": "test_content_segmenter",
-        "console_output": False
+        "logger": llm_logger
     })
 
 @pytest.fixture
 def content_segmenter(llm_service):
     """Create a ContentSegmenter instance for testing."""
-    return ContentSegmenter(llm_service)
+    # Optionally pass a logger to ContentSegmenter
+    test_guid = "content_segmenter_test"
+    segmenter_logger = LoggingConfig.get_component_file_logger(
+        test_guid,
+        "content_segmenter",
+        log_to_console=False
+    )
+    return ContentSegmenter(llm_service, logger=segmenter_logger)
 
 def test_segment_content(content_segmenter):
     """Test segmenting content into meaningful chunks."""

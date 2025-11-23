@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useSessionStore } from '../../stores/sessionStore'
 import apiClient from '../../services/api'
 import type { GraphDataResponse } from '../../types/api'
+import GraphVisualization from './GraphVisualization'
 
 const GraphViewer: React.FC = () => {
   const { currentSession } = useSessionStore()
@@ -97,18 +98,26 @@ const GraphViewer: React.FC = () => {
               <div>
                 <span className="text-gray-600">Last Updated:</span>
                 <div className="font-medium">
-                  {graphData.metadata?.last_updated 
-                    ? new Date(graphData.metadata.last_updated).toLocaleString()
+                  {graphData.metadata?.generated_at 
+                    ? new Date(graphData.metadata.generated_at).toLocaleString()
                     : 'N/A'
                   }
                 </div>
               </div>
               <div>
-                <span className="text-gray-600">Graph Version:</span>
-                <div className="font-medium">{graphData.metadata?.version || 'N/A'}</div>
+                <span className="text-gray-600">Format:</span>
+                <div className="font-medium">{graphData.metadata?.format || 'json'}</div>
               </div>
             </div>
           </div>
+
+          {/* Graph Visualization */}
+          {graphData.nodes && graphData.nodes.length > 0 && (
+            <div className="bg-white border border-gray-200 rounded-lg p-4">
+              <h2 className="text-lg font-semibold mb-4">Interactive Graph Visualization</h2>
+              <GraphVisualization graphData={graphData} height={600} />
+            </div>
+          )}
 
           {/* Nodes Summary */}
           {graphData.nodes && graphData.nodes.length > 0 && (

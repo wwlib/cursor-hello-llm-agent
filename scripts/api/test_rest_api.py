@@ -305,6 +305,111 @@ class RestAPITester:
             self.print_result(False, f"Session cleanup failed with exception: {e}")
             return False
     
+    def test_list_session_logs(self, session_id: str) -> bool:
+        """Test listing session log files"""
+        self.print_test_header("List Session Logs")
+        
+        try:
+            response = self.session.get(f"{self.base_url}/api/v1/sessions/{session_id}/logs")
+            success = response.status_code == 200
+            
+            if success:
+                data = response.json()
+                # Validate response structure
+                has_required_fields = all(key in data for key in ['session_id', 'log_files', 'total', 'status'])
+                success = success and has_required_fields
+                
+                if success:
+                    log_files = data.get('log_files', [])
+                    print(f"   Found {len(log_files)} log file(s): {', '.join(log_files[:5])}{'...' if len(log_files) > 5 else ''}")
+            else:
+                data = response.text
+            
+            self.print_result(success, f"List session logs (HTTP {response.status_code})", data)
+            return success
+            
+        except Exception as e:
+            self.print_result(False, f"List session logs failed with exception: {e}")
+            return False
+    
+    def test_get_log_file_contents(self, session_id: str, log_filename: str = None) -> bool:
+        """Test getting log file contents"""
+        self.print_test_header("Get Log File Contents")
+        
+        try:
+            # First, get list of log files if filename not provided
+            if not log_filename:
+                list_response = self.session.get(f"{self.base_url}/api/v1/sessions/{session_id}/logs")
+                if list_response.status_code == 200:
+                    log_files = list_response.json().get('log_files', [])
+                    if log_files:
+                        log_filename = log_files[0]  # Use first available log file
+                    else:
+                        self.print_result(False, "No log files available to test")
+                        return False
+                else:
+                    self.print_result(False, f"Could not list log files (HTTP {list_response.status_code})")
+                    return False
+            
+            # Test getting log file contents
+            response = self.session.get(f"{self.base_url}/api/v1/sessions/{session_id}/logs/{log_filename}")
+            success = response.status_code == 200
+            
+            if success:
+                data = response.json()
+                # Validate response structure
+                has_required_fields = all(key in data for key in ['session_id', 'log_filename', 'contents', 'status'])
+                success = success and has_required_fields
+                
+                if success:
+                    contents = data.get('contents', '')
+                    content_length = len(contents)
+                    print(f"   Log file '{log_filename}' contains {content_length} characters")
+                    if content_length > 0:
+                        print(f"   First 100 chars: {contents[:100]}...")
+            else:
+                data = response.text
+            
+            self.print_result(success, f"Get log file contents (HTTP {response.status_code})", 
+                            data if not success or len(str(data)) < 200 else {"session_id": data.get('session_id'), 
+                                                                              "log_filename": data.get('log_filename'),
+                                                                              "content_length": len(data.get('contents', ''))})
+            return success
+            
+        except Exception as e:
+            self.print_result(False, f"Get log file contents failed with exception: {e}")
+            return False
+    
+    def test_log_file_security(self, session_id: str) -> bool:
+        """Test log file endpoint security (path traversal prevention)"""
+        self.print_test_header("Log File Security (Path Traversal)")
+        
+        try:
+            # Test path traversal attempts
+            malicious_paths = [
+                "../../../etc/passwd",
+                "..\\..\\..\\windows\\system32",
+                "/etc/passwd",
+                "agent.log/../../../etc/passwd"
+            ]
+            
+            all_blocked = True
+            for malicious_path in malicious_paths:
+                response = self.session.get(f"{self.base_url}/api/v1/sessions/{session_id}/logs/{malicious_path}")
+                # Should return 400 (Bad Request) for invalid filenames
+                if response.status_code != 400:
+                    print(f"   ⚠️  Security issue: Path '{malicious_path}' returned HTTP {response.status_code} instead of 400")
+                    all_blocked = False
+                else:
+                    print(f"   ✅ Path '{malicious_path}' correctly blocked (HTTP 400)")
+            
+            self.print_result(all_blocked, "Path traversal security checks")
+            return all_blocked
+            
+        except Exception as e:
+            self.print_result(False, f"Log file security test failed with exception: {e}")
+            return False
+    
     def test_session_deletion(self, session_id: str) -> bool:
         """Test session deletion"""
         self.print_test_header("Session Deletion")
@@ -376,6 +481,13 @@ class RestAPITester:
         # Graph data tests
         results["graph_stats"] = self.test_graph_stats(session_id)
         results["graph_data"] = self.test_graph_data(session_id)
+        
+        # Log file tests (need some activity to generate logs)
+        # Wait a bit more for logs to be written
+        time.sleep(1)
+        results["list_session_logs"] = self.test_list_session_logs(session_id)
+        results["get_log_file_contents"] = self.test_get_log_file_contents(session_id)
+        results["log_file_security"] = self.test_log_file_security(session_id)
         
         # Cleanup tests
         results["session_cleanup"] = self.test_session_cleanup()

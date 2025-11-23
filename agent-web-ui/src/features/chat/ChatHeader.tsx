@@ -73,11 +73,6 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
         </div>
       </div>
       
-      {session.config.enable_graph && (
-        <div className="mt-2 text-xs text-blue-600 bg-blue-50 rounded-md px-2 py-1 inline-block">
-          Graph Memory Enabled
-        </div>
-      )}
     </div>
   )
 }

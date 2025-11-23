@@ -48,10 +48,14 @@ class PerformanceTracker:
     - Performance summary generation
     """
     
-    def __init__(self, session_id: str, logger: Optional[logging.Logger] = None):
+    def __init__(self, session_id: str, logs_dir: str = None, logger: Optional[logging.Logger] = None):
         self.session_id = session_id
         self.logger = logger or logging.getLogger(__name__)
-        
+
+        self.logs_dir = logs_dir
+        if self.logs_dir is None:
+            self.logs_dir = os.path.join("logs", self.session_id)
+            os.makedirs(self.logs_dir, exist_ok=True)
         # Thread-safe storage for operations
         self._lock = threading.Lock()
         self._active_operations: Dict[str, OperationTiming] = {}
@@ -66,16 +70,12 @@ class PerformanceTracker:
         
     def _setup_performance_logging(self):
         """Setup performance data logging to file"""
-        try:
-            # Create logs directory structure
-            logs_dir = os.path.join("logs", self.session_id)
-            os.makedirs(logs_dir, exist_ok=True)
-            
+        try:            
             # Performance data file
-            self.performance_file = os.path.join(logs_dir, "performance_data.jsonl")
+            self.performance_file = os.path.join(self.logs_dir, "performance_data.jsonl")
             
             # Performance summary file
-            self.performance_summary_file = os.path.join(logs_dir, "performance_summary.json")
+            self.performance_summary_file = os.path.join(self.logs_dir, "performance_summary.json")
             
             self.logger.debug(f"Performance tracking initialized for session {self.session_id}")
             self.logger.debug(f"Performance data file: {self.performance_file}")
@@ -85,6 +85,14 @@ class PerformanceTracker:
             self.performance_file = None
             self.performance_summary_file = None
     
+    def performance_file_exists(self) -> bool:
+        """Check if the performance data file exists"""
+        return self.performance_file and os.path.exists(self.performance_file)
+    
+    def performance_summary_file_exists(self) -> bool:
+        """Check if the performance summary file exists"""
+        return self.performance_summary_file and os.path.exists(self.performance_summary_file)
+
     def _load_existing_performance_data(self):
         """Load existing performance data from file if it exists"""
         if not self.performance_file or not os.path.exists(self.performance_file):
@@ -349,7 +357,7 @@ _performance_trackers: Dict[str, PerformanceTracker] = {}
 _tracker_lock = threading.Lock()
 
 
-def get_performance_tracker(session_id: str, logger: Optional[logging.Logger] = None) -> PerformanceTracker:
+def get_performance_tracker(session_id: str, logs_dir: str = None, logger: Optional[logging.Logger] = None) -> PerformanceTracker:
     """
     Get or create a performance tracker for a session.
     
@@ -362,7 +370,7 @@ def get_performance_tracker(session_id: str, logger: Optional[logging.Logger] = 
     """
     with _tracker_lock:
         if session_id not in _performance_trackers:
-            _performance_trackers[session_id] = PerformanceTracker(session_id, logger)
+            _performance_trackers[session_id] = PerformanceTracker(session_id, logs_dir=logs_dir, logger=logger)
         return _performance_trackers[session_id]
 
 

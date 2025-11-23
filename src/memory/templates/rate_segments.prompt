@@ -69,11 +69,11 @@ IMPORTANT: If memory_worthy is false, the segment will be completely excluded fr
 Provide your response as a JSON array of objects with "text", "importance", "topics", "type", and "memory_worthy" fields:
 [
   {{
-    "text": "original segment text",
-    "importance": number from 1-5,
-    "topics": ["topic1", "topic2"],
-    "type": "query|information|action|command",
-    "memory_worthy": true|false
+    "text": "<ORIGINAL-SEGMENT-TEXT>",
+    "importance": 0, // number from 1-5
+    "topics": ["<TOPIC-1>", "<TOPIC-2>"],
+    "type": "", // query | information | action | command
+    "memory_worthy": true, // true | false
   }},
   ...
 ]

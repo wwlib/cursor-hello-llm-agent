@@ -24,7 +24,10 @@ import numpy as np
 from typing import Optional, List, Dict
 import os
 
-ollama_base_url = "http://192.168.1.173:11434"
+
+OLLAMA_BASE_URL = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
+OLLAMA_EMBED_MODEL = os.environ.get("OLLAMA_EMBED_MODEL", "mxbai-embed-large")
+OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "gemma3")
 
 # Example texts to compare against
 test_texts = [
@@ -36,54 +39,65 @@ test_texts = [
     "The village has offered a reward of 1000 gold coins."
 ]
 
-def generate_embedding(text: str, model: str = "mxbai-embed-large", normalize: bool = True) -> Optional[List[float]]:
+def generate_embedding(
+    text: str,
+    model: str = None,
+    normalize: bool = True
+) -> Optional[List[float]]:
     """Generate an embedding for the given text using Ollama.
-    
+
     Args:
         text: The text to generate an embedding for
-        model: The model to use (default: mxbai-embed-large)
+        model: The model to use (defaults to OLLAMA_EMBED_MODEL)
         normalize: Whether to normalize the embedding vector (default: True)
-        
+
     Returns:
         The embedding vector if successful, None if failed
     """
-    url = os.getenv("OLLAMA_BASE_URL", ollama_base_url)
-    url = f"{url}/api/embed" # batch embeddings
-    # url = f"{url}/api/embeddings" # one embedding at a time
-    
+    # Use the env variable constants defined above
+    base_url = OLLAMA_BASE_URL
+    embed_model = model if model is not None else OLLAMA_EMBED_MODEL
+    url = f"{base_url}/api/embed"  # batch embeddings
+    # url = f"{base_url}/api/embeddings" # one embedding at a time
+
+    # Also, list the test_texts for debugging/demo
+    print("\nCurrently defined test_texts for embedding comparison:")
+    for idx, test_text in enumerate(test_texts, 1):
+        print(f"  {idx}. {test_text}")
+
     try:
-        print(f"Generating embedding for: {text[:50]}...")
+        print(f"\nGenerating embedding for: {text[:50]}...")
         response = requests.post(
             url,
             json={
-                "model": model,
+                "model": embed_model,
                 "input": text
             }
         )
         response.raise_for_status()
-        
+
         print(response.json())
-        
+
         # Parse response
         result = response.json()
         if not isinstance(result, dict) or 'embeddings' not in result:
             print("Invalid response format from Ollama API")
             return None
-            
+
         embedding = result['embeddings'][0]
 
         # Print embedding vector size
         print(f"Embedding vector size: {len(embedding)}")
-        
+
         # Normalize if requested
         if normalize:
             embedding = np.array(embedding)
             norm = np.linalg.norm(embedding)
             if norm > 0:
                 embedding = (embedding / norm).tolist()
-        
+
         return embedding
-        
+
     except requests.exceptions.RequestException as e:
         print(f"Error calling Ollama: {str(e)}")
         return None
@@ -136,7 +150,7 @@ def main():
     
     # First check if Ollama is running
     try:
-        base_url = os.getenv("OLLAMA_BASE_URL", ollama_base_url)
+        base_url = OLLAMA_BASE_URL
         health_check = requests.get(f"{base_url}/api/tags")
         health_check.raise_for_status()
         print(f"Ollama is running at {base_url}")
@@ -145,6 +159,10 @@ def main():
         return
     
     # Get input text from user
+    print("\nTest Texts:")
+    for idx, text in enumerate(test_texts, 1):
+        print(f"{idx}. {text[:100]}...")  # Display the beginning of each test text
+
     input_text = input("\nEnter text to compare: ")
     if not input_text.strip():
         print("No input text provided. Exiting.")

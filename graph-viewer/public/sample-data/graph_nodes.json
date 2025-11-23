@@ -1,198 +1,172 @@
 {
-  "location_adbb186c": {
-    "id": "location_adbb186c",
+  "character_eldara_001": {
+    "id": "character_eldara_001",
+    "name": "Eldara",
+    "type": "character",
+    "description": "A fire wizard who runs a magic shop in Riverwatch",
+    "attributes": {},
+    "aliases": [],
+    "mention_count": 1,
+    "created_at": "2024-01-01T00:00:00",
+    "updated_at": "2024-01-01T00:00:00"
+  },
+  "location_ancient_ruins_001": {
+    "id": "location_ancient_ruins_001",
+    "name": "Ancient Ruins",
     "type": "location",
+    "description": "Mysterious ancient structures scattered throughout the valley",
+    "attributes": {},
+    "aliases": [],
+    "mention_count": 1,
+    "created_at": "2024-01-01T00:00:00",
+    "updated_at": "2024-01-01T00:00:00"
+  },
+  "location_magic_shop_001": {
+    "id": "location_magic_shop_001",
+    "name": "Magic Shop",
+    "type": "location",
+    "description": "A shop in Riverwatch that sells magical items and scrolls",
+    "attributes": {},
+    "aliases": [],
+    "mention_count": 1,
+    "created_at": "2024-01-01T00:00:00",
+    "updated_at": "2024-01-01T00:00:00"
+  },
+  "location_the_lost_valley_9b44a1f0": {
+    "id": "location_the_lost_valley_9b44a1f0",
     "name": "The Lost Valley",
-    "description": "A settlement experiencing increased monster activity",
-    "aliases": [
-      "valley",
-      "Haven",
-      "Riverwatch",
-      "Mountainkeep"
-    ],
-    "created_at": "2025-06-08T19:36:19.045063",
-    "updated_at": "2025-06-08T19:40:05.415411",
-    "mention_count": 8,
-    "attributes": {}
-  },
-  "location_305bed4d": {
-    "id": "location_305bed4d",
     "type": "location",
-    "name": "mountains",
-    "description": "Impassable mountains forming a barrier around The Lost Valley",
+    "description": "A hidden valley completely surrounded by impassable mountains, serving as a campaign setting.",
+    "attributes": {
+      "conversation_history_guids": [
+        "test_batch_1",
+        "segment_1",
+        "segment_2",
+        "segment_3",
+        "segment_5",
+        "segment_7",
+        "segment_8"
+      ]
+    },
     "aliases": [],
-    "created_at": "2025-06-08T19:36:19.152046",
-    "updated_at": "2025-06-08T19:36:19.152052",
-    "mention_count": 1,
-    "attributes": {}
+    "mention_count": 10,
+    "created_at": "2025-11-23T08:22:56.407733",
+    "updated_at": "2025-11-23T08:24:07.230086"
   },
-  "object_02e3882c": {
-    "id": "object_02e3882c",
-    "type": "object",
-    "name": "ruins",
-    "description": "Ancient stone structures, likely remnants of a civilization",
+  "location_haven_bcdf47ef": {
+    "id": "location_haven_bcdf47ef",
+    "name": "Haven",
+    "type": "location",
+    "description": "Central settlement in the valley, well-protected",
+    "attributes": {
+      "conversation_history_guids": [
+        "test_batch_1"
+      ]
+    },
     "aliases": [],
-    "created_at": "2025-06-08T19:36:20.377723",
-    "updated_at": "2025-06-08T19:36:20.377730",
     "mention_count": 1,
-    "attributes": {}
+    "created_at": "2025-11-23T08:22:56.551694",
+    "updated_at": "2025-11-23T08:22:56.551701"
   },
-  "concept_90c36e8e": {
-    "id": "concept_90c36e8e",
-    "type": "concept",
-    "name": "magical anomalies",
-    "description": "Strange magical energy discharges",
-    "aliases": [
-      "energy emanations"
-    ],
-    "created_at": "2025-06-08T19:36:20.497971",
-    "updated_at": "2025-06-08T19:38:18.880122",
-    "mention_count": 3,
-    "attributes": {}
-  },
-  "character_c96e26d8": {
-    "id": "character_c96e26d8",
-    "type": "character",
+  "character_elena_194bdea4": {
+    "id": "character_elena_194bdea4",
     "name": "Elena",
-    "description": "The Mayor of a settlement",
-    "aliases": [],
-    "created_at": "2025-06-08T19:36:22.460825",
-    "updated_at": "2025-06-08T19:40:04.064645",
-    "mention_count": 2,
-    "attributes": {}
-  },
-  "character_f6b1a5e6": {
-    "id": "character_f6b1a5e6",
     "type": "character",
-    "name": "Theron",
-    "description": "A character focused on decoding inscriptions",
-    "aliases": [
-      "theron"
-    ],
-    "created_at": "2025-06-08T19:36:23.771969",
-    "updated_at": "2025-06-08T19:38:17.688968",
-    "mention_count": 3,
-    "attributes": {}
-  },
-  "concept_f7d6fe2f": {
-    "id": "concept_f7d6fe2f",
-    "type": "concept",
-    "name": "ancient ruins",
-    "description": "Ruins of a past civilization, a common subject of study",
+    "description": "The Mayor of Haven, a non-player character motivated to investigate strange occurrences within the town and valley.",
+    "attributes": {
+      "conversation_history_guids": [
+        "test_batch_1",
+        "segment_3",
+        "segment_4",
+        "segment_5"
+      ]
+    },
     "aliases": [],
-    "created_at": "2025-06-08T19:36:23.917605",
-    "updated_at": "2025-06-08T19:36:23.917615",
-    "mention_count": 1,
-    "attributes": {}
+    "mention_count": 7,
+    "created_at": "2025-11-23T08:22:56.677756",
+    "updated_at": "2025-11-23T08:25:34.597831"
   },
-  "object_0754e0ce": {
-    "id": "object_0754e0ce",
+  "location_lost_valley_447362a2": {
+    "id": "location_lost_valley_447362a2",
+    "name": "Lost Valley",
+    "type": "location",
+    "description": "A secluded valley protected by mountains",
+    "attributes": {
+      "conversation_history_guids": [
+        "test_batch_3"
+      ]
+    },
+    "aliases": [],
+    "mention_count": 1,
+    "created_at": "2025-11-23T08:23:31.245584",
+    "updated_at": "2025-11-23T08:23:31.245594"
+  },
+  "object_crystal_orb_600fe7ca": {
+    "id": "object_crystal_orb_600fe7ca",
+    "name": "Crystal Orb",
     "type": "object",
-    "name": "inscriptions",
-    "description": "Texts carved on ancient ruins, requiring interpretation",
+    "description": "A glowing magical artifact found in the ruins",
+    "attributes": {
+      "conversation_history_guids": [
+        "test_batch_3"
+      ]
+    },
     "aliases": [],
-    "created_at": "2025-06-08T19:36:24.073529",
-    "updated_at": "2025-06-08T19:36:24.073538",
     "mention_count": 1,
-    "attributes": {}
+    "created_at": "2025-11-23T08:23:31.359398",
+    "updated_at": "2025-11-23T08:23:31.359409"
   },
-  "character_0984776e": {
-    "id": "character_0984776e",
-    "type": "character",
-    "name": "Sara",
-    "description": "The Captain of Riverwatch, responsible for the valley's defense",
-    "aliases": [],
-    "created_at": "2025-06-08T19:36:24.923579",
-    "updated_at": "2025-06-08T19:36:24.923589",
-    "mention_count": 1,
-    "attributes": {}
-  },
-  "location_14c9a579": {
-    "id": "location_14c9a579",
+  "location_impassable_mountains_5e1cd53a": {
+    "id": "location_impassable_mountains_5e1cd53a",
+    "name": "Impassable Mountains",
     "type": "location",
-    "name": "trade route",
-    "description": "The established path for commercial goods between settlements",
+    "description": "Mountains surrounding The Lost Valley, preventing access and creating a natural barrier.",
+    "attributes": {
+      "conversation_history_guids": [
+        "segment_1",
+        "segment_4",
+        "segment_6",
+        "segment_8"
+      ]
+    },
     "aliases": [],
-    "created_at": "2025-06-08T19:36:25.934788",
-    "updated_at": "2025-06-08T19:36:25.934797",
-    "mention_count": 1,
-    "attributes": {}
+    "mention_count": 5,
+    "created_at": "2025-11-23T08:24:07.355156",
+    "updated_at": "2025-11-23T08:24:07.355162"
   },
-  "character_2d049f36": {
-    "id": "character_2d049f36",
-    "type": "character",
-    "name": "merchants",
-    "description": "Individuals involved in trade and commerce",
-    "aliases": [],
-    "created_at": "2025-06-08T19:36:26.087342",
-    "updated_at": "2025-06-08T19:36:26.087348",
-    "mention_count": 1,
-    "attributes": {}
-  },
-  "location_0d0885ca": {
-    "id": "location_0d0885ca",
-    "type": "location",
-    "name": "ancient ruins",
-    "description": "Ruins of an ancient civilization scattered across a valley",
-    "aliases": [],
-    "created_at": "2025-06-08T19:36:27.431360",
-    "updated_at": "2025-06-08T19:38:17.398456",
-    "mention_count": 2,
-    "attributes": {}
-  },
-  "object_264f03a2": {
-    "id": "object_264f03a2",
+  "object_ancient_ruins_30d71be8": {
+    "id": "object_ancient_ruins_30d71be8",
+    "name": "Ancient Ruins",
     "type": "object",
-    "name": "artifacts",
-    "description": "Valuable and potentially magical objects found within the ruins",
+    "description": "Ruins scattered throughout The Lost Valley, indicating a past civilization or significant events.",
+    "attributes": {
+      "conversation_history_guids": [
+        "segment_1",
+        "segment_7"
+      ]
+    },
     "aliases": [],
-    "created_at": "2025-06-08T19:36:27.725676",
-    "updated_at": "2025-06-08T19:38:18.979922",
     "mention_count": 2,
-    "attributes": {}
+    "created_at": "2025-11-23T08:24:07.468629",
+    "updated_at": "2025-11-23T08:24:07.468637"
   },
-  "concept_bcff3a0e": {
-    "id": "concept_bcff3a0e",
+  "concept_magical_anomalies_98b43768": {
+    "id": "concept_magical_anomalies_98b43768",
+    "name": "Magical Anomalies",
     "type": "concept",
-    "name": "magical effects",
-    "description": "Random occurrences of magic",
+    "description": "Mysterious occurrences within The Lost Valley, suggesting the presence of magic or unusual phenomena.",
+    "attributes": {
+      "conversation_history_guids": [
+        "segment_1",
+        "segment_3",
+        "segment_5",
+        "segment_7",
+        "segment_8"
+      ]
+    },
     "aliases": [],
-    "created_at": "2025-06-08T19:36:28.697186",
-    "updated_at": "2025-06-08T19:36:28.697195",
-    "mention_count": 1,
-    "attributes": {}
-  },
-  "location_1b4c6d95": {
-    "id": "location_1b4c6d95",
-    "type": "location",
-    "name": "ruins",
-    "description": "Ancient, unexplored structures",
-    "aliases": [],
-    "created_at": "2025-06-08T19:36:28.821187",
-    "updated_at": "2025-06-08T19:38:18.776215",
-    "mention_count": 2,
-    "attributes": {}
-  },
-  "location_5b6b6a90": {
-    "id": "location_5b6b6a90",
-    "type": "location",
-    "name": "settlements",
-    "description": "Groups of people living together",
-    "aliases": [],
-    "created_at": "2025-06-08T19:40:04.303080",
-    "updated_at": "2025-06-08T19:40:04.303088",
-    "mention_count": 1,
-    "attributes": {}
-  },
-  "character_9552c198": {
-    "id": "character_9552c198",
-    "type": "character",
-    "name": "Captain Sara",
-    "description": "A captain requesting aid",
-    "aliases": [],
-    "created_at": "2025-06-08T19:40:05.100793",
-    "updated_at": "2025-06-08T19:40:05.100802",
-    "mention_count": 1,
-    "attributes": {}
+    "mention_count": 5,
+    "created_at": "2025-11-23T08:24:07.587713",
+    "updated_at": "2025-11-23T08:24:07.587718"
   }
 }

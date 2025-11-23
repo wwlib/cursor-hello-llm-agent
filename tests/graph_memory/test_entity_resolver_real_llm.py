@@ -21,7 +21,6 @@ import json
 import tempfile
 import shutil
 import pytest
-import logging
 from pathlib import Path
 from typing import Dict, List, Any, Optional
 import asyncio
@@ -33,11 +32,14 @@ from memory.graph_memory.entity_resolver import EntityResolver
 from memory.graph_memory.graph_storage import GraphStorage
 from memory.embeddings_manager import EmbeddingsManager
 from ai.llm_ollama import OllamaService
+from utils.logging_config import LoggingConfig
 
 # Import domain config
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'sample_data'))
 from domain_configs import DND_CONFIG
 
+# Test GUID for logging
+TEST_GUID = "test_entity_resolver_real_llm"
 
 # Create a session-scoped UUID that can be shared between fixtures
 @pytest.fixture(scope="session")
@@ -58,26 +60,25 @@ def setup_ollama_service(test_uuid=None):
     print(f"  Model: {model}")
     print(f"  Embedding Model: {embed_model}")
     
-    # Use the project root logs directory with UUID
-    project_root = Path(__file__).parent.parent.parent  # Go up to project root
+    # Use LoggingConfig for consistent logging
     if test_uuid:
-        logs_dir = project_root / "logs" / test_uuid
-        print(f"  Logs directory: {logs_dir}")
+        guid = f"{TEST_GUID}_{test_uuid}"
     else:
-        # Fallback to old location if no UUID provided
-        logs_dir = Path(__file__).parent / "logs"
+        guid = TEST_GUID
     
-    logs_dir.mkdir(parents=True, exist_ok=True)
+    llm_logger = LoggingConfig.get_component_file_logger(
+        guid,
+        "ollama_entity_resolver",
+        log_to_console=False
+    )
     
-    # Configure LLM service with detailed logging
+    print(f"  Logs directory: {LoggingConfig.get_log_base_dir(guid)}")
+    
+    # Configure LLM service with logger
     llm_config = {
         "base_url": base_url,
         "model": model,
-        "embed_model": embed_model,
-        "debug": True,
-        "debug_file": str(logs_dir / "test_ollama_entity_resolution.log"),
-        "debug_scope": "entity_resolver_test",
-        "console_output": False
+        "logger": llm_logger
     }
     
     return OllamaService(llm_config)
@@ -114,39 +115,46 @@ def embeddings_manager(ollama_service, temp_storage_path, test_run_uuid):
     """Create embeddings manager with real Ollama service and detailed RAG logging."""
     embeddings_file = os.path.join(temp_storage_path, "test_embeddings.jsonl")
     
-    # Create a specific logger for embeddings/RAG operations
-    rag_logger = logging.getLogger(f"entity_resolver_test.rag.{test_run_uuid}")
-    rag_logger.setLevel(logging.DEBUG)
+    # Use LoggingConfig for consistent logging
+    if test_run_uuid:
+        guid = f"{TEST_GUID}_{test_run_uuid}"
+    else:
+        guid = TEST_GUID
     
-    # Add handler to write to the same log file as the LLM service
-    log_dir = f"logs/{test_run_uuid}"
-    os.makedirs(log_dir, exist_ok=True)
-    log_file = os.path.join(log_dir, "test_ollama_entity_resolution.log")
-    
-    # Check if handler already exists to avoid duplicates
-    if not any(isinstance(h, logging.FileHandler) and h.baseFilename.endswith("test_ollama_entity_resolution.log") 
-               for h in rag_logger.handlers):
-        file_handler = logging.FileHandler(log_file)
-        file_handler.setLevel(logging.DEBUG)
-        formatter = logging.Formatter('[%(name)s]:[%(funcName)s]::[%(levelname)s]:%(message)s')
-        file_handler.setFormatter(formatter)
-        rag_logger.addHandler(file_handler)
+    embeddings_logger = LoggingConfig.get_component_file_logger(
+        guid,
+        "embeddings_manager",
+        log_to_console=False
+    )
     
     return EmbeddingsManager(
         embeddings_file=embeddings_file,
         llm_service=ollama_service,
-        logger=rag_logger
+        logger=embeddings_logger
     )
 
 
 @pytest.fixture
-def entity_resolver(ollama_service, embeddings_manager, temp_storage_path):
+def entity_resolver(ollama_service, embeddings_manager, temp_storage_path, test_run_uuid):
     """Create EntityResolver with real services."""
+    # Use LoggingConfig for consistent logging
+    if test_run_uuid:
+        guid = f"{TEST_GUID}_{test_run_uuid}"
+    else:
+        guid = TEST_GUID
+    
+    resolver_logger = LoggingConfig.get_component_file_logger(
+        guid,
+        "entity_resolver",
+        log_to_console=False
+    )
+    
     return EntityResolver(
         llm_service=ollama_service,
         embeddings_manager=embeddings_manager,
         storage_path=temp_storage_path,
-        confidence_threshold=0.8
+        confidence_threshold=0.8,
+        logger=resolver_logger
     )
 
 
@@ -176,7 +184,7 @@ def sample_graph_data():
 class TestEntityResolverRealLLM:
     """Integration tests with real LLM service."""
     
-    def test_basic_entity_resolution(self, entity_resolver):
+    def test_basic_entity_resolution(self, entity_resolver, test_run_uuid):
         """Test basic entity resolution with real LLM."""
         print("\n=== Testing Basic Entity Resolution ===")
         
@@ -197,7 +205,14 @@ class TestEntityResolverRealLLM:
         
         print(f"Testing with {len(candidates)} candidates...")
         print(f"Confidence threshold: {entity_resolver.confidence_threshold}")
-        print(f"Log file location: {entity_resolver.llm_service.debug_file}")
+        
+        # Get log directory from LoggingConfig
+        if test_run_uuid:
+            guid = f"{TEST_GUID}_{test_run_uuid}"
+        else:
+            guid = TEST_GUID
+        log_dir = LoggingConfig.get_log_base_dir(guid)
+        print(f"Log directory: {log_dir}")
         print()
         
         # Test individual processing to see detailed LLM interactions
@@ -225,7 +240,7 @@ class TestEntityResolverRealLLM:
             assert isinstance(resolution["confidence"], (int, float))
             assert 0 <= resolution["confidence"] <= 1
         
-        print(f"Check detailed LLM logs at: {entity_resolver.llm_service.debug_file}")
+        print(f"Check detailed LLM logs at: {log_dir}")
         print("This includes prompts sent to LLM and raw responses received.")
     
     def test_individual_vs_batch_processing(self, entity_resolver):
@@ -332,7 +347,7 @@ class TestEntityResolverRealLLM:
             for failure in batch_failures:
                 print(f"  - {failure}")
             print(f"\n🔍 This indicates the LLM is hallucinating matches in batch mode!")
-            print(f"   Check the log file for the batch processing prompt and response.")
+            print(f"   Check the log files for the batch processing prompt and response.")
         else:
             print(f"\n✅ Batch processing: All candidates correctly resolved to <NEW>")
         
@@ -567,18 +582,37 @@ class TestEntityResolverRealLLM:
         print(f"Confidence: {resolution['confidence']:.3f}")
         print(f"Justification: {resolution['resolution_justification']}")
     
-    def test_full_graph_building_workflow(self, ollama_service, temp_storage_path):
+    def test_full_graph_building_workflow(self, ollama_service, temp_storage_path, test_run_uuid):
         """Test complete workflow that builds a graph from scratch with EntityResolver."""
         print("\n=== Testing Full Graph Building Workflow ===")
         
         # Create a GraphManager with real storage that will generate actual files
         from memory.graph_memory.graph_manager import GraphManager
         
+        # Use LoggingConfig for consistent logging
+        if test_run_uuid:
+            guid = f"{TEST_GUID}_{test_run_uuid}"
+        else:
+            guid = TEST_GUID
+        
         # Set up embeddings manager for RAG
         embeddings_file = os.path.join(temp_storage_path, "graph_embeddings.jsonl")
+        embeddings_logger = LoggingConfig.get_component_file_logger(
+            guid,
+            "embeddings_manager",
+            log_to_console=False
+        )
         embeddings_manager = EmbeddingsManager(
             embeddings_file=embeddings_file,
-            llm_service=ollama_service
+            llm_service=ollama_service,
+            logger=embeddings_logger
+        )
+        
+        # Create graph manager logger
+        graph_logger = LoggingConfig.get_component_file_logger(
+            guid,
+            "graph_manager",
+            log_to_console=False
         )
         
         # Create graph manager with real storage
@@ -587,7 +621,15 @@ class TestEntityResolverRealLLM:
             embeddings_manager=embeddings_manager,
             storage_path=temp_storage_path,
             domain_config=DND_CONFIG,
-            similarity_threshold=0.8
+            similarity_threshold=0.8,
+            logger=graph_logger
+        )
+        
+        # Create EntityResolver logger
+        resolver_logger = LoggingConfig.get_component_file_logger(
+            guid,
+            "entity_resolver",
+            log_to_console=False
         )
         
         # Create EntityResolver with the same storage
@@ -595,7 +637,8 @@ class TestEntityResolverRealLLM:
             llm_service=ollama_service,
             embeddings_manager=embeddings_manager,
             storage_path=temp_storage_path,
-            confidence_threshold=0.8
+            confidence_threshold=0.8,
+            logger=resolver_logger
         )
         
         print(f"Graph storage path: {temp_storage_path}")
@@ -741,7 +784,7 @@ class TestEntityResolverRealLLM:
             
             print(f"✓ Also copied to graph viewer: {graph_viewer_dir}")
 
-    def test_full_pipeline_duplicate_detection(self, ollama_service, temp_storage_path):
+    def test_full_pipeline_duplicate_detection(self, ollama_service, temp_storage_path, test_run_uuid):
         """Test full pipeline duplicate detection using real conversation data."""
         print("\n=== Testing Full Pipeline Duplicate Detection ===")
         
@@ -768,16 +811,35 @@ class TestEntityResolverRealLLM:
         
         print(f"✅ Found system entry with {len(system_entry['digest']['rated_segments'])} segments")
         
+        # Use LoggingConfig for consistent logging
+        if test_run_uuid:
+            guid = f"{TEST_GUID}_{test_run_uuid}"
+        else:
+            guid = TEST_GUID
+        
         # Setup components exactly like memory manager
         embeddings_file = os.path.join(temp_storage_path, "embeddings.jsonl")
+        embeddings_logger = LoggingConfig.get_component_file_logger(
+            guid,
+            "embeddings_manager",
+            log_to_console=False
+        )
         embeddings_manager = EmbeddingsManager(
             embeddings_file=embeddings_file,
-            llm_service=ollama_service
+            llm_service=ollama_service,
+            logger=embeddings_logger
         )
         
         # Import domain config
         sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'sample_data'))
         from domain_configs import DND_CONFIG
+        
+        # Create graph manager logger
+        graph_logger = LoggingConfig.get_component_file_logger(
+            guid,
+            "graph_manager",
+            log_to_console=False
+        )
         
         # Create GraphManager with EntityResolver
         from memory.graph_memory.graph_manager import GraphManager
@@ -785,7 +847,8 @@ class TestEntityResolverRealLLM:
             storage_path=temp_storage_path,
             embeddings_manager=embeddings_manager,
             llm_service=ollama_service,
-            domain_config=DND_CONFIG
+            domain_config=DND_CONFIG,
+            logger=graph_logger
         )
         
         print("🏗️ GraphManager with EntityResolver initialized")

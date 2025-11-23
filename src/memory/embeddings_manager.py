@@ -538,6 +538,11 @@ class EmbeddingsManager:
                             self.logger.debug(f"Skipping segment {i} with low importance ({importance}) in entry {entry.get('guid', str(total_count))}")
                             continue
                         
+                        # Skip non-memory-worthy segments (filtered out of working memory)
+                        if not segment.get('memory_worthy', True):  # Default to True for backward compatibility
+                            self.logger.debug(f"Skipping segment {i} - not memory-worthy in entry {entry.get('guid', str(total_count))}")
+                            continue
+                        
                         # Skip segments with irrelevant types
                         segment_type = segment.get('type', 'information')
                         if segment_type not in EMBEDDINGS_RELEVANT_TYPES:
@@ -597,6 +602,10 @@ class EmbeddingsManager:
                 # Skip segments below importance threshold
                 importance = segment.get('importance', 3)
                 if importance < DEFAULT_EMBEDDINGS_IMPORTANCE_THRESHOLD:
+                    continue
+                
+                # Skip non-memory-worthy segments (filtered out of working memory)
+                if not segment.get('memory_worthy', True):  # Default to True for backward compatibility
                     continue
                 
                 # Skip segments with irrelevant types

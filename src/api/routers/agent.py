@@ -97,17 +97,19 @@ async def get_agent_status(
         if not session:
             raise HTTPException(status_code=404, detail="Session not found")
             
+        # Return format matching AgentStatusResponse interface
         return JSONResponse({
+            "status": session.status.value,
             "session_id": session_id,
-            "agent_initialized": session.agent is not None,
-            "memory_manager_initialized": session.memory_manager is not None,
-            "session_status": session.status.value,
-            "last_activity": session.last_activity.isoformat(),
             "config": {
                 "domain": session.config.domain,
+                "llm_model": session.config.llm_model,
+                "embed_model": session.config.embed_model,
+                "max_memory_size": session.config.max_memory_size,
                 "enable_graph": session.config.enable_graph,
-                "max_memory_size": session.config.max_memory_size
-            }
+                "custom_config": session.config.custom_config
+            },
+            "last_activity": session.last_activity.isoformat()
         })
         
     except HTTPException:

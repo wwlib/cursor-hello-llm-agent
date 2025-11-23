@@ -17,46 +17,13 @@ class LLMService:
             config: Configuration dictionary with service settings
                    Required fields depend on specific implementation
                    Optional fields:
-                   - debug: bool - Enable debug logging
-                   - debug_file: str - Path to debug log file
-                   - debug_scope: str - Scope identifier for debug logs
-                   - console_output: bool - Whether to also log to console
+                   - logger: logging.Logger - Logger to use for logging
+                   - default_temperature: float - Default sampling temperature (0.0 to 1.0)
         """
         self.config = config or {}
-        self.debug = self.config.get('debug', False)
-        self.debug_scope = self.config.get('debug_scope', 'llm')
-        self.debug_file = self.config.get('debug_file')
-        self.console_output = self.config.get('console_output', False)
-        
-        # Set up logging if debug is enabled
-        if self.debug:
-            import logging
-            
-            # Create logger
-            self.logger = logging.getLogger(f'llm_service:{self.debug_scope}')
-            self.logger.setLevel(logging.DEBUG)
-            self.logger.propagate = False  # Prevent propagation to root logger
-            
-            # Create formatters
-            scope_prefix = f'[{self.debug_scope}]' if self.debug_scope else ''
-            file_formatter = logging.Formatter(f'{scope_prefix}:[%(funcName)s]:%(message)s')
-            console_formatter = logging.Formatter(f'{scope_prefix}:[%(funcName)s]:%(message)s')
-            
-            # Add file handler if debug_file specified
-            if 'debug_file' in config:
-                file_handler = logging.FileHandler(config['debug_file'])
-                file_handler.setLevel(logging.DEBUG)
-                file_handler.setFormatter(file_formatter)
-                self.logger.addHandler(file_handler)
-            
-            # Add console handler if requested
-            if config.get('console_output', False):
-                console_handler = logging.StreamHandler()
-                console_handler.setLevel(logging.DEBUG)
-                console_handler.setFormatter(console_formatter)
-                self.logger.addHandler(console_handler)
-            
-            self.logger.debug(f":[init]:LLM service initialized with debug logging")
+        self.logger = self.config.get('logger', logging.getLogger(__name__))
+        self.logger.debug(f"[init]:LLM service initialized")
+        self.default_temperature = self.config.get('default_temperature', 0)
     
     def _clean_response(self, llm_response: str) -> str:
         """Clean up special characters and Unicode escape sequences from LLM response.
@@ -105,8 +72,7 @@ class LLMService:
             return cleaned
             
         except Exception as e:
-            if self.debug:
-                self.logger.warning(f"Error cleaning response: {str(e)}")
+            self.logger.error(f"Error cleaning response: {str(e)}")
             return llm_response  # Return original response if cleaning fails
     
     def generate(self, prompt: str, options: Optional[Dict[str, Any]] = None, debug_generate_scope: str = "") -> str:
@@ -123,10 +89,9 @@ class LLMService:
         Returns:
             str: The generated response
         """
-        if self.debug:
-            self.logger.debug(f":[{debug_generate_scope}]:Generating response for prompt:\n{prompt}")
-            if options:
-                self.logger.debug(f":[{debug_generate_scope}]:Generation options:\n{json.dumps(options, indent=2)}")
+        self.logger.debug(f"[{debug_generate_scope}]:Generating response for prompt:\n{prompt}")
+        if options:
+            self.logger.debug(f"[{debug_generate_scope}]:Generation options:\n{json.dumps(options, indent=2)}")
         
         try:
             response = self._generate_impl(prompt, options or {}, debug_generate_scope)
@@ -134,14 +99,12 @@ class LLMService:
             # Clean the response
             cleaned_response = self._clean_response(response)
             
-            if self.debug:
-                self.logger.debug(f":[{debug_generate_scope}]:Generated response:\n{response}\n\n\n\n\n")
+            self.logger.debug(f"[{debug_generate_scope}]:Generated response:\n{response}\n\n\n\n\n")
             
             return cleaned_response
             
         except Exception as e:
-            if self.debug:
-                self.logger.debug(f":[{debug_generate_scope}]:Error generating response: {str(e)}")
+            self.logger.error(f"[{debug_generate_scope}]:Error generating response: {str(e)}")
             raise
     
     def _generate_impl(self, prompt: str, options: Dict[str, Any], debug_generate_scope: str = "") -> str:
@@ -172,10 +135,9 @@ class LLMService:
         Returns:
             str: The generated response
         """
-        if self.debug:
-            self.logger.debug(f":[{debug_generate_scope}]:Generating async response for prompt:\n{prompt}")
-            if options:
-                self.logger.debug(f":[{debug_generate_scope}]:Generation options:\n{json.dumps(options, indent=2)}")
+        self.logger.debug(f"[{debug_generate_scope}]:Generating async response for prompt:\n{prompt}")
+        if options:
+            self.logger.debug(f"[{debug_generate_scope}]:Generation options:\n{json.dumps(options, indent=2)}")
         
         try:
             response = await self._generate_impl_async(prompt, options or {}, debug_generate_scope)
@@ -183,14 +145,12 @@ class LLMService:
             # Clean the response
             cleaned_response = self._clean_response(response)
             
-            if self.debug:
-                self.logger.debug(f":[{debug_generate_scope}]:Generated async response:\n{response}\n\n\n\n\n")
+            self.logger.debug(f"[{debug_generate_scope}]:Generated async response:\n{response}\n\n\n\n\n")
             
             return cleaned_response
             
         except Exception as e:
-            if self.debug:
-                self.logger.debug(f":[{debug_generate_scope}]:Error generating async response: {str(e)}")
+            self.logger.error(f"[{debug_generate_scope}]:Error generating async response: {str(e)}")
             raise
     
     async def _generate_impl_async(self, prompt: str, options: Dict[str, Any], debug_generate_scope: str = "") -> str:
@@ -226,22 +186,22 @@ class LLMService:
         Raises:
             LLMServiceError: If embedding generation fails
         """
-        if self.debug:
-            self.logger.debug(f":[embedding]:Generating embedding for text:\n{text}")
-            if options:
-                self.logger.debug(f":[embedding]:Embedding options:\n{json.dumps(options, indent=2)}")
+        if not text or not text.strip():
+            raise LLMServiceError("Cannot generate embedding for empty text")
+            
+        self.logger.debug(f"[embedding]:Generating embedding for text:\n{text}")
+        if options:
+            self.logger.debug(f"[embedding]:Embedding options:\n{json.dumps(options, indent=2)}")
         
         try:
             embedding = self._generate_embedding_impl(text, options or {})
             
-            if self.debug:
-                self.logger.debug(f":[embedding]:Generated embedding vector of length {len(embedding)}")
+            self.logger.debug(f"[embedding]:Generated embedding vector of length {len(embedding)}")
             
             return embedding
             
         except Exception as e:
-            if self.debug:
-                self.logger.debug(f":[embedding]:Error generating embedding: {str(e)}")
+            self.logger.error(f"[embedding]:Error generating embedding: {str(e)}")
             raise LLMServiceError(f"Failed to generate embedding: {str(e)}")
     
     def _generate_embedding_impl(self, text: str, options: Dict[str, Any]) -> List[float]:

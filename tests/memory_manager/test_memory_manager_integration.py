@@ -1,14 +1,16 @@
 import os
 import pytest
+import asyncio
 from src.memory.memory_manager import MemoryManager
 from src.ai.llm_ollama import OllamaService
 
 @pytest.mark.integration
+@pytest.mark.asyncio
 @pytest.mark.skipif(
     not os.environ.get("OLLAMA_BASE_URL"),
     reason="Requires OLLAMA_BASE_URL environment variable and running LLM service."
 )
-def test_create_and_query_memory_with_real_llm(tmp_path):
+async def test_create_and_query_memory_with_real_llm(tmp_path):
     """
     Integration test: Uses the real LLM service to create and query memory.
     Requires OLLAMA_BASE_URL and a running LLM endpoint.
@@ -42,3 +44,6 @@ def test_create_and_query_memory_with_real_llm(tmp_path):
     assert isinstance(query_result, dict)
     print("\n[Integration] Query response:")
     print(query_result["response"])
+    
+    # Wait a bit for async processing to complete
+    await asyncio.sleep(1)

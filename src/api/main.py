@@ -107,11 +107,12 @@ def create_app() -> FastAPI:
     @app.get("/health")
     async def health_check():
         """Health check endpoint"""
+        from datetime import datetime
         return JSONResponse({
             "status": "healthy",
             "version": "1.0.0",
-            "active_sessions": len(session_manager.active_sessions) if session_manager else 0,
-            "websocket_connections": websocket_manager.get_connection_count()
+            "session_count": len(session_manager.active_sessions) if session_manager else 0,
+            "timestamp": datetime.now().isoformat()
         })
     
     # Global exception handler

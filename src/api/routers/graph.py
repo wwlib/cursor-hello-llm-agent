@@ -39,20 +39,21 @@ async def get_graph_data(
             raise HTTPException(status_code=500, detail="Memory manager not initialized")
             
         # Check if graph memory is available
-        if not hasattr(session.memory_manager, 'graph_manager') or not session.memory_manager.graph_manager:
+        # MemoryManager uses graph_queries (StandaloneGraphQueries) instead of graph_manager
+        graph_queries = getattr(session.memory_manager, 'graph_queries', None)
+        if not graph_queries:
             return GraphDataResponse(
                 nodes=[],
                 edges=[],
                 metadata={"message": "Graph memory not enabled for this session"},
                 stats={"nodes": 0, "edges": 0}
             )
-            
-        graph_manager = session.memory_manager.graph_manager
         
         try:
-            # Get entities (nodes) and relationships (edges) from graph manager
-            entities = graph_manager.nodes  # Dictionary of entity_id -> GraphNode
-            relationships = graph_manager.edges  # List of GraphEdge objects
+            # Get entities (nodes) and relationships (edges) from graph queries
+            # StandaloneGraphQueries exposes nodes and edges as properties
+            entities = graph_queries.nodes  # Dictionary of entity_id -> GraphNode
+            relationships = graph_queries.edges  # List of GraphEdge objects
             
             # Convert entities to nodes
             nodes = []
@@ -72,7 +73,7 @@ async def get_graph_data(
                     
                 # Format for D3 if requested
                 if format == "d3":
-                    node_data["group"] = hash(entity.entity_type) % 10  # Simple grouping
+                    node_data["group"] = hash(entity.type) % 10  # Simple grouping
                     
                 nodes.append(node_data)
             
@@ -164,43 +165,46 @@ async def get_entity_details(
         if not session:
             raise HTTPException(status_code=404, detail="Session not found")
             
-        if not hasattr(session.memory_manager, 'graph_manager') or not session.memory_manager.graph_manager:
+        # MemoryManager uses graph_queries (StandaloneGraphQueries) instead of graph_manager
+        graph_queries = getattr(session.memory_manager, 'graph_queries', None)
+        if not graph_queries:
             raise HTTPException(status_code=404, detail="Graph memory not available")
-            
-        graph_manager = session.memory_manager.graph_manager
         
         # Get entity
-        entities = graph_manager.nodes
+        entities = graph_queries.nodes
         if entity_id not in entities:
             raise HTTPException(status_code=404, detail="Entity not found")
             
         entity = entities[entity_id]
         
         # Get relationships for this entity
-        relationships = graph_manager.edges
+        relationships = graph_queries.edges
         entity_relationships = []
         
         for relationship in relationships:
             if relationship.from_node_id == entity_id or relationship.to_node_id == entity_id:
                 entity_relationships.append({
-                    "id": relationship.id,
                     "type": relationship.relationship,
-                    "description": getattr(relationship, 'evidence', relationship.relationship),
-                    "source": relationship.from_node_id,
-                    "target": relationship.to_node_id,
-                    "is_source": relationship.from_node_id == entity_id
+                    "target_entity": relationship.to_node_id if relationship.from_node_id == entity_id else relationship.from_node_id,
+                    "properties": {
+                        "id": relationship.id,
+                        "description": getattr(relationship, 'evidence', relationship.relationship),
+                        "confidence": getattr(relationship, 'confidence', 1.0),
+                        "created_at": getattr(relationship, 'created_at', ''),
+                        "updated_at": getattr(relationship, 'updated_at', '')
+                    }
                 })
         
+        # Return format matching EntityDetailsResponse interface
         return JSONResponse({
-            "entity": {
-                "id": entity_id,
+            "entity_id": entity_id,
+            "type": entity.type,
+            "properties": {
                 "name": entity.name,
-                "type": entity.entity_type,
                 "description": entity.description,
-                "metadata": entity.metadata
+                **entity.attributes  # GraphNode uses 'attributes', not 'metadata'
             },
-            "relationships": entity_relationships,
-            "relationship_count": len(entity_relationships)
+            "relationships": entity_relationships
         })
         
     except HTTPException:
@@ -220,18 +224,19 @@ async def get_graph_stats(
         if not session:
             raise HTTPException(status_code=404, detail="Session not found")
             
-        if not hasattr(session.memory_manager, 'graph_manager') or not session.memory_manager.graph_manager:
+        # MemoryManager uses graph_queries (StandaloneGraphQueries) instead of graph_manager
+        graph_queries = getattr(session.memory_manager, 'graph_queries', None)
+        if not graph_queries:
             return JSONResponse({
-                "session_id": session_id,
-                "graph_enabled": False,
-                "message": "Graph memory not available for this session"
+                "node_count": 0,
+                "edge_count": 0,
+                "entity_types": {},
+                "relationship_types": {}
             })
-            
-        graph_manager = session.memory_manager.graph_manager
         
         try:
-            entities = graph_manager.nodes
-            relationships = graph_manager.edges
+            entities = graph_queries.nodes
+            relationships = graph_queries.edges
             
             # Count entity types
             entity_types = {}
@@ -246,22 +251,19 @@ async def get_graph_stats(
                 relationship_types[rel_type] = relationship_types.get(rel_type, 0) + 1
         
             return JSONResponse({
-                "session_id": session_id,
-                "graph_enabled": True,
-                "total_entities": len(entities),
-                "total_relationships": len(relationships),
+                "node_count": len(entities),
+                "edge_count": len(relationships),
                 "entity_types": entity_types,
-                "relationship_types": relationship_types,
-                "graph_density": len(relationships) / max(len(entities), 1),
-                "last_updated": session.last_activity.isoformat()
+                "relationship_types": relationship_types
             })
             
         except Exception as graph_error:
             logger.error(f"Graph stats error: {graph_error}")
             return JSONResponse({
-                "session_id": session_id,
-                "graph_enabled": True,
-                "error": f"Failed to calculate graph stats: {str(graph_error)}"
+                "node_count": 0,
+                "edge_count": 0,
+                "entity_types": {},
+                "relationship_types": {}
             })
             
     except HTTPException:

@@ -12,6 +12,7 @@ from pathlib import Path
 from src.memory.rag_manager import RAGManager
 from src.memory.embeddings_manager import EmbeddingsManager
 from src.ai.llm_ollama import OllamaService
+from src.utils.logging_config import LoggingConfig
 
 # Test data paths - memory snapshots from a DND game
 TEST_DATA_DIR = Path("tests/memory_manager/memory_snapshots/rag")
@@ -22,6 +23,9 @@ TEST_CONVERSATIONS_PATH = TEST_DATA_DIR / "agent_memory_f1ce087f-76b3-4383-865f-
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
 OLLAMA_EMBED_MODEL = os.getenv("OLLAMA_EMBED_MODEL", "mxbai-embed-large")
 OLLAMA_LLM_MODEL = os.getenv("OLLAMA_LLM_MODEL", "gemma3")
+
+# Test GUID for logging
+TEST_GUID = "test_rag_manager_integration"
 
 # Development settings for temp files
 DEV_MODE = os.getenv("DEV_MODE", "False").lower() in ("true", "1", "t")
@@ -44,23 +48,31 @@ def clear_file(file_path):
 @pytest.fixture
 def llm_service():
     """Create an instance of OllamaService for testing."""
+    llm_logger = LoggingConfig.get_component_file_logger(
+        TEST_GUID,
+        "ollama_rag",
+        log_to_console=False
+    )
+    
     return OllamaService({
         "base_url": OLLAMA_BASE_URL,
         "model": OLLAMA_LLM_MODEL,
-        "debug": True,
-        "debug_scope": "test_rag_manager",
-        "console_output": True
+        "logger": llm_logger
     })
 
 @pytest.fixture
 def embeddings_service():
     """Create an instance of OllamaService for embeddings."""
+    embeddings_logger = LoggingConfig.get_component_file_logger(
+        TEST_GUID,
+        "ollama_embeddings",
+        log_to_console=False
+    )
+    
     return OllamaService({
         "base_url": OLLAMA_BASE_URL,
         "model": OLLAMA_EMBED_MODEL,
-        "debug": True,
-        "debug_scope": "test_embeddings_manager",
-        "console_output": True
+        "logger": embeddings_logger
     })
     
 @pytest.fixture
@@ -120,8 +132,19 @@ def embeddings_manager(embeddings_service, temp_embeddings_file, test_conversati
     # Ensure file is empty at start
     clear_file(temp_embeddings_file)
     
-    # Create manager
-    manager = EmbeddingsManager(temp_embeddings_file, embeddings_service)
+    # Create logger for embeddings manager
+    embeddings_mgr_logger = LoggingConfig.get_component_file_logger(
+        TEST_GUID,
+        "embeddings_manager",
+        log_to_console=False
+    )
+    
+    # Create manager with logger
+    manager = EmbeddingsManager(
+        temp_embeddings_file,
+        embeddings_service,
+        logger=embeddings_mgr_logger
+    )
     
     # Get conversation entries
     entries = test_conversation_data.get("entries", [])
@@ -138,11 +161,31 @@ def embeddings_manager(embeddings_service, temp_embeddings_file, test_conversati
 @pytest.fixture
 def rag_manager(llm_service, embeddings_manager):
     """Create a RAGManager instance for testing."""
-    return RAGManager(llm_service, embeddings_manager)
+    rag_logger = LoggingConfig.get_component_file_logger(
+        TEST_GUID,
+        "rag_manager",
+        log_to_console=False
+    )
+    
+    return RAGManager(
+        llm_service=llm_service,
+        embeddings_manager=embeddings_manager,
+        logger=rag_logger
+    )
 
 def test_rag_manager_init(llm_service, embeddings_manager):
     """Test that the RAGManager initializes correctly."""
-    manager = RAGManager(llm_service, embeddings_manager)
+    rag_logger = LoggingConfig.get_component_file_logger(
+        TEST_GUID,
+        "rag_manager",
+        log_to_console=False
+    )
+    
+    manager = RAGManager(
+        llm_service=llm_service,
+        embeddings_manager=embeddings_manager,
+        logger=rag_logger
+    )
     assert manager.llm_service == llm_service
     assert manager.embeddings_manager == embeddings_manager
 

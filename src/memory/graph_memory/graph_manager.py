@@ -143,7 +143,7 @@ class GraphManager:
             base_config = {
                 "base_url": getattr(base_llm_service, 'base_url', os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")),
                 "model": getattr(base_llm_service, 'model', 'gemma3'),
-                "temperature": getattr(base_llm_service, 'temperature', 0.7),
+                "default_temperature": getattr(base_llm_service, 'default_temperature', 0),
                 "stream": getattr(base_llm_service, 'stream', False)
             }
         
@@ -154,7 +154,7 @@ class GraphManager:
             "debug_file": llm_graph_manager_debug_file,
             "debug_scope": "graph_manager",
             "console_output": False,
-            "temperature": 0  # Use deterministic temperature for graph operations
+            "default_temperature": 0  # Use deterministic temperature for graph operations
         })
         
         # Create dedicated LLM service for entity resolution
@@ -164,7 +164,7 @@ class GraphManager:
             "debug_file": llm_entity_resolver_debug_file,
             "debug_scope": "entity_resolver",
             "console_output": False,
-            "temperature": 0  # Use deterministic temperature for resolution
+            "default_temperature": 0  # Use deterministic temperature for resolution
         })
         
         # Create dedicated LLM service for relationship extraction
@@ -174,7 +174,7 @@ class GraphManager:
             "debug_file": llm_relationship_extractor_debug_file,
             "debug_scope": "relationship_extractor",
             "console_output": False,
-            "temperature": 0.1  # Use slightly higher temperature for relationship creativity
+            "default_temperature": 0  # Use slightly higher temperature for relationship creativity
         })
         
         try:

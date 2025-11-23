@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { useLogStore } from '../../stores/logStore'
 import { useSessionStore } from '../../stores/sessionStore'
+import { apiClient } from '../../services/api'
 import type { LogEntry } from '../../types/api'
 
 interface LogLevelConfig {
@@ -55,6 +56,13 @@ const LOG_TABS: LogTab[] = [
     description: 'API requests and responses'
   },
   {
+    id: 'files',
+    name: 'Files',
+    sources: [],
+    icon: '📁',
+    description: 'View session log files from disk'
+  },
+  {
     id: 'all',
     name: 'All',
     sources: [],
@@ -85,6 +93,14 @@ const LogViewer: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const logsEndRef = useRef<HTMLDivElement>(null)
   const logsContainerRef = useRef<HTMLDivElement>(null)
+  
+  // Log file viewing state
+  const [logFiles, setLogFiles] = useState<string[]>([])
+  const [selectedLogFile, setSelectedLogFile] = useState<string>('')
+  const [logFileContents, setLogFileContents] = useState<string>('')
+  const [loadingLogFiles, setLoadingLogFiles] = useState(false)
+  const [loadingLogContents, setLoadingLogContents] = useState(false)
+  const [logFileError, setLogFileError] = useState<string>('')
 
   // Initialize log streaming when component mounts
   useEffect(() => {
@@ -104,6 +120,58 @@ const LogViewer: React.FC = () => {
       subscribeToLogs(availableLogSources)
     }
   }, [availableLogSources, subscribedLogSources, subscribeToLogs])
+
+  const loadLogFiles = async () => {
+    if (!currentSession) return
+    
+    setLoadingLogFiles(true)
+    setLogFileError('')
+    try {
+      const response = await apiClient.listSessionLogs(currentSession.session_id)
+      setLogFiles(response.log_files || [])
+      if (response.log_files && response.log_files.length > 0 && !selectedLogFile) {
+        setSelectedLogFile(response.log_files[0])
+      }
+    } catch (error: any) {
+      console.error('Failed to load log files:', error)
+      setLogFileError(error.response?.data?.detail || 'Failed to load log files')
+    } finally {
+      setLoadingLogFiles(false)
+    }
+  }
+
+  const loadLogFileContents = async (filename: string) => {
+    if (!currentSession) return
+    
+    setLoadingLogContents(true)
+    setLogFileError('')
+    try {
+      const response = await apiClient.getSessionLogContents(currentSession.session_id, filename)
+      setLogFileContents(response.contents || '')
+    } catch (error: any) {
+      console.error('Failed to load log file contents:', error)
+      setLogFileError(error.response?.data?.detail || 'Failed to load log file contents')
+      setLogFileContents('')
+    } finally {
+      setLoadingLogContents(false)
+    }
+  }
+
+  // Load log files when Files tab is active
+  useEffect(() => {
+    if (activeTab === 'files' && currentSession) {
+      loadLogFiles()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, currentSession])
+
+  // Load log file contents when a file is selected
+  useEffect(() => {
+    if (activeTab === 'files' && currentSession && selectedLogFile) {
+      loadLogFileContents(selectedLogFile)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, currentSession, selectedLogFile])
 
   // Auto-scroll to bottom when new logs arrive
   useEffect(() => {
@@ -315,7 +383,94 @@ const LogViewer: React.FC = () => {
           onScroll={handleScroll}
           className="flex-1 overflow-y-auto bg-gradient-to-br from-gray-50/30 to-blue-50/20"
         >
-          {activeTabLogs.length === 0 ? (
+          {activeTab === 'files' ? (
+            <div className="p-6 space-y-4">
+              {/* File Selector */}
+              <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-gray-200/50 shadow-sm">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Select Log File:
+                </label>
+                <div className="flex items-center space-x-3">
+                  <select
+                    value={selectedLogFile}
+                    onChange={(e) => setSelectedLogFile(e.target.value)}
+                    disabled={loadingLogFiles || logFiles.length === 0}
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900 disabled:bg-gray-100 disabled:text-gray-500"
+                  >
+                    {loadingLogFiles ? (
+                      <option>Loading files...</option>
+                    ) : logFiles.length === 0 ? (
+                      <option>No log files available</option>
+                    ) : (
+                      logFiles.map((file) => (
+                        <option key={file} value={file}>
+                          {file}
+                        </option>
+                      ))
+                    )}
+                  </select>
+                  <button
+                    onClick={loadLogFiles}
+                    disabled={loadingLogFiles}
+                    className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+                  >
+                    {loadingLogFiles ? '⏳' : '🔄'}
+                  </button>
+                </div>
+                {logFiles.length > 0 && (
+                  <p className="mt-2 text-xs text-gray-500">
+                    {logFiles.length} log file{logFiles.length !== 1 ? 's' : ''} available
+                  </p>
+                )}
+              </div>
+
+              {/* Error Display */}
+              {logFileError && (
+                <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-red-600">❌</span>
+                    <span className="text-red-800 text-sm font-medium">{logFileError}</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Log File Contents */}
+              {loadingLogContents ? (
+                <div className="flex items-center justify-center p-8 bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/50">
+                  <div className="text-center">
+                    <div className="text-2xl mb-2">⏳</div>
+                    <div className="text-gray-600">Loading log file contents...</div>
+                  </div>
+                </div>
+              ) : logFileContents ? (
+                <div className="bg-gray-900 rounded-xl p-4 border border-gray-700 shadow-lg">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-sm font-semibold text-gray-300">
+                      📄 {selectedLogFile}
+                    </h3>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(logFileContents)
+                      }}
+                      className="px-3 py-1 text-xs bg-gray-700 hover:bg-gray-600 text-gray-200 rounded transition-colors"
+                    >
+                      📋 Copy
+                    </button>
+                  </div>
+                  <pre className="text-xs text-gray-300 font-mono overflow-x-auto whitespace-pre-wrap break-words max-h-[600px] overflow-y-auto">
+                    {logFileContents}
+                  </pre>
+                </div>
+              ) : selectedLogFile && !loadingLogContents && !logFileError ? (
+                <div className="flex items-center justify-center p-8 bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/50">
+                  <div className="text-center">
+                    <div className="text-2xl mb-2">📄</div>
+                    <div className="text-gray-600">No contents to display</div>
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          ) : activeTabLogs.length === 0 ? (
             <div className="flex items-center justify-center h-full">
               <div className="text-center p-8 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/50">
                 <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-gray-100 to-blue-100 rounded-full flex items-center justify-center">

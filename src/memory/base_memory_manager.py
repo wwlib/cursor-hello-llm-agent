@@ -152,6 +152,45 @@ class BaseMemoryManager(ABC):
         except Exception as e:
             self.logger.error(f"Error getting conversation history: {str(e)}")
             return []
+    
+    def update_conversation_history_entry(self, entry: Dict[str, Any]) -> bool:
+        """Update an existing entry in the conversation history (e.g., when digest is added).
+        
+        Args:
+            entry: Dictionary containing the conversation entry with updated fields (e.g., digest)
+            
+        Returns:
+            bool: True if entry was updated successfully
+        """
+        try:
+            entry_guid = entry.get("guid")
+            if not entry_guid:
+                self.logger.warning("Cannot update conversation history entry without guid")
+                return False
+            
+            # Load current conversation history
+            conversation_data = self._load_conversation_history()
+            entries = conversation_data.get("entries", [])
+            
+            # Find and update the entry
+            updated = False
+            for i, existing_entry in enumerate(entries):
+                if existing_entry.get("guid") == entry_guid:
+                    # Update the entry with new fields (e.g., digest)
+                    entries[i].update(entry)
+                    updated = True
+                    break
+            
+            if not updated:
+                self.logger.warning(f"Entry with guid {entry_guid} not found in conversation history")
+                return False
+            
+            # Save updated history
+            conversation_data["entries"] = entries
+            return self._save_conversation_history(conversation_data)
+        except Exception as e:
+            self.logger.error(f"Error updating conversation history entry: {str(e)}")
+            return False
 
     def _load_memory(self) -> Dict[str, Any]:
         """Load memory from file."""

@@ -104,10 +104,11 @@ class MemoryCompressor:
                     # Process digest if available
                     if "digest" in entry and "rated_segments" in entry["digest"]:
                         self.logger.debug(f"Processing digest for entry {entry.get('guid')}")
-                        # Filter segments by importance and type
+                        # Filter segments by importance, memory_worthy, and type
                         for segment in entry["digest"]["rated_segments"]:
                             segment_type = segment.get("type", "information")
                             if (segment.get("importance", 0) >= self.importance_threshold and 
+                                segment.get("memory_worthy", True) and  # Only include memory-worthy segments
                                 segment_type in CONTEXT_RELEVANT_TYPES):
                                 # Include role and timestamp with the segment
                                 important_segments.append({
@@ -373,10 +374,11 @@ class MemoryCompressor:
                     # Process digest if available
                     if "digest" in entry and "rated_segments" in entry["digest"]:
                         self.logger.debug(f"Processing digest for entry {entry.get('guid')}")
-                        # Filter segments by importance and type
+                        # Filter segments by importance, memory_worthy, and type
                         for segment in entry["digest"]["rated_segments"]:
                             segment_type = segment.get("type", "information")
                             if (segment.get("importance", 0) >= self.importance_threshold and 
+                                segment.get("memory_worthy", True) and  # Only include memory-worthy segments
                                 segment_type in CONTEXT_RELEVANT_TYPES):
                                 # Include role and timestamp with the segment
                                 important_segments.append({

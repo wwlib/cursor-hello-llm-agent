@@ -122,6 +122,7 @@ def main():
         print("✅ Session management is functional")
         print("✅ REST endpoints are operational")
         print("✅ WebSocket communication is working")
+        print("✅ Log file access is functional")
         print("✅ Ready for browser app integration!")
         
     elif passed >= total * 0.8:

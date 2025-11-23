@@ -17,7 +17,9 @@ import type {
   GraphDataResponse,
   EntityDetailsResponse,
   GraphStatsResponse,
-  HealthResponse
+  HealthResponse,
+  SessionLogsResponse,
+  SessionLogContentsResponse
 } from '../types/api'
 
 class AgentAPIClient {
@@ -179,6 +181,21 @@ class AgentAPIClient {
   async getGraphStats(sessionId: string): Promise<GraphStatsResponse> {
     const response: AxiosResponse<GraphStatsResponse> = await this.axiosInstance.get(
       `/api/v1/sessions/${sessionId}/graph/stats`
+    )
+    return response.data
+  }
+
+  // Log File Operations
+  async listSessionLogs(sessionId: string): Promise<SessionLogsResponse> {
+    const response: AxiosResponse<SessionLogsResponse> = await this.axiosInstance.get(
+      `/api/v1/sessions/${sessionId}/logs`
+    )
+    return response.data
+  }
+
+  async getSessionLogContents(sessionId: string, logFilename: string): Promise<SessionLogContentsResponse> {
+    const response: AxiosResponse<SessionLogContentsResponse> = await this.axiosInstance.get(
+      `/api/v1/sessions/${sessionId}/logs/${logFilename}`
     )
     return response.data
   }

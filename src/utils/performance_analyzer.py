@@ -11,16 +11,19 @@ from typing import Dict, List, Any, Optional, Tuple
 from datetime import datetime
 import logging
 
+PERFORMANCE_DATA_FILE = "performance_data.jsonl"
 
 class PerformanceAnalyzer:
     """
     Analyze performance data to identify bottlenecks and generate recommendations.
     """
     
-    def __init__(self, logger: Optional[logging.Logger] = None):
+    def __init__(self, session_id: str, logs_dir: str, logger: Optional[logging.Logger] = None):
+        self.session_id = session_id
+        self.logs_dir = logs_dir
         self.logger = logger or logging.getLogger(__name__)
     
-    def analyze_session_performance(self, session_id: str) -> Dict[str, Any]:
+    def analyze_session_performance(self) -> Dict[str, Any]:
         """
         Analyze performance data for a specific session.
         
@@ -31,13 +34,13 @@ class PerformanceAnalyzer:
             Dictionary containing analysis results and recommendations
         """
         # Load performance data
-        performance_data = self._load_performance_data(session_id)
+        performance_data = self._load_performance_data()
         if not performance_data:
-            return {"error": f"No performance data found for session {session_id}"}
+            return {"error": f"No performance data found for session {self.session_id} in {self.logs_dir}"}
         
         # Perform analysis
         analysis = {
-            "session_id": session_id,
+            "session_id": self.session_id,
             "timestamp": datetime.now().isoformat(),
             "bottlenecks": self._identify_bottlenecks(performance_data),
             "recommendations": [],
@@ -46,21 +49,28 @@ class PerformanceAnalyzer:
         }
         
         # Generate recommendations based on bottlenecks
-        analysis["recommendations"] = self._generate_recommendations(analysis["bottlenecks"])
+        # TODO: _generate_recommendations
+        # analysis["recommendations"] = self._generate_recommendations(analysis["bottlenecks"])
         
         return analysis
     
-    def _load_performance_data(self, session_id: str) -> List[Dict[str, Any]]:
+    def performance_data_file_path(self) -> str:
+        """Get the path to the performance data file"""
+        return os.path.join(self.logs_dir, PERFORMANCE_DATA_FILE)
+    
+    def performance_data_file_exists(self) -> bool:
+        """Check if the performance data file exists"""
+        return os.path.exists(self.performance_data_file_path())
+    
+    def _load_performance_data(self) -> List[Dict[str, Any]]:
         """Load performance data from session files"""
-        performance_file = os.path.join("logs", session_id, "performance_data.jsonl")
-        
-        if not os.path.exists(performance_file):
-            self.logger.warning(f"Performance data file not found: {performance_file}")
+        if not self.performance_data_file_exists():
+            self.logger.warning(f"Performance data file not found: {PERFORMANCE_DATA_FILE}")
             return []
         
         operations = []
         try:
-            with open(performance_file, 'r') as f:
+            with open(self.performance_data_file_path(), 'r') as f:
                 for line in f:
                     if line.strip():
                         operations.append(json.loads(line))
@@ -224,66 +234,67 @@ class PerformanceAnalyzer:
             }
         }
     
-    def _generate_recommendations(self, bottlenecks: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """Generate optimization recommendations based on identified bottlenecks"""
-        recommendations = []
+    # TODO: fix this method
+    # def _generate_recommendations(self, bottlenecks: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    #     """Generate optimization recommendations based on identified bottlenecks"""
+    #     recommendations = []
         
-        for bottleneck in bottlenecks:
-            op_name = bottleneck["operation_name"]
-            severity = bottleneck["severity"]
-            stats = bottleneck["statistics"]
+    #     for bottleneck in bottlenecks:
+    #         op_name = bottleneck["operation_name"]
+    #         severity = bottleneck["severity"]
+    #         stats = bottleneck["statistics"]
         
+    #         # TODO: fix if/elif/else statements
+    #         elif "llm" in op_name.lower() or "generation" in op_name.lower():
+    #             recommendations.append({
+    #                 "priority": severity,
+    #                 "category": "llm_optimization",
+    #                 "title": "Optimize LLM Operations",
+    #                 "description": f"LLM operation '{op_name}' is taking {stats['avg_duration']:.2f}s on average",
+    #                 "suggestions": [
+    #                     "Cache LLM responses for repeated queries",
+    #                     "Reduce prompt length where possible",
+    #                     "Use batching for multiple LLM calls",
+    #                     "Consider using faster models for non-critical operations"
+    #                 ],
+    #                 "estimated_improvement": "20-40% reduction in LLM processing time"
+    #             })
             
-            elif "llm" in op_name.lower() or "generation" in op_name.lower():
-                recommendations.append({
-                    "priority": severity,
-                    "category": "llm_optimization",
-                    "title": "Optimize LLM Operations",
-                    "description": f"LLM operation '{op_name}' is taking {stats['avg_duration']:.2f}s on average",
-                    "suggestions": [
-                        "Cache LLM responses for repeated queries",
-                        "Reduce prompt length where possible",
-                        "Use batching for multiple LLM calls",
-                        "Consider using faster models for non-critical operations"
-                    ],
-                    "estimated_improvement": "20-40% reduction in LLM processing time"
-                })
+    #         elif "rag" in op_name.lower():
+    #             recommendations.append({
+    #                 "priority": severity,
+    #                 "category": "rag_optimization",
+    #                 "title": "Optimize RAG Processing",
+    #                 "description": f"RAG operation '{op_name}' is taking {stats['avg_duration']:.2f}s on average",
+    #                 "suggestions": [
+    #                     "Implement RAG context caching",
+    #                     "Reduce RAG search limit for faster queries",
+    #                     "Use embeddings caching for frequently accessed content",
+    #                     "Optimize semantic search algorithms"
+    #                 ],
+    #                 "estimated_improvement": "30-50% reduction in RAG processing time"
+    #             })
             
-            elif "rag" in op_name.lower():
-                recommendations.append({
-                    "priority": severity,
-                    "category": "rag_optimization",
-                    "title": "Optimize RAG Processing",
-                    "description": f"RAG operation '{op_name}' is taking {stats['avg_duration']:.2f}s on average",
-                    "suggestions": [
-                        "Implement RAG context caching",
-                        "Reduce RAG search limit for faster queries",
-                        "Use embeddings caching for frequently accessed content",
-                        "Optimize semantic search algorithms"
-                    ],
-                    "estimated_improvement": "30-50% reduction in RAG processing time"
-                })
-            
-            elif stats["percentage_of_total"] > 20:
-                recommendations.append({
-                    "priority": severity,
-                    "category": "general_optimization",
-                    "title": f"Optimize High-Impact Operation: {op_name}",
-                    "description": f"Operation '{op_name}' takes {stats['percentage_of_total']:.1f}% of total time",
-                    "suggestions": [
-                        "Profile this operation in detail to identify sub-bottlenecks",
-                        "Consider async processing if not user-facing",
-                        "Implement caching if operation is repeated",
-                        "Break down into smaller, parallelizable operations"
-                    ],
-                    "estimated_improvement": "Significant impact due to high time percentage"
-                })
+    #         elif stats["percentage_of_total"] > 20:
+    #             recommendations.append({
+    #                 "priority": severity,
+    #                 "category": "general_optimization",
+    #                 "title": f"Optimize High-Impact Operation: {op_name}",
+    #                 "description": f"Operation '{op_name}' takes {stats['percentage_of_total']:.1f}% of total time",
+    #                 "suggestions": [
+    #                     "Profile this operation in detail to identify sub-bottlenecks",
+    #                     "Consider async processing if not user-facing",
+    #                     "Implement caching if operation is repeated",
+    #                     "Break down into smaller, parallelizable operations"
+    #                 ],
+    #                 "estimated_improvement": "Significant impact due to high time percentage"
+    #             })
         
-        # Sort recommendations by priority
-        priority_order = {"high": 3, "medium": 2, "low": 1}
-        recommendations.sort(key=lambda x: priority_order.get(x["priority"], 0), reverse=True)
+    #     # Sort recommendations by priority
+    #     priority_order = {"high": 3, "medium": 2, "low": 1}
+    #     recommendations.sort(key=lambda x: priority_order.get(x["priority"], 0), reverse=True)
         
-        return recommendations
+    #     return recommendations
     
     def _calculate_max_nesting_depth(self, operations: List[Dict[str, Any]]) -> int:
         """Calculate the maximum nesting depth of operations"""
@@ -388,23 +399,15 @@ class PerformanceAnalyzer:
         return "memory" in op_name or "digest" in op_name or "embedding" in op_name
 
 
-def analyze_session_performance(session_id: str) -> Dict[str, Any]:
-    """
-    Convenience function to analyze performance for a session.
-    
-    Args:
-        session_id: Session identifier
-        
-    Returns:
-        Performance analysis results
-    """
-    analyzer = PerformanceAnalyzer()
-    return analyzer.analyze_session_performance(session_id)
-
-
-def print_performance_analysis(session_id: str):
+# TODO: should have a PerformanceTracker instance passed in instead of session_id
+def print_performance_analysis(session_id: str, logs_dir: str):
     """Print a formatted performance analysis report"""
-    analysis = analyze_session_performance(session_id)
+    analyzer = PerformanceAnalyzer(session_id=session_id, logs_dir=logs_dir)
+    if not analyzer.performance_data_file_exists():
+        print(f"No performance data found for session {session_id} in {logs_dir}")
+        return
+    
+    analysis = analyzer.analyze_session_performance()
     
     if "error" in analysis:
         print(f"Error: {analysis['error']}")

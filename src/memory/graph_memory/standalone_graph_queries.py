@@ -259,3 +259,23 @@ class StandaloneGraphQueries:
         """Force refresh of cached graph data."""
         self._load_graph_data(force_refresh=True)
         self.logger.debug("Forced refresh of graph data cache")
+    
+    @property
+    def nodes(self) -> Dict[str, GraphNode]:
+        """Get all nodes (entities) from the graph.
+        
+        Returns:
+            Dictionary mapping entity_id to GraphNode objects
+        """
+        self._load_graph_data()
+        return self._nodes_cache
+    
+    @property
+    def edges(self) -> List[GraphEdge]:
+        """Get all edges (relationships) from the graph.
+        
+        Returns:
+            List of GraphEdge objects
+        """
+        self._load_graph_data()
+        return self._edges_cache

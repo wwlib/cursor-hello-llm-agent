@@ -19,6 +19,8 @@ from ...agent.agent import Agent
 from ...memory.memory_manager import MemoryManager
 from ...ai.llm_ollama import OllamaService
 from .session_registry import SessionRegistry, SessionState
+from ...utils.logging_config import LoggingConfig
+from ...utils.performance_profiles import get_memory_manager_config
 
 logger = logging.getLogger(__name__)
 
@@ -70,27 +72,6 @@ class AgentSession:
         file_path = os.path.join(guid_dir, f"{MEMORY_FILE_PREFIX}.json")
         return file_path
 
-    def setup_session_logging(self) -> Dict[str, str]:
-        """Set up logging directories and files for this session"""
-        # Create logs directory structure
-        logs_dir = BASE_LOGS_DIR
-        os.makedirs(logs_dir, exist_ok=True)
-        
-        # Create GUID-specific logs directory
-        guid_logs_dir = os.path.join(logs_dir, self.session_id)
-        os.makedirs(guid_logs_dir, exist_ok=True)
-        
-        # Define log file paths
-        log_files = {
-            'ollama_general': os.path.join(guid_logs_dir, "ollama_general.log"),
-            'ollama_digest': os.path.join(guid_logs_dir, "ollama_digest.log"),
-            'ollama_embed': os.path.join(guid_logs_dir, "ollama_embed.log"),
-            'memory_manager': os.path.join(guid_logs_dir, "memory_manager.log"),
-            'agent': os.path.join(guid_logs_dir, "agent.log")
-        }
-        
-        return log_files
-        
     async def initialize_agent(self):
         """Initialize the agent for this session"""
         
@@ -105,12 +86,29 @@ class AgentSession:
                         domain_config = get_domain_config(default_domain)
                         if not domain_config:
                             raise ValueError(f"No domain configuration available for '{self.config.domain}' or default '{default_domain}'")
-                        # Update config to reflect the fallback
                         self.config.domain = default_domain
                     
                     logger.info(f"Using domain config: {self.config.domain} - {domain_config.get('domain_name', 'unnamed')}")
-                    # Set up logging and data paths
-                    log_files = self.setup_session_logging()
+                    
+                    # Set up logging FIRST using LoggingConfig (like agent_usage_example.py)
+                    # This ensures proper directory structure: agent_memories/standard/{session_id}/logs/
+                    general_llm_service_logger = LoggingConfig.get_component_file_logger(
+                        self.session_id, "ollama_general", log_to_console=False
+                    )
+                    digest_llm_service_logger = LoggingConfig.get_component_file_logger(
+                        self.session_id, "ollama_digest", log_to_console=False
+                    )
+                    embeddings_llm_service_logger = LoggingConfig.get_component_file_logger(
+                        self.session_id, "ollama_embed", log_to_console=False
+                    )
+                    memory_manager_logger = LoggingConfig.get_component_file_logger(
+                        self.session_id, "memory_manager", log_to_console=False
+                    )
+                    agent_logger = LoggingConfig.get_component_file_logger(
+                        self.session_id, "agent", log_to_console=False
+                    )
+                    
+                    logger.info(f"Logs directory: {LoggingConfig.get_log_base_dir(self.session_id)}")
                     
                     # Get memory file path using the same structure as agent_usage_example
                     memory_type = "standard"  # Default to standard for now
@@ -120,28 +118,13 @@ class AgentSession:
                     memory_file_dir = os.path.dirname(memory_file)
                     os.makedirs(memory_file_dir, exist_ok=True)
                     
-                    # Debug logging to session log directory
-                    debug_log_path = os.path.join(os.path.dirname(log_files['agent']), "debug_memory_file.log")
-                    with open(debug_log_path, "w") as f:
-                        f.write(f"Session ID: {self.session_id}\n")
-                        f.write(f"Memory file path: {memory_file}\n")
-                        f.write(f"Memory file dir: {memory_file_dir}\n")
-                        f.write(f"Memory file is absolute: {os.path.isabs(memory_file)}\n")
-                        f.write(f"Current working directory: {os.getcwd()}\n")
-                    
-                    # Create LLM service for this session
-                    # Use environment variables or defaults
-                    
-                    # Create separate OllamaService instances for different purposes (like agent_usage_example)
+                    # Create separate OllamaService instances with logger parameter (like agent_usage_example.py)
                     general_llm_service = OllamaService({
                         'base_url': os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
                         'model': self.config.llm_model or os.getenv("OLLAMA_MODEL", "llama2"),
                         'temperature': 0.7,
                         'stream': False,
-                        'debug': os.getenv("DEV_MODE", "false").lower() == "true",
-                        'debug_file': log_files['ollama_general'],
-                        'debug_scope': f"session_{self.session_id}_general",
-                        'console_output': False
+                        'logger': general_llm_service_logger  # Use logger instead of debug_file
                     })
                     
                     # Digest generation service
@@ -150,113 +133,83 @@ class AgentSession:
                         'model': self.config.llm_model or os.getenv("OLLAMA_MODEL", "llama2"),
                         'temperature': 0,
                         'stream': False,
-                        'debug': os.getenv("DEV_MODE", "false").lower() == "true",
-                        'debug_file': log_files['ollama_digest'],
-                        'debug_scope': f"session_{self.session_id}_digest",
-                        'console_output': False
+                        'logger': digest_llm_service_logger  # Use logger instead of debug_file
                     })
                     
                     # Embeddings service
                     embeddings_llm_service = OllamaService({
                         'base_url': os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
                         'model': os.getenv("OLLAMA_EMBED_MODEL", "mxbai-embed-large"),
-                        'debug': False,
-                        'debug_file': log_files['ollama_embed']
+                        'logger': embeddings_llm_service_logger  # Use logger instead of debug_file
                     })
                     
-                    # Add WebSocket handlers for LLM service logs if they have loggers
+                    # Add WebSocket handlers for LLM service loggers
                     try:
                         from ..websocket.log_streamer import WebSocketLogHandler, log_streamer
                         formatter = logging.Formatter('%(asctime)s %(levelname)s:%(name)s:%(message)s')
                         
-                        # Add handlers for Ollama loggers if they exist
-                        for log_source, service in [
-                            ("ollama_general", general_llm_service),
-                            ("ollama_digest", digest_llm_service), 
-                            ("ollama_embed", embeddings_llm_service)
+                        # Add handlers for Ollama loggers
+                        for log_source, service_logger in [
+                            ("ollama_general", general_llm_service_logger),
+                            ("ollama_digest", digest_llm_service_logger), 
+                            ("ollama_embed", embeddings_llm_service_logger)
                         ]:
-                            if hasattr(service, 'logger') and service.logger:
-                                ws_handler = WebSocketLogHandler(self.session_id, log_source, log_streamer)
-                                ws_handler.setFormatter(formatter)
-                                service.logger.addHandler(ws_handler)
+                            ws_handler = WebSocketLogHandler(self.session_id, log_source, log_streamer)
+                            ws_handler.setFormatter(formatter)
+                            service_logger.addHandler(ws_handler)
                     except Exception as e:
                         logger.warning(f"Could not add WebSocket log handlers for LLM services: {e}")
-                    
-                    # Set up memory manager logging
-                    memory_manager_logger = logging.getLogger(f"memory_manager.session_{self.session_id}")
-                    memory_manager_logger.setLevel(logging.DEBUG)
-                    memory_manager_log_handler = logging.FileHandler(log_files['memory_manager'])
-                    memory_manager_log_handler.setLevel(logging.DEBUG)
-                    formatter = logging.Formatter('%(asctime)s %(levelname)s:%(name)s:%(message)s')
-                    memory_manager_log_handler.setFormatter(formatter)
-                    memory_manager_logger.addHandler(memory_manager_log_handler)
                     
                     # Add WebSocket log handler for memory manager
                     try:
                         from ..websocket.log_streamer import WebSocketLogHandler, log_streamer
+                        formatter = logging.Formatter('%(asctime)s %(levelname)s:%(name)s:%(message)s')
                         ws_memory_handler = WebSocketLogHandler(self.session_id, "memory_manager", log_streamer)
                         ws_memory_handler.setFormatter(formatter)
                         memory_manager_logger.addHandler(ws_memory_handler)
                     except Exception as e:
                         logger.warning(f"Could not add WebSocket log handler for memory_manager: {e}")
                     
-                    # Create memory manager with session-specific GUID, LLM service, and proper file path
-                    debug_info = f"""
-SessionManager Debug Info for {self.session_id}:
-- Memory file path: {memory_file}
-- Memory file exists: {os.path.exists(memory_file)}
-- Memory file directory: {os.path.dirname(memory_file)}
-- Memory file directory exists: {os.path.exists(os.path.dirname(memory_file))}
-- Current working directory: {os.getcwd()}
-"""
-                    logger.info(debug_info)
+                    # Apply performance profile configuration (like agent_usage_example.py)
+                    performance_profile = os.getenv("PERFORMANCE_PROFILE", "balanced")
+                    perf_config = get_memory_manager_config(performance_profile)
+                    logger.info(f"Using performance profile: {performance_profile}")
                     
-                    # Also write to a debug file for easier inspection
-                    with open("session_manager_debug.log", "a") as f:
-                        f.write(f"{datetime.now()}: {debug_info}\n")
-                    
-                    # Check if verbose mode should be enabled (from environment or config)
+                    # Check if verbose mode should be enabled
                     verbose_enabled = os.environ.get("VERBOSE", "false").lower() in ["true", "1", "yes"]
                     
+                    # Create memory manager with performance configuration
                     self._memory_manager = MemoryManager(
                         memory_guid=self.session_id,
-                        memory_file=memory_file,  # Use the properly structured file path
-                        domain_config=domain_config,  # Pass the resolved domain configuration
+                        memory_file=memory_file,
+                        domain_config=domain_config,
                         llm_service=general_llm_service,
-                        max_recent_conversation_entries=4,
                         digest_llm_service=digest_llm_service,
                         embeddings_llm_service=embeddings_llm_service,
-                        verbose=verbose_enabled,  # Enable verbose logging for WebSocket streaming
-                        enable_graph_memory=self.config.enable_graph,  # Respect user's graph memory setting
-                        logger=memory_manager_logger
+                        verbose=verbose_enabled,
+                        enable_graph_memory=self.config.enable_graph,
+                        logger=memory_manager_logger,
+                        **perf_config  # Apply performance profile settings
                     )
                     
                     # Configure WebSocket verbose streaming if enabled
                     if verbose_enabled and hasattr(self._memory_manager, 'verbose_handler'):
                         try:
                             from ..websocket.verbose_streamer import get_websocket_verbose_handler
-                            # Replace the default verbose handler with WebSocket-enabled one
                             self._memory_manager.verbose_handler = get_websocket_verbose_handler(
                                 session_id=self.session_id,
                                 enabled=True
                             )
-                            # Also pass it to the graph manager if it exists
                             if hasattr(self._memory_manager, 'graph_manager') and self._memory_manager.graph_manager:
                                 self._memory_manager.graph_manager.verbose_handler = self._memory_manager.verbose_handler
                             logger.info(f"Configured WebSocket verbose streaming for session {self.session_id}")
                         except Exception as e:
                             logger.warning(f"Could not configure WebSocket verbose streaming: {e}")
                     
-                    # Set up agent logging
-                    agent_logger = logging.getLogger(f"agent.session_{self.session_id}")
-                    agent_logger.setLevel(logging.DEBUG)
-                    agent_handler = logging.FileHandler(log_files['agent'])
-                    agent_handler.setFormatter(formatter)
-                    agent_logger.addHandler(agent_handler)
-                    
                     # Add WebSocket log handler for agent
                     try:
                         from ..websocket.log_streamer import WebSocketLogHandler, log_streamer
+                        formatter = logging.Formatter('%(asctime)s %(levelname)s:%(name)s:%(message)s')
                         ws_agent_handler = WebSocketLogHandler(self.session_id, "agent", log_streamer)
                         ws_agent_handler.setFormatter(formatter)
                         agent_logger.addHandler(ws_agent_handler)
@@ -267,7 +220,6 @@ SessionManager Debug Info for {self.session_id}:
                         ws_api_handler.setFormatter(formatter)
                         api_logger.addHandler(ws_api_handler)
                         logger.info(f"Added WebSocket log handlers for session {self.session_id}")
-                        
                     except Exception as e:
                         logger.warning(f"Could not add WebSocket log handler for agent: {e}")
                     
@@ -282,7 +234,6 @@ SessionManager Debug Info for {self.session_id}:
                     
                     logger.info(f"Initialized agent for session {self.session_id}")
                     logger.info(f"Memory file: {memory_file}")
-                    logger.info(f"Log files: {log_files}")
                     
                     # Initialize memory with domain-specific initial data (like agent_usage_example.py)
                     await self._initialize_memory_with_domain_data(domain_config)

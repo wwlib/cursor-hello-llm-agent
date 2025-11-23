@@ -5,9 +5,7 @@ import {
   ChevronDownIcon, 
   PlusIcon,
   TrashIcon,
-  DocumentDuplicateIcon,
   ArrowUturnLeftIcon,
-  ClockIcon,
   ArchiveBoxIcon
 } from '@heroicons/react/24/outline'
 import { useSessionStore } from '../../stores/sessionStore'
@@ -77,7 +75,7 @@ const SessionSelector: React.FC = () => {
         >
           <span>
             {currentSession 
-              ? `Session: ${currentSession.session_id.slice(0, 8)}...`
+              ? `Session: ${currentSession.session_id}`
               : 'No Session Selected'
             }
           </span>
@@ -152,7 +150,7 @@ const SessionSelector: React.FC = () => {
                         }}
                       >
                         <div className="font-medium text-gray-900">
-                          {session.session_id.slice(0, 8)}...
+                          {session.session_id}
                         </div>
                         <div className="text-xs text-gray-500">
                           {session.config.domain || 'Default'} • {' '}
@@ -175,14 +173,17 @@ const SessionSelector: React.FC = () => {
                 dormantSessions.length === 0 ? (
                   <div className="px-3 py-2 text-sm text-gray-500">No saved sessions found</div>
                 ) : (
-                  dormantSessions.map((session) => (
+                  dormantSessions
+                    .slice()
+                    .sort((a, b) => a.session_id.localeCompare(b.session_id))
+                    .map((session) => (
                     <div
                       key={session.session_id}
                       className="group flex items-center justify-between px-3 py-2 text-sm hover:bg-gray-50"
                     >
                       <div className="flex-1">
                         <div className="font-medium text-gray-900">
-                          {session.session_id.slice(0, 8)}...
+                          {session.session_id}
                         </div>
                         <div className="text-xs text-gray-500">
                           {session.domain} • {session.conversation_count} msgs • {' '}
@@ -248,8 +249,7 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
 }) => {
   const { isLoading, error } = useSessionStore()
   const [config, setConfig] = useState<SessionConfig>({
-    domain: 'dnd',
-    enable_graph: true
+    domain: 'dnd'
   })
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -305,24 +305,6 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
                     </select>
                   </div>
 
-                  <div>
-                    <label className="flex items-center">
-                      <input
-                        type="checkbox"
-                        checked={config.enable_graph || false}
-                        onChange={(e) => setConfig({ ...config, enable_graph: e.target.checked })}
-                        className="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                        disabled={isLoading}
-                      />
-                      <span className="ml-2 text-sm text-gray-700">Enable Graph Memory</span>
-                    </label>
-                    {config.enable_graph && (
-                      <p className="mt-1 text-xs text-gray-500">
-                        ⚠️ Graph memory initialization may take 2-3 minutes for complex domains
-                      </p>
-                    )}
-                  </div>
-
                   {error && (
                     <div className="rounded-md bg-red-50 p-3">
                       <p className="text-sm text-red-700">{error}</p>
@@ -334,7 +316,7 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
                       <div className="flex items-center">
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
                         <p className="text-sm text-blue-700">
-                          Creating session... This may take up to 3 minutes for graph memory initialization.
+                          Creating session...
                         </p>
                       </div>
                     </div>

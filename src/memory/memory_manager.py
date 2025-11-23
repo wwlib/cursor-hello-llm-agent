@@ -27,6 +27,8 @@ import uuid
 import asyncio
 import logging
 from datetime import datetime
+
+from src.utils.logging_config import LoggingConfig
 from .base_memory_manager import BaseMemoryManager
 from .digest_generator import DigestGenerator
 from .memory_compressor import MemoryCompressor
@@ -167,29 +169,32 @@ class MemoryManager(BaseMemoryManager):
 
     def _create_graph_logger(self, memory_dir: str, memory_base: str) -> logging.Logger:
         """Create a simple logger for graph operations."""
-        logger_name = f"graph_memory.{self.memory_guid}"
-        graph_logger = logging.getLogger(logger_name)
-        
-        if graph_logger.handlers:
-            return graph_logger
-            
-        graph_logger.setLevel(logging.DEBUG)
-        
-        # Create session logs directory
-        logs_base_dir = self._get_logs_base_dir(memory_dir)
-        session_logs_dir = os.path.join(logs_base_dir, "logs", self.memory_guid)
-        os.makedirs(session_logs_dir, exist_ok=True)
-        
-        # Create log file
-        log_file_path = os.path.join(session_logs_dir, "graph_memory.log")
-        file_handler = logging.FileHandler(log_file_path)
-        file_handler.setLevel(logging.DEBUG)
-        formatter = logging.Formatter('%(asctime)s %(levelname)s:%(name)s:%(message)s')
-        file_handler.setFormatter(formatter)
-        graph_logger.addHandler(file_handler)
-        graph_logger.propagate = False
-        
+        graph_logger = LoggingConfig.get_component_file_logger(self.memory_guid, "graph_memory", log_to_console=False)
         return graph_logger
+
+        # logger_name = f"graph_memory.{self.memory_guid}"
+        # graph_logger = logging.getLogger(logger_name)
+        
+        # if graph_logger.handlers:
+        #     return graph_logger
+            
+        # graph_logger.setLevel(logging.DEBUG)
+        
+        # # Create session logs directory
+        # logs_base_dir = self._get_logs_base_dir(memory_dir)
+        # session_logs_dir = os.path.join(logs_base_dir, "logs", self.memory_guid)
+        # os.makedirs(session_logs_dir, exist_ok=True)
+        
+        # # Create log file
+        # log_file_path = os.path.join(session_logs_dir, "graph_memory.log")
+        # file_handler = logging.FileHandler(log_file_path)
+        # file_handler.setLevel(logging.DEBUG)
+        # formatter = logging.Formatter('%(asctime)s %(levelname)s:%(name)s:%(message)s')
+        # file_handler.setFormatter(formatter)
+        # graph_logger.addHandler(file_handler)
+        # graph_logger.propagate = False
+        
+        # return graph_logger
 
     def _get_logs_base_dir(self, memory_dir: str) -> str:
         """Get the base directory for logs."""
@@ -467,8 +472,17 @@ class MemoryManager(BaseMemoryManager):
             if "digest" not in entry:
                 self.logger.debug(f"Generating digest for {entry['role']} entry...")
                 entry["digest"] = self.digest_generator.generate_digest(entry, self.memory)
-                if hasattr(self, '_update_conversation_history_entry'):
-                    self._update_conversation_history_entry(entry)
+                
+                # Update conversation history file with the digest
+                self.update_conversation_history_entry(entry)
+                
+                # Also update in-memory conversation history
+                if "conversation_history" in self.memory:
+                    for i, hist_entry in enumerate(self.memory["conversation_history"]):
+                        if hist_entry.get("guid") == entry.get("guid"):
+                            self.memory["conversation_history"][i] = entry
+                            break
+                
                 self.save_memory("async_digest_generation")
             
             # Update embeddings

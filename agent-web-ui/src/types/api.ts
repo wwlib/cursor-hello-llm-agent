@@ -229,4 +229,19 @@ export interface HealthResponse {
   status: string
   session_count: number
   timestamp: string
+}
+
+// Log File Types
+export interface SessionLogsResponse {
+  session_id: string
+  log_files: string[]
+  total: number
+  status: string
+}
+
+export interface SessionLogContentsResponse {
+  session_id: string
+  log_filename: string
+  contents: string
+  status: string
 } 

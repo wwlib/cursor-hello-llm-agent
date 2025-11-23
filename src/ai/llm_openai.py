@@ -13,8 +13,8 @@ class OpenAIService(LLMService):
             config: Optional configuration with keys:
                 - api_key: OpenAI API key (optional if set in env)
                 - model: Model to use (default: gpt-4)
-                - temperature: Default generation temperature (default: 0.7)
                 - max_tokens: Default maximum tokens (default: 1000)
+                - default_temperature: float - Default sampling temperature (0.0 to 1.0)
         """
         super().__init__(config)
         self.api_key = self.config.get('api_key') or os.getenv('OPENAI_API_KEY')
@@ -22,7 +22,6 @@ class OpenAIService(LLMService):
             raise LLMServiceError("OpenAI API key not found in config or environment")
             
         self.model = self.config.get('model', 'gpt-4')
-        self.default_temperature = self.config.get('temperature', 0.7)
         self.default_max_tokens = self.config.get('max_tokens', 1000)
         openai.api_key = self.api_key
 
@@ -63,6 +62,5 @@ class OpenAIService(LLMService):
             bool: True if response is valid (non-empty string)
         """
         is_valid = isinstance(response, str) and len(response.strip()) > 0
-        if self.debug and not is_valid:
-            self.logger.warning(f"Invalid response format: {response}")
+        self.logger.error(f"Invalid response format: {response}")
         return is_valid

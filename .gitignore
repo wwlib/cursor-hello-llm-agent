@@ -6,6 +6,7 @@ hide
 
 /*.log
 /logs
+logs_archive
 /tests/memory_manager/logs
 /tests/graph_memory/logs
 /agent_memories
@@ -14,6 +15,7 @@ hide
 /test_output_archive
 /tests/test_files
 /examples/temp_data
+/examples/graph_memory_data
 # SpecStory explanation file
 .specstory/.what-is-this.md
 

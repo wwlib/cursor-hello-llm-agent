@@ -13,9 +13,23 @@ project_root = str(Path(__file__).parent.parent)
 if project_root not in sys.path:
     sys.path.append(project_root)
 
+from src.utils.logging_config import LoggingConfig
 from examples.domain_configs import USER_STORY_CONFIG
 from src.ai.llm_ollama import OllamaService
 from src.memory.memory_manager import MemoryManager
+
+# Configuration - use environment variables with sensible defaults
+OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "gemma3")
+OLLAMA_EMBED_MODEL = os.getenv("OLLAMA_EMBED_MODEL", "mxbai-embed-large")
+
+# Base directory for all example memory files
+EXAMPLE_BASE_DIR = "agent_memories/standard/memory_manager_usage_example"
+os.makedirs(EXAMPLE_BASE_DIR, exist_ok=True)
+
+def get_memory_file_path(filename):
+    """Get the full path for a memory file in the example directory"""
+    return os.path.join(EXAMPLE_BASE_DIR, filename)
 
 def print_section_header(title):
     """Print a formatted section header"""
@@ -35,64 +49,70 @@ async def demonstrate_memory_creation():
     """Demonstrate creating and using memory with the MemoryManager"""
     print("\n=== Memory Creation Example ===")
     
-    # Create logs directory structure
-    logs_dir = os.path.join(project_root, "logs")
-    guid = str(uuid.uuid4())
-    guid_logs_dir = os.path.join(logs_dir, guid)
-    os.makedirs(guid_logs_dir, exist_ok=True)
-    print(f"Logs directory: {guid_logs_dir}")
+    # Use a fixed example GUID for this standalone example
+    EXAMPLE_GUID = "memory_creation_example"
     
-    # Create separate debug files for each service within the GUID directory
-    general_debug_file = os.path.join(guid_logs_dir, "general.log")
-    digest_debug_file = os.path.join(guid_logs_dir, "digest.log")
-    embed_debug_file = os.path.join(guid_logs_dir, "embed.log")
-    
-    print(f"Debug log files:")
-    print(f"  General: {general_debug_file}")
-    print(f"  Digest: {digest_debug_file}")
-    print(f"  Embed: {embed_debug_file}")
+    # Set up logging using LoggingConfig
+    general_logger = LoggingConfig.get_component_file_logger(
+        EXAMPLE_GUID,
+        "ollama_general",
+        log_to_console=False
+    )
+    digest_logger = LoggingConfig.get_component_file_logger(
+        EXAMPLE_GUID,
+        "ollama_digest",
+        log_to_console=False
+    )
+    embeddings_logger = LoggingConfig.get_component_file_logger(
+        EXAMPLE_GUID,
+        "ollama_embeddings",
+        log_to_console=False
+    )
+    memory_logger = LoggingConfig.get_component_file_logger(
+        EXAMPLE_GUID,
+        "memory_manager",
+        log_to_console=False
+    )
     
     # Initialize LLM services
     print("\nInitializing LLM services...")
     
     # General query service
     general_llm_service = OllamaService({
-        "base_url": "http://192.168.1.173:11434",
-        "model": "gemma3",
+        "base_url": OLLAMA_BASE_URL,
+        "model": OLLAMA_MODEL,
         "temperature": 0.7,
         "stream": False,
-        "debug": True,
-        "debug_file": general_debug_file,
-        "debug_scope": "memory_example_general"
+        "logger": general_logger
     })
     
     # Digest generation service
     digest_llm_service = OllamaService({
-        "base_url": "http://192.168.1.173:11434",
-        "model": "gemma3",
+        "base_url": OLLAMA_BASE_URL,
+        "model": OLLAMA_MODEL,
         "temperature": 0.7,
         "stream": False,
-        "debug": True,
-        "debug_file": digest_debug_file,
-        "debug_scope": "memory_example_digest"
+        "logger": digest_logger
     })
     
     # Initialize embeddings service
     embeddings_llm_service = OllamaService({
-        "base_url": "http://192.168.1.173:11434",
-        "model": "mxbai-embed-large",
-        "debug": False,
-        "debug_file": embed_debug_file  # Still specify the file even though logging is disabled
+        "base_url": OLLAMA_BASE_URL,
+        "model": OLLAMA_EMBED_MODEL,
+        "logger": embeddings_logger
     })
     
-    # Create memory manager
+    # Create memory manager (memory_guid is first parameter)
+    guid = EXAMPLE_GUID
+    memory_file = get_memory_file_path(f"memory_{guid}.json")
     memory_manager = MemoryManager(
-        memory_file=f"memory_{guid}.json",
+        memory_guid=guid,
+        memory_file=memory_file,
         domain_config=USER_STORY_CONFIG,
         llm_service=general_llm_service,
         digest_llm_service=digest_llm_service,
         embeddings_llm_service=embeddings_llm_service,
-        memory_guid=guid
+        logger=memory_logger
     )
     
     # Create initial memory
@@ -109,84 +129,118 @@ async def demonstrate_memory_creation():
     The party has learned that the ruins were once a temple to Orcus, and the undead are likely being raised by a necromancer.
     """
     
-    await memory_manager.create_memory(input_data)
-    print("Initial memory created successfully")
+    success = memory_manager.create_initial_memory(input_data)
+    if success:
+        print("Initial memory created successfully")
+    else:
+        print("Failed to create initial memory")
+        return
     
     # Query the memory
     print("\nQuerying memory...")
     query = "Tell me about the party members and their current mission"
-    response = await memory_manager.query_memory(query)
+    response = memory_manager.query_memory({"query": query})
     print(f"\nQuery: {query}")
-    print(f"Response: {response}")
+    print(f"Response: {response.get('response', 'No response')}")
     
-    # Update the memory
-    print("\nUpdating memory...")
-    update_data = """
-    The party has discovered that the necromancer is a former priest of Orcus named Kalarel.
-    He is using a portal to the Shadowfell to raise undead.
-    The party needs to find the key to the portal, which is hidden in the temple's crypt.
-    """
+    # Wait a bit for async processing to complete
+    await asyncio.sleep(1)
     
-    await memory_manager.update_memory(update_data)
-    print("Memory updated successfully")
+    # Update the memory (compression)
+    print("\nUpdating memory (compressing conversation history)...")
+    # Note: update_memory compresses conversation history, it doesn't add new content directly
+    # To add new content, we'd add it to conversation history first
+    update_context = {"operation": "update"}
+    success = memory_manager.update_memory(update_context)
+    if success:
+        print("Memory updated (compressed) successfully")
+    else:
+        print("Memory update failed")
     
     # Query again
     print("\nQuerying updated memory...")
     query = "What have they learned about the necromancer and what do they need to do?"
-    response = await memory_manager.query_memory(query)
+    response = memory_manager.query_memory({"query": query})
     print(f"\nQuery: {query}")
-    print(f"Response: {response}")
+    print(f"Response: {response.get('response', 'No response')}")
     
-    # Clean up
-    print("\nCleaning up...")
-    if os.path.exists(memory_manager.memory_file):
-        os.remove(memory_manager.memory_file)
-    print("Memory file removed")
+    # Wait for async processing to complete
+    await asyncio.sleep(1)
+    
+    print(f"\nMemory file saved to: {memory_file}")
+    print(f"Logs saved to: {LoggingConfig.get_log_base_dir(EXAMPLE_GUID)}")
 
 async def demonstrate_multiple_memories():
     """Demonstrate working with multiple memory files using GUIDs"""
     print_section_header("Multiple Memories Demo")
     
-    # Initialize services
+    # Use fixed GUIDs for this example
+    EXAMPLE_GUID_1 = "multiple_memories_example_1"
+    EXAMPLE_GUID_2 = "multiple_memories_example_2"
+    
+    # Set up logging
+    llm_logger = LoggingConfig.get_component_file_logger(
+        EXAMPLE_GUID_1,
+        "ollama",
+        log_to_console=False
+    )
+    memory_logger_1 = LoggingConfig.get_component_file_logger(
+        EXAMPLE_GUID_1,
+        "memory_manager",
+        log_to_console=False
+    )
+    memory_logger_2 = LoggingConfig.get_component_file_logger(
+        EXAMPLE_GUID_2,
+        "memory_manager",
+        log_to_console=False
+    )
+    
+    # Initialize service
     llm_service = OllamaService({
-        "base_url": "http://192.168.1.173:11434",
-        "model": "llama3",
+        "base_url": OLLAMA_BASE_URL,
+        "model": OLLAMA_MODEL,
         "temperature": 0.7,
         "stream": False,
-        "debug": True,
-        "debug_file": "example_memory_debug.log",
-        "debug_scope": "memory_demo"
+        "logger": llm_logger
     })
     
     # Create first memory
-    guid1 = str(uuid.uuid4())
+    guid1 = EXAMPLE_GUID_1
     print(f"Creating first memory with GUID: {guid1}")
+    memory_file_1 = get_memory_file_path("example_memory_1.json")
     memory1 = MemoryManager(
-        llm_service=llm_service, 
-        memory_file="example_memory_1.json", 
-        domain_config=USER_STORY_CONFIG, 
-        memory_guid=guid1
+        memory_guid=guid1,
+        memory_file=memory_file_1,
+        domain_config=USER_STORY_CONFIG,
+        llm_service=llm_service,
+        logger=memory_logger_1
     )
     
     # Create initial memory structure
     success1 = memory1.create_initial_memory("This is the first memory file about Project A.")
     if success1:
         print(f"Memory 1 created with GUID: {memory1.get_memory_guid()}")
+    else:
+        print("Failed to create memory 1")
     
     # Create second memory 
-    guid2 = str(uuid.uuid4())
+    guid2 = EXAMPLE_GUID_2
     print(f"Creating second memory with GUID: {guid2}")
+    memory_file_2 = get_memory_file_path("example_memory_2.json")
     memory2 = MemoryManager(
-        llm_service=llm_service,
-        memory_file="example_memory_2.json",
+        memory_guid=guid2,
+        memory_file=memory_file_2,
         domain_config=USER_STORY_CONFIG,
-        memory_guid=guid2
+        llm_service=llm_service,
+        logger=memory_logger_2
     )
     
     # Create initial memory structure
     success2 = memory2.create_initial_memory("This is the second memory file about Project B.")
     if success2:
         print(f"Memory 2 created with GUID: {memory2.get_memory_guid()}")
+    else:
+        print("Failed to create memory 2")
     
     # Show both memories
     print("\nMemory 1:")
@@ -201,49 +255,56 @@ async def demonstrate_load_memory_by_guid(guid):
     """Demonstrate loading a specific memory by GUID"""
     print_section_header(f"Loading Memory with GUID: {guid}")
     
+    # Set up logging
+    llm_logger = LoggingConfig.get_component_file_logger(
+        guid,
+        "ollama",
+        log_to_console=False
+    )
+    memory_logger = LoggingConfig.get_component_file_logger(
+        guid,
+        "memory_manager",
+        log_to_console=False
+    )
+    
     # Initialize service
     llm_service = OllamaService({
-        "base_url": "http://192.168.1.173:11434",
-        "model": "llama3",
+        "base_url": OLLAMA_BASE_URL,
+        "model": OLLAMA_MODEL,
         "temperature": 0.7,
         "stream": False,
-        "debug": True,
-        "debug_file": "example_memory_debug.log",
-        "debug_scope": "memory_demo"
+        "logger": llm_logger
     })
     
-    # In a real application, you might look up the file by GUID in a registry
-    # For this example, we'll use hardcoded values based on the previous demo
-    
     # Determine which file to load based on the GUID
-    # This is a placeholder for a real GUID-to-filename mapping system
-    memory_file = "example_memory_1.json"  # Default
-    if guid.endswith(guid[-6:]):  # Simple check, would be more robust in production
-        # Check both files to find the matching GUID
+    memory_file = None
+    
+    # Check both files in the example directory to find the matching GUID
+    for filename in ["example_memory_1.json", "example_memory_2.json"]:
+        file_path = get_memory_file_path(filename)
         try:
-            with open("example_memory_1.json", 'r') as f:
-                data = json.load(f)
-                if data.get("guid") == guid:
-                    memory_file = "example_memory_1.json"
+            if os.path.exists(file_path):
+                with open(file_path, 'r') as f:
+                    data = json.load(f)
+                    if data.get("guid") == guid:
+                        memory_file = file_path
+                        break
         except Exception:
             pass
-            
-        try:
-            with open("example_memory_2.json", 'r') as f:
-                data = json.load(f)
-                if data.get("guid") == guid:
-                    memory_file = "example_memory_2.json"
-        except Exception:
-            pass
+    
+    if not memory_file:
+        print(f"Error: Could not find memory file with GUID: {guid}")
+        return None
     
     print(f"Loading memory from file: {memory_file}")
     
     # Load the memory with the specified GUID
     memory_manager = MemoryManager(
-        llm_service=llm_service,
+        memory_guid=guid,
         memory_file=memory_file,
         domain_config=USER_STORY_CONFIG,
-        memory_guid=guid  # Specify the expected GUID
+        llm_service=llm_service,
+        logger=memory_logger
     )
     
     # Check if loaded correctly
@@ -267,56 +328,64 @@ async def demonstrate_memory_queries(memory_manager):
     
     for query in queries:
         print(f"\nQuery: {query}")
-        result = memory_manager.query_memory(json.dumps({"user_message": query}))
-        print(f"Response: {result['response']}")
+        result = memory_manager.query_memory({"query": query})
+        print(f"Response: {result.get('response', 'No response')}")
+        
+    # Wait for async processing
+    await asyncio.sleep(1)
         
     print_memory_state(memory_manager, "Memory State After Queries")
 
 async def demonstrate_memory_updates(memory_manager):
-    """Demonstrate updating memory with new information"""
+    """Demonstrate updating memory with compression"""
     print_section_header("Memory Update Demo")
     
-    # Example new information
-    new_info = {
-        "project_update": "The project should eventually have a FastAPI API so it can be used as a REST service"
-    }
+    # Add some conversation history first by querying
+    print("\nAdding conversation history by making queries...")
+    queries = [
+        "The project should eventually have a FastAPI API so it can be used as a REST service"
+    ]
     
-    print("\nAdding new information:")
-    print(json.dumps(new_info, indent=2))
+    for query in queries:
+        memory_manager.query_memory({"query": query})
     
-    success = memory_manager.update_memory(json.dumps(new_info))
+    # Wait for async processing
+    await asyncio.sleep(1)
+    
+    print("\nCompressing conversation history...")
+    update_context = {"operation": "update"}
+    success = memory_manager.update_memory(update_context)
     if success:
-        print("\nMemory updated successfully!")
+        print("\nMemory updated (compressed) successfully!")
         print_memory_state(memory_manager, "Memory State After Update")
     else:
         print("\nFailed to update memory")
 
 async def demonstrate_memory_reflection(memory_manager):
-    """Demonstrate memory reflection"""
+    """Demonstrate memory reflection (compression after queries)"""
     print_section_header("Memory Reflection Demo")
     
     # Add some conversation history
     queries = [
-        "Please describe appripriate user stories to complete the proposed feature",
-        "Please describe appripriate acceptance criteria for the proposed user stories",
+        "Please describe appropriate user stories to complete the proposed feature",
+        "Please describe appropriate acceptance criteria for the proposed user stories",
     ]
     
     print("\nGenerating some conversation history...")
     for query in queries:
-        memory_manager.query_memory(json.dumps({"user_message": query}))
+        memory_manager.query_memory({"query": query})
     
-    print("\nTriggering reflection...")
-    reflection_context = {
-        "operation": "reflect",
-        "messages": memory_manager.memory.get("conversation_history", [])
-    }
+    # Wait for async processing
+    await asyncio.sleep(1)
     
-    success = memory_manager.update_memory(json.dumps(reflection_context))
+    print("\nTriggering compression (reflection)...")
+    update_context = {"operation": "update"}
+    success = memory_manager.update_memory(update_context)
     if success:
-        print("\nReflection completed successfully!")
-        print_memory_state(memory_manager, "Memory State After Reflection")
+        print("\nCompression completed successfully!")
+        print_memory_state(memory_manager, "Memory State After Compression")
     else:
-        print("\nReflection failed")
+        print("\nCompression failed")
 
 async def main():
     """Main function to run the memory manager examples"""
@@ -329,26 +398,29 @@ async def main():
         
         # Demonstrate loading memory by GUID
         loaded_memory = await demonstrate_load_memory_by_guid(guid2)
+        if loaded_memory is None:
+            print("Failed to load memory, skipping query demo")
+            return
         
         # Demonstrate queries on loaded memory
         await demonstrate_memory_queries(loaded_memory)
         
         # Demonstrate updates
-        # await demonstrate_memory_updates(memory_manager)
+        # await demonstrate_memory_updates(loaded_memory)
         
         # Demonstrate reflection
-        # await demonstrate_memory_reflection(memory_manager)
+        # await demonstrate_memory_reflection(loaded_memory)
         
-        # Clean up
-        # memory_manager.clear_memory()
-        # print("\nExample completed and test memory cleared.")
+        print(f"\nAll memory files saved to: {EXAMPLE_BASE_DIR}")
+        print("(No cleanup needed - files are organized in the example directory)")
         
     except Exception as e:
         print(f"\nError during example: {str(e)}")
+        import traceback
+        traceback.print_exc()
 
 if __name__ == "__main__":
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
         print("\nExample ended by user.")
-

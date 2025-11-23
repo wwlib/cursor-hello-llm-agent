@@ -39,7 +39,8 @@ const ChatInterface: React.FC = () => {
       setSession(currentSession.session_id)
       setVerboseSession(currentSession.session_id)
     }
-  }, [currentSession?.session_id, setSession, setVerboseSession])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentSession?.session_id]) // setSession and setVerboseSession are stable Zustand functions
 
   // Subscribe to verbose status when connected
   useEffect(() => {

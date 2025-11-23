@@ -7,7 +7,7 @@ Tests the RelationshipExtractor with actual Ollama LLM calls to validate:
 - Domain-specific relationship type detection
 - LLM reasoning for relationship inference
 - Confidence scoring and evidence generation
-- Deduplication and validation
+- Relationship validation
 
 Requires running Ollama service with environment variables:
 - OLLAMA_BASE_URL
@@ -21,7 +21,6 @@ import json
 import tempfile
 import shutil
 import pytest
-import logging
 from pathlib import Path
 from typing import Dict, List, Any, Optional
 import asyncio
@@ -32,11 +31,14 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'src'))
 
 from memory.graph_memory.relationship_extractor import RelationshipExtractor
 from ai.llm_ollama import OllamaService
+from utils.logging_config import LoggingConfig
 
 # Import domain config
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'sample_data'))
 from domain_configs import DND_CONFIG
 
+# Test GUID for logging
+TEST_GUID = "test_relationship_extractor_real_llm"
 
 # Create a session-scoped UUID that can be shared between fixtures
 @pytest.fixture(scope="session")
@@ -57,26 +59,25 @@ def setup_ollama_service(test_uuid=None):
     print(f"  Model: {model}")
     print(f"  Embedding Model: {embed_model}")
     
-    # Use the project root logs directory with UUID
-    project_root = Path(__file__).parent.parent.parent  # Go up to project root
+    # Use LoggingConfig for consistent logging
     if test_uuid:
-        logs_dir = project_root / "logs" / test_uuid
-        print(f"  Logs directory: {logs_dir}")
+        guid = f"{TEST_GUID}_{test_uuid}"
     else:
-        # Fallback to old location if no UUID provided
-        logs_dir = Path(__file__).parent / "logs"
+        guid = TEST_GUID
     
-    logs_dir.mkdir(parents=True, exist_ok=True)
+    llm_logger = LoggingConfig.get_component_file_logger(
+        guid,
+        "ollama_relationship_extractor",
+        log_to_console=False
+    )
     
-    # Configure LLM service with detailed logging
+    print(f"  Logs directory: {LoggingConfig.get_log_base_dir(guid)}")
+    
+    # Configure LLM service with logger
     llm_config = {
         "base_url": base_url,
         "model": model,
-        "embed_model": embed_model,
-        "debug": True,
-        "debug_file": str(logs_dir / "test_ollama_relationship_extraction.log"),
-        "debug_scope": "relationship_extractor_test",
-        "console_output": False
+        "logger": llm_logger
     }
     
     return OllamaService(llm_config)
@@ -111,28 +112,22 @@ def ollama_service(test_run_uuid):
 @pytest.fixture
 def relationship_extractor(ollama_service, test_run_uuid):
     """Create RelationshipExtractor with real LLM service and DND domain config."""
-    # Create a specific logger for relationship extraction
-    rel_logger = logging.getLogger(f"relationship_extractor_test.{test_run_uuid}")
-    rel_logger.setLevel(logging.DEBUG)
+    # Use LoggingConfig for consistent logging
+    if test_run_uuid:
+        guid = f"{TEST_GUID}_{test_run_uuid}"
+    else:
+        guid = TEST_GUID
     
-    # Add handler to write to the same log file as the LLM service
-    log_dir = f"logs/{test_run_uuid}"
-    os.makedirs(log_dir, exist_ok=True)
-    log_file = os.path.join(log_dir, "test_relationship_extractor_real_llm.log")
-    
-    # Check if handler already exists to avoid duplicates
-    if not any(isinstance(h, logging.FileHandler) and h.baseFilename.endswith("test_relationship_extractor_real_llm.log") 
-               for h in rel_logger.handlers):
-        file_handler = logging.FileHandler(log_file)
-        file_handler.setLevel(logging.DEBUG)
-        formatter = logging.Formatter('[%(name)s]:[%(funcName)s]::[%(levelname)s]:%(message)s')
-        file_handler.setFormatter(formatter)
-        rel_logger.addHandler(file_handler)
+    extractor_logger = LoggingConfig.get_component_file_logger(
+        guid,
+        "relationship_extractor",
+        log_to_console=False
+    )
     
     return RelationshipExtractor(
         llm_service=ollama_service,
         domain_config=DND_CONFIG,
-        logger=rel_logger
+        logger=extractor_logger
     )
 
 
@@ -145,35 +140,40 @@ def sample_entities():
             "name": "Elena",
             "type": "character",
             "description": "Mayor of Haven who protects the valley's inhabitants from danger",
-            "status": "new"
+            "resolved_node_id": "character_elena_001",  # Required for relationship extraction
+            "status": "resolved"
         },
         {
             "id": "location_haven_001", 
             "name": "Haven",
             "type": "location",
             "description": "Central settlement in the Lost Valley, well-protected and secure",
-            "status": "new"
+            "resolved_node_id": "location_haven_001",  # Required for relationship extraction
+            "status": "resolved"
         },
         {
             "id": "location_lost_valley_001",
             "name": "The Lost Valley",
             "type": "location", 
             "description": "A hidden valley surrounded by impassable mountains",
-            "status": "new"
+            "resolved_node_id": "location_lost_valley_001",  # Required for relationship extraction
+            "status": "resolved"
         },
         {
             "id": "character_theron_001",
             "name": "Theron",
             "type": "character",
             "description": "Master scholar who studies ancient ruins and magical artifacts",
-            "status": "new"
+            "resolved_node_id": "character_theron_001",  # Required for relationship extraction
+            "status": "resolved"
         },
         {
             "id": "location_ancient_ruins_001",
             "name": "Ancient Ruins",
             "type": "location",
             "description": "Mysterious stone structures with strange magical energy",
-            "status": "new"
+            "resolved_node_id": "location_ancient_ruins_001",  # Required for relationship extraction
+            "status": "resolved"
         }
     ]
 
@@ -182,7 +182,7 @@ def sample_entities():
 class TestRelationshipExtractorRealLLM:
     """Integration tests with real LLM service."""
     
-    def test_basic_relationship_extraction(self, relationship_extractor, sample_entities, temp_storage_path):
+    def test_basic_relationship_extraction(self, relationship_extractor, sample_entities, temp_storage_path, test_run_uuid):
         """Test basic relationship extraction from conversation with entity context."""
         print("\n=== Testing Basic Relationship Extraction ===")
         
@@ -198,7 +198,14 @@ class TestRelationshipExtractorRealLLM:
         
         print(f"Testing with {len(sample_entities)} entities...")
         print(f"Conversation: {conversation_text[:100]}...")
-        print(f"Log file location: {relationship_extractor.llm_service.debug_file}")
+        
+        # Get log directory from LoggingConfig
+        if test_run_uuid:
+            guid = f"{TEST_GUID}_{test_run_uuid}"
+        else:
+            guid = TEST_GUID
+        log_dir = LoggingConfig.get_log_base_dir(guid)
+        print(f"Log directory: {log_dir}")
         print()
         
         # Extract relationships
@@ -210,7 +217,14 @@ class TestRelationshipExtractorRealLLM:
         
         print(f"Extracted {len(relationships)} relationships:")
         for i, rel in enumerate(relationships, 1):
-            print(f"  {i}. {rel['from_entity']} -[{rel['relationship']}]-> {rel['to_entity']}")
+            # Use entity IDs, not names (API returns IDs)
+            from_id = rel.get('from_entity_id', 'unknown')
+            to_id = rel.get('to_entity_id', 'unknown')
+            # Find entity names for display
+            from_entity = next((e['name'] for e in sample_entities if e.get('resolved_node_id') == from_id), from_id)
+            to_entity = next((e['name'] for e in sample_entities if e.get('resolved_node_id') == to_id), to_id)
+            
+            print(f"  {i}. {from_entity} -[{rel['relationship']}]-> {to_entity}")
             print(f"     Confidence: {rel.get('confidence', 'N/A')}")
             print(f"     Evidence: {rel.get('evidence', 'N/A')}")
             print()
@@ -219,9 +233,9 @@ class TestRelationshipExtractorRealLLM:
         assert len(relationships) > 0, "Should extract at least one relationship"
         
         for rel in relationships:
-            # Check required fields
-            assert 'from_entity' in rel, "Relationship missing from_entity"
-            assert 'to_entity' in rel, "Relationship missing to_entity"
+            # Check required fields (API uses entity IDs, not names)
+            assert 'from_entity_id' in rel, "Relationship missing from_entity_id"
+            assert 'to_entity_id' in rel, "Relationship missing to_entity_id"
             assert 'relationship' in rel, "Relationship missing relationship type"
             
             # Check confidence is reasonable
@@ -236,7 +250,7 @@ class TestRelationshipExtractorRealLLM:
         self._save_test_results(relationships, temp_storage_path, "basic_extraction_test")
         
         print(f"✅ Basic relationship extraction test passed!")
-        print(f"Check detailed LLM logs at: {relationship_extractor.llm_service.debug_file}")
+        print(f"Check detailed LLM logs at: {log_dir}")
     
     def test_domain_specific_relationships(self, relationship_extractor, temp_storage_path):
         """Test domain-specific D&D relationship extraction."""
@@ -249,35 +263,40 @@ class TestRelationshipExtractorRealLLM:
                 "name": "Gandalf the Grey",
                 "type": "character",
                 "description": "Powerful wizard who leads the Fellowship and fights against evil",
-                "status": "new"
+                "resolved_node_id": "character_wizard_001",
+                "status": "resolved"
             },
             {
                 "id": "organization_fellowship_001",
                 "name": "Fellowship of the Ring",
                 "type": "organization",
                 "description": "Group of heroes united to destroy the One Ring",
-                "status": "new"
+                "resolved_node_id": "organization_fellowship_001",
+                "status": "resolved"
             },
             {
                 "id": "object_staff_001",
                 "name": "Wizard's Staff",
                 "type": "object",
                 "description": "Magical staff wielded by Gandalf for casting spells",
-                "status": "new"
+                "resolved_node_id": "object_staff_001",
+                "status": "resolved"
             },
             {
                 "id": "character_sauron_001",
                 "name": "Sauron",
                 "type": "character", 
                 "description": "Dark Lord and primary antagonist seeking the One Ring",
-                "status": "new"
+                "resolved_node_id": "character_sauron_001",
+                "status": "resolved"
             },
             {
                 "id": "spell_fireball_001",
                 "name": "Fireball",
                 "type": "spell",
                 "description": "Destructive fire magic spell used in combat",
-                "status": "new"
+                "resolved_node_id": "spell_fireball_001",
+                "status": "resolved"
             }
         ]
         
@@ -310,7 +329,12 @@ class TestRelationshipExtractorRealLLM:
         for rel_type, rels in relationships_by_type.items():
             print(f"\n  {rel_type.upper()} relationships:")
             for rel in rels:
-                print(f"    • {rel['from_entity']} -> {rel['to_entity']}")
+                # Find entity names for display
+                from_id = rel.get('from_entity_id', '')
+                to_id = rel.get('to_entity_id', '')
+                from_entity = next((e['name'] for e in dnd_entities if e.get('resolved_node_id') == from_id), from_id)
+                to_entity = next((e['name'] for e in dnd_entities if e.get('resolved_node_id') == to_id), to_id)
+                print(f"    • {from_entity} -> {to_entity}")
         
         # Check for expected D&D relationship types
         expected_types = ['leads', 'member_of', 'owns', 'uses', 'enemies_with']
@@ -331,141 +355,6 @@ class TestRelationshipExtractorRealLLM:
             assert rel['relationship'] in dnd_types, f"Unknown relationship type: {rel['relationship']}"
         
         print(f"✅ Domain-specific D&D relationship extraction test passed!")
-    
-    def test_entity_only_relationship_extraction(self, relationship_extractor, temp_storage_path):
-        """Test relationship extraction with just entities and minimal context."""
-        print("\n=== Testing Entity-Only Relationship Extraction ===")
-        
-        # Test entities that should have obvious relationships based on descriptions
-        entities = [
-            {
-                "id": "location_castle_001",
-                "name": "Ironhold Castle",
-                "type": "location",
-                "description": "Massive fortress that serves as the royal seat of King Aldric",
-                "status": "new"
-            },
-            {
-                "id": "character_king_001",
-                "name": "King Aldric",
-                "type": "character",
-                "description": "Ruler of the kingdom who resides in Ironhold Castle",
-                "status": "new"
-            },
-            {
-                "id": "object_crown_001",
-                "name": "Crown of Kings",
-                "type": "object",
-                "description": "Ancient crown worn by King Aldric during royal ceremonies",
-                "status": "new"
-            },
-            {
-                "id": "organization_royal_guard_001",
-                "name": "Royal Guard",
-                "type": "organization",
-                "description": "Elite soldiers who protect King Aldric and defend Ironhold Castle",
-                "status": "new"
-            }
-        ]
-        
-        context_text = "Royal court setting with established hierarchy and territorial control."
-        
-        # Extract relationships using entity-only method
-        relationships = relationship_extractor.extract_relationships_from_entities(
-            entities=entities,
-            context_text=context_text
-        )
-        
-        print(f"Extracted {len(relationships)} relationships from entity analysis:")
-        for rel in relationships:
-            print(f"  • {rel['from_entity']} -[{rel['relationship']}]-> {rel['to_entity']}")
-            print(f"    Evidence: {rel.get('evidence', 'N/A')}")
-        
-        # Save results
-        self._save_test_results(relationships, temp_storage_path, "entity_only_test")
-        
-        # Validate that logical relationships were found
-        assert len(relationships) > 0, "Should find relationships based on entity descriptions"
-        
-        # Check for expected relationship patterns
-        entity_names = [entity['name'] for entity in entities]
-        relationship_pairs = [(rel['from_entity'], rel['to_entity']) for rel in relationships]
-        
-        print(f"\nRelationship pairs found: {relationship_pairs}")
-        print(f"Available entities: {entity_names}")
-        
-        # All relationships should involve the provided entities
-        for rel in relationships:
-            assert rel['from_entity'] in entity_names, f"Unknown from_entity: {rel['from_entity']}"
-            assert rel['to_entity'] in entity_names, f"Unknown to_entity: {rel['to_entity']}"
-        
-        print(f"✅ Entity-only relationship extraction test passed!")
-    
-    def test_relationship_deduplication(self, relationship_extractor, temp_storage_path):
-        """Test relationship deduplication functionality."""
-        print("\n=== Testing Relationship Deduplication ===")
-        
-        # Create test relationships with duplicates
-        test_relationships = [
-            {
-                "from_entity": "Elena",
-                "to_entity": "Haven", 
-                "relationship": "located_in",
-                "confidence": 0.9,
-                "evidence": "Elena is the mayor of Haven"
-            },
-            {
-                "from_entity": "elena",  # Different case
-                "to_entity": "haven",   # Different case
-                "relationship": "located_in",
-                "confidence": 0.8,
-                "evidence": "Elena lives in Haven"
-            },
-            {
-                "from_entity": "Theron",
-                "to_entity": "Ancient Ruins",
-                "relationship": "uses",
-                "confidence": 0.7,
-                "evidence": "Theron studies the ruins"
-            },
-            {
-                "from_entity": "Elena",
-                "to_entity": "Haven",
-                "relationship": "owns",  # Different relationship type
-                "confidence": 0.6,
-                "evidence": "Elena owns property in Haven"
-            }
-        ]
-        
-        print(f"Input relationships: {len(test_relationships)}")
-        for i, rel in enumerate(test_relationships, 1):
-            print(f"  {i}. {rel['from_entity']} -[{rel['relationship']}]-> {rel['to_entity']}")
-        
-        # Deduplicate
-        deduplicated = relationship_extractor.deduplicate_relationships(test_relationships)
-        
-        print(f"\nAfter deduplication: {len(deduplicated)}")
-        for i, rel in enumerate(deduplicated, 1):
-            print(f"  {i}. {rel['from_entity']} -[{rel['relationship']}]-> {rel['to_entity']}")
-        
-        # Save results
-        results = {
-            "original": test_relationships,
-            "deduplicated": deduplicated,
-            "removed_count": len(test_relationships) - len(deduplicated)
-        }
-        self._save_test_results(results, temp_storage_path, "deduplication_test")
-        
-        # Validate deduplication
-        assert len(deduplicated) < len(test_relationships), "Should remove at least one duplicate"
-        assert len(deduplicated) == 3, "Should have 3 unique relationships (Elena->Haven located_in, Theron->Ancient Ruins uses, Elena->Haven owns)"
-        
-        # Check that different relationship types are preserved
-        relationship_keys = {(rel['from_entity'].lower(), rel['to_entity'].lower(), rel['relationship']) 
-                           for rel in deduplicated}
-        assert len(relationship_keys) == len(deduplicated), "Each relationship should be unique"
-        
-        print(f"✅ Relationship deduplication test passed!")
     
     def test_confidence_and_evidence_generation(self, relationship_extractor, sample_entities, temp_storage_path):
         """Test that LLM generates appropriate confidence scores and evidence."""
@@ -503,7 +392,13 @@ class TestRelationshipExtractorRealLLM:
         for rel in clear_relationships:
             confidence = rel.get('confidence', 0.5)
             clear_confidences.append(confidence)
-            print(f"  • {rel['from_entity']} -[{rel['relationship']}]-> {rel['to_entity']}")
+            # Find entity names for display
+            from_id = rel.get('from_entity_id', '')
+            to_id = rel.get('to_entity_id', '')
+            from_entity = next((e['name'] for e in sample_entities if e.get('resolved_node_id') == from_id), from_id)
+            to_entity = next((e['name'] for e in sample_entities if e.get('resolved_node_id') == to_id), to_id)
+            
+            print(f"  • {from_entity} -[{rel['relationship']}]-> {to_entity}")
             print(f"    Confidence: {confidence:.2f}")
             print(f"    Evidence: {rel.get('evidence', 'N/A')[:60]}...")
         
@@ -512,7 +407,13 @@ class TestRelationshipExtractorRealLLM:
         for rel in ambiguous_relationships:
             confidence = rel.get('confidence', 0.5)
             ambiguous_confidences.append(confidence)
-            print(f"  • {rel['from_entity']} -[{rel['relationship']}]-> {rel['to_entity']}")
+            # Find entity names for display
+            from_id = rel.get('from_entity_id', '')
+            to_id = rel.get('to_entity_id', '')
+            from_entity = next((e['name'] for e in sample_entities if e.get('resolved_node_id') == from_id), from_id)
+            to_entity = next((e['name'] for e in sample_entities if e.get('resolved_node_id') == to_id), to_id)
+            
+            print(f"  • {from_entity} -[{rel['relationship']}]-> {to_entity}")
             print(f"    Confidence: {confidence:.2f}")
             print(f"    Evidence: {rel.get('evidence', 'N/A')[:60]}...")
         

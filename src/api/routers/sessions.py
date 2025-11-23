@@ -15,6 +15,7 @@ from ..models.sessions import (
 )
 from ..services.session_manager import SessionManager
 from ..configs import get_available_domains, get_domain_config
+from ...utils.logging_config import LoggingConfig
 
 logger = logging.getLogger(__name__)
 
@@ -268,4 +269,74 @@ async def get_domain_configuration(domain_name: str):
         raise
     except Exception as e:
         logger.error(f"Failed to get domain config for {domain_name}: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to get domain config: {str(e)}") 
+        raise HTTPException(status_code=500, detail=f"Failed to get domain config: {str(e)}")
+
+@router.get("/sessions/{session_id}/logs")
+async def list_session_logs(
+    session_id: str,
+    session_manager: SessionManager = Depends(get_session_manager)
+):
+    """List all log files for a session"""
+    try:
+        # Verify session exists (either active or in registry)
+        session = await session_manager.get_session(session_id)
+        if not session:
+            # Check if session exists in registry
+            registry_entry = session_manager.registry.get_session(session_id)
+            if not registry_entry:
+                raise HTTPException(status_code=404, detail="Session not found")
+        
+        # Get list of log files
+        log_files = LoggingConfig.list_log_files(session_id)
+        
+        return JSONResponse({
+            "session_id": session_id,
+            "log_files": log_files,
+            "total": len(log_files),
+            "status": "success"
+        })
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to list logs for session {session_id}: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to list logs: {str(e)}")
+
+@router.get("/sessions/{session_id}/logs/{log_filename}")
+async def get_session_log_contents(
+    session_id: str,
+    log_filename: str,
+    session_manager: SessionManager = Depends(get_session_manager)
+):
+    """Get the contents of a specific log file for a session"""
+    try:
+        # Verify session exists (either active or in registry)
+        session = await session_manager.get_session(session_id)
+        if not session:
+            # Check if session exists in registry
+            registry_entry = session_manager.registry.get_session(session_id)
+            if not registry_entry:
+                raise HTTPException(status_code=404, detail="Session not found")
+        
+        # Security: Prevent path traversal attacks
+        if ".." in log_filename or "/" in log_filename or "\\" in log_filename:
+            raise HTTPException(status_code=400, detail="Invalid log filename")
+        
+        # Get log file contents
+        try:
+            log_contents = LoggingConfig.get_log_file_contents(session_id, log_filename)
+            
+            return JSONResponse({
+                "session_id": session_id,
+                "log_filename": log_filename,
+                "contents": log_contents,
+                "status": "success"
+            })
+        except FileNotFoundError as e:
+            raise HTTPException(status_code=404, detail=f"Log file not found: {log_filename}")
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to get log contents for session {session_id}, file {log_filename}: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to get log contents: {str(e)}") 

@@ -2,6 +2,8 @@
 
 This framework provides comprehensive automated testing for the LLM-driven agent system using simulated user interactions and detailed analysis of agent behavior, memory evolution, and system performance.
 
+Note: ovember 23, 2025 - Some of these tests work but overall they need updating.
+
 ## Overview
 
 The framework simulates realistic user interactions using different personas powered by LLMs, then analyzes the agent's:
@@ -353,15 +355,23 @@ python -c "import sys; print(sys.path)"
 
 ### Debug Mode
 
-Enable detailed logging by modifying LLM service configuration:
+Enable detailed logging using LoggingConfig:
 
-```python
+from src.utils.logging_config import LoggingConfig
+from src.ai.llm_ollama import OllamaService
+
+# Create a logger for detailed testing
+test_logger = LoggingConfig.get_component_file_logger(
+    "test_session_guid",
+    "ollama_testing",
+    log_to_console=False  # Set to True to also log to console
+)
+
 llm_config = {
-    "debug": True,
-    "console_output": True,
-    "debug_scope": "detailed_testing"
-}
-```
+    "base_url": "http://localhost:11434",
+    "model": "gemma3",
+    "logger": test_logger  # Use logger instead of debug parameters
+}Logs will be saved to `logs/{session_guid}/ollama_testing.log` for detailed analysis.
 
 ## Integration with CI/CD
 

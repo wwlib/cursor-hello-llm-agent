@@ -203,11 +203,15 @@ async def get_memory_stats(
             
         memory_manager = session.memory_manager
         
+        # Get conversation count
+        conversation_count = len(memory_manager.get_conversation_history())
+        
+        # Initialize stats with required fields
         stats = {
-            "session_id": session_id,
-            "conversations_count": len(memory_manager.get_conversation_history()),
-            "has_graph_memory": hasattr(memory_manager, 'graph_manager') and memory_manager.graph_manager is not None,
-            "memory_type": type(memory_manager).__name__
+            "conversation_count": conversation_count,
+            "entity_count": 0,
+            "relationship_count": 0,
+            "total_memory_size": conversation_count  # Default to conversation count
         }
         
         # Add graph statistics if available
@@ -217,13 +221,12 @@ async def get_memory_stats(
                 relationships = memory_manager.graph_manager.get_all_relationships()
                 
                 stats.update({
-                    "entities_count": len(entities),
-                    "relationships_count": len(relationships),
-                    "graph_initialized": True
+                    "entity_count": len(entities),
+                    "relationship_count": len(relationships),
+                    "total_memory_size": conversation_count + len(entities) + len(relationships)
                 })
             except Exception as e:
                 logger.warning(f"Could not get graph stats: {e}")
-                stats["graph_initialized"] = False
         
         return JSONResponse(stats)
         

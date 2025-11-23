@@ -153,8 +153,18 @@ class SessionRegistry:
                 continue
             
             # Check if it looks like a session ID (UUID format)
-            if not self._is_uuid_format(item):
-                continue
+            # Relaxing this
+            # if not self._is_uuid_format(item):
+            #     continue
+
+            # Check to see if the item (folder name) is the same as the guid in the agent_memory.json file
+            agent_memory_file = os.path.join(session_path, "agent_memory.json")
+            if os.path.exists(agent_memory_file):
+                with open(agent_memory_file, 'r') as f:
+                    agent_memory_data = json.load(f)
+                    guid = agent_memory_data.get('guid', '')
+                    if guid != item:
+                        continue
             
             scanned_count += 1
             

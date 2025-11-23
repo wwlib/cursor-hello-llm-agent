@@ -15,6 +15,21 @@ from src.ai.llm_ollama import OllamaService
 from src.memory.digest_generator import DigestGenerator
 
 
+def _get_ollama_config():
+    """Get Ollama configuration from environment variables with fallbacks."""
+    base_url = os.getenv('OLLAMA_BASE_URL', 'http://localhost:11434')
+    model = os.getenv('OLLAMA_MODEL', 'gemma3')
+    embed_model = os.getenv('OLLAMA_EMBED_MODEL', 'mxbai-embed-large')
+    dev_mode = os.getenv('DEV_MODE', 'false').lower() == 'true'
+    
+    return {
+        'base_url': base_url,
+        'model': model,
+        'embed_model': embed_model,
+        'dev_mode': dev_mode
+    }
+
+
 @pytest.fixture(scope="module")
 def llm_service():
     """Create an LLM service instance for testing."""
@@ -25,12 +40,14 @@ def llm_service():
     
     debug_file = os.path.join(guid_logs_dir, "llm_evaluation.log")
     
+    config = _get_ollama_config()
+    
     service = OllamaService({
-        "base_url": "http://192.168.1.173:11434",
-        "model": "gemma3",
-        "temperature": 0,
+        "base_url": config['base_url'],
+        "model": config['model'],
+        "default_temperature": 0,
         "stream": False,
-        "debug": True,
+        "debug": config['dev_mode'],
         "debug_file": debug_file,
         "debug_scope": "test_digest_generator_llm_evaluation",
         "console_output": False
@@ -48,12 +65,14 @@ def evaluation_llm_service():
     
     debug_file = os.path.join(guid_logs_dir, "evaluation_llm.log")
     
+    config = _get_ollama_config()
+    
     service = OllamaService({
-        "base_url": "http://192.168.1.173:11434",
-        "model": "gemma3",
-        "temperature": 0.1,  # Slightly higher temperature for evaluation
+        "base_url": config['base_url'],
+        "model": config['model'],
+        "default_temperature": 0.1,  # Slightly higher temperature for evaluation
         "stream": False,
-        "debug": True,
+        "debug": config['dev_mode'],
         "debug_file": debug_file,
         "debug_scope": "evaluation_llm",
         "console_output": False
@@ -206,7 +225,7 @@ async def test_dnd_digest_llm_evaluation(dnd_digest_generator, evaluation_llm_se
     # Get LLM evaluation
     evaluation_response = evaluation_llm_service.generate(
         evaluation_prompt,
-        options={"temperature": 0.1, "stream": False}
+        options={"temperature": 0.1}
     )
     
     # Parse evaluation
@@ -260,7 +279,7 @@ async def test_lab_assistant_digest_llm_evaluation(lab_digest_generator, evaluat
     # Get LLM evaluation
     evaluation_response = evaluation_llm_service.generate(
         evaluation_prompt,
-        options={"temperature": 0.1, "stream": False}
+        options={"temperature": 0.1}
     )
     
     # Parse evaluation
@@ -313,7 +332,7 @@ def test_agent_response_digest_evaluation(lab_digest_generator, evaluation_llm_s
     # Get LLM evaluation
     evaluation_response = evaluation_llm_service.generate(
         evaluation_prompt,
-        options={"temperature": 0.1, "stream": False}
+        options={"temperature": 0.1}
     )
     
     # Parse evaluation
@@ -536,7 +555,7 @@ Provide response as JSON:
     # Get evaluation
     evaluation_response = evaluation_llm_service.generate(
         consistency_prompt,
-        options={"temperature": 0.1, "stream": False}
+        options={"temperature": 0.1}
     )
     
     evaluation = parse_evaluation_response(evaluation_response)

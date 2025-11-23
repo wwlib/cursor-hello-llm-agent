@@ -35,18 +35,18 @@ def test_openai_init():
         service = OpenAIService(config)
         assert service.api_key == 'test-key'
         assert service.model == 'gpt-4'
-        assert service.temperature == 0.7
+        assert service.default_temperature == 0  # Default from base class
 
 def test_openai_init_with_config():
     config = {
         'api_key': 'config-key',
         'model': 'gpt-3.5-turbo',
-        'temperature': 0.5
+        'default_temperature': 0.5  # Changed from 'temperature' to 'default_temperature'
     }
     service = OpenAIService(config)
     assert service.api_key == 'config-key'
     assert service.model == 'gpt-3.5-turbo'
-    assert service.temperature == 0.5
+    assert service.default_temperature == 0.5  # Changed from service.temperature
 
 def test_openai_init_no_api_key():
     with patch.dict(os.environ, {}, clear=True):
@@ -91,18 +91,18 @@ def test_ollama_init():
     service = OllamaService(config)
     assert service.base_url == 'http://localhost:11434'
     assert service.model == 'llama3'
-    assert service.temperature == 0.7
+    assert service.default_temperature == 0  # Changed from service.temperature - default is 0
 
 def test_ollama_init_with_config():
     config = {
         'base_url': 'http://custom:11434',
         'model': 'custom-model',
-        'temperature': 0.5
+        'default_temperature': 0.5  # Changed from 'temperature' to 'default_temperature'
     }
     service = OllamaService(config)
     assert service.base_url == 'http://custom:11434'
     assert service.model == 'custom-model'
-    assert service.temperature == 0.5
+    assert service.default_temperature == 0.5  # Changed from service.temperature
 
 @patch('requests.post')
 def test_ollama_generate_success(mock_post):

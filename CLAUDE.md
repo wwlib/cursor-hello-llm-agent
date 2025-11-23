@@ -73,8 +73,6 @@ pip install -e .
 pip install -r requirements.txt
 ```
 
-
-
 ### Running Examples
 
 environment variables: 
@@ -85,11 +83,6 @@ export DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gem
 # Agent Example
 export DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large; python examples/agent_usage_example.py --verbose --guid agent_test_1 --config dnd 
 
-# Interactive agent with domain config (includes automatic graph memory) and interaction passed in via stdin
-# Fresh runs can be started by specifying a new guid
-# memory files are in <project-root>/agent_memories/standard/[guid]
-# graph memory files are in <project-root>/agent_memories/standard/[guid]/agent_memory_graph_data
-# logs are in <project-root>/logs/[guid]
 
 export DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large; echo "Please describe the ruins" |  python examples/agent_usage_example.py --verbose --guid dnd_test_1 --config dnd 
 
@@ -297,9 +290,8 @@ The system includes a comprehensive automated testing framework that uses LLMs t
 - Overall Quality: Combined weighted score
 
 **Generated Outputs:**
-- Memory files: `agent_memories/standard/autotest_*`
-- Log files: `logs/autotest_*`
-- Test reports: `logs/test_summary_*.json`
+- Memory files: agent_memories/standard/{SESSION_GUID}/
+- Log files: agent_memories/standard/{SESSION_GUID}/logs
 
 ## Common Development Patterns
 
@@ -367,16 +359,16 @@ openai_service = OpenAIService({
 
 ## Memory Storage Files
 
-agent_memories/standard/{GUID}/agent_memory.json
-agent_memories/standard/{GUID}/agent_memory_conversations.json
-agent_memories/standard/{GUID}/agent_memory_graph_data/graph_edges.json
-agent_memories/standard/{GUID}/agent_memory_graph_data/graph_nodes.json
-agent_memories/standard/{GUID}/agent_memory_graph_data/graph_metadata.json
+agent_memories/standard/{SESSION_GUID}/agent_memory.json
+agent_memories/standard/{SESSION_GUID}/agent_memory_conversations.json
+agent_memories/standard/{SESSION_GUID}/agent_memory_graph_data/graph_edges.json
+agent_memories/standard/{SESSION_GUID}/agent_memory_graph_data/graph_nodes.json
+agent_memories/standard/{SESSION_GUID}/agent_memory_graph_data/graph_metadata.json
 
 ## Logs
 
-agent_memories/standard/{GUID}/logs
-agent_memories/standard/{GUID}/agent_memory_graph_data/graph_verbose.log
+agent_memories/standard/{SESSION_GUID}/logs
+agent_memories/standard/{SESSION_GUID}/agent_memory_graph_data/graph_verbose.log
 
 ## Utils
 
