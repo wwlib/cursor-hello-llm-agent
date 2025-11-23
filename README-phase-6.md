@@ -589,7 +589,9 @@ See: tests/automated_agent_testing/README.md
 See: tests/automated_agent_testing/test_runner.py
 See: run_automated_tests.py
 
-python run_automated_tests.py --domain dnd
+Note: Many of these tests work, but the should be reviewed and updated.
+
+export DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large; python run_automated_tests.py --domain dnd
 
 
 

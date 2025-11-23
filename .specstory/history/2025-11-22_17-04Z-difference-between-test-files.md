@@ -15839,3 +15839,158 @@ No changes needed. It's a utility that reads and analyzes log files and doesn't 
 
 ---
 
+_**User (2025-11-22 20:54Z)**_
+
+One more question: When I run `python run_automated_tests.py --domain dnd` how do the scripts know the base url for ollama is http://192.168.10.18:11434 ? I don't see this as a hardcoded value.
+
+---
+
+_**Agent (model default, mode Ask)**_
+
+
+
+---
+
+
+Tracing how the Ollama base URL is determined:
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file">
+<details><summary>Tool use: **read_file** • Read file: run_automated_tests.py</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="search" data-tool-name="grep">
+<details>
+<summary>Tool use: **grep** • Grep for "OLLAMA_BASE_URL|base_url|BASE_URL" in "run_automated_tests.py" • 5 matches</summary>
+
+Output mode: content
+
+
+| File | Content | Line |
+|------|------|------|
+| `run_automated_tests.py` | `OLLAMA_BASE_URL     - Ollama server URL (default: http://localhost:11434)` | L164 |
+| `run_automated_tests.py` | `"base_url": args.base_url or os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),` | L214 |
+| `run_automated_tests.py` | `print(f"  • LLM Base URL: \{llm_config['base_url']\}")` | L244 |
+| `run_automated_tests.py` | `"base_url": llm_config["base_url"],` | L262 |
+| `run_automated_tests.py` | `print(f"   Make sure Ollama is running at \{llm_config['base_url']\}")` | L273 |
+
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="search" data-tool-name="grep">
+<details>
+<summary>Tool use: **grep** • Grep for "OLLAMA_BASE_URL|base_url" in "tests/automated_agent_testing/test_runner.py" • 7 matches</summary>
+
+Output mode: content
+
+
+| File | Content | Line |
+|------|------|------|
+| `tests/automated_agent_testing/test_runner.py` | `base_url = self.llm_config.get("base_url", "http://localhost:11434")` | L103 |
+| `tests/automated_agent_testing/test_runner.py` | `"base_url": base_url,` | L124 |
+| `tests/automated_agent_testing/test_runner.py` | `"base_url": base_url,` | L131 |
+| `tests/automated_agent_testing/test_runner.py` | `"base_url": base_url,` | L138 |
+| `tests/automated_agent_testing/test_runner.py` | `"base_url": self.llm_config.get("base_url", "http://localhost:11434"),` | L260 |
+| `tests/automated_agent_testing/test_runner.py` | `"base_url": os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),` | L692 |
+| `tests/automated_agent_testing/test_runner.py` | `print(f"LLM Base URL: \{llm_config['base_url']\}")` | L699 |
+
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="search" data-tool-name="codebase_search">
+<details>
+                <summary>Tool use: **codebase_search** • Searched codebase "How does test_runner.py get the Ollama base URL from llm_config?" • **15** results</summary>
+            
+| File | Lines |
+|------|-------|
+| `tests/automated_agent_testing/test_runner.py` | L594-748 |
+| `tests/automated_agent_testing/test_runner.py` | L77-200 |
+| `tests/automated_agent_testing/test_runner.py` | L200-591 |
+| `tests/automated_agent_testing/test_runner.py` | L63-200 |
+| `tests/automated_agent_testing/test_framework_design.py` | L109-289 |
+| `tests/automated_agent_testing/test_runner.py` | L60 |
+| `tests/automated_agent_testing/test_framework_design.py` | L436-768 |
+| `tests/automated_agent_testing/test_runner.py` | L80-591 |
+| `tests/automated_agent_testing/test_framework_design.py` | L772-870 |
+| `tests/automated_agent_testing/README.md` | L315-402 |
+| `tests/automated_agent_testing/README.md` | L175-246 |
+| `tests/automated_agent_testing/README.md` | L243-324 |
+| `tests/automated_agent_testing/test_framework_design.py` | L64 |
+| `tests/automated_agent_testing/test_framework_design.py` | L198-433 |
+| `tests/automated_agent_testing/README.md` | L58 |
+
+</details>
+</tool-use>
+
+---
+
+
+
+---
+
+
+The base URL is determined by this priority:
+
+## URL Resolution Order
+
+In `run_automated_tests.py` (line 214):
+
+```python
+"base_url": args.base_url or os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
+```
+
+Priority:
+1. Command-line argument: `--base-url` (if provided)
+2. Environment variable: `OLLAMA_BASE_URL`
+3. Default: `http://localhost:11434`
+
+## How It Works
+
+1. `run_automated_tests.py` reads `OLLAMA_BASE_URL` from your environment.
+2. It builds `llm_config` with that value.
+3. It passes `llm_config` to `TestRunner`.
+4. `TestRunner` passes it to `AgentTestController`.
+5. `AgentTestController.setup_agent()` uses `self.llm_config.get("base_url", ...)` to create `OllamaService` instances.
+
+## To Verify
+
+Check your environment variable:
+
+```bash
+echo $OLLAMA_BASE_URL
+```
+
+If it shows `http://192.168.10.18:11434`, that's where it's coming from.
+
+## To Override
+
+You can override it in several ways:
+
+```bash
+# Option 1: Set environment variable
+export OLLAMA_BASE_URL="http://192.168.10.18:11434"
+python run_automated_tests.py --domain dnd
+
+# Option 2: Use command-line argument
+python run_automated_tests.py --domain dnd --base-url http://192.168.10.18:11434
+
+# Option 3: Set inline
+OLLAMA_BASE_URL="http://192.168.10.18:11434" python run_automated_tests.py --domain dnd
+```
+
+The value is coming from your shell's `OLLAMA_BASE_URL` environment variable, not from hardcoded values in the scripts.
+
+---
+
