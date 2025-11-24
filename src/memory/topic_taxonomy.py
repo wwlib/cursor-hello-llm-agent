@@ -86,8 +86,12 @@ class TopicTaxonomy:
         """Build a map for normalizing similar topics to canonical forms."""
         normalization_map = {}
         
-        # Add all canonical topics from taxonomy
+        # Add all canonical topics from taxonomy (both categories and individual topics)
         for category, topics in self.topic_hierarchy.items():
+            # Add category name itself as a valid topic
+            normalization_map[category.lower()] = category.capitalize()
+            
+            # Add individual topics within the category
             for topic in topics:
                 normalization_map[topic.lower()] = topic
         

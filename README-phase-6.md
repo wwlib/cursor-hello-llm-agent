@@ -1,8 +1,8 @@
 # README-phase-6
 
-## Phase 6 Goals - Graph Memory Enhancement and Relationship Traversal
+## Phase 6 Goals - Add an API so the Agent System Can Act as a Service
 
-Building on the solid foundation of Phase 5's entity-centric graph memory system, Phase 6 focuses on implementing sophisticated relationship traversal and leveraging conversation history metadata for richer context retrieval.
+Add an API so the Agent System Can Act as a Service. This will allow a Browser-based front end to provide an interacgive UI for the agent
 
 ## Current State Assessment
 
@@ -13,169 +13,720 @@ Building on the solid foundation of Phase 5's entity-centric graph memory system
 - Conversation history GUID tracking in node metadata
 - Graph visualization tools and debugging capabilities
 
-❌ **Phase 5 Limitations Identified**:
-- No relationship traversal in graph queries
-- Conversation history GUIDs stored but not utilized for context
-- Basic entity-only context (missing relationship-based insights)
-- No multi-hop reasoning or graph path exploration
+## TODO
 
-## Phase 6 TODO List
+- Add an API to allow remote interaction with the agent system
+- Add an MCP API to allow the agent system and subsystems to be utilized as tools
 
-### 0. Tools for Memory Visualization and Analysis
+## Phase 6 Implementation Status
 
-- Develop tools for memory visualization and analysis
+### "Week 1" Achievements (June 21, 2025)
 
+✅ **REST API Implementation**:
+- FastAPI-based HTTP server with comprehensive endpoints
+- Session management (create, list, delete, cleanup)
+- Agent interaction (status, query processing)
+- Memory management (stats, retrieval, search)
+- Graph data access (JSON/D3 formats, statistics)
+- Health monitoring and error handling
 
-### 1. Relationship Traversal Implementation
+✅ **WebSocket API Implementation**:
+- Real-time bidirectional communication
+- 7 message types: ping/pong, query, status, memory, graph, heartbeat
+- Typing indicators and live response streaming
+- Monitor endpoint for system statistics
+- Connection management and session validation
 
-**Objective**: Enable sophisticated graph queries that follow relationships between entities for richer context.
+✅ **Session Management System**:
+- Multi-tenant session isolation
+- AsyncMemoryManager integration for better persistence
+- Concurrent session handling
+- Automatic cleanup and resource management
+- Session timeout and expiration handling
 
-**Tasks**:
-- [ ] Implement relationship traversal in `GraphManager.query_for_context()`
-- [ ] Add multi-hop entity discovery (e.g., "Eldara" → `located_in` → "Riverwatch" → `contains` → "Magic Shop")
-- [ ] Create path-finding algorithms for entity connections
-- [ ] Add relationship-based query filtering (e.g., "What locations are connected to characters?")
-- [ ] Integrate `GraphQueries` class methods into main query pipeline
-- [ ] Add relationship strength/confidence weighting in traversal
+### "Week 2" Achievements (June 21, 2025)
 
-**Expected Outcome**: 
-```python
-# Current: ["Eldara (character): A fire wizard"]
-# Enhanced: ["Eldara (character): A fire wizard, located in Riverwatch, which contains a Magic Shop"]
+✅ **Browser Web UI Implementation**:
+- React + TypeScript frontend application
+- Real-time chat interface with WebSocket integration
+- Session management and switching
+- Memory and graph data visualization
+- Responsive design with Tailwind CSS
+
+✅ **API Testing & Validation**:
+- Comprehensive test suite with 100% pass rate
+- 29 individual tests across all API components
+- Session persistence validation
+- WebSocket communication testing
+- Error handling and edge case coverage
+
+### API Test Results Summary
+
+**Master Test Suite**: ✅ **3/3 test suites passed (100%)**
+
+1. **Session Manager Tests**: ✅ **6/6 passed (100%)**
+   - Session creation and initialization
+   - Agent and memory manager setup
+   - Concurrent session handling
+   - Session persistence verification
+   - Session listing and cleanup
+
+2. **REST API Tests**: ✅ **13/13 passed (100%)**
+   - Health check endpoint
+   - Session CRUD operations
+   - Agent query processing
+   - Memory statistics and retrieval
+   - Graph data access
+   - Error handling
+
+3. **WebSocket API Tests**: ✅ **10/10 passed (100%)**
+   - Connection establishment
+   - All message types (ping, query, status, memory, graph, heartbeat)
+   - Real-time communication
+   - Monitor endpoint
+   - Invalid session rejection
+
+### Key Technical Fixes Applied
+
+✅ **Memory Persistence Issue**:
+- Migrated from MemoryManager to AsyncMemoryManager
+- Fixed conversation history tracking
+- Resolved method attribute errors
+
+✅ **WebSocket Status Handler**:
+- Fixed Pydantic model serialization issue
+- Added proper JSON conversion for session config
+- Eliminated silent handler failures
+
+✅ **Test Framework**:
+- Fixed path construction in master test runner
+- Aligned test expectations with actual API responses
+- Added comprehensive error reporting
+
+### API Server Commands
+
+**Start API Server**:
+```bash
+DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python -m uvicorn src.api.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-### 2. Conversation History GUID Integration
-
-**Objective**: Leverage conversation history metadata in graph nodes to provide conversational context alongside structured knowledge.
-
-**Tasks**:
-- [ ] Implement `get_conversation_by_guid()` method in MemoryManager
-- [ ] Add conversation context retrieval in graph query results
-- [ ] Create conversation snippet extraction for relevant entity mentions
-- [ ] Add conversation context formatting in `get_graph_context()`
-- [ ] Implement conversation relevance scoring for context selection
-- [ ] Add conversation timestamp filtering for recent vs historical context
-
-**Expected Outcome**:
-```python
-# Current: "Eldara (character): A fire wizard"
-# Enhanced: "Eldara (character): A fire wizard. Recent mention: 'Eldara mentioned she's running low on spell components...'"
+**Run All API Tests**:
+```bash
+cd scripts/api
+python run_api_tests.py
 ```
 
-### 3. Hybrid Context System
-
-**Objective**: Create a unified context system that combines RAG semantic search, graph relationships, and conversation traces.
-
-**Tasks**:
-- [ ] Design hybrid context architecture combining all three systems
-- [ ] Implement context prioritization and relevance scoring
-- [ ] Add conversation trace integration to graph entity results
-- [ ] Create context deduplication to avoid redundant information
-- [ ] Add context length management and truncation strategies
-- [ ] Implement context source attribution (RAG vs Graph vs Conversation)
-
-**Expected Outcome**:
-```
-CONTEXT SOURCES:
-- Semantic RAG: Recent segments about "magic shops" 
-- Graph entities: Eldara (character) connected to Magic Shop (location)
-- Conversation traces: Original context where Eldara discussed spell components
+**Individual Test Scripts**:
+```bash
+python scripts/api/test_session_manager.py
+python scripts/api/test_rest_api.py
+python scripts/api/test_websocket_api.py
 ```
 
-### 4. Advanced Graph Query Features
+### Next Steps
 
-**Objective**: Implement sophisticated graph querying capabilities for complex information retrieval.
+✅ **Phase 6 Complete**: The agent system now has a fully functional API service with:
+- REST endpoints for all core functionality
+- Real-time WebSocket communication
+- Multi-session management
+- Browser-based web UI
+- Comprehensive test coverage
 
-**Tasks**:
-- [ ] Add entity type filtering in relationship traversal
-- [ ] Implement graph clustering and community detection
-- [ ] Add temporal relationship queries (recent vs historical connections)
-- [ ] Create relationship pattern matching (e.g., "characters who own objects in locations")
-- [ ] Add graph statistics and centrality measures for entity importance
-- [ ] Implement query optimization for large graphs
+🎯 **Ready for Production**: The API is validated and ready for:
+- Browser app integration
+- Third-party client development
+- MCP (Model Context Protocol) implementation
+- Scaling and deployment
 
-### 5. Enhanced Graph Visualization
+### Domain Configuration System Implementation (June 22, 2025)
 
-**Objective**: Extend graph viewer to support relationship exploration and conversation context.
+✅ **Domain-Specific Configuration Support**:
+- Enhanced SessionManager to use rich domain configurations from `examples/domain_configs.py`
+- Created `src/api/configs/` module with centralized domain configuration management
+- Added domain configuration API endpoints (`/api/v1/domains`, `/api/v1/domains/{domain}`)
+- Implemented automatic memory initialization with domain-specific initial data
+- Added fallback mechanisms for unknown domains with proper error handling
 
-**Tasks**:
-- [ ] Add relationship traversal visualization in graph viewer
-- [ ] Implement conversation context display on entity hover/click
-- [ ] Add path highlighting for multi-hop queries
-- [ ] Create conversation timeline view for entity mentions
-- [ ] Add query result highlighting in graph visualization
-- [ ] Implement graph filtering and search capabilities in viewer
+✅ **API Integration Improvements**:
+- Fixed graph endpoint compatibility issues with `GraphManager` object model
+- Updated TypeScript types to match actual API response structures
+- Enhanced session creation to validate and apply domain configurations
+- Added domain configuration validation in session config models
 
-### 6. Performance and Scalability
+✅ **Enhanced Web UI Functionality**:
+- Implemented functional Memory and Graph tabs with JSON data visualization
+- Added real-time data fetching for memory statistics and graph information  
+- Created comprehensive data viewers with refresh capabilities and error handling
+- Enhanced user experience with loading states and proper data formatting
 
-**Objective**: Optimize graph memory system for larger knowledge graphs and faster queries.
+✅ **Compatibility & Data Flow**:
+- Ensured SessionManager sessions initialize identically to `agent_usage_example.py`
+- Unified domain configuration access patterns across CLI and API interfaces
+- Preserved existing memory manager and graph functionality while adding API access
+- Maintained backward compatibility with existing domain configuration structure
 
-**Tasks**:
-- [ ] Implement graph indexing for faster relationship lookups
-- [ ] Add caching for frequently accessed entity contexts
-- [ ] Optimize conversation history retrieval performance
-- [ ] Add graph compression and pruning capabilities
-- [ ] Implement incremental graph updates for better performance
-- [ ] Add graph memory usage monitoring and optimization
+**Available Domain Configurations**:
+- `dnd`: D&D Campaign management with NPCs, locations, and quest tracking
+- `lab_assistant`: Laboratory work and experiment documentation
+- `user_story`: Software requirements and feature development
 
-## Technical Architecture Goals
-
-### Enhanced Query Pipeline
-```python
-def enhanced_graph_context(query):
-    # 1. Entity Discovery (current)
-    entities = find_relevant_entities(query)
-    
-    # 2. Relationship Traversal (NEW)
-    connected_entities = traverse_relationships(entities, max_depth=2)
-    
-    # 3. Conversation Context (NEW) 
-    conversation_traces = get_conversation_context(all_entities)
-    
-    # 4. Hybrid Context Assembly (NEW)
-    return combine_contexts(entities, connected_entities, conversation_traces)
+**New API Endpoints**:
+```bash
+GET /api/v1/domains                    # List available domain configurations
+GET /api/v1/domains/{domain}          # Get specific domain configuration details
+GET /api/v1/sessions/{id}/memory      # Enhanced with domain-aware memory data
+GET /api/v1/sessions/{id}/graph       # Fixed graph visualization data access
 ```
 
-### Context Format Evolution
-```
-# Phase 5 (Current):
-GRAPH_CONTEXT:
-• Eldara (character): A fire wizard
+The system now provides seamless domain-specific behavior through both the CLI interface and the web-based API, with proper memory initialization and graph data integration for all supported domains.
 
-# Phase 6 (Target):
-GRAPH_CONTEXT:
-• Eldara (character): A fire wizard
-  - located_in → Riverwatch (location): A valley settlement
-  - owns → Spell Components (object): Magical materials
-  - Recent context: "Eldara mentioned running low on components" (conv_abc123)
-```
 
-## Success Criteria
 
-**Phase 6 Complete When**:
-- [ ] Graph queries include relationship traversal by default
-- [ ] Conversation history enriches graph entity context
-- [ ] Multi-hop reasoning provides deeper insights than single entities
-- [ ] Query performance remains acceptable for graphs with 100+ entities
-- [ ] Graph viewer supports relationship exploration
-- [ ] Comprehensive test coverage for all new features
+### Status of Phase-6 Optimizations - September 1-30, 2025
 
-## Integration with Agent Framework
+This latest phase has been a struggle with agents - primarily Claude Code - to make improvements to the graph processing system. The overarching goal has been to have conversation data processed by the graph system in teh background because it is too slow to be synchronous. Ultimately, the graph processing has been moved to its own process which is started separately from the agent_usage_example CLI.
 
-Phase 6 enhancements will be **backward compatible** and integrate seamlessly with existing agent examples. The enhanced context will provide:
+Status:
+- when started separately, graph processing works and graph files are updated independent of the agent
+- graph construction has lost some effectiveness compared to the late June version (June 8-23)
+- the Web UI probably does not work because it has not been updated with the graph processing
+- last working Web UI was ~June 23
+- any improvements during this phase are overshadowed by convoluted, confusing iteration by the agents
+- it is probably best to abandon the phase-6-optimization branch 
+- overall, the code is a mess and the best options is manual reconstructing by cherry picking any useful parts
+- the AI prompts, conversation parsing, graph parsing, etc. are all very good
+- the Web UI is good and probably usable
+- most important: make everything more modular and avoid having the agents make broad architectural changes
+- maintain working tests
 
-- **Richer Agent Responses**: More contextual and relationship-aware answers
-- **Better Memory Utilization**: Full exploitation of conversation history metadata  
-- **Sophisticated Reasoning**: Multi-hop inference across entity relationships
-- **Enhanced User Experience**: More comprehensive and useful context in agent interactions
 
-## Dependencies
+Useful commands:
 
-- **Phase 5 Foundation**: Complete graph memory system with entity extraction and basic context
-- **Stable Graph Storage**: Reliable JSON persistence for larger graphs
-- **Performance Baseline**: Current system performance metrics for optimization targets
-- **Test Infrastructure**: Comprehensive testing framework for regression prevention
+curl -s http://192.168.10.18:11434/api/tags | head -n 20
 
----
+scripts/copy_graph_to_viewer.sh --guid test_cleanup_1
 
-**Phase 6 represents the evolution from basic entity-aware context to sophisticated relationship-aware reasoning, fully utilizing the conversation history metadata and graph structure created in Phase 5.** 
+export DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large; python examples/agent_usage_example.py --verbose --guid test_cleanup_1 --config dnd
+
+export DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large; python launcher.py --create-storage --guid test_cleanup_1
+
+export DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large; python examples/call_ollama.py
+
+scripts/copy_graph_to_viewer.sh --guid p6
+
+cd graph-viewer
+npm run start
+
+
+
+## Notes about Phase 6 Final Cleanup - November 2025
+
+After almost exclusive vibe coding, Phase 6 required some manual, human intervention to identify issues with AI consistency and to complete the decoupling of the graph processing system.
+
+After scrutiny, it turned out that relatively minor adjustments were needed. The note, above, that "it is probably best to abandon the phase-6-optimization branch" turned out not to be the case. 
+
+The primary AI inconsistency issue was resolved by correctly passing temerature settings to ollama. 
+
+Completing the decoupling of the graph processor required minor cleanup.
+
+Correctly assessing the state of the project was made possible by better organizing all component-specific logs
+
+Finally, getting the Web UI synced with changes to graph processing and loggging required minor adjustments to the api and the agent-web-ui. 
+
+Details about the Cleanup and Adjustments:
+
+- synced llm.py llm_ollama.py and llm_openai.py
+  - better default temperature handling
+- synced topic_taxonomy.py minor adjustment
+- synced data_preprocessor.y default_temperature
+- synced test_data_preprocessor.py default_temperature and better logging
+- got test_digest_generator_integration.py working
+  - Digests can contain invalid JSON - need to study
+  - Maybe segments should be digested separately = in parallel
+- Improved lookup and loading of existing sessions in the Web UI
+- Added graph viewer to Web UI
+- Added conversation history to Web UI
+
+So, good news.
+
+The state of the system is best described by the following tests and examples:
+
+
+
+
+## Key Modules
+
+### Memory System: Data Preprocessor
+
+src/memory/data_preprocessor.py
+
+#### test_data_preprocessor.py
+
+Tests the preprocessing and segmentation of domain-specific agent scenarios - i.e. the D&D Senario
+
+export DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.18:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large; pytest tests/memory_manager/test_data_preprocessor.py::test_preprocess_data_bulleted -v -s
+
+Success: Structured scenario data is turned into prose and then segmented for further processing by the DigestGenerator
+
+
+### DigestGenerator
+
+src/memory/digest_generator.py
+
+Analyzes, categorizes, and rates conversation segments
+
+#### test_digest_generator_integration.py
+
+Basic integration tests — verifies the system works.
+
+Tests:
+test_dnd_digest_llm_evaluation — LLM-evaluated quality for D&D
+test_lab_assistant_digest_llm_evaluation — LLM-evaluated quality for lab assistant
+test_agent_response_digest_evaluation — agent response handling
+test_memory_worthy_filtering — filters non-memorable content
+test_segment_type_classification_accuracy — type classification
+test_topic_normalization_quality — topic consistency
+
+export DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.18:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large; pytest tests/memory_manager/test_digest_generator_integration.py -v -s
+
+Success: 3 passed in 38.24s
+
+
+#### test_digest_generator.py
+
+Quality/evaluation tests — verifies the system works well.
+
+Tests:
+test_segment_content — basic segmentation
+test_rate_segments — rating/classifying segments
+test_generate_digest — full digest generation
+
+export DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.18:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large; pytest tests/memory_manager/test_digest_generator.py -v
+
+Success: 6 passed in 55.73s
+
+
+## Examples
+
+### Example: Digest Generator Example
+
+#### examples/digest_generator_example.py
+
+A detailed example usage of the DigestGenerator
+
+export DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large; python examples/digest_generator_example.py 
+
+Success: Outputs a detailed report about how the DigestGenerator is used
+
+
+
+### Example: Call ollama to test the connection and text generation
+
+Sends a prompt to ollama to test the connection and to test conversion of prose text to structured data
+
+export DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large; python examples/call_ollama.py
+
+Success: Returns a structured json representation of the data in the input prose
+
+
+### Example: Call ollama to test the connectino and embedding generation
+
+Generates embeddings for a set of test texts. Then prompts the user for text to compare to the test set
+
+Test Texts:
+1. The cat sat on the mat....
+2. A cat was sitting on the mat....
+3. The weather is nice today....
+4. The world is a simple, flat world with a single continent....
+5. The monster is known as the Mountain Troll....
+6. The village has offered a reward of 1000 gold coins....
+
+Enter text to compare: 
+
+export DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large; python examples/call_ollama_to_generate_embeddings.py
+
+Success: By comparing embeddings, determines which of the tests is most like the user's input
+
+Similarity Analysis:
+----------------------------------------
+Input Text: Columbus sailed the ocean blue
+----------------------------------------
+
+Test Text: The world is a simple, flat world with a single co...
+Similarity: 0.4412
+
+Test Text: The weather is nice today....
+Similarity: 0.3626
+
+Test Text: The village has offered a reward of 1000 gold coin...
+Similarity: 0.3155
+
+Test Text: The monster is known as the Mountain Troll....
+Similarity: 0.2507
+
+Test Text: The cat sat on the mat....
+Similarity: 0.2418
+
+Test Text: A cat was sitting on the mat....
+Similarity: 0.2367
+
+
+### Example: Call ollama using the streaming api
+
+export DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.18:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large; python examples/test_ollama_streaming.py
+
+### Example: Embeddings Manager
+
+Provides a CLI interface for testing semantic search using example conversation data
+
+export DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large; python examples/embeddings_manager_example.py
+
+Success: Matches user queries to conversation segments
+
+
+### Example: GraphManager
+
+Demonstrates usage of the GraphManager
+
+rm -rf examples/graph_memory_data
+
+export DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large; python examples/graph_memory_example.py
+
+Success: Processes example conversation entries and extracts entities and relationshps. Saves logs and data in: examples/graph_memory_data
+
+
+### Example: Memory Manager
+
+Demonstrates the MemoryManager usage (admittedly a complicated example)
+Using agent_usage_example is probably easier to understand
+Note: Graph processing is not demonstrated. Requires a manual start using launcher.py
+
+export DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large; python examples/memory_manager_usage_example.py
+
+Success: Memory files generated in: agent_memories/standard/memory_manager_usage_example
+
+
+
+### Example: Running the agent via examples/agent_usage_example
+
+Start the example agent and interact via the CLI
+
+export DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large; python examples/agent_usage_example.py --verbose --guid test_phase_6_1 --config dnd
+
+Success: Embark on an adventure using queries like: "I need to find a quest that will earn me some gold"
+
+See available comands via "help"
+
+You: help
+
+Available Commands:
+------------------
+help        - Show this help message
+memory      - View current memory state
+conversation- View full conversation history
+history     - View recent session history
+guid        - Show the current memory GUID
+type        - Show memory manager type
+list        - List available memory files
+perf        - Show performance report for current session
+perfdetail  - Show detailed performance analysis
+process     - (Graph processing handled by standalone process)
+status      - Show background processing status
+quit        - End session
+
+
+
+
+## Standalone Graph Procesor
+
+### Start the graph proncessor via the CLI
+
+Starts the graph processor
+
+export DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.18:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large; python launcher.py --create-storage --guid test_phase_6_1
+
+Success: The agent_memories/standard/test_phase_6_1/agent_memory_graph_data/conversation_queue.jsonl will be processed and graph data will be added to:
+
+agent_memories/standard/test_phase_6_1/agent_memory_graph_data/graph_nodes.json
+agent_memories/standard/test_phase_6_1/agent_memory_graph_data/graph_edges.json
+agent_memories/standard/test_phase_6_1/agent_memory_graph_data/graph_metadata.json
+
+This graph data will then be available to agent queries
+
+Example graph_metadata.json:
+
+{
+  "total_nodes": 14,
+  "total_edges": 11,
+  "last_updated": "2025-11-22T15:02:09.563571"
+}
+
+
+
+
+## Server & Web UI
+
+### Start the agent via the Agent Server (api) and Web UI
+
+
+#### Server
+
+python3 -m venv .venv
+source .venv/bin/activate
+pip install --upgrade pip setuptools wheel
+pip install -e .
+pip install -r requirements.txt
+
+source .venv/bin/activate
+
+export DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.18:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large; python -m uvicorn src.api.main:app --host 0.0.0.0 --port 8000
+
+
+#### Web UI
+cd agent-web-ui
+npm install
+npm run dev
+
+Open: http://localhost:5173/
+
+*Web UI - Load Session*
+![Web UI - Load Session](docs/phase-6/images/web-ui-load-session.png)
+
+*Web UI - Create New Session: Start a new agent session with configurable settings.*
+![Web UI - Create New Session](docs/phase-6/images/web-ui-new-session.png)
+
+*Web UI - Chat Interface: Interact with the agent in real time.*
+![Web UI - Chat Interface](docs/phase-6/images/web-ui-chat.png)
+
+*Web UI - Session Memory Data: View the agent's persistent memory and context.*
+![Web UI - Session Memory Data](docs/phase-6/images/web-ui-memory-data.png)
+
+*Web UI - Graph Memory Overview: Visualize the full graph structure of memory nodes and their relationships.*
+![Web UI - Graph Memory Overview](docs/phase-6/images/web-ui-graph-memory.png)
+
+*Web UI - Graph Memory Data Details: Inspect raw graph node and edge data.*
+![Web UI - Graph Memory Data Details](docs/phase-6/images/web-ui-graph-memory-data.png)
+
+*Web UI - Log Viewer Panel: Monitor detailed agent logs and debugging information in real time.*
+![Web UI - Log Viewer Panel](docs/phase-6/images/web-ui-log-viewer.png)
+
+
+
+
+## General Unit Tests
+
+
+### Testing usage agent, digest, embedding, memory management
+
+- started agent without starting graph processor
+- can see some issues
+  - digest_text in conversation_queue.jsonl is wron
+- logs should be written into agent_memories/standard/[guid]/logs
+
+
+## Web Server
+
+
+### Server
+
+export DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.18:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large; python -m uvicorn src.api.main:app --host 0.0.0.0 --port 8000
+
+
+### Web UI
+cd agent-web-ui
+npm run dev
+
+
+### API Tests
+
+cd scripts/api
+python run_api_tests.py
+
+### API Updates
+
+route to get session logs:
+
+# List all logs for a session
+curl http://localhost:8000/api/v1/sessions/test_nov_17d/logs
+curl http://localhost:8000/api/v1/sessions/{session_id}/logs
+
+# Get contents of a specific log file
+curl http://localhost:8000/api/v1/sessions/{session_id}/logs/agent.log
+curl http://localhost:8000/api/v1/sessions/test_nov_17d/logs/agent_usage_example.log
+
+
+
+### Graph Processor
+
+export DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.18:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large; python launcher.py --create-storage --guid test_nov_17d
+
+
+
+
+## Tests
+
+### Setup
+
+python3 -m venv .venv
+source .venv/bin/activate
+pip install --upgrade pip setuptools wheel
+pip install -e .
+pip install -r requirements.txt
+
+source .venv/bin/activate
+
+
+### Agent Tests
+
+####  tests/agent/test_agent.py
+
+OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large pytest tests/agent/test_agent.py -v -s
+
+
+### Automated Agent Testing
+
+See: tests/automated_agent_testing/README.md
+See: tests/automated_agent_testing/test_runner.py
+See: run_automated_tests.py
+
+Note: Many of these tests work, but the should be reviewed and updated.
+
+export DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large; python run_automated_tests.py --domain dnd
+
+
+
+
+
+### AI Tests
+
+#### tests/ai/test_llm_ollama.py -v -s
+
+OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large pytest tests/ai/test_llm_ollama.py -v -s
+
+
+#### tests/ai/test_llm.py
+
+OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large pytest tests/ai/test_llm.py -v -s
+
+
+
+### Graph Memory Tests
+
+#### tests/graph_memory/test_entity_resolver_real_llm.py
+
+This is a very involved set of tests.
+
+OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large pytest tests/graph_memory/test_entity_resolver_real_llm.py -v -s
+
+
+#### tests/graph_memory/test_entity_resolver.py
+
+OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large pytest tests/graph_memory/test_entity_resolver.py -v -s
+
+
+#### tests/graph_memory/test_relationship_extractor_real_llm.py
+
+OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large pytest tests/graph_memory/test_relationship_extractor_real_llm.py -v -s
+
+
+
+### Memory Manager Tests
+
+
+#### tests/memory_manager/test_content_segmenter.py
+
+OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large pytest tests/memory_manager/test_content_segmenter.py -v -s
+
+
+#### tests/memory_manager/test_data_preprocessor_integration.py
+
+OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large pytest tests/memory_manager/test_data_preprocessor_integration.py -v -s
+
+
+#### tests/memory_manager/test_embeddings_manager_integration.py
+
+OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large pytest tests/memory_manager/test_embeddings_manager_integration.py -v -s
+
+
+#### tests/memory_manager/test_graph_memory_integration.py
+
+OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large pytest tests/memory_manager/test_graph_memory_integration.py -v -s
+
+
+#### pytest tests/memory_manager/test_graph_memory.py
+
+OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large pytest tests/memory_manager/test_graph_memory.py -v -s
+
+
+#### tests/memory_manager/test_llm_determinism_preprocessor.py
+
+Note: ::test_preprocess_structured_input_consistent_across_instances is expected to fail due to llm non-determinism
+
+OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large pytest tests/memory_manager/test_llm_determinism_preprocessor.py -v -s
+
+
+#### tests/memory_manager/test_llm_ollama_embeddings.py
+
+OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large pytest tests/memory_manager/test_llm_ollama_embeddings.py -v -s
+
+
+#### tests/memory_manager/test_memory_compression.py
+
+OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large pytest tests/memory_manager/test_memory_compression.py -v -s
+
+
+#### tests/memory_manager/test_memory_manager_integration.py
+
+OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large pytest tests/memory_manager/test_memory_manager_integration.py -s -v
+
+
+#### tests/memory_manager/test_rag_manager_integration.py
+
+OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large pytest tests/memory_manager/test_rag_manager_integration.py -v -s
+
+
+#### tests/memory_manager/test_simple_memory_manager.py
+
+OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large pytest tests/memory_manager/test_simple_memory_manager.py -v -s
+
+
+
+
+
+
+## Phase 7 Plan
+
+Phase 7 will focus on further cleanup, optimization, integration with STT and TTS, and improved logging.
+
+Notes about improving socket-based log messages:
+
+  Potential issues
+  - Logger scoping for Ollama services:
+    The base LLMService uses logging.getLogger(__name__) if no logger is provided
+    This may use a module-level logger instead of a session-specific one
+    WebSocket handlers are attached, but logs might not be properly scoped to sessions
+  - Logger propagation:
+    If loggers propagate to parent loggers, logs might be duplicated or sent to wrong sessions
+    The code checks hasattr(service, 'logger') but doesn't verify the logger is session-specific
+  - Missing error handling:
+    If WebSocket handlers fail to attach, it only logs a warning
+    No fallback mechanism if WebSocket streaming fails
+
+  Recommendations
+  - Verify logger scoping: ensure Ollama service loggers are session-specific
+  - Add logging diagnostics: log when handlers are attached and when logs are streamed
+  - Test subscription flow: verify all log sources are properly subscribed and receiving logs
+
+  The integration looks solid. The main risk is logger scoping for Ollama services. Should I:
+  - Add better logger scoping for Ollama services?
+  - Add diagnostic logging to verify the flow?
+  - Create a test to verify all log sources are streaming correctly?
+
+Also:
+- Review PerformanceTracker and PerformanceAnalyzer
+- Review and simplify the LLM determinism tests
+- MCP integration
+- Dreaming
+- Improved prompts
+- Repo organization for beter vibe coding
+- Update and improve tests/automated_agent_testing

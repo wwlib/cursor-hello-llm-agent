@@ -122,7 +122,7 @@ DND_CONFIG = {
         "entity_types": ["character", "location", "object", "event", "concept", "organization"],
         "relationship_types": [
             "located_in", "owns", "member_of", "allies_with", "enemies_with", 
-            "uses", "created_by", "leads_to", "participates_in", "related_to", "mentions"
+            "uses", "created_by", "leads_to", "participates_in", "related_to", "mentions", "runs", "creates", "sourced_from", "near"
         ],
         "entity_extraction_prompt": "Extract entities from this D&D campaign text. Focus on characters, locations, objects, events, concepts, and organizations that are important to the campaign world and story.",
         "relationship_extraction_prompt": "Identify relationships between entities in this D&D campaign text. Look for spatial relationships (located_in), ownership (owns), social relationships (allies_with, enemies_with), and story connections.",

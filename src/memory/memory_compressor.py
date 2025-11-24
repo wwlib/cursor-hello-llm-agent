@@ -104,10 +104,11 @@ class MemoryCompressor:
                     # Process digest if available
                     if "digest" in entry and "rated_segments" in entry["digest"]:
                         self.logger.debug(f"Processing digest for entry {entry.get('guid')}")
-                        # Filter segments by importance and type
+                        # Filter segments by importance, memory_worthy, and type
                         for segment in entry["digest"]["rated_segments"]:
                             segment_type = segment.get("type", "information")
                             if (segment.get("importance", 0) >= self.importance_threshold and 
+                                segment.get("memory_worthy", True) and  # Only include memory-worthy segments
                                 segment_type in CONTEXT_RELEVANT_TYPES):
                                 # Include role and timestamp with the segment
                                 important_segments.append({
@@ -321,4 +322,141 @@ class MemoryCompressor:
         except Exception as e:
             self.logger.error(f"Error merging context entries: {str(e)}")
             # Return the first entry as fallback
-            return entries[0] if entries else {"text": "", "guids": []} 
+            return entries[0] if entries else {"text": "", "guids": []}
+    
+    async def compress_conversation_history_async(self, 
+                                    conversation_history: List[Dict[str, Any]],
+                                    static_memory: str,
+                                    current_context: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Compress conversation history into efficient memory format asynchronously.
+        
+        This method is identical to compress_conversation_history but uses async LLM calls
+        to prevent blocking the event loop during long compression operations.
+        
+        Args:
+            conversation_history: List of conversation entries to compress
+            static_memory: Current static memory content
+            current_context: Current context entries
+            
+        Returns:
+            dict: Updated memory state with compressed information
+        """
+        try:
+            if not conversation_history:
+                self.logger.debug("No entries to compress")
+                return {"context": current_context, "conversation_history": []}
+            
+            self.logger.debug(f"Found {len(conversation_history)} entries to compress")
+            
+            # Process entries in turns (user + agent pairs)
+            turns = []
+            current_turn = []
+            
+            for entry in conversation_history:
+                current_turn.append(entry)
+                
+                # If we have a complete turn (user + agent) or this is the last entry
+                if len(current_turn) == 2 or entry == conversation_history[-1]:
+                    turns.append(current_turn)
+                    current_turn = []
+            
+            self.logger.debug(f"Split into {len(turns)} turns")
+            
+            # Process each turn
+            new_context = current_context.copy() if current_context else []
+            all_compressed_guids = []
+            
+            for turn in turns:
+                # Extract important segments from this turn
+                important_segments = []
+                
+                for entry in turn:
+                    # Process digest if available
+                    if "digest" in entry and "rated_segments" in entry["digest"]:
+                        self.logger.debug(f"Processing digest for entry {entry.get('guid')}")
+                        # Filter segments by importance, memory_worthy, and type
+                        for segment in entry["digest"]["rated_segments"]:
+                            segment_type = segment.get("type", "information")
+                            if (segment.get("importance", 0) >= self.importance_threshold and 
+                                segment.get("memory_worthy", True) and  # Only include memory-worthy segments
+                                segment_type in CONTEXT_RELEVANT_TYPES):
+                                # Include role and timestamp with the segment
+                                important_segments.append({
+                                    "text": segment["text"],
+                                    "importance": segment["importance"],
+                                    "topics": segment.get("topics", []),
+                                    "role": entry["role"],
+                                    "timestamp": entry["timestamp"],
+                                    "source_guid": entry.get("guid")
+                                })
+                    else:
+                        self.logger.debug(f"No digest found for entry {entry.get('guid')}")
+                
+                if important_segments:
+                    # Transform segments into simple markdown format
+                    markdown_segments = []
+                    for segment in important_segments:
+                        role = segment.get("role", "unknown").upper()
+                        markdown_segments.append(f"[{role}]: {segment['text']}")
+                    
+                    # Join segments with newlines
+                    important_segments_text = "\n".join(markdown_segments)
+                    
+                    # Use LLM to organize important segments by topic
+                    prompt = self.compress_template.format(
+                        important_segments_text=important_segments_text,
+                        previous_context_text=json.dumps(current_context, indent=2),
+                        static_memory_text=static_memory
+                    )
+                    
+                    self.logger.debug("Sending compression prompt to LLM async...")
+                    # Call LLM asynchronously to organize segments with temperature=0 for deterministic results
+                    llm_response = await self.llm.generate_async(prompt, options={"temperature": 0}, debug_generate_scope="memory_compression_async")
+                    self.logger.debug("Received response from LLM async")
+                    
+                    # Check if the response indicates no new information
+                    if llm_response.strip() == "NO_NEW_INFORMATION":
+                        self.logger.debug("No new information found in this turn, skipping context creation")
+                        continue
+                    
+                    # Clean the response and check if it's actually meaningful
+                    cleaned_response = llm_response.strip()
+                    if len(cleaned_response) < 10:  # Very short responses are likely not meaningful
+                        self.logger.debug("Response too short to be meaningful, skipping")
+                        continue
+                    
+                    # Create a new context entry with the cleaned text and source GUIDs
+                    context_entry = {
+                        "text": cleaned_response,
+                        "timestamp": datetime.now().isoformat(),
+                        "source_guids": [entry.get("guid") for entry in turn if entry.get("guid")]
+                    }
+                    
+                    new_context.append(context_entry)
+                    self.logger.debug(f"Added compressed context entry from turn with {len(turn)} entries")
+                
+                # Track GUIDs from this turn
+                for entry in turn:
+                    if entry.get("guid"):
+                        all_compressed_guids.append(entry["guid"])
+            
+            # Consolidate context entries to prevent buildup
+            consolidated_context = self._consolidate_context_entries(new_context)
+            
+            self.logger.debug(f"Async compression complete: {len(consolidated_context)} consolidated context entries, {len(all_compressed_guids)} entries compressed")
+            
+            return {
+                "context": consolidated_context,
+                "conversation_history": [],  # Clear conversation history after compression
+                "metadata": {
+                    "last_compressed": datetime.now().isoformat(),
+                    "compressed_entries": all_compressed_guids,
+                    "compressed_entry_count": len(all_compressed_guids),
+                    "original_context_count": len(new_context),
+                    "consolidated_context_count": len(consolidated_context)
+                }
+            }
+                
+        except Exception as e:
+            self.logger.error(f"Error during async compression: {str(e)}")
+            return {"context": current_context, "conversation_history": conversation_history} 

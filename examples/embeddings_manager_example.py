@@ -23,12 +23,16 @@ from typing import List, Dict, Any, Tuple
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(parent_dir)
 
+from src.utils.logging_config import LoggingConfig
 from src.memory.embeddings_manager import EmbeddingsManager
 from src.ai.llm_ollama import OllamaService
 
-# Configuration
+# Configuration - use environment variables with sensible defaults
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
 OLLAMA_EMBED_MODEL = os.getenv("OLLAMA_EMBED_MODEL", "mxbai-embed-large")
+
+# Use a fixed example GUID for this standalone example
+EXAMPLE_GUID = "embeddings_manager_example"
 
 # File paths
 TEST_DATA_DIR = Path("tests/memory_manager/memory_snapshots/rag")
@@ -102,15 +106,31 @@ def generate_and_store_embeddings(conversation_entries: List[Dict[str, Any]]) ->
     """
     print("\nInitializing LLM service and embeddings manager...")
     
-    # Initialize LLM service
+    # Set up logging using LoggingConfig
+    llm_logger = LoggingConfig.get_component_file_logger(
+        EXAMPLE_GUID,
+        "ollama_embeddings",
+        log_to_console=False
+    )
+    embeddings_logger = LoggingConfig.get_component_file_logger(
+        EXAMPLE_GUID,
+        "embeddings_manager",
+        log_to_console=False
+    )
+    
+    # Initialize LLM service with proper logging
     llm_service = OllamaService({
         "base_url": OLLAMA_BASE_URL,
         "model": OLLAMA_EMBED_MODEL,
-        "debug": False
+        "logger": llm_logger
     })
     
-    # Initialize embeddings manager
-    embeddings_manager = EmbeddingsManager(str(EMBEDDINGS_FILE), llm_service)
+    # Initialize embeddings manager with logger
+    embeddings_manager = EmbeddingsManager(
+        str(EMBEDDINGS_FILE),
+        llm_service,
+        logger=embeddings_logger
+    )
     
     # Check if we need to generate embeddings
     if len(embeddings_manager.embeddings) > 0:
@@ -343,6 +363,7 @@ def run_interactive_demo(embeddings_manager: EmbeddingsManager, conversation_ent
 def main():
     """Main function demonstrating embeddings generation and semantic search."""
     print("EmbeddingsManager Example - Semantic Search in Conversation History")
+    print(f"Using Ollama at {OLLAMA_BASE_URL} with model {OLLAMA_EMBED_MODEL}")
     
     # Ensure output directory exists
     ensure_dir_exists(OUTPUT_DIR)
@@ -350,6 +371,7 @@ def main():
     # Check if conversation file exists
     if not CONVERSATION_FILE.exists():
         print(f"Error: Conversation file not found at {CONVERSATION_FILE}")
+        print(f"Please ensure the test data file exists.")
         return
     
     # Load conversation history
@@ -382,6 +404,9 @@ def main():
     
     # Run interactive demo
     run_interactive_demo(embeddings_manager, conversation_entries)
+    
+    print(f"\nLogs saved to: {LoggingConfig.get_log_base_dir(EXAMPLE_GUID)}")
+    print(f"Embeddings saved to: {EMBEDDINGS_FILE}")
 
 if __name__ == "__main__":
-    main() 
+    main()

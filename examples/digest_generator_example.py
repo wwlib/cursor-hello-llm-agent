@@ -1,5 +1,15 @@
 #!/usr/bin/env python3
 
+"""
+Example demonstrating the DigestGenerator class.
+
+This example shows how to:
+1. Initialize DigestGenerator with default settings
+2. Initialize DigestGenerator with domain-specific configuration
+3. Generate digests from conversation entries
+4. View the structured output (segments, importance, topics, types)
+"""
+
 import json
 import uuid
 import sys
@@ -12,8 +22,18 @@ project_root = str(Path(__file__).parent.parent)
 if project_root not in sys.path:
     sys.path.append(project_root)
 
+from src.utils.logging_config import LoggingConfig
 from src.ai.llm_ollama import OllamaService
 from src.memory.digest_generator import DigestGenerator
+from examples.domain_configs import DND_CONFIG
+
+# Constants - use environment variables with sensible defaults
+BASE_URL = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
+MODEL = os.environ.get("OLLAMA_MODEL", "gemma3")
+EMBEDDING_MODEL = os.environ.get("OLLAMA_EMBED_MODEL", "mxbai-embed-large")
+
+# Use a fixed example GUID for this standalone example
+EXAMPLE_GUID = "digest_generator_example"
 
 def print_section_header(title):
     """Print a formatted section header"""
@@ -40,21 +60,28 @@ def main():
         print(f"  - {rate_template_path}")
         return
     
-    # Initialize LLM service
-    print("Initializing LLM service...")
-    llm_service = OllamaService({
-        "base_url": "http://192.168.1.173:11434",
-        "model": "llama3",
-        "temperature": 0.7,
-        "debug": True,
-        "debug_file": "digest_generator_example.log",
-        "debug_scope": "digest_example",
-        "console_output": False
-    })
+    # Set up logging using LoggingConfig
+    print("Setting up logging...")
+    llm_logger = LoggingConfig.get_component_file_logger(
+        EXAMPLE_GUID, 
+        "ollama_digest_example", 
+        log_to_console=False
+    )
+    digest_logger = LoggingConfig.get_component_file_logger(
+        EXAMPLE_GUID,
+        "digest_generator_example",
+        log_to_console=False
+    )
     
-    # Initialize DigestGenerator
-    print("Initializing DigestGenerator...")
-    digest_generator = DigestGenerator(llm_service)
+    # Initialize LLM service with proper logging
+    print(f"Initializing LLM service (Ollama at {BASE_URL})...")
+    llm_service = OllamaService({
+        "base_url": BASE_URL,
+        "model": MODEL,
+        "temperature": 0,  # Lower temperature for more consistent digest generation
+        "stream": False,
+        "logger": llm_logger
+    })
     
     # Sample conversation entries
     print_section_header("Sample Conversation Entries")
@@ -80,38 +107,82 @@ def main():
         }
     ]
     
-    # Process each conversation entry
+    # Display conversation entries
     for i, entry in enumerate(conversation_entries):
         print(f"\nEntry {i+1} - {entry['role']}:")
         print("-" * 40)
         print(entry['content'][:100] + "...")  # Print just the first 100 chars to save space
-        
-    # Generate digests for each entry
-    print_section_header("Generated Digests")
     
+    # Example 1: Default DigestGenerator (general domain)
+    print_section_header("Example 1: Default DigestGenerator (General Domain)")
+    
+    print("Creating DigestGenerator with default settings (general domain)...")
+    default_digest_generator = DigestGenerator(
+        llm_service,
+        domain_name="general",
+        logger=digest_logger
+    )
+    
+    print("\nProcessing first entry with default generator...")
+    entry = conversation_entries[0]
+    digest = default_digest_generator.generate_digest(entry)
+    
+    print(f"\nDigest for entry 1 ({entry['role']}):")
+    print("-" * 40)
+    print(f"Rated Segments: {len(digest['rated_segments'])}")
+    if len(digest['rated_segments']) > 0:
+        print("\nFirst 3 segments:")
+        for j, segment in enumerate(digest['rated_segments'][:3]):
+            print(f"  {j+1}. {segment['text'][:80]}...")
+            print(f"     Importance: {segment['importance']}/5")
+            print(f"     Topics: {segment['topics']}")
+            print(f"     Type: {segment['type']}")
+        if len(digest['rated_segments']) > 3:
+            print(f"  ... ({len(digest['rated_segments']) - 3} more segments)")
+    
+    # Example 2: Domain-specific DigestGenerator (D&D Campaign)
+    print_section_header("Example 2: Domain-Specific DigestGenerator (D&D Campaign)")
+    
+    print("Creating DigestGenerator with D&D campaign domain configuration...")
+    dnd_digest_generator = DigestGenerator(
+        llm_service,
+        domain_name="dnd_campaign",
+        domain_config=DND_CONFIG,
+        logger=digest_logger
+    )
+    
+    print("\nProcessing all entries with D&D domain generator...")
     for i, entry in enumerate(conversation_entries):
         print(f"\nGenerating digest for entry {i+1} - {entry['role']}...")
         
-        # Generate digest
-        digest = digest_generator.generate_digest(entry)
+        digest = dnd_digest_generator.generate_digest(entry)
         
-        # Print the results
         print(f"\nDigest for entry {i+1} - {entry['role']}:")
         print("-" * 40)
         
         # Print rated segments
-        print(f"\nRated Segments: {len(digest['rated_segments'])}")
+        print(f"Rated Segments: {len(digest['rated_segments'])}")
         if len(digest['rated_segments']) > 0:
             print("\nFirst 3 segments:")
             for j, segment in enumerate(digest['rated_segments'][:3]):
-                print(f"  {j}: {segment['text']}")
-                print(f"     Importance: {segment['importance']}")
+                print(f"  {j+1}. {segment['text'][:80]}...")
+                print(f"     Importance: {segment['importance']}/5")
                 print(f"     Topics: {segment['topics']}")
                 print(f"     Type: {segment['type']}")
+                if 'memory_worthy' in segment:
+                    print(f"     Memory Worthy: {segment['memory_worthy']}")
             if len(digest['rated_segments']) > 3:
                 print(f"  ... ({len(digest['rated_segments']) - 3} more segments)")
     
+    # Show full JSON output for one digest
+    print_section_header("Full JSON Output Example")
+    print("Complete digest structure (first entry):")
+    print_json(digest)
+    
     print_section_header("Example Complete")
+    print(f"\nLogs saved to: {LoggingConfig.get_log_base_dir(EXAMPLE_GUID)}")
+    print("\nNote: Domain-specific configuration (D&D) provides more relevant")
+    print("topic assignments compared to the general domain configuration.")
 
 if __name__ == "__main__":
-    main() 
+    main()

@@ -2,6 +2,8 @@
 
 import pytest
 import os
+from pathlib import Path
+import logging
 from src.memory.data_preprocessor import DataPreprocessor
 from src.ai.llm_ollama import OllamaService
 
@@ -9,6 +11,23 @@ from src.ai.llm_ollama import OllamaService
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
 OLLAMA_EMBED_MODEL = os.getenv("OLLAMA_EMBED_MODEL", "mxbai-embed-large")
 OLLAMA_LLM_MODEL = os.getenv("OLLAMA_LLM_MODEL", "gemma3")
+
+@pytest.fixture
+def preprocessor_logger():
+    """Create a logger for testing."""
+    logs_dir = os.path.join(os.path.dirname(__file__), "logs")
+    test_logs_dir = os.path.join(logs_dir, "data_preprocessor_test")
+    os.makedirs(test_logs_dir, exist_ok=True)
+    log_file = os.path.join(test_logs_dir, "preprocessor_logger.log")
+    log_handler = logging.FileHandler(log_file)
+    log_handler.setLevel(logging.DEBUG)
+    
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.DEBUG)
+    logger.addHandler(log_handler)
+    logger.info("INFO preprocessor_logger created")
+    return logger
+
 
 @pytest.fixture
 def llm_service():
@@ -21,18 +40,18 @@ def llm_service():
     return OllamaService({
         "base_url": OLLAMA_BASE_URL,
         "model": OLLAMA_LLM_MODEL,
-        "temperature": 0,
+        "default_temperature": 0,
         "stream": False,
         "debug": True,
         "debug_file": general_debug_file,
-        "debug_scope": "test_data_preprocessor",
+        "debug_scope": "data_preprocessor_test",
         "console_output": False
     })
 
 @pytest.fixture
-def data_preprocessor(llm_service):
+def data_preprocessor(llm_service, preprocessor_logger):
     """Create a DataPreprocessor instance for testing."""
-    return DataPreprocessor(llm_service)
+    return DataPreprocessor(llm_service, preprocessor_logger)
 
 def test_preprocess_data_typical(data_preprocessor):
     """Test preprocessing typical multi-fact input."""
@@ -77,7 +96,8 @@ def test_preprocess_data_single_sentence(data_preprocessor):
     # assert phrases[0] == content, "Should return the original content as a single phrase"
 
 def test_preprocess_data_bulleted(data_preprocessor):
-    input_data ="""D&D Campaign: The Lost Valley
+    input_data ="""
+Campaign Setting: The Lost Valley
 
 World Details:
 - Hidden valley surrounded by impassable mountains
@@ -115,8 +135,8 @@ Current Situations:
 3. Magical Anomalies
    - Random magical effects
    - Affecting local wildlife
-   - Possible connection to ruins
-"""
+   - Possible connection to ruins"""
+   
     prose, segments = data_preprocessor.preprocess_data(input_data)
     print(f"\n\nProse: {prose}\n\n")
     print(f"\n\nSegments: {segments}\n\n")

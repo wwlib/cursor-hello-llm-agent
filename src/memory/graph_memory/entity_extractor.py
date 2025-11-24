@@ -11,7 +11,6 @@ import re
 import os
 from typing import Dict, List, Any, Optional, Tuple
 import logging
-from datetime import datetime
 
 
 class EntityExtractor:
@@ -106,8 +105,65 @@ Entities:"""
         
         return result or type_descriptions
     
+    def _write_verbose_log(self, message: str):
+        """Write verbose log message to graph storage directory if available."""
+        try:
+            if self.graph_manager and hasattr(self.graph_manager, '_write_verbose_graph_log'):
+                self.graph_manager._write_verbose_graph_log(message)
+            else:
+                # Fallback to regular logger if graph manager not available
+                self.logger.debug(message)
+        except Exception as e:
+            # Don't fail the main operation if logging fails
+            self.logger.debug(f"Failed to write verbose log: {e}")
+    
+    async def extract_entities_from_conversation_async(self, conversation_text: str, digest_text: str = "") -> List[Dict[str, Any]]:
+        """
+        Extract entities from full conversation entry using two-stage async LLM approach.
+        
+        Stage 1: Generate candidate entities from conversation + digest
+        Stage 2: Use RAG to find similar existing entities, then LLM decides final entities
+        
+        Args:
+            conversation_text: Full conversation entry text
+            digest_text: Digest/summary of the conversation
+            
+        Returns:
+            List of entities with existing/new classification
+        """
+        try:
+            self._write_verbose_log(f"[ENTITY_EXTRACTOR] Starting async entity extraction")
+            self._write_verbose_log(f"[ENTITY_EXTRACTOR] Conversation length: {len(conversation_text)}")
+            self._write_verbose_log(f"[ENTITY_EXTRACTOR] Digest length: {len(digest_text)}")
+            
+            # Stage 1: Generate candidate entities (async)
+            self._write_verbose_log(f"[ENTITY_EXTRACTOR] Stage 1: Extracting candidate entities")
+            candidate_entities = await self._extract_candidate_entities_async(conversation_text, digest_text)
+            self._write_verbose_log(f"[ENTITY_EXTRACTOR] Stage 1 complete: {len(candidate_entities) if candidate_entities else 0} candidates")
+            
+            if not candidate_entities:
+                self.logger.debug("No candidate entities found")
+                self._write_verbose_log(f"[ENTITY_EXTRACTOR] No candidate entities found, returning empty list")
+                return []
+            
+            # Stage 2: Use RAG to find similar existing entities and make final decisions (async)
+            self._write_verbose_log(f"[ENTITY_EXTRACTOR] Stage 2: Resolving entities with RAG")
+            final_entities = await self._resolve_entities_with_rag_async(candidate_entities, conversation_text, digest_text)
+            self._write_verbose_log(f"[ENTITY_EXTRACTOR] Stage 2 complete: {len(final_entities)} final entities")
+            
+            self.logger.debug(f"Extracted {len(final_entities)} final entities from conversation")
+            return final_entities
+            
+        except Exception as e:
+            self.logger.error(f"Error in async entity extraction: {e}")
+            self._write_verbose_log(f"[ENTITY_EXTRACTOR] ERROR: {e}")
+            import traceback
+            self._write_verbose_log(f"[ENTITY_EXTRACTOR] ERROR TRACEBACK: {traceback.format_exc()}")
+            return []
+
     def extract_entities_from_conversation(self, conversation_text: str, digest_text: str = "") -> List[Dict[str, Any]]:
         """
+        # TODO: OBSOLETE - REMOVE
         Extract entities from full conversation entry using two-stage LLM approach.
         
         Stage 1: Generate candidate entities from conversation + digest
@@ -139,7 +195,8 @@ Entities:"""
             return []
     
     def _extract_candidate_entities(self, conversation_text: str, digest_text: str) -> List[Dict[str, Any]]:
-        """Stage 1: Extract candidate entities from conversation text."""
+        """# TODO: OBSOLETE - REMOVE
+        Stage 1: Extract candidate entities from conversation text."""
         try:
             # Build entity types description
             entity_types_desc = "\n".join([
@@ -166,10 +223,51 @@ Entities:"""
         except Exception as e:
             self.logger.error(f"Error extracting candidate entities: {e}")
             return []
+
+    async def _extract_candidate_entities_async(self, conversation_text: str, digest_text: str) -> List[Dict[str, Any]]:
+        """Stage 1: Extract candidate entities from conversation text (async version)."""
+        try:
+            self._write_verbose_log(f"[ENTITY_EXTRACTOR] _extract_candidate_entities_async: Starting")
+            
+            # Build entity types description
+            entity_types_desc = "\n".join([
+                f"- {etype}: {desc}" for etype, desc in self.entity_types.items()
+            ])
+            self._write_verbose_log(f"[ENTITY_EXTRACTOR] Entity types: {len(self.entity_types)} types")
+            
+            # Build prompt
+            prompt = self.prompt_template.format(
+                entity_types=entity_types_desc,
+                conversation_text=conversation_text,
+                digest_text=digest_text,
+                existing_context=""  # No existing context in stage 1
+            )
+            self._write_verbose_log(f"[ENTITY_EXTRACTOR] Built prompt length: {len(prompt)} characters")
+            self._write_verbose_log(f"[ENTITY_EXTRACTOR] Calling LLM service async...")
+            
+            # Get LLM response (async)
+            response = await self.llm_service.generate_async(prompt)
+            self._write_verbose_log(f"[ENTITY_EXTRACTOR] LLM response received, length: {len(response) if response else 0}")
+            
+            # Parse entities
+            self._write_verbose_log(f"[ENTITY_EXTRACTOR] Parsing entity response...")
+            entities = self._parse_entity_response(response)
+            self._write_verbose_log(f"[ENTITY_EXTRACTOR] Parsed {len(entities)} entities")
+            
+            self.logger.debug(f"Stage 1: Extracted {len(entities)} candidate entities (async)")
+            return entities
+            
+        except Exception as e:
+            self.logger.error(f"Error extracting candidate entities (async): {e}")
+            self._write_verbose_log(f"[ENTITY_EXTRACTOR] ERROR in _extract_candidate_entities_async: {e}")
+            import traceback
+            self._write_verbose_log(f"[ENTITY_EXTRACTOR] ERROR TRACEBACK: {traceback.format_exc()}")
+            return []
     
     def _resolve_entities_with_rag(self, candidate_entities: List[Dict[str, Any]], 
                                   conversation_text: str, digest_text: str) -> List[Dict[str, Any]]:
-        """Stage 2: Use RAG to find similar entities and make final entity decisions."""
+        """# TODO: OBSOLETE - REMOVE
+        Stage 2: Use RAG to find similar entities and make final entity decisions."""
         if not self.graph_manager:
             self.logger.warning("No graph manager available for RAG - returning candidates as new entities")
             return [{"status": "new", **entity} for entity in candidate_entities]
@@ -229,6 +327,70 @@ Entities:"""
             
         except Exception as e:
             self.logger.error(f"Error in entity extraction: {e}")
+            return [{"status": "candidate", **entity} for entity in candidate_entities if candidate_entities] if 'candidate_entities' in locals() else []
+
+    async def _resolve_entities_with_rag_async(self, candidate_entities: List[Dict[str, Any]], 
+                                  conversation_text: str, digest_text: str) -> List[Dict[str, Any]]:
+        """Stage 2: Use RAG to find similar entities and make final entity decisions (async version)."""
+        if not self.graph_manager:
+            self.logger.warning("No graph manager available for RAG - returning candidates as new entities")
+            return [{"status": "new", **entity} for entity in candidate_entities]
+        
+        try:
+            # For each candidate, find similar existing entities using RAG
+            existing_entities_context = []
+            
+            for candidate in candidate_entities:
+                similar_entities = self._find_similar_existing_entities(candidate)
+                if similar_entities:
+                    existing_entities_context.extend(similar_entities)
+            
+            # Remove duplicates from existing entities
+            seen_ids = set()
+            unique_existing = []
+            for entity in existing_entities_context:
+                if entity['id'] not in seen_ids:
+                    seen_ids.add(entity['id'])
+                    unique_existing.append(entity)
+            
+            # Build context for existing entities
+            if unique_existing:
+                existing_context = "\n**Similar Existing Entities:**\n"
+                for entity in unique_existing:
+                    existing_context += f"- {entity['name']} ({entity['type']}): {entity['description']}\n"
+                existing_context += "\n**Instructions:** For each candidate entity, decide if it matches an existing entity above or if it should be created as new. If it matches existing, use the existing entity's name exactly."
+            else:
+                existing_context = "\n**No similar existing entities found.**"
+            
+            # Build final prompt with existing context
+            entity_types_desc = "\n".join([
+                f"- {etype}: {desc}" for etype, desc in self.entity_types.items()
+            ])
+            
+            prompt = self.prompt_template.format(
+                entity_types=entity_types_desc,
+                conversation_text=conversation_text,
+                digest_text=digest_text,
+                existing_context=existing_context
+            )
+            
+            # Get LLM response for final entities (async)
+            response = await self.llm_service.generate_async(prompt)
+            final_entities = self._parse_entity_response(response)
+            
+            # Return candidates without classification - EntityResolver will handle all matching
+            candidate_entities_result = []
+            for entity in final_entities:
+                candidate_entities_result.append({
+                    'status': 'candidate',  # Mark as candidate for EntityResolver
+                    **entity
+                })
+            
+            self.logger.debug(f"Stage 2: Extracted {len(candidate_entities_result)} candidate entities for EntityResolver (async)")
+            return candidate_entities_result
+            
+        except Exception as e:
+            self.logger.error(f"Error in entity extraction (async): {e}")
             return [{"status": "candidate", **entity} for entity in candidate_entities if candidate_entities] if 'candidate_entities' in locals() else []
     
     def _find_similar_existing_entities(self, candidate_entity: Dict[str, Any]) -> List[Dict[str, Any]]:

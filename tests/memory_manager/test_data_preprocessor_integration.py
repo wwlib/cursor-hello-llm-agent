@@ -3,6 +3,7 @@ from pathlib import Path
 import pytest
 from src.memory.data_preprocessor import DataPreprocessor
 from src.ai.llm_ollama import OllamaService
+from src.utils.logging_config import LoggingConfig
 
 # Configure Ollama connection
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
@@ -57,38 +58,43 @@ Current Situations:
 
 def test_data_preprocessor_integration():
     """Integration test for DataPreprocessor with Ollama LLM service."""
-    # Create logs directory structure
-    # logs_dir = os.path.join(project_root, "logs")
-    logs_dir = os.path.join(os.path.dirname(__file__), "logs")
-    guid = "data_preprocessor_test"
-    guid_logs_dir = os.path.join(logs_dir, guid)
-    os.makedirs(guid_logs_dir, exist_ok=True)
-    
-    # Create separate debug files for each service
-    general_debug_file = os.path.join(guid_logs_dir, "general.log")
-    digest_debug_file = os.path.join(guid_logs_dir, "digest.log")
-    embed_debug_file = os.path.join(guid_logs_dir, "embed.log")
+    # Use LoggingConfig for consistent logging
+    test_guid = "data_preprocessor_test"
+    llm_logger = LoggingConfig.get_component_file_logger(
+        test_guid,
+        "ollama_data_preprocessor",
+        log_to_console=False
+    )
+    preprocessor_logger = LoggingConfig.get_component_file_logger(
+        test_guid,
+        "data_preprocessor",
+        log_to_console=False
+    )
     
     llm_service = OllamaService({
         "base_url": OLLAMA_BASE_URL,
         "model": OLLAMA_LLM_MODEL,
         "temperature": 0,
         "stream": False,
-        "debug": DEV_MODE,
-        "debug_file": general_debug_file,
-        "debug_scope": "test_data_preprocessor_integration",
-        "console_output": DEV_MODE
+        "logger": llm_logger
     })
-    preprocessor = DataPreprocessor(llm_service)
-    phrases = preprocessor.preprocess_data(input_data)
+    
+    preprocessor = DataPreprocessor(llm_service, logger=preprocessor_logger)
+    
+    # preprocess_data returns a tuple: (prose, segments)
+    prose, phrases = preprocessor.preprocess_data(input_data)
 
+    print("\nProse Output:")
+    print(prose)
     print("\nEmbeddable Phrases:")
     for i, phrase in enumerate(phrases):
         print(f"Phrase {i+1}: {phrase}")
 
     # Assertions
+    assert isinstance(prose, str), "Prose should be a string"
+    assert prose.strip(), "Prose should be non-empty"
     assert isinstance(phrases, list), "Output should be a list"
-    assert 2 <= len(phrases) <= 6, f"Should return 3-5 phrases, got {len(phrases)}"
+    assert 2 <= len(phrases) <= 6, f"Should return 2-6 phrases, got {len(phrases)}"
     for phrase in phrases:
         assert isinstance(phrase, str), "Each phrase should be a string"
         assert phrase.strip(), "Each phrase should be non-empty"

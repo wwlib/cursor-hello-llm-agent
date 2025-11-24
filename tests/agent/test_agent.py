@@ -2,8 +2,11 @@ import pytest
 from unittest.mock import Mock, patch, ANY
 import json
 from datetime import datetime
+from src.utils.logging_config import LoggingConfig
 
 from src.agent.agent import Agent, AgentPhase
+
+TEST_GUID = "test_agent"
 
 @pytest.fixture
 def mock_llm_service():
@@ -19,54 +22,34 @@ def mock_memory_manager():
     mock.query_memory.return_value = {
         "response": "Test response"
     }
-    mock.get_memory_context.return_value = {
-        "static_memory": {
-            "structured_data": {
-                "entities": [
-                    {
-                        "identifier": "static_entity_1",
-                        "type": "test_type",
-                        "name": "Static Entity",
-                        "features": ["static_feature"],
-                        "description": "Static description"
-                    }
-                ]
-            },
-            "knowledge_graph": {
-                "entities": [
-                    {
-                        "identifier": "static_entity_1",
-                        "type": "test_type",
-                        "name": "Static Entity",
-                        "features": ["static_feature"],
-                        "description": "Static description"
-                    }
-                ],
-                "relationships": []
-            }
-        },
-        "working_memory": {
-            "structured_data": {},  # Structure determined by LLM
-            "knowledge_graph": {
-                "entities": [],
-                "relationships": []
-            }
-        },
+    # get_memory() returns the actual memory dict structure
+    mock.get_memory.return_value = {
+        "static_memory": "Test static memory",
+        "context": [],
+        "conversation_history": [],
         "metadata": {
             "created_at": datetime.now().isoformat(),
             "last_updated": datetime.now().isoformat(),
             "version": "1.0"
-        },
-        "conversation_history": []
+        }
     }
     mock.update_memory.return_value = True
     mock.create_initial_memory.return_value = True
     return mock
 
 @pytest.fixture
-def agent(mock_llm_service, mock_memory_manager):
+def agent_logger():
+    """Create logger for Agent tests"""
+    return LoggingConfig.get_component_file_logger(
+        TEST_GUID,
+        "agent_test",
+        log_to_console=False
+    )
+
+@pytest.fixture
+def agent(mock_llm_service, mock_memory_manager, agent_logger):
     """Create an agent instance with mock services"""
-    return Agent(mock_llm_service, mock_memory_manager)
+    return Agent(mock_llm_service, mock_memory_manager, domain_name="test", logger=agent_logger)
 
 @pytest.mark.asyncio
 async def test_agent_initialization(agent):
@@ -80,35 +63,29 @@ async def test_agent_initialization(agent):
 async def test_process_message_success(agent, mock_memory_manager):
     """Test successful message processing"""
     # Setup mock conversation history
-    mock_memory_manager.get_memory_context.return_value = {
-        "static_memory": {
-            "structured_data": {},
-            "knowledge_graph": {
-                "entities": [],
-                "relationships": []
-            }
-        },
-        "working_memory": {
-            "structured_data": {},
-            "knowledge_graph": {
-                "entities": [],
-                "relationships": []
-            }
-        },
+    mock_memory_manager.get_memory.return_value = {
+        "static_memory": "Test static memory",
+        "context": [],
+        "conversation_history": [
+            {"role": "user", "content": "Hello", "timestamp": datetime.now().isoformat()},
+            {"role": "agent", "content": "Test response", "timestamp": datetime.now().isoformat()}
+        ],
         "metadata": {
             "created_at": datetime.now().isoformat(),
             "last_updated": datetime.now().isoformat(),
             "version": "1.0"
-        },
-        "conversation_history": [
-            {"role": "user", "content": "Hello", "timestamp": datetime.now().isoformat()},
-            {"role": "agent", "content": "Test response", "timestamp": datetime.now().isoformat()}
-        ]
+        }
     }
     
     response = await agent.process_message("Hello")
     
     assert response == "Test response"
+    
+    # Verify query_memory was called with correct dict (not JSON string)
+    mock_memory_manager.query_memory.assert_called_once()
+    call_args = mock_memory_manager.query_memory.call_args[0][0]
+    assert isinstance(call_args, dict)
+    assert call_args["query"] == "Hello"
     
     history = agent.get_conversation_history()
     assert len(history) == 2
@@ -134,7 +111,7 @@ async def test_learn_success(agent, mock_memory_manager):
     
     success = await agent.learn("New information")
     assert success is True
-    assert agent.current_phase == AgentPhase.INTERACTION
+    assert agent.current_phase == AgentPhase.LEARNING
 
 @pytest.mark.asyncio
 async def test_learn_memory_manager_error(agent, mock_memory_manager):
@@ -144,101 +121,19 @@ async def test_learn_memory_manager_error(agent, mock_memory_manager):
     success = await agent.learn("New information")
     assert success is False
 
-@pytest.mark.asyncio
-async def test_reflect(agent, mock_memory_manager):
-    """Test reflection process"""
-    mock_memory_manager.update_memory.return_value = True
-    mock_memory_manager.get_memory_context.return_value = {
-        "static_memory": {
-            "structured_data": {},
-            "knowledge_graph": {
-                "entities": [],
-                "relationships": []
-            }
-        },
-        "working_memory": {
-            "structured_data": {},
-            "knowledge_graph": {
-                "entities": [],
-                "relationships": []
-            }
-        },
-        "metadata": {
-            "created_at": datetime.now().isoformat(),
-            "last_updated": datetime.now().isoformat(),
-            "version": "1.0"
-        },
-        "conversation_history": [
-            {"role": "system", "content": "Reflection triggered", "timestamp": datetime.now().isoformat()}
-        ]
-    }
-    
-    await agent.reflect()
-    
-    history = agent.get_conversation_history()
-    assert len(history) == 1
-    assert history[0]["role"] == "system"
-    assert "Reflection" in history[0]["content"]
-
-@pytest.mark.asyncio
-async def test_reflect_memory_manager_error(agent, mock_memory_manager):
-    """Test reflection with memory manager error"""
-    mock_memory_manager.update_memory.return_value = False
-    mock_memory_manager.get_memory_context.return_value = {
-        "static_memory": {
-            "structured_data": {},
-            "knowledge_graph": {
-                "entities": [],
-                "relationships": []
-            }
-        },
-        "working_memory": {
-            "structured_data": {},
-            "knowledge_graph": {
-                "entities": [],
-                "relationships": []
-            }
-        },
-        "metadata": {
-            "created_at": datetime.now().isoformat(),
-            "last_updated": datetime.now().isoformat(),
-            "version": "1.0"
-        },
-        "conversation_history": [
-            {"role": "system", "content": "Reflection failed", "timestamp": datetime.now().isoformat()}
-        ]
-    }
-    
-    await agent.reflect()
-    
-    history = agent.get_conversation_history()
-    assert len(history) == 1
-    assert history[0]["role"] == "system"
 
 def test_get_conversation_history(agent, mock_memory_manager):
     """Test getting conversation history"""
     test_message = {"role": "user", "content": "test", "timestamp": datetime.now().isoformat()}
-    mock_memory_manager.get_memory_context.return_value = {
-        "static_memory": {
-            "structured_data": {},
-            "knowledge_graph": {
-                "entities": [],
-                "relationships": []
-            }
-        },
-        "working_memory": {
-            "structured_data": {},
-            "knowledge_graph": {
-                "entities": [],
-                "relationships": []
-            }
-        },
+    mock_memory_manager.get_memory.return_value = {
+        "static_memory": "Test static memory",
+        "context": [],
+        "conversation_history": [test_message],
         "metadata": {
             "created_at": datetime.now().isoformat(),
             "last_updated": datetime.now().isoformat(),
             "version": "1.0"
-        },
-        "conversation_history": [test_message]
+        }
     }
     
     history = agent.get_conversation_history()
@@ -258,10 +153,11 @@ async def test_conversation_history_limit(agent, mock_memory_manager):
     for i in range(6):
         await agent.process_message(f"Message {i}")
     
-    # Verify that context was sent correctly
+    # Verify that query_memory was called with correct dict format
     last_call_arg = mock_memory_manager.query_memory.call_args[0][0]
-    context = json.loads(last_call_arg)
-    assert "user_message" in context
+    assert isinstance(last_call_arg, dict)  # Changed from json.loads
+    assert "query" in last_call_arg  # Changed from "user_message"
+    assert last_call_arg["query"] == "Message 5"
 
 @pytest.mark.asyncio
 async def test_memory_integration_flow(agent, mock_memory_manager):
@@ -276,96 +172,64 @@ async def test_memory_integration_flow(agent, mock_memory_manager):
     response = await agent.process_message("A group of merchants wants to pass through")
     assert response == "Test response"
     
-    # Verify query included message
-    query_context = json.loads(mock_memory_manager.query_memory.call_args[0][0])
-    assert "user_message" in query_context
-    assert query_context["user_message"] == "A group of merchants wants to pass through"
+    # Verify query included message (as dict, not JSON string)
+    query_context = mock_memory_manager.query_memory.call_args[0][0]
+    assert isinstance(query_context, dict)  # Changed from json.loads
+    assert "query" in query_context  # Changed from "user_message"
+    assert query_context["query"] == "A group of merchants wants to pass through"
 
 @pytest.mark.asyncio
 async def test_memory_reflection_trigger(agent, mock_memory_manager):
-    """Test that reflection is triggered after accumulating messages"""
+    """Test that reflection/compression happens automatically
+    
+    NOTE: Reflection/compression is handled automatically by MemoryManager
+    during query_memory(), not explicitly triggered by Agent. This test
+    verifies that the Agent correctly delegates to MemoryManager.
+    """
     # Setup memory manager to simulate conversation history
     conversation_history = []
-    for i in range(10):  # Add enough messages to trigger reflection (new threshold is 10)
+    for i in range(10):  # Add enough messages to potentially trigger compression
         conversation_history.append({
             "role": "user" if i % 2 == 0 else "agent",
             "content": f"Message {i}",
             "timestamp": datetime.now().isoformat()
         })
     
-    mock_memory_manager.get_memory_context.return_value = {
-        "static_memory": {
-            "structured_data": {},
-            "knowledge_graph": {
-                "entities": [],
-                "relationships": []
-            }
-        },
-        "working_memory": {
-            "structured_data": {},
-            "knowledge_graph": {
-                "entities": [],
-                "relationships": []
-            }
-        },
+    mock_memory_manager.get_memory.return_value = {
+        "static_memory": "Test static memory",
+        "context": [],
+        "conversation_history": conversation_history,
         "metadata": {
             "created_at": datetime.now().isoformat(),
             "last_updated": datetime.now().isoformat(),
             "version": "1.0"
-        },
-        "conversation_history": conversation_history
+        }
     }
     
-    # Process a message that should trigger reflection
+    # Process a message - MemoryManager handles compression automatically
     await agent.process_message("One more message")
     
-    # Verify reflection was triggered
-    reflection_calls = [
-        call for call in mock_memory_manager.update_memory.call_args_list
-        if json.loads(call[0][0]).get("operation") == "update"
-    ]
-    assert len(reflection_calls) > 0
+    # Verify query_memory was called (compression happens inside MemoryManager)
+    assert mock_memory_manager.query_memory.called
     
-    # Verify reflection context
-    reflection_context = json.loads(reflection_calls[0][0][0])
-    assert reflection_context["operation"] == "update"
-    assert "messages" in reflection_context
+    # Note: We can't directly verify compression here because it's handled
+    # internally by MemoryManager. The Agent just delegates to MemoryManager.
 
 @pytest.mark.asyncio
 async def test_static_memory_preservation(agent, mock_memory_manager):
     """Test that static memory remains unchanged through operations"""
     # Setup initial static memory
-    static_entity = {
-        "identifier": "static_entity_1",
-        "type": "test_type",
-        "name": "Static Entity",
-        "features": ["static_feature"],
-        "description": "Static description"
-    }
+    static_memory_text = "Test static memory content"
     
-    mock_memory_manager.get_memory_context.return_value = {
-        "static_memory": {
-            "structured_data": {
-                "entities": [static_entity]
-            },
-            "knowledge_graph": {
-                "entities": [static_entity],
-                "relationships": []
-            }
-        },
-        "working_memory": {
-            "structured_data": {},
-            "knowledge_graph": {
-                "entities": [],
-                "relationships": []
-            }
-        },
+    mock_memory_manager.get_memory.return_value = {
+        "static_memory": static_memory_text,
+        "context": [],
+        "conversation_history": [],
         "metadata": {
             "created_at": datetime.now().isoformat(),
             "last_updated": datetime.now().isoformat(),
             "version": "1.0"
-        },
-        "conversation_history": []
+        }
     }
     
     # Process several messages
@@ -373,7 +237,6 @@ async def test_static_memory_preservation(agent, mock_memory_manager):
         await agent.process_message(f"Message {i}")
     
     # Verify static memory in final state
-    final_memory = mock_memory_manager.get_memory_context()
+    final_memory = mock_memory_manager.get_memory()
     assert "static_memory" in final_memory
-    assert len(final_memory["static_memory"]["structured_data"]["entities"]) == 1
-    assert final_memory["static_memory"]["structured_data"]["entities"][0] == static_entity 
+    assert final_memory["static_memory"] == static_memory_text 

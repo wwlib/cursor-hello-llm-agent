@@ -5,18 +5,29 @@ import os
 import json
 import numpy as np
 from src.ai.llm_ollama import OllamaService, LLMServiceError
+from src.utils.logging_config import LoggingConfig
 
-ollama_base_url = "http://192.168.1.173:11434"
-ollama_embed_model = "mxbai-embed-large"
+# Use environment variables with sensible defaults
+OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+OLLAMA_EMBED_MODEL = os.getenv("OLLAMA_EMBED_MODEL", "mxbai-embed-large")
+
+# Test GUID for logging
+TEST_GUID = "test_llm_ollama_embeddings"
 
 @pytest.fixture
 def llm_service():
     """Create an OllamaService instance for testing."""
+    # Use LoggingConfig for consistent logging
+    llm_logger = LoggingConfig.get_component_file_logger(
+        TEST_GUID,
+        "ollama_embeddings",
+        log_to_console=False
+    )
+    
     return OllamaService({
-        "base_url": os.getenv("OLLAMA_BASE_URL", ollama_base_url),
-        "model": os.getenv("OLLAMA_MODEL", ollama_embed_model),
-        "debug": True,
-        "debug_scope": "test_embeddings"
+        "base_url": OLLAMA_BASE_URL,
+        "model": OLLAMA_EMBED_MODEL,
+        "logger": llm_logger
     })
 
 def test_generate_embedding_basic(llm_service):
@@ -116,9 +127,16 @@ def test_embedding_error_handling(llm_service):
         llm_service.generate_embedding("test", {"model": "nonexistent_model"})
     
     # Test with invalid URL
+    bad_logger = LoggingConfig.get_component_file_logger(
+        TEST_GUID,
+        "ollama_embeddings_error",
+        log_to_console=False
+    )
+    
     bad_service = OllamaService({
         "base_url": "http://nonexistent:11434",
-        "model": ollama_embed_model
+        "model": OLLAMA_EMBED_MODEL,
+        "logger": bad_logger
     })
     with pytest.raises(LLMServiceError):
         bad_service.generate_embedding("test")

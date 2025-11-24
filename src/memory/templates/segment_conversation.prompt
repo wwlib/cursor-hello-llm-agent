@@ -6,9 +6,10 @@ INSTRUCTIONS:
 1. If the text is long and contains more than one complete idea, please split the INPUT_TEXT into segments
 2. IMPORTANT: Keep relevant information and context together in the same segment.
 3. It is better to have fewer, longer segments that to create segments with incomplete context.
-4. IMPORTANT: Do not enhance or edit the text in any way. Segments must be exact, literal substrings of the imput text.
+4. IMPORTANT: Do not enhance or edit the text in any way. Segments must be exact, literal substrings of the INPUT_TEXT.
 5. If the text contains only one complete idea, then do not split it and return the INPUT_TEXT as one segment.
 6. Return ONLY a JSON array of strings, with each string being a distinct segment. The response should be valid JSON that can be directly parsed.
+7. Please do not use markdown code fences
 
 INPUT_TEXT:
 {content}

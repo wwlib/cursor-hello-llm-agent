@@ -89,21 +89,30 @@ class DigestGenerator:
             self.logger.debug(f"Generated {len(segments_to_use)} segments")
             
             # Step 2: Rate segments and assign topics
+            self.logger.debug(f"Rating {len(segments_to_use)} segments")
             rated_segments = self._rate_segments(segments_to_use, memory_state)
             
-            # Step 2.5: Filter out non-memory-worthy segments
+            # Step 2.5: Track memory-worthy segments for logging (but don't filter yet)
             memory_worthy_segments = self._filter_memory_worthy_segments(rated_segments)
+            self.logger.debug(f"Filtered out {len(rated_segments) - len(memory_worthy_segments)} non-memory-worthy segments, kept {len(memory_worthy_segments)} segments")
             
-            # Step 3: Clean the rated segments
-            cleaned_segments = self._clean_segments(memory_worthy_segments)
-            
+            # Step 3: Clean ALL rated segments (including non-memory-worthy ones)
+            # We save all segments to conversation history for potential re-evaluation later
+            self.logger.debug(f"Cleaning {len(rated_segments)} segments (all rated segments, including non-memory-worthy)")
+            cleaned_segments = self._clean_segments(rated_segments)
+            self.logger.debug(f"Cleaned {len(cleaned_segments)} segments")
+
             # Combine into final digest
+            # NOTE: We include ALL rated segments in the digest, not just memory-worthy ones.
+            # This allows them to be saved in conversation history for potential re-evaluation.
+            # Filtering for working memory (embeddings, RAG, compression) happens separately.
             digest = {
                 "conversation_history_entry_guid": entry_guid,
                 "role": conversation_entry.get("role", "unknown"),
-                "rated_segments": cleaned_segments,
+                "rated_segments": cleaned_segments,  # All segments, including non-memory-worthy
                 "timestamp": datetime.now().isoformat()
             }
+            self.logger.debug(f"Created digest with {len(cleaned_segments)} total segments ({len(memory_worthy_segments)} memory-worthy):\n{json.dumps(digest, indent=2)}")
             
             return digest
             
@@ -141,8 +150,7 @@ class DigestGenerator:
             llm_response = self.llm.generate(
                 prompt, 
                 options={
-                    "temperature": 0,  # Lower temperature for more consistent ratings
-                    "stream": False  # Ensure streaming is off
+                    "temperature": 0  # Lower temperature for more consistent ratings
                 },
                 debug_generate_scope="segment_rating"
             )
@@ -152,13 +160,13 @@ class DigestGenerator:
                 rated_segments = json.loads(llm_response)
                 # Validate the structure
                 if not isinstance(rated_segments, list):
-                    self.logger.debug("Rating failed: Response is not a list")
+                    self.logger.error("Rating failed: Response is not a list")
                     return self._create_default_rated_segments(segments)
                 
                 # Validate each rated segment
                 for i, segment in enumerate(rated_segments):
                     if not isinstance(segment, dict):
-                        self.logger.debug(f"Segment {i} is not a dictionary, using default")
+                        self.logger.error(f"Segment {i} is not a dictionary, using default")
                         rated_segments[i] = {
                             "text": segments[i] if i < len(segments) else "",
                             "importance": 3,
@@ -166,27 +174,28 @@ class DigestGenerator:
                             "type": "information"  # Default type
                         }
                     elif "text" not in segment:
-                        self.logger.debug(f"Segment {i} missing text, using original")
+                        self.logger.error(f"Segment {i} missing text, using original")
                         segment["text"] = segments[i] if i < len(segments) else ""
                     elif "importance" not in segment:
-                        self.logger.debug(f"Segment {i} missing importance, using default")
+                        self.logger.error(f"Segment {i} missing importance, using default")
                         segment["importance"] = 3
                     elif "topics" not in segment:
-                        self.logger.debug(f"Segment {i} missing topics, using empty list")
+                        self.logger.error(f"Segment {i} missing topics, using empty list")
                         segment["topics"] = []
                     elif "type" not in segment:
-                        self.logger.debug(f"Segment {i} missing type, using default")
+                        self.logger.error(f"Segment {i} missing type, using default")
                         segment["type"] = "information"
                     elif segment["type"] not in ["query", "information", "action", "command"]:
-                        self.logger.debug(f"Segment {i} has invalid type, using default")
+                        self.logger.error(f"Segment {i} has invalid type, using default")
                         segment["type"] = "information"
                     elif "memory_worthy" not in segment:
-                        self.logger.debug(f"Segment {i} missing memory_worthy, using default")
+                        self.logger.error(f"Segment {i} missing memory_worthy, using default")
                         segment["memory_worthy"] = True
                 
                 return rated_segments
             except json.JSONDecodeError:
                 # Try to extract JSON if it's embedded in markdown or other text
+                self.logger.error(f"Failed to parse rated segments JSON, trying to extract JSON with regex help")
                 json_match = re.search(r'\[[\s\S]*\]', llm_response)
                 if json_match:
                     try:
@@ -197,13 +206,13 @@ class DigestGenerator:
                         
                         # Do basic validation
                         if not isinstance(rated_segments, list):
-                            self.logger.debug("Extracted rating is not a list")
+                            self.logger.error("Extracted rating is not a list")
                             return self._create_default_rated_segments(segments)
                         
                         # Validate each segment has required fields
                         for i, segment in enumerate(rated_segments):
                             if not isinstance(segment, dict) or "text" not in segment:
-                                self.logger.debug(f"Segment {i} invalid, using default")
+                                self.logger.error(f"Segment {i} invalid, using default")
                                 rated_segments[i] = {
                                     "text": segments[i] if i < len(segments) else "",
                                     "importance": 3,
@@ -212,22 +221,25 @@ class DigestGenerator:
                                     "memory_worthy": True   # Default to memory worthy
                                 }
                             elif "type" not in segment or segment["type"] not in ["query", "information", "action", "command"]:
-                                self.logger.debug(f"Segment {i} has invalid type, using default")
+                                self.logger.error(f"Segment {i} has invalid type, using default")
                                 segment["type"] = "information"
                             elif "memory_worthy" not in segment:
-                                self.logger.debug(f"Segment {i} missing memory_worthy, using default")
+                                self.logger.error(f"Segment {i} missing memory_worthy, using default")
                                 segment["memory_worthy"] = True
-                        
+                                
+                        self.logger.debug(f"Parsed rated segments with regex help")
                         return rated_segments
                     except json.JSONDecodeError:
+                        self.logger.error(f"Failed to parse rated segments with regex, using defaults")
                         pass
                 
                 # Fall back to default rating
-                self.logger.debug("Failed to parse rated segments, using defaults")
+                self.logger.error("Failed to parse rated segments JSON even with regex help, using defaults")
                 return self._create_default_rated_segments(segments)
                 
         except Exception as e:
-            self.logger.error(f"Error in segment rating: {str(e)}")
+            self.logger.error(f"Error in segment rating process: {str(e)}")
+            self.logger.error(f"Error in segment rating process: using defaults")
             return self._create_default_rated_segments(segments)
     
     def _create_empty_digest(self, entry_guid: str, role: str) -> Dict[str, Any]:

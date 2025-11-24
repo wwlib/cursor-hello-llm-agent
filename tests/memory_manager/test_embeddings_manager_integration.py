@@ -11,6 +11,7 @@ from pathlib import Path
 
 from src.memory.embeddings_manager import EmbeddingsManager
 from src.ai.llm_ollama import OllamaService
+from src.utils.logging_config import LoggingConfig
 
 # Test data paths - memory snapshots from a DND game
 TEST_DATA_DIR = Path("tests/memory_manager/memory_snapshots/rag")
@@ -42,12 +43,18 @@ def clear_file(file_path):
 @pytest.fixture
 def llm_service():
     """Create an instance of OllamaService for testing."""
+    # Use LoggingConfig for consistent logging
+    test_guid = "embeddings_manager_integration_test"
+    llm_logger = LoggingConfig.get_component_file_logger(
+        test_guid,
+        "ollama_embeddings",
+        log_to_console=False
+    )
+    
     return OllamaService({
         "base_url": OLLAMA_BASE_URL,
         "model": OLLAMA_EMBED_MODEL,
-        "debug": True,
-        "debug_scope": "test_embeddings_manager",
-        "console_output": True
+        "logger": llm_logger
     })
     
 @pytest.fixture
@@ -105,7 +112,15 @@ def test_embeddings_manager_init(llm_service, temp_embeddings_file):
     # Ensure file is empty at start
     clear_file(temp_embeddings_file)
     
-    manager = EmbeddingsManager(temp_embeddings_file, llm_service)
+    # Use LoggingConfig for EmbeddingsManager logger
+    test_guid = "embeddings_manager_integration_test"
+    embeddings_logger = LoggingConfig.get_component_file_logger(
+        test_guid,
+        "embeddings_manager",
+        log_to_console=False
+    )
+    
+    manager = EmbeddingsManager(temp_embeddings_file, llm_service, logger=embeddings_logger)
     assert manager.embeddings_file == temp_embeddings_file
     assert manager.llm_service == llm_service
     assert isinstance(manager.embeddings, list)
@@ -116,7 +131,14 @@ def test_generate_embedding(llm_service, temp_embeddings_file):
     # Ensure file is empty at start
     clear_file(temp_embeddings_file)
     
-    manager = EmbeddingsManager(temp_embeddings_file, llm_service)
+    test_guid = "embeddings_manager_integration_test"
+    embeddings_logger = LoggingConfig.get_component_file_logger(
+        test_guid,
+        "embeddings_manager",
+        log_to_console=False
+    )
+    
+    manager = EmbeddingsManager(temp_embeddings_file, llm_service, logger=embeddings_logger)
     
     # Generate embedding for a test text
     test_text = "This is a test sentence for embedding generation."
@@ -135,7 +157,14 @@ def test_add_embedding(llm_service, temp_embeddings_file):
     # Ensure file is empty at start
     clear_file(temp_embeddings_file)
     
-    manager = EmbeddingsManager(temp_embeddings_file, llm_service)
+    test_guid = "embeddings_manager_integration_test"
+    embeddings_logger = LoggingConfig.get_component_file_logger(
+        test_guid,
+        "embeddings_manager",
+        log_to_console=False
+    )
+    
+    manager = EmbeddingsManager(temp_embeddings_file, llm_service, logger=embeddings_logger)
     
     # Add an embedding
     test_text = "This is a test sentence for embedding storage."
@@ -195,8 +224,15 @@ def test_load_embeddings(llm_service, temp_embeddings_file):
         for item in test_embeddings:
             f.write(json.dumps(item) + '\n')
     
+    test_guid = "embeddings_manager_integration_test"
+    embeddings_logger = LoggingConfig.get_component_file_logger(
+        test_guid,
+        "embeddings_manager",
+        log_to_console=False
+    )
+    
     # Create a new manager that loads these embeddings
-    manager = EmbeddingsManager(temp_embeddings_file, llm_service)
+    manager = EmbeddingsManager(temp_embeddings_file, llm_service, logger=embeddings_logger)
     
     # Check that embeddings were loaded correctly
     assert len(manager.embeddings) == 2
@@ -209,7 +245,14 @@ def test_add_multiple_embeddings(llm_service, temp_embeddings_file):
     # Ensure file is empty at start
     clear_file(temp_embeddings_file)
     
-    manager = EmbeddingsManager(temp_embeddings_file, llm_service)
+    test_guid = "embeddings_manager_integration_test"
+    embeddings_logger = LoggingConfig.get_component_file_logger(
+        test_guid,
+        "embeddings_manager",
+        log_to_console=False
+    )
+    
+    manager = EmbeddingsManager(temp_embeddings_file, llm_service, logger=embeddings_logger)
     
     # Add multiple embeddings
     test_texts = [
@@ -248,7 +291,14 @@ def test_update_embeddings_from_conversation_history(llm_service, temp_embedding
     # Ensure file is empty at start
     clear_file(temp_embeddings_file)
     
-    manager = EmbeddingsManager(temp_embeddings_file, llm_service)
+    test_guid = "embeddings_manager_integration_test"
+    embeddings_logger = LoggingConfig.get_component_file_logger(
+        test_guid,
+        "embeddings_manager",
+        log_to_console=False
+    )
+    
+    manager = EmbeddingsManager(temp_embeddings_file, llm_service, logger=embeddings_logger)
     
     # Get conversation entries
     entries = test_conversation_data.get("entries", [])
@@ -258,14 +308,34 @@ def test_update_embeddings_from_conversation_history(llm_service, temp_embedding
     success = manager.update_embeddings(entries)
     assert success is True
     
-    # Calculate expected number of embeddings (entries + segments)
+    # Calculate expected number of embeddings using the same filtering logic as update_embeddings
+    from src.memory.embeddings_manager import DEFAULT_EMBEDDINGS_IMPORTANCE_THRESHOLD, EMBEDDINGS_RELEVANT_TYPES
+    
     expected_count = 0
     for entry in entries:
         if 'digest' in entry and 'rated_segments' in entry['digest']:
-            expected_count += len(entry['digest']['rated_segments'])
+            segments = entry['digest']['rated_segments']
+            for segment in segments:
+                # Apply the same filters as update_embeddings
+                if 'text' not in segment or not segment['text']:
+                    continue
+                
+                importance = segment.get('importance', 3)
+                if importance < DEFAULT_EMBEDDINGS_IMPORTANCE_THRESHOLD:
+                    continue
+                
+                if not segment.get('memory_worthy', True):
+                    continue
+                
+                segment_type = segment.get('type', 'information')
+                if segment_type not in EMBEDDINGS_RELEVANT_TYPES:
+                    continue
+                
+                expected_count += 1
     
     # Check that we have the right number of embeddings
-    assert len(manager.embeddings) == expected_count
+    assert len(manager.embeddings) == expected_count, \
+        f"Expected {expected_count} embeddings after filtering, but got {len(manager.embeddings)}"
     
     # Check file exists and is not empty
     assert os.path.exists(temp_embeddings_file)

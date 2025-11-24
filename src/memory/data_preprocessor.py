@@ -48,8 +48,7 @@ class DataPreprocessor:
             prose = self.llm.generate(
                 prompt,
                 options={
-                    "temperature": 0,  # Consistent, deterministic output
-                    "stream": False
+                    "temperature": 0  # Consistent, deterministic output
                 },
                 debug_generate_scope="data_preprocessing"
             )

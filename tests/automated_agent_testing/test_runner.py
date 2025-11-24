@@ -24,7 +24,8 @@ if project_root not in sys.path:
 
 from src.agent.agent import Agent, AgentPhase
 from src.ai.llm_ollama import OllamaService
-from src.memory.memory_manager import AsyncMemoryManager
+from src.memory.memory_manager import MemoryManager
+from src.utils.logging_config import LoggingConfig
 from examples.domain_configs import CONFIG_MAP
 
 from .user_simulator import UserSimulator, PersonaType
@@ -90,7 +91,7 @@ class AgentTestController:
         self.llm_services = {}
         self.logger = logging.getLogger(__name__)
         
-    async def setup_agent(self) -> Tuple[str, Agent, AsyncMemoryManager]:
+    async def setup_agent(self) -> Tuple[str, Agent, MemoryManager]:
         """Set up agent instance for testing"""
         
         # Generate test-specific GUID
@@ -98,12 +99,25 @@ class AgentTestController:
         
         self.logger.info(f"Setting up agent with session GUID: {self.session_guid}")
         
-        # Create test logs directory
-        logs_dir = Path(project_root) / "logs" / self.session_guid
-        logs_dir.mkdir(parents=True, exist_ok=True)
-        
-        # Initialize LLM services for different purposes
+        # Initialize LLM services for different purposes using LoggingConfig
         base_url = self.llm_config.get("base_url", "http://localhost:11434")
+        
+        # Set up loggers using LoggingConfig
+        general_logger = LoggingConfig.get_component_file_logger(
+            self.session_guid,
+            "ollama_general",
+            log_to_console=False
+        )
+        digest_logger = LoggingConfig.get_component_file_logger(
+            self.session_guid,
+            "ollama_digest",
+            log_to_console=False
+        )
+        embeddings_logger = LoggingConfig.get_component_file_logger(
+            self.session_guid,
+            "ollama_embeddings",
+            log_to_console=False
+        )
         
         self.llm_services = {
             "general": OllamaService({
@@ -111,40 +125,33 @@ class AgentTestController:
                 "model": self.llm_config.get("model", "gemma3"),
                 "temperature": 0.7,
                 "stream": False,
-                "debug": True,
-                "debug_file": str(logs_dir / "test_general.log"),
-                "debug_scope": f"autotest_{self.test_id}",
-                "console_output": False
+                "logger": general_logger
             }),
             "digest": OllamaService({
                 "base_url": base_url,
                 "model": self.llm_config.get("model", "gemma3"),
                 "temperature": 0,
                 "stream": False,
-                "debug": True,
-                "debug_file": str(logs_dir / "test_digest.log"),
-                "debug_scope": f"autotest_{self.test_id}_digest",
-                "console_output": False
+                "logger": digest_logger
             }),
             "embeddings": OllamaService({
                 "base_url": base_url,
                 "model": self.llm_config.get("embed_model", "mxbai-embed-large"),
-                "debug": False,
-                "debug_file": str(logs_dir / "test_embed.log")
+                "logger": embeddings_logger
             })
         }
         
         # Create memory manager
         memory_file = self._get_memory_file_path()
         
-        # Set up memory manager logger
-        memory_logger = logging.getLogger(f"memory_manager.{self.test_id}")
-        memory_logger.setLevel(logging.DEBUG)
-        memory_handler = logging.FileHandler(logs_dir / "memory_manager.log")
-        memory_handler.setLevel(logging.DEBUG)
-        memory_logger.addHandler(memory_handler)
+        # Set up memory manager logger using LoggingConfig
+        memory_logger = LoggingConfig.get_component_file_logger(
+            self.session_guid,
+            "memory_manager",
+            log_to_console=False
+        )
         
-        self.memory_manager = AsyncMemoryManager(
+        self.memory_manager = MemoryManager(
             memory_guid=self.session_guid,
             memory_file=memory_file,
             domain_config=self.domain_config,
@@ -155,12 +162,12 @@ class AgentTestController:
             logger=memory_logger
         )
         
-        # Set up agent logger
-        agent_logger = logging.getLogger(f"agent.{self.test_id}")
-        agent_logger.setLevel(logging.DEBUG)
-        agent_handler = logging.FileHandler(logs_dir / "agent.log")
-        agent_handler.setLevel(logging.DEBUG)
-        agent_logger.addHandler(agent_handler)
+        # Set up agent logger using LoggingConfig
+        agent_logger = LoggingConfig.get_component_file_logger(
+            self.session_guid,
+            "agent",
+            log_to_console=False
+        )
         
         # Create agent
         self.agent = Agent(
@@ -190,12 +197,8 @@ class AgentTestController:
             self.logger.info("Waiting for pending operations before cleanup...")
             await self.agent.wait_for_pending_operations()
         
-        # Close log handlers
-        for logger_name in [f"memory_manager.{self.test_id}", f"agent.{self.test_id}"]:
-            logger = logging.getLogger(logger_name)
-            for handler in logger.handlers[:]:
-                handler.close()
-                logger.removeHandler(handler)
+        # Note: LoggingConfig handles log file cleanup automatically
+        # No need to manually close handlers
 
 
 class TestRunner:
@@ -246,13 +249,19 @@ class TestRunner:
             if not success:
                 raise Exception("Failed to initialize agent memory")
             
-            # Set up user simulator
+            # Set up user simulator with proper logging
+            simulator_logger = LoggingConfig.get_component_file_logger(
+                session_guid,
+                "ollama_simulator",
+                log_to_console=False
+            )
+            
             simulator_llm = OllamaService({
                 "base_url": self.llm_config.get("base_url", "http://localhost:11434"),
                 "model": self.llm_config.get("model", "gemma3"),
                 "temperature": self.llm_config.get("temperature", 0.8),
                 "stream": False,
-                "debug": False
+                "logger": simulator_logger
             })
             
             user_simulator = UserSimulator(simulator_llm, scenario.persona, domain_config)

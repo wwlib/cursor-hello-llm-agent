@@ -1,236 +1,239 @@
-"""Memory Manager for Agent System
+"""Simplified Memory Manager for Agent System
 
-Design Principles::
+Clean, focused implementation with only essential functionality.
+Removed obsolete graph processing code and simplified architecture.
 
-    1. Flexible Memory Design
-       - Maintains conversation history with importance-rated segments
-       - Uses these rated segments for memory compression over time
-       
-    2. Domain-Driven Design
-       - Domain-specific guidance is provided through domain_config
-       - The LLM should use these as guidance to remember important information
-       
-    3. Memory Organization
-       - static_memory: Contains foundational, unchanging information about the domain
-       - conversation_history: Contains full conversation with important segments rated
-       - context: Contains compressed important information organized by topic
-       
-    4. Memory Update Process
-       - Periodically compresses conversation history to retain only important segments
-       - Organizes important information by topics for better retrieval
-       - Balances completeness with efficiency
+Core Features:
+- Memory persistence and GUID management (inherited from BaseMemoryManager)
+- Digest generation for conversation segmentation
+- RAG-enhanced query processing with embeddings
+- Simple graph memory integration via queue_writer
+- Async processing for digests and embeddings
+- Memory compression when needed
 
-Usage::
-
-    memory_manager = MemoryManager(
-        memory_guid=guid,
-        llm_service=llm_service,
-        memory_file="memory.json",
-        domain_config={
-            "domain_specific_prompt_instructions": {
-                "query": "Domain-specific guidance for queries",
-                "update": "Domain-specific guidance for updating memory"
-            },
-            "domain_specific_schema_suggestions": {
-                // Flexible schema suggestions for the domain
-            }
-        }
-    )
+Architecture:
+- Extends BaseMemoryManager for core persistence
+- Uses DigestGenerator for memory analysis and segmentation  
+- Uses EmbeddingsManager for semantic search
+- Uses RAGManager for context-enhanced queries
+- Uses QueueWriter for simple graph memory integration
+- Uses MemoryCompressor for automatic memory management
 """
 
 from typing import Any, Dict, Optional, List
 import json
 import os
-import re
 import uuid
+import asyncio
+import logging
 from datetime import datetime
+
+from src.utils.logging_config import LoggingConfig
 from .base_memory_manager import BaseMemoryManager
 from .digest_generator import DigestGenerator
 from .memory_compressor import MemoryCompressor
 from .data_preprocessor import DataPreprocessor
 from .embeddings_manager import EmbeddingsManager
 from .rag_manager import RAGManager
-from .graph_memory import GraphManager
-import asyncio
-import logging
+from .graph_memory.queue_writer import QueueWriter
+from .graph_memory.standalone_graph_queries import StandaloneGraphQueries
 
 # Memory filtering constants
 DEFAULT_COMPRESSION_IMPORTANCE_THRESHOLD = 3
-DEFAULT_RAG_IMPORTANCE_THRESHOLD = 3  # Standardized to match compression
-DEFAULT_EMBEDDINGS_IMPORTANCE_THRESHOLD = 3  # Only embed important segments
+DEFAULT_RAG_IMPORTANCE_THRESHOLD = 3
+DEFAULT_EMBEDDINGS_IMPORTANCE_THRESHOLD = 3
 
 class MemoryManager(BaseMemoryManager):
-    """LLM-driven memory manager implementation.
+    """Simplified LLM-driven memory manager with clean architecture.
     
-    Extends BaseMemoryManager to provide LLM-driven memory operations with domain-specific configuration.
+    Focuses on core functionality without the bloat of obsolete background processing.
+    Integrates with standalone graph processing via simple queue writer.
     """
 
-    def __init__(self, memory_guid: str, memory_file: str = "memory.json", domain_config: Optional[Dict[str, Any]] = None, 
+    def __init__(self, memory_guid: str, memory_file: str = "memory.json", 
+                 domain_config: Optional[Dict[str, Any]] = None, 
                  llm_service = None, digest_llm_service = None, embeddings_llm_service = None, 
-                 max_recent_conversation_entries: int = 8, importance_threshold: int = DEFAULT_COMPRESSION_IMPORTANCE_THRESHOLD, 
-                 enable_graph_memory: bool = True, logger=None):
-        """Initialize the MemoryManager with LLM service instances and domain configuration.
+                 max_recent_conversation_entries: int = 8, 
+                 importance_threshold: int = DEFAULT_COMPRESSION_IMPORTANCE_THRESHOLD,
+                 verbose: bool = False, logger=None, **kwargs):
+        """Initialize the MemoryManager with essential services only.
         
         Args:
-            memory_file: Path to the JSON file for persistent storage
-            domain_config: Dictionary containing domain-specific configuration:
-                         - schema: Domain-specific entity types and properties
-                         - relationships: Domain-specific relationship types
-                         - prompts: Domain-specific prompt templates
+            memory_guid: Required GUID to identify this memory instance
+            memory_file: Path to the JSON file for persistent storage  
+            domain_config: Domain-specific configuration
             llm_service: Service for general LLM operations (required)
             digest_llm_service: Service for digest generation (optional, falls back to llm_service)
             embeddings_llm_service: Service for embeddings/RAG (optional, falls back to llm_service)
-            memory_guid: Required GUID to identify this memory instance.
-            max_recent_conversation_entries: Maximum number of recent conversation entries to keep before compression
-            importance_threshold: Threshold for segment importance (1-5 scale) to keep during compression
-            enable_graph_memory: Whether to enable graph memory functionality (default: True)
-            logger: Optional logger instance for this MemoryManager
+            max_recent_conversation_entries: Max entries before compression
+            importance_threshold: Threshold for segment importance (1-5 scale)
+            verbose: Enable verbose status messages
+            logger: Optional logger instance
+            **kwargs: Additional arguments (ignored for compatibility)
         """
         if llm_service is None:
             raise ValueError("llm_service is required for MemoryManager")
             
-        # Pass memory_guid and logger to the parent constructor
+        # Initialize base class
         super().__init__(memory_guid, memory_file, domain_config, logger=logger)
-        self.logger.debug(f"\nInitializing MemoryManager with file: {memory_file}")
+        
+        # Store LLM services
         self.llm = llm_service
         self.digest_llm = digest_llm_service or llm_service
         self.embeddings_llm = embeddings_llm_service or llm_service
+        
+        # Initialize verbose handler
+        self.verbose = verbose
+        if verbose:
+            from src.utils.verbose_status import get_verbose_handler
+            self.verbose_handler = get_verbose_handler(enabled=True)
+        else:
+            self.verbose_handler = None
+        
+        # Configuration
+        self.max_recent_conversation_entries = max_recent_conversation_entries
+        self.importance_threshold = importance_threshold
+        
+        # Initialize async operation tracking
+        self._pending_digests = {}  # guid -> entry
+        self._pending_embeddings = set()  # set of guids
+        
+        # Load templates
         self._load_templates()
         
-        # Initialize DigestGenerator with dedicated LLM service and domain config
+        # Initialize core components
         domain_name = self.domain_config.get("domain_name", "general") if self.domain_config else "general"
-        self.logger.debug(f"Initializing DigestGenerator for domain: {domain_name}")
-        self.digest_generator = DigestGenerator(self.digest_llm, domain_name=domain_name, domain_config=self.domain_config, logger=logger)
-        
-        # Initialize MemoryCompressor (uses general LLM)
+        self.digest_generator = DigestGenerator(self.digest_llm, domain_name=domain_name, 
+                                              domain_config=self.domain_config, logger=logger)
         self.memory_compressor = MemoryCompressor(self.llm, importance_threshold, logger=logger)
-        self.logger.debug("Initialized MemoryCompressor")
         
-        # Initialize EmbeddingsManager first
+        # Initialize embeddings manager
         embeddings_file = os.path.splitext(memory_file)[0] + "_embeddings.jsonl"
         self.embeddings_manager = EmbeddingsManager(embeddings_file, self.embeddings_llm, logger=logger)
-        self.logger.debug("Initialized EmbeddingsManager")
-        self.logger.debug(f"Embeddings file: {embeddings_file}")
         
-        # Initialize GraphManager if enabled
-        self.enable_graph_memory = enable_graph_memory
-        self.graph_manager = None
-        if enable_graph_memory:
-            try:
-                # Create graph storage path based on memory file
-                memory_dir = os.path.dirname(memory_file) or "."
-                memory_base = os.path.basename(memory_file).split(".")[0]
-                graph_storage_path = os.path.join(memory_dir, f"{memory_base}_graph_data")
-                graph_embeddings_file = os.path.join(graph_storage_path, "graph_memory_embeddings.jsonl")
+        # Initialize graph memory components (always attempt, fail gracefully)
+        self.graph_queue_writer = None
+        self.graph_queries = None
+        try:
+            self._setup_graph_memory_integration()
+        except Exception as e:
+            self.logger.warning(f"Graph components not available: {e}")
                 
-                # Create directory for graph storage
-                os.makedirs(graph_storage_path, exist_ok=True)
-                
-                # Create dedicated logger for graph manager
-                graph_logger = self._create_graph_manager_logger(memory_dir, memory_base)
-                
-                # Get similarity threshold from domain config
-                similarity_threshold = 0.8
-                if self.domain_config and "graph_memory_config" in self.domain_config:
-                    similarity_threshold = self.domain_config["graph_memory_config"].get("similarity_threshold", 0.8)
-                
-                # Create separate embeddings manager for graph memory
-                graph_embeddings_file = os.path.join(graph_storage_path, "graph_memory_embeddings.jsonl")
-                graph_embeddings_manager = EmbeddingsManager(
-                    embeddings_file=graph_embeddings_file,
-                    llm_service=self.embeddings_llm,
-                    logger=graph_logger  # Use dedicated graph logger
-                )
-                
-                # Determine logs base directory for graph-specific logging
-                logs_base_dir = self._determine_logs_base_dir(memory_dir)
-                
-                self.graph_manager = GraphManager(
-                    storage_path=graph_storage_path,
-                    embeddings_manager=graph_embeddings_manager,
-                    similarity_threshold=similarity_threshold,
-                    logger=graph_logger,  # Use dedicated graph logger
-                    llm_service=self.llm,  # Use general LLM service (gemma3) for entity extraction
-                    embeddings_llm_service=self.embeddings_llm,  # Use embeddings LLM service (mxbai-embed-large)
-                    domain_config=self.domain_config,
-                    logs_dir=logs_base_dir,  # Pass logs directory for graph-specific logging
-                    memory_guid=self.memory_guid  # Pass memory GUID for creating log subdirectories
-                )
-                self.logger.debug(f"Initialized GraphManager with storage: {graph_storage_path}")
-                graph_logger.debug(f"Graph memory logger initialized for memory: {memory_base}")
-            except Exception as e:
-                self.logger.warning(f"Failed to initialize GraphManager: {e}. Graph memory disabled.")
-                self.enable_graph_memory = False
-                self.graph_manager = None
-        
-        # Initialize RAGManager with optional graph manager
+        # Initialize RAG manager with optional graph queries
         self.rag_manager = RAGManager(
             llm_service=self.embeddings_llm, 
             embeddings_manager=self.embeddings_manager, 
-            graph_manager=self.graph_manager,
+            graph_queries=self.graph_queries,
             logger=logger
         )
-        self.logger.debug("Initialized RAGManager with graph integration")
         
         # Ensure memory has a GUID
         self._ensure_memory_guid()
         
-        # Configurable memory parameters
-        self.max_recent_conversation_entries = max_recent_conversation_entries
-        self.importance_threshold = importance_threshold
-        self.logger.debug(f"Memory configuration: max_recent_conversation_entries={max_recent_conversation_entries}, importance_threshold={importance_threshold}, graph_memory={enable_graph_memory}")
+        self.logger.debug(f"MemoryManager initialized: max_entries={max_recent_conversation_entries}, "
+                         f"importance_threshold={importance_threshold}")
+
+    def _setup_graph_memory_integration(self):
+        """Set up simple graph memory integration via queue writer and queries."""
+        # Create graph storage path
+        memory_dir = os.path.dirname(self.memory_file) or "."
+        memory_base = os.path.basename(self.memory_file).split(".")[0]
+        graph_storage_path = os.path.join(memory_dir, f"{memory_base}_graph_data")
+        os.makedirs(graph_storage_path, exist_ok=True)
+        
+        # Create logger for graph components
+        graph_logger = self._create_graph_logger(memory_dir, memory_base)
+        
+        # Create embeddings manager for graph memory
+        graph_embeddings_file = os.path.join(graph_storage_path, "graph_memory_embeddings.jsonl")
+        graph_embeddings_manager = EmbeddingsManager(
+            embeddings_file=graph_embeddings_file,
+            llm_service=self.embeddings_llm,
+            logger=graph_logger
+        )
+        
+        # Initialize simple queue writer for standalone graph process
+        self.graph_queue_writer = QueueWriter(
+            storage_path=graph_storage_path,
+            logger=graph_logger
+        )
+        
+        # Initialize graph queries for reading processed data
+        self.graph_queries = StandaloneGraphQueries(
+            storage_path=graph_storage_path,
+            embeddings_manager=graph_embeddings_manager,
+            logger=graph_logger
+        )
+        
+        self.logger.debug(f"Graph memory integration initialized with storage: {graph_storage_path}")
+
+    def _create_graph_logger(self, memory_dir: str, memory_base: str) -> logging.Logger:
+        """Create a simple logger for graph operations."""
+        graph_logger = LoggingConfig.get_component_file_logger(self.memory_guid, "graph_memory", log_to_console=False)
+        return graph_logger
+
+        # logger_name = f"graph_memory.{self.memory_guid}"
+        # graph_logger = logging.getLogger(logger_name)
+        
+        # if graph_logger.handlers:
+        #     return graph_logger
+            
+        # graph_logger.setLevel(logging.DEBUG)
+        
+        # # Create session logs directory
+        # logs_base_dir = self._get_logs_base_dir(memory_dir)
+        # session_logs_dir = os.path.join(logs_base_dir, "logs", self.memory_guid)
+        # os.makedirs(session_logs_dir, exist_ok=True)
+        
+        # # Create log file
+        # log_file_path = os.path.join(session_logs_dir, "graph_memory.log")
+        # file_handler = logging.FileHandler(log_file_path)
+        # file_handler.setLevel(logging.DEBUG)
+        # formatter = logging.Formatter('%(asctime)s %(levelname)s:%(name)s:%(message)s')
+        # file_handler.setFormatter(formatter)
+        # graph_logger.addHandler(file_handler)
+        # graph_logger.propagate = False
+        
+        # return graph_logger
+
+    def _get_logs_base_dir(self, memory_dir: str) -> str:
+        """Get the base directory for logs."""
+        if memory_dir and memory_dir != ".":
+            parent_dir = os.path.dirname(memory_dir)
+            if parent_dir and os.path.basename(parent_dir) in ["standard", "simple", "sync"]:
+                grandparent_dir = os.path.dirname(parent_dir)
+                return grandparent_dir if grandparent_dir else "."
+            else:
+                return os.path.dirname(memory_dir) if memory_dir != "." else "."
+        return "."
 
     def _ensure_memory_guid(self):
-        """Ensure that the memory has a GUID, prioritizing the provided GUID if available."""
-        # If memory doesn't exist yet, we'll handle this when creating memory
+        """Ensure memory has a valid GUID."""
         if not self.memory:
-            # Make sure we have a GUID, generating one if needed
             if not self.memory_guid:
                 self.memory_guid = str(uuid.uuid4())
-                self.logger.debug(f"Generated new GUID: {self.memory_guid} for memory file that will be created")
+                self.logger.debug(f"Generated new GUID: {self.memory_guid}")
             return
             
-        # Priority order for GUID:
-        # 1. GUID provided at initialization (self.memory_guid from constructor)
-        # 2. GUID in existing memory file (self.memory["guid"])
-        # 3. Generate a new GUID if neither exists
-        
-        # If we already have a GUID from initialization, use it
+        # Use provided GUID, existing GUID, or generate new one
         if self.memory_guid:
-            # Force the memory to use our provided GUID, overriding any existing GUID
             if "guid" in self.memory and self.memory["guid"] != self.memory_guid:
-                self.logger.debug(f"Replacing existing memory GUID: {self.memory['guid']} with provided GUID: {self.memory_guid}")
-            
-            # Set the GUID in memory
+                self.logger.debug(f"Replacing existing memory GUID with provided GUID: {self.memory_guid}")
             self.memory["guid"] = self.memory_guid
-            self.logger.debug(f"Using provided GUID for memory: {self.memory_guid}")
-        # If no GUID was provided but one exists in memory, use that
         elif "guid" in self.memory:
             self.memory_guid = self.memory["guid"]
             self.logger.debug(f"Using existing memory GUID: {self.memory_guid}")
-        # If no GUID was provided and none exists in memory, generate a new one
         else:
             self.memory_guid = str(uuid.uuid4())
             self.memory["guid"] = self.memory_guid
-            self.logger.debug(f"Generated new GUID for memory: {self.memory_guid}")
-
-    def _get_default_config(self) -> dict:
-        """Get the default domain configuration if none provided."""
-        return {
-            "domain_specific_prompt_instructions:": {
-                "query": "",
-                "update": ""
-            }
-        }
+            self.logger.debug(f"Generated new GUID: {self.memory_guid}")
 
     def _load_templates(self) -> None:
-        """Load prompt templates from files"""
+        """Load prompt templates from files."""
         template_dir = os.path.join(os.path.dirname(__file__), "templates")
         self.templates = {}
         
-        template_files = {
-            "query": "query_memory.prompt"
-        }
+        template_files = {"query": "query_memory.prompt"}
         
         for key, filename in template_files.items():
             path = os.path.join(template_dir, filename)
@@ -240,24 +243,27 @@ class MemoryManager(BaseMemoryManager):
                 self.logger.debug(f"Loaded template: {filename}")
             except Exception as e:
                 self.logger.error(f"Error loading template {filename}: {str(e)}")
-                # Raise an exception if the template cannot be loaded
                 raise Exception(f"Failed to load template: {filename}")
 
     def create_initial_memory(self, input_data: str) -> bool:
-        self.logger.debug(f"[DEBUG] create_initial_memory: memory_file={self.memory_file}, current self.memory={json.dumps(self.memory, indent=2)}")
+        """Create initial memory structure from domain data."""
         try:
-            # Check if we have valid existing memory
+            # Check if valid memory already exists
             if self.memory and all(key in self.memory for key in ["static_memory", "context", "conversation_history"]):
-                self.logger.debug("Valid memory structure already exists, skipping initialization")
-                # Ensure GUID exists even for pre-existing memories
+                self.logger.debug("Valid memory structure already exists")
                 self._ensure_memory_guid()
                 return True
+            
             self.logger.debug("Creating initial memory structure...")
 
-            # Use DataPreprocessor to segment the input data
-            data_preprocessor = DataPreprocessor(self.llm)
-            preprocessed_prose, preprocessed_segments = data_preprocessor.preprocess_data(input_data)
-            self.logger.debug(f"Preprocessed segments: {preprocessed_segments}")
+            # Preprocess input data
+            if self.verbose_handler:
+                with self.verbose_handler.operation("Preprocessing domain data", level=2):
+                    data_preprocessor = DataPreprocessor(self.llm)
+                    preprocessed_prose, preprocessed_segments = data_preprocessor.preprocess_data(input_data)
+            else:
+                data_preprocessor = DataPreprocessor(self.llm)
+                preprocessed_prose, preprocessed_segments = data_preprocessor.preprocess_data(input_data)
 
             # Create system entry for initial data
             system_entry = {
@@ -267,286 +273,215 @@ class MemoryManager(BaseMemoryManager):
                 "timestamp": datetime.now().isoformat()
             }
             
-            # Generate digest for initial data using pre-segmented content
-            self.logger.debug("Generating digest for initial data with pre-segmented content...")
-            initial_digest = self.digest_generator.generate_digest(system_entry, segments=preprocessed_segments)
-            system_entry["digest"] = initial_digest
-                        
+            # Generate digest
+            if self.verbose_handler:
+                with self.verbose_handler.operation("Generating digest for domain data", level=2):
+                    initial_digest = self.digest_generator.generate_digest(system_entry, segments=preprocessed_segments)
+                    system_entry["digest"] = initial_digest
+            else:
+                initial_digest = self.digest_generator.generate_digest(system_entry, segments=preprocessed_segments)
+                system_entry["digest"] = initial_digest
+            
             # Create static memory from digest
             static_memory = self._create_static_memory_from_digest(initial_digest)
             
-            # Initialize complete memory structure
+            # Initialize memory structure
             now = datetime.now().isoformat()
             self.memory = {
-                "guid": self.memory_guid,            # Use the GUID we already have or just generated
-                "memory_type": "standard",           # Explicitly mark this as a standard memory type
-                "static_memory": static_memory,      # Markdown formatted static knowledge
-                "context": [],                       # Organized important information by topic
+                "guid": self.memory_guid,
+                "memory_type": "standard",
+                "static_memory": static_memory,
+                "context": [],
                 "metadata": {
                     "created_at": now,
                     "updated_at": now,
                     "version": "2.0.0",
                     "domain": self.domain_config.get("name", "general") if self.domain_config else "general"
                 },
-                "conversation_history": [system_entry]  # Include initial entries in history
+                "conversation_history": [system_entry]
             }
             
-            # Save memory to file
+            # Save memory
             self.save_memory("create_initial_memory")
-            
-            # Also add to conversation history file
             self.add_to_conversation_history(system_entry)
             
-            # Generate and save embeddings for the initial system entry
-            self.embeddings_manager.add_new_embeddings([system_entry])
+            # Generate embeddings
+            if self.verbose_handler:
+                with self.verbose_handler.operation("Creating embeddings for semantic search", level=2):
+                    self.embeddings_manager.add_new_embeddings([system_entry])
+            else:
+                self.embeddings_manager.add_new_embeddings([system_entry])
 
-            # Process static memory with graph memory system if enabled
-            if self.enable_graph_memory and self.graph_manager:
-                self.logger.debug("Processing static memory for graph memory...")
-                self._process_initial_graph_memory(system_entry)
+            # Queue graph processing if available
+            if self.graph_queue_writer:
+                self._queue_graph_processing(system_entry)
 
-            self.logger.debug("Memory created and initialized with static knowledge")
+            self.logger.debug("Memory created and initialized successfully")
             return True
+            
         except Exception as e:
             self.logger.error(f"Error creating initial memory: {str(e)}")
             return False
 
     def _create_static_memory_from_digest(self, digest: Dict[str, Any]) -> str:
-        """Create static memory text from a digest by concatenating rated segments."""
+        """Create static memory text from digest segments."""
         try:
             rated_segments = digest.get("rated_segments", [])
-            
             if not rated_segments:
-                self.logger.debug("Warning: No rated segments found in digest, using empty static memory")
+                self.logger.debug("No rated segments found in digest")
                 return ""
-            
             return "\n".join(segment.get("text", "") for segment in rated_segments)
-            
         except Exception as e:
             self.logger.error(f"Error creating static memory from digest: {str(e)}")
             return ""
 
-    def _get_initial_segments_text(self) -> str:
-        """Concatenate the rated segments from the initial system entry for use in prompts."""
-        if "conversation_history" not in self.memory or not self.memory["conversation_history"]:
-            return ""
-        initial_entry = self.memory["conversation_history"][0]
-        digest = initial_entry.get("digest", {})
-        rated_segments = digest.get("rated_segments", [])
-        if not rated_segments:
-            return initial_entry.get("content", "")
-        # Concatenate all segment texts, separated by newlines
-        return "\n".join(seg.get("text", "") for seg in rated_segments if seg.get("text"))
-
-    def _determine_logs_base_dir(self, memory_dir: str) -> str:
-        """Determine the logs base directory from the memory directory.
-        
-        Args:
-            memory_dir: Directory where the memory file is located
+    def _queue_graph_processing(self, entry: Dict[str, Any]) -> None:
+        """Queue entry for graph processing via queue writer."""
+        try:
+            if self.verbose_handler:
+                self.verbose_handler.status("Queueing knowledge graph processing...", 2)
             
-        Returns:
-            Base directory path for logs
-        """
-        if memory_dir and memory_dir != ".":
-            # For GUID-specific memories, use the parent directory to create logs
-            parent_dir = os.path.dirname(memory_dir)
-            if parent_dir and os.path.basename(parent_dir) in ["standard", "simple", "sync"]:
-                # We're in agent_memories/standard/guid_dir structure
-                grandparent_dir = os.path.dirname(parent_dir)  # agent_memories
-                project_root = os.path.dirname(grandparent_dir)  # project root
-                # If project_root is empty, we're already at the project root
-                logs_base_dir = project_root if project_root else "."
+            # Extract text from digest segments if available
+            entry_text = entry.get("content", "")
+            digest = entry.get("digest", {})
+            segments = digest.get("rated_segments", [])
+            
+            if segments:
+                # Use important segments
+                important_segments = [
+                    seg for seg in segments 
+                    if seg.get("importance", 0) >= DEFAULT_RAG_IMPORTANCE_THRESHOLD 
+                    and seg.get("memory_worthy", True)
+                    and seg.get("type") in ["information", "action"]
+                ]
+                if important_segments:
+                    entry_text = " ".join([seg.get("text", "") for seg in important_segments])
+            
+            # Queue for processing
+            success = self.graph_queue_writer.write_conversation_entry(
+                conversation_text=entry_text,
+                digest_text=entry.get("content", "")[:500],  # Limited context
+                conversation_guid=entry.get("guid", "")
+            )
+            
+            if success:
+                self.logger.debug(f"Queued graph processing for entry {entry.get('guid', '')}")
+                if self.verbose_handler:
+                    self.verbose_handler.success("Graph processing queued", 0.001)
             else:
-                # We're in a direct memory directory
-                logs_base_dir = os.path.dirname(memory_dir) if memory_dir != "." else "."
-        else:
-            # Default to current directory
-            logs_base_dir = "."
-        
-        return logs_base_dir
-
-    def _create_graph_manager_logger(self, memory_dir: str, memory_base: str) -> logging.Logger:
-        """Create a dedicated logger for graph manager operations.
-        
-        Args:
-            memory_dir: Directory where the memory file is located
-            memory_base: Base name of the memory file (without extension) - kept for compatibility
-            
-        Returns:
-            Logger instance configured for graph memory operations
-        """
-        # Create logger name based on memory GUID for session-specific logging
-        logger_name = f"graph_memory.{self.memory_guid}"
-        graph_logger = logging.getLogger(logger_name)
-        
-        # Avoid duplicate handlers if logger already exists
-        if graph_logger.handlers:
-            return graph_logger
-            
-        # Set logger level
-        graph_logger.setLevel(logging.DEBUG)
-        
-        # Determine logs base directory
-        logs_base_dir = self._determine_logs_base_dir(memory_dir)
-            
-        # Create session-specific logs directory using memory GUID
-        session_logs_dir = os.path.join(logs_base_dir, "logs", self.memory_guid)
-        os.makedirs(session_logs_dir, exist_ok=True)
-        
-        # Create graph manager log file in the session directory
-        graph_manager_log_file_path = os.path.join(session_logs_dir, "graph_manager.log")
-        
-        # Create file handler
-        file_handler = logging.FileHandler(graph_manager_log_file_path)
-        file_handler.setLevel(logging.DEBUG)
-        
-        # Create formatter
-        formatter = logging.Formatter('%(asctime)s %(levelname)s:%(name)s:%(message)s')
-        file_handler.setFormatter(formatter)
-        
-        # Add handler to logger
-        graph_logger.addHandler(file_handler)
-        
-        # Prevent propagation to avoid duplicate logs in parent loggers
-        graph_logger.propagate = False
-        
-        self.logger.debug(f"Created graph memory logger: {logger_name} -> {graph_manager_log_file_path}")
-        
-        return graph_logger
+                self.logger.warning(f"Failed to queue graph processing for entry {entry.get('guid', '')}")
+                
+        except Exception as e:
+            self.logger.error(f"Error queuing graph processing: {e}")
 
     def query_memory(self, query_context: Dict[str, Any]) -> Dict[str, Any]:
-        """Query memory with the given context.
-        
-        Args:
-            query_context: Dictionary containing query context:
-                           - query: The query text
-                           - domain_instructions: Optional domain-specific instructions
-                           - rag_context: Optional RAG-enhanced context
-                           
-        Returns:
-            Dict[str, Any]: Response with the LLM's answer
-        """
+        """Query memory with RAG enhancement."""
         try:
-            self.logger.debug("Querying memory...")
-            
-            # Extract query text
             query = query_context.get("query", "")
-
+            
             # Add user message to history immediately
-            if query:
-                user_entry = {
-                    "guid": str(uuid.uuid4()),
-                    "role": "user",
-                    "content": query,
-                    "timestamp": datetime.now().isoformat()
-                }
-                # Add to conversation history file and memory immediately
-                self.add_to_conversation_history(user_entry)
-                if "conversation_history" not in self.memory:
-                    self.memory["conversation_history"] = []
-                self.memory["conversation_history"].append(user_entry)
-                self.save_memory("add_user_entry")
+            user_entry = {
+                "guid": str(uuid.uuid4()),
+                "role": "user", 
+                "content": query,
+                "timestamp": datetime.now().isoformat()
+            }
+            self.add_to_conversation_history(user_entry)
+            if "conversation_history" not in self.memory:
+                self.memory["conversation_history"] = []
+            self.memory["conversation_history"].append(user_entry)
+            self.save_memory("add_user_entry")
             
-            # Use concatenated initial segments for static memory in prompts
-            static_memory_text = query_context.get("static_memory", "") or self._get_initial_segments_text() or self._format_static_memory_as_text()
-            
-            # Format context as text (use provided or get from memory)
+            # Format memory components
+            static_memory_text = query_context.get("static_memory", "") or self._get_static_memory_text()
             previous_context_text = query_context.get("previous_context", "") or self._format_context_as_text()
-            
-            # Format recent conversation history as text (use provided or get from memory)
             conversation_history_text = query_context.get("conversation_history", "") or self._format_conversation_history_as_text()
             
-            # Get or generate RAG context
+            # Get RAG context
             rag_context = query_context.get("rag_context")
             if not rag_context:
+                if self.verbose_handler:
+                    self.verbose_handler.status("Enhancing query with relevant context (RAG)...", 1)
                 enhanced_context = self.rag_manager.enhance_memory_query(query_context)
                 rag_context = enhanced_context.get("rag_context", "")
-                if rag_context:
-                    self.logger.debug("Using RAG-enhanced context for memory query (auto-generated)")
-            else:
-                self.logger.debug("Using RAG-enhanced context for memory query (provided)")
             
-            # Get graph context if enabled
+            # Get graph context if available
             graph_context = ""
-            if self.enable_graph_memory and self.graph_manager:
+            if self.graph_queries:
                 try:
+                    if self.verbose_handler:
+                        self.verbose_handler.status("Retrieving graph context...", 1)
                     graph_context = self.get_graph_context(query)
-                    if graph_context:
-                        self.logger.debug("Added graph context to memory query")
+                    if graph_context and self.verbose_handler:
+                        self.verbose_handler.success("Retrieved graph context", level=2)
                 except Exception as e:
                     self.logger.warning(f"Failed to get graph context: {e}")
                     graph_context = ""
             
-            # Get domain-specific instructions (use provided or get from config)
-            domain_specific_prompt_instructions = query_context.get("domain_specific_prompt_instructions", "")
-            domain_specific_query_prompt_instructions = domain_specific_prompt_instructions
-            if not domain_specific_prompt_instructions and self.domain_config:
-                domain_specific_prompt_instructions = self.domain_config.get("domain_specific_prompt_instructions", "")
-                domain_specific_query_prompt_instructions = domain_specific_prompt_instructions.get("query", "") if isinstance(domain_specific_prompt_instructions, dict) else ""
+            # Get domain instructions
+            domain_instructions = query_context.get("domain_specific_prompt_instructions", "")
+            if not domain_instructions and self.domain_config:
+                domain_prompt = self.domain_config.get("domain_specific_prompt_instructions", "")
+                domain_instructions = domain_prompt.get("query", "") if isinstance(domain_prompt, dict) else ""
             
-            # Create prompt with formatted text
+            # Create prompt
             prompt = self.templates["query"].format(
                 static_memory_text=static_memory_text,
                 previous_context_text=previous_context_text,
                 conversation_history_text=conversation_history_text,
                 query=query,
-                domain_specific_prompt_instructions=domain_specific_query_prompt_instructions,
-                rag_context=rag_context,  # Include RAG context in the prompt
-                graph_context=graph_context  # Include graph context in the prompt
+                domain_specific_prompt_instructions=domain_instructions,
+                rag_context=rag_context,
+                graph_context=graph_context
             )
             
-            # Get response from LLM
-            self.logger.debug("Generating response using LLM...")
-            llm_response = self.llm.generate(
-                prompt,
-                options={"temperature": 0.7}
-            )
+            # Generate response
+            if self.verbose_handler:
+                self.verbose_handler.status("Generating response with LLM...", 1)
+            llm_response = self.llm.generate(prompt, options={"temperature": 0.7})
             
-            # Start background processing for user entry and agent response
-            if query:
-                # Start background processing for user entry
-                asyncio.create_task(self._process_entry_async(user_entry))
-            
-            # Create agent entry
+            # Add agent response to history
             agent_entry = {
                 "guid": str(uuid.uuid4()),
                 "role": "agent",
-                "content": llm_response,
+                "content": llm_response, 
                 "timestamp": datetime.now().isoformat()
             }
-            
-            # Add agent response to history immediately
             self.add_to_conversation_history(agent_entry)
-            if "conversation_history" not in self.memory:
-                self.memory["conversation_history"] = []
             self.memory["conversation_history"].append(agent_entry)
             self.save_memory("add_agent_entry")
             
-            # Start background processing for agent entry
+            # Start async processing for both entries
+            asyncio.create_task(self._process_entry_async(user_entry))
             asyncio.create_task(self._process_entry_async(agent_entry))
             
-            # Check if we should compress memory based on number of conversations
-            conversation_entries = len(self.memory["conversation_history"])
-            if conversation_entries > self.max_recent_conversation_entries:
-                self.logger.debug(f"Memory has {conversation_entries} conversations, scheduling compression...")
+            # Check if memory compression is needed
+            if len(self.memory["conversation_history"]) > self.max_recent_conversation_entries:
                 asyncio.create_task(self._compress_memory_async())
             
             return {"response": llm_response}
-
+            
         except Exception as e:
             self.logger.error(f"Error in query_memory: {str(e)}")
             return {"response": f"Error processing query: {str(e)}", "error": str(e)}
-            
+
     async def _process_entry_async(self, entry: Dict[str, Any]) -> None:
-        """Process a conversation entry asynchronously (digest generation, embeddings, and graph updates)."""
+        """Process entry asynchronously (digest, embeddings, graph)."""
         try:
-            # Generate digest if not already present
+            # Generate digest if not present
             if "digest" not in entry:
                 self.logger.debug(f"Generating digest for {entry['role']} entry...")
                 entry["digest"] = self.digest_generator.generate_digest(entry, self.memory)
                 
                 # Update conversation history file with the digest
-                self._update_conversation_history_entry(entry)
+                self.update_conversation_history_entry(entry)
+                
+                # Also update in-memory conversation history
+                if "conversation_history" in self.memory:
+                    for i, hist_entry in enumerate(self.memory["conversation_history"]):
+                        if hist_entry.get("guid") == entry.get("guid"):
+                            self.memory["conversation_history"][i] = entry
+                            break
                 
                 self.save_memory("async_digest_generation")
             
@@ -554,449 +489,45 @@ class MemoryManager(BaseMemoryManager):
             self.logger.debug(f"Updating embeddings for {entry['role']} entry...")
             self.embeddings_manager.add_new_embeddings([entry])
             
-            # Update graph memory if enabled
-            if self.enable_graph_memory and self.graph_manager:
-                try:
-                    await self._update_graph_memory_async(entry)
-                except Exception as e:
-                    self.logger.warning(f"Error updating graph memory: {e}")
-            
+            # Queue graph processing if available
+            if self.graph_queue_writer:
+                await self._queue_graph_processing_async(entry)
+                
         except Exception as e:
             self.logger.error(f"Error in async entry processing: {str(e)}")
-    
-    async def _update_graph_memory_async(self, entry: Dict[str, Any]) -> None:
-        """Update graph memory with entities and relationships from a conversation entry."""
+
+    async def _queue_graph_processing_async(self, entry: Dict[str, Any]) -> None:
+        """Queue graph processing asynchronously."""
         try:
-            self.logger.debug(f"Updating graph memory for {entry['role']} entry...")
+            entry_text = entry.get("content", "")
+            digest_text = ""  # Could extract from digest if needed
+            conversation_guid = entry.get("guid", "")
             
-            # Use conversation-level processing with EntityResolver (now mandatory)
-            if hasattr(self.graph_manager, 'process_conversation_entry_with_resolver'):
-                await self._update_graph_memory_conversation_level(entry)
-            else:
-                # Fallback to segment-based processing for legacy compatibility
-                await self._update_graph_memory_segment_based(entry)
-                
-        except Exception as e:
-            self.logger.error(f"Error updating graph memory: {e}")
-    
-    async def _update_graph_memory_conversation_level(self, entry: Dict[str, Any]) -> None:
-        """Update graph memory using conversation-level processing (for AltGraphManager with EntityResolver)."""
-        try:
-            # Get full conversation text and digest
-            conversation_text = entry.get("content", "")
-            digest = entry.get("digest", {})
-            digest_text = ""
-            
-            # Build digest text from important segments
-            segments = digest.get("rated_segments", [])
-            important_segments = [
-                seg for seg in segments 
-                if seg.get("importance", 0) >= DEFAULT_RAG_IMPORTANCE_THRESHOLD 
-                and seg.get("memory_worthy", True)
-                and seg.get("type") in ["information", "action"]
-            ]
-            
-            if important_segments:
-                digest_text = " ".join([seg.get("text", "") for seg in important_segments])
-            
-            if not conversation_text and not digest_text:
-                self.logger.debug("No conversation or digest text, skipping graph update")
-                return
-            
-            # Process using AltGraphManager with EntityResolver
-            self.logger.debug("Processing conversation with AltGraphManager EntityResolver")
-            results = self.graph_manager.process_conversation_entry_with_resolver(
-                conversation_text=conversation_text,
+            success = self.graph_queue_writer.write_conversation_entry(
+                conversation_text=entry_text,
                 digest_text=digest_text,
-                conversation_guid=entry.get("guid")
+                conversation_guid=conversation_guid
             )
             
-            # Log results
-            stats = results.get("stats", {})
-            self.logger.info(f"Graph update completed - entities: {stats.get('entities_new', 0)} new, "
-                           f"{stats.get('entities_existing', 0)} existing, "
-                           f"relationships: {stats.get('relationships_extracted', 0)}")
-            
-        except Exception as e:
-            self.logger.error(f"Error in conversation-level graph update: {e}")
-    
-    async def _update_graph_memory_segment_based(self, entry: Dict[str, Any]) -> None:
-        """Update graph memory using segment-based processing (for regular GraphManager)."""
-        try:
-            # Get segments from digest
-            digest = entry.get("digest", {})
-            segments = digest.get("rated_segments", [])
-            
-            if not segments:
-                self.logger.debug("No segments found in digest, skipping graph update")
-                return
-            
-            # Filter for important segments
-            important_segments = [
-                seg for seg in segments 
-                if seg.get("importance", 0) >= DEFAULT_RAG_IMPORTANCE_THRESHOLD 
-                and seg.get("memory_worthy", True)
-                and seg.get("type") in ["information", "action"]
-            ]
-            
-            if not important_segments:
-                self.logger.debug("No important segments found, skipping graph update")
-                return
-            
-            # Process all segments together for better entity and relationship extraction
-            all_segment_entities = []
-            segments_with_entities = []
-            
-            # First pass: Extract entities from all segments
-            for i, segment in enumerate(important_segments):
-                segment_text = segment.get("text", "")
-                if segment_text:
-                    # Extract and resolve entities from the segment using EntityResolver
-                    # This automatically handles adding/updating nodes with smart duplicate detection
-                    entities = self.graph_manager.extract_and_resolve_entities_from_segments([{
-                        "text": segment_text,
-                        "importance": segment.get("importance", 0),
-                        "type": segment.get("type", "information"),
-                        "memory_worthy": segment.get("memory_worthy", True),
-                        "topics": segment.get("topics", []),
-                        "conversation_guid": entry.get("guid")
-                    }])
-                    
-                    # Note: entities are already added/updated in extract_and_resolve_entities_from_segments
-                    # The returned entities include resolution information for relationship extraction
-                    
-                    # Store segment with its entities for relationship extraction
-                    if entities:
-                        segment_with_entities = {
-                            "id": f"seg_{i}",
-                            "text": segment_text,
-                            "entities": entities,
-                            "importance": segment.get("importance", 0),
-                            "type": segment.get("type", "information")
-                        }
-                        segments_with_entities.append(segment_with_entities)
-                        all_segment_entities.extend(entities)
-            
-            # Second pass: Extract relationships across all segments if we have multiple entities
-            if len(all_segment_entities) > 1 and segments_with_entities:
-                try:
-                    relationships = self.graph_manager.extract_relationships_from_segments(segments_with_entities)
-                    
-                    # Add relationships to graph
-                    for rel in relationships:
-                        # Find evidence from the segments
-                        evidence = ""
-                        for seg in segments_with_entities:
-                            if any(entity.get("name") == rel.get("from_entity") for entity in seg.get("entities", [])) and \
-                               any(entity.get("name") == rel.get("to_entity") for entity in seg.get("entities", [])):
-                                evidence = seg.get("text", "")
-                                break
-                        
-                        self.graph_manager.add_edge(
-                            from_node=rel.get("from_entity", ""),
-                            to_node=rel.get("to_entity", ""),
-                            relationship_type=rel.get("relationship", "related_to"),
-                            evidence=evidence or "Cross-segment relationship",
-                            confidence=rel.get("confidence", 0.5)
-                        )
-                except Exception as e:
-                    self.logger.warning(f"Error extracting relationships: {e}")
-            
-            self.logger.debug(f"Updated graph memory with {len(important_segments)} segments")
-            
-        except Exception as e:
-            self.logger.error(f"Error in segment-based graph update: {e}")
-    
-    def _process_initial_graph_memory(self, system_entry: Dict[str, Any]) -> None:
-        """Process initial system entry for graph memory during memory creation.
-        
-        This is a synchronous version of the graph memory processing specifically 
-        for the initial static memory that contains domain knowledge.
-        
-        Args:
-            system_entry: The initial system entry containing static memory content
-        """
-        try:
-            self.logger.debug("Processing initial system entry for graph memory...")
-            
-            # Get segments from digest
-            digest = system_entry.get("digest", {})
-            segments = digest.get("rated_segments", [])
-            
-            if not segments:
-                self.logger.debug("No segments found in initial digest, skipping initial graph processing")
-                return
-            
-            # Filter for important segments (same criteria as async processing)
-            important_segments = [
-                seg for seg in segments 
-                if seg.get("importance", 0) >= DEFAULT_RAG_IMPORTANCE_THRESHOLD 
-                and seg.get("memory_worthy", True)
-                and seg.get("type") in ["information", "action"]
-            ]
-            
-            if not important_segments:
-                self.logger.debug("No important segments found in initial content, skipping graph processing")
-                return
-            
-            self.logger.debug(f"Processing {len(important_segments)} important segments for initial graph memory")
-            
-            # Use EntityResolver pathway for enhanced duplicate detection (now mandatory)
-            if hasattr(self.graph_manager, 'process_conversation_entry_with_resolver'):
-                
-                self.logger.debug("Using EntityResolver pathway for initial graph memory processing")
-                
-                # Construct conversation text from all important segments
-                conversation_text = "\n".join([
-                    segment.get("text", "") for segment in important_segments 
-                    if segment.get("text", "")
-                ])
-                
-                # Use the system entry content as digest text for context
-                digest_text = system_entry.get("content", "")[:500]  # Limit for context
-                
-                # Process using EntityResolver pathway for consistent duplicate detection
-                try:
-                    results = self.graph_manager.process_conversation_entry_with_resolver(
-                        conversation_text=conversation_text,
-                        digest_text=digest_text,
-                        conversation_guid="initial_data"  # Special GUID for initial data
-                    )
-                    
-                    # Log the results
-                    stats = results.get("stats", {})
-                    self.logger.debug(f"EntityResolver initial processing: {stats}")
-                    self.logger.debug(f"Added {len(results.get('new_entities', []))} new entities, "
-                                    f"matched {len(results.get('existing_entities', []))} existing entities, "
-                                    f"created {len(results.get('relationships', []))} relationships")
-                    
-                except Exception as e:
-                    self.logger.error(f"Error in EntityResolver initial processing: {e}")
-                    self.logger.warning("Falling back to basic initial graph processing")
-                    self._process_initial_graph_memory_basic(important_segments)
+            if success:
+                queue_size = self.graph_queue_writer.get_queue_size()
+                self.logger.debug(f"Queued graph processing: entry_guid={conversation_guid}, queue_size={queue_size}")
             else:
-                self.logger.debug("EntityResolver not available, using basic initial graph processing")
-                self._process_initial_graph_memory_basic(important_segments)
-            
+                self.logger.warning(f"Failed to queue graph processing for entry {conversation_guid}")
+                
         except Exception as e:
-            self.logger.error(f"Error processing initial graph memory: {str(e)}")
-    
-    def _process_initial_graph_memory_basic(self, important_segments: List[Dict[str, Any]]) -> None:
-        """Basic initial graph memory processing without EntityResolver (fallback method).
-        
-        This method contains the original segment-by-segment processing logic
-        for use when EntityResolver is not available.
-        
-        Args:
-            important_segments: List of important segments from the initial digest
-        """
-        try:
-            self.logger.debug(f"Processing {len(important_segments)} segments using basic graph processing")
-            
-            # Process all segments together for better entity and relationship extraction
-            all_segment_entities = []
-            segments_with_entities = []
-            
-            # First pass: Extract entities from all segments
-            for i, segment in enumerate(important_segments):
-                segment_text = segment.get("text", "")
-                if segment_text:
-                    # Extract entities from the segment
-                    entities = self.graph_manager.extract_entities_from_segments([{
-                        "text": segment_text,
-                        "importance": segment.get("importance", 0),
-                        "type": segment.get("type", "information"),
-                        "memory_worthy": segment.get("memory_worthy", True),
-                        "topics": segment.get("topics", [])
-                    }])
-                    
-                    # Add entities to graph (with automatic similarity matching)
-                    for entity in entities:
-                        # For initial memory, no conversation GUID is available
-                        entity_attributes = entity.get("attributes", {}).copy()
-                        
-                        self.graph_manager.add_or_update_node(
-                            name=entity.get("name", ""),
-                            node_type=entity.get("type", "concept"),
-                            description=entity.get("description", ""),
-                            **entity_attributes
-                        )
-                    
-                    # Store segment with its entities for relationship extraction
-                    if entities:
-                        segment_with_entities = {
-                            "id": f"seg_{i}",
-                            "text": segment_text,
-                            "entities": entities,
-                            "importance": segment.get("importance", 0),
-                            "type": segment.get("type", "information")
-                        }
-                        segments_with_entities.append(segment_with_entities)
-                        all_segment_entities.extend(entities)
-            
-            # Second pass: Extract relationships across all segments if we have multiple entities
-            if len(all_segment_entities) > 1 and segments_with_entities:
-                try:
-                    relationships = self.graph_manager.extract_relationships_from_segments(segments_with_entities)
-                    
-                    # Add relationships to graph
-                    for rel in relationships:
-                        # Find evidence from the segments
-                        evidence = ""
-                        for seg in segments_with_entities:
-                            if any(entity.get("name") == rel.get("from_entity") for entity in seg.get("entities", [])) and \
-                               any(entity.get("name") == rel.get("to_entity") for entity in seg.get("entities", [])):
-                                evidence = seg.get("text", "")
-                                break
-                        
-                        self.graph_manager.add_edge(
-                            from_node=rel.get("from_entity", ""),
-                            to_node=rel.get("to_entity", ""),
-                            relationship_type=rel.get("relationship_type", "related_to"),
-                            confidence=rel.get("confidence", 0.5),
-                            evidence=evidence
-                        )
-                    
-                    self.logger.debug(f"Added {len(relationships)} relationships from initial static memory")
-                    
-                except Exception as e:
-                    self.logger.error(f"Error extracting relationships from initial segments: {str(e)}")
-            
-            self.logger.debug(f"Basic initial graph memory processing complete: {len(all_segment_entities)} entities processed")
-            
-        except Exception as e:
-            self.logger.error(f"Error in basic initial graph memory processing: {str(e)}")
-            
+            self.logger.error(f"Error queuing async graph processing: {e}")
+
     async def _compress_memory_async(self) -> None:
-        """Compress memory asynchronously."""
+        """Compress memory asynchronously when it gets too large."""
         try:
             self.logger.debug("Starting async memory compression...")
-            self._compress_conversation_history()
-        except Exception as e:
-            self.logger.error(f"Error in async memory compression: {str(e)}")
-
-    def _format_static_memory_as_text(self) -> str:
-        """Format static memory as readable text."""
-        if "static_memory" not in self.memory:
-            return "No static memory available."
             
-        static_memory = self.memory["static_memory"]
-        if not static_memory:
-            return "Static memory is empty."
-        
-        # Static memory is now stored as markdown, so we can return it directly
-        return static_memory
-    
-    def get_formatted_context(self) -> str:
-        """Get formatted context text for external use (e.g., RAG)."""
-        return self._format_context_as_text()
-        
-    def _format_context_as_text(self) -> str:
-        """Format context as readable text instead of JSON."""
-        if "context" not in self.memory or not self.memory["context"]:
-            return "No context information available yet."
-        
-        context = self.memory["context"]
-        result = []
-        
-        # Handle context as a list (newer format)
-        if isinstance(context, list):
-            for item in context:
-                # Each item is a context entry with text and guids
-                text = item.get("text", "")
-                guids = item.get("guids", [])
-                
-                # Add formatted text
-                if text:
-                    result.append(text)
-                    result.append("")  # Empty line between entries
-        
-        # Handle context as a dictionary (older format)
-        elif isinstance(context, dict):
-            for topic_name, items in context.items():
-                result.append(f"TOPIC: {topic_name}")
-                for item in items:
-                    text = item.get("text", "")
-                    attribution = item.get("attribution", "")
-                    importance = item.get("importance", 3)
-                    importance_str = "*" * importance  # Visualize importance with asterisks
-                    result.append(f"{importance_str} {text} [{attribution}]")
-                result.append("")  # Empty line between topics
-        
-        # Add message for unrecognized format
-        else:
-            result.append("Context information available but format not recognized.")
-        
-        return "\n".join(result)
-    
-    def get_formatted_recent_conversations(self) -> str:
-        """Get formatted recent conversation history for external use (e.g., RAG)."""
-        return self._format_conversation_history_as_text()
-        
-    def _format_conversation_history_as_text(self) -> str:
-        """Format recent conversation history as readable text using digest segments."""
-        if "conversation_history" not in self.memory or not self.memory["conversation_history"]:
-            return "No conversation history available."
-        
-        # Get only the most recent conversation entries
-        recent_count = min(4, len(self.memory["conversation_history"]))  # Last 2 exchanges
-        recent_entries = self.memory["conversation_history"][-recent_count:]
-        
-        result = []
-        for entry in recent_entries:
-            role = entry.get("role", "unknown").upper()
-            
-            # Get segments from digest if available
-            digest = entry.get("digest", {})
-            segments = digest.get("rated_segments", [])
-            
-            if segments:
-                # Use concatenated segments
-                content = " ".join(segment["text"] for segment in segments)
-            else:
-                # Fallback to original content if no digest/segments
-                content = entry.get("content", "")
-                
-            result.append(f"[{role}]: {content}")
-            result.append("")  # Empty line between entries
-        
-        return "\n".join(result)
-
-    def update_memory(self, update_context: Dict[str, Any]) -> bool:
-        """Update memory by compressing conversation history to keep only important segments.
-        
-        Args:
-            update_context: Dictionary containing update context
-            
-        Returns:
-            bool: True if memory was updated successfully
-        """
-        try:
-            self.logger.debug("Updating memory...")
-            
-            # Only handle updating memory operations
-            if update_context.get("operation") != "update":
-                self.logger.debug("update_memory should only be used for updating memory operations")
-                return False
-
-            self.logger.debug("Compressing conversation history...")            
-            return self._compress_conversation_history()
-            
-        except Exception as e:
-            self.logger.error(f"Error updating memory: {str(e)}")
-            return False
-
-    def _compress_conversation_history(self) -> bool:
-        """Compress conversation history by keeping only important segments and updating context."""
-        try:
-            # Get current memory state
             conversation_history = self.memory.get("conversation_history", [])
-            # Use concatenated initial segments for static memory in compression
-            static_memory = self._get_initial_segments_text() or self.memory.get("static_memory", "")
+            static_memory = self._get_static_memory_text()
             current_context = self.memory.get("context", [])
             
-            # Use MemoryCompressor to compress the conversation history
-            compressed_state = self.memory_compressor.compress_conversation_history(
+            compressed_state = await self.memory_compressor.compress_conversation_history_async(
                 conversation_history=conversation_history,
                 static_memory=static_memory,
                 current_context=current_context
@@ -1006,131 +537,135 @@ class MemoryManager(BaseMemoryManager):
             self.memory["conversation_history"] = compressed_state.get("conversation_history", conversation_history)
             self.memory["context"] = compressed_state.get("context", current_context)
             
-            # Update the compressed entries tracker
-            if "compressed_entries" not in self.memory["metadata"]:
-                self.memory["metadata"]["compressed_entries"] = []
-            # Defensive: ensure it's a list
-            if not isinstance(self.memory["metadata"]["compressed_entries"], list):
-                self.memory["metadata"]["compressed_entries"] = []
+            # Update metadata
+            if "compressed_entries" not in self.memory.get("metadata", {}):
+                self.memory.setdefault("metadata", {})["compressed_entries"] = []
             compressed_entries = compressed_state.get("compressed_entries", [])
             self.memory["metadata"]["compressed_entries"].extend(compressed_entries)
-            
-            # Update metadata
             self.memory["metadata"]["updated_at"] = datetime.now().isoformat()
             self.memory["metadata"]["compression_count"] = self.memory["metadata"].get("compression_count", 0) + 1
             
-            # Save to persist memory updates
-            self.save_memory("compress_conversation_history")
-            
-            self.logger.debug(f"Compressed conversation history. Remaining entries: {len(self.memory['conversation_history'])}")
-            return True
+            self.save_memory("compress_memory_async")
+            self.logger.debug(f"Async memory compression completed. Remaining entries: {len(self.memory['conversation_history'])}")
             
         except Exception as e:
-            self.logger.error(f"Error compressing conversation history: {str(e)}")
-            return False
-            
-    def add_conversation_entry(self, entry: Dict[str, Any]) -> bool:
-        """Add a conversation entry with automatic digest generation.
-        
-        Args:
-            entry: Dictionary containing the conversation entry:
-                  - guid: Optional unique identifier (will be generated if missing)
-                  - role: Role (e.g., "user", "agent", "system")
-                  - content: Entry content text
-                  - timestamp: Optional timestamp (will be generated if missing)
-                  
-        Returns:
-            bool: True if the entry was added successfully
-        """
-        try:
-            # Ensure basic fields exist
-            if "content" not in entry:
-                self.logger.error("Error: Conversation entry must have 'content'")
-                return False
-                
-            if "role" not in entry:
-                self.logger.error("Error: Conversation entry must have 'role'")
-                return False
-                
-            # Ensure GUID
-            if "guid" not in entry:
-                entry["guid"] = str(uuid.uuid4())
-                
-            # Ensure timestamp
-            if "timestamp" not in entry:
-                entry["timestamp"] = datetime.now().isoformat()
-                
-            # Generate digest if not already present
-            if "digest" not in entry:
-                self.logger.debug(f"Generating digest for {entry['role']} entry...")
-                entry["digest"] = self.digest_generator.generate_digest(entry, self.memory)
-                
-            # Add to conversation history file and memory
-            self.add_to_conversation_history(entry)
-            
-            if "conversation_history" not in self.memory:
-                self.memory["conversation_history"] = []
-                
-            self.memory["conversation_history"].append(entry)
-            self.logger.debug(f"Added {entry['role']} entry to conversation history")
-            
-            # Save to persist memory updates
-            self.save_memory("add_conversation_entry")
-            
-            # Update RAG/embeddings indices for the new entry
-            self.embeddings_manager.add_new_embeddings([entry])
+            self.logger.error(f"Error in async memory compression: {str(e)}")
 
+    def update_memory(self, update_context: Dict[str, Any]) -> bool:
+        """Update memory by compressing conversation history."""
+        try:
+            if update_context.get("operation") != "update":
+                return False
+                
+            self.logger.debug("Compressing conversation history...")
+            
+            conversation_history = self.memory.get("conversation_history", [])
+            static_memory = self._get_static_memory_text()
+            current_context = self.memory.get("context", [])
+            
+            compressed_state = self.memory_compressor.compress_conversation_history(
+                conversation_history=conversation_history,
+                static_memory=static_memory,
+                current_context=current_context
+            )
+            
+            # Update memory
+            self.memory["conversation_history"] = compressed_state.get("conversation_history", conversation_history)
+            self.memory["context"] = compressed_state.get("context", current_context)
+            
+            # Update metadata
+            if "compressed_entries" not in self.memory.get("metadata", {}):
+                self.memory.setdefault("metadata", {})["compressed_entries"] = []
+            compressed_entries = compressed_state.get("compressed_entries", [])
+            self.memory["metadata"]["compressed_entries"].extend(compressed_entries)
+            self.memory["metadata"]["updated_at"] = datetime.now().isoformat()
+            self.memory["metadata"]["compression_count"] = self.memory["metadata"].get("compression_count", 0) + 1
+            
+            self.save_memory("compress_conversation_history")
+            self.logger.debug(f"Memory compression completed. Remaining entries: {len(self.memory['conversation_history'])}")
             return True
             
         except Exception as e:
-            self.logger.error(f"Error adding conversation entry: {str(e)}")
+            self.logger.error(f"Error updating memory: {str(e)}")
             return False
+
+    def _get_static_memory_text(self) -> str:
+        """Get static memory as text."""
+        if "static_memory" not in self.memory:
+            return "No static memory available."
+        static_memory = self.memory["static_memory"]
+        return static_memory if static_memory else "Static memory is empty."
+
+    def _format_context_as_text(self) -> str:
+        """Format context as readable text."""
+        if "context" not in self.memory or not self.memory["context"]:
+            return "No context information available yet."
+        
+        context = self.memory["context"]
+        result = []
+        
+        if isinstance(context, list):
+            for item in context:
+                text = item.get("text", "")
+                if text:
+                    result.append(text)
+                    result.append("")
+        elif isinstance(context, dict):
+            for topic_name, items in context.items():
+                result.append(f"TOPIC: {topic_name}")
+                for item in items:
+                    text = item.get("text", "")
+                    attribution = item.get("attribution", "")
+                    importance = item.get("importance", 3)
+                    importance_str = "*" * importance
+                    result.append(f"{importance_str} {text} [{attribution}]")
+                result.append("")
+        else:
+            result.append("Context information available but format not recognized.")
+        
+        return "\n".join(result)
+
+    def _format_conversation_history_as_text(self) -> str:
+        """Format recent conversation history as readable text."""
+        if "conversation_history" not in self.memory or not self.memory["conversation_history"]:
+            return "No conversation history available."
+        
+        # Get recent entries
+        recent_count = min(4, len(self.memory["conversation_history"]))
+        recent_entries = self.memory["conversation_history"][-recent_count:]
+        
+        result = []
+        for entry in recent_entries:
+            role = entry.get("role", "unknown").upper()
             
-    def update_memory_with_conversations(self) -> bool:
-        """Update memory with current conversation history.
-        
-        This method processes the conversation history to extract important information
-        and update the memory context.
-        
-        Returns:
-            bool: True if memory was updated successfully
-        """
-        try:
-            # Check if we need to compress based on conversation count
-            conversation_entries = len(self.memory.get("conversation_history", []))
-            if conversation_entries > self.max_recent_conversation_entries:
-                self.logger.debug(f"Memory has {conversation_entries} conversations, compressing...")
-                return self.update_memory({"operation": "update"})
+            # Use digest segments if available, otherwise use content
+            digest = entry.get("digest", {})
+            segments = digest.get("rated_segments", [])
+            
+            if segments:
+                content = " ".join(segment["text"] for segment in segments)
             else:
-                self.logger.debug(f"Memory has only {conversation_entries} conversations, compression not needed yet")
-                return True
-        except Exception as e:
-            self.logger.error(f"Error updating memory with conversations: {str(e)}")
-            return False
-    
-    def get_graph_context(self, query: str, max_entities: int = 5) -> str:
-        """Get graph-based context for a query.
+                content = entry.get("content", "")
+                
+            result.append(f"[{role}]: {content}")
+            result.append("")
         
-        Args:
-            query: The query to find relevant graph context for
-            max_entities: Maximum number of entities to include in context
-            
-        Returns:
-            str: Formatted graph context string
-        """
-        if not self.enable_graph_memory or not self.graph_manager:
+        return "\n".join(result)
+
+    def get_graph_context(self, query: str, max_entities: int = 5) -> str:
+        """Get graph-based context for a query using StandaloneGraphQueries."""
+        if not self.graph_queries:
             return ""
         
         try:
-            # Query the graph for relevant context
-            context_results = self.graph_manager.query_for_context(query, max_results=max_entities)
+            # Query for relevant context
+            context_results = self.graph_queries.query_for_context(query, max_results=max_entities)
             
             if not context_results:
                 return ""
             
-            # Format graph context for the prompt
-            context_lines = []
-            context_lines.append("Relevant entities and relationships:")
+            # Format context
+            context_lines = ["Relevant entities and relationships:"]
             
             for result in context_results:
                 entity_name = result.get("name", "Unknown")
@@ -1144,193 +679,62 @@ class MemoryManager(BaseMemoryManager):
                     entity_line += f": {description}"
                 context_lines.append(entity_line)
                 
-                # Add key relationships
+                # Add relationships
                 if connections:
-                    for conn in connections[:3]:  # Limit to top 3 connections
+                    for conn in connections[:3]:
                         rel_type = conn.get("relationship", "related_to")
                         target = conn.get("target", "")
                         if target:
                             context_lines.append(f"  - {rel_type} {target}")
-                
+            
             return "\n".join(context_lines)
             
         except Exception as e:
             self.logger.warning(f"Error getting graph context: {e}")
             return ""
 
-class AsyncMemoryManager(MemoryManager):
-    """Asynchronous version of MemoryManager that handles digest generation and embeddings updates asynchronously."""
-    
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._pending_digests = {}  # guid -> entry
-        self._pending_embeddings = set()  # set of guids
-        self._pending_graph_updates = set()  # set of guids
-        
-    async def add_conversation_entry(self, entry: Dict[str, Any]) -> bool:
-        """Add a conversation entry with asynchronous digest generation and embeddings update.
-        
-        Args:
-            entry: Dictionary containing the conversation entry:
-                  - guid: Optional unique identifier (will be generated if missing)
-                  - role: Role (e.g., "user", "agent", "system")
-                  - content: Entry content text
-                  - timestamp: Optional timestamp (will be generated if missing)
-                  
-        Returns:
-            bool: True if the entry was added successfully
-        """
-        try:
-            # Ensure basic fields exist
-            if "content" not in entry:
-                self.logger.error("Error: Conversation entry must have 'content'")
-                return False
-                
-            if "role" not in entry:
-                self.logger.error("Error: Conversation entry must have 'role'")
-                return False
-                
-            # Ensure GUID
-            if "guid" not in entry:
-                entry["guid"] = str(uuid.uuid4())
-                
-            # Ensure timestamp
-            if "timestamp" not in entry:
-                entry["timestamp"] = datetime.now().isoformat()
-            
-            # Add to conversation history file and memory immediately
-            self.add_to_conversation_history(entry)
-            
-            if "conversation_history" not in self.memory:
-                self.memory["conversation_history"] = []
-                
-            self.memory["conversation_history"].append(entry)
-            self.logger.debug(f"Added {entry['role']} entry to conversation history")
-            
-            # Save to persist memory updates
-            self.save_memory("add_conversation_entry")
-            
-            # Start async digest generation if not already present
-            if "digest" not in entry:
-                self.logger.debug(f"Starting async digest generation for {entry['role']} entry...")
-                self._pending_digests[entry["guid"]] = entry
-                asyncio.create_task(self._generate_digest_async(entry))
-            else:
-                # If digest exists, start embeddings and graph updates
-                self._pending_embeddings.add(entry["guid"])
-                if self.enable_graph_memory and self.graph_manager:
-                    self._pending_graph_updates.add(entry["guid"])
-                asyncio.create_task(self._update_embeddings_async(entry))
+    # Async operation tracking methods for compatibility with agent
+    def has_pending_operations(self) -> bool:
+        """Check if there are pending async operations (agent-visible only)."""
+        return bool(self._pending_digests or self._pending_embeddings)
 
-            return True
-            
-        except Exception as e:
-            self.logger.error(f"Error adding conversation entry: {str(e)}")
-            return False
-    
-    async def _generate_digest_async(self, entry: Dict[str, Any]) -> None:
-        """Asynchronously generate digest for an entry."""
-        try:
-            # Generate digest
-            entry["digest"] = self.digest_generator.generate_digest(entry, self.memory)
-            
-            # Update conversation history file with the digest
-            self._update_conversation_history_entry(entry)
-            
-            # Remove from pending digests
-            self._pending_digests.pop(entry["guid"], None)
-            
-            # Start embeddings and graph updates
-            self._pending_embeddings.add(entry["guid"])
-            if self.enable_graph_memory and self.graph_manager:
-                self._pending_graph_updates.add(entry["guid"])
-            await self._update_embeddings_async(entry)
-            
-            # Save memory to persist the digest
-            self.save_memory("async_digest_generation")
-            
-        except Exception as e:
-            self.logger.error(f"Error in async digest generation: {str(e)}")
-    
-    def _update_conversation_history_entry(self, entry: Dict[str, Any]) -> bool:
-        """Update an existing entry in the conversation history file.
-        
-        Args:
-            entry: Updated conversation entry with digest
-            
-        Returns:
-            bool: True if entry was updated successfully
-        """
-        try:
-            # Load current conversation history
-            conversation_data = self._load_conversation_history()
-            
-            # Find and update the entry by GUID
-            entry_guid = entry.get("guid")
-            if not entry_guid:
-                self.logger.error("Cannot update conversation history entry without GUID")
-                return False
-                
-            # Find the entry to update
-            updated = False
-            for i, existing_entry in enumerate(conversation_data["entries"]):
-                if existing_entry.get("guid") == entry_guid:
-                    conversation_data["entries"][i] = entry
-                    updated = True
-                    break
-            
-            if not updated:
-                self.logger.warning(f"Could not find conversation history entry with GUID {entry_guid} to update")
-                return False
-            
-            # Save updated history
-            success = self._save_conversation_history(conversation_data)
-            if success:
-                self.logger.debug(f"Updated conversation history entry {entry_guid} with digest")
-            return success
-            
-        except Exception as e:
-            self.logger.error(f"Error updating conversation history entry: {str(e)}")
-            return False
-    
-    async def _update_embeddings_async(self, entry: Dict[str, Any]) -> None:
-        """Asynchronously update embeddings and graph memory for an entry."""
-        try:
-            # Update embeddings
-            self.embeddings_manager.add_new_embeddings([entry])
-            
-            # Remove from pending embeddings
-            self._pending_embeddings.discard(entry["guid"])
-            
-            # Update graph memory if enabled
-            if self.enable_graph_memory and self.graph_manager and entry["guid"] in self._pending_graph_updates:
-                await self._update_graph_memory_async(entry)
-                self._pending_graph_updates.discard(entry["guid"])
-            
-        except Exception as e:
-            self.logger.error(f"Error in async embeddings/graph update: {str(e)}")
-    
     def get_pending_operations(self) -> Dict[str, Any]:
-        """Get information about pending async operations.
-        
-        Returns:
-            Dict with counts of pending digests, embeddings, and graph updates
-        """
+        """Get information about pending operations (agent-visible only)."""
         return {
             "pending_digests": len(self._pending_digests),
-            "pending_embeddings": len(self._pending_embeddings),
-            "pending_graph_updates": len(self._pending_graph_updates)
+            "pending_embeddings": len(self._pending_embeddings)
         }
-    
-    def has_pending_operations(self) -> bool:
-        """Check if there are any pending async operations.
+
+    async def wait_for_pending_operations(self, timeout: float = 60.0) -> None:
+        """Wait for pending operations to complete (agent-visible only)."""
+        start_time = asyncio.get_event_loop().time()
         
-        Returns:
-            bool: True if there are pending operations
-        """
-        return bool(self._pending_digests or self._pending_embeddings or self._pending_graph_updates)
-    
-    async def wait_for_pending_operations(self) -> None:
-        """Wait for all pending async operations to complete."""
-        while self._pending_digests or self._pending_embeddings or self._pending_graph_updates:
-            await asyncio.sleep(0.1)  # Small delay to prevent busy waiting
+        while self._pending_digests or self._pending_embeddings:
+            current_time = asyncio.get_event_loop().time()
+            if current_time - start_time > timeout:
+                self.logger.warning(f"Timeout waiting for pending operations after {timeout}s")
+                break
+            await asyncio.sleep(0.2)
+
+    # Optional methods for compatibility with agent_usage_example.py
+    def get_graph_processing_status(self) -> Dict[str, Any]:
+        """Get simple graph processing status."""
+        if not self.graph_queue_writer:
+            return {"available": False, "message": "Graph processing not available"}
+        
+        try:
+            queue_size = self.graph_queue_writer.get_queue_size()
+            return {
+                "available": True,
+                "queue_size": queue_size,
+                "status": "active" if queue_size > 0 else "idle"
+            }
+        except Exception as e:
+            return {"available": False, "error": str(e)}
+
+    def process_background_graph_queue(self, max_tasks: int = 1) -> Dict[str, Any]:
+        """Compatibility method for manual graph processing - not implemented in simplified version."""
+        return {
+            "processed": 0,
+            "message": "Background graph processing handled by standalone process"
+        }

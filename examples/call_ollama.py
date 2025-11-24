@@ -10,6 +10,7 @@
 import requests
 import json
 from typing import Optional
+import os
 
 test_prompt = """
 You are a helpful agent that communicates using JSON. All your responses should be in JSON format.
@@ -36,7 +37,11 @@ Analyze this information and return a JSON object containing:
 Return in JSON format suitable for memory update.
 """
 
-def test_ollama_call(prompt: str = "Tell me a short joke", model: str = "llama3") -> Optional[str]:
+BASE_URL = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
+GENERATE_URL = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434") + "/api/generate"
+MODEL = os.environ.get("OLLAMA_MODEL", "gemma3")
+
+def test_ollama_call(prompt: str = "Tell me a short joke", url: str = "http://localhost:11434", model: str = "gemma3") -> Optional[str]:
     """Make a test call to Ollama API.
     
     Args:
@@ -46,7 +51,6 @@ def test_ollama_call(prompt: str = "Tell me a short joke", model: str = "llama3"
     Returns:
         The response text if successful, None if failed
     """
-    url = "http://192.168.1.173:11434/api/generate"
     
     try:
         print("Sending request to Ollama...")
@@ -88,14 +92,16 @@ def main():
     
     # First check if Ollama is running
     try:
-        health_check = requests.get("http://192.168.1.173:11434/api/tags")
+        health_check_url = BASE_URL + "/api/tags"
+        print(f"Checking health of Ollama at {health_check_url}")
+        health_check = requests.get(health_check_url)
         health_check.raise_for_status()
     except requests.exceptions.RequestException:
         print("Error: Ollama is not running. Please start Ollama first.")
         return
     
     # Make the test call
-    response = test_ollama_call(test_prompt)
+    response = test_ollama_call(test_prompt, GENERATE_URL, MODEL)
     
     if response:
         print("\nFull response received successfully!")
