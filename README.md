@@ -116,12 +116,12 @@ pip install -r requirements.txt### Environment Variables
 
 The project uses environment variables for configuration with sensible defaults:
 
-# Ollama Configuration
+## Ollama Configuration
 export OLLAMA_BASE_URL="http://localhost:11434"  # Default: http://localhost:11434
 export OLLAMA_MODEL="gemma3"                      # Default: gemma3
 export OLLAMA_EMBED_MODEL="mxbai-embed-large"     # Default: mxbai-embed-large
 
-# Optional: Enable debug mode for tests
+## Optional: Enable debug mode for tests
 export DEV_MODE="true"### LLM Service Configuration
 
 Example Ollama setup with standardized logging:
@@ -129,7 +129,7 @@ Example Ollama setup with standardized logging:
 from src.utils.logging_config import LoggingConfig
 from src.ai.llm_ollama import OllamaService
 
-# Set up logging for a session
+## Set up logging for a session
 session_guid = "my_session_123"
 llm_logger = LoggingConfig.get_component_file_logger(
     session_guid,
@@ -137,7 +137,7 @@ llm_logger = LoggingConfig.get_component_file_logger(
     log_to_console=False
 )
 
-# Initialize LLM service
+## Initialize LLM service
 llm_service = OllamaService({
     "base_url": os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
     "model": os.getenv("OLLAMA_MODEL", "gemma3"),
@@ -145,43 +145,51 @@ llm_service = OllamaService({
     "stream": False,
     "logger": llm_logger  # Use LoggingConfig logger
 })### Running Examples
-# Canonical RAG Example (recommended starting point)
+
+## Examples
+
+### Canonical RAG Example (recommended starting point)
 OLLAMA_BASE_URL=http://localhost:11434 python examples/rag_enhanced_memory_example_simple.py
 
-# D&D Campaign Example (standard memory manager)
+### D&D Campaign Example (standard memory manager)
 python examples/agent_usage_example.py
 
-# D&D Campaign Example (simple memory manager)
+### D&D Campaign Example (simple memory manager)
 python examples/agent_usage_example.py --type simple
 
-# User Story Generation Example
+### User Story Generation Example
 python examples/user_story_example.py
 
-# Embeddings Manager Example
+### Embeddings Manager Example
 python examples/embeddings_manager_example.py
 
-# Memory Manager Example
+### Memory Manager Example
 python examples/memory_manager_usage_example.py
 
-# Graph Memory Example
+### Graph Memory Example
 python examples/graph_memory_example.py
 
-# Digest Generator Example
+### Digest Generator Example
 python examples/digest_generator_example.py### Running Testssh
-# Run all tests
+
+
+## Tests
+
+### Run all tests
 pytest tests/ -v -s
 
-# Run with environment variables
+### Run with environment variables
 OLLAMA_BASE_URL=http://192.168.10.18:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large pytest tests/ -v -s
 
-# Run automated agent tests
+### Run automated agent tests
 python run_automated_tests.py --domain dnd
 
-# Quick test suite
+### Quick test suite
 python run_automated_tests.py --quick
 
-# Specific persona testing
+### Specific persona testing
 python run_automated_tests.py --persona curious_beginner---
+
 
 ## Extensibility & Modularity
 - **Add new domains** by providing a new config file—no code changes required.
@@ -232,22 +240,26 @@ The FastAPI-based server provides both REST and WebSocket interfaces for agent i
 - **Session Validation**: Automatic connection management and session validation
 
 **Starting the API Server**:
-# Set environment variables
+
+### Set environment variables
 export DEV_MODE=true
 export OLLAMA_BASE_URL=http://localhost:11434
 export OLLAMA_MODEL=gemma3
 export OLLAMA_EMBED_MODEL=mxbai-embed-large
 
-# Start the server
+### Start the server
 python -m uvicorn src.api.main:app --host 0.0.0.0 --port 8000 --reload**API Testing**:h
-# Run all API tests
+### Run all API tests
 cd scripts/api
 python run_api_tests.py
 
-# Individual test suites
+### Individual test suites
 python scripts/api/test_session_manager.py
 python scripts/api/test_rest_api.py
 python scripts/api/test_websocket_api.py### Web UI
+
+
+## Web UI
 
 A modern React + TypeScript frontend application providing a complete browser-based interface:
 
@@ -294,7 +306,7 @@ npm run devThen open `http://localhost:5173/` in your browser.
 ![Web UI - Log Viewer](docs/phase-6/images/web-ui-log-viewer.png)
 
 
-### Background Graph Processing
+## Background Graph Processing
 
 The graph processing system runs as a standalone process for non-blocking knowledge graph updates:
 
