@@ -7,11 +7,19 @@ Important: This project has been "vibe-coded" using Cursor as a way to get famil
 
 This README contains a description of the current state of the project. For historical details, see:
 - cursor-notes (contains the original cursor instructions and .specstory files)
-- [README-phase-2.md](README-phase-2.md) (phase 2 development notes)
-- [README-phase-3.md](README-phase-3.md) (phase 3 development notes)
-- [README-phase-4.md](README-phase-4.md) (phase 4 development notes)
-- [README-phase-5.md](README-phase-5.md) (phase 5 development notes)
-- [README-phase-6.md](README-phase-6.md) (phase 6 development notes - current phase)
+- [README-phase-2.md](docs/phase-2/README-phase-2.md) (phase 2 development notes)
+- [README-phase-3.md](docs/phase-3/README-phase-3.md) (phase 3 development notes)
+- [README-phase-4.md](docs/phase-4/README-phase-4.md) (phase 4 development notes)
+- [README-phase-5.md](docs/phase-5/README-phase-5.md) (phase 5 development notes)
+- [README-phase-6.md](docs/phase-6/README-phase-6.md) (phase 6 development notes - current phase)
+
+---
+
+### Getting Started
+
+> **Don't Miss This:**  
+The **[PHASE-6-MEDIUM-STYLE-ARTICLE](docs/phase-6/PHASE-6-MEDIUM-STYLE-ARTICLE.md)** contains step-by-step getting started instructions, real-world use cases, technical highlights, and practical setup guides.  
+**Be sure to read it first for everything you need to build and run the project effectively!**
 
 ---
 
@@ -207,11 +215,11 @@ python run_automated_tests.py --persona curious_beginner---
 - [Memory Manager](src/memory/README-memory-manager.md): RAG-enabled memory system
 - [Graph Memory System](src/memory/graph_memory/README-graph-memory.md): Knowledge graph construction and queries
 
-- [README-phase-6.md](README-phase-6.md): Current phase development notes (graph optimization and background processing)
-- [README-phase-5.md](README-phase-5.md): Phase 5 development notes
-- [README-phase-4.md](README-phase-4.md): Phase 4 development notes
-- [README-phase-3.md](README-phase-3.md): Phase 3 development notes
-- [README-phase-2.md](README-phase-2.md): Detailed development notes and architectural evolution.
+- [README-phase-6.md](docs/phase-6/README-phase-6.md): Current phase development notes (graph optimization and background processing)
+- [README-phase-5.md](docs/phase-5/README-phase-5.md): Phase 5 development notes
+- [README-phase-4.md](docs/phase-4/README-phase-4.md): Phase 4 development notes
+- [README-phase-3.md](docs/phase-3/README-phase-3.md): Phase 3 development notes
+- [README-phase-2.md](docs/phase-2/README-phase-2.md): Detailed development notes and architectural evolution.
 - `cursor-notes/`, `.specstory/`: Historical design and implementation records.
 
 ---

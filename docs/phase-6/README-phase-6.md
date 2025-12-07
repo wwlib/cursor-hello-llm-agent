@@ -184,7 +184,7 @@ The system now provides seamless domain-specific behavior through both the CLI i
 
 ### Status of Phase-6 Optimizations - September 1-30, 2025
 
-This latest phase has been a struggle with agents - primarily Claude Code - to make improvements to the graph processing system. The overarching goal has been to have conversation data processed by the graph system in teh background because it is too slow to be synchronous. Ultimately, the graph processing has been moved to its own process which is started separately from the agent_usage_example CLI.
+This latest phase has been a struggle with agents - primarily Claude Code - to make improvements to the graph processing system. The overarching goal has been to have conversation data processed by the graph system in the background because it is too slow to be synchronous. Ultimately, the graph processing has been moved to its own process which is started separately from the agent_usage_example CLI.
 
 Status:
 - when started separately, graph processing works and graph files are updated independent of the agent

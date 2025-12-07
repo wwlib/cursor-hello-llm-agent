@@ -17,8 +17,8 @@ sys.path.insert(0, os.path.abspath('../src'))
 # -- Project information -----------------------------------------------------
 
 project = 'LLM Agent Framework'
-copyright = '2024, Your Name'
-author = 'Your Name'
+copyright = '2025, Andrew Rapo'
+author = 'Andrew Rapo'
 
 # The full version, including alpha/beta/rc tags
 release = '1.0.0'
@@ -141,3 +141,32 @@ pygments_style = 'sphinx'
 
 # Output file base name for HTML help builder
 htmlhelp_basename = 'LLMAgentFrameworkdoc'
+
+# Additional configuration for automatic documentation
+import os
+import sys
+sys.path.insert(0, os.path.abspath('../src'))
+
+extensions.extend([
+    'sphinx.ext.autodoc',
+    'sphinx.ext.viewcode', 
+    'sphinx.ext.napoleon',
+    'sphinx.ext.intersphinx',
+    'sphinx.ext.githubpages',
+])
+
+# Napoleon settings for Google-style docstrings
+napoleon_google_docstring = True
+napoleon_numpy_docstring = True
+napoleon_include_init_with_doc = False
+
+# Auto-documentation settings
+autodoc_default_options = {
+    'members': True,
+    'member-order': 'bysource',
+    'special-members': '__init__',
+    'undoc-members': True,
+    'exclude-members': '__weakref__'
+}
+
+html_theme = 'sphinx_rtd_theme'
