@@ -120,7 +120,9 @@ python3 -m venv .venv
 source .venv/bin/activate
 pip install --upgrade pip setuptools wheel
 pip install -e .
-pip install -r requirements.txt### Environment Variables
+pip install -r requirements.txt
+
+### Environment Variables
 
 The project uses environment variables for configuration with sensible defaults:
 
@@ -256,7 +258,10 @@ export OLLAMA_MODEL=gemma3
 export OLLAMA_EMBED_MODEL=mxbai-embed-large
 
 ### Start the server
-python -m uvicorn src.api.main:app --host 0.0.0.0 --port 8000 --reload**API Testing**:h
+python -m uvicorn src.api.main:app --host 0.0.0.0 --port 8000 --reload
+
+**API Testing**:
+
 ### Run all API tests
 cd scripts/api
 python run_api_tests.py

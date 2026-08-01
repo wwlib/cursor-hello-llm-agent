@@ -27,17 +27,22 @@ class SimpleMemoryManager(BaseMemoryManager):
     - Uses simplified memory structure
     """
     
-    def __init__(self, memory_guid: str, memory_file: str = "memory.json", domain_config: Optional[Dict[str, Any]] = None, llm_service = None, logger=None):
+    def __init__(self, memory_guid: str, memory_file: str = "memory.json", domain_config: Optional[Dict[str, Any]] = None, 
+                 llm_service = None, digest_llm_service = None, embeddings_llm_service = None,
+                 verbose: bool = False, logger=None, **kwargs):
         """Initialize the SimpleMemoryManager.
         
         Args:
+            memory_guid: GUID to identify this memory instance
             memory_file: Path to the JSON file for persistent storage
             domain_config: Optional configuration for domain-specific behavior
                          (not used in this implementation but kept for interface consistency)
             llm_service: Service for LLM operations (required for generating responses)
-            memory_guid: Optional GUID to identify this memory instance. If not provided, 
-                       a new one will be generated or loaded from existing file.
+            digest_llm_service: Optional digest LLM service (ignored in simple implementation)
+            embeddings_llm_service: Optional embeddings LLM service (ignored in simple implementation)
+            verbose: Optional verbose flag (ignored in simple implementation)
             logger: Optional logger instance for logging
+            **kwargs: Additional arguments (ignored for compatibility with agent_usage_example.py)
         """
         if llm_service is None:
             raise ValueError("llm_service is required for SimpleMemoryManager")
@@ -133,14 +138,14 @@ class SimpleMemoryManager(BaseMemoryManager):
         """Process query using LLM to generate response.
         
         Args:
-            query_context: Dictionary containing query context with user_message
+            query_context: Dictionary containing query context with "query" or "user_message"
             
         Returns:
             dict: Response from LLM
         """
         try:
-            # Get user message from context
-            user_message = query_context.get("user_message", "")
+            # Get user message from context (support both "query" and "user_message" for compatibility)
+            user_message = query_context.get("query", query_context.get("user_message", ""))
             
             # Add user message to history
             if user_message:

@@ -164,11 +164,19 @@ export OLLAMA_BASE_URL="http://localhost:11434"
 export OLLAMA_MODEL="gemma3"
 export OLLAMA_EMBED_MODEL="mxbai-embed-large"
 
-# Run the canonical RAG example
-python examples/rag_enhanced_memory_example_simple.py
+# Check Ollama M4
+curl -s http://192.168.10.28:11434/api/tags | head -n 20
+
+# Check Ollama PC
+curl -s http://192.168.10.18:11434/api/tags | head -n 20
 ```
 
-Or start the web interface:
+```bash
+# Run the agent_usage_example
+export DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large; python examples/agent_usage_example.py --verbose --guid dec_19_dnd --config dnd
+```
+
+Or start the server and web interface:
 
 ```bash
 # Start the API server
