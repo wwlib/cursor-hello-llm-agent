@@ -292,7 +292,7 @@ Now let me check the structure of the templates directory to understand what we 
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed directory src/memory/graph_memory/templates • **7** results</summary>
+            <summary>Tool use: **list_dir** • Listed directory src/memory/graph_memory/templates, 7 results</summary>
         
 | Name |
 |-------|
@@ -479,7 +479,7 @@ Now let me remove the unused methods from the RelationshipExtractor:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/relationship_extractor.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/graph_memory/relationship_extractor.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 81
@@ -489,8 +489,8 @@ Lines added: 1, lines removed: 81
           return True
       
 -     def extract_relationships_from_entities(self, entities: List[Dict[str, Any]], 
--                                           context_text: str = &quot;&quot;) -&gt; List[Dict[str, Any]]:
--         &quot;&quot;&quot;
+-                                           context_text: str = "") -&gt; List[Dict[str, Any]]:
+-         """
 -         Extract relationships between entities with optional context.
 -         
 -         This is a simplified version that works with just entity information
@@ -502,18 +502,18 @@ Lines added: 1, lines removed: 81
 -             
 -         Returns:
 -             List of relationships between entities
--         &quot;&quot;&quot;
+-         """
 -         if not entities or len(entities) &lt; 2:
 -             return []
 -         
 -         try:
 -             # Build simplified prompt
 -             entities_context = self._build_entities_context(entities)
--             relationship_types_desc = &quot;\n&quot;.join([
--                 f&quot;- {rtype}: {desc}&quot; for rtype, desc in self.relationship_types.items()
+-             relationship_types_desc = "\n".join([
+-                 f"- {rtype}: {desc}" for rtype, desc in self.relationship_types.items()
 -             ])
 -             
--             prompt = f&quot;&quot;&quot;Analyze the following entities to identify likely relationships between them.
+-             prompt = f"""Analyze the following entities to identify likely relationships between them.
 - 
 - Relationship Types:
 - {relationship_types_desc}
@@ -528,7 +528,7 @@ Lines added: 1, lines removed: 81
 - 
 - Respond with a JSON array of relationships with fields: from_entity, to_entity, relationship, confidence, evidence.
 - 
-- Relationships:&quot;&quot;&quot;
+- Relationships:"""
 -             
 -             # Get LLM response
 -             response = self.llm_service.generate(prompt)
@@ -536,15 +536,15 @@ Lines added: 1, lines removed: 81
 -             # Parse relationships
 -             relationships = self._parse_relationship_response(response, entities)
 -             
--             self.logger.debug(f&quot;Extracted {len(relationships)} relationships from entity analysis&quot;)
+-             self.logger.debug(f"Extracted {len(relationships)} relationships from entity analysis")
 -             return relationships
 -             
 -         except Exception as e:
--             self.logger.error(f&quot;Error extracting relationships from entities: {e}&quot;)
+-             self.logger.error(f"Error extracting relationships from entities: {e}")
 -             return []
 -     
 -     def deduplicate_relationships(self, relationships: List[Dict[str, Any]]) -&gt; List[Dict[str, Any]]:
--         &quot;&quot;&quot;
+-         """
 -         Remove duplicate relationships based on from_entity, to_entity, and relationship type.
 -         
 -         Args:
@@ -552,16 +552,16 @@ Lines added: 1, lines removed: 81
 -             
 -         Returns:
 -             List of unique relationships
--         &quot;&quot;&quot;
+-         """
 -         seen_relationships = set()
 -         unique_relationships = []
 -         
 -         for rel in relationships:
 -             # Create a key for deduplication
 -             key = (
--                 rel[&#39;from_entity&#39;].lower(),
--                 rel[&#39;to_entity&#39;].lower(),
--                 rel[&#39;relationship&#39;]
+-                 rel['from_entity'].lower(),
+-                 rel['to_entity'].lower(),
+-                 rel['relationship']
 -             )
 -             
 -             if key not in seen_relationships:
@@ -591,7 +591,7 @@ Now let me remove the unused baseline comparison methods from GraphManager:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/graph_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/graph_memory/graph_manager.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 61
@@ -600,8 +600,8 @@ Lines added: 1, lines removed: 61
 @@ -436,65 +436,5 @@
               return None
       
--     def compare_with_baseline(self, conversation_text: str, digest_text: str = &quot;&quot;) -&gt; Dict[str, Any]:
--         &quot;&quot;&quot;
+-     def compare_with_baseline(self, conversation_text: str, digest_text: str = "") -&gt; Dict[str, Any]:
+-         """
 -         Compare alternative approach results with baseline approach.
 -         
 -         This method runs both the alternative and baseline approaches on the same input
@@ -613,52 +613,52 @@ Lines added: 1, lines removed: 61
 -             
 -         Returns:
 -             Dictionary comparing both approaches
--         &quot;&quot;&quot;
+-         """
 -         comparison = {
--             &quot;alternative&quot;: {},
--             &quot;baseline&quot;: {},
--             &quot;comparison_stats&quot;: {}
+-             "alternative": {},
+-             "baseline": {},
+-             "comparison_stats": {}
 -         }
 -         
 -         try:
 -             # Run alternative approach
--             self.logger.info(&quot;Running alternative approach...&quot;)
+-             self.logger.info("Running alternative approach...")
 -             alt_results = self.process_conversation_entry(conversation_text, digest_text)
--             comparison[&quot;alternative&quot;] = alt_results
+-             comparison["alternative"] = alt_results
 -             
 -             # Run baseline approach (using parent class methods)
--             self.logger.info(&quot;Running baseline approach...&quot;)
+-             self.logger.info("Running baseline approach...")
 -             baseline_results = self._run_baseline_approach(conversation_text, digest_text)
--             comparison[&quot;baseline&quot;] = baseline_results
+-             comparison["baseline"] = baseline_results
 -             
 -             # Generate comparison statistics
--             comparison[&quot;comparison_stats&quot;] = {
--                 &quot;alt_entities&quot;: len(alt_results.get(&quot;entities&quot;, [])),
--                 &quot;baseline_entities&quot;: len(baseline_results.get(&quot;entities&quot;, [])),
--                 &quot;alt_relationships&quot;: len(alt_results.get(&quot;relationships&quot;, [])),
--                 &quot;baseline_relationships&quot;: len(baseline_results.get(&quot;relationships&quot;, [])),
--                 &quot;alt_new_entities&quot;: len(alt_results.get(&quot;new_entities&quot;, [])),
--                 &quot;baseline_new_entities&quot;: len(baseline_results.get(&quot;new_entities&quot;, [])),
+-             comparison["comparison_stats"] = {
+-                 "alt_entities": len(alt_results.get("entities", [])),
+-                 "baseline_entities": len(baseline_results.get("entities", [])),
+-                 "alt_relationships": len(alt_results.get("relationships", [])),
+-                 "baseline_relationships": len(baseline_results.get("relationships", [])),
+-                 "alt_new_entities": len(alt_results.get("new_entities", [])),
+-                 "baseline_new_entities": len(baseline_results.get("new_entities", [])),
 -             }
 -             
 -             return comparison
 -             
 -         except Exception as e:
--             self.logger.error(f&quot;Error in comparison: {e}&quot;)
--             comparison[&quot;error&quot;] = str(e)
+-             self.logger.error(f"Error in comparison: {e}")
+-             comparison["error"] = str(e)
 -             return comparison
 -     
 -     def _run_baseline_approach(self, conversation_text: str, digest_text: str) -&gt; Dict[str, Any]:
--         &quot;&quot;&quot;Run the baseline segment-based approach for comparison.&quot;&quot;&quot;
+-         """Run the baseline segment-based approach for comparison."""
 -         # This would need to be implemented to create segments and use the original extractors
 -         # For now, return a placeholder
 -         return {
--             &quot;entities&quot;: [],
--             &quot;relationships&quot;: [],
--             &quot;new_entities&quot;: [],
--             &quot;stats&quot;: {
--                 &quot;approach&quot;: &quot;baseline_segment_based&quot;,
--                 &quot;note&quot;: &quot;Baseline comparison not yet implemented&quot;
+-             "entities": [],
+-             "relationships": [],
+-             "new_entities": [],
+-             "stats": {
+-                 "approach": "baseline_segment_based",
+-                 "note": "Baseline comparison not yet implemented"
 -             }
 -         }
 + 
@@ -683,7 +683,7 @@ Now let me also remove the unused `process_conversation_entry` method since the 
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/graph_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/graph_memory/graph_manager.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 106
@@ -692,8 +692,8 @@ Lines added: 1, lines removed: 106
 @@ -227,110 +227,5 @@
           return component_logger
       
--     def process_conversation_entry(self, conversation_text: str, digest_text: str = &quot;&quot;) -&gt; Dict[str, Any]:
--         &quot;&quot;&quot;
+-     def process_conversation_entry(self, conversation_text: str, digest_text: str = "") -&gt; Dict[str, Any]:
+-         """
 -         Process a full conversation entry using the alternative LLM-centric approach.
 -         
 -         This method implements the two-stage process described in the alternative approach:
@@ -706,67 +706,67 @@ Lines added: 1, lines removed: 106
 -             
 -         Returns:
 -             Dictionary with processing results including entities and relationships
--         &quot;&quot;&quot;
+-         """
 -         if not self.entity_extractor or not self.relationship_extractor:
--             self.logger.error(&quot;Entity extractors not available - missing LLM service or domain config&quot;)
--             return {&quot;entities&quot;: [], &quot;relationships&quot;: [], &quot;error&quot;: &quot;Extractors not available&quot;}
+-             self.logger.error("Entity extractors not available - missing LLM service or domain config")
+-             return {"entities": [], "relationships": [], "error": "Extractors not available"}
 -         
 -         try:
 -             results = {
--                 &quot;entities&quot;: [],
--                 &quot;relationships&quot;: [],
--                 &quot;new_entities&quot;: [],
--                 &quot;existing_entities&quot;: [],
--                 &quot;stats&quot;: {}
+-                 "entities": [],
+-                 "relationships": [],
+-                 "new_entities": [],
+-                 "existing_entities": [],
+-                 "stats": {}
 -             }
 -             
 -             # Stage 1: Extract entities using alternative approach
--             self.logger.debug(&quot;Stage 1: Extracting entities from conversation&quot;)
+-             self.logger.debug("Stage 1: Extracting entities from conversation")
 -             extracted_entities = self.entity_extractor.extract_entities_from_conversation(
 -                 conversation_text, digest_text)
 -             
 -             if not extracted_entities:
--                 self.logger.info(&quot;No entities extracted from conversation&quot;)
+-                 self.logger.info("No entities extracted from conversation")
 -                 return results
 -             
 -             # Process and add entities to graph
 -             processed_entities = []
 -             for entity in extracted_entities:
 -                 try:
--                     if entity.get(&#39;status&#39;) == &#39;existing&#39;:
+-                     if entity.get('status') == 'existing':
 -                         # Update existing entity
 -                         existing_node = self._update_existing_entity(entity)
 -                         if existing_node:
 -                             processed_entities.append({
--                                 &#39;node&#39;: existing_node,
--                                 &#39;status&#39;: &#39;existing&#39;,
+-                                 'node': existing_node,
+-                                 'status': 'existing',
 -                                 **entity
 -                             })
--                             results[&quot;existing_entities&quot;].append(existing_node.to_dict())
+-                             results["existing_entities"].append(existing_node.to_dict())
 -                     else:
 -                         # Create new entity
 -                         new_node, is_new = self.add_or_update_node(
--                             name=entity.get(&quot;name&quot;, &quot;&quot;),
--                             node_type=entity.get(&quot;type&quot;, &quot;concept&quot;),
--                             description=entity.get(&quot;description&quot;, &quot;&quot;),
--                             confidence=entity.get(&quot;confidence&quot;, 1.0)
+-                             name=entity.get("name", ""),
+-                             node_type=entity.get("type", "concept"),
+-                             description=entity.get("description", ""),
+-                             confidence=entity.get("confidence", 1.0)
 -                         )
 -                         processed_entities.append({
--                             &#39;node&#39;: new_node,
--                             &#39;status&#39;: &#39;new&#39; if is_new else &#39;updated&#39;,
+-                             'node': new_node,
+-                             'status': 'new' if is_new else 'updated',
 -                             **entity
 -                         })
 -                         if is_new:
--                             results[&quot;new_entities&quot;].append(new_node.to_dict())
+-                             results["new_entities"].append(new_node.to_dict())
 -                 
 -                 except Exception as e:
--                     self.logger.error(f&quot;Error processing entity {entity.get(&#39;name&#39;, &#39;unknown&#39;)}: {e}&quot;)
+-                     self.logger.error(f"Error processing entity {entity.get('name', 'unknown')}: {e}")
 -                     continue
 -             
--             results[&quot;entities&quot;] = [item[&#39;node&#39;].to_dict() for item in processed_entities]
+-             results["entities"] = [item['node'].to_dict() for item in processed_entities]
 -             
 -             # Stage 2: Extract relationships using alternative approach
--             self.logger.debug(&quot;Stage 2: Extracting relationships from conversation&quot;)
+-             self.logger.debug("Stage 2: Extracting relationships from conversation")
 -             if len(processed_entities) &gt;= 2:
 -                 entity_list = [item for item in extracted_entities]  # Use original entity format
 -                 extracted_relationships = self.relationship_extractor.extract_relationships_from_conversation(
@@ -777,27 +777,27 @@ Lines added: 1, lines removed: 106
 -                     try:
 -                         edge = self._add_relationship_to_graph(relationship, processed_entities)
 -                         if edge:
--                             results[&quot;relationships&quot;].append(edge.to_dict())
+-                             results["relationships"].append(edge.to_dict())
 -                     except Exception as e:
--                         self.logger.error(f&quot;Error processing relationship: {e}&quot;)
+-                         self.logger.error(f"Error processing relationship: {e}")
 -                         continue
 -             
 -             # Generate stats
--             results[&quot;stats&quot;] = {
--                 &quot;entities_extracted&quot;: len(extracted_entities),
--                 &quot;entities_new&quot;: len(results[&quot;new_entities&quot;]),
--                 &quot;entities_existing&quot;: len(results[&quot;existing_entities&quot;]),
--                 &quot;relationships_extracted&quot;: len(results[&quot;relationships&quot;]),
--                 &quot;conversation_length&quot;: len(conversation_text),
--                 &quot;digest_length&quot;: len(digest_text)
+-             results["stats"] = {
+-                 "entities_extracted": len(extracted_entities),
+-                 "entities_new": len(results["new_entities"]),
+-                 "entities_existing": len(results["existing_entities"]),
+-                 "relationships_extracted": len(results["relationships"]),
+-                 "conversation_length": len(conversation_text),
+-                 "digest_length": len(digest_text)
 -             }
 -             
--             self.logger.info(f&quot;Processed conversation: {results[&#39;stats&#39;]}&quot;)
+-             self.logger.info(f"Processed conversation: {results['stats']}")
 -             return results
 -             
 -         except Exception as e:
--             self.logger.error(f&quot;Error processing conversation entry: {e}&quot;)
--             return {&quot;entities&quot;: [], &quot;relationships&quot;: [], &quot;error&quot;: str(e)}
+-             self.logger.error(f"Error processing conversation entry: {e}")
+-             return {"entities": [], "relationships": [], "error": str(e)}
 + 
       
       def _update_existing_entity(self, entity_info: Dict[str, Any]) -&gt; Optional[GraphNode]:
@@ -820,22 +820,22 @@ Now I need to update the fallback calls in the `process_conversation_entry_with_
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/graph_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/graph_memory/graph_manager.py</summary>
 
 **Chunk 1**
 Lines added: 3, lines removed: 3
 
 ```diff
 @@ -444,8 +444,8 @@
-              return {&quot;entities&quot;: [], &quot;relationships&quot;: [], &quot;error&quot;: &quot;Entity extractor not available&quot;}
+              return {"entities": [], "relationships": [], "error": "Entity extractor not available"}
           
 -         # Use basic processing if EntityResolver is not available
-+         # Return error if EntityResolver is not available since it&#39;s essential
++         # Return error if EntityResolver is not available since it's essential
           if not self.entity_resolver:
--             self.logger.debug(&quot;EntityResolver not available, falling back to basic processing&quot;)
+-             self.logger.debug("EntityResolver not available, falling back to basic processing")
 -             return self.process_conversation_entry(conversation_text, digest_text)
-+             self.logger.error(&quot;EntityResolver not available - this is required for graph memory operations&quot;)
-+             return {&quot;entities&quot;: [], &quot;relationships&quot;: [], &quot;error&quot;: &quot;EntityResolver required but not available&quot;}
++             self.logger.error("EntityResolver not available - this is required for graph memory operations")
++             return {"entities": [], "relationships": [], "error": "EntityResolver required but not available"}
           
           try:
 ```
@@ -853,7 +853,7 @@ Now I need to update the fallback calls in the `process_conversation_entry_with_
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/graph_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/graph_memory/graph_manager.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 3
@@ -861,11 +861,11 @@ Lines added: 1, lines removed: 3
 ```diff
 @@ -675,7 +675,5 @@
           except Exception as e:
-              self.logger.error(f&quot;Error in process_conversation_entry_with_resolver: {e}&quot;)
+              self.logger.error(f"Error in process_conversation_entry_with_resolver: {e}")
 -             # Fallback to basic processing
--             self.logger.warning(&quot;Falling back to basic conversation processing&quot;)
+-             self.logger.warning("Falling back to basic conversation processing")
 -             return self.process_conversation_entry(conversation_text, digest_text)
-+             return {&quot;entities&quot;: [], &quot;relationships&quot;: [], &quot;error&quot;: f&quot;Processing failed: {str(e)}&quot;}
++             return {"entities": [], "relationships": [], "error": f"Processing failed: {str(e)}"}
       
       def _add_relationship_to_graph_with_resolver(self, relationship: Dict[str, Any], 
 ```
@@ -887,7 +887,7 @@ Now let me remove the unused `_add_relationship_to_graph` method since it's only
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/graph_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/graph_memory/graph_manager.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 56
@@ -898,19 +898,19 @@ Lines added: 1, lines removed: 56
       
 -     def _add_relationship_to_graph(self, relationship: Dict[str, Any], 
 -                                   processed_entities: List[Dict[str, Any]]) -&gt; Optional[GraphEdge]:
--         &quot;&quot;&quot;Add a relationship to the graph.&quot;&quot;&quot;
+-         """Add a relationship to the graph."""
 -         try:
 -             # Find the entity nodes by name
 -             from_node = None
 -             to_node = None
 -             
 -             entity_name_to_node = {
--                 item[&#39;name&#39;].lower(): item[&#39;node&#39;] 
+-                 item['name'].lower(): item['node'] 
 -                 for item in processed_entities
 -             }
 -             
--             from_name = relationship[&#39;from_entity&#39;].lower()
--             to_name = relationship[&#39;to_entity&#39;].lower()
+-             from_name = relationship['from_entity'].lower()
+-             to_name = relationship['to_entity'].lower()
 -             
 -             if from_name in entity_name_to_node:
 -                 from_node = entity_name_to_node[from_name]
@@ -918,29 +918,29 @@ Lines added: 1, lines removed: 56
 -                 to_node = entity_name_to_node[to_name]
 -             
 -             if not from_node or not to_node:
--                 self.logger.warning(f&quot;Could not find nodes for relationship {relationship}&quot;)
+-                 self.logger.warning(f"Could not find nodes for relationship {relationship}")
 -                 return None
 -             
 -             # Check if relationship already exists
--             existing_edge = self._find_edge(from_node.id, to_node.id, relationship[&#39;relationship&#39;])
+-             existing_edge = self._find_edge(from_node.id, to_node.id, relationship['relationship'])
 -             if existing_edge:
 -                 # Update existing relationship
 -                 existing_edge.confidence = max(existing_edge.confidence, 
--                                              relationship.get(&#39;confidence&#39;, 1.0))
--                 existing_edge.evidence = relationship.get(&#39;evidence&#39;, existing_edge.evidence)
+-                                              relationship.get('confidence', 1.0))
+-                 existing_edge.evidence = relationship.get('evidence', existing_edge.evidence)
 -                 existing_edge.updated_at = datetime.now().isoformat()
 -                 self._save_graph()
 -                 return existing_edge
 -             
 -             # Create new relationship
--             edge_id = f&quot;edge_{str(uuid.uuid4())[:8]}&quot;
+-             edge_id = f"edge_{str(uuid.uuid4())[:8]}"
 -             new_edge = GraphEdge(
 -                 edge_id=edge_id,
 -                 from_node_id=from_node.id,
 -                 to_node_id=to_node.id,
--                 relationship=relationship[&#39;relationship&#39;],
--                 confidence=relationship.get(&#39;confidence&#39;, 1.0),
--                 evidence=relationship.get(&#39;evidence&#39;, &#39;&#39;),
+-                 relationship=relationship['relationship'],
+-                 confidence=relationship.get('confidence', 1.0),
+-                 evidence=relationship.get('evidence', ''),
 -                 created_at=datetime.now().isoformat()
 -             )
 -             
@@ -950,7 +950,7 @@ Lines added: 1, lines removed: 56
 -             return new_edge
 -             
 -         except Exception as e:
--             self.logger.error(f&quot;Error adding relationship to graph: {e}&quot;)
+-             self.logger.error(f"Error adding relationship to graph: {e}")
 -             return None
 + 
       
@@ -974,7 +974,7 @@ Now let me clean up some comments and update the docstring to reflect the cleane
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/relationship_extractor.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/graph_memory/relationship_extractor.py</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: 2
@@ -987,7 +987,7 @@ Lines added: 2, lines removed: 2
 - rather than working with pre-segmented text.
 + This extractor analyzes full conversation text with explicit entity context to identify
 + meaningful relationships between entities in knowledge graphs.
-  &quot;&quot;&quot;
+  """
   
 ```
 
@@ -1008,19 +1008,19 @@ Let me also update the stats method to reflect that we removed some methods:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/relationship_extractor.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/graph_memory/relationship_extractor.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
 
 ```diff
 @@ -281,5 +281,5 @@
-          &quot;&quot;&quot;Get extraction statistics.&quot;&quot;&quot;
+          """Get extraction statistics."""
           stats = {
--             &#39;extractor_type&#39;: &#39;alternative_llm_centric&#39;,
-+             &#39;extractor_type&#39;: &#39;llm_centric&#39;,
-              &#39;relationship_types_count&#39;: len(self.relationship_types),
-              &#39;domain&#39;: self.domain_config.get(&#39;domain_name&#39;, &#39;general&#39;),
+-             'extractor_type': 'alternative_llm_centric',
++             'extractor_type': 'llm_centric',
+              'relationship_types_count': len(self.relationship_types),
+              'domain': self.domain_config.get('domain_name', 'general'),
 ```
 
 </details>
@@ -1040,25 +1040,25 @@ Let me also remove some unused optimization information that was specific to the
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/relationship_extractor.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/graph_memory/relationship_extractor.py</summary>
 
 **Chunk 1**
 Lines added: 5, lines removed: 5
 
 ```diff
 @@ -295,9 +295,9 @@
-              stats[&#39;llm_debug_file&#39;] = self.llm_service.debug_file
+              stats['llm_debug_file'] = self.llm_service.debug_file
           
 -         # Add optimization information
--         stats[&#39;optimization_features&#39;] = {
--             &#39;entity_id_context&#39;: True,
--             &#39;strict_entity_validation&#39;: True,
--             &#39;enhanced_prompt_constraints&#39;: True
+-         stats['optimization_features'] = {
+-             'entity_id_context': True,
+-             'strict_entity_validation': True,
+-             'enhanced_prompt_constraints': True
 +         # Add core features
-+         stats[&#39;features&#39;] = {
-+             &#39;entity_context_validation&#39;: True,
-+             &#39;domain_specific_relationships&#39;: True,
-+             &#39;dedicated_llm_support&#39;: True
++         stats['features'] = {
++             'entity_context_validation': True,
++             'domain_specific_relationships': True,
++             'dedicated_llm_support': True
           }
               
 ```
@@ -1080,7 +1080,7 @@ Now let me update the GraphManager class docstring to reflect the cleaned up arc
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/graph_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/graph_memory/graph_manager.py</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: 2
@@ -1093,7 +1093,7 @@ Lines added: 2, lines removed: 2
 - and relies on LLM reasoning for entity and relationship identification.
 + Provides sophisticated conversation processing with EntityResolver for duplicate detection
 + and RelationshipExtractor for semantic relationship identification.
-  &quot;&quot;&quot;
+  """
   
 ```
 
@@ -1211,7 +1211,7 @@ First, let me replace the current template with the ID-based version:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/templates/relationship_extraction.prompt</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/graph_memory/templates/relationship_extraction.prompt</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -1233,12 +1233,12 @@ Lines added: 2, lines removed: 2
 @@ -27,6 +27,6 @@
   
   Respond with a JSON array of relationships. Each relationship must have:
-- - &quot;from_entity&quot;: name of the source entity (exactly as listed above)
-- - &quot;to_entity&quot;: name of the target entity (exactly as listed above)  
-+ - &quot;from_entity_id&quot;: id of the source entity (exactly as listed above)
-+ - &quot;to_entity_id&quot;: id of the target entity (exactly as listed above)  
-  - &quot;relationship&quot;: type of relationship (from the defined types)
-  - &quot;confidence&quot;: confidence score from 0.0 to 1.0
+- - "from_entity": name of the source entity (exactly as listed above)
+- - "to_entity": name of the target entity (exactly as listed above)  
++ - "from_entity_id": id of the source entity (exactly as listed above)
++ - "to_entity_id": id of the target entity (exactly as listed above)  
+  - "relationship": type of relationship (from the defined types)
+  - "confidence": confidence score from 0.0 to 1.0
 ```
 
 **Chunk 3**
@@ -1248,25 +1248,25 @@ Lines added: 7, lines removed: 7
 @@ -37,16 +37,16 @@
   [
       {{
--         &quot;from_entity&quot;: &quot;Elena&quot;,
--         &quot;to_entity&quot;: &quot;Haven&quot;,
-+         &quot;from_entity_id&quot;: &quot;character_elena_4a969ab6&quot;,
-+         &quot;to_entity_id&quot;: &quot;location_haven_f0be196b&quot;,
-          &quot;relationship&quot;: &quot;located_in&quot;,
-          &quot;confidence&quot;: 0.9,
-          &quot;evidence&quot;: &quot;Elena serves as Mayor of Haven&quot;
+-         "from_entity": "Elena",
+-         "to_entity": "Haven",
++         "from_entity_id": "character_elena_4a969ab6",
++         "to_entity_id": "location_haven_f0be196b",
+          "relationship": "located_in",
+          "confidence": 0.9,
+          "evidence": "Elena serves as Mayor of Haven"
       }},
       {{
--         &quot;from_entity&quot;: &quot;Elena&quot;, 
--         &quot;to_entity&quot;: &quot;investigation&quot;,
--         &quot;relationship&quot;: &quot;participates_in&quot;,
--         &quot;confidence&quot;: 0.8,
--         &quot;evidence&quot;: &quot;Elena is investigating strange occurrences&quot;
-+         &quot;from_entity_id&quot;: &quot;location_riverwatch_f33648c1&quot;, 
-+         &quot;to_entity_id&quot;: &quot;location_the_lost_valley_be144bd3&quot;,
-+         &quot;relationship&quot;: &quot;located_in&quot;,
-+         &quot;confidence&quot;: 0.9,
-+         &quot;evidence&quot;: &quot;Riverwatch is situated to the east of The Lost Valley.&quot;
+-         "from_entity": "Elena", 
+-         "to_entity": "investigation",
+-         "relationship": "participates_in",
+-         "confidence": 0.8,
+-         "evidence": "Elena is investigating strange occurrences"
++         "from_entity_id": "location_riverwatch_f33648c1", 
++         "to_entity_id": "location_the_lost_valley_be144bd3",
++         "relationship": "located_in",
++         "confidence": 0.9,
++         "evidence": "Riverwatch is situated to the east of The Lost Valley."
       }}
   ]
 ```
@@ -1298,7 +1298,7 @@ Now I need to update the RelationshipExtractor to work with entity IDs. Let me f
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/relationship_extractor.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/graph_memory/relationship_extractor.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -1306,9 +1306,9 @@ Lines added: 1, lines removed: 1
 ```diff
 @@ -173,5 +173,5 @@
       def _build_entities_context(self, entities: List[Dict[str, Any]]) -&gt; str:
-          &quot;&quot;&quot;Build formatted entity context for the prompt with resolved node IDs.&quot;&quot;&quot;
--         entities_lines = [&quot;AVAILABLE ENTITIES (use exact names):&quot;]
-+         entities_lines = [&quot;AVAILABLE ENTITIES (use exact IDs):&quot;]
+          """Build formatted entity context for the prompt with resolved node IDs."""
+-         entities_lines = ["AVAILABLE ENTITIES (use exact names):"]
++         entities_lines = ["AVAILABLE ENTITIES (use exact IDs):"]
           
           for entity in entities:
 ```
@@ -1318,18 +1318,18 @@ Lines added: 5, lines removed: 4
 
 ```diff
 @@ -182,9 +182,10 @@
-              status = entity.get(&#39;status&#39;, &#39;resolved&#39;)
+              status = entity.get('status', 'resolved')
               
--             # Format: &quot;- EntityName (type, ID: node_id): description&quot;
--             line = f&quot;- {name} ({entity_type}&quot;
-+             # Format: &quot;- ID: node_id | Name: EntityName (type): description&quot;
+-             # Format: "- EntityName (type, ID: node_id): description"
+-             line = f"- {name} ({entity_type}"
++             # Format: "- ID: node_id | Name: EntityName (type): description"
               if node_id:
--                 line += f&quot;, ID: {node_id}&quot;
--             line += f&quot;): {description}&quot;
-+                 line = f&quot;- ID: {node_id} | Name: {name} ({entity_type}): {description}&quot;
+-                 line += f", ID: {node_id}"
+-             line += f"): {description}"
++                 line = f"- ID: {node_id} | Name: {name} ({entity_type}): {description}"
 +             else:
 +                 # Fallback if no ID available
-+                 line = f&quot;- Name: {name} ({entity_type}): {description} [NO ID]&quot;
++                 line = f"- Name: {name} ({entity_type}): {description} [NO ID]"
               
               # Add status indicator for clarity
 ```
@@ -1340,10 +1340,10 @@ Lines added: 1, lines removed: 1
 ```diff
 @@ -197,5 +198,5 @@
           
-          entities_lines.append(&quot;\nIMPORTANT: Only create relationships between entities listed above.&quot;)
--         entities_lines.append(&quot;Use the exact entity names as shown.&quot;)
-+         entities_lines.append(&quot;Use the exact entity IDs as shown (from_entity_id and to_entity_id fields).&quot;)
-          entities_lines.append(&quot;Do not reference any entities not in this list.&quot;)
+          entities_lines.append("\nIMPORTANT: Only create relationships between entities listed above.")
+-         entities_lines.append("Use the exact entity names as shown.")
++         entities_lines.append("Use the exact entity IDs as shown (from_entity_id and to_entity_id fields).")
+          entities_lines.append("Do not reference any entities not in this list.")
           
 ```
 
@@ -1359,7 +1359,7 @@ Now I need to update the `_validate_relationship` method to work with entity IDs
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/relationship_extractor.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/graph_memory/relationship_extractor.py</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: 2
@@ -1370,9 +1370,9 @@ Lines added: 2, lines removed: 2
       
 -     def _validate_relationship(self, relationship: Dict[str, Any], entity_names: set) -&gt; bool:
 +     def _validate_relationship(self, relationship: Dict[str, Any], entity_ids: set) -&gt; bool:
-          &quot;&quot;&quot;Validate extracted relationship structure and entity references.&quot;&quot;&quot;
--         required_fields = [&#39;from_entity&#39;, &#39;to_entity&#39;, &#39;relationship&#39;]
-+         required_fields = [&#39;from_entity_id&#39;, &#39;to_entity_id&#39;, &#39;relationship&#39;]
+          """Validate extracted relationship structure and entity references."""
+-         required_fields = ['from_entity', 'to_entity', 'relationship']
++         required_fields = ['from_entity_id', 'to_entity_id', 'relationship']
           
           # Check required fields exist
 ```
@@ -1385,20 +1385,20 @@ Lines added: 7, lines removed: 7
                   return False
           
 -         # Check entities exist in the entity list (case-insensitive)
--         from_name = relationship[&#39;from_entity&#39;].lower().strip()
--         to_name = relationship[&#39;to_entity&#39;].lower().strip()
+-         from_name = relationship['from_entity'].lower().strip()
+-         to_name = relationship['to_entity'].lower().strip()
 +         # Check entities exist in the entity list by ID
-+         from_id = relationship[&#39;from_entity_id&#39;].strip()
-+         to_id = relationship[&#39;to_entity_id&#39;].strip()
++         from_id = relationship['from_entity_id'].strip()
++         to_id = relationship['to_entity_id'].strip()
           
 -         if from_name not in entity_names or to_name not in entity_names:
--             self.logger.debug(f&quot;Relationship references unknown entities: {relationship[&#39;from_entity&#39;]} -&gt; {relationship[&#39;to_entity&#39;]}&quot;)
--             available_entities = &quot;, &quot;.join(sorted(entity_names))
--             self.logger.debug(f&quot;Available entities: {available_entities}&quot;)
+-             self.logger.debug(f"Relationship references unknown entities: {relationship['from_entity']} -&gt; {relationship['to_entity']}")
+-             available_entities = ", ".join(sorted(entity_names))
+-             self.logger.debug(f"Available entities: {available_entities}")
 +         if from_id not in entity_ids or to_id not in entity_ids:
-+             self.logger.debug(f&quot;Relationship references unknown entity IDs: {relationship[&#39;from_entity_id&#39;]} -&gt; {relationship[&#39;to_entity_id&#39;]}&quot;)
-+             available_ids = &quot;, &quot;.join(sorted(entity_ids))
-+             self.logger.debug(f&quot;Available entity IDs: {available_ids}&quot;)
++             self.logger.debug(f"Relationship references unknown entity IDs: {relationship['from_entity_id']} -&gt; {relationship['to_entity_id']}")
++             available_ids = ", ".join(sorted(entity_ids))
++             self.logger.debug(f"Available entity IDs: {available_ids}")
               return False
           
 ```
@@ -1438,19 +1438,19 @@ Now I need to update the `_parse_relationship_response` method to create the ent
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/relationship_extractor.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/graph_memory/relationship_extractor.py</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: 2
 
 ```diff
 @@ -206,6 +206,6 @@
-          &quot;&quot;&quot;Parse LLM response to extract relationship list.&quot;&quot;&quot;
+          """Parse LLM response to extract relationship list."""
           try:
 -             # Create entity name lookup for validation
--             entity_names = {entity[&#39;name&#39;].lower() for entity in entities}
+-             entity_names = {entity['name'].lower() for entity in entities}
 +             # Create entity ID lookup for validation
-+             entity_ids = {entity.get(&#39;resolved_node_id&#39;, &#39;&#39;) for entity in entities if entity.get(&#39;resolved_node_id&#39;)}
++             entity_ids = {entity.get('resolved_node_id', '') for entity in entities if entity.get('resolved_node_id')}
               
               # Clean up response - look for JSON array
 ```
@@ -1503,7 +1503,7 @@ Now I need to update the GraphManager to handle the ID-based relationships. Let 
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/graph_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/graph_memory/graph_manager.py</summary>
 
 **Chunk 1**
 Lines added: 15, lines removed: 41
@@ -1512,27 +1512,27 @@ Lines added: 15, lines removed: 41
 @@ -625,50 +625,24 @@
                                                  processed_entities: List[Dict[str, Any]],
                                                  original_to_resolved: Dict[str, Any]) -&gt; Optional[GraphEdge]:
--         &quot;&quot;&quot;Add a relationship to the graph using resolved entity mapping.
-+         &quot;&quot;&quot;Add a relationship to the graph using entity IDs.
+-         """Add a relationship to the graph using resolved entity mapping.
++         """Add a relationship to the graph using entity IDs.
           
 -         This method handles the case where relationship extraction refers to original entity names
 -         but those entities have been resolved to existing nodes with different names/IDs.
 +         This method uses the entity IDs directly from the relationship extraction output,
 +         which provides cleaner and more reliable entity matching.
-          &quot;&quot;&quot;
+          """
           try:
--             from_entity_name = relationship.get(&#39;from_entity&#39;, &#39;&#39;).lower()
--             to_entity_name = relationship.get(&#39;to_entity&#39;, &#39;&#39;).lower()
+-             from_entity_name = relationship.get('from_entity', '').lower()
+-             to_entity_name = relationship.get('to_entity', '').lower()
 -             
 -             # First try to find nodes using the original-to-resolved mapping
 -             from_node = original_to_resolved.get(from_entity_name)
 -             to_node = original_to_resolved.get(to_entity_name)
 -             
--             # If not found in mapping, try direct name lookup (for entities that weren&#39;t resolved)
+-             # If not found in mapping, try direct name lookup (for entities that weren't resolved)
 -             if not from_node or not to_node:
 -                 entity_name_to_node = {
--                     item[&#39;node&#39;].name.lower(): item[&#39;node&#39;] 
--                     for item in processed_entities if item.get(&#39;node&#39;)
+-                     item['node'].name.lower(): item['node'] 
+-                     for item in processed_entities if item.get('node')
 -                 }
 -                 
 -                 if not from_node:
@@ -1541,11 +1541,11 @@ Lines added: 15, lines removed: 41
 -                     to_node = entity_name_to_node.get(to_entity_name)
 -             
 -             # If still not found, try alternative lookups
-+             from_entity_id = relationship.get(&#39;from_entity_id&#39;, &#39;&#39;).strip()
-+             to_entity_id = relationship.get(&#39;to_entity_id&#39;, &#39;&#39;).strip()
++             from_entity_id = relationship.get('from_entity_id', '').strip()
++             to_entity_id = relationship.get('to_entity_id', '').strip()
 +             
 +             if not from_entity_id or not to_entity_id:
-+                 self.logger.warning(f&quot;Relationship missing entity IDs: {relationship}&quot;)
++                 self.logger.warning(f"Relationship missing entity IDs: {relationship}")
 +                 return None
 +             
 +             # Find nodes by their IDs directly
@@ -1555,24 +1555,24 @@ Lines added: 15, lines removed: 41
               if not from_node or not to_node:
 -                 # Try partial matching or different name variations
 -                 for item in processed_entities:
--                     if item.get(&#39;node&#39;):
--                         node = item[&#39;node&#39;]
+-                     if item.get('node'):
+-                         node = item['node']
 -                         node_name_lower = node.name.lower()
 -                         
 -                         # Check if the relationship entity name is contained in the node name
 -                         if not from_node and (from_entity_name in node_name_lower or node_name_lower in from_entity_name):
 -                             from_node = node
--                             self.logger.debug(f&quot;Found from_node via partial match: &#39;{from_entity_name}&#39; -&gt; &#39;{node.name}&#39; ({node.id})&quot;)
+-                             self.logger.debug(f"Found from_node via partial match: '{from_entity_name}' -&gt; '{node.name}' ({node.id})")
 -                         
 -                         if not to_node and (to_entity_name in node_name_lower or node_name_lower in to_entity_name):
 -                             to_node = node
--                             self.logger.debug(f&quot;Found to_node via partial match: &#39;{to_entity_name}&#39; -&gt; &#39;{node.name}&#39; ({node.id})&quot;)
+-                             self.logger.debug(f"Found to_node via partial match: '{to_entity_name}' -&gt; '{node.name}' ({node.id})")
 -             
 -             if not from_node or not to_node:
--                 self.logger.warning(f&quot;Could not find nodes for relationship {relationship}&quot;)
-+                 self.logger.warning(f&quot;Could not find nodes for relationship: from_id={from_entity_id}, to_id={to_entity_id}&quot;)
-                  self.logger.debug(f&quot;Available nodes: {[item[&#39;node&#39;].name + &#39; (&#39; + item[&#39;node&#39;].id + &#39;)&#39; for item in processed_entities if item.get(&#39;node&#39;)]}&quot;)
--                 self.logger.debug(f&quot;Original-to-resolved mapping: {[(k, v.name + &#39; (&#39; + v.id + &#39;)&#39;) for k, v in original_to_resolved.items()]}&quot;)
+-                 self.logger.warning(f"Could not find nodes for relationship {relationship}")
++                 self.logger.warning(f"Could not find nodes for relationship: from_id={from_entity_id}, to_id={to_entity_id}")
+                  self.logger.debug(f"Available nodes: {[item['node'].name + ' (' + item['node'].id + ')' for item in processed_entities if item.get('node')]}")
+-                 self.logger.debug(f"Original-to-resolved mapping: {[(k, v.name + ' (' + v.id + ')') for k, v in original_to_resolved.items()]}")
                   return None
               
 ```
@@ -1612,28 +1612,28 @@ Now I need to update the relationship processing in the `process_conversation_en
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/graph_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/graph_memory/graph_manager.py</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: 24
 
 ```diff
 @@ -569,31 +569,9 @@
-                      self.logger.debug(f&quot;  - {rel.get(&#39;from_entity&#39;, &#39;?&#39;)} --[{rel.get(&#39;relationship&#39;, &#39;?&#39;)}]--&gt; {rel.get(&#39;to_entity&#39;, &#39;?&#39;)}&quot;)
+                      self.logger.debug(f"  - {rel.get('from_entity', '?')} --[{rel.get('relationship', '?')}]--&gt; {rel.get('to_entity', '?')}")
                   
 -                 # Process and add relationships to graph
 -                 # Create mapping from original entity names to resolved node IDs
 -                 original_to_resolved = {}
 -                 for processed_entity in all_processed_entities:
--                     if processed_entity.get(&#39;node&#39;):
--                         resolved_node = processed_entity[&#39;node&#39;]
+-                     if processed_entity.get('node'):
+-                         resolved_node = processed_entity['node']
 -                         
 -                         # Try to get original entity name from multiple sources
 -                         original_name = None
--                         if &#39;original_entity&#39; in processed_entity:
--                             original_name = processed_entity[&#39;original_entity&#39;].get(&#39;name&#39;, &#39;&#39;).lower()
--                         elif &#39;name&#39; in processed_entity:
--                             original_name = processed_entity[&#39;name&#39;].lower()
+-                         if 'original_entity' in processed_entity:
+-                             original_name = processed_entity['original_entity'].get('name', '').lower()
+-                         elif 'name' in processed_entity:
+-                             original_name = processed_entity['name'].lower()
 -                         
 -                         # Also map the current node name to itself (for direct matches)
 -                         current_name = resolved_node.name.lower()
@@ -1642,7 +1642,7 @@ Lines added: 2, lines removed: 24
 -                         # Map original name to resolved node (if different)
 -                         if original_name and original_name != current_name:
 -                             original_to_resolved[original_name] = resolved_node
--                             self.logger.debug(f&quot;Mapping original &#39;{original_name}&#39; -&gt; resolved &#39;{resolved_node.name}&#39; ({resolved_node.id})&quot;)
+-                             self.logger.debug(f"Mapping original '{original_name}' -&gt; resolved '{resolved_node.name}' ({resolved_node.id})")
 -                 
 +                 # Process and add relationships to graph using entity IDs
                   for relationship in extracted_relationships:
@@ -1651,7 +1651,7 @@ Lines added: 2, lines removed: 24
 -                             relationship, all_processed_entities, original_to_resolved)
 +                             relationship, all_processed_entities, {})
                           if edge:
-                              results[&quot;relationships&quot;].append(edge.to_dict())
+                              results["relationships"].append(edge.to_dict())
 ```
 
 </details>
@@ -1689,17 +1689,17 @@ I also need to update the logging that references the old field names:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/graph_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/graph_memory/graph_manager.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
 
 ```diff
 @@ -567,5 +567,5 @@
-                  self.logger.debug(f&quot;Relationship extractor returned {len(extracted_relationships)} relationships&quot;)
+                  self.logger.debug(f"Relationship extractor returned {len(extracted_relationships)} relationships")
                   for rel in extracted_relationships:
--                     self.logger.debug(f&quot;  - {rel.get(&#39;from_entity&#39;, &#39;?&#39;)} --[{rel.get(&#39;relationship&#39;, &#39;?&#39;)}]--&gt; {rel.get(&#39;to_entity&#39;, &#39;?&#39;)}&quot;)
-+                     self.logger.debug(f&quot;  - {rel.get(&#39;from_entity_id&#39;, &#39;?&#39;)} --[{rel.get(&#39;relationship&#39;, &#39;?&#39;)}]--&gt; {rel.get(&#39;to_entity_id&#39;, &#39;?&#39;)}&quot;)
+-                     self.logger.debug(f"  - {rel.get('from_entity', '?')} --[{rel.get('relationship', '?')}]--&gt; {rel.get('to_entity', '?')}")
++                     self.logger.debug(f"  - {rel.get('from_entity_id', '?')} --[{rel.get('relationship', '?')}]--&gt; {rel.get('to_entity_id', '?')}")
                   
                   # Process and add relationships to graph using entity IDs
 ```
@@ -1739,7 +1739,7 @@ Since the `original_to_resolved` parameter is no longer needed, let me clean up 
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/graph_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/graph_memory/graph_manager.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 2
@@ -1751,7 +1751,7 @@ Lines added: 1, lines removed: 2
 -                                                processed_entities: List[Dict[str, Any]],
 -                                                original_to_resolved: Dict[str, Any]) -&gt; Optional[GraphEdge]:
 +                                                processed_entities: List[Dict[str, Any]]) -&gt; Optional[GraphEdge]:
-          &quot;&quot;&quot;Add a relationship to the graph using entity IDs.
+          """Add a relationship to the graph using entity IDs.
           
 ```
 
@@ -1767,7 +1767,7 @@ And update the call site:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/graph_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/graph_memory/graph_manager.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -1779,7 +1779,7 @@ Lines added: 1, lines removed: 1
 -                             relationship, all_processed_entities, {})
 +                             relationship, all_processed_entities)
                           if edge:
-                              results[&quot;relationships&quot;].append(edge.to_dict())
+                              results["relationships"].append(edge.to_dict())
 ```
 
 </details>
@@ -1794,7 +1794,7 @@ Now let me update the default prompt template in case the file loading fails, to
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/relationship_extractor.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/graph_memory/relationship_extractor.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -1806,7 +1806,7 @@ Lines added: 1, lines removed: 1
 - Extract relationships as JSON array with fields: from_entity, to_entity, relationship, confidence, evidence.
 + Extract relationships as JSON array with fields: from_entity_id, to_entity_id, relationship, confidence, evidence.
   
-  Relationships:&quot;&quot;&quot;
+  Relationships:"""
 ```
 
 </details>
@@ -2124,7 +2124,7 @@ Let me write this update in the same style as the previous ones.</details></thin
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: README-phase-5.md</summary>
+<details><summary>Tool use: **search_replace** • Edit file: README-phase-5.md</summary>
 
 **Chunk 1**
 Lines added: 106, lines removed: undefined
@@ -2145,12 +2145,12 @@ Lines added: 106, lines removed: undefined
 + 
 + • **Template Architecture Updated**:
 +   - Replaced &#96;relationship_extraction.prompt&#96; with ID-based template format
-+   - Updated output schema from &#96;&quot;from_entity&quot;/&quot;to_entity&quot;&#96; to &#96;&quot;from_entity_id&quot;/&quot;to_entity_id&quot;&#96;
++   - Updated output schema from &#96;"from_entity"/"to_entity"&#96; to &#96;"from_entity_id"/"to_entity_id"&#96;
 +   - Enhanced prompt examples to demonstrate proper ID usage
 +   - Removed redundant &#96;relationship_extraction-by-id.prompt&#96; template file
 + 
 + • **RelationshipExtractor Modernization**:
-+   - Updated &#96;_build_entities_context()&#96; to emphasize entity IDs: &#96;&quot;ID: {id} | Name: {name}&quot;&#96;
++   - Updated &#96;_build_entities_context()&#96; to emphasize entity IDs: &#96;"ID: {id} | Name: {name}"&#96;
 +   - Modified &#96;_validate_relationship()&#96; to check entity IDs instead of names
 +   - Enhanced &#96;_parse_relationship_response()&#96; to validate against ID lookup set
 +   - Updated fallback template to match ID-based format requirements
@@ -2174,13 +2174,13 @@ Lines added: 106, lines removed: undefined
 +   - Simplified method signatures by removing unused parameters
 +   - Updated error handling to eliminate fallback complexity
 +   - Enhanced documentation to reflect focused ID-based approach
-+   - Updated stats terminology from &quot;alternative_llm_centric&quot; to &quot;llm_centric&quot;
++   - Updated stats terminology from "alternative_llm_centric" to "llm_centric"
 + 
 + **Technical Benefits Achieved**:
 + 
 + **Entity Reference Reliability**:
-+ - **Before**: &#96;{&quot;from_entity&quot;: &quot;Elena&quot;, &quot;to_entity&quot;: &quot;Haven&quot;}&#96; (ambiguous, requires name matching)
-+ - **After**: &#96;{&quot;from_entity_id&quot;: &quot;character_elena_4a969ab6&quot;, &quot;to_entity_id&quot;: &quot;location_haven_f0be196b&quot;}&#96; (precise, direct lookup)
++ - **Before**: &#96;{"from_entity": "Elena", "to_entity": "Haven"}&#96; (ambiguous, requires name matching)
++ - **After**: &#96;{"from_entity_id": "character_elena_4a969ab6", "to_entity_id": "location_haven_f0be196b"}&#96; (precise, direct lookup)
 + 
 + **Processing Performance**:
 + - **Direct ID Lookup**: O(1) graph node retrieval instead of O(n) name searching
@@ -2238,7 +2238,7 @@ Lines added: 106, lines removed: undefined
 + 
 + **Production Status**: ✅ **FULLY DEPLOYED** - ID-based relationship extraction now active in production with enhanced reliability and simplified architecture.
 + 
-+ This migration represents a fundamental improvement in the graph memory system&#39;s robustness, moving from string-based entity references to proper graph-native ID-based relationships. The cleanup effort removed technical debt while enhancing core functionality, resulting in a cleaner, faster, and more reliable relationship extraction system that forms the foundation for sophisticated knowledge graph construction in conversational AI applications.
++ This migration represents a fundamental improvement in the graph memory system's robustness, moving from string-based entity references to proper graph-native ID-based relationships. The cleanup effort removed technical debt while enhancing core functionality, resulting in a cleaner, faster, and more reliable relationship extraction system that forms the foundation for sophisticated knowledge graph construction in conversational AI applications.
   
   
 ```
@@ -2814,7 +2814,7 @@ I should structure this similar to the README-phase-5.md format.</details></thin
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: README-phase-6.md</summary>
+<details><summary>Tool use: **edit_file** • Edit file: README-phase-6.md</summary>
 
 Create a new README-phase-6.md file with the TODO items we just discussed for the next phase of development
 
@@ -2828,7 +2828,7 @@ Lines added: 176, lines removed: 1
 + 
 + ## Phase 6 Goals - Graph Memory Enhancement and Relationship Traversal
 + 
-+ Building on the solid foundation of Phase 5&#39;s entity-centric graph memory system, Phase 6 focuses on implementing sophisticated relationship traversal and leveraging conversation history metadata for richer context retrieval.
++ Building on the solid foundation of Phase 5's entity-centric graph memory system, Phase 6 focuses on implementing sophisticated relationship traversal and leveraging conversation history metadata for richer context retrieval.
 + 
 + ## Current State Assessment
 + 
@@ -2853,16 +2853,16 @@ Lines added: 176, lines removed: 1
 + 
 + **Tasks**:
 + - [ ] Implement relationship traversal in &#96;GraphManager.query_for_context()&#96;
-+ - [ ] Add multi-hop entity discovery (e.g., &quot;Eldara&quot; → &#96;located_in&#96; → &quot;Riverwatch&quot; → &#96;contains&#96; → &quot;Magic Shop&quot;)
++ - [ ] Add multi-hop entity discovery (e.g., "Eldara" → &#96;located_in&#96; → "Riverwatch" → &#96;contains&#96; → "Magic Shop")
 + - [ ] Create path-finding algorithms for entity connections
-+ - [ ] Add relationship-based query filtering (e.g., &quot;What locations are connected to characters?&quot;)
++ - [ ] Add relationship-based query filtering (e.g., "What locations are connected to characters?")
 + - [ ] Integrate &#96;GraphQueries&#96; class methods into main query pipeline
 + - [ ] Add relationship strength/confidence weighting in traversal
 + 
 + **Expected Outcome**: 
 + &#96;&#96;&#96;python
-+ # Current: [&quot;Eldara (character): A fire wizard&quot;]
-+ # Enhanced: [&quot;Eldara (character): A fire wizard, located in Riverwatch, which contains a Magic Shop&quot;]
++ # Current: ["Eldara (character): A fire wizard"]
++ # Enhanced: ["Eldara (character): A fire wizard, located in Riverwatch, which contains a Magic Shop"]
 + &#96;&#96;&#96;
 + 
 + ### 2. Conversation History GUID Integration
@@ -2879,8 +2879,8 @@ Lines added: 176, lines removed: 1
 + 
 + **Expected Outcome**:
 + &#96;&#96;&#96;python
-+ # Current: &quot;Eldara (character): A fire wizard&quot;
-+ # Enhanced: &quot;Eldara (character): A fire wizard. Recent mention: &#39;Eldara mentioned she&#39;s running low on spell components...&#39;&quot;
++ # Current: "Eldara (character): A fire wizard"
++ # Enhanced: "Eldara (character): A fire wizard. Recent mention: 'Eldara mentioned she's running low on spell components...'"
 + &#96;&#96;&#96;
 + 
 + ### 3. Hybrid Context System
@@ -2898,7 +2898,7 @@ Lines added: 176, lines removed: 1
 + **Expected Outcome**:
 + &#96;&#96;&#96;
 + CONTEXT SOURCES:
-+ - Semantic RAG: Recent segments about &quot;magic shops&quot; 
++ - Semantic RAG: Recent segments about "magic shops" 
 + - Graph entities: Eldara (character) connected to Magic Shop (location)
 + - Conversation traces: Original context where Eldara discussed spell components
 + &#96;&#96;&#96;
@@ -2911,7 +2911,7 @@ Lines added: 176, lines removed: 1
 + - [ ] Add entity type filtering in relationship traversal
 + - [ ] Implement graph clustering and community detection
 + - [ ] Add temporal relationship queries (recent vs historical connections)
-+ - [ ] Create relationship pattern matching (e.g., &quot;characters who own objects in locations&quot;)
++ - [ ] Create relationship pattern matching (e.g., "characters who own objects in locations")
 + - [ ] Add graph statistics and centrality measures for entity importance
 + - [ ] Implement query optimization for large graphs
 + 
@@ -2968,7 +2968,7 @@ Lines added: 176, lines removed: 1
 + • Eldara (character): A fire wizard
 +   - located_in → Riverwatch (location): A valley settlement
 +   - owns → Spell Components (object): Magical materials
-+   - Recent context: &quot;Eldara mentioned running low on components&quot; (conv_abc123)
++   - Recent context: "Eldara mentioned running low on components" (conv_abc123)
 + &#96;&#96;&#96;
 + 
 + ## Success Criteria

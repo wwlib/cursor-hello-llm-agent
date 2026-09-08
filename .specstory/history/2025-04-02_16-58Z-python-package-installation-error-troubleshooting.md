@@ -28,7 +28,7 @@ First, let me check if there's a `pyproject.toml` file:
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed current directory • **14** results</summary>
+            <summary>Tool use: **list_dir** • Listed current directory, 14 results</summary>
         
 | Name |
 |-------|
@@ -84,7 +84,7 @@ Let me help you with the correct installation steps. I'll propose the commands t
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: pip install --upgrade pip setuptools wheel</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: pip install --upgrade pip setuptools wheel</summary>
 
 ```bash
 pip install --upgrade pip setuptools wheel
@@ -136,7 +136,7 @@ Now that we have the build dependencies installed, let's install the project in 
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: pip install -e .</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: pip install -e .</summary>
 
 ```bash
 pip install -e .
@@ -172,7 +172,7 @@ Now let's install the remaining requirements:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: pip install -r requirements.txt</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: pip install -r requirements.txt</summary>
 
 ```bash
 pip install -r requirements.txt

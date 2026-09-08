@@ -107,7 +107,7 @@ Now let me check if there are any existing models for API requests/responses:
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed directory src/api/models • **4** results</summary>
+            <summary>Tool use: **list_dir** • Listed directory src/api/models, 4 results</summary>
         
 | Name |
 |-------|
@@ -146,7 +146,7 @@ Let me implement this:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/api/websocket/log_streamer.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/api/websocket/log_streamer.py</summary>
 
 I'm creating a new WebSocket log streaming handler that can capture logs from different components and stream them to connected WebSocket clients.
 
@@ -156,12 +156,12 @@ Lines added: 152, lines removed: 1
 ```diff
 @@ -1,1 +1,152 @@
 - 
-+ &quot;&quot;&quot;
++ """
 + WebSocket Log Streamer
 + 
 + Custom logging handler that streams logs to WebSocket connections in real-time.
 + Enables the web UI to display logs in dedicated tabs.
-+ &quot;&quot;&quot;
++ """
 + 
 + import asyncio
 + import json
@@ -174,43 +174,43 @@ Lines added: 152, lines removed: 1
 + 
 + 
 + class WebSocketLogHandler(logging.Handler):
-+     &quot;&quot;&quot;Custom logging handler that streams log messages to WebSocket connections.&quot;&quot;&quot;
++     """Custom logging handler that streams log messages to WebSocket connections."""
 +     
-+     def __init__(self, session_id: str, log_source: str, streamer: &#39;LogStreamer&#39;):
++     def __init__(self, session_id: str, log_source: str, streamer: 'LogStreamer'):
 +         super().__init__()
 +         self.session_id = session_id
-+         self.log_source = log_source  # e.g., &#39;agent&#39;, &#39;memory_manager&#39;, &#39;ollama_general&#39;
++         self.log_source = log_source  # e.g., 'agent', 'memory_manager', 'ollama_general'
 +         self.streamer = streamer
 +         
 +     def emit(self, record: logging.LogRecord):
-+         &quot;&quot;&quot;Emit a log record to WebSocket connections.&quot;&quot;&quot;
++         """Emit a log record to WebSocket connections."""
 +         try:
 +             # Format the log message
 +             message = self.format(record)
 +             
 +             # Create log data structure
 +             log_data = {
-+                 &quot;timestamp&quot;: datetime.fromtimestamp(record.created).isoformat(),
-+                 &quot;level&quot;: record.levelname,
-+                 &quot;logger&quot;: record.name,
-+                 &quot;message&quot;: message,
-+                 &quot;source&quot;: self.log_source,
-+                 &quot;session_id&quot;: self.session_id,
-+                 &quot;module&quot;: record.module,
-+                 &quot;function&quot;: record.funcName,
-+                 &quot;line&quot;: record.lineno,
++                 "timestamp": datetime.fromtimestamp(record.created).isoformat(),
++                 "level": record.levelname,
++                 "logger": record.name,
++                 "message": message,
++                 "source": self.log_source,
++                 "session_id": self.session_id,
++                 "module": record.module,
++                 "function": record.funcName,
++                 "line": record.lineno,
 +             }
 +             
 +             # Stream to WebSocket (non-blocking)
 +             asyncio.create_task(self.streamer.stream_log(self.session_id, log_data))
 +             
 +         except Exception as e:
-+             # Don&#39;t let logging errors break the application
-+             print(f&quot;Error in WebSocketLogHandler: {e}&quot;)
++             # Don't let logging errors break the application
++             print(f"Error in WebSocketLogHandler: {e}")
 + 
 + 
 + class LogStreamer:
-+     &quot;&quot;&quot;Manages log streaming subscriptions and broadcasts logs to WebSocket connections.&quot;&quot;&quot;
++     """Manages log streaming subscriptions and broadcasts logs to WebSocket connections."""
 +     
 +     def __init__(self):
 +         # Track which sessions have log streaming enabled
@@ -219,7 +219,7 @@ Lines added: 152, lines removed: 1
 +         self.lock = Lock()
 +     
 +     def subscribe_to_logs(self, session_id: str, connection_id: str, log_sources: List[str]):
-+         &quot;&quot;&quot;Subscribe a WebSocket connection to specific log sources.&quot;&quot;&quot;
++         """Subscribe a WebSocket connection to specific log sources."""
 +         with self.lock:
 +             if session_id not in self.subscriptions:
 +                 self.subscriptions[session_id] = {}
@@ -230,7 +230,7 @@ Lines added: 152, lines removed: 1
 +                 self.subscriptions[session_id][log_source].add(connection_id)
 +     
 +     def unsubscribe_from_logs(self, session_id: str, connection_id: str, log_sources: Optional[List[str]] = None):
-+         &quot;&quot;&quot;Unsubscribe a WebSocket connection from log sources.&quot;&quot;&quot;
++         """Unsubscribe a WebSocket connection from log sources."""
 +         with self.lock:
 +             if session_id not in self.subscriptions:
 +                 return
@@ -254,12 +254,12 @@ Lines added: 152, lines removed: 1
 +                 del self.subscriptions[session_id]
 +     
 +     def cleanup_connection(self, session_id: str, connection_id: str):
-+         &quot;&quot;&quot;Clean up all subscriptions for a disconnected connection.&quot;&quot;&quot;
++         """Clean up all subscriptions for a disconnected connection."""
 +         self.unsubscribe_from_logs(session_id, connection_id)
 +     
 +     async def stream_log(self, session_id: str, log_data: Dict[str, Any]):
-+         &quot;&quot;&quot;Stream a log message to subscribed WebSocket connections.&quot;&quot;&quot;
-+         log_source = log_data.get(&quot;source&quot;, &quot;unknown&quot;)
++         """Stream a log message to subscribed WebSocket connections."""
++         log_source = log_data.get("source", "unknown")
 +         
 +         with self.lock:
 +             if session_id not in self.subscriptions:
@@ -275,27 +275,27 @@ Lines added: 152, lines removed: 1
 +         
 +         # Create WebSocket message
 +         message = {
-+             &quot;type&quot;: &quot;log_stream&quot;,
-+             &quot;data&quot;: log_data
++             "type": "log_stream",
++             "data": log_data
 +         }
 +         
 +         # Broadcast to subscribed connections
 +         await manager.broadcast_to_session(message, session_id)
 +     
 +     def get_available_log_sources(self, session_id: str) -&gt; List[str]:
-+         &quot;&quot;&quot;Get list of available log sources for a session.&quot;&quot;&quot;
++         """Get list of available log sources for a session."""
 +         # Standard log sources based on session manager setup
 +         return [
-+             &quot;agent&quot;,
-+             &quot;memory_manager&quot;, 
-+             &quot;ollama_general&quot;,
-+             &quot;ollama_digest&quot;,
-+             &quot;ollama_embed&quot;,
-+             &quot;api&quot;  # General API logs
++             "agent",
++             "memory_manager", 
++             "ollama_general",
++             "ollama_digest",
++             "ollama_embed",
++             "api"  # General API logs
 +         ]
 +     
 +     def get_subscription_status(self, session_id: str) -&gt; Dict[str, List[str]]:
-+         &quot;&quot;&quot;Get current subscription status for a session.&quot;&quot;&quot;
++         """Get current subscription status for a session."""
 +         with self.lock:
 +             if session_id not in self.subscriptions:
 +                 return {}
@@ -322,7 +322,7 @@ Now let me add WebSocket message handlers for log streaming:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/api/websocket/handlers.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/api/websocket/handlers.py</summary>
 
 I'm adding new message handlers for log streaming functionality, including subscribe_logs, unsubscribe_logs, and get_log_sources handlers.
 
@@ -343,11 +343,11 @@ Lines added: 3, lines removed: undefined
 
 ```diff
 @@ -30,4 +31,7 @@
-              &quot;get_graph&quot;: self.handle_get_graph,
-              &quot;ping&quot;: self.handle_ping,
-+             &quot;subscribe_logs&quot;: self.handle_subscribe_logs,
-+             &quot;unsubscribe_logs&quot;: self.handle_unsubscribe_logs,
-+             &quot;get_log_sources&quot;: self.handle_get_log_sources,
+              "get_graph": self.handle_get_graph,
+              "ping": self.handle_ping,
++             "subscribe_logs": self.handle_subscribe_logs,
++             "unsubscribe_logs": self.handle_unsubscribe_logs,
++             "get_log_sources": self.handle_get_log_sources,
           }
       
 ```
@@ -360,22 +360,22 @@ Lines added: 15, lines removed: undefined
           }, websocket)
       
 +     async def handle_subscribe_logs(self, websocket: WebSocket, session_id: str, data: Dict[str, Any], session_manager):
-+         &quot;&quot;&quot;Handle subscribe_logs messages.&quot;&quot;&quot;
++         """Handle subscribe_logs messages."""
 +         # Implementation needed
-+         await self.send_error(websocket, &quot;Subscribe_logs handler not implemented&quot;)
++         await self.send_error(websocket, "Subscribe_logs handler not implemented")
 +     
 +     async def handle_unsubscribe_logs(self, websocket: WebSocket, session_id: str, data: Dict[str, Any], session_manager):
-+         &quot;&quot;&quot;Handle unsubscribe_logs messages.&quot;&quot;&quot;
++         """Handle unsubscribe_logs messages."""
 +         # Implementation needed
-+         await self.send_error(websocket, &quot;Unsubscribe_logs handler not implemented&quot;)
++         await self.send_error(websocket, "Unsubscribe_logs handler not implemented")
 +     
 +     async def handle_get_log_sources(self, websocket: WebSocket, session_id: str, data: Dict[str, Any], session_manager):
-+         &quot;&quot;&quot;Handle get_log_sources messages.&quot;&quot;&quot;
++         """Handle get_log_sources messages."""
 +         # Implementation needed
-+         await self.send_error(websocket, &quot;Get_log_sources handler not implemented&quot;)
++         await self.send_error(websocket, "Get_log_sources handler not implemented")
 +     
       async def send_error(self, websocket: WebSocket, error_message: str):
-          &quot;&quot;&quot;Send error message to WebSocket client.&quot;&quot;&quot;
+          """Send error message to WebSocket client."""
 ```
 
 </details>
@@ -390,7 +390,7 @@ Now let me implement the actual log streaming handlers:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/api/websocket/handlers.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/api/websocket/handlers.py</summary>
 
 **Chunk 1**
 Lines added: 82, lines removed: 9
@@ -399,28 +399,28 @@ Lines added: 82, lines removed: 9
 @@ -325,17 +325,90 @@
       
       async def handle_subscribe_logs(self, websocket: WebSocket, session_id: str, data: Dict[str, Any], session_manager):
--         &quot;&quot;&quot;Handle subscribe_logs messages.&quot;&quot;&quot;
+-         """Handle subscribe_logs messages."""
 -         # Implementation needed
--         await self.send_error(websocket, &quot;Subscribe_logs handler not implemented&quot;)
-+         &quot;&quot;&quot;Handle log subscription requests.&quot;&quot;&quot;
+-         await self.send_error(websocket, "Subscribe_logs handler not implemented")
++         """Handle log subscription requests."""
 +         try:
-+             log_sources = data.get(&quot;log_sources&quot;, [])
-+             connection_id = data.get(&quot;connection_id&quot;)
++             log_sources = data.get("log_sources", [])
++             connection_id = data.get("connection_id")
 +             
 +             if not log_sources:
-+                 await self.send_error(websocket, &quot;Missing log_sources in subscribe_logs request&quot;)
++                 await self.send_error(websocket, "Missing log_sources in subscribe_logs request")
 +                 return
 +             
 +             if not connection_id:
 +                 # Generate a connection ID if not provided
-+                 connection_id = f&quot;{session_id}_{datetime.now().timestamp()}&quot;
++                 connection_id = f"{session_id}_{datetime.now().timestamp()}"
 +             
 +             # Validate log sources
 +             available_sources = log_streamer.get_available_log_sources(session_id)
 +             invalid_sources = [source for source in log_sources if source not in available_sources]
 +             
 +             if invalid_sources:
-+                 await self.send_error(websocket, f&quot;Invalid log sources: {invalid_sources}&quot;)
++                 await self.send_error(websocket, f"Invalid log sources: {invalid_sources}")
 +                 return
 +             
 +             # Subscribe to logs
@@ -428,30 +428,30 @@ Lines added: 82, lines removed: 9
 +             
 +             # Send confirmation
 +             await manager.send_personal_message({
-+                 &quot;type&quot;: &quot;logs_subscribed&quot;,
-+                 &quot;data&quot;: {
-+                     &quot;session_id&quot;: session_id,
-+                     &quot;connection_id&quot;: connection_id,
-+                     &quot;log_sources&quot;: log_sources,
-+                     &quot;timestamp&quot;: datetime.now().isoformat()
++                 "type": "logs_subscribed",
++                 "data": {
++                     "session_id": session_id,
++                     "connection_id": connection_id,
++                     "log_sources": log_sources,
++                     "timestamp": datetime.now().isoformat()
 +                 }
 +             }, websocket)
 +             
 +         except Exception as e:
-+             logger.error(f&quot;Error subscribing to logs: {e}&quot;)
-+             await self.send_error(websocket, f&quot;Log subscription error: {str(e)}&quot;)
++             logger.error(f"Error subscribing to logs: {e}")
++             await self.send_error(websocket, f"Log subscription error: {str(e)}")
       
       async def handle_unsubscribe_logs(self, websocket: WebSocket, session_id: str, data: Dict[str, Any], session_manager):
--         &quot;&quot;&quot;Handle unsubscribe_logs messages.&quot;&quot;&quot;
+-         """Handle unsubscribe_logs messages."""
 -         # Implementation needed
--         await self.send_error(websocket, &quot;Unsubscribe_logs handler not implemented&quot;)
-+         &quot;&quot;&quot;Handle log unsubscription requests.&quot;&quot;&quot;
+-         await self.send_error(websocket, "Unsubscribe_logs handler not implemented")
++         """Handle log unsubscription requests."""
 +         try:
-+             log_sources = data.get(&quot;log_sources&quot;)  # None means unsubscribe from all
-+             connection_id = data.get(&quot;connection_id&quot;)
++             log_sources = data.get("log_sources")  # None means unsubscribe from all
++             connection_id = data.get("connection_id")
 +             
 +             if not connection_id:
-+                 await self.send_error(websocket, &quot;Missing connection_id in unsubscribe_logs request&quot;)
++                 await self.send_error(websocket, "Missing connection_id in unsubscribe_logs request")
 +                 return
 +             
 +             # Unsubscribe from logs
@@ -459,41 +459,41 @@ Lines added: 82, lines removed: 9
 +             
 +             # Send confirmation
 +             await manager.send_personal_message({
-+                 &quot;type&quot;: &quot;logs_unsubscribed&quot;,
-+                 &quot;data&quot;: {
-+                     &quot;session_id&quot;: session_id,
-+                     &quot;connection_id&quot;: connection_id,
-+                     &quot;log_sources&quot;: log_sources or &quot;all&quot;,
-+                     &quot;timestamp&quot;: datetime.now().isoformat()
++                 "type": "logs_unsubscribed",
++                 "data": {
++                     "session_id": session_id,
++                     "connection_id": connection_id,
++                     "log_sources": log_sources or "all",
++                     "timestamp": datetime.now().isoformat()
 +                 }
 +             }, websocket)
 +             
 +         except Exception as e:
-+             logger.error(f&quot;Error unsubscribing from logs: {e}&quot;)
-+             await self.send_error(websocket, f&quot;Log unsubscription error: {str(e)}&quot;)
++             logger.error(f"Error unsubscribing from logs: {e}")
++             await self.send_error(websocket, f"Log unsubscription error: {str(e)}")
       
       async def handle_get_log_sources(self, websocket: WebSocket, session_id: str, data: Dict[str, Any], session_manager):
--         &quot;&quot;&quot;Handle get_log_sources messages.&quot;&quot;&quot;
+-         """Handle get_log_sources messages."""
 -         # Implementation needed
--         await self.send_error(websocket, &quot;Get_log_sources handler not implemented&quot;)
-+         &quot;&quot;&quot;Handle get available log sources requests.&quot;&quot;&quot;
+-         await self.send_error(websocket, "Get_log_sources handler not implemented")
++         """Handle get available log sources requests."""
 +         try:
 +             available_sources = log_streamer.get_available_log_sources(session_id)
 +             subscription_status = log_streamer.get_subscription_status(session_id)
 +             
 +             await manager.send_personal_message({
-+                 &quot;type&quot;: &quot;log_sources_response&quot;,
-+                 &quot;data&quot;: {
-+                     &quot;session_id&quot;: session_id,
-+                     &quot;available_sources&quot;: available_sources,
-+                     &quot;subscription_status&quot;: subscription_status,
-+                     &quot;timestamp&quot;: datetime.now().isoformat()
++                 "type": "log_sources_response",
++                 "data": {
++                     "session_id": session_id,
++                     "available_sources": available_sources,
++                     "subscription_status": subscription_status,
++                     "timestamp": datetime.now().isoformat()
 +                 }
 +             }, websocket)
 +             
 +         except Exception as e:
-+             logger.error(f&quot;Error getting log sources: {e}&quot;)
-+             await self.send_error(websocket, f&quot;Log sources error: {str(e)}&quot;)
++             logger.error(f"Error getting log sources: {e}")
++             await self.send_error(websocket, f"Log sources error: {str(e)}")
       
       async def send_error(self, websocket: WebSocket, error_message: str):
 ```
@@ -534,7 +534,7 @@ The model made no changes to the file.
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/api/websocket/manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/api/websocket/manager.py</summary>
 
 **Chunk 1**
 Lines added: 7, lines removed: undefined
@@ -548,7 +548,7 @@ Lines added: 7, lines removed: undefined
 +                 from .log_streamer import log_streamer
 +                 log_streamer.cleanup_connection(session_id, connection_id)
 +             except Exception as e:
-+                 logger.warning(f&quot;Error cleaning up log subscriptions: {e}&quot;)
++                 logger.warning(f"Error cleaning up log subscriptions: {e}")
 +             
               del self.connection_metadata[connection_id]
               if connection_id in self.heartbeats:
@@ -586,7 +586,7 @@ Now I need to modify the session manager to add WebSocket log handlers alongside
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/api/services/session_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/api/services/session_manager.py</summary>
 
 **Chunk 1**
 Lines added: 9, lines removed: undefined
@@ -598,14 +598,14 @@ Lines added: 9, lines removed: undefined
 +                     # Add WebSocket log handler for memory manager
 +                     try:
 +                         from ..websocket.log_streamer import WebSocketLogHandler, log_streamer
-+                         ws_memory_handler = WebSocketLogHandler(self.session_id, &quot;memory_manager&quot;, log_streamer)
++                         ws_memory_handler = WebSocketLogHandler(self.session_id, "memory_manager", log_streamer)
 +                         ws_memory_handler.setFormatter(formatter)
 +                         memory_manager_logger.addHandler(ws_memory_handler)
 +                     except Exception as e:
-+                         logger.warning(f&quot;Could not add WebSocket log handler for memory_manager: {e}&quot;)
++                         logger.warning(f"Could not add WebSocket log handler for memory_manager: {e}")
 +                     
                       # Create memory manager with session-specific GUID, LLM service, and proper file path
-                      debug_info = f&quot;&quot;&quot;
+                      debug_info = f"""
 ```
 
 </details>
@@ -636,7 +636,7 @@ Let me explore the API structure more systematically.</details></think>
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/api/services/session_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/api/services/session_manager.py</summary>
 
 **Chunk 1**
 Lines added: 9, lines removed: undefined
@@ -648,11 +648,11 @@ Lines added: 9, lines removed: undefined
 +                     # Add WebSocket log handler for agent
 +                     try:
 +                         from ..websocket.log_streamer import WebSocketLogHandler, log_streamer
-+                         ws_agent_handler = WebSocketLogHandler(self.session_id, &quot;agent&quot;, log_streamer)
++                         ws_agent_handler = WebSocketLogHandler(self.session_id, "agent", log_streamer)
 +                         ws_agent_handler.setFormatter(formatter)
 +                         agent_logger.addHandler(ws_agent_handler)
 +                     except Exception as e:
-+                         logger.warning(f&quot;Could not add WebSocket log handler for agent: {e}&quot;)
++                         logger.warning(f"Could not add WebSocket log handler for agent: {e}")
 +                     
                       # Create agent with the memory manager and LLM service
                       self._agent = Agent(
@@ -690,7 +690,7 @@ Now I need to also add WebSocket handlers for the LLM service logs. Let me add t
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/api/services/session_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/api/services/session_manager.py</summary>
 
 **Chunk 1**
 Lines added: 18, lines removed: undefined
@@ -702,23 +702,23 @@ Lines added: 18, lines removed: undefined
 +                     # Add WebSocket handlers for LLM service logs if they have loggers
 +                     try:
 +                         from ..websocket.log_streamer import WebSocketLogHandler, log_streamer
-+                         formatter = logging.Formatter(&#39;%(asctime)s %(levelname)s:%(name)s:%(message)s&#39;)
++                         formatter = logging.Formatter('%(asctime)s %(levelname)s:%(name)s:%(message)s')
 +                         
 +                         # Add handlers for Ollama loggers if they exist
 +                         for log_source, service in [
-+                             (&quot;ollama_general&quot;, general_llm_service),
-+                             (&quot;ollama_digest&quot;, digest_llm_service), 
-+                             (&quot;ollama_embed&quot;, embeddings_llm_service)
++                             ("ollama_general", general_llm_service),
++                             ("ollama_digest", digest_llm_service), 
++                             ("ollama_embed", embeddings_llm_service)
 +                         ]:
-+                             if hasattr(service, &#39;logger&#39;) and service.logger:
++                             if hasattr(service, 'logger') and service.logger:
 +                                 ws_handler = WebSocketLogHandler(self.session_id, log_source, log_streamer)
 +                                 ws_handler.setFormatter(formatter)
 +                                 service.logger.addHandler(ws_handler)
 +                     except Exception as e:
-+                         logger.warning(f&quot;Could not add WebSocket log handlers for LLM services: {e}&quot;)
++                         logger.warning(f"Could not add WebSocket log handlers for LLM services: {e}")
 +                     
                       # Set up memory manager logging
-                      memory_manager_logger = logging.getLogger(f&quot;memory_manager.session_{self.session_id}&quot;)
+                      memory_manager_logger = logging.getLogger(f"memory_manager.session_{self.session_id}")
 ```
 
 </details>
@@ -753,7 +753,7 @@ Now let me also add a WebSocket handler for general API logs. Let me add that to
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/api/main.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/api/main.py</summary>
 
 **Chunk 1**
 Lines added: 16, lines removed: undefined
@@ -767,16 +767,16 @@ Lines added: 16, lines removed: undefined
 +     from .websocket.log_streamer import WebSocketLogHandler, log_streamer
 +     
 +     def add_api_log_handler(session_id: str):
-+         &quot;&quot;&quot;Add WebSocket log handler for API logs to a specific session.&quot;&quot;&quot;
-+         api_logger = logging.getLogger(&quot;src.api&quot;)
-+         formatter = logging.Formatter(&#39;%(asctime)s %(levelname)s:%(name)s:%(message)s&#39;)
-+         ws_api_handler = WebSocketLogHandler(session_id, &quot;api&quot;, log_streamer)
++         """Add WebSocket log handler for API logs to a specific session."""
++         api_logger = logging.getLogger("src.api")
++         formatter = logging.Formatter('%(asctime)s %(levelname)s:%(name)s:%(message)s')
++         ws_api_handler = WebSocketLogHandler(session_id, "api", log_streamer)
 +         ws_api_handler.setFormatter(formatter)
 +         api_logger.addHandler(ws_api_handler)
 +         return ws_api_handler
 +         
 + except ImportError:
-+     logger.warning(&quot;Could not import WebSocket log streamer&quot;)
++     logger.warning("Could not import WebSocket log streamer")
 + 
   # Global session manager instance
   session_manager = None
@@ -814,7 +814,7 @@ Now let me create a test client to demonstrate the log streaming functionality:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: test_websocket_log_streaming.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: test_websocket_log_streaming.py</summary>
 
 I'm creating a test script to demonstrate and test the WebSocket log streaming functionality.
 
@@ -825,12 +825,12 @@ Lines added: 253, lines removed: 1
 @@ -1,1 +1,253 @@
 - 
 + #!/usr/bin/env python3
-+ &quot;&quot;&quot;
++ """
 + WebSocket Log Streaming Test Client
 + 
 + Tests the new log streaming functionality over WebSocket connections.
 + Demonstrates how the web UI can subscribe to different log sources and display them in tabs.
-+ &quot;&quot;&quot;
++ """
 + 
 + import asyncio
 + import json
@@ -840,130 +840,130 @@ Lines added: 253, lines removed: 1
 + from datetime import datetime
 + 
 + # Configuration
-+ API_BASE_URL = &quot;http://localhost:8000&quot;
-+ WS_BASE_URL = &quot;ws://localhost:8000&quot;
-+ TEST_USER_ID = &quot;log_streaming_test_user&quot;
++ API_BASE_URL = "http://localhost:8000"
++ WS_BASE_URL = "ws://localhost:8000"
++ TEST_USER_ID = "log_streaming_test_user"
 + 
 + # Configure logging
 + logging.basicConfig(level=logging.INFO)
 + logger = logging.getLogger(__name__)
 + 
 + class LogStreamingTester:
-+     &quot;&quot;&quot;Test the WebSocket log streaming functionality&quot;&quot;&quot;
++     """Test the WebSocket log streaming functionality"""
 +     
 +     def __init__(self):
 +         self.session_id = None
 +         self.connection_id = None
 +         
 +     def create_test_session(self):
-+         &quot;&quot;&quot;Create a test session&quot;&quot;&quot;
++         """Create a test session"""
 +         session_config = {
-+             &quot;config&quot;: {
-+                 &quot;domain&quot;: &quot;dnd&quot;,
-+                 &quot;enable_graph&quot;: True
++             "config": {
++                 "domain": "dnd",
++                 "enable_graph": True
 +             },
-+             &quot;user_id&quot;: TEST_USER_ID
++             "user_id": TEST_USER_ID
 +         }
 +         
 +         try:
-+             response = requests.post(f&quot;{API_BASE_URL}/api/v1/sessions&quot;, json=session_config)
++             response = requests.post(f"{API_BASE_URL}/api/v1/sessions", json=session_config)
 +             if response.status_code == 200:
 +                 data = response.json()
-+                 self.session_id = data.get(&quot;session_id&quot;)
-+                 print(f&quot;✅ Test session created: {self.session_id}&quot;)
++                 self.session_id = data.get("session_id")
++                 print(f"✅ Test session created: {self.session_id}")
 +                 return True
 +             else:
-+                 print(f&quot;❌ Failed to create session: {response.status_code} - {response.text}&quot;)
++                 print(f"❌ Failed to create session: {response.status_code} - {response.text}")
 +                 return False
 +         except Exception as e:
-+             print(f&quot;❌ Session creation failed: {e}&quot;)
++             print(f"❌ Session creation failed: {e}")
 +             return False
 +     
 +     def cleanup_session(self):
-+         &quot;&quot;&quot;Clean up the test session&quot;&quot;&quot;
++         """Clean up the test session"""
 +         if self.session_id:
 +             try:
-+                 response = requests.delete(f&quot;{API_BASE_URL}/api/v1/sessions/{self.session_id}&quot;)
++                 response = requests.delete(f"{API_BASE_URL}/api/v1/sessions/{self.session_id}")
 +                 if response.status_code == 200:
-+                     print(f&quot;✅ Session {self.session_id} cleaned up&quot;)
++                     print(f"✅ Session {self.session_id} cleaned up")
 +                 else:
-+                     print(f&quot;⚠️  Failed to cleanup session: {response.status_code}&quot;)
++                     print(f"⚠️  Failed to cleanup session: {response.status_code}")
 +             except Exception as e:
-+                 print(f&quot;⚠️  Session cleanup error: {e}&quot;)
++                 print(f"⚠️  Session cleanup error: {e}")
 +     
 +     async def test_log_streaming(self):
-+         &quot;&quot;&quot;Test the complete log streaming workflow&quot;&quot;&quot;
++         """Test the complete log streaming workflow"""
 +         
-+         print(&quot;=&quot; * 60)
-+         print(&quot;  WEBSOCKET LOG STREAMING TEST&quot;)
-+         print(&quot;=&quot; * 60)
++         print("=" * 60)
++         print("  WEBSOCKET LOG STREAMING TEST")
++         print("=" * 60)
 +         
 +         if not self.create_test_session():
 +             return False
 +         
-+         ws_url = f&quot;{WS_BASE_URL}/api/v1/ws/sessions/{self.session_id}&quot;
++         ws_url = f"{WS_BASE_URL}/api/v1/ws/sessions/{self.session_id}"
 +         
 +         try:
 +             async with websockets.connect(ws_url) as websocket:
-+                 print(&quot;✅ WebSocket connected&quot;)
++                 print("✅ WebSocket connected")
 +                 
 +                 # Wait for connection confirmation
 +                 try:
 +                     initial_msg = await asyncio.wait_for(websocket.recv(), timeout=2.0)
 +                     connection_data = json.loads(initial_msg)
-+                     self.connection_id = connection_data.get(&quot;data&quot;, {}).get(&quot;connection_id&quot;)
-+                     print(f&quot;✅ Connection established: {self.connection_id}&quot;)
++                     self.connection_id = connection_data.get("data", {}).get("connection_id")
++                     print(f"✅ Connection established: {self.connection_id}")
 +                 except asyncio.TimeoutError:
 +                     # Generate connection ID if not provided
-+                     self.connection_id = f&quot;{self.session_id}_{datetime.now().timestamp()}&quot;
-+                     print(f&quot;⚠️  No connection confirmation, using generated ID: {self.connection_id}&quot;)
++                     self.connection_id = f"{self.session_id}_{datetime.now().timestamp()}"
++                     print(f"⚠️  No connection confirmation, using generated ID: {self.connection_id}")
 +                 
 +                 # Test 1: Get available log sources
-+                 print(&quot;\n1. Getting available log sources...&quot;)
++                 print("\n1. Getting available log sources...")
 +                 await websocket.send(json.dumps({
-+                     &quot;type&quot;: &quot;get_log_sources&quot;,
-+                     &quot;data&quot;: {}
++                     "type": "get_log_sources",
++                     "data": {}
 +                 }))
 +                 
 +                 response = await asyncio.wait_for(websocket.recv(), timeout=5.0)
 +                 response_data = json.loads(response)
 +                 
-+                 if response_data.get(&quot;type&quot;) == &quot;log_sources_response&quot;:
-+                     available_sources = response_data.get(&quot;data&quot;, {}).get(&quot;available_sources&quot;, [])
-+                     print(f&quot;✅ Available log sources: {available_sources}&quot;)
++                 if response_data.get("type") == "log_sources_response":
++                     available_sources = response_data.get("data", {}).get("available_sources", [])
++                     print(f"✅ Available log sources: {available_sources}")
 +                 else:
-+                     print(f&quot;❌ Unexpected response: {response_data}&quot;)
++                     print(f"❌ Unexpected response: {response_data}")
 +                     return False
 +                 
 +                 # Test 2: Subscribe to specific log sources
-+                 print(&quot;\n2. Subscribing to log sources...&quot;)
-+                 log_sources_to_subscribe = [&quot;agent&quot;, &quot;memory_manager&quot;, &quot;api&quot;]
++                 print("\n2. Subscribing to log sources...")
++                 log_sources_to_subscribe = ["agent", "memory_manager", "api"]
 +                 
 +                 await websocket.send(json.dumps({
-+                     &quot;type&quot;: &quot;subscribe_logs&quot;,
-+                     &quot;data&quot;: {
-+                         &quot;connection_id&quot;: self.connection_id,
-+                         &quot;log_sources&quot;: log_sources_to_subscribe
++                     "type": "subscribe_logs",
++                     "data": {
++                         "connection_id": self.connection_id,
++                         "log_sources": log_sources_to_subscribe
 +                     }
 +                 }))
 +                 
 +                 response = await asyncio.wait_for(websocket.recv(), timeout=5.0)
 +                 response_data = json.loads(response)
 +                 
-+                 if response_data.get(&quot;type&quot;) == &quot;logs_subscribed&quot;:
-+                     print(f&quot;✅ Subscribed to logs: {response_data.get(&#39;data&#39;, {}).get(&#39;log_sources&#39;)}&quot;)
++                 if response_data.get("type") == "logs_subscribed":
++                     print(f"✅ Subscribed to logs: {response_data.get('data', {}).get('log_sources')}")
 +                 else:
-+                     print(f&quot;❌ Subscription failed: {response_data}&quot;)
++                     print(f"❌ Subscription failed: {response_data}")
 +                     return False
 +                 
 +                 # Test 3: Trigger some activity to generate logs
-+                 print(&quot;\n3. Triggering agent activity to generate logs...&quot;)
++                 print("\n3. Triggering agent activity to generate logs...")
 +                 
 +                 await websocket.send(json.dumps({
-+                     &quot;type&quot;: &quot;query&quot;,
-+                     &quot;data&quot;: {
-+                         &quot;message&quot;: &quot;Hello! This is a test to generate some logs. Can you tell me about dragons?&quot;,
-+                         &quot;context&quot;: {&quot;test&quot;: True}
++                     "type": "query",
++                     "data": {
++                         "message": "Hello! This is a test to generate some logs. Can you tell me about dragons?",
++                         "context": {"test": True}
 +                     }
 +                 }))
 +                 
@@ -977,85 +977,85 @@ Lines added: 253, lines removed: 1
 +                         response = await asyncio.wait_for(websocket.recv(), timeout=3.0)
 +                         response_data = json.loads(response)
 +                         
-+                         if response_data.get(&quot;type&quot;) == &quot;log_stream&quot;:
++                         if response_data.get("type") == "log_stream":
 +                             logs_received.append(response_data)
-+                             log_data = response_data.get(&quot;data&quot;, {})
-+                             print(f&quot;📋 LOG [{log_data.get(&#39;source&#39;)}]: {log_data.get(&#39;level&#39;)} - {log_data.get(&#39;message&#39;)[:100]}...&quot;)
++                             log_data = response_data.get("data", {})
++                             print(f"📋 LOG [{log_data.get('source')}]: {log_data.get('level')} - {log_data.get('message')[:100]}...")
 +                         else:
 +                             other_responses.append(response_data)
-+                             print(f&quot;📨 {response_data.get(&#39;type&#39;)}: {str(response_data)[:100]}...&quot;)
++                             print(f"📨 {response_data.get('type')}: {str(response_data)[:100]}...")
 +                             
 +                             # Break on query response
-+                             if response_data.get(&quot;type&quot;) == &quot;query_response&quot;:
++                             if response_data.get("type") == "query_response":
 +                                 break
 +                                 
 +                     except asyncio.TimeoutError:
-+                         print(&quot;⏰ Timeout waiting for more messages&quot;)
++                         print("⏰ Timeout waiting for more messages")
 +                         break
 +                 
-+                 print(f&quot;\n✅ Received {len(logs_received)} log messages&quot;)
-+                 print(f&quot;✅ Received {len(other_responses)} other responses&quot;)
++                 print(f"\n✅ Received {len(logs_received)} log messages")
++                 print(f"✅ Received {len(other_responses)} other responses")
 +                 
 +                 # Test 4: Unsubscribe from specific logs
-+                 print(&quot;\n4. Unsubscribing from some log sources...&quot;)
++                 print("\n4. Unsubscribing from some log sources...")
 +                 
 +                 await websocket.send(json.dumps({
-+                     &quot;type&quot;: &quot;unsubscribe_logs&quot;,
-+                     &quot;data&quot;: {
-+                         &quot;connection_id&quot;: self.connection_id,
-+                         &quot;log_sources&quot;: [&quot;api&quot;]  # Unsubscribe from API logs only
++                     "type": "unsubscribe_logs",
++                     "data": {
++                         "connection_id": self.connection_id,
++                         "log_sources": ["api"]  # Unsubscribe from API logs only
 +                     }
 +                 }))
 +                 
 +                 response = await asyncio.wait_for(websocket.recv(), timeout=5.0)
 +                 response_data = json.loads(response)
 +                 
-+                 if response_data.get(&quot;type&quot;) == &quot;logs_unsubscribed&quot;:
-+                     print(f&quot;✅ Unsubscribed from: {response_data.get(&#39;data&#39;, {}).get(&#39;log_sources&#39;)}&quot;)
++                 if response_data.get("type") == "logs_unsubscribed":
++                     print(f"✅ Unsubscribed from: {response_data.get('data', {}).get('log_sources')}")
 +                 else:
-+                     print(f&quot;❌ Unsubscription failed: {response_data}&quot;)
++                     print(f"❌ Unsubscription failed: {response_data}")
 +                 
 +                 # Test 5: Check subscription status
-+                 print(&quot;\n5. Checking final subscription status...&quot;)
++                 print("\n5. Checking final subscription status...")
 +                 
 +                 await websocket.send(json.dumps({
-+                     &quot;type&quot;: &quot;get_log_sources&quot;,
-+                     &quot;data&quot;: {}
++                     "type": "get_log_sources",
++                     "data": {}
 +                 }))
 +                 
 +                 response = await asyncio.wait_for(websocket.recv(), timeout=5.0)
 +                 response_data = json.loads(response)
 +                 
-+                 if response_data.get(&quot;type&quot;) == &quot;log_sources_response&quot;:
-+                     subscription_status = response_data.get(&quot;data&quot;, {}).get(&quot;subscription_status&quot;, {})
-+                     print(f&quot;✅ Final subscription status: {subscription_status}&quot;)
++                 if response_data.get("type") == "log_sources_response":
++                     subscription_status = response_data.get("data", {}).get("subscription_status", {})
++                     print(f"✅ Final subscription status: {subscription_status}")
 +                 else:
-+                     print(f&quot;❌ Status check failed: {response_data}&quot;)
++                     print(f"❌ Status check failed: {response_data}")
 +                 
-+                 print(&quot;\n🎉 Log streaming test completed successfully!&quot;)
++                 print("\n🎉 Log streaming test completed successfully!")
 +                 return True
 +                 
 +         except Exception as e:
-+             print(f&quot;❌ WebSocket test failed: {e}&quot;)
++             print(f"❌ WebSocket test failed: {e}")
 +             return False
 +         finally:
 +             self.cleanup_session()
 + 
 + 
 + async def main():
-+     &quot;&quot;&quot;Run the log streaming test&quot;&quot;&quot;
-+     print(&quot;🚀 Starting WebSocket Log Streaming Test&quot;)
-+     print(&quot;Make sure the API server is running on localhost:8000&quot;)
++     """Run the log streaming test"""
++     print("🚀 Starting WebSocket Log Streaming Test")
++     print("Make sure the API server is running on localhost:8000")
 +     
 +     # Check if API is running
 +     try:
-+         response = requests.get(f&quot;{API_BASE_URL}/health&quot;)
++         response = requests.get(f"{API_BASE_URL}/health")
 +         if response.status_code != 200:
-+             print(&quot;❌ API server is not responding. Please start the server first.&quot;)
++             print("❌ API server is not responding. Please start the server first.")
 +             return
-+         print(f&quot;✅ API server is running: {response.json()}&quot;)
++         print(f"✅ API server is running: {response.json()}")
 +     except Exception as e:
-+         print(f&quot;❌ Cannot connect to API server: {e}&quot;)
++         print(f"❌ Cannot connect to API server: {e}")
 +         return
 +     
 +     # Run the test
@@ -1063,19 +1063,19 @@ Lines added: 253, lines removed: 1
 +     success = await tester.test_log_streaming()
 +     
 +     if success:
-+         print(&quot;\n🎯 Log streaming test completed successfully!&quot;)
-+         print(&quot;\nNow you can implement this in your web UI:&quot;)
-+         print(&quot;1. Connect to WebSocket endpoint&quot;)
-+         print(&quot;2. Send &#39;get_log_sources&#39; to see available log sources&quot;)
-+         print(&quot;3. Send &#39;subscribe_logs&#39; with desired log sources&quot;)
-+         print(&quot;4. Listen for &#39;log_stream&#39; messages&quot;)
-+         print(&quot;5. Display logs in separate tabs by log source&quot;)
-+         print(&quot;6. Send &#39;unsubscribe_logs&#39; to stop receiving logs&quot;)
++         print("\n🎯 Log streaming test completed successfully!")
++         print("\nNow you can implement this in your web UI:")
++         print("1. Connect to WebSocket endpoint")
++         print("2. Send 'get_log_sources' to see available log sources")
++         print("3. Send 'subscribe_logs' with desired log sources")
++         print("4. Listen for 'log_stream' messages")
++         print("5. Display logs in separate tabs by log source")
++         print("6. Send 'unsubscribe_logs' to stop receiving logs")
 +     else:
-+         print(&quot;\n❌ Log streaming test failed!&quot;)
++         print("\n❌ Log streaming test failed!")
 + 
 + 
-+ if __name__ == &quot;__main__&quot;:
++ if __name__ == "__main__":
 +     asyncio.run(main()) 
 ```
 
@@ -1111,7 +1111,7 @@ Now let me also update the existing WebSocket test to include the new log stream
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: scripts/api/test_websocket_api.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: scripts/api/test_websocket_api.py</summary>
 
 **Chunk 1**
 Lines added: 72, lines removed: undefined
@@ -1121,10 +1121,10 @@ Lines added: 72, lines removed: undefined
               return False
       
 +     async def test_log_streaming(self, session_id: str) -&gt; bool:
-+         &quot;&quot;&quot;Test log streaming functionality&quot;&quot;&quot;
-+         self.print_test_header(&quot;Log Streaming Test&quot;)
++         """Test log streaming functionality"""
++         self.print_test_header("Log Streaming Test")
 +         
-+         ws_url = f&quot;{self.ws_base_url}/api/v1/ws/sessions/{session_id}&quot;
++         ws_url = f"{self.ws_base_url}/api/v1/ws/sessions/{session_id}"
 +         
 +         try:
 +             async with websockets.connect(ws_url) as websocket:
@@ -1133,67 +1133,67 @@ Lines added: 72, lines removed: undefined
 +                 try:
 +                     initial_msg = await asyncio.wait_for(websocket.recv(), timeout=1.0)
 +                     connection_data = json.loads(initial_msg)
-+                     connection_id = connection_data.get(&quot;data&quot;, {}).get(&quot;connection_id&quot;)
++                     connection_id = connection_data.get("data", {}).get("connection_id")
 +                 except asyncio.TimeoutError:
-+                     connection_id = f&quot;{session_id}_test&quot;
++                     connection_id = f"{session_id}_test"
 +                 
 +                 # Test 1: Get log sources
 +                 await websocket.send(json.dumps({
-+                     &quot;type&quot;: &quot;get_log_sources&quot;,
-+                     &quot;data&quot;: {}
++                     "type": "get_log_sources",
++                     "data": {}
 +                 }))
 +                 
 +                 response = await asyncio.wait_for(websocket.recv(), timeout=5.0)
 +                 response_data = json.loads(response)
 +                 
-+                 if response_data.get(&quot;type&quot;) == &quot;log_sources_response&quot;:
-+                     available_sources = response_data.get(&quot;data&quot;, {}).get(&quot;available_sources&quot;, [])
-+                     self.print_result(True, f&quot;Got log sources: {available_sources}&quot;)
++                 if response_data.get("type") == "log_sources_response":
++                     available_sources = response_data.get("data", {}).get("available_sources", [])
++                     self.print_result(True, f"Got log sources: {available_sources}")
 +                 else:
-+                     self.print_result(False, f&quot;Failed to get log sources: {response_data}&quot;)
++                     self.print_result(False, f"Failed to get log sources: {response_data}")
 +                     return False
 +                 
 +                 # Test 2: Subscribe to logs
 +                 await websocket.send(json.dumps({
-+                     &quot;type&quot;: &quot;subscribe_logs&quot;,
-+                     &quot;data&quot;: {
-+                         &quot;connection_id&quot;: connection_id,
-+                         &quot;log_sources&quot;: [&quot;agent&quot;, &quot;api&quot;]
++                     "type": "subscribe_logs",
++                     "data": {
++                         "connection_id": connection_id,
++                         "log_sources": ["agent", "api"]
 +                     }
 +                 }))
 +                 
 +                 response = await asyncio.wait_for(websocket.recv(), timeout=5.0)
 +                 response_data = json.loads(response)
 +                 
-+                 if response_data.get(&quot;type&quot;) == &quot;logs_subscribed&quot;:
-+                     self.print_result(True, f&quot;Subscribed to logs successfully&quot;)
++                 if response_data.get("type") == "logs_subscribed":
++                     self.print_result(True, f"Subscribed to logs successfully")
 +                 else:
-+                     self.print_result(False, f&quot;Failed to subscribe to logs: {response_data}&quot;)
++                     self.print_result(False, f"Failed to subscribe to logs: {response_data}")
 +                     return False
 +                 
 +                 # Test 3: Unsubscribe from logs
 +                 await websocket.send(json.dumps({
-+                     &quot;type&quot;: &quot;unsubscribe_logs&quot;,
-+                     &quot;data&quot;: {
-+                         &quot;connection_id&quot;: connection_id,
-+                         &quot;log_sources&quot;: [&quot;api&quot;]
++                     "type": "unsubscribe_logs",
++                     "data": {
++                         "connection_id": connection_id,
++                         "log_sources": ["api"]
 +                     }
 +                 }))
 +                 
 +                 response = await asyncio.wait_for(websocket.recv(), timeout=5.0)
 +                 response_data = json.loads(response)
 +                 
-+                 success = response_data.get(&quot;type&quot;) == &quot;logs_unsubscribed&quot;
-+                 self.print_result(success, f&quot;Log streaming functionality&quot;, response_data)
++                 success = response_data.get("type") == "logs_unsubscribed"
++                 self.print_result(success, f"Log streaming functionality", response_data)
 +                 
 +                 return success
 +                 
 +         except Exception as e:
-+             self.print_result(False, f&quot;Log streaming test failed: {e}&quot;)
++             self.print_result(False, f"Log streaming test failed: {e}")
 +             return False
 +     
       async def test_monitor_websocket(self) -&gt; bool:
-          &quot;&quot;&quot;Test the monitor WebSocket endpoint&quot;&quot;&quot;
+          """Test the monitor WebSocket endpoint"""
 ```
 
 </details>
@@ -1224,7 +1224,7 @@ Let me explore the API structure more systematically.</details></think>
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: scripts/api/test_websocket_api.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: scripts/api/test_websocket_api.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: undefined
@@ -1232,10 +1232,10 @@ Lines added: 1, lines removed: undefined
 ```diff
 @@ -575,4 +575,5 @@
           # Connection management tests
-          results[&quot;heartbeat&quot;] = await self.test_heartbeat(session_id)
-+         results[&quot;log_streaming&quot;] = await self.test_log_streaming(session_id)
-          results[&quot;monitor_websocket&quot;] = await self.test_monitor_websocket()
-          results[&quot;invalid_session&quot;] = await self.test_invalid_session_websocket()
+          results["heartbeat"] = await self.test_heartbeat(session_id)
++         results["log_streaming"] = await self.test_log_streaming(session_id)
+          results["monitor_websocket"] = await self.test_monitor_websocket()
+          results["invalid_session"] = await self.test_invalid_session_websocket()
 ```
 
 </details>
@@ -1270,7 +1270,7 @@ Finally, let me create a documentation file explaining how to use the log stream
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/api/README-log-streaming.md</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/api/README-log-streaming.md</summary>
 
 I'm creating documentation for the new WebSocket log streaming feature that explains how to use it in the web UI.
 
@@ -1307,23 +1307,23 @@ Lines added: 334, lines removed: 1
 + 
 + &#96;&#96;&#96;json
 + {
-+   &quot;type&quot;: &quot;get_log_sources&quot;,
-+   &quot;data&quot;: {}
++   "type": "get_log_sources",
++   "data": {}
 + }
 + &#96;&#96;&#96;
 + 
 + Response:
 + &#96;&#96;&#96;json
 + {
-+   &quot;type&quot;: &quot;log_sources_response&quot;,
-+   &quot;data&quot;: {
-+     &quot;session_id&quot;: &quot;session-uuid&quot;,
-+     &quot;available_sources&quot;: [&quot;agent&quot;, &quot;memory_manager&quot;, &quot;ollama_general&quot;, &quot;ollama_digest&quot;, &quot;ollama_embed&quot;, &quot;api&quot;],
-+     &quot;subscription_status&quot;: {
-+       &quot;agent&quot;: [&quot;connection-id-1&quot;],
-+       &quot;api&quot;: [&quot;connection-id-1&quot;, &quot;connection-id-2&quot;]
++   "type": "log_sources_response",
++   "data": {
++     "session_id": "session-uuid",
++     "available_sources": ["agent", "memory_manager", "ollama_general", "ollama_digest", "ollama_embed", "api"],
++     "subscription_status": {
++       "agent": ["connection-id-1"],
++       "api": ["connection-id-1", "connection-id-2"]
 +     },
-+     &quot;timestamp&quot;: &quot;2025-01-13T10:30:00.000Z&quot;
++     "timestamp": "2025-01-13T10:30:00.000Z"
 +   }
 + }
 + &#96;&#96;&#96;
@@ -1334,10 +1334,10 @@ Lines added: 334, lines removed: 1
 + 
 + &#96;&#96;&#96;json
 + {
-+   &quot;type&quot;: &quot;subscribe_logs&quot;,
-+   &quot;data&quot;: {
-+     &quot;connection_id&quot;: &quot;your-connection-id&quot;,
-+     &quot;log_sources&quot;: [&quot;agent&quot;, &quot;memory_manager&quot;, &quot;api&quot;]
++   "type": "subscribe_logs",
++   "data": {
++     "connection_id": "your-connection-id",
++     "log_sources": ["agent", "memory_manager", "api"]
 +   }
 + }
 + &#96;&#96;&#96;
@@ -1345,33 +1345,33 @@ Lines added: 334, lines removed: 1
 + Response:
 + &#96;&#96;&#96;json
 + {
-+   &quot;type&quot;: &quot;logs_subscribed&quot;,
-+   &quot;data&quot;: {
-+     &quot;session_id&quot;: &quot;session-uuid&quot;,
-+     &quot;connection_id&quot;: &quot;your-connection-id&quot;,
-+     &quot;log_sources&quot;: [&quot;agent&quot;, &quot;memory_manager&quot;, &quot;api&quot;],
-+     &quot;timestamp&quot;: &quot;2025-01-13T10:30:00.000Z&quot;
++   "type": "logs_subscribed",
++   "data": {
++     "session_id": "session-uuid",
++     "connection_id": "your-connection-id",
++     "log_sources": ["agent", "memory_manager", "api"],
++     "timestamp": "2025-01-13T10:30:00.000Z"
 +   }
 + }
 + &#96;&#96;&#96;
 + 
 + ### 3. Receive Log Messages
 + 
-+ Once subscribed, you&#39;ll receive log messages in real-time:
++ Once subscribed, you'll receive log messages in real-time:
 + 
 + &#96;&#96;&#96;json
 + {
-+   &quot;type&quot;: &quot;log_stream&quot;,
-+   &quot;data&quot;: {
-+     &quot;timestamp&quot;: &quot;2025-01-13T10:30:15.123Z&quot;,
-+     &quot;level&quot;: &quot;INFO&quot;,
-+     &quot;logger&quot;: &quot;agent.session_abc123&quot;,
-+     &quot;message&quot;: &quot;Processing user query: &#39;Tell me about dragons&#39;&quot;,
-+     &quot;source&quot;: &quot;agent&quot;,
-+     &quot;session_id&quot;: &quot;session-uuid&quot;,
-+     &quot;module&quot;: &quot;agent&quot;,
-+     &quot;function&quot;: &quot;process_message&quot;,
-+     &quot;line&quot;: 145
++   "type": "log_stream",
++   "data": {
++     "timestamp": "2025-01-13T10:30:15.123Z",
++     "level": "INFO",
++     "logger": "agent.session_abc123",
++     "message": "Processing user query: 'Tell me about dragons'",
++     "source": "agent",
++     "session_id": "session-uuid",
++     "module": "agent",
++     "function": "process_message",
++     "line": 145
 +   }
 + }
 + &#96;&#96;&#96;
@@ -1382,10 +1382,10 @@ Lines added: 334, lines removed: 1
 + 
 + &#96;&#96;&#96;json
 + {
-+   &quot;type&quot;: &quot;unsubscribe_logs&quot;,
-+   &quot;data&quot;: {
-+     &quot;connection_id&quot;: &quot;your-connection-id&quot;,
-+     &quot;log_sources&quot;: [&quot;api&quot;]  // Optional: omit to unsubscribe from all
++   "type": "unsubscribe_logs",
++   "data": {
++     "connection_id": "your-connection-id",
++     "log_sources": ["api"]  // Optional: omit to unsubscribe from all
 +   }
 + }
 + &#96;&#96;&#96;
@@ -1393,12 +1393,12 @@ Lines added: 334, lines removed: 1
 + Response:
 + &#96;&#96;&#96;json
 + {
-+   &quot;type&quot;: &quot;logs_unsubscribed&quot;,
-+   &quot;data&quot;: {
-+     &quot;session_id&quot;: &quot;session-uuid&quot;,
-+     &quot;connection_id&quot;: &quot;your-connection-id&quot;,
-+     &quot;log_sources&quot;: [&quot;api&quot;],
-+     &quot;timestamp&quot;: &quot;2025-01-13T10:30:00.000Z&quot;
++   "type": "logs_unsubscribed",
++   "data": {
++     "session_id": "session-uuid",
++     "connection_id": "your-connection-id",
++     "log_sources": ["api"],
++     "timestamp": "2025-01-13T10:30:00.000Z"
 +   }
 + }
 + &#96;&#96;&#96;
@@ -1415,7 +1415,7 @@ Lines added: 334, lines removed: 1
 + ws.onmessage = (event) =&gt; {
 +   const message = JSON.parse(event.data);
 +   
-+   if (message.type === &#39;connection_established&#39;) {
++   if (message.type === 'connection_established') {
 +     const connectionId = message.data.connection_id;
 +     // Store connection ID for future use
 +     subscribeToLogs(connectionId);
@@ -1425,10 +1425,10 @@ Lines added: 334, lines removed: 1
 + function subscribeToLogs(connectionId) {
 +   // Subscribe to desired log sources
 +   ws.send(JSON.stringify({
-+     type: &#39;subscribe_logs&#39;,
++     type: 'subscribe_logs',
 +     data: {
 +       connection_id: connectionId,
-+       log_sources: [&#39;agent&#39;, &#39;memory_manager&#39;, &#39;api&#39;]
++       log_sources: ['agent', 'memory_manager', 'api']
 +     }
 +   }));
 + }
@@ -1441,11 +1441,11 @@ Lines added: 334, lines removed: 1
 +   const message = JSON.parse(event.data);
 +   
 +   switch (message.type) {
-+     case &#39;log_stream&#39;:
++     case 'log_stream':
 +       handleLogMessage(message.data);
 +       break;
-+     case &#39;logs_subscribed&#39;:
-+       console.log(&#39;Subscribed to logs:&#39;, message.data.log_sources);
++     case 'logs_subscribed':
++       console.log('Subscribed to logs:', message.data.log_sources);
 +       break;
 +     // ... handle other message types
 +   }
@@ -1481,7 +1481,7 @@ Lines added: 334, lines removed: 1
 +     ollama_embed: []
 +   });
 +   
-+   const [activeTab, setActiveTab] = useState(&#39;agent&#39;);
++   const [activeTab, setActiveTab] = useState('agent');
 +   
 +   const addLogToTab = (source, logEntry) =&gt; {
 +     setLogs(prev =&gt; ({
@@ -1491,20 +1491,20 @@ Lines added: 334, lines removed: 1
 +   };
 +   
 +   return (
-+     &lt;div className=&quot;log-viewer&quot;&gt;
-+       &lt;div className=&quot;log-tabs&quot;&gt;
++     &lt;div className="log-viewer"&gt;
++       &lt;div className="log-tabs"&gt;
 +         {Object.keys(logs).map(source =&gt; (
 +           &lt;button
 +             key={source}
 +             onClick={() =&gt; setActiveTab(source)}
-+             className={&#96;tab ${activeTab === source ? &#39;active&#39; : &#39;&#39;}&#96;}
++             className={&#96;tab ${activeTab === source ? 'active' : ''}&#96;}
 +           &gt;
 +             {source} ({logs[source].length})
 +           &lt;/button&gt;
 +         ))}
 +       &lt;/div&gt;
 +       
-+       &lt;div className=&quot;log-content&quot;&gt;
++       &lt;div className="log-content"&gt;
 +         &lt;LogList logs={logs[activeTab]} /&gt;
 +       &lt;/div&gt;
 +     &lt;/div&gt;
@@ -1513,13 +1513,13 @@ Lines added: 334, lines removed: 1
 + 
 + function LogList({ logs }) {
 +   return (
-+     &lt;div className=&quot;log-list&quot;&gt;
++     &lt;div className="log-list"&gt;
 +       {logs.map((log, index) =&gt; (
 +         &lt;div key={index} className={&#96;log-entry log-${log.level.toLowerCase()}&#96;}&gt;
-+           &lt;span className=&quot;log-timestamp&quot;&gt;{log.timestamp.toLocaleTimeString()}&lt;/span&gt;
-+           &lt;span className=&quot;log-level&quot;&gt;{log.level}&lt;/span&gt;
-+           &lt;span className=&quot;log-message&quot;&gt;{log.message}&lt;/span&gt;
-+           &lt;span className=&quot;log-location&quot;&gt;{log.module}:{log.function}:{log.line}&lt;/span&gt;
++           &lt;span className="log-timestamp"&gt;{log.timestamp.toLocaleTimeString()}&lt;/span&gt;
++           &lt;span className="log-level"&gt;{log.level}&lt;/span&gt;
++           &lt;span className="log-message"&gt;{log.message}&lt;/span&gt;
++           &lt;span className="log-location"&gt;{log.module}:{log.function}:{log.line}&lt;/span&gt;
 +         &lt;/div&gt;
 +       ))}
 +     &lt;/div&gt;
@@ -1776,7 +1776,7 @@ The user tried running the log streaming test and got some error messages. I sho
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: cd /Users/andrewrapo/github/cursor/cursor-hello-llm-agent && python test_websocket_log_streaming.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: cd /Users/andrewrapo/github/cursor/cursor-hello-llm-agent && python test_websocket_log_streaming.py</summary>
 
 ```bash
 cd /Users/andrewrapo/github/cursor/cursor-hello-llm-agent && python test_websocket_log_streaming.py
@@ -1785,9 +1785,9 @@ cd /Users/andrewrapo/github/cursor/cursor-hello-llm-agent && python test_websock
 ```
 🚀 Starting WebSocket Log Streaming Test
 Make sure the API server is running on localhost:8000
-✅ API server is running: {&#39;status&#39;: &#39;healthy&#39;, &#39;version&#39;: &#39;1.0.0&#39;, &#39;active_sessi
-ons&#39;: 0, &#39;websocket_connect
-ions&#39;: 0}
+✅ API server is running: {'status': 'healthy', 'version': '1.0.0', 'active_sessi
+ons': 0, 'websocket_connect
+ions': 0}
                             ====================================================
 ========
   WEBSOCKET LOG STREAMING TEST
@@ -1797,34 +1797,34 @@ ions&#39;: 0}
 ✅ Connection established: a389f1ea-1961-445c-bb6f-3715eaf09275_1750620217.436318
 
 1. Getting available log sources...
-✅ Available log sources: [&#39;agent&#39;, &#39;memory_manager&#39;, &#39;ollama_general&#39;, &#39;ollama_d
-igest&#39;, &#39;ollama_embed&#39;, &#39;ap
-i&#39;]
+✅ Available log sources: ['agent', 'memory_manager', 'ollama_general', 'ollama_d
+igest', 'ollama_embed', 'ap
+i']
                             
 2. Subscribing to log sources...
-✅ Subscribed to logs: [&#39;agent&#39;, &#39;memory_manager&#39;, &#39;api&#39;]
+✅ Subscribed to logs: ['agent', 'memory_manager', 'api']
 
 3. Triggering agent activity to generate logs...
-📨 typing_start: {&#39;type&#39;: &#39;typing_start&#39;, &#39;data&#39;: {&#39;session_id&#39;: &#39;a389f1ea-1961-
-445c-bb6f-3715eaf09275&#39;, &#39;ti
-mestamp&#39;:...
-                            📨 query_response: {&#39;type&#39;: &#39;query_response&#39;, &#39;data&#39;
-: {&#39;message&#39;: &#39;Hello! This is a test to generate some lo
+📨 typing_start: {'type': 'typing_start', 'data': {'session_id': 'a389f1ea-1961-
+445c-bb6f-3715eaf09275', 'ti
+mestamp':...
+                            📨 query_response: {'type': 'query_response', 'data'
+: {'message': 'Hello! This is a test to generate some lo
 gs. Can you...
                             
 ✅ Received 0 log messages
 ✅ Received 2 other responses
 
 4. Unsubscribing from some log sources...
-❌ Unsubscription failed: {&#39;type&#39;: &#39;typing_stop&#39;, &#39;data&#39;: {&#39;session_id&#39;: &#39;a389f1e
+❌ Unsubscription failed: {'type': 'typing_stop', 'data': {'session_id': 'a389f1e
 a-1961-445c-bb6f-3715eaf092
-75&#39;, &#39;timestamp&#39;: &#39;2025-06-22T15:23:38.215724&#39;}}
+75', 'timestamp': '2025-06-22T15:23:38.215724'}}
                             
 5. Checking final subscription status...
-❌ Status check failed: {&#39;type&#39;: &#39;memory_updated&#39;, &#39;data&#39;: {&#39;session_id&#39;: &#39;a389f1
+❌ Status check failed: {'type': 'memory_updated', 'data': {'session_id': 'a389f1
 ea-1961-445c-bb6f-3715eaf09
-275&#39;, &#39;timestamp&#39;: &#39;2025-06-22T15:23:38.215855&#39;, &#39;update_type&#39;: &#39;conversation_ad
-ded&#39;}}                      
+275', 'timestamp': '2025-06-22T15:23:38.215855', 'update_type': 'conversation_ad
+ded'}}                      
 🎉 Log streaming test completed successfully!
 ✅ Session a389f1ea-1961-445c-bb6f-3715eaf09275 cleaned up
 
@@ -1832,11 +1832,11 @@ ded&#39;}}
 
 Now you can implement this in your web UI:
 1. Connect to WebSocket endpoint
-2. Send &#39;get_log_sources&#39; to see available log sources
-3. Send &#39;subscribe_logs&#39; with desired log sources
-4. Listen for &#39;log_stream&#39; messages
+2. Send 'get_log_sources' to see available log sources
+3. Send 'subscribe_logs' with desired log sources
+4. Listen for 'log_stream' messages
 5. Display logs in separate tabs by log source
-6. Send &#39;unsubscribe_logs&#39; to stop receiving logs
+6. Send 'unsubscribe_logs' to stop receiving logs
 
 ```
 </details>
@@ -1899,7 +1899,7 @@ The `WebSocketLogHandler.emit()` method is trying to create an asyncio task from
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/api/websocket/log_streamer.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/api/websocket/log_streamer.py</summary>
 
 **Chunk 1**
 Lines added: 10, lines removed: 1
@@ -1936,7 +1936,7 @@ Now I need to add the `queue_log` method to the `LogStreamer` class:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/api/websocket/log_streamer.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/api/websocket/log_streamer.py</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: undefined
@@ -1959,7 +1959,7 @@ Lines added: 2, lines removed: undefined
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/api/websocket/log_streamer.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/api/websocket/log_streamer.py</summary>
 
 **Chunk 1**
 Lines added: 12, lines removed: undefined
@@ -1969,19 +1969,19 @@ Lines added: 12, lines removed: undefined
           self.unsubscribe_from_logs(session_id, connection_id)
       
 +     def queue_log(self, session_id: str, log_data: Dict[str, Any]):
-+         &quot;&quot;&quot;Queue a log message when no event loop is available.&quot;&quot;&quot;
++         """Queue a log message when no event loop is available."""
 +         with self.lock:
 +             self.log_queue.append({
-+                 &quot;session_id&quot;: session_id,
-+                 &quot;log_data&quot;: log_data,
-+                 &quot;timestamp&quot;: datetime.now()
++                 "session_id": session_id,
++                 "log_data": log_data,
++                 "timestamp": datetime.now()
 +             })
 +             # Keep queue size reasonable
 +             if len(self.log_queue) &gt; 1000:
 +                 self.log_queue = self.log_queue[-500:]  # Keep last 500
 +     
       async def stream_log(self, session_id: str, log_data: Dict[str, Any]):
-          &quot;&quot;&quot;Stream a log message to subscribed WebSocket connections.&quot;&quot;&quot;
+          """Stream a log message to subscribed WebSocket connections."""
 ```
 
 </details>
@@ -2002,7 +2002,7 @@ The test is receiving messages in the wrong order because the WebSocket is async
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: test_websocket_log_streaming.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: test_websocket_log_streaming.py</summary>
 
 **Chunk 1**
 Lines added: 13, lines removed: 2
@@ -2019,18 +2019,18 @@ Lines added: 13, lines removed: 2
 +                         response = await asyncio.wait_for(websocket.recv(), timeout=2.0)
                           response_data = json.loads(response)
                           
-                          if response_data.get(&quot;type&quot;) == &quot;logs_unsubscribed&quot;:
-                              print(f&quot;✅ Unsubscribed from: {response_data.get(&#39;data&#39;, {}).get(&#39;log_sources&#39;)}&quot;)
+                          if response_data.get("type") == "logs_unsubscribed":
+                              print(f"✅ Unsubscribed from: {response_data.get('data', {}).get('log_sources')}")
 +                             unsubscribe_success = True
 +                             break
                           else:
--                     print(f&quot;❌ Unsubscription failed: {response_data}&quot;)
-+                             print(f&quot;📨 Other message: {response_data.get(&#39;type&#39;)}&quot;)
+-                     print(f"❌ Unsubscription failed: {response_data}")
++                             print(f"📨 Other message: {response_data.get('type')}")
 +                     except asyncio.TimeoutError:
 +                         break
 +                 
 +                 if not unsubscribe_success:
-+                     print(&quot;⚠️  Unsubscribe response not received, but may have succeeded&quot;)
++                     print("⚠️  Unsubscribe response not received, but may have succeeded")
                   
                   # Test 5: Check subscription status
 ```
@@ -2050,21 +2050,21 @@ Lines added: 13, lines removed: 2
 +                         response = await asyncio.wait_for(websocket.recv(), timeout=2.0)
                           response_data = json.loads(response)
                           
-                          if response_data.get(&quot;type&quot;) == &quot;log_sources_response&quot;:
-                              subscription_status = response_data.get(&quot;data&quot;, {}).get(&quot;subscription_status&quot;, {})
-                              print(f&quot;✅ Final subscription status: {subscription_status}&quot;)
+                          if response_data.get("type") == "log_sources_response":
+                              subscription_status = response_data.get("data", {}).get("subscription_status", {})
+                              print(f"✅ Final subscription status: {subscription_status}")
 +                             status_success = True
 +                             break
                           else:
--                     print(f&quot;❌ Status check failed: {response_data}&quot;)
-+                             print(f&quot;📨 Other message: {response_data.get(&#39;type&#39;)}&quot;)
+-                     print(f"❌ Status check failed: {response_data}")
++                             print(f"📨 Other message: {response_data.get('type')}")
 +                     except asyncio.TimeoutError:
 +                         break
 +                 
 +                 if not status_success:
-+                     print(&quot;⚠️  Status response not received&quot;)
++                     print("⚠️  Status response not received")
                   
-                  print(&quot;\n🎉 Log streaming test completed successfully!&quot;)
+                  print("\n🎉 Log streaming test completed successfully!")
 ```
 
 </details>
@@ -2085,31 +2085,31 @@ The main issue is that no logs are being generated. Let me add some debug output
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: test_websocket_log_streaming.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: test_websocket_log_streaming.py</summary>
 
 **Chunk 1**
 Lines added: 14, lines removed: undefined
 
 ```diff
 @@ -134,4 +134,18 @@
-                  print(&quot;\n3. Triggering agent activity to generate logs...&quot;)
+                  print("\n3. Triggering agent activity to generate logs...")
                   
 +                 # First, generate some API logs by getting status
 +                 await websocket.send(json.dumps({
-+                     &quot;type&quot;: &quot;get_status&quot;,
-+                     &quot;data&quot;: {}
++                     "type": "get_status",
++                     "data": {}
 +                 }))
 +                 
 +                 # Wait briefly for status response
 +                 try:
 +                     status_response = await asyncio.wait_for(websocket.recv(), timeout=2.0)
-+                     print(&quot;📨 Status response received&quot;)
++                     print("📨 Status response received")
 +                 except asyncio.TimeoutError:
-+                     print(&quot;⏰ Status response timeout&quot;)
++                     print("⏰ Status response timeout")
 +                 
 +                 # Now send agent query
                   await websocket.send(json.dumps({
-                      &quot;type&quot;: &quot;query&quot;,
+                      "type": "query",
 ```
 
 **Chunk 2**
@@ -2131,28 +2131,28 @@ Lines added: 31, lines removed: 2
 ```diff
 @@ -162,12 +176,41 @@
                               # Break on query response
-                              if response_data.get(&quot;type&quot;) == &quot;query_response&quot;:
+                              if response_data.get("type") == "query_response":
 -                                 break
-+                                 print(&quot;📨 Query response received, continuing to listen for logs...&quot;)
-+                                 # Don&#39;t break yet, continue listening for logs
++                                 print("📨 Query response received, continuing to listen for logs...")
++                                 # Don't break yet, continue listening for logs
                                   
                       except asyncio.TimeoutError:
--                         print(&quot;⏰ Timeout waiting for more messages&quot;)
-+                         print(f&quot;⏰ Timeout waiting for message {i+1}&quot;)
+-                         print("⏰ Timeout waiting for more messages")
++                         print(f"⏰ Timeout waiting for message {i+1}")
 +                         if i &gt; 5:  # Give at least 6 chances
                               break
                   
-                  print(f&quot;\n✅ Received {len(logs_received)} log messages&quot;)
-                  print(f&quot;✅ Received {len(other_responses)} other responses&quot;)
+                  print(f"\n✅ Received {len(logs_received)} log messages")
+                  print(f"✅ Received {len(other_responses)} other responses")
 +                 
 +                 # Debug: Show subscription status
-+                 print(f&quot;🔍 Debug: Current subscriptions should include {log_sources_to_subscribe}&quot;)
++                 print(f"🔍 Debug: Current subscriptions should include {log_sources_to_subscribe}")
 +                 
 +                 # Try to trigger some more obvious log messages
-+                 print(&quot;\n🔍 Trying to trigger more logs with memory query...&quot;)
++                 print("\n🔍 Trying to trigger more logs with memory query...")
 +                 await websocket.send(json.dumps({
-+                     &quot;type&quot;: &quot;get_memory&quot;,
-+                     &quot;data&quot;: {&quot;type&quot;: &quot;conversations&quot;, &quot;limit&quot;: 5}
++                     "type": "get_memory",
++                     "data": {"type": "conversations", "limit": 5}
 +                 }))
 +                 
 +                 # Listen for more responses
@@ -2161,16 +2161,16 @@ Lines added: 31, lines removed: 2
 +                         response = await asyncio.wait_for(websocket.recv(), timeout=1.5)
 +                         response_data = json.loads(response)
 +                         
-+                         if response_data.get(&quot;type&quot;) == &quot;log_stream&quot;:
++                         if response_data.get("type") == "log_stream":
 +                             logs_received.append(response_data)
-+                             log_data = response_data.get(&quot;data&quot;, {})
-+                             print(f&quot;📋 LOG [{log_data.get(&#39;source&#39;)}]: {log_data.get(&#39;level&#39;)} - {log_data.get(&#39;message&#39;)[:100]}...&quot;)
++                             log_data = response_data.get("data", {})
++                             print(f"📋 LOG [{log_data.get('source')}]: {log_data.get('level')} - {log_data.get('message')[:100]}...")
 +                         else:
-+                             print(f&quot;📨 {response_data.get(&#39;type&#39;)}: {str(response_data)[:50]}...&quot;)
++                             print(f"📨 {response_data.get('type')}: {str(response_data)[:50]}...")
 +                     except asyncio.TimeoutError:
 +                         break
 +                 
-+                 print(f&quot;\n✅ Final: Received {len(logs_received)} total log messages&quot;)
++                 print(f"\n✅ Final: Received {len(logs_received)} total log messages")
                   
                   # Test 4: Unsubscribe from specific logs
 ```
@@ -2193,7 +2193,7 @@ I need to make sure the API logger actually gets WebSocket handlers. Let me fix 
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/api/services/session_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/api/services/session_manager.py</summary>
 
 **Chunk 1**
 Lines added: 8, lines removed: undefined
@@ -2204,14 +2204,14 @@ Lines added: 8, lines removed: undefined
                           agent_logger.addHandler(ws_agent_handler)
 +                         
 +                         # Also add API logger WebSocket handler
-+                         api_logger = logging.getLogger(&quot;src.api&quot;)
-+                         ws_api_handler = WebSocketLogHandler(self.session_id, &quot;api&quot;, log_streamer)
++                         api_logger = logging.getLogger("src.api")
++                         ws_api_handler = WebSocketLogHandler(self.session_id, "api", log_streamer)
 +                         ws_api_handler.setFormatter(formatter)
 +                         api_logger.addHandler(ws_api_handler)
-+                         logger.info(f&quot;Added WebSocket log handlers for session {self.session_id}&quot;)
++                         logger.info(f"Added WebSocket log handlers for session {self.session_id}")
 +                         
                       except Exception as e:
-                          logger.warning(f&quot;Could not add WebSocket log handler for agent: {e}&quot;)
+                          logger.warning(f"Could not add WebSocket log handler for agent: {e}")
 ```
 
 </details>
@@ -2231,7 +2231,7 @@ Now let me also ensure that the WebSocket handlers get some test log messages by
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/api/websocket/handlers.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/api/websocket/handlers.py</summary>
 
 **Chunk 1**
 Lines added: 3, lines removed: undefined
@@ -2242,7 +2242,7 @@ Lines added: 3, lines removed: undefined
               log_streamer.subscribe_to_logs(session_id, connection_id, log_sources)
 +             
 +             # Generate a test log message to verify the system is working
-+             logger.info(f&quot;Log streaming subscribed for session {session_id}, sources: {log_sources}&quot;)
++             logger.info(f"Log streaming subscribed for session {session_id}, sources: {log_sources}")
               
               # Send confirmation
 ```
@@ -2264,7 +2264,7 @@ Let me also add some debug logging to the log streamer to see what's happening:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/api/websocket/log_streamer.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/api/websocket/log_streamer.py</summary>
 
 **Chunk 1**
 Lines added: 6, lines removed: undefined
@@ -2273,21 +2273,21 @@ Lines added: 6, lines removed: undefined
 @@ -129,14 +129,20 @@
           with self.lock:
               if session_id not in self.subscriptions:
-+                 print(f&quot;🔍 LOG_STREAMER: No subscriptions for session {session_id}&quot;)
++                 print(f"🔍 LOG_STREAMER: No subscriptions for session {session_id}")
                   return
               
               if log_source not in self.subscriptions[session_id]:
-+                 print(f&quot;🔍 LOG_STREAMER: No subscriptions for log source {log_source} in session {session_id}&quot;)
-+                 print(f&quot;🔍 LOG_STREAMER: Available sources: {list(self.subscriptions[session_id].keys())}&quot;)
++                 print(f"🔍 LOG_STREAMER: No subscriptions for log source {log_source} in session {session_id}")
++                 print(f"🔍 LOG_STREAMER: Available sources: {list(self.subscriptions[session_id].keys())}")
                   return
               
               connection_ids = self.subscriptions[session_id][log_source].copy()
           
           if not connection_ids:
-+             print(f&quot;🔍 LOG_STREAMER: No connections for {log_source} in session {session_id}&quot;)
++             print(f"🔍 LOG_STREAMER: No connections for {log_source} in session {session_id}")
               return
           
-+         print(f&quot;🔍 LOG_STREAMER: Streaming log from {log_source} to {len(connection_ids)} connections&quot;)
++         print(f"🔍 LOG_STREAMER: Streaming log from {log_source} to {len(connection_ids)} connections")
 +         
           # Create WebSocket message
           message = {
@@ -2310,7 +2310,7 @@ Now let me also add debug info to the subscription process:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/api/websocket/log_streamer.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/api/websocket/log_streamer.py</summary>
 
 **Chunk 1**
 Lines added: 3, lines removed: undefined
@@ -2319,9 +2319,9 @@ Lines added: 3, lines removed: undefined
 @@ -82,4 +82,7 @@
                       self.subscriptions[session_id][log_source] = set()
                   self.subscriptions[session_id][log_source].add(connection_id)
-+                 print(f&quot;🔍 LOG_STREAMER: Subscribed {connection_id} to {log_source} for session {session_id}&quot;)
++                 print(f"🔍 LOG_STREAMER: Subscribed {connection_id} to {log_source} for session {session_id}")
 +             
-+             print(f&quot;🔍 LOG_STREAMER: Current subscriptions for {session_id}: {dict(self.subscriptions[session_id])}&quot;)
++             print(f"🔍 LOG_STREAMER: Current subscriptions for {session_id}: {dict(self.subscriptions[session_id])}")
       
       def unsubscribe_from_logs(self, session_id: str, connection_id: str, log_sources: Optional[List[str]] = None):
 ```
@@ -2342,7 +2342,7 @@ Now let me run the updated test to see if we can identify the issues:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: python test_websocket_log_streaming.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: python test_websocket_log_streaming.py</summary>
 
 ```bash
 python test_websocket_log_streaming.py
@@ -2352,9 +2352,9 @@ python test_websocket_log_streaming.py
 (.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent % python test_websocket_log_streaming.py
 🚀 Starting WebSocket Log Streaming Test
 Make sure the API server is running on localhost:8000
-❌ Cannot connect to API server: HTTPConnectionPool(host=&#39;localhost&#39;, port=8000): Max retries exceeded with 
-url: /health (Caused by NewConnectionError(&#39;&lt;urllib3.connection.HTTPConnection object at 0x103e9a2e0&gt;: Faile
-d to establish a new connection: [Errno 61] Connection refused&#39;))
+❌ Cannot connect to API server: HTTPConnectionPool(host='localhost', port=8000): Max retries exceeded with 
+url: /health (Caused by NewConnectionError('&lt;urllib3.connection.HTTPConnection object at 0x103e9a2e0&gt;: Faile
+d to establish a new connection: [Errno 61] Connection refused'))
 (.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent %
 ```
 </details>
@@ -2410,7 +2410,7 @@ Perfect! I can see how to start the server. Let me start it in the background an
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: cd src/api && python main.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: cd src/api && python main.py</summary>
 
 ```bash
 cd src/api && python main.py
@@ -2426,7 +2426,7 @@ The user tried running the log streaming test and got some error messages. I sho
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: sleep 3 && python test_websocket_log_streaming.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: sleep 3 && python test_websocket_log_streaming.py</summary>
 
 ```bash
 sleep 3 && python test_websocket_log_streaming.py
@@ -2438,9 +2438,9 @@ sleep 3 && python test_websocket_log_streaming.py
 .py
 🚀 Starting WebSocket Log Streaming Test
 Make sure the API server is running on localhost:8000
-❌ Cannot connect to API server: HTTPConnectionPool(host=&#39;localhost&#39;, port=8000): Max retries exceeded with 
-url: /health (Caused by NewConnectionError(&#39;&lt;urllib3.connection.HTTPConnection object at 0x10229d2e0&gt;: Faile
-d to establish a new connection: [Errno 61] Connection refused&#39;))
+❌ Cannot connect to API server: HTTPConnectionPool(host='localhost', port=8000): Max retries exceeded with 
+url: /health (Caused by NewConnectionError('&lt;urllib3.connection.HTTPConnection object at 0x10229d2e0&gt;: Faile
+d to establish a new connection: [Errno 61] Connection refused'))
 (.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent %
 ```
 </details>
@@ -2481,7 +2481,7 @@ Thank you! Let me start the server with the correct command and then test the lo
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python -m uvicorn src.api.main:app --host 0.0.0.0 --port 8000</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python -m uvicorn src.api.main:app --host 0.0.0.0 --port 8000</summary>
 
 ```bash
 DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python -m uvicorn src.api.main:app --host 0.0.0.0 --port 8000
@@ -2492,7 +2492,7 @@ DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLL
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: sleep 5 && python test_websocket_log_streaming.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: sleep 5 && python test_websocket_log_streaming.py</summary>
 
 ```bash
 sleep 5 && python test_websocket_log_streaming.py
@@ -2501,9 +2501,9 @@ sleep 5 && python test_websocket_log_streaming.py
 ```
 🚀 Starting WebSocket Log Streaming Test
 Make sure the API server is running on localhost:8000
-✅ API server is running: {&#39;status&#39;: &#39;healthy&#39;, &#39;version&#39;: &#39;1.0.0&#39;, &#39;active_sessi
-ons&#39;: 0, &#39;websocket_connect
-ions&#39;: 0}
+✅ API server is running: {'status': 'healthy', 'version': '1.0.0', 'active_sessi
+ons': 0, 'websocket_connect
+ions': 0}
                             ====================================================
 ========
   WEBSOCKET LOG STREAMING TEST
@@ -2513,12 +2513,12 @@ ions&#39;: 0}
 ✅ Connection established: 97ba38ef-53cb-4da6-a7c3-8b9a37fd187e_1750620476.495831
 
 1. Getting available log sources...
-✅ Available log sources: [&#39;agent&#39;, &#39;memory_manager&#39;, &#39;ollama_general&#39;, &#39;ollama_d
-igest&#39;, &#39;ollama_embed&#39;, &#39;ap
-i&#39;]
+✅ Available log sources: ['agent', 'memory_manager', 'ollama_general', 'ollama_d
+igest', 'ollama_embed', 'ap
+i']
                             
 2. Subscribing to log sources...
-✅ Subscribed to logs: [&#39;agent&#39;, &#39;memory_manager&#39;, &#39;api&#39;]
+✅ Subscribed to logs: ['agent', 'memory_manager', 'api']
 
 3. Triggering agent activity to generate logs...
 📨 Status response received
@@ -2531,23 +2531,23 @@ ssion 97ba38e...
                             📋 LOG [api]: INFO - 2025-06-22 15:27:56,512 INFO:sr
 c.api.websocket.handlers:🔍 ROUTER: Handler handle_subsc
 ribe_logs comp...
-                            📨 status_response: {&#39;type&#39;: &#39;status_response&#39;, &#39;dat
-a&#39;: {&#39;session_id&#39;: &#39;97ba38ef-53cb-4da6-a7c3-8b9a37fd187e
-&#39;, &#39;agent_in...
-                            📨 typing_start: {&#39;type&#39;: &#39;typing_start&#39;, &#39;data&#39;: {&#39;
-session_id&#39;: &#39;97ba38ef-53cb-4da6-a7c3-8b9a37fd187e&#39;, &#39;ti
-mestamp&#39;:...
-                            📨 query_response: {&#39;type&#39;: &#39;query_response&#39;, &#39;data&#39;
-: {&#39;message&#39;: &#39;Hello! This is a test to generate some lo
+                            📨 status_response: {'type': 'status_response', 'dat
+a': {'session_id': '97ba38ef-53cb-4da6-a7c3-8b9a37fd187e
+', 'agent_in...
+                            📨 typing_start: {'type': 'typing_start', 'data': {'
+session_id': '97ba38ef-53cb-4da6-a7c3-8b9a37fd187e', 'ti
+mestamp':...
+                            📨 query_response: {'type': 'query_response', 'data'
+: {'message': 'Hello! This is a test to generate some lo
 gs. Can you...
                             📨 Query response received, continuing to listen for
  logs...
-📨 typing_stop: {&#39;type&#39;: &#39;typing_stop&#39;, &#39;data&#39;: {&#39;session_id&#39;: &#39;97ba38ef-53cb-4d
-a6-a7c3-8b9a37fd187e&#39;, &#39;time
-stamp&#39;: ...
-                            📨 memory_updated: {&#39;type&#39;: &#39;memory_updated&#39;, &#39;data&#39;
-: {&#39;session_id&#39;: &#39;97ba38ef-53cb-4da6-a7c3-8b9a37fd187e&#39;,
- &#39;timestamp...
+📨 typing_stop: {'type': 'typing_stop', 'data': {'session_id': '97ba38ef-53cb-4d
+a6-a7c3-8b9a37fd187e', 'time
+stamp': ...
+                            📨 memory_updated: {'type': 'memory_updated', 'data'
+: {'session_id': '97ba38ef-53cb-4da6-a7c3-8b9a37fd187e',
+ 'timestamp...
                             📋 LOG [api]: INFO - 2025-06-22 15:27:56,515 INFO:sr
 c.api.websocket.handlers:🔍 ROUTER: Received message typ
 e: get_status ...
@@ -2562,7 +2562,7 @@ c.api.websocket.handlers:🔍 HANDLER: Session found, buil
 ding status da...
                             📋 LOG [api]: INFO - 2025-06-22 15:27:56,517 INFO:sr
 c.api.websocket.handlers:🔍 HANDLER: Sending status resp
-onse: {&#39;sessio...
+onse: {'sessio...
                             📋 LOG [api]: INFO - 2025-06-22 15:27:56,518 INFO:sr
 c.api.websocket.handlers:🔍 HANDLER: Status response sen
 t successfully...
@@ -2572,7 +2572,7 @@ tatus complete...
                             
 ✅ Received 10 log messages
 ✅ Received 5 other responses
-🔍 Debug: Current subscriptions should include [&#39;agent&#39;, &#39;memory_manager&#39;, &#39;api&#39;
+🔍 Debug: Current subscriptions should include ['agent', 'memory_manager', 'api'
 ]
 
 🔍 Trying to trigger more logs with memory query...
@@ -2617,11 +2617,11 @@ dler: handle_q...
 
 Now you can implement this in your web UI:
 1. Connect to WebSocket endpoint
-2. Send &#39;get_log_sources&#39; to see available log sources
-3. Send &#39;subscribe_logs&#39; with desired log sources
-4. Listen for &#39;log_stream&#39; messages
+2. Send 'get_log_sources' to see available log sources
+3. Send 'subscribe_logs' with desired log sources
+4. Listen for 'log_stream' messages
 5. Display logs in separate tabs by log source
-6. Send &#39;unsubscribe_logs&#39; to stop receiving logs
+6. Send 'unsubscribe_logs' to stop receiving logs
 
 ```
 </details>
@@ -2734,7 +2734,7 @@ The user wants me to run the test script in scripts/api/test_websocket_api.py. I
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: cd scripts/api && python test_websocket_api.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: cd scripts/api && python test_websocket_api.py</summary>
 
 ```bash
 cd scripts/api && python test_websocket_api.py
@@ -2754,30 +2754,30 @@ Test User ID: test_user_websocket
   WebSocket Connection
 ============================================================
 ✅ PASS: WebSocket connected successfully
-   Data: {&#39;type&#39;: &#39;connection_established&#39;, &#39;data&#39;: {&#39;connection_id&#39;: &#39;ec6f3fc5-a68d-42c7-b8d4-5ff857af21e9_
-1750620665.747706&#39;, &#39;session_id&#39;: &#39;ec6f3fc5-a68d-42c7-b8d4-5ff857af21e9&#39;, &#39;timestamp&#39;: &#39;2025-06-22T15...
+   Data: {'type': 'connection_established', 'data': {'connection_id': 'ec6f3fc5-a68d-42c7-b8d4-5ff857af21e9_
+1750620665.747706', 'session_id': 'ec6f3fc5-a68d-42c7-b8d4-5ff857af21e9', 'timestamp': '2025-06-22T15...
 
 ============================================================
   Ping/Pong Test
 ============================================================
 ✅ PASS: Ping/Pong exchange
-   Data: {&#39;type&#39;: &#39;pong&#39;, &#39;data&#39;: {&#39;timestamp&#39;: &#39;2025-06-22T15:31:05.767337&#39;, &#39;session_id&#39;: &#39;ec6f3fc5-a68d-4
-2c7-b8d4-5ff857af21e9&#39;, &#39;message&#39;: &#39;Hello WebSocket!&#39;}}...
+   Data: {'type': 'pong', 'data': {'timestamp': '2025-06-22T15:31:05.767337', 'session_id': 'ec6f3fc5-a68d-4
+2c7-b8d4-5ff857af21e9', 'message': 'Hello WebSocket!'}}...
 
 ============================================================
   Get Status Test
 ============================================================
 🔍 Connected to WebSocket for status test
-🔍 Skipped initial message: {&quot;type&quot;: &quot;connection_established&quot;, &quot;data&quot;: {&quot;connection_id&quot;: &quot;ec6f3fc5-a68d-42c7
+🔍 Skipped initial message: {"type": "connection_established", "data": {"connection_id": "ec6f3fc5-a68d-42c7
 -b8d4-5ff857af21e9_1...
-🔍 Sending status message: {&#39;type&#39;: &#39;get_status&#39;, &#39;data&#39;: {}}
+🔍 Sending status message: {'type': 'get_status', 'data': {}}
 🔍 Status message sent, waiting for response...
-🔍 Received status response: {&quot;type&quot;: &quot;status_response&quot;, &quot;data&quot;: {&quot;session_id&quot;: &quot;ec6f3fc5-a68d-42c7-b8d4-5ff
-857af21e9&quot;, &quot;agent_initialized&quot;: true, &quot;memory_manager_initialized&quot;: true, &quot;last_activity&quot;: &quot;2025-06-22T15:3
-1:05.785653&quot;,...
+🔍 Received status response: {"type": "status_response", "data": {"session_id": "ec6f3fc5-a68d-42c7-b8d4-5ff
+857af21e9", "agent_initialized": true, "memory_manager_initialized": true, "last_activity": "2025-06-22T15:3
+1:05.785653",...
 ✅ PASS: Status retrieval
-   Data: {&#39;type&#39;: &#39;status_response&#39;, &#39;data&#39;: {&#39;session_id&#39;: &#39;ec6f3fc5-a68d-42c7-b8d4-5ff857af21e9&#39;, &#39;agent_i
-nitialized&#39;: True, &#39;memory_manager_initialized&#39;: True, &#39;last_activity&#39;: &#39;2025-06-22T15:31:05.785653&#39;,...
+   Data: {'type': 'status_response', 'data': {'session_id': 'ec6f3fc5-a68d-42c7-b8d4-5ff857af21e9', 'agent_i
+nitialized': True, 'memory_manager_initialized': True, 'last_activity': '2025-06-22T15:31:05.785653',...
 
 ============================================================
   Agent Query Test
@@ -2785,55 +2785,55 @@ nitialized&#39;: True, &#39;memory_manager_initialized&#39;: True, &#39;last_act
 📨 Received: typing_start
 📨 Received: query_response
 ✅ PASS: Agent query (received 2 responses)
-   Data: [{&#39;type&#39;: &#39;typing_start&#39;, &#39;data&#39;: {&#39;session_id&#39;: &#39;ec6f3fc5-a68d-42c7-b8d4-5ff857af21e9&#39;, &#39;timestamp
-&#39;: &#39;2025-06-22T15:31:05.806451&#39;}}, {&#39;type&#39;: &#39;query_response&#39;, &#39;data&#39;: {&#39;message&#39;: &#39;Hello! Can you tel...
+   Data: [{'type': 'typing_start', 'data': {'session_id': 'ec6f3fc5-a68d-42c7-b8d4-5ff857af21e9', 'timestamp
+': '2025-06-22T15:31:05.806451'}}, {'type': 'query_response', 'data': {'message': 'Hello! Can you tel...
 
 ============================================================
   Get Memory Test
 ============================================================
 ✅ PASS: Memory retrieval
-   Data: {&#39;type&#39;: &#39;memory_response&#39;, &#39;data&#39;: {&#39;session_id&#39;: &#39;ec6f3fc5-a68d-42c7-b8d4-5ff857af21e9&#39;, &#39;type&#39;: 
-&#39;conversations&#39;, &#39;data&#39;: {&#39;conversations&#39;: [{&#39;guid&#39;: &#39;02fb7ac9-ef96-49e8-abcd-eeb4b400a73d&#39;, &#39;role&#39;: ...
+   Data: {'type': 'memory_response', 'data': {'session_id': 'ec6f3fc5-a68d-42c7-b8d4-5ff857af21e9', 'type': 
+'conversations', 'data': {'conversations': [{'guid': '02fb7ac9-ef96-49e8-abcd-eeb4b400a73d', 'role': ...
 
 ============================================================
   Search Memory Test
 ============================================================
 ✅ PASS: Memory search
-   Data: {&#39;type&#39;: &#39;search_response&#39;, &#39;data&#39;: {&#39;session_id&#39;: &#39;ec6f3fc5-a68d-42c7-b8d4-5ff857af21e9&#39;, &#39;query&#39;:
- &#39;dragon&#39;, &#39;results&#39;: [], &#39;total_results&#39;: 0, &#39;timestamp&#39;: &#39;2025-06-22T15:31:12.020448&#39;}}...
+   Data: {'type': 'search_response', 'data': {'session_id': 'ec6f3fc5-a68d-42c7-b8d4-5ff857af21e9', 'query':
+ 'dragon', 'results': [], 'total_results': 0, 'timestamp': '2025-06-22T15:31:12.020448'}}...
 
 ============================================================
   Get Graph Test
 ============================================================
 ✅ PASS: Graph retrieval
-   Data: {&#39;type&#39;: &#39;graph_response&#39;, &#39;data&#39;: {&#39;session_id&#39;: &#39;ec6f3fc5-a68d-42c7-b8d4-5ff857af21e9&#39;, &#39;format&#39;:
- &#39;json&#39;, &#39;graph_data&#39;: {&#39;nodes&#39;: [], &#39;edges&#39;: [], &#39;metadata&#39;: {&#39;graph_disabled&#39;: True, &#39;message&#39;: &#39;Gr...
+   Data: {'type': 'graph_response', 'data': {'session_id': 'ec6f3fc5-a68d-42c7-b8d4-5ff857af21e9', 'format':
+ 'json', 'graph_data': {'nodes': [], 'edges': [], 'metadata': {'graph_disabled': True, 'message': 'Gr...
 
 ============================================================
   Heartbeat Test
 ============================================================
 ✅ PASS: Heartbeat with response
-   Data: {&#39;type&#39;: &#39;heartbeat_response&#39;, &#39;data&#39;: {&#39;timestamp&#39;: &#39;2025-06-22T15:31:12.068777&#39;, &#39;session_id&#39;: &#39;e
-c6f3fc5-a68d-42c7-b8d4-5ff857af21e9&#39;}}...
+   Data: {'type': 'heartbeat_response', 'data': {'timestamp': '2025-06-22T15:31:12.068777', 'session_id': 'e
+c6f3fc5-a68d-42c7-b8d4-5ff857af21e9'}}...
 
 ============================================================
   Log Streaming Test
 ============================================================
-✅ PASS: Got log sources: [&#39;agent&#39;, &#39;memory_manager&#39;, &#39;ollama_general&#39;, &#39;ollama_digest&#39;, &#39;ollama_embed&#39;, &#39;ap
-i&#39;]
+✅ PASS: Got log sources: ['agent', 'memory_manager', 'ollama_general', 'ollama_digest', 'ollama_embed', 'ap
+i']
 ✅ PASS: Subscribed to logs successfully
 ❌ FAIL: Log streaming functionality
-   Data: {&#39;type&#39;: &#39;log_stream&#39;, &#39;data&#39;: {&#39;timestamp&#39;: &#39;2025-06-22T15:31:12.093881&#39;, &#39;level&#39;: &#39;INFO&#39;, &#39;logger
-&#39;: &#39;src.api.websocket.handlers&#39;, &#39;message&#39;: &#39;2025-06-22 15:31:12,093 INFO:src.api.websocket.handlers:...
+   Data: {'type': 'log_stream', 'data': {'timestamp': '2025-06-22T15:31:12.093881', 'level': 'INFO', 'logger
+': 'src.api.websocket.handlers', 'message': '2025-06-22 15:31:12,093 INFO:src.api.websocket.handlers:...
 
 ============================================================
   Monitor WebSocket Test
 ============================================================
 ✅ PASS: Monitor connected
-   Data: {&#39;type&#39;: &#39;monitor_connected&#39;, &#39;data&#39;: {&#39;active_sessions&#39;: 1, &#39;active_connections&#39;: 0, &#39;timestamp&#39;: 
-&#39;now&#39;}}...
+   Data: {'type': 'monitor_connected', 'data': {'active_sessions': 1, 'active_connections': 0, 'timestamp': 
+'now'}}...
 ✅ PASS: Monitor ping/pong
-   Data: {&#39;type&#39;: &#39;pong&#39;, &#39;data&#39;: {&#39;active_sessions&#39;: 1, &#39;active_connections&#39;: 0, &#39;timestamp&#39;: &#39;now&#39;}}...
+   Data: {'type': 'pong', 'data': {'active_sessions': 1, 'active_connections': 0, 'timestamp': 'now'}}...
 
 ============================================================
   Invalid Session WebSocket Test
@@ -2890,7 +2890,7 @@ The issue is that the test is receiving a `log_stream` message when it expects a
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: scripts/api/test_websocket_api.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: scripts/api/test_websocket_api.py</summary>
 
 **Chunk 1**
 Lines added: 16, lines removed: 3
@@ -2907,19 +2907,19 @@ Lines added: 16, lines removed: 3
 +                         response = await asyncio.wait_for(websocket.recv(), timeout=2.0)
                           response_data = json.loads(response)
                           
--                 success = response_data.get(&quot;type&quot;) == &quot;logs_unsubscribed&quot;
--                 self.print_result(success, f&quot;Log streaming functionality&quot;, response_data)
-+                         if response_data.get(&quot;type&quot;) == &quot;logs_unsubscribed&quot;:
+-                 success = response_data.get("type") == "logs_unsubscribed"
+-                 self.print_result(success, f"Log streaming functionality", response_data)
++                         if response_data.get("type") == "logs_unsubscribed":
 +                             unsubscribe_success = True
 +                             break
-+                         elif response_data.get(&quot;type&quot;) == &quot;log_stream&quot;:
++                         elif response_data.get("type") == "log_stream":
 +                             # Skip log stream messages and continue looking
 +                             continue
 +                     except asyncio.TimeoutError:
 +                         break
 +                 
 +                 success = unsubscribe_success
-+                 self.print_result(success, f&quot;Log streaming functionality&quot;, {&quot;unsubscribe_received&quot;: unsubscribe_success})
++                 self.print_result(success, f"Log streaming functionality", {"unsubscribe_received": unsubscribe_success})
                   
                   return success
 ```
@@ -2935,7 +2935,7 @@ Now let's run the test again to see if the log streaming test passes:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: python test_websocket_api.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: python test_websocket_api.py</summary>
 
 ```bash
 python test_websocket_api.py
@@ -2953,30 +2953,30 @@ Test User ID: test_user_websocket
   WebSocket Connection
 ============================================================
 ✅ PASS: WebSocket connected successfully
-   Data: {&#39;type&#39;: &#39;connection_established&#39;, &#39;data&#39;: {&#39;connection_id&#39;: &#39;a275e6a6-1d32-4b17-ad5f-fb0205d223fb_
-1750620729.932917&#39;, &#39;session_id&#39;: &#39;a275e6a6-1d32-4b17-ad5f-fb0205d223fb&#39;, &#39;timestamp&#39;: &#39;2025-06-22T15...
+   Data: {'type': 'connection_established', 'data': {'connection_id': 'a275e6a6-1d32-4b17-ad5f-fb0205d223fb_
+1750620729.932917', 'session_id': 'a275e6a6-1d32-4b17-ad5f-fb0205d223fb', 'timestamp': '2025-06-22T15...
 
 ============================================================
   Ping/Pong Test
 ============================================================
 ✅ PASS: Ping/Pong exchange
-   Data: {&#39;type&#39;: &#39;pong&#39;, &#39;data&#39;: {&#39;timestamp&#39;: &#39;2025-06-22T15:32:09.955364&#39;, &#39;session_id&#39;: &#39;a275e6a6-1d32-4
-b17-ad5f-fb0205d223fb&#39;, &#39;message&#39;: &#39;Hello WebSocket!&#39;}}...
+   Data: {'type': 'pong', 'data': {'timestamp': '2025-06-22T15:32:09.955364', 'session_id': 'a275e6a6-1d32-4
+b17-ad5f-fb0205d223fb', 'message': 'Hello WebSocket!'}}...
 
 ============================================================
   Get Status Test
 ============================================================
 🔍 Connected to WebSocket for status test
-🔍 Skipped initial message: {&quot;type&quot;: &quot;connection_established&quot;, &quot;data&quot;: {&quot;connection_id&quot;: &quot;a275e6a6-1d32-4b17
+🔍 Skipped initial message: {"type": "connection_established", "data": {"connection_id": "a275e6a6-1d32-4b17
 -ad5f-fb0205d223fb_1...
-🔍 Sending status message: {&#39;type&#39;: &#39;get_status&#39;, &#39;data&#39;: {}}
+🔍 Sending status message: {'type': 'get_status', 'data': {}}
 🔍 Status message sent, waiting for response...
-🔍 Received status response: {&quot;type&quot;: &quot;status_response&quot;, &quot;data&quot;: {&quot;session_id&quot;: &quot;a275e6a6-1d32-4b17-ad5f-fb0
-205d223fb&quot;, &quot;agent_initialized&quot;: true, &quot;memory_manager_initialized&quot;: true, &quot;last_activity&quot;: &quot;2025-06-22T15:3
-2:09.971469&quot;,...
+🔍 Received status response: {"type": "status_response", "data": {"session_id": "a275e6a6-1d32-4b17-ad5f-fb0
+205d223fb", "agent_initialized": true, "memory_manager_initialized": true, "last_activity": "2025-06-22T15:3
+2:09.971469",...
 ✅ PASS: Status retrieval
-   Data: {&#39;type&#39;: &#39;status_response&#39;, &#39;data&#39;: {&#39;session_id&#39;: &#39;a275e6a6-1d32-4b17-ad5f-fb0205d223fb&#39;, &#39;agent_i
-nitialized&#39;: True, &#39;memory_manager_initialized&#39;: True, &#39;last_activity&#39;: &#39;2025-06-22T15:32:09.971469&#39;,...
+   Data: {'type': 'status_response', 'data': {'session_id': 'a275e6a6-1d32-4b17-ad5f-fb0205d223fb', 'agent_i
+nitialized': True, 'memory_manager_initialized': True, 'last_activity': '2025-06-22T15:32:09.971469',...
 
 ============================================================
   Agent Query Test
@@ -2984,54 +2984,54 @@ nitialized&#39;: True, &#39;memory_manager_initialized&#39;: True, &#39;last_act
 📨 Received: typing_start
 📨 Received: query_response
 ✅ PASS: Agent query (received 2 responses)
-   Data: [{&#39;type&#39;: &#39;typing_start&#39;, &#39;data&#39;: {&#39;session_id&#39;: &#39;a275e6a6-1d32-4b17-ad5f-fb0205d223fb&#39;, &#39;timestamp
-&#39;: &#39;2025-06-22T15:32:09.987865&#39;}}, {&#39;type&#39;: &#39;query_response&#39;, &#39;data&#39;: {&#39;message&#39;: &#39;Hello! Can you tel...
+   Data: [{'type': 'typing_start', 'data': {'session_id': 'a275e6a6-1d32-4b17-ad5f-fb0205d223fb', 'timestamp
+': '2025-06-22T15:32:09.987865'}}, {'type': 'query_response', 'data': {'message': 'Hello! Can you tel...
 
 ============================================================
   Get Memory Test
 ============================================================
 ✅ PASS: Memory retrieval
-   Data: {&#39;type&#39;: &#39;memory_response&#39;, &#39;data&#39;: {&#39;session_id&#39;: &#39;a275e6a6-1d32-4b17-ad5f-fb0205d223fb&#39;, &#39;type&#39;: 
-&#39;conversations&#39;, &#39;data&#39;: {&#39;conversations&#39;: [{&#39;guid&#39;: &#39;67b84a3d-a133-4fc0-855f-3a4905e976cc&#39;, &#39;role&#39;: ...
+   Data: {'type': 'memory_response', 'data': {'session_id': 'a275e6a6-1d32-4b17-ad5f-fb0205d223fb', 'type': 
+'conversations', 'data': {'conversations': [{'guid': '67b84a3d-a133-4fc0-855f-3a4905e976cc', 'role': ...
 
 ============================================================
   Search Memory Test
 ============================================================
 ✅ PASS: Memory search
-   Data: {&#39;type&#39;: &#39;search_response&#39;, &#39;data&#39;: {&#39;session_id&#39;: &#39;a275e6a6-1d32-4b17-ad5f-fb0205d223fb&#39;, &#39;query&#39;:
- &#39;dragon&#39;, &#39;results&#39;: [], &#39;total_results&#39;: 0, &#39;timestamp&#39;: &#39;2025-06-22T15:32:16.651126&#39;}}...
+   Data: {'type': 'search_response', 'data': {'session_id': 'a275e6a6-1d32-4b17-ad5f-fb0205d223fb', 'query':
+ 'dragon', 'results': [], 'total_results': 0, 'timestamp': '2025-06-22T15:32:16.651126'}}...
 
 ============================================================
   Get Graph Test
 ============================================================
 ✅ PASS: Graph retrieval
-   Data: {&#39;type&#39;: &#39;graph_response&#39;, &#39;data&#39;: {&#39;session_id&#39;: &#39;a275e6a6-1d32-4b17-ad5f-fb0205d223fb&#39;, &#39;format&#39;:
- &#39;json&#39;, &#39;graph_data&#39;: {&#39;nodes&#39;: [], &#39;edges&#39;: [], &#39;metadata&#39;: {&#39;graph_disabled&#39;: True, &#39;message&#39;: &#39;Gr...
+   Data: {'type': 'graph_response', 'data': {'session_id': 'a275e6a6-1d32-4b17-ad5f-fb0205d223fb', 'format':
+ 'json', 'graph_data': {'nodes': [], 'edges': [], 'metadata': {'graph_disabled': True, 'message': 'Gr...
 
 ============================================================
   Heartbeat Test
 ============================================================
 ✅ PASS: Heartbeat with response
-   Data: {&#39;type&#39;: &#39;heartbeat_response&#39;, &#39;data&#39;: {&#39;timestamp&#39;: &#39;2025-06-22T15:32:16.687055&#39;, &#39;session_id&#39;: &#39;a
-275e6a6-1d32-4b17-ad5f-fb0205d223fb&#39;}}...
+   Data: {'type': 'heartbeat_response', 'data': {'timestamp': '2025-06-22T15:32:16.687055', 'session_id': 'a
+275e6a6-1d32-4b17-ad5f-fb0205d223fb'}}...
 
 ============================================================
   Log Streaming Test
 ============================================================
-✅ PASS: Got log sources: [&#39;agent&#39;, &#39;memory_manager&#39;, &#39;ollama_general&#39;, &#39;ollama_digest&#39;, &#39;ollama_embed&#39;, &#39;ap
-i&#39;]
+✅ PASS: Got log sources: ['agent', 'memory_manager', 'ollama_general', 'ollama_digest', 'ollama_embed', 'ap
+i']
 ✅ PASS: Subscribed to logs successfully
 ✅ PASS: Log streaming functionality
-   Data: {&#39;unsubscribe_received&#39;: True}...
+   Data: {'unsubscribe_received': True}...
 
 ============================================================
   Monitor WebSocket Test
 ============================================================
 ✅ PASS: Monitor connected
-   Data: {&#39;type&#39;: &#39;monitor_connected&#39;, &#39;data&#39;: {&#39;active_sessions&#39;: 1, &#39;active_connections&#39;: 0, &#39;timestamp&#39;: 
-&#39;now&#39;}}...
+   Data: {'type': 'monitor_connected', 'data': {'active_sessions': 1, 'active_connections': 0, 'timestamp': 
+'now'}}...
 ✅ PASS: Monitor ping/pong
-   Data: {&#39;type&#39;: &#39;pong&#39;, &#39;data&#39;: {&#39;active_sessions&#39;: 1, &#39;active_connections&#39;: 0, &#39;timestamp&#39;: &#39;now&#39;}}...
+   Data: {'type': 'pong', 'data': {'active_sessions': 1, 'active_connections': 0, 'timestamp': 'now'}}...
 
 ============================================================
   Invalid Session WebSocket Test

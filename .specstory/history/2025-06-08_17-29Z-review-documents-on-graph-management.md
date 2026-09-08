@@ -218,7 +218,7 @@ I'll implement the alternative entity and relationship extraction approach as ne
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/templates/entity_extraction.prompt</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/graph_memory/templates/entity_extraction.prompt</summary>
 
 I'm creating a comprehensive entity extraction prompt template for the alternative LLM-centric approach
 
@@ -255,25 +255,25 @@ Lines added: 52, lines removed: 1
 + ## Output Format
 + 
 + Respond with a JSON array of entities. Each entity must have:
-+ - &quot;type&quot;: one of the defined entity types
-+ - &quot;name&quot;: clear, specific name for the entity
-+ - &quot;description&quot;: detailed description suitable for semantic matching and graph storage
-+ - &quot;confidence&quot;: your confidence in this entity being graph-worthy (0.0 to 1.0)
++ - "type": one of the defined entity types
++ - "name": clear, specific name for the entity
++ - "description": detailed description suitable for semantic matching and graph storage
++ - "confidence": your confidence in this entity being graph-worthy (0.0 to 1.0)
 + 
 + **Example Response:**
 + &#96;&#96;&#96;json
 + [
 +     {
-+         &quot;type&quot;: &quot;character&quot;,
-+         &quot;name&quot;: &quot;Elena&quot;,
-+         &quot;description&quot;: &quot;Mayor of Haven who is investigating strange occurrences in the valley&quot;,
-+         &quot;confidence&quot;: 0.9
++         "type": "character",
++         "name": "Elena",
++         "description": "Mayor of Haven who is investigating strange occurrences in the valley",
++         "confidence": 0.9
 +     },
 +     {
-+         &quot;type&quot;: &quot;location&quot;, 
-+         &quot;name&quot;: &quot;Haven&quot;,
-+         &quot;description&quot;: &quot;A settlement in the valley where Elena serves as mayor&quot;,
-+         &quot;confidence&quot;: 0.8
++         "type": "location", 
++         "name": "Haven",
++         "description": "A settlement in the valley where Elena serves as mayor",
++         "confidence": 0.8
 +     }
 + ]
 + &#96;&#96;&#96;
@@ -290,7 +290,7 @@ Lines added: 52, lines removed: 1
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/templates/relationship_extraction.prompt</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/graph_memory/templates/relationship_extraction.prompt</summary>
 
 I'm creating a comprehensive relationship extraction prompt template for the alternative LLM-centric approach
 
@@ -328,28 +328,28 @@ Lines added: 56, lines removed: 1
 + ## Output Format
 + 
 + Respond with a JSON array of relationships. Each relationship must have:
-+ - &quot;from_entity&quot;: name of the source entity (exactly as listed above)
-+ - &quot;to_entity&quot;: name of the target entity (exactly as listed above)  
-+ - &quot;relationship&quot;: type of relationship (from the defined types)
-+ - &quot;confidence&quot;: confidence score from 0.0 to 1.0
-+ - &quot;evidence&quot;: brief quote or description from text supporting this relationship
++ - "from_entity": name of the source entity (exactly as listed above)
++ - "to_entity": name of the target entity (exactly as listed above)  
++ - "relationship": type of relationship (from the defined types)
++ - "confidence": confidence score from 0.0 to 1.0
++ - "evidence": brief quote or description from text supporting this relationship
 + 
 + **Example Response:**
 + &#96;&#96;&#96;json
 + [
 +     {
-+         &quot;from_entity&quot;: &quot;Elena&quot;,
-+         &quot;to_entity&quot;: &quot;Haven&quot;,
-+         &quot;relationship&quot;: &quot;located_in&quot;,
-+         &quot;confidence&quot;: 0.9,
-+         &quot;evidence&quot;: &quot;Elena serves as Mayor of Haven&quot;
++         "from_entity": "Elena",
++         "to_entity": "Haven",
++         "relationship": "located_in",
++         "confidence": 0.9,
++         "evidence": "Elena serves as Mayor of Haven"
 +     },
 +     {
-+         &quot;from_entity&quot;: &quot;Elena&quot;, 
-+         &quot;to_entity&quot;: &quot;investigation&quot;,
-+         &quot;relationship&quot;: &quot;participates_in&quot;,
-+         &quot;confidence&quot;: 0.8,
-+         &quot;evidence&quot;: &quot;Elena is investigating strange occurrences&quot;
++         "from_entity": "Elena", 
++         "to_entity": "investigation",
++         "relationship": "participates_in",
++         "confidence": 0.8,
++         "evidence": "Elena is investigating strange occurrences"
 +     }
 + ]
 + &#96;&#96;&#96;
@@ -370,7 +370,7 @@ Now let me create the alternative entity extractor:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/alt_entity_extractor.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/graph_memory/alt_entity_extractor.py</summary>
 
 I'm creating a new alternative entity extractor class that implements the LLM-centric approach with RAG-based entity matching as described in the alternative approach document
 
@@ -382,7 +382,7 @@ I'm creating a new alternative entity extractor class that implements the LLM-ce
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/alt_entity_extractor.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/graph_memory/alt_entity_extractor.py</summary>
 
 I'm creating a new file with the alternative entity extractor implementation
 
@@ -427,7 +427,7 @@ Great! The alternative entity extractor was created successfully. Now let me cre
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/alt_relationship_extractor.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/graph_memory/alt_relationship_extractor.py</summary>
 
 I'm creating a new alternative relationship extractor class that implements the LLM-centric approach with direct entity context as described in the alternative approach document
 
@@ -437,7 +437,7 @@ Lines added: 336, lines removed: 1
 ```diff
 @@ -1,1 +1,336 @@
 - 
-+ &quot;&quot;&quot;
++ """
 + Alternative Relationship Extractor
 + 
 + LLM-centric relationship extraction that works with entity context from the alternative entity extractor.
@@ -445,7 +445,7 @@ Lines added: 336, lines removed: 1
 + 
 + This extractor focuses on analyzing full conversation text with explicit entity context,
 + rather than working with pre-segmented text.
-+ &quot;&quot;&quot;
++ """
 + 
 + import json
 + import re
@@ -456,17 +456,17 @@ Lines added: 336, lines removed: 1
 + 
 + 
 + class AltRelationshipExtractor:
-+     &quot;&quot;&quot;Alternative relationship extractor using LLM-centric approach with entity context.&quot;&quot;&quot;
++     """Alternative relationship extractor using LLM-centric approach with entity context."""
 +     
 +     def __init__(self, llm_service, domain_config: Optional[Dict[str, Any]] = None, logger=None):
-+         &quot;&quot;&quot;
++         """
 +         Initialize alternative relationship extractor.
 +         
 +         Args:
 +             llm_service: LLM service for relationship extraction
 +             domain_config: Domain-specific configuration with relationship types
 +             logger: Logger instance
-+         &quot;&quot;&quot;
++         """
 +         self.llm_service = llm_service
 +         self.domain_config = domain_config or {}
 +         self.logger = logger or logging.getLogger(__name__)
@@ -478,19 +478,19 @@ Lines added: 336, lines removed: 1
 +         self.relationship_types = self._get_relationship_types()
 +     
 +     def _load_prompt_template(self) -&gt; str:
-+         &quot;&quot;&quot;Load the relationship extraction prompt template.&quot;&quot;&quot;
++         """Load the relationship extraction prompt template."""
 +         try:
 +             template_path = os.path.join(os.path.dirname(__file__), 
-+                                        &#39;templates&#39;, &#39;relationship_extraction.prompt&#39;)
-+             with open(template_path, &#39;r&#39;, encoding=&#39;utf-8&#39;) as f:
++                                        'templates', 'relationship_extraction.prompt')
++             with open(template_path, 'r', encoding='utf-8') as f:
 +                 return f.read()
 +         except Exception as e:
-+             self.logger.warning(f&quot;Failed to load prompt template: {e}&quot;)
++             self.logger.warning(f"Failed to load prompt template: {e}")
 +             return self._get_default_prompt_template()
 +     
 +     def _get_default_prompt_template(self) -&gt; str:
-+         &quot;&quot;&quot;Get default prompt template if file loading fails.&quot;&quot;&quot;
-+         return &quot;&quot;&quot;Analyze the conversation text and identify relationships between the given entities.
++         """Get default prompt template if file loading fails."""
++         return """Analyze the conversation text and identify relationships between the given entities.
 + 
 + Relationship Types: {relationship_types}
 + 
@@ -501,55 +501,55 @@ Lines added: 336, lines removed: 1
 + 
 + Extract relationships as JSON array with fields: from_entity, to_entity, relationship, confidence, evidence.
 + 
-+ Relationships:&quot;&quot;&quot;
++ Relationships:"""
 +     
 +     def _get_relationship_types(self) -&gt; Dict[str, str]:
-+         &quot;&quot;&quot;Get relationship types from domain configuration.&quot;&quot;&quot;
-+         domain_name = self.domain_config.get(&#39;domain_name&#39;, &#39;general&#39;)
++         """Get relationship types from domain configuration."""
++         domain_name = self.domain_config.get('domain_name', 'general')
 +         
-+         if &#39;dnd&#39; in domain_name.lower():
++         if 'dnd' in domain_name.lower():
 +             return {
-+                 &#39;located_in&#39;: &#39;Entity is physically located within another entity&#39;,
-+                 &#39;owns&#39;: &#39;Character possesses or controls an object&#39;,
-+                 &#39;member_of&#39;: &#39;Character belongs to an organization or group&#39;,
-+                 &#39;allies_with&#39;: &#39;Characters are allied or friendly&#39;,
-+                 &#39;enemies_with&#39;: &#39;Characters are hostile or opposed&#39;,
-+                 &#39;uses&#39;: &#39;Character uses an object, spell, or ability&#39;,
-+                 &#39;created_by&#39;: &#39;Object or concept was created by a character&#39;,
-+                 &#39;leads_to&#39;: &#39;Event or action causes another event&#39;,
-+                 &#39;participates_in&#39;: &#39;Character takes part in an event&#39;,
-+                 &#39;related_to&#39;: &#39;General association between entities&#39;,
-+                 &#39;mentions&#39;: &#39;Entity is mentioned in context of another&#39;
++                 'located_in': 'Entity is physically located within another entity',
++                 'owns': 'Character possesses or controls an object',
++                 'member_of': 'Character belongs to an organization or group',
++                 'allies_with': 'Characters are allied or friendly',
++                 'enemies_with': 'Characters are hostile or opposed',
++                 'uses': 'Character uses an object, spell, or ability',
++                 'created_by': 'Object or concept was created by a character',
++                 'leads_to': 'Event or action causes another event',
++                 'participates_in': 'Character takes part in an event',
++                 'related_to': 'General association between entities',
++                 'mentions': 'Entity is mentioned in context of another'
 +             }
-+         elif &#39;lab&#39; in domain_name.lower():
++         elif 'lab' in domain_name.lower():
 +             return {
-+                 &#39;used_in&#39;: &#39;Equipment or material used in procedure&#39;,
-+                 &#39;produces&#39;: &#39;Procedure or reaction produces a result&#39;,
-+                 &#39;requires&#39;: &#39;Procedure requires specific materials or equipment&#39;,
-+                 &#39;measures&#39;: &#39;Equipment measures or detects something&#39;,
-+                 &#39;contains&#39;: &#39;Sample or material contains a substance&#39;,
-+                 &#39;performed_by&#39;: &#39;Procedure performed by a person&#39;,
-+                 &#39;collaborates_with&#39;: &#39;Person works with another person&#39;,
-+                 &#39;based_on&#39;: &#39;Procedure based on a concept or theory&#39;,
-+                 &#39;leads_to&#39;: &#39;One result leads to another finding&#39;,
-+                 &#39;related_to&#39;: &#39;General association between entities&#39;
++                 'used_in': 'Equipment or material used in procedure',
++                 'produces': 'Procedure or reaction produces a result',
++                 'requires': 'Procedure requires specific materials or equipment',
++                 'measures': 'Equipment measures or detects something',
++                 'contains': 'Sample or material contains a substance',
++                 'performed_by': 'Procedure performed by a person',
++                 'collaborates_with': 'Person works with another person',
++                 'based_on': 'Procedure based on a concept or theory',
++                 'leads_to': 'One result leads to another finding',
++                 'related_to': 'General association between entities'
 +             }
 +         else:
 +             return {
-+                 &#39;located_in&#39;: &#39;Entity is located within another&#39;,
-+                 &#39;part_of&#39;: &#39;Entity is part of a larger entity&#39;,
-+                 &#39;owns&#39;: &#39;Entity possesses another entity&#39;,
-+                 &#39;created_by&#39;: &#39;Entity was created by another&#39;,
-+                 &#39;uses&#39;: &#39;Entity uses or employs another&#39;,
-+                 &#39;causes&#39;: &#39;Entity causes or leads to another&#39;,
-+                 &#39;participates_in&#39;: &#39;Entity participates in an event&#39;,
-+                 &#39;related_to&#39;: &#39;General association between entities&#39;,
-+                 &#39;mentions&#39;: &#39;Entity is mentioned in context&#39;
++                 'located_in': 'Entity is located within another',
++                 'part_of': 'Entity is part of a larger entity',
++                 'owns': 'Entity possesses another entity',
++                 'created_by': 'Entity was created by another',
++                 'uses': 'Entity uses or employs another',
++                 'causes': 'Entity causes or leads to another',
++                 'participates_in': 'Entity participates in an event',
++                 'related_to': 'General association between entities',
++                 'mentions': 'Entity is mentioned in context'
 +             }
 +     
-+     def extract_relationships_from_conversation(self, conversation_text: str, digest_text: str = &quot;&quot;,
++     def extract_relationships_from_conversation(self, conversation_text: str, digest_text: str = "",
 +                                               entities: List[Dict[str, Any]] = None) -&gt; List[Dict[str, Any]]:
-+         &quot;&quot;&quot;
++         """
 +         Extract relationships from full conversation entry with entity context.
 +         
 +         This method analyzes the full conversation text and digest to identify relationships
@@ -562,9 +562,9 @@ Lines added: 336, lines removed: 1
 +             
 +         Returns:
 +             List of relationships between entities
-+         &quot;&quot;&quot;
++         """
 +         if not entities or len(entities) &lt; 2:
-+             self.logger.debug(&quot;Need at least 2 entities to extract relationships&quot;)
++             self.logger.debug("Need at least 2 entities to extract relationships")
 +             return []
 +         
 +         try:
@@ -572,8 +572,8 @@ Lines added: 336, lines removed: 1
 +             entities_context = self._build_entities_context(entities)
 +             
 +             # Build relationship types description
-+             relationship_types_desc = &quot;\n&quot;.join([
-+                 f&quot;- {rtype}: {desc}&quot; for rtype, desc in self.relationship_types.items()
++             relationship_types_desc = "\n".join([
++                 f"- {rtype}: {desc}" for rtype, desc in self.relationship_types.items()
 +             ])
 +             
 +             # Build prompt
@@ -590,42 +590,42 @@ Lines added: 336, lines removed: 1
 +             # Parse relationships
 +             relationships = self._parse_relationship_response(response, entities)
 +             
-+             self.logger.debug(f&quot;Extracted {len(relationships)} relationships from conversation&quot;)
++             self.logger.debug(f"Extracted {len(relationships)} relationships from conversation")
 +             return relationships
 +             
 +         except Exception as e:
-+             self.logger.error(f&quot;Error in alternative relationship extraction: {e}&quot;)
++             self.logger.error(f"Error in alternative relationship extraction: {e}")
 +             return []
 +     
 +     def _build_entities_context(self, entities: List[Dict[str, Any]]) -&gt; str:
-+         &quot;&quot;&quot;Build formatted entity context for the prompt.&quot;&quot;&quot;
++         """Build formatted entity context for the prompt."""
 +         entities_lines = []
 +         for entity in entities:
-+             status = entity.get(&#39;status&#39;, &#39;new&#39;)
-+             name = entity.get(&#39;name&#39;, &#39;&#39;)
-+             entity_type = entity.get(&#39;type&#39;, &#39;&#39;)
-+             description = entity.get(&#39;description&#39;, &#39;&#39;)
++             status = entity.get('status', 'new')
++             name = entity.get('name', '')
++             entity_type = entity.get('type', '')
++             description = entity.get('description', '')
 +             
-+             line = f&quot;- {name} ({entity_type})&quot;
-+             if status == &#39;existing&#39;:
-+                 line += &quot; [EXISTING]&quot;
-+             line += f&quot;: {description}&quot;
++             line = f"- {name} ({entity_type})"
++             if status == 'existing':
++                 line += " [EXISTING]"
++             line += f": {description}"
 +             
 +             entities_lines.append(line)
 +         
-+         return &quot;\n&quot;.join(entities_lines)
++         return "\n".join(entities_lines)
 +     
 +     def _parse_relationship_response(self, response: str, entities: List[Dict[str, Any]]) -&gt; List[Dict[str, Any]]:
-+         &quot;&quot;&quot;Parse LLM response to extract relationship list.&quot;&quot;&quot;
++         """Parse LLM response to extract relationship list."""
 +         try:
 +             # Create entity name lookup for validation
-+             entity_names = {entity[&#39;name&#39;].lower() for entity in entities}
++             entity_names = {entity['name'].lower() for entity in entities}
 +             
 +             # Clean up response - look for JSON array
 +             response = response.strip()
 +             
 +             # Find JSON array in response
-+             json_match = re.search(r&#39;\[.*\]&#39;, response, re.DOTALL)
++             json_match = re.search(r'\[.*\]', response, re.DOTALL)
 +             if json_match:
 +                 json_str = json_match.group(0)
 +                 relationships = json.loads(json_str)
@@ -639,19 +639,19 @@ Lines added: 336, lines removed: 1
 +                 return valid_relationships
 +             
 +             else:
-+                 self.logger.warning(&quot;No JSON array found in relationship extraction response&quot;)
++                 self.logger.warning("No JSON array found in relationship extraction response")
 +                 return []
 +                 
 +         except json.JSONDecodeError as e:
-+             self.logger.error(f&quot;Failed to parse relationship extraction JSON: {e}&quot;)
++             self.logger.error(f"Failed to parse relationship extraction JSON: {e}")
 +             return []
 +         except Exception as e:
-+             self.logger.error(f&quot;Error parsing relationship extraction response: {e}&quot;)
++             self.logger.error(f"Error parsing relationship extraction response: {e}")
 +             return []
 +     
 +     def _validate_relationship(self, relationship: Dict[str, Any], entity_names: set) -&gt; bool:
-+         &quot;&quot;&quot;Validate extracted relationship structure.&quot;&quot;&quot;
-+         required_fields = [&#39;from_entity&#39;, &#39;to_entity&#39;, &#39;relationship&#39;]
++         """Validate extracted relationship structure."""
++         required_fields = ['from_entity', 'to_entity', 'relationship']
 +         
 +         # Check required fields exist
 +         for field in required_fields:
@@ -659,30 +659,30 @@ Lines added: 336, lines removed: 1
 +                 return False
 +         
 +         # Check entities exist in the entity list (case-insensitive)
-+         from_name = relationship[&#39;from_entity&#39;].lower()
-+         to_name = relationship[&#39;to_entity&#39;].lower()
++         from_name = relationship['from_entity'].lower()
++         to_name = relationship['to_entity'].lower()
 +         
 +         if from_name not in entity_names or to_name not in entity_names:
 +             return False
 +         
 +         # Check relationship type is valid
-+         if relationship[&#39;relationship&#39;] not in self.relationship_types:
++         if relationship['relationship'] not in self.relationship_types:
 +             return False
 +         
 +         # Check confidence is reasonable (if provided)
-+         confidence = relationship.get(&#39;confidence&#39;, 1.0)
++         confidence = relationship.get('confidence', 1.0)
 +         if not isinstance(confidence, (int, float)) or not 0.0 &lt;= confidence &lt;= 1.0:
-+             relationship[&#39;confidence&#39;] = 1.0
++             relationship['confidence'] = 1.0
 +         
 +         # Ensure evidence exists
-+         if &#39;evidence&#39; not in relationship:
-+             relationship[&#39;evidence&#39;] = &quot;Inferred from context&quot;
++         if 'evidence' not in relationship:
++             relationship['evidence'] = "Inferred from context"
 +         
 +         return True
 +     
 +     def extract_relationships_from_entities(self, entities: List[Dict[str, Any]], 
-+                                           context_text: str = &quot;&quot;) -&gt; List[Dict[str, Any]]:
-+         &quot;&quot;&quot;
++                                           context_text: str = "") -&gt; List[Dict[str, Any]]:
++         """
 +         Extract relationships between entities with optional context.
 +         
 +         This is a simplified version that works with just entity information
@@ -694,18 +694,18 @@ Lines added: 336, lines removed: 1
 +             
 +         Returns:
 +             List of relationships between entities
-+         &quot;&quot;&quot;
++         """
 +         if not entities or len(entities) &lt; 2:
 +             return []
 +         
 +         try:
 +             # Build simplified prompt
 +             entities_context = self._build_entities_context(entities)
-+             relationship_types_desc = &quot;\n&quot;.join([
-+                 f&quot;- {rtype}: {desc}&quot; for rtype, desc in self.relationship_types.items()
++             relationship_types_desc = "\n".join([
++                 f"- {rtype}: {desc}" for rtype, desc in self.relationship_types.items()
 +             ])
 +             
-+             prompt = f&quot;&quot;&quot;Analyze the following entities to identify likely relationships between them.
++             prompt = f"""Analyze the following entities to identify likely relationships between them.
 + 
 + Relationship Types:
 + {relationship_types_desc}
@@ -720,7 +720,7 @@ Lines added: 336, lines removed: 1
 + 
 + Respond with a JSON array of relationships with fields: from_entity, to_entity, relationship, confidence, evidence.
 + 
-+ Relationships:&quot;&quot;&quot;
++ Relationships:"""
 +             
 +             # Get LLM response
 +             response = self.llm_service.generate(prompt)
@@ -728,15 +728,15 @@ Lines added: 336, lines removed: 1
 +             # Parse relationships
 +             relationships = self._parse_relationship_response(response, entities)
 +             
-+             self.logger.debug(f&quot;Extracted {len(relationships)} relationships from entity analysis&quot;)
++             self.logger.debug(f"Extracted {len(relationships)} relationships from entity analysis")
 +             return relationships
 +             
 +         except Exception as e:
-+             self.logger.error(f&quot;Error extracting relationships from entities: {e}&quot;)
++             self.logger.error(f"Error extracting relationships from entities: {e}")
 +             return []
 +     
 +     def deduplicate_relationships(self, relationships: List[Dict[str, Any]]) -&gt; List[Dict[str, Any]]:
-+         &quot;&quot;&quot;
++         """
 +         Remove duplicate relationships based on from_entity, to_entity, and relationship type.
 +         
 +         Args:
@@ -744,16 +744,16 @@ Lines added: 336, lines removed: 1
 +             
 +         Returns:
 +             List of unique relationships
-+         &quot;&quot;&quot;
++         """
 +         seen_relationships = set()
 +         unique_relationships = []
 +         
 +         for rel in relationships:
 +             # Create a key for deduplication
 +             key = (
-+                 rel[&#39;from_entity&#39;].lower(),
-+                 rel[&#39;to_entity&#39;].lower(),
-+                 rel[&#39;relationship&#39;]
++                 rel['from_entity'].lower(),
++                 rel['to_entity'].lower(),
++                 rel['relationship']
 +             )
 +             
 +             if key not in seen_relationships:
@@ -763,15 +763,15 @@ Lines added: 336, lines removed: 1
 +         return unique_relationships
 +     
 +     def get_relationship_types(self) -&gt; Dict[str, str]:
-+         &quot;&quot;&quot;Get configured relationship types.&quot;&quot;&quot;
++         """Get configured relationship types."""
 +         return self.relationship_types.copy()
 +     
 +     def get_stats(self) -&gt; Dict[str, Any]:
-+         &quot;&quot;&quot;Get extraction statistics.&quot;&quot;&quot;
++         """Get extraction statistics."""
 +         return {
-+             &#39;extractor_type&#39;: &#39;alternative_llm_centric&#39;,
-+             &#39;relationship_types_count&#39;: len(self.relationship_types),
-+             &#39;domain&#39;: self.domain_config.get(&#39;domain_name&#39;, &#39;general&#39;)
++             'extractor_type': 'alternative_llm_centric',
++             'relationship_types_count': len(self.relationship_types),
++             'domain': self.domain_config.get('domain_name', 'general')
 +         } 
 ```
 
@@ -787,7 +787,7 @@ Now let me create an alternative graph manager that can use these new extractors
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/alt_graph_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/graph_memory/alt_graph_manager.py</summary>
 
 I'm creating a new alternative graph manager that integrates the alternative entity and relationship extractors for A/B testing
 
@@ -803,7 +803,7 @@ Let me try creating the file first:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/alt_graph_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/graph_memory/alt_graph_manager.py</summary>
 
 Creating a new alternative graph manager file
 
@@ -819,7 +819,7 @@ Let me check what files exist:
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed directory src/memory/graph_memory • **12** results</summary>
+            <summary>Tool use: **list_dir** • Listed directory src/memory/graph_memory, 12 results</summary>
         
 | Name |
 |-------|
@@ -855,7 +855,7 @@ Great! All the files were created. Let me update the `__init__.py` file to inclu
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/__init__.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/graph_memory/__init__.py</summary>
 
 I'm adding the new alternative extractor classes to the module exports for easy access
 
@@ -868,7 +868,7 @@ Lines added: 2, lines removed: undefined
   using semantic similarity matching.
 + 
 + Now includes alternative LLM-centric extractors for A/B testing.
-  &quot;&quot;&quot;
+  """
   
 ```
 
@@ -893,14 +893,14 @@ Lines added: 5, lines removed: 1
 
 ```diff
 @@ -17,4 +24,8 @@
-      &#39;RelationshipExtractor&#39;,
-      &#39;GraphQueries&#39;,
--     &#39;GraphStorage&#39;
-+     &#39;GraphStorage&#39;,
+      'RelationshipExtractor',
+      'GraphQueries',
+-     'GraphStorage'
++     'GraphStorage',
 +     # Alternative extractors
-+     &#39;AltGraphManager&#39;,
-+     &#39;AltEntityExtractor&#39;,
-+     &#39;AltRelationshipExtractor&#39;
++     'AltGraphManager',
++     'AltEntityExtractor',
++     'AltRelationshipExtractor'
   ]
 ```
 
@@ -916,7 +916,7 @@ Now let me create a simple documentation file explaining how to use the alternat
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/graph_memory_notes/ALTERNATIVE_EXTRACTORS_USAGE.md</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/graph_memory/graph_memory_notes/ALTERNATIVE_EXTRACTORS_USAGE.md</summary>
 
 I'm creating a usage guide for the new alternative extractors to help with A/B testing
 
@@ -957,7 +957,7 @@ Lines added: 256, lines removed: 1
 + 
 + # Initialize alternative graph manager
 + alt_graph_manager = AltGraphManager(
-+     storage_path=&quot;alt_graph_data&quot;,
++     storage_path="alt_graph_data",
 +     embeddings_manager=embeddings_manager,
 +     llm_service=llm_service,
 +     domain_config=domain_config,
@@ -965,15 +965,15 @@ Lines added: 256, lines removed: 1
 + )
 + 
 + # Process a conversation entry
-+ conversation_text = &quot;Elena, the Mayor of Haven, discovered ancient ruins beneath the town square...&quot;
-+ digest_text = &quot;Elena finds ruins and investigates strange magical phenomena in Haven&quot;
++ conversation_text = "Elena, the Mayor of Haven, discovered ancient ruins beneath the town square..."
++ digest_text = "Elena finds ruins and investigates strange magical phenomena in Haven"
 + 
 + results = alt_graph_manager.process_conversation_entry(conversation_text, digest_text)
 + 
-+ print(f&quot;Entities: {len(results[&#39;entities&#39;])}&quot;)
-+ print(f&quot;New entities: {len(results[&#39;new_entities&#39;])}&quot;)
-+ print(f&quot;Existing entities: {len(results[&#39;existing_entities&#39;])}&quot;)
-+ print(f&quot;Relationships: {len(results[&#39;relationships&#39;])}&quot;)
++ print(f"Entities: {len(results['entities'])}")
++ print(f"New entities: {len(results['new_entities'])}")
++ print(f"Existing entities: {len(results['existing_entities'])}")
++ print(f"Relationships: {len(results['relationships'])}")
 + &#96;&#96;&#96;
 + 
 + ### A/B Testing Setup
@@ -983,22 +983,22 @@ Lines added: 256, lines removed: 1
 + 
 + # Initialize both managers with same configuration
 + baseline_manager = GraphManager(
-+     storage_path=&quot;baseline_graph&quot;,
++     storage_path="baseline_graph",
 +     embeddings_manager=embeddings_manager,
 +     llm_service=llm_service,
 +     domain_config=domain_config
 + )
 + 
 + alt_manager = AltGraphManager(
-+     storage_path=&quot;alt_graph&quot;, 
++     storage_path="alt_graph", 
 +     embeddings_manager=embeddings_manager,
 +     llm_service=llm_service,
 +     domain_config=domain_config
 + )
 + 
 + # Test with same input
-+ conversation = &quot;Your test conversation text here...&quot;
-+ digest = &quot;Test digest...&quot;
++ conversation = "Your test conversation text here..."
++ digest = "Test digest..."
 + 
 + # Run baseline approach
 + baseline_segments = create_segments(conversation)  # Your segmentation logic
@@ -1009,8 +1009,8 @@ Lines added: 256, lines removed: 1
 + alt_results = alt_manager.process_conversation_entry(conversation, digest)
 + 
 + # Compare results
-+ print(&quot;Baseline entities:&quot;, len(baseline_entities))
-+ print(&quot;Alternative entities:&quot;, len(alt_results[&#39;entities&#39;]))
++ print("Baseline entities:", len(baseline_entities))
++ print("Alternative entities:", len(alt_results['entities']))
 + &#96;&#96;&#96;
 + 
 + ### Individual Extractor Usage
@@ -1027,8 +1027,8 @@ Lines added: 256, lines removed: 1
 + )
 + 
 + entities = entity_extractor.extract_entities_from_conversation(
-+     conversation_text=&quot;Elena explored the ancient ruins...&quot;,
-+     digest_text=&quot;Elena discovers ruins&quot;
++     conversation_text="Elena explored the ancient ruins...",
++     digest_text="Elena discovers ruins"
 + )
 + 
 + # Relationship extraction only
@@ -1039,8 +1039,8 @@ Lines added: 256, lines removed: 1
 + )
 + 
 + relationships = rel_extractor.extract_relationships_from_conversation(
-+     conversation_text=&quot;Elena explored the ancient ruins in Haven...&quot;,
-+     digest_text=&quot;Elena discovers ruins&quot;,
++     conversation_text="Elena explored the ancient ruins in Haven...",
++     digest_text="Elena discovers ruins",
 +     entities=entities
 + )
 + &#96;&#96;&#96;
@@ -1065,17 +1065,17 @@ Lines added: 256, lines removed: 1
 + 
 + &#96;&#96;&#96;python
 + domain_config = {
-+     &quot;domain_name&quot;: &quot;dnd_campaign&quot;,
-+     &quot;graph_memory_config&quot;: {
-+         &quot;entity_types&quot;: [&quot;character&quot;, &quot;location&quot;, &quot;object&quot;, &quot;concept&quot;, &quot;event&quot;, &quot;organization&quot;],
-+         &quot;relationship_types&quot;: [&quot;located_in&quot;, &quot;owns&quot;, &quot;member_of&quot;, &quot;allies_with&quot;, &quot;enemies_with&quot;]
++     "domain_name": "dnd_campaign",
++     "graph_memory_config": {
++         "entity_types": ["character", "location", "object", "concept", "event", "organization"],
++         "relationship_types": ["located_in", "owns", "member_of", "allies_with", "enemies_with"]
 +     }
 + }
 + &#96;&#96;&#96;
 + 
 + ## Expected Benefits
 + 
-+ 1. **Better Entity Matching**: LLM reasoning should better identify when &quot;Elena&quot; and &quot;the Mayor&quot; refer to the same entity
++ 1. **Better Entity Matching**: LLM reasoning should better identify when "Elena" and "the Mayor" refer to the same entity
 + 2. **Improved Context Understanding**: Full conversation analysis rather than segment-by-segment processing
 + 3. **Enhanced Relationship Detection**: Relationships identified across the entire conversation context
 + 4. **Reduced False Duplicates**: LLM reasoning combined with RAG should prevent more duplicate entities
@@ -1112,12 +1112,12 @@ Lines added: 256, lines removed: 1
 + 
 + &#96;&#96;&#96;python
 + def compare_extractors(conversation_text, digest_text, expected_entities=None):
-+     &quot;&quot;&quot;Compare baseline and alternative extractors on the same input.&quot;&quot;&quot;
++     """Compare baseline and alternative extractors on the same input."""
 +     
 +     results = {
-+         &quot;baseline&quot;: {},
-+         &quot;alternative&quot;: {},
-+         &quot;comparison&quot;: {}
++         "baseline": {},
++         "alternative": {},
++         "comparison": {}
 +     }
 +     
 +     # Time baseline approach
@@ -1131,20 +1131,20 @@ Lines added: 256, lines removed: 1
 +     alt_time = time.time() - start_time
 +     
 +     # Calculate metrics
-+     results[&quot;comparison&quot;] = {
-+         &quot;baseline_time&quot;: baseline_time,
-+         &quot;alternative_time&quot;: alt_time,
-+         &quot;baseline_entities&quot;: len(baseline_entities),
-+         &quot;alternative_entities&quot;: len(alt_results[&#39;entities&#39;]),
-+         &quot;time_ratio&quot;: alt_time / baseline_time if baseline_time &gt; 0 else float(&#39;inf&#39;)
++     results["comparison"] = {
++         "baseline_time": baseline_time,
++         "alternative_time": alt_time,
++         "baseline_entities": len(baseline_entities),
++         "alternative_entities": len(alt_results['entities']),
++         "time_ratio": alt_time / baseline_time if baseline_time &gt; 0 else float('inf')
 +     }
 +     
 +     if expected_entities:
 +         # Calculate accuracy metrics
 +         baseline_recall = calculate_recall(baseline_entities, expected_entities)
-+         alt_recall = calculate_recall(alt_results[&#39;entities&#39;], expected_entities)
-+         results[&quot;comparison&quot;][&quot;baseline_recall&quot;] = baseline_recall
-+         results[&quot;comparison&quot;][&quot;alternative_recall&quot;] = alt_recall
++         alt_recall = calculate_recall(alt_results['entities'], expected_entities)
++         results["comparison"]["baseline_recall"] = baseline_recall
++         results["comparison"]["alternative_recall"] = alt_recall
 +     
 +     return results
 + &#96;&#96;&#96;
@@ -1196,7 +1196,7 @@ Perfect! Now let me create a simple test script to demonstrate how the alternati
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/test_alternative_extractors.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/graph_memory/test_alternative_extractors.py</summary>
 
 I'm creating a test script to demonstrate the alternative extractors and enable easy A/B testing
 
@@ -1207,12 +1207,12 @@ Lines added: 353, lines removed: 1
 @@ -1,1 +1,353 @@
 - 
 + #!/usr/bin/env python3
-+ &quot;&quot;&quot;
++ """
 + Test script for alternative entity and relationship extractors.
 + 
 + This script demonstrates how to use the new LLM-centric extractors
 + and compare them with the baseline approach for A/B testing.
-+ &quot;&quot;&quot;
++ """
 + 
 + import os
 + import sys
@@ -1221,7 +1221,7 @@ Lines added: 353, lines removed: 1
 + from typing import Dict, Any, List
 + 
 + # Add project root to path
-+ sys.path.append(os.path.join(os.path.dirname(__file__), &#39;..&#39;, &#39;..&#39;, &#39;..&#39;))
++ sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 + 
 + from src.memory.graph_memory import (
 +     AltGraphManager, 
@@ -1231,65 +1231,65 @@ Lines added: 353, lines removed: 1
 + )
 + 
 + # Configure logging
-+ logging.basicConfig(level=logging.INFO, format=&#39;%(asctime)s - %(name)s - %(levelname)s - %(message)s&#39;)
++ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 + logger = logging.getLogger(__name__)
 + 
 + 
 + class MockLLMService:
-+     &quot;&quot;&quot;Mock LLM service for testing without actual LLM calls.&quot;&quot;&quot;
++     """Mock LLM service for testing without actual LLM calls."""
 +     
 +     def generate(self, prompt: str) -&gt; str:
-+         &quot;&quot;&quot;Return mock responses based on prompt content.&quot;&quot;&quot;
-+         if &quot;entity&quot; in prompt.lower() and &quot;extract&quot; in prompt.lower():
++         """Return mock responses based on prompt content."""
++         if "entity" in prompt.lower() and "extract" in prompt.lower():
 +             # Mock entity extraction response
-+             return &#39;&#39;&#39;[
++             return '''[
 +                 {
-+                     &quot;type&quot;: &quot;character&quot;,
-+                     &quot;name&quot;: &quot;Elena&quot;,
-+                     &quot;description&quot;: &quot;Mayor of Haven investigating strange occurrences&quot;,
-+                     &quot;confidence&quot;: 0.9
++                     "type": "character",
++                     "name": "Elena",
++                     "description": "Mayor of Haven investigating strange occurrences",
++                     "confidence": 0.9
 +                 },
 +                 {
-+                     &quot;type&quot;: &quot;location&quot;,
-+                     &quot;name&quot;: &quot;Haven&quot;,
-+                     &quot;description&quot;: &quot;A settlement in the valley where Elena serves as mayor&quot;,
-+                     &quot;confidence&quot;: 0.8
++                     "type": "location",
++                     "name": "Haven",
++                     "description": "A settlement in the valley where Elena serves as mayor",
++                     "confidence": 0.8
 +                 },
 +                 {
-+                     &quot;type&quot;: &quot;object&quot;,
-+                     &quot;name&quot;: &quot;ancient ruins&quot;,
-+                     &quot;description&quot;: &quot;Mysterious underground ruins discovered beneath Haven&quot;,
-+                     &quot;confidence&quot;: 0.7
++                     "type": "object",
++                     "name": "ancient ruins",
++                     "description": "Mysterious underground ruins discovered beneath Haven",
++                     "confidence": 0.7
 +                 }
-+             ]&#39;&#39;&#39;
++             ]'''
 +         
-+         elif &quot;relationship&quot; in prompt.lower():
++         elif "relationship" in prompt.lower():
 +             # Mock relationship extraction response
-+             return &#39;&#39;&#39;[
++             return '''[
 +                 {
-+                     &quot;from_entity&quot;: &quot;Elena&quot;,
-+                     &quot;to_entity&quot;: &quot;Haven&quot;,
-+                     &quot;relationship&quot;: &quot;located_in&quot;,
-+                     &quot;confidence&quot;: 0.9,
-+                     &quot;evidence&quot;: &quot;Elena serves as Mayor of Haven&quot;
++                     "from_entity": "Elena",
++                     "to_entity": "Haven",
++                     "relationship": "located_in",
++                     "confidence": 0.9,
++                     "evidence": "Elena serves as Mayor of Haven"
 +                 },
 +                 {
-+                     &quot;from_entity&quot;: &quot;ancient ruins&quot;,
-+                     &quot;to_entity&quot;: &quot;Haven&quot;,
-+                     &quot;relationship&quot;: &quot;located_in&quot;,
-+                     &quot;confidence&quot;: 0.8,
-+                     &quot;evidence&quot;: &quot;ruins discovered beneath Haven&quot;
++                     "from_entity": "ancient ruins",
++                     "to_entity": "Haven",
++                     "relationship": "located_in",
++                     "confidence": 0.8,
++                     "evidence": "ruins discovered beneath Haven"
 +                 }
-+             ]&#39;&#39;&#39;
++             ]'''
 +         
-+         return &quot;[]&quot;
++         return "[]"
 + 
 + 
 + class MockEmbeddingsManager:
-+     &quot;&quot;&quot;Mock embeddings manager for testing.&quot;&quot;&quot;
++     """Mock embeddings manager for testing."""
 +     
 +     def generate_embedding(self, text: str) -&gt; List[float]:
-+         &quot;&quot;&quot;Return a mock embedding vector.&quot;&quot;&quot;
++         """Return a mock embedding vector."""
 +         # Simple hash-based mock embedding
 +         import hashlib
 +         hash_obj = hashlib.md5(text.encode())
@@ -1302,29 +1302,29 @@ Lines added: 353, lines removed: 1
 +         return embedding
 +     
 +     def add_embedding(self, text: str, metadata: Dict[str, Any]) -&gt; None:
-+         &quot;&quot;&quot;Mock method - does nothing.&quot;&quot;&quot;
++         """Mock method - does nothing."""
 +         pass
 + 
 + 
 + def create_test_domain_config() -&gt; Dict[str, Any]:
-+     &quot;&quot;&quot;Create a test domain configuration.&quot;&quot;&quot;
++     """Create a test domain configuration."""
 +     return {
-+         &quot;domain_name&quot;: &quot;dnd_campaign&quot;,
-+         &quot;graph_memory_config&quot;: {
-+             &quot;enabled&quot;: True,
-+             &quot;entity_types&quot;: [&quot;character&quot;, &quot;location&quot;, &quot;object&quot;, &quot;concept&quot;, &quot;event&quot;, &quot;organization&quot;],
-+             &quot;relationship_types&quot;: [
-+                 &quot;located_in&quot;, &quot;owns&quot;, &quot;member_of&quot;, &quot;allies_with&quot;, &quot;enemies_with&quot;,
-+                 &quot;uses&quot;, &quot;created_by&quot;, &quot;leads_to&quot;, &quot;participates_in&quot;, &quot;related_to&quot;
++         "domain_name": "dnd_campaign",
++         "graph_memory_config": {
++             "enabled": True,
++             "entity_types": ["character", "location", "object", "concept", "event", "organization"],
++             "relationship_types": [
++                 "located_in", "owns", "member_of", "allies_with", "enemies_with",
++                 "uses", "created_by", "leads_to", "participates_in", "related_to"
 +             ],
-+             &quot;similarity_threshold&quot;: 0.8
++             "similarity_threshold": 0.8
 +         }
 +     }
 + 
 + 
 + def test_alternative_entity_extractor():
-+     &quot;&quot;&quot;Test the alternative entity extractor.&quot;&quot;&quot;
-+     logger.info(&quot;Testing AltEntityExtractor...&quot;)
++     """Test the alternative entity extractor."""
++     logger.info("Testing AltEntityExtractor...")
 +     
 +     # Setup
 +     llm_service = MockLLMService()
@@ -1338,13 +1338,13 @@ Lines added: 353, lines removed: 1
 +     )
 +     
 +     # Test conversation
-+     conversation_text = &quot;&quot;&quot;
++     conversation_text = """
 +     Elena, the Mayor of Haven, discovered ancient ruins beneath the town square during 
 +     construction work. The ruins contain strange magical symbols that glow with an 
 +     otherworldly light. Elena has called for the town council to investigate.
-+     &quot;&quot;&quot;
++     """
 +     
-+     digest_text = &quot;Elena discovers ancient magical ruins beneath Haven and calls for investigation&quot;
++     digest_text = "Elena discovers ancient magical ruins beneath Haven and calls for investigation"
 +     
 +     # Extract entities
 +     start_time = time.time()
@@ -1352,16 +1352,16 @@ Lines added: 353, lines removed: 1
 +     extraction_time = time.time() - start_time
 +     
 +     # Results
-+     logger.info(f&quot;Extracted {len(entities)} entities in {extraction_time:.3f}s&quot;)
++     logger.info(f"Extracted {len(entities)} entities in {extraction_time:.3f}s")
 +     for entity in entities:
-+         logger.info(f&quot;  - {entity[&#39;name&#39;]} ({entity[&#39;type&#39;]}): {entity[&#39;description&#39;]}&quot;)
++         logger.info(f"  - {entity['name']} ({entity['type']}): {entity['description']}")
 +     
 +     return entities
 + 
 + 
 + def test_alternative_relationship_extractor():
-+     &quot;&quot;&quot;Test the alternative relationship extractor.&quot;&quot;&quot;
-+     logger.info(&quot;Testing AltRelationshipExtractor...&quot;)
++     """Test the alternative relationship extractor."""
++     logger.info("Testing AltRelationshipExtractor...")
 +     
 +     # Setup
 +     llm_service = MockLLMService()
@@ -1374,18 +1374,18 @@ Lines added: 353, lines removed: 1
 +     )
 +     
 +     # Test data
-+     conversation_text = &quot;&quot;&quot;
++     conversation_text = """
 +     Elena, the Mayor of Haven, discovered ancient ruins beneath the town square.
 +     She organized a team to explore the ruins and found magical artifacts.
-+     &quot;&quot;&quot;
++     """
 +     
-+     digest_text = &quot;Elena discovers ruins and organizes exploration team&quot;
++     digest_text = "Elena discovers ruins and organizes exploration team"
 +     
 +     entities = [
-+         {&quot;name&quot;: &quot;Elena&quot;, &quot;type&quot;: &quot;character&quot;, &quot;description&quot;: &quot;Mayor of Haven&quot;},
-+         {&quot;name&quot;: &quot;Haven&quot;, &quot;type&quot;: &quot;location&quot;, &quot;description&quot;: &quot;Town where Elena is mayor&quot;},
-+         {&quot;name&quot;: &quot;ancient ruins&quot;, &quot;type&quot;: &quot;location&quot;, &quot;description&quot;: &quot;Underground ruins beneath town&quot;},
-+         {&quot;name&quot;: &quot;magical artifacts&quot;, &quot;type&quot;: &quot;object&quot;, &quot;description&quot;: &quot;Mysterious items found in ruins&quot;}
++         {"name": "Elena", "type": "character", "description": "Mayor of Haven"},
++         {"name": "Haven", "type": "location", "description": "Town where Elena is mayor"},
++         {"name": "ancient ruins", "type": "location", "description": "Underground ruins beneath town"},
++         {"name": "magical artifacts", "type": "object", "description": "Mysterious items found in ruins"}
 +     ]
 +     
 +     # Extract relationships
@@ -1395,17 +1395,17 @@ Lines added: 353, lines removed: 1
 +     extraction_time = time.time() - start_time
 +     
 +     # Results
-+     logger.info(f&quot;Extracted {len(relationships)} relationships in {extraction_time:.3f}s&quot;)
++     logger.info(f"Extracted {len(relationships)} relationships in {extraction_time:.3f}s")
 +     for rel in relationships:
-+         logger.info(f&quot;  - {rel[&#39;from_entity&#39;]} --{rel[&#39;relationship&#39;]}--&gt; {rel[&#39;to_entity&#39;]}&quot;)
-+         logger.info(f&quot;    Evidence: {rel[&#39;evidence&#39;]}&quot;)
++         logger.info(f"  - {rel['from_entity']} --{rel['relationship']}--&gt; {rel['to_entity']}")
++         logger.info(f"    Evidence: {rel['evidence']}")
 +     
 +     return relationships
 + 
 + 
 + def test_alternative_graph_manager():
-+     &quot;&quot;&quot;Test the alternative graph manager.&quot;&quot;&quot;
-+     logger.info(&quot;Testing AltGraphManager...&quot;)
++     """Test the alternative graph manager."""
++     logger.info("Testing AltGraphManager...")
 +     
 +     # Setup
 +     llm_service = MockLLMService()
@@ -1414,8 +1414,8 @@ Lines added: 353, lines removed: 1
 +     
 +     # Create temporary storage path
 +     import tempfile
-+     storage_path = tempfile.mkdtemp(prefix=&quot;alt_graph_test_&quot;)
-+     logger.info(f&quot;Using temporary storage: {storage_path}&quot;)
++     storage_path = tempfile.mkdtemp(prefix="alt_graph_test_")
++     logger.info(f"Using temporary storage: {storage_path}")
 +     
 +     try:
 +         # Initialize manager
@@ -1428,16 +1428,16 @@ Lines added: 353, lines removed: 1
 +         )
 +         
 +         # Test conversation
-+         conversation_text = &quot;&quot;&quot;
++         conversation_text = """
 +         During the weekly town meeting, Elena announced the discovery of ancient ruins 
-+         beneath Haven&#39;s town square. The ruins contain mysterious glowing symbols and 
++         beneath Haven's town square. The ruins contain mysterious glowing symbols and 
 +         several magical artifacts. Elena has formed an exploration committee to investigate 
 +         the site safely. The committee includes the local wizard Thornwick and the 
 +         historian Mira. They plan to start their investigation next week.
-+         &quot;&quot;&quot;
++         """
 +         
-+         digest_text = &quot;&quot;&quot;Elena announces discovery of magical ruins in Haven. Forms exploration 
-+         committee with Thornwick and Mira to investigate safely.&quot;&quot;&quot;
++         digest_text = """Elena announces discovery of magical ruins in Haven. Forms exploration 
++         committee with Thornwick and Mira to investigate safely."""
 +         
 +         # Process conversation
 +         start_time = time.time()
@@ -1445,20 +1445,20 @@ Lines added: 353, lines removed: 1
 +         processing_time = time.time() - start_time
 +         
 +         # Display results
-+         logger.info(f&quot;Processed conversation in {processing_time:.3f}s&quot;)
-+         logger.info(f&quot;Results: {results[&#39;stats&#39;]}&quot;)
++         logger.info(f"Processed conversation in {processing_time:.3f}s")
++         logger.info(f"Results: {results['stats']}")
 +         
-+         logger.info(f&quot;\nEntities ({len(results[&#39;entities&#39;])}):&quot;)
-+         for entity in results[&#39;entities&#39;]:
-+             logger.info(f&quot;  - {entity[&#39;name&#39;]} ({entity[&#39;type&#39;]})&quot;)
++         logger.info(f"\nEntities ({len(results['entities'])}):")
++         for entity in results['entities']:
++             logger.info(f"  - {entity['name']} ({entity['type']})")
 +         
-+         logger.info(f&quot;\nRelationships ({len(results[&#39;relationships&#39;])}):&quot;)
-+         for rel in results[&#39;relationships&#39;]:
-+             logger.info(f&quot;  - {rel[&#39;from_node_id&#39;]} --{rel[&#39;relationship&#39;]}--&gt; {rel[&#39;to_node_id&#39;]}&quot;)
++         logger.info(f"\nRelationships ({len(results['relationships'])}):")
++         for rel in results['relationships']:
++             logger.info(f"  - {rel['from_node_id']} --{rel['relationship']}--&gt; {rel['to_node_id']}")
 +         
 +         # Test stats
 +         stats = manager.get_extractor_stats()
-+         logger.info(f&quot;\nExtractor stats: {stats}&quot;)
++         logger.info(f"\nExtractor stats: {stats}")
 +         
 +         return results
 +         
@@ -1469,30 +1469,30 @@ Lines added: 353, lines removed: 1
 + 
 + 
 + def compare_with_baseline():
-+     &quot;&quot;&quot;Compare alternative approach with baseline (mock comparison).&quot;&quot;&quot;
-+     logger.info(&quot;Comparing alternative vs baseline approach...&quot;)
++     """Compare alternative approach with baseline (mock comparison)."""
++     logger.info("Comparing alternative vs baseline approach...")
 +     
-+     # This is a mock comparison since we&#39;d need the full baseline setup
++     # This is a mock comparison since we'd need the full baseline setup
 +     test_cases = [
 +         {
-+             &quot;conversation&quot;: &quot;Elena discovered ruins in Haven&quot;,
-+             &quot;expected_entities&quot;: [&quot;Elena&quot;, &quot;ruins&quot;, &quot;Haven&quot;],
-+             &quot;expected_relationships&quot;: [(&quot;Elena&quot;, &quot;located_in&quot;, &quot;Haven&quot;), (&quot;ruins&quot;, &quot;located_in&quot;, &quot;Haven&quot;)]
++             "conversation": "Elena discovered ruins in Haven",
++             "expected_entities": ["Elena", "ruins", "Haven"],
++             "expected_relationships": [("Elena", "located_in", "Haven"), ("ruins", "located_in", "Haven")]
 +         },
 +         {
-+             &quot;conversation&quot;: &quot;Thornwick cast a fireball spell at the goblins in the forest&quot;,
-+             &quot;expected_entities&quot;: [&quot;Thornwick&quot;, &quot;fireball spell&quot;, &quot;goblins&quot;, &quot;forest&quot;],
-+             &quot;expected_relationships&quot;: [(&quot;Thornwick&quot;, &quot;uses&quot;, &quot;fireball spell&quot;), (&quot;goblins&quot;, &quot;located_in&quot;, &quot;forest&quot;)]
++             "conversation": "Thornwick cast a fireball spell at the goblins in the forest",
++             "expected_entities": ["Thornwick", "fireball spell", "goblins", "forest"],
++             "expected_relationships": [("Thornwick", "uses", "fireball spell"), ("goblins", "located_in", "forest")]
 +         }
 +     ]
 +     
 +     results = []
 +     for i, test_case in enumerate(test_cases):
-+         logger.info(f&quot;\nTest case {i+1}: {test_case[&#39;conversation&#39;]}&quot;)
++         logger.info(f"\nTest case {i+1}: {test_case['conversation']}")
 +         
 +         # Mock baseline results
-+         baseline_entities = len(test_case[&#39;expected_entities&#39;])
-+         baseline_relationships = len(test_case[&#39;expected_relationships&#39;])
++         baseline_entities = len(test_case['expected_entities'])
++         baseline_relationships = len(test_case['expected_relationships'])
 +         baseline_time = 0.5  # Mock baseline time
 +         
 +         # Alternative results (simplified)
@@ -1501,54 +1501,54 @@ Lines added: 353, lines removed: 1
 +         alt_time = 0.8  # Mock higher time due to more LLM calls
 +         
 +         comparison = {
-+             &quot;test_case&quot;: i + 1,
-+             &quot;baseline_entities&quot;: baseline_entities,
-+             &quot;alternative_entities&quot;: alt_entities,
-+             &quot;baseline_relationships&quot;: baseline_relationships,
-+             &quot;alternative_relationships&quot;: alt_relationships,
-+             &quot;baseline_time&quot;: baseline_time,
-+             &quot;alternative_time&quot;: alt_time,
-+             &quot;time_ratio&quot;: alt_time / baseline_time
++             "test_case": i + 1,
++             "baseline_entities": baseline_entities,
++             "alternative_entities": alt_entities,
++             "baseline_relationships": baseline_relationships,
++             "alternative_relationships": alt_relationships,
++             "baseline_time": baseline_time,
++             "alternative_time": alt_time,
++             "time_ratio": alt_time / baseline_time
 +         }
 +         
 +         results.append(comparison)
-+         logger.info(f&quot;  Entities: {baseline_entities} vs {alt_entities}&quot;)
-+         logger.info(f&quot;  Relationships: {baseline_relationships} vs {alt_relationships}&quot;)
-+         logger.info(f&quot;  Time: {baseline_time:.3f}s vs {alt_time:.3f}s (ratio: {comparison[&#39;time_ratio&#39;]:.2f})&quot;)
++         logger.info(f"  Entities: {baseline_entities} vs {alt_entities}")
++         logger.info(f"  Relationships: {baseline_relationships} vs {alt_relationships}")
++         logger.info(f"  Time: {baseline_time:.3f}s vs {alt_time:.3f}s (ratio: {comparison['time_ratio']:.2f})")
 +     
 +     return results
 + 
 + 
 + def main():
-+     &quot;&quot;&quot;Run all tests.&quot;&quot;&quot;
-+     logger.info(&quot;Starting alternative extractors test suite&quot;)
-+     logger.info(&quot;=&quot; * 60)
++     """Run all tests."""
++     logger.info("Starting alternative extractors test suite")
++     logger.info("=" * 60)
 +     
 +     try:
 +         # Test individual components
 +         entities = test_alternative_entity_extractor()
-+         logger.info(&quot;\n&quot; + &quot;=&quot; * 60)
++         logger.info("\n" + "=" * 60)
 +         
 +         relationships = test_alternative_relationship_extractor()
-+         logger.info(&quot;\n&quot; + &quot;=&quot; * 60)
++         logger.info("\n" + "=" * 60)
 +         
 +         # Test full manager
 +         manager_results = test_alternative_graph_manager()
-+         logger.info(&quot;\n&quot; + &quot;=&quot; * 60)
++         logger.info("\n" + "=" * 60)
 +         
 +         # Mock comparison
 +         comparison_results = compare_with_baseline()
-+         logger.info(&quot;\n&quot; + &quot;=&quot; * 60)
++         logger.info("\n" + "=" * 60)
 +         
-+         logger.info(&quot;All tests completed successfully!&quot;)
-+         logger.info(&quot;\nSummary:&quot;)
-+         logger.info(f&quot;- Entity extraction: {len(entities)} entities&quot;)
-+         logger.info(f&quot;- Relationship extraction: {len(relationships)} relationships&quot;)
-+         logger.info(f&quot;- Full manager: {manager_results[&#39;stats&#39;]}&quot;)
-+         logger.info(f&quot;- Comparison tests: {len(comparison_results)} test cases&quot;)
++         logger.info("All tests completed successfully!")
++         logger.info("\nSummary:")
++         logger.info(f"- Entity extraction: {len(entities)} entities")
++         logger.info(f"- Relationship extraction: {len(relationships)} relationships")
++         logger.info(f"- Full manager: {manager_results['stats']}")
++         logger.info(f"- Comparison tests: {len(comparison_results)} test cases")
 +         
 +     except Exception as e:
-+         logger.error(f&quot;Test failed with error: {e}&quot;)
++         logger.error(f"Test failed with error: {e}")
 +         import traceback
 +         traceback.print_exc()
 +         return 1
@@ -1556,7 +1556,7 @@ Lines added: 353, lines removed: 1
 +     return 0
 + 
 + 
-+ if __name__ == &quot;__main__&quot;:
++ if __name__ == "__main__":
 +     exit_code = main()
 +     sys.exit(exit_code) 
 ```
@@ -1572,7 +1572,7 @@ Finally, let me update the main `__init__.py` at the graph_memory level to ensur
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: cd src/memory/graph_memory && python test_alternative_extractors.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: cd src/memory/graph_memory && python test_alternative_extractors.py</summary>
 
 ```bash
 cd src/memory/graph_memory && python test_alternative_extractors.py
@@ -1585,14 +1585,14 @@ cd src/memory/graph_memory && python test_alternative_extractors.py
 ========================
 2025-06-08 13:42:19,208 - __main__ - INFO - Testing AltEntityExtractor...
 2025-06-08 13:42:19,209 - __main__ - ERROR - Error extracting candidate entities
-: &#39;\n        &quot;type&quot;&#39;
+: '\n        "type"'
 2025-06-08 13:42:19,209 - __main__ - INFO - Extracted 0 entities in 0.000s
 2025-06-08 13:42:19,209 - __main__ - INFO - 
 ============================================================
 2025-06-08 13:42:19,209 - __main__ - INFO - Testing AltRelationshipExtractor...
 2025-06-08 13:42:19,209 - __main__ - ERROR - Error in alternative relationship e
-xtraction: &#39;\n        &quot;from_
-entity&quot;&#39;
+xtraction: '\n        "from_
+entity"'
                             2025-06-08 13:42:19,209 - __main__ - INFO - Extracte
 d 0 relationships in 0.000s
 2025-06-08 13:42:19,209 - __main__ - INFO - 
@@ -1604,7 +1604,7 @@ s/rt/vkpjxg7922l4qscz5rlkrkj
                             2025-06-08 13:42:19,229 - __main__ - INFO - Initiali
 zed AltGraphManager with LLM-centric extractors
 2025-06-08 13:42:19,229 - __main__ - ERROR - Error extracting candidate entities
-: &#39;\n        &quot;type&quot;&#39;
+: '\n        "type"'
 2025-06-08 13:42:19,229 - __main__ - INFO - No entities extracted from conversat
 ion
 2025-06-08 13:42:19,229 - __main__ - INFO - Processed conversation in 0.000s
@@ -1614,12 +1614,12 @@ Entities (0):
 2025-06-08 13:42:19,229 - __main__ - INFO - 
 Relationships (0):
 2025-06-08 13:42:19,229 - __main__ - INFO - 
-Extractor stats: {&#39;manager_type&#39;: &#39;alternative_llm_centric&#39;, &#39;has_alt_entity_ext
-ractor&#39;: True, &#39;has_alt_rela
-tionship_extractor&#39;: True, &#39;entity_extractor&#39;: {&#39;extractor_type&#39;: &#39;alternative_l
-lm_centric&#39;, &#39;entity_types_count&#39;: 6, &#39;has_graph_manager&#39;: True, &#39;domain&#39;: &#39;dnd_
-campaign&#39;}, &#39;relationship_extractor&#39;: {&#39;extractor_type&#39;: &#39;alternative_llm_centri
-c&#39;, &#39;relationship_types_count&#39;: 11, &#39;domain&#39;: &#39;dnd_campaign&#39;}}
+Extractor stats: {'manager_type': 'alternative_llm_centric', 'has_alt_entity_ext
+ractor': True, 'has_alt_rela
+tionship_extractor': True, 'entity_extractor': {'extractor_type': 'alternative_l
+lm_centric', 'entity_types_count': 6, 'has_graph_manager': True, 'domain': 'dnd_
+campaign'}, 'relationship_extractor': {'extractor_type': 'alternative_llm_centri
+c', 'relationship_types_count': 11, 'domain': 'dnd_campaign'}}
     2025-06-08 13:42:19,230 - __main__ - INFO - 
 ============================================================
 2025-06-08 13:42:19,230 - __main__ - INFO - Comparing alternative vs baseline ap
@@ -1659,7 +1659,7 @@ I can see there's a JSON parsing issue in the test. Let me fix the mock LLM serv
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/test_alternative_extractors.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/graph_memory/test_alternative_extractors.py</summary>
 
 </details>
 
@@ -1673,40 +1673,40 @@ Let me check what the exact error is by examining the JSON parsing in the altern
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/test_alternative_extractors.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/graph_memory/test_alternative_extractors.py</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: 21
 
 ```diff
 @@ -34,25 +34,6 @@
-          &quot;&quot;&quot;Return mock responses based on prompt content.&quot;&quot;&quot;
-                  if &quot;entity&quot; in prompt.lower() and &quot;extract&quot; in prompt.lower():
+          """Return mock responses based on prompt content."""
+                  if "entity" in prompt.lower() and "extract" in prompt.lower():
 -             # Mock entity extraction response
--             return &#39;&#39;&#39;[
+-             return '''[
 -     {
--         &quot;type&quot;: &quot;character&quot;,
--         &quot;name&quot;: &quot;Elena&quot;,
--         &quot;description&quot;: &quot;Mayor of Haven investigating strange occurrences&quot;,
--         &quot;confidence&quot;: 0.9
+-         "type": "character",
+-         "name": "Elena",
+-         "description": "Mayor of Haven investigating strange occurrences",
+-         "confidence": 0.9
 -     },
 -     {
--         &quot;type&quot;: &quot;location&quot;,
--         &quot;name&quot;: &quot;Haven&quot;,
--         &quot;description&quot;: &quot;A settlement in the valley where Elena serves as mayor&quot;,
--         &quot;confidence&quot;: 0.8
+-         "type": "location",
+-         "name": "Haven",
+-         "description": "A settlement in the valley where Elena serves as mayor",
+-         "confidence": 0.8
 -     },
 -     {
--         &quot;type&quot;: &quot;object&quot;,
--         &quot;name&quot;: &quot;ancient ruins&quot;,
--         &quot;description&quot;: &quot;Mysterious underground ruins discovered beneath Haven&quot;,
--         &quot;confidence&quot;: 0.7
+-         "type": "object",
+-         "name": "ancient ruins",
+-         "description": "Mysterious underground ruins discovered beneath Haven",
+-         "confidence": 0.7
 -     }
-- ]&#39;&#39;&#39;
+- ]'''
 +             # Mock entity extraction response - simpler JSON format
-+             return &#39;[{&quot;type&quot;: &quot;character&quot;, &quot;name&quot;: &quot;Elena&quot;, &quot;description&quot;: &quot;Mayor of Haven investigating strange occurrences&quot;, &quot;confidence&quot;: 0.9}, {&quot;type&quot;: &quot;location&quot;, &quot;name&quot;: &quot;Haven&quot;, &quot;description&quot;: &quot;A settlement in the valley where Elena serves as mayor&quot;, &quot;confidence&quot;: 0.8}, {&quot;type&quot;: &quot;object&quot;, &quot;name&quot;: &quot;ancient ruins&quot;, &quot;description&quot;: &quot;Mysterious underground ruins discovered beneath Haven&quot;, &quot;confidence&quot;: 0.7}]&#39;
++             return '[{"type": "character", "name": "Elena", "description": "Mayor of Haven investigating strange occurrences", "confidence": 0.9}, {"type": "location", "name": "Haven", "description": "A settlement in the valley where Elena serves as mayor", "confidence": 0.8}, {"type": "object", "name": "ancient ruins", "description": "Mysterious underground ruins discovered beneath Haven", "confidence": 0.7}]'
           
-          elif &quot;relationship&quot; in prompt.lower():
+          elif "relationship" in prompt.lower():
 ```
 
 </details>
@@ -1721,7 +1721,7 @@ Let me fix the indentation issue:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/test_alternative_extractors.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/graph_memory/test_alternative_extractors.py</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: 19
@@ -1729,30 +1729,30 @@ Lines added: 2, lines removed: 19
 ```diff
 @@ -36,24 +36,7 @@
               # Mock entity extraction response - simpler JSON format
-              return &#39;[{&quot;type&quot;: &quot;character&quot;, &quot;name&quot;: &quot;Elena&quot;, &quot;description&quot;: &quot;Mayor of Haven investigating strange occurrences&quot;, &quot;confidence&quot;: 0.9}, {&quot;type&quot;: &quot;location&quot;, &quot;name&quot;: &quot;Haven&quot;, &quot;description&quot;: &quot;A settlement in the valley where Elena serves as mayor&quot;, &quot;confidence&quot;: 0.8}, {&quot;type&quot;: &quot;object&quot;, &quot;name&quot;: &quot;ancient ruins&quot;, &quot;description&quot;: &quot;Mysterious underground ruins discovered beneath Haven&quot;, &quot;confidence&quot;: 0.7}]&#39;
+              return '[{"type": "character", "name": "Elena", "description": "Mayor of Haven investigating strange occurrences", "confidence": 0.9}, {"type": "location", "name": "Haven", "description": "A settlement in the valley where Elena serves as mayor", "confidence": 0.8}, {"type": "object", "name": "ancient ruins", "description": "Mysterious underground ruins discovered beneath Haven", "confidence": 0.7}]'
 -         
-          elif &quot;relationship&quot; in prompt.lower():
+          elif "relationship" in prompt.lower():
 -             # Mock relationship extraction response
--             return &#39;&#39;&#39;[
+-             return '''[
 -     {
--         &quot;from_entity&quot;: &quot;Elena&quot;,
--         &quot;to_entity&quot;: &quot;Haven&quot;,
--         &quot;relationship&quot;: &quot;located_in&quot;,
--         &quot;confidence&quot;: 0.9,
--         &quot;evidence&quot;: &quot;Elena serves as Mayor of Haven&quot;
+-         "from_entity": "Elena",
+-         "to_entity": "Haven",
+-         "relationship": "located_in",
+-         "confidence": 0.9,
+-         "evidence": "Elena serves as Mayor of Haven"
 -     },
 -     {
--         &quot;from_entity&quot;: &quot;ancient ruins&quot;,
--         &quot;to_entity&quot;: &quot;Haven&quot;,
--         &quot;relationship&quot;: &quot;located_in&quot;,
--         &quot;confidence&quot;: 0.8,
--         &quot;evidence&quot;: &quot;ruins discovered beneath Haven&quot;
+-         "from_entity": "ancient ruins",
+-         "to_entity": "Haven",
+-         "relationship": "located_in",
+-         "confidence": 0.8,
+-         "evidence": "ruins discovered beneath Haven"
 -     }
-- ]&#39;&#39;&#39;
+- ]'''
 -         
 +             # Mock relationship extraction response - simpler JSON format
-+             return &#39;[{&quot;from_entity&quot;: &quot;Elena&quot;, &quot;to_entity&quot;: &quot;Haven&quot;, &quot;relationship&quot;: &quot;located_in&quot;, &quot;confidence&quot;: 0.9, &quot;evidence&quot;: &quot;Elena serves as Mayor of Haven&quot;}, {&quot;from_entity&quot;: &quot;ancient ruins&quot;, &quot;to_entity&quot;: &quot;Haven&quot;, &quot;relationship&quot;: &quot;located_in&quot;, &quot;confidence&quot;: 0.8, &quot;evidence&quot;: &quot;ruins discovered beneath Haven&quot;}]&#39;
-          return &quot;[]&quot;
++             return '[{"from_entity": "Elena", "to_entity": "Haven", "relationship": "located_in", "confidence": 0.9, "evidence": "Elena serves as Mayor of Haven"}, {"from_entity": "ancient ruins", "to_entity": "Haven", "relationship": "located_in", "confidence": 0.8, "evidence": "ruins discovered beneath Haven"}]'
+          return "[]"
   
 ```
 
@@ -1780,7 +1780,7 @@ I can see the issue - there's a wrong indentation in the `generate` method. Let 
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/test_alternative_extractors.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/graph_memory/test_alternative_extractors.py</summary>
 
 </details>
 
@@ -1794,7 +1794,7 @@ Let me try a larger context search and replace:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/test_alternative_extractors.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/graph_memory/test_alternative_extractors.py</summary>
 
 </details>
 
@@ -1819,7 +1819,7 @@ Explanation: Deleting the file with indentation issues so I can recreate it prop
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/test_alternative_extractors.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/graph_memory/test_alternative_extractors.py</summary>
 
 Creating the test file again with proper indentation and simpler JSON formatting
 
@@ -1830,12 +1830,12 @@ Lines added: 84, lines removed: 1
 @@ -1,1 +1,84 @@
 - 
 + #!/usr/bin/env python3
-+ &quot;&quot;&quot;
++ """
 + Test script for alternative entity and relationship extractors.
 + 
 + This script demonstrates how to use the new LLM-centric extractors
 + and compare them with the baseline approach for A/B testing.
-+ &quot;&quot;&quot;
++ """
 + 
 + import os
 + import sys
@@ -1844,7 +1844,7 @@ Lines added: 84, lines removed: 1
 + from typing import Dict, Any, List
 + 
 + # Add project root to path
-+ sys.path.append(os.path.join(os.path.dirname(__file__), &#39;..&#39;, &#39;..&#39;, &#39;..&#39;))
++ sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 + 
 + from src.memory.graph_memory import (
 +     AltGraphManager, 
@@ -1854,65 +1854,65 @@ Lines added: 84, lines removed: 1
 + )
 + 
 + # Configure logging
-+ logging.basicConfig(level=logging.INFO, format=&#39;%(asctime)s - %(name)s - %(levelname)s - %(message)s&#39;)
++ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 + logger = logging.getLogger(__name__)
 + 
 + 
 + class MockLLMService:
-+     &quot;&quot;&quot;Mock LLM service for testing without actual LLM calls.&quot;&quot;&quot;
++     """Mock LLM service for testing without actual LLM calls."""
 +     
 +     def generate(self, prompt: str) -&gt; str:
-+         &quot;&quot;&quot;Return mock responses based on prompt content.&quot;&quot;&quot;
-+         if &quot;entity&quot; in prompt.lower() and &quot;extract&quot; in prompt.lower():
-+             return &#39;[{&quot;type&quot;: &quot;character&quot;, &quot;name&quot;: &quot;Elena&quot;, &quot;description&quot;: &quot;Mayor of Haven investigating strange occurrences&quot;, &quot;confidence&quot;: 0.9}, {&quot;type&quot;: &quot;location&quot;, &quot;name&quot;: &quot;Haven&quot;, &quot;description&quot;: &quot;A settlement in the valley where Elena serves as mayor&quot;, &quot;confidence&quot;: 0.8}, {&quot;type&quot;: &quot;object&quot;, &quot;name&quot;: &quot;ancient ruins&quot;, &quot;description&quot;: &quot;Mysterious underground ruins discovered beneath Haven&quot;, &quot;confidence&quot;: 0.7}]&#39;
-+         elif &quot;relationship&quot; in prompt.lower():
-+             return &#39;[{&quot;from_entity&quot;: &quot;Elena&quot;, &quot;to_entity&quot;: &quot;Haven&quot;, &quot;relationship&quot;: &quot;located_in&quot;, &quot;confidence&quot;: 0.9, &quot;evidence&quot;: &quot;Elena serves as Mayor of Haven&quot;}, {&quot;from_entity&quot;: &quot;ancient ruins&quot;, &quot;to_entity&quot;: &quot;Haven&quot;, &quot;relationship&quot;: &quot;located_in&quot;, &quot;confidence&quot;: 0.8, &quot;evidence&quot;: &quot;ruins discovered beneath Haven&quot;}]&#39;
-+         return &quot;[]&quot;
++         """Return mock responses based on prompt content."""
++         if "entity" in prompt.lower() and "extract" in prompt.lower():
++             return '[{"type": "character", "name": "Elena", "description": "Mayor of Haven investigating strange occurrences", "confidence": 0.9}, {"type": "location", "name": "Haven", "description": "A settlement in the valley where Elena serves as mayor", "confidence": 0.8}, {"type": "object", "name": "ancient ruins", "description": "Mysterious underground ruins discovered beneath Haven", "confidence": 0.7}]'
++         elif "relationship" in prompt.lower():
++             return '[{"from_entity": "Elena", "to_entity": "Haven", "relationship": "located_in", "confidence": 0.9, "evidence": "Elena serves as Mayor of Haven"}, {"from_entity": "ancient ruins", "to_entity": "Haven", "relationship": "located_in", "confidence": 0.8, "evidence": "ruins discovered beneath Haven"}]'
++         return "[]"
 + 
 + 
 + def test_alternative_extractors():
-+     &quot;&quot;&quot;Test the alternative extractors.&quot;&quot;&quot;
-+     logger.info(&quot;Testing alternative extractors...&quot;)
++     """Test the alternative extractors."""
++     logger.info("Testing alternative extractors...")
 +     
 +     # Setup
 +     llm_service = MockLLMService()
 +     domain_config = {
-+         &quot;domain_name&quot;: &quot;dnd_campaign&quot;,
-+         &quot;graph_memory_config&quot;: {
-+             &quot;enabled&quot;: True,
-+             &quot;entity_types&quot;: [&quot;character&quot;, &quot;location&quot;, &quot;object&quot;, &quot;concept&quot;, &quot;event&quot;, &quot;organization&quot;],
-+             &quot;relationship_types&quot;: [&quot;located_in&quot;, &quot;owns&quot;, &quot;member_of&quot;, &quot;allies_with&quot;, &quot;enemies_with&quot;],
-+             &quot;similarity_threshold&quot;: 0.8
++         "domain_name": "dnd_campaign",
++         "graph_memory_config": {
++             "enabled": True,
++             "entity_types": ["character", "location", "object", "concept", "event", "organization"],
++             "relationship_types": ["located_in", "owns", "member_of", "allies_with", "enemies_with"],
++             "similarity_threshold": 0.8
 +         }
 +     }
 +     
 +     # Test entity extraction
 +     extractor = AltEntityExtractor(llm_service=llm_service, domain_config=domain_config, logger=logger)
 +     
-+     conversation_text = &quot;Elena, the Mayor of Haven, discovered ancient ruins beneath the town square.&quot;
-+     digest_text = &quot;Elena discovers ancient ruins beneath Haven&quot;
++     conversation_text = "Elena, the Mayor of Haven, discovered ancient ruins beneath the town square."
++     digest_text = "Elena discovers ancient ruins beneath Haven"
 +     
 +     entities = extractor.extract_entities_from_conversation(conversation_text, digest_text)
-+     logger.info(f&quot;Extracted {len(entities)} entities&quot;)
++     logger.info(f"Extracted {len(entities)} entities")
 +     for entity in entities:
-+         logger.info(f&quot;  - {entity[&#39;name&#39;]} ({entity[&#39;type&#39;]})&quot;)
++         logger.info(f"  - {entity['name']} ({entity['type']})")
 +     
 +     # Test relationship extraction
 +     rel_extractor = AltRelationshipExtractor(llm_service=llm_service, domain_config=domain_config, logger=logger)
 +     
 +     relationships = rel_extractor.extract_relationships_from_conversation(
 +         conversation_text, digest_text, entities)
-+     logger.info(f&quot;Extracted {len(relationships)} relationships&quot;)
++     logger.info(f"Extracted {len(relationships)} relationships")
 +     for rel in relationships:
-+         logger.info(f&quot;  - {rel[&#39;from_entity&#39;]} --{rel[&#39;relationship&#39;]}--&gt; {rel[&#39;to_entity&#39;]}&quot;)
++         logger.info(f"  - {rel['from_entity']} --{rel['relationship']}--&gt; {rel['to_entity']}")
 +     
-+     return {&quot;entities&quot;: entities, &quot;relationships&quot;: relationships}
++     return {"entities": entities, "relationships": relationships}
 + 
 + 
-+ if __name__ == &quot;__main__&quot;:
-+     logger.info(&quot;Starting alternative extractors test&quot;)
++ if __name__ == "__main__":
++     logger.info("Starting alternative extractors test")
 +     results = test_alternative_extractors()
-+     logger.info(f&quot;Test completed: {len(results[&#39;entities&#39;])} entities, {len(results[&#39;relationships&#39;])} relationships&quot;) 
++     logger.info(f"Test completed: {len(results['entities'])} entities, {len(results['relationships'])} relationships") 
 ```
 
 </details>
@@ -1926,7 +1926,7 @@ Now let's test the alternative extractors:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: python test_alternative_extractors.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: python test_alternative_extractors.py</summary>
 
 ```bash
 python test_alternative_extractors.py
@@ -1936,7 +1936,7 @@ python test_alternative_extractors.py
 (.venv) (base) andrewrapo@Andrews-MacBook-Pro-16b graph_memory % python test_alternative_extractors.py
 2025-06-08 13:44:45,915 - __main__ - INFO - Starting alternative extractors test
 2025-06-08 13:44:45,915 - __main__ - INFO - Testing alternative extractors...
-2025-06-08 13:44:45,916 - __main__ - ERROR - Error extracting candidate entities: &#39;\n        &quot;type&quot;&#39;
+2025-06-08 13:44:45,916 - __main__ - ERROR - Error extracting candidate entities: '\n        "type"'
 2025-06-08 13:44:45,916 - __main__ - INFO - Extracted 0 entities
 2025-06-08 13:44:45,916 - __main__ - INFO - Extracted 0 relationships
 2025-06-08 13:44:45,916 - __main__ - INFO - Test completed: 0 entities, 0 relationships
@@ -1979,7 +1979,7 @@ I see the issue! The prompt template has a JSON code block with triple backticks
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/test_alternative_extractors.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/graph_memory/test_alternative_extractors.py</summary>
 
 I'm adding debug logging to see exactly what the LLM response looks like and why JSON parsing is failing
 
@@ -1990,8 +1990,8 @@ Lines added: 1, lines removed: 1
 @@ -24,5 +24,5 @@
   
   # Configure logging
-- logging.basicConfig(level=logging.INFO, format=&#39;%(asctime)s - %(name)s - %(levelname)s - %(message)s&#39;)
-+ logging.basicConfig(level=logging.DEBUG, format=&#39;%(asctime)s - %(name)s - %(levelname)s - %(message)s&#39;)
+- logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
++ logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
   logger = logging.getLogger(__name__)
   
 ```
@@ -2002,20 +2002,20 @@ Lines added: 8, lines removed: 2
 ```diff
 @@ -33,8 +33,14 @@
       def generate(self, prompt: str) -&gt; str:
-          &quot;&quot;&quot;Return mock responses based on prompt content.&quot;&quot;&quot;
-+         logger.debug(f&quot;LLM prompt received: {prompt[:200]}...&quot;)
+          """Return mock responses based on prompt content."""
++         logger.debug(f"LLM prompt received: {prompt[:200]}...")
 +         
-          if &quot;entity&quot; in prompt.lower() and &quot;extract&quot; in prompt.lower():
--             return &#39;[{&quot;type&quot;: &quot;character&quot;, &quot;name&quot;: &quot;Elena&quot;, &quot;description&quot;: &quot;Mayor of Haven investigating strange occurrences&quot;, &quot;confidence&quot;: 0.9}, {&quot;type&quot;: &quot;location&quot;, &quot;name&quot;: &quot;Haven&quot;, &quot;description&quot;: &quot;A settlement in the valley where Elena serves as mayor&quot;, &quot;confidence&quot;: 0.8}, {&quot;type&quot;: &quot;object&quot;, &quot;name&quot;: &quot;ancient ruins&quot;, &quot;description&quot;: &quot;Mysterious underground ruins discovered beneath Haven&quot;, &quot;confidence&quot;: 0.7}]&#39;
-+             response = &#39;[{&quot;type&quot;: &quot;character&quot;, &quot;name&quot;: &quot;Elena&quot;, &quot;description&quot;: &quot;Mayor of Haven investigating strange occurrences&quot;, &quot;confidence&quot;: 0.9}, {&quot;type&quot;: &quot;location&quot;, &quot;name&quot;: &quot;Haven&quot;, &quot;description&quot;: &quot;A settlement in the valley where Elena serves as mayor&quot;, &quot;confidence&quot;: 0.8}, {&quot;type&quot;: &quot;object&quot;, &quot;name&quot;: &quot;ancient ruins&quot;, &quot;description&quot;: &quot;Mysterious underground ruins discovered beneath Haven&quot;, &quot;confidence&quot;: 0.7}]&#39;
-+             logger.debug(f&quot;LLM entity response: {response}&quot;)
+          if "entity" in prompt.lower() and "extract" in prompt.lower():
+-             return '[{"type": "character", "name": "Elena", "description": "Mayor of Haven investigating strange occurrences", "confidence": 0.9}, {"type": "location", "name": "Haven", "description": "A settlement in the valley where Elena serves as mayor", "confidence": 0.8}, {"type": "object", "name": "ancient ruins", "description": "Mysterious underground ruins discovered beneath Haven", "confidence": 0.7}]'
++             response = '[{"type": "character", "name": "Elena", "description": "Mayor of Haven investigating strange occurrences", "confidence": 0.9}, {"type": "location", "name": "Haven", "description": "A settlement in the valley where Elena serves as mayor", "confidence": 0.8}, {"type": "object", "name": "ancient ruins", "description": "Mysterious underground ruins discovered beneath Haven", "confidence": 0.7}]'
++             logger.debug(f"LLM entity response: {response}")
 +             return response
-          elif &quot;relationship&quot; in prompt.lower():
--             return &#39;[{&quot;from_entity&quot;: &quot;Elena&quot;, &quot;to_entity&quot;: &quot;Haven&quot;, &quot;relationship&quot;: &quot;located_in&quot;, &quot;confidence&quot;: 0.9, &quot;evidence&quot;: &quot;Elena serves as Mayor of Haven&quot;}, {&quot;from_entity&quot;: &quot;ancient ruins&quot;, &quot;to_entity&quot;: &quot;Haven&quot;, &quot;relationship&quot;: &quot;located_in&quot;, &quot;confidence&quot;: 0.8, &quot;evidence&quot;: &quot;ruins discovered beneath Haven&quot;}]&#39;
-+             response = &#39;[{&quot;from_entity&quot;: &quot;Elena&quot;, &quot;to_entity&quot;: &quot;Haven&quot;, &quot;relationship&quot;: &quot;located_in&quot;, &quot;confidence&quot;: 0.9, &quot;evidence&quot;: &quot;Elena serves as Mayor of Haven&quot;}, {&quot;from_entity&quot;: &quot;ancient ruins&quot;, &quot;to_entity&quot;: &quot;Haven&quot;, &quot;relationship&quot;: &quot;located_in&quot;, &quot;confidence&quot;: 0.8, &quot;evidence&quot;: &quot;ruins discovered beneath Haven&quot;}]&#39;
-+             logger.debug(f&quot;LLM relationship response: {response}&quot;)
+          elif "relationship" in prompt.lower():
+-             return '[{"from_entity": "Elena", "to_entity": "Haven", "relationship": "located_in", "confidence": 0.9, "evidence": "Elena serves as Mayor of Haven"}, {"from_entity": "ancient ruins", "to_entity": "Haven", "relationship": "located_in", "confidence": 0.8, "evidence": "ruins discovered beneath Haven"}]'
++             response = '[{"from_entity": "Elena", "to_entity": "Haven", "relationship": "located_in", "confidence": 0.9, "evidence": "Elena serves as Mayor of Haven"}, {"from_entity": "ancient ruins", "to_entity": "Haven", "relationship": "located_in", "confidence": 0.8, "evidence": "ruins discovered beneath Haven"}]'
++             logger.debug(f"LLM relationship response: {response}")
 +             return response
-          return &quot;[]&quot;
+          return "[]"
   
 ```
 
@@ -2026,7 +2026,7 @@ Lines added: 8, lines removed: 2
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: python test_alternative_extractors.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: python test_alternative_extractors.py</summary>
 
 ```bash
 python test_alternative_extractors.py
@@ -2036,7 +2036,7 @@ python test_alternative_extractors.py
 (.venv) (base) andrewrapo@Andrews-MacBook-Pro-16b graph_memory % python test_alternative_extractors.py
 2025-06-08 13:45:47,480 - __main__ - INFO - Starting alternative extractors test
 2025-06-08 13:45:47,480 - __main__ - INFO - Testing alternative extractors...
-2025-06-08 13:45:47,481 - __main__ - ERROR - Error extracting candidate entities: &#39;\n        &quot;type&quot;&#39;
+2025-06-08 13:45:47,481 - __main__ - ERROR - Error extracting candidate entities: '\n        "type"'
 2025-06-08 13:45:47,481 - __main__ - DEBUG - No candidate entities found
 2025-06-08 13:45:47,481 - __main__ - INFO - Extracted 0 entities
 2025-06-08 13:45:47,481 - __main__ - DEBUG - Need at least 2 entities to extract relationships
@@ -2136,7 +2136,7 @@ These curly braces are being interpreted as format placeholders by Python's `.fo
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/templates/entity_extraction.prompt</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/graph_memory/templates/entity_extraction.prompt</summary>
 
 **Chunk 1**
 Lines added: 4, lines removed: 4
@@ -2147,18 +2147,18 @@ Lines added: 4, lines removed: 4
   [
 -     {
 +     {{
-          &quot;type&quot;: &quot;character&quot;,
-          &quot;name&quot;: &quot;Elena&quot;,
-          &quot;description&quot;: &quot;Mayor of Haven who is investigating strange occurrences in the valley&quot;,
-          &quot;confidence&quot;: 0.9
+          "type": "character",
+          "name": "Elena",
+          "description": "Mayor of Haven who is investigating strange occurrences in the valley",
+          "confidence": 0.9
 -     },
 -     {
 +     }},
 +     {{
-          &quot;type&quot;: &quot;location&quot;, 
-          &quot;name&quot;: &quot;Haven&quot;,
-          &quot;description&quot;: &quot;A settlement in the valley where Elena serves as mayor&quot;,
-          &quot;confidence&quot;: 0.8
+          "type": "location", 
+          "name": "Haven",
+          "description": "A settlement in the valley where Elena serves as mayor",
+          "confidence": 0.8
 -     }
 +     }}
   ]
@@ -2177,7 +2177,7 @@ Now let me fix the relationship extraction template as well:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/templates/relationship_extraction.prompt</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/graph_memory/templates/relationship_extraction.prompt</summary>
 
 **Chunk 1**
 Lines added: 4, lines removed: 4
@@ -2188,20 +2188,20 @@ Lines added: 4, lines removed: 4
   [
 -     {
 +     {{
-          &quot;from_entity&quot;: &quot;Elena&quot;,
-          &quot;to_entity&quot;: &quot;Haven&quot;,
-          &quot;relationship&quot;: &quot;located_in&quot;,
-          &quot;confidence&quot;: 0.9,
-          &quot;evidence&quot;: &quot;Elena serves as Mayor of Haven&quot;
+          "from_entity": "Elena",
+          "to_entity": "Haven",
+          "relationship": "located_in",
+          "confidence": 0.9,
+          "evidence": "Elena serves as Mayor of Haven"
 -     },
 -     {
 +     }},
 +     {{
-          &quot;from_entity&quot;: &quot;Elena&quot;, 
-          &quot;to_entity&quot;: &quot;investigation&quot;,
-          &quot;relationship&quot;: &quot;participates_in&quot;,
-          &quot;confidence&quot;: 0.8,
-          &quot;evidence&quot;: &quot;Elena is investigating strange occurrences&quot;
+          "from_entity": "Elena", 
+          "to_entity": "investigation",
+          "relationship": "participates_in",
+          "confidence": 0.8,
+          "evidence": "Elena is investigating strange occurrences"
 -     }
 +     }}
   ]
@@ -2219,7 +2219,7 @@ Now let's test the alternative extractors again:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: python test_alternative_extractors.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: python test_alternative_extractors.py</summary>
 
 ```bash
 python test_alternative_extractors.py
@@ -2231,11 +2231,11 @@ python test_alternative_extractors.py
 2025-06-08 13:47:29,789 - __main__ - DEBUG - LLM prompt received: You are an expert entity extraction system
  for knowledge graph construction. Your task is to analyze conversation text and identify entities (characte
 rs, locations, objects, concepts, events, organiza...
-2025-06-08 13:47:29,789 - __main__ - DEBUG - LLM entity response: [{&quot;type&quot;: &quot;character&quot;, &quot;name&quot;: &quot;Elena&quot;, &quot;d
-escription&quot;: &quot;Mayor of Haven investigating strange occurrences&quot;, &quot;confidence&quot;: 0.9}, {&quot;type&quot;: &quot;location&quot;, &quot;n
-ame&quot;: &quot;Haven&quot;, &quot;description&quot;: &quot;A settlement in the valley where Elena serves as mayor&quot;, &quot;confidence&quot;: 0.8},
-{&quot;type&quot;: &quot;object&quot;, &quot;name&quot;: &quot;ancient ruins&quot;, &quot;description&quot;: &quot;Mysterious underground ruins discovered beneath
-Haven&quot;, &quot;confidence&quot;: 0.7}]
+2025-06-08 13:47:29,789 - __main__ - DEBUG - LLM entity response: [{"type": "character", "name": "Elena", "d
+escription": "Mayor of Haven investigating strange occurrences", "confidence": 0.9}, {"type": "location", "n
+ame": "Haven", "description": "A settlement in the valley where Elena serves as mayor", "confidence": 0.8},
+{"type": "object", "name": "ancient ruins", "description": "Mysterious underground ruins discovered beneath
+Haven", "confidence": 0.7}]
 2025-06-08 13:47:29,789 - __main__ - DEBUG - Stage 1: Extracted 3 candidate entities
 2025-06-08 13:47:29,789 - __main__ - WARNING - No graph manager available for RAG - returning candidates as 
 new entities
@@ -2247,11 +2247,11 @@ new entities
 2025-06-08 13:47:29,790 - __main__ - DEBUG - LLM prompt received: You are an expert relationship extraction 
 system for knowledge graph construction. Your task is to analyze conversation text and identify meaningful r
 elationships between the entities that have been e...
-2025-06-08 13:47:29,790 - __main__ - DEBUG - LLM entity response: [{&quot;type&quot;: &quot;character&quot;, &quot;name&quot;: &quot;Elena&quot;, &quot;d
-escription&quot;: &quot;Mayor of Haven investigating strange occurrences&quot;, &quot;confidence&quot;: 0.9}, {&quot;type&quot;: &quot;location&quot;, &quot;n
-ame&quot;: &quot;Haven&quot;, &quot;description&quot;: &quot;A settlement in the valley where Elena serves as mayor&quot;, &quot;confidence&quot;: 0.8},
-{&quot;type&quot;: &quot;object&quot;, &quot;name&quot;: &quot;ancient ruins&quot;, &quot;description&quot;: &quot;Mysterious underground ruins discovered beneath
-Haven&quot;, &quot;confidence&quot;: 0.7}]
+2025-06-08 13:47:29,790 - __main__ - DEBUG - LLM entity response: [{"type": "character", "name": "Elena", "d
+escription": "Mayor of Haven investigating strange occurrences", "confidence": 0.9}, {"type": "location", "n
+ame": "Haven", "description": "A settlement in the valley where Elena serves as mayor", "confidence": 0.8},
+{"type": "object", "name": "ancient ruins", "description": "Mysterious underground ruins discovered beneath
+Haven", "confidence": 0.7}]
 2025-06-08 13:47:29,790 - __main__ - DEBUG - Extracted 0 relationships from conversation
 2025-06-08 13:47:29,790 - __main__ - INFO - Extracted 0 relationships
 2025-06-08 13:47:29,790 - __main__ - INFO - Test completed: 3 entities, 0 relationships
@@ -2268,29 +2268,29 @@ Great! The entity extraction is now working correctly - we extracted 3 entities 
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/test_alternative_extractors.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/graph_memory/test_alternative_extractors.py</summary>
 
 **Chunk 1**
 Lines added: 5, lines removed: 5
 
 ```diff
 @@ -35,12 +35,12 @@
-          logger.debug(f&quot;LLM prompt received: {prompt[:200]}...&quot;)
+          logger.debug(f"LLM prompt received: {prompt[:200]}...")
           
--         if &quot;entity&quot; in prompt.lower() and &quot;extract&quot; in prompt.lower():
-+         if &quot;relationship&quot; in prompt.lower() and (&quot;from_entity&quot; in prompt.lower() or &quot;to_entity&quot; in prompt.lower()):
-+             response = &#39;[{&quot;from_entity&quot;: &quot;Elena&quot;, &quot;to_entity&quot;: &quot;Haven&quot;, &quot;relationship&quot;: &quot;located_in&quot;, &quot;confidence&quot;: 0.9, &quot;evidence&quot;: &quot;Elena serves as Mayor of Haven&quot;}, {&quot;from_entity&quot;: &quot;ancient ruins&quot;, &quot;to_entity&quot;: &quot;Haven&quot;, &quot;relationship&quot;: &quot;located_in&quot;, &quot;confidence&quot;: 0.8, &quot;evidence&quot;: &quot;ruins discovered beneath Haven&quot;}]&#39;
-+             logger.debug(f&quot;LLM relationship response: {response}&quot;)
+-         if "entity" in prompt.lower() and "extract" in prompt.lower():
++         if "relationship" in prompt.lower() and ("from_entity" in prompt.lower() or "to_entity" in prompt.lower()):
++             response = '[{"from_entity": "Elena", "to_entity": "Haven", "relationship": "located_in", "confidence": 0.9, "evidence": "Elena serves as Mayor of Haven"}, {"from_entity": "ancient ruins", "to_entity": "Haven", "relationship": "located_in", "confidence": 0.8, "evidence": "ruins discovered beneath Haven"}]'
++             logger.debug(f"LLM relationship response: {response}")
 +             return response
-+         elif &quot;entity&quot; in prompt.lower() and &quot;extract&quot; in prompt.lower():
-              response = &#39;[{&quot;type&quot;: &quot;character&quot;, &quot;name&quot;: &quot;Elena&quot;, &quot;description&quot;: &quot;Mayor of Haven investigating strange occurrences&quot;, &quot;confidence&quot;: 0.9}, {&quot;type&quot;: &quot;location&quot;, &quot;name&quot;: &quot;Haven&quot;, &quot;description&quot;: &quot;A settlement in the valley where Elena serves as mayor&quot;, &quot;confidence&quot;: 0.8}, {&quot;type&quot;: &quot;object&quot;, &quot;name&quot;: &quot;ancient ruins&quot;, &quot;description&quot;: &quot;Mysterious underground ruins discovered beneath Haven&quot;, &quot;confidence&quot;: 0.7}]&#39;
-              logger.debug(f&quot;LLM entity response: {response}&quot;)
++         elif "entity" in prompt.lower() and "extract" in prompt.lower():
+              response = '[{"type": "character", "name": "Elena", "description": "Mayor of Haven investigating strange occurrences", "confidence": 0.9}, {"type": "location", "name": "Haven", "description": "A settlement in the valley where Elena serves as mayor", "confidence": 0.8}, {"type": "object", "name": "ancient ruins", "description": "Mysterious underground ruins discovered beneath Haven", "confidence": 0.7}]'
+              logger.debug(f"LLM entity response: {response}")
               return response
--         elif &quot;relationship&quot; in prompt.lower():
--             response = &#39;[{&quot;from_entity&quot;: &quot;Elena&quot;, &quot;to_entity&quot;: &quot;Haven&quot;, &quot;relationship&quot;: &quot;located_in&quot;, &quot;confidence&quot;: 0.9, &quot;evidence&quot;: &quot;Elena serves as Mayor of Haven&quot;}, {&quot;from_entity&quot;: &quot;ancient ruins&quot;, &quot;to_entity&quot;: &quot;Haven&quot;, &quot;relationship&quot;: &quot;located_in&quot;, &quot;confidence&quot;: 0.8, &quot;evidence&quot;: &quot;ruins discovered beneath Haven&quot;}]&#39;
--             logger.debug(f&quot;LLM relationship response: {response}&quot;)
+-         elif "relationship" in prompt.lower():
+-             response = '[{"from_entity": "Elena", "to_entity": "Haven", "relationship": "located_in", "confidence": 0.9, "evidence": "Elena serves as Mayor of Haven"}, {"from_entity": "ancient ruins", "to_entity": "Haven", "relationship": "located_in", "confidence": 0.8, "evidence": "ruins discovered beneath Haven"}]'
+-             logger.debug(f"LLM relationship response: {response}")
 -             return response
-          return &quot;[]&quot;
+          return "[]"
   
 ```
 
@@ -2301,7 +2301,7 @@ Lines added: 5, lines removed: 5
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: python test_alternative_extractors.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: python test_alternative_extractors.py</summary>
 
 ```bash
 python test_alternative_extractors.py
@@ -2313,11 +2313,11 @@ python test_alternative_extractors.py
 2025-06-08 13:48:06,073 - __main__ - DEBUG - LLM prompt received: You are an expert entity extraction system
  for knowledge graph construction. Your task is to analyze conversation text and identify entities (characte
 rs, locations, objects, concepts, events, organiza...
-2025-06-08 13:48:06,073 - __main__ - DEBUG - LLM entity response: [{&quot;type&quot;: &quot;character&quot;, &quot;name&quot;: &quot;Elena&quot;, &quot;d
-escription&quot;: &quot;Mayor of Haven investigating strange occurrences&quot;, &quot;confidence&quot;: 0.9}, {&quot;type&quot;: &quot;location&quot;, &quot;n
-ame&quot;: &quot;Haven&quot;, &quot;description&quot;: &quot;A settlement in the valley where Elena serves as mayor&quot;, &quot;confidence&quot;: 0.8},
-{&quot;type&quot;: &quot;object&quot;, &quot;name&quot;: &quot;ancient ruins&quot;, &quot;description&quot;: &quot;Mysterious underground ruins discovered beneath
-Haven&quot;, &quot;confidence&quot;: 0.7}]
+2025-06-08 13:48:06,073 - __main__ - DEBUG - LLM entity response: [{"type": "character", "name": "Elena", "d
+escription": "Mayor of Haven investigating strange occurrences", "confidence": 0.9}, {"type": "location", "n
+ame": "Haven", "description": "A settlement in the valley where Elena serves as mayor", "confidence": 0.8},
+{"type": "object", "name": "ancient ruins", "description": "Mysterious underground ruins discovered beneath
+Haven", "confidence": 0.7}]
 2025-06-08 13:48:06,073 - __main__ - DEBUG - Stage 1: Extracted 3 candidate entities
 2025-06-08 13:48:06,073 - __main__ - WARNING - No graph manager available for RAG - returning candidates as 
 new entities
@@ -2329,10 +2329,10 @@ new entities
 2025-06-08 13:48:06,074 - __main__ - DEBUG - LLM prompt received: You are an expert relationship extraction 
 system for knowledge graph construction. Your task is to analyze conversation text and identify meaningful r
 elationships between the entities that have been e...
-2025-06-08 13:48:06,074 - __main__ - DEBUG - LLM relationship response: [{&quot;from_entity&quot;: &quot;Elena&quot;, &quot;to_entity
-&quot;: &quot;Haven&quot;, &quot;relationship&quot;: &quot;located_in&quot;, &quot;confidence&quot;: 0.9, &quot;evidence&quot;: &quot;Elena serves as Mayor of Haven&quot;},
-{&quot;from_entity&quot;: &quot;ancient ruins&quot;, &quot;to_entity&quot;: &quot;Haven&quot;, &quot;relationship&quot;: &quot;located_in&quot;, &quot;confidence&quot;: 0.8, &quot;evi
-dence&quot;: &quot;ruins discovered beneath Haven&quot;}]
+2025-06-08 13:48:06,074 - __main__ - DEBUG - LLM relationship response: [{"from_entity": "Elena", "to_entity
+": "Haven", "relationship": "located_in", "confidence": 0.9, "evidence": "Elena serves as Mayor of Haven"},
+{"from_entity": "ancient ruins", "to_entity": "Haven", "relationship": "located_in", "confidence": 0.8, "evi
+dence": "ruins discovered beneath Haven"}]
 2025-06-08 13:48:06,074 - __main__ - DEBUG - Extracted 2 relationships from conversation
 2025-06-08 13:48:06,074 - __main__ - INFO - Extracted 2 relationships
 2025-06-08 13:48:06,074 - __main__ - INFO -   - Elena --located_in--&gt; Haven
@@ -2497,7 +2497,7 @@ Now let me check if the mentioned sample data files exist to understand the test
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed directory tests • **7** results</summary>
+            <summary>Tool use: **list_dir** • Listed directory tests, 7 results</summary>
         
 | Name |
 |-------|
@@ -2516,7 +2516,7 @@ Now let me check if the mentioned sample data files exist to understand the test
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed directory tests/graph_memory • **2** results</summary>
+            <summary>Tool use: **list_dir** • Listed directory tests/graph_memory, 2 results</summary>
         
 | Name |
 |-------|
@@ -2530,7 +2530,7 @@ Now let me check if the mentioned sample data files exist to understand the test
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed directory tests/graph_memory/sample_data • **2** results</summary>
+            <summary>Tool use: **list_dir** • Listed directory tests/graph_memory/sample_data, 2 results</summary>
         
 | Name |
 |-------|
@@ -2544,7 +2544,7 @@ Now let me check if the mentioned sample data files exist to understand the test
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed directory tests/graph_memory/sample_data/graph_data • **3** results</summary>
+            <summary>Tool use: **list_dir** • Listed directory tests/graph_memory/sample_data/graph_data, 3 results</summary>
         
 | Name |
 |-------|
@@ -2563,7 +2563,7 @@ Perfect! Now let me check the tmp directory mentioned for output files:
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed directory tests/test_files • **2** results</summary>
+            <summary>Tool use: **list_dir** • Listed directory tests/test_files, 2 results</summary>
         
 | Name |
 |-------|
@@ -2725,7 +2725,7 @@ I'll create a comprehensive test script for the alternative extractors based on 
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed directory tests • **7** results</summary>
+            <summary>Tool use: **list_dir** • Listed directory tests, 7 results</summary>
         
 | Name |
 |-------|
@@ -2744,7 +2744,7 @@ I'll create a comprehensive test script for the alternative extractors based on 
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed directory tests/graph_memory • **2** results</summary>
+            <summary>Tool use: **list_dir** • Listed directory tests/graph_memory, 2 results</summary>
         
 | Name |
 |-------|
@@ -2758,7 +2758,7 @@ I'll create a comprehensive test script for the alternative extractors based on 
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed directory tests/graph_memory/sample_data • **3** results</summary>
+            <summary>Tool use: **list_dir** • Listed directory tests/graph_memory/sample_data, 3 results</summary>
         
 | Name |
 |-------|
@@ -2773,7 +2773,7 @@ I'll create a comprehensive test script for the alternative extractors based on 
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed directory tests/graph_memory/sample_data/graph_data • **3** results</summary>
+            <summary>Tool use: **list_dir** • Listed directory tests/graph_memory/sample_data/graph_data, 3 results</summary>
         
 | Name |
 |-------|
@@ -2788,7 +2788,7 @@ I'll create a comprehensive test script for the alternative extractors based on 
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed directory tests/test_files • **2** results</summary>
+            <summary>Tool use: **list_dir** • Listed directory tests/test_files, 2 results</summary>
         
 | Name |
 |-------|
@@ -2834,7 +2834,7 @@ Now I'll create a comprehensive test script for the alternative extractors based
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: tests/graph_memory/test_alternative_extractors_comprehensive.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: tests/graph_memory/test_alternative_extractors_comprehensive.py</summary>
 
 I am creating a comprehensive test script that uses the sample data from tests/graph_memory/sample_data to test the alternative extractors following the ALT_ENTITY_AND_RELATIONSHIP_EXTRACTION_APPROACH.md plan.
 
@@ -2886,7 +2886,7 @@ Great! The comprehensive test script was created successfully. Now let me run it
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: cd /Users/andrewrapo/github/cursor/cursor-hello-llm-agent && python tests/graph_memory/test_alternative_extractors_comprehensive.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: cd /Users/andrewrapo/github/cursor/cursor-hello-llm-agent && python tests/graph_memory/test_alternative_extractors_comprehensive.py</summary>
 
 ```bash
 cd /Users/andrewrapo/github/cursor/cursor-hello-llm-agent && python tests/graph_memory/test_alternative_extractors_comprehensive.py
@@ -2904,15 +2904,15 @@ Copied graph_edges.json to tmp directory
 Copied graph_metadata.json to tmp directory
 Loaded 3 conversation entries
 
-FATAL ERROR: __init__() got an unexpected keyword argument &#39;graph_data_dir&#39;
+FATAL ERROR: __init__() got an unexpected keyword argument 'graph_data_dir'
 Traceback (most recent call last):
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/tests/graph_memory/test_alternative_extractor
-s_comprehensive.py&quot;, line 441, in run_all_tests
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/tests/graph_memory/test_alternative_extractor
+s_comprehensive.py", line 441, in run_all_tests
     self.setup_test_environment()
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/tests/graph_memory/test_alternative_extractor
-s_comprehensive.py&quot;, line 178, in setup_test_environment
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/tests/graph_memory/test_alternative_extractor
+s_comprehensive.py", line 178, in setup_test_environment
     self.alt_graph_manager = AltGraphManager(
-TypeError: __init__() got an unexpected keyword argument &#39;graph_data_dir&#39;
+TypeError: __init__() got an unexpected keyword argument 'graph_data_dir'
 (.venv) (base) andrewrapo@Andrews-MacBook-Pro-16b cursor-hello-llm-agent %
 ```
 </details>
@@ -2938,7 +2938,7 @@ I see the issue. The AltGraphManager constructor expects `storage_path` instead 
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: tests/graph_memory/test_alternative_extractors_comprehensive.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: tests/graph_memory/test_alternative_extractors_comprehensive.py</summary>
 
 **Chunk 1**
 Lines added: 3, lines removed: 3
@@ -3016,14 +3016,14 @@ Perfect! I need to update the test script to use the `process_conversation_entry
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: tests/graph_memory/test_alternative_extractors_comprehensive.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: tests/graph_memory/test_alternative_extractors_comprehensive.py</summary>
 
 **Chunk 1**
 Lines added: 11, lines removed: 18
 
 ```diff
 @@ -253,27 +253,20 @@
-                  digest_text = &quot; &quot;.join([seg[&quot;text&quot;] for seg in qualifying_segments])
+                  digest_text = " ".join([seg["text"] for seg in qualifying_segments])
                   
 -                 entities = self.alt_graph_manager.extract_entities_from_conversation(
 +                 # Process the conversation entry using the alternative approach
@@ -3032,33 +3032,33 @@ Lines added: 11, lines removed: 18
                       digest_text=digest_text
                   )
                   
-                  test_result[&quot;entries_processed&quot;] += 1
--                 test_result[&quot;entities_extracted&quot;] += len(entities)
+                  test_result["entries_processed"] += 1
+-                 test_result["entities_extracted"] += len(entities)
 -                 
 -                 # Add entities to graph
 -                 for entity in entities:
 -                     node, is_new = self.alt_graph_manager.add_or_update_node(
--                         name=entity.get(&quot;name&quot;, &quot;&quot;),
--                         node_type=entity.get(&quot;type&quot;, &quot;concept&quot;),
--                         description=entity.get(&quot;description&quot;, &quot;&quot;),
--                         attributes=entity.get(&quot;attributes&quot;, {})
+-                         name=entity.get("name", ""),
+-                         node_type=entity.get("type", "concept"),
+-                         description=entity.get("description", ""),
+-                         attributes=entity.get("attributes", {})
 -                     )
 -                     
 -                     if is_new:
--                         test_result[&quot;new_entities&quot;] += 1
--                         print(f&quot;  + NEW: {entity[&#39;type&#39;]} &#39;{entity[&#39;name&#39;]}&#39;&quot;)
+-                         test_result["new_entities"] += 1
+-                         print(f"  + NEW: {entity['type']} '{entity['name']}'")
 -                     else:
--                         test_result[&quot;existing_entities_updated&quot;] += 1
--                         print(f&quot;  ~ UPDATED: {entity[&#39;type&#39;]} &#39;{entity[&#39;name&#39;]}&#39;&quot;)
-+                 test_result[&quot;entities_extracted&quot;] += len(results.get(&quot;entities&quot;, []))
-+                 test_result[&quot;new_entities&quot;] += len(results.get(&quot;new_entities&quot;, []))
-+                 test_result[&quot;existing_entities_updated&quot;] += len(results.get(&quot;existing_entities&quot;, []))
+-                         test_result["existing_entities_updated"] += 1
+-                         print(f"  ~ UPDATED: {entity['type']} '{entity['name']}'")
++                 test_result["entities_extracted"] += len(results.get("entities", []))
++                 test_result["new_entities"] += len(results.get("new_entities", []))
++                 test_result["existing_entities_updated"] += len(results.get("existing_entities", []))
 +                 
 +                 # Log results
-+                 for entity in results.get(&quot;new_entities&quot;, []):
-+                     print(f&quot;  + NEW: {entity.get(&#39;type&#39;, &#39;unknown&#39;)} &#39;{entity.get(&#39;name&#39;, &#39;unknown&#39;)}&#39;&quot;)
-+                 for entity in results.get(&quot;existing_entities&quot;, []):
-+                     print(f&quot;  ~ UPDATED: {entity.get(&#39;type&#39;, &#39;unknown&#39;)} &#39;{entity.get(&#39;name&#39;, &#39;unknown&#39;)}&#39;&quot;)
++                 for entity in results.get("new_entities", []):
++                     print(f"  + NEW: {entity.get('type', 'unknown')} '{entity.get('name', 'unknown')}'")
++                 for entity in results.get("existing_entities", []):
++                     print(f"  ~ UPDATED: {entity.get('type', 'unknown')} '{entity.get('name', 'unknown')}'")
                           
           except Exception as e:
 ```
@@ -3075,14 +3075,14 @@ Now I need to update the relationship extraction test as well. Since the `proces
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: tests/graph_memory/test_alternative_extractors_comprehensive.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: tests/graph_memory/test_alternative_extractors_comprehensive.py</summary>
 
 **Chunk 1**
 Lines added: 11, lines removed: 20
 
 ```diff
 @@ -314,29 +314,20 @@
-                  digest_text = &quot; &quot;.join([seg[&quot;text&quot;] for seg in qualifying_segments])
+                  digest_text = " ".join([seg["text"] for seg in qualifying_segments])
                   
 -                 # Get current entities for context
 -                 current_entities = list(self.alt_graph_manager.nodes.values())
@@ -3096,30 +3096,30 @@ Lines added: 11, lines removed: 20
 +                     digest_text=digest_text
                   )
                   
-                  test_result[&quot;entries_processed&quot;] += 1
--                 test_result[&quot;relationships_extracted&quot;] += len(relationships)
+                  test_result["entries_processed"] += 1
+-                 test_result["relationships_extracted"] += len(relationships)
 -                 
 -                 # Add relationships to graph
 -                 for rel in relationships:
 -                     edge, is_new = self.alt_graph_manager.add_or_update_edge(
--                         from_node_id=rel.get(&quot;from_entity_id&quot;, &quot;&quot;),
--                         to_node_id=rel.get(&quot;to_entity_id&quot;, &quot;&quot;),
--                         relationship=rel.get(&quot;relationship&quot;, &quot;related_to&quot;),
--                         confidence=rel.get(&quot;confidence&quot;, 0.5),
--                         evidence=rel.get(&quot;evidence&quot;, &quot;&quot;)
+-                         from_node_id=rel.get("from_entity_id", ""),
+-                         to_node_id=rel.get("to_entity_id", ""),
+-                         relationship=rel.get("relationship", "related_to"),
+-                         confidence=rel.get("confidence", 0.5),
+-                         evidence=rel.get("evidence", "")
 -                     )
 -                     
 -                     if is_new:
-+                 test_result[&quot;relationships_extracted&quot;] += len(results.get(&quot;relationships&quot;, []))
++                 test_result["relationships_extracted"] += len(results.get("relationships", []))
 +                 
 +                 # Log relationship results
-+                 for rel in results.get(&quot;relationships&quot;, []):
-                      test_result[&quot;new_relationships&quot;] += 1
--                         print(f&quot;  + NEW RELATIONSHIP: {rel[&#39;from_entity&#39;]} -&gt; {rel[&#39;relationship&#39;]} -&gt; {rel[&#39;to_entity&#39;]}&quot;)
-+                     from_name = rel.get(&quot;from_node_name&quot;, &quot;unknown&quot;)
-+                     to_name = rel.get(&quot;to_node_name&quot;, &quot;unknown&quot;)
-+                     rel_type = rel.get(&quot;relationship&quot;, &quot;unknown&quot;)
-+                     print(f&quot;  + NEW RELATIONSHIP: {from_name} -&gt; {rel_type} -&gt; {to_name}&quot;)
++                 for rel in results.get("relationships", []):
+                      test_result["new_relationships"] += 1
+-                         print(f"  + NEW RELATIONSHIP: {rel['from_entity']} -&gt; {rel['relationship']} -&gt; {rel['to_entity']}")
++                     from_name = rel.get("from_node_name", "unknown")
++                     to_name = rel.get("to_node_name", "unknown")
++                     rel_type = rel.get("relationship", "unknown")
++                     print(f"  + NEW RELATIONSHIP: {from_name} -&gt; {rel_type} -&gt; {to_name}")
                           
           except Exception as e:
 ```
@@ -3135,7 +3135,7 @@ Now let me run the updated test script:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: python tests/graph_memory/test_alternative_extractors_comprehensive.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: python tests/graph_memory/test_alternative_extractors_comprehensive.py</summary>
 
 ```bash
 python tests/graph_memory/test_alternative_extractors_comprehensive.py
@@ -3157,18 +3157,18 @@ Alternative Graph Manager initialized
 === TESTING ALTERNATIVE ENTITY EXTRACTION ===
 
 Processing entry 8fc34427... with 8 qualifying segments
-Error extracting candidate entities: &#39;MockLLMService&#39; object has no attribute &#39;generate&#39;
+Error extracting candidate entities: 'MockLLMService' object has no attribute 'generate'
 
 Processing entry 821918f0... with 2 qualifying segments
-Error extracting candidate entities: &#39;MockLLMService&#39; object has no attribute &#39;generate&#39;
+Error extracting candidate entities: 'MockLLMService' object has no attribute 'generate'
 
 === TESTING ALTERNATIVE RELATIONSHIP EXTRACTION ===
 
 Extracting relationships from entry 8fc34427...
-Error extracting candidate entities: &#39;MockLLMService&#39; object has no attribute &#39;generate&#39;
+Error extracting candidate entities: 'MockLLMService' object has no attribute 'generate'
 
 Extracting relationships from entry 821918f0...
-Error extracting candidate entities: &#39;MockLLMService&#39; object has no attribute &#39;generate&#39;
+Error extracting candidate entities: 'MockLLMService' object has no attribute 'generate'
 
 === ANALYZING RESULTS ===
 Baseline nodes: 18
@@ -3248,18 +3248,18 @@ Perfect! The extractors expect a `generate` method. Let me fix the MockLLMServic
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: tests/graph_memory/test_alternative_extractors_comprehensive.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: tests/graph_memory/test_alternative_extractors_comprehensive.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
 
 ```diff
 @@ -38,5 +38,5 @@
-          self.last_prompt = &quot;&quot;
+          self.last_prompt = ""
           
 -     def generate_response(self, prompt: str, **kwargs) -&gt; str:
 +     def generate(self, prompt: str, **kwargs) -&gt; str:
-          &quot;&quot;&quot;Generate mock responses based on the prompt content.&quot;&quot;&quot;
+          """Generate mock responses based on the prompt content."""
           self.call_count += 1
 ```
 
@@ -3274,7 +3274,7 @@ Now let me run the test again:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: python tests/graph_memory/test_alternative_extractors_comprehensive.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: python tests/graph_memory/test_alternative_extractors_comprehensive.py</summary>
 
 ```bash
 python tests/graph_memory/test_alternative_extractors_comprehensive.py
@@ -3366,77 +3366,77 @@ Great! The LLM calls are working now, but there's a JSON parsing issue. The erro
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: tests/graph_memory/test_alternative_extractors_comprehensive.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: tests/graph_memory/test_alternative_extractors_comprehensive.py</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: 58
 
 ```diff
 @@ -51,64 +51,8 @@
-              if &quot;candidate&quot; in prompt.lower() or self.call_count % 4 == 1:
+              if "candidate" in prompt.lower() or self.call_count % 4 == 1:
                   # First pass - candidate entities
--                 return &quot;&quot;&quot;[
+-                 return """[
 -     {
--         &quot;type&quot;: &quot;location&quot;,
--         &quot;name&quot;: &quot;Lost Valley&quot;,
--         &quot;description&quot;: &quot;Hidden valley surrounded by impassable mountains with ancient ruins&quot;,
--         &quot;confidence&quot;: 0.9
+-         "type": "location",
+-         "name": "Lost Valley",
+-         "description": "Hidden valley surrounded by impassable mountains with ancient ruins",
+-         "confidence": 0.9
 -     },
 -     {
--         &quot;type&quot;: &quot;location&quot;, 
--         &quot;name&quot;: &quot;Haven&quot;,
--         &quot;description&quot;: &quot;Central settlement where Elena serves as Mayor&quot;,
--         &quot;confidence&quot;: 0.8
+-         "type": "location", 
+-         "name": "Haven",
+-         "description": "Central settlement where Elena serves as Mayor",
+-         "confidence": 0.8
 -     },
 -     {
--         &quot;type&quot;: &quot;character&quot;,
--         &quot;name&quot;: &quot;Elena&quot;,
--         &quot;description&quot;: &quot;Mayor of Haven investigating strange occurrences&quot;,
--         &quot;confidence&quot;: 0.9
+-         "type": "character",
+-         "name": "Elena",
+-         "description": "Mayor of Haven investigating strange occurrences",
+-         "confidence": 0.9
 -     },
 -     {
--         &quot;type&quot;: &quot;location&quot;,
--         &quot;name&quot;: &quot;ancient ruins&quot;, 
--         &quot;description&quot;: &quot;Ancient structures scattered throughout the valley with mysterious properties&quot;,
--         &quot;confidence&quot;: 0.7
+-         "type": "location",
+-         "name": "ancient ruins", 
+-         "description": "Ancient structures scattered throughout the valley with mysterious properties",
+-         "confidence": 0.7
 -     },
 -     {
--         &quot;type&quot;: &quot;concept&quot;,
--         &quot;name&quot;: &quot;magical anomalies&quot;,
--         &quot;description&quot;: &quot;Mysterious magical effects affecting the valley and wildlife&quot;,
--         &quot;confidence&quot;: 0.8
+-         "type": "concept",
+-         "name": "magical anomalies",
+-         "description": "Mysterious magical effects affecting the valley and wildlife",
+-         "confidence": 0.8
 -     }
-- ]&quot;&quot;&quot;
-+                 return &#39;[{&quot;type&quot;: &quot;location&quot;, &quot;name&quot;: &quot;Lost Valley&quot;, &quot;description&quot;: &quot;Hidden valley surrounded by impassable mountains with ancient ruins&quot;, &quot;confidence&quot;: 0.9}, {&quot;type&quot;: &quot;location&quot;, &quot;name&quot;: &quot;Haven&quot;, &quot;description&quot;: &quot;Central settlement where Elena serves as Mayor&quot;, &quot;confidence&quot;: 0.8}, {&quot;type&quot;: &quot;character&quot;, &quot;name&quot;: &quot;Elena&quot;, &quot;description&quot;: &quot;Mayor of Haven investigating strange occurrences&quot;, &quot;confidence&quot;: 0.9}, {&quot;type&quot;: &quot;location&quot;, &quot;name&quot;: &quot;ancient ruins&quot;, &quot;description&quot;: &quot;Ancient structures scattered throughout the valley with mysterious properties&quot;, &quot;confidence&quot;: 0.7}, {&quot;type&quot;: &quot;concept&quot;, &quot;name&quot;: &quot;magical anomalies&quot;, &quot;description&quot;: &quot;Mysterious magical effects affecting the valley and wildlife&quot;, &quot;confidence&quot;: 0.8}]&#39;
+- ]"""
++                 return '[{"type": "location", "name": "Lost Valley", "description": "Hidden valley surrounded by impassable mountains with ancient ruins", "confidence": 0.9}, {"type": "location", "name": "Haven", "description": "Central settlement where Elena serves as Mayor", "confidence": 0.8}, {"type": "character", "name": "Elena", "description": "Mayor of Haven investigating strange occurrences", "confidence": 0.9}, {"type": "location", "name": "ancient ruins", "description": "Ancient structures scattered throughout the valley with mysterious properties", "confidence": 0.7}, {"type": "concept", "name": "magical anomalies", "description": "Mysterious magical effects affecting the valley and wildlife", "confidence": 0.8}]'
               else:
                   # Second pass - final entities with existing context
--                 return &quot;&quot;&quot;[
+-                 return """[
 -     {
--         &quot;type&quot;: &quot;location&quot;,
--         &quot;name&quot;: &quot;Lost Valley&quot;,
--         &quot;description&quot;: &quot;Hidden valley surrounded by impassable mountains with ancient ruins and magical anomalies&quot;,
--         &quot;confidence&quot;: 0.9,
--         &quot;status&quot;: &quot;existing&quot;,
--         &quot;existing_id&quot;: &quot;location_ea89195b&quot;
+-         "type": "location",
+-         "name": "Lost Valley",
+-         "description": "Hidden valley surrounded by impassable mountains with ancient ruins and magical anomalies",
+-         "confidence": 0.9,
+-         "status": "existing",
+-         "existing_id": "location_ea89195b"
 -     },
 -     {
--         &quot;type&quot;: &quot;character&quot;,
--         &quot;name&quot;: &quot;Elena&quot;, 
--         &quot;description&quot;: &quot;Mayor of Haven who protects valley inhabitants and investigates strange occurrences&quot;,
--         &quot;confidence&quot;: 0.9,
--         &quot;status&quot;: &quot;existing&quot;,
--         &quot;existing_id&quot;: &quot;character_1369e31a&quot;
+-         "type": "character",
+-         "name": "Elena", 
+-         "description": "Mayor of Haven who protects valley inhabitants and investigates strange occurrences",
+-         "confidence": 0.9,
+-         "status": "existing",
+-         "existing_id": "character_1369e31a"
 -     },
 -     {
--         &quot;type&quot;: &quot;location&quot;,
--         &quot;name&quot;: &quot;ancient ruins&quot;,
--         &quot;description&quot;: &quot;Ancient structures scattered throughout the Lost Valley with new chambers and strange energy emanations&quot;,
--         &quot;confidence&quot;: 0.8,
--         &quot;status&quot;: &quot;existing&quot;, 
--         &quot;existing_id&quot;: &quot;location_e4730cf0&quot;
+-         "type": "location",
+-         "name": "ancient ruins",
+-         "description": "Ancient structures scattered throughout the Lost Valley with new chambers and strange energy emanations",
+-         "confidence": 0.8,
+-         "status": "existing", 
+-         "existing_id": "location_e4730cf0"
 -     }
-- ]&quot;&quot;&quot;
-+                 return &#39;[{&quot;type&quot;: &quot;location&quot;, &quot;name&quot;: &quot;Lost Valley&quot;, &quot;description&quot;: &quot;Hidden valley surrounded by impassable mountains with ancient ruins and magical anomalies&quot;, &quot;confidence&quot;: 0.9, &quot;status&quot;: &quot;existing&quot;, &quot;existing_id&quot;: &quot;location_ea89195b&quot;}, {&quot;type&quot;: &quot;character&quot;, &quot;name&quot;: &quot;Elena&quot;, &quot;description&quot;: &quot;Mayor of Haven who protects valley inhabitants and investigates strange occurrences&quot;, &quot;confidence&quot;: 0.9, &quot;status&quot;: &quot;existing&quot;, &quot;existing_id&quot;: &quot;character_1369e31a&quot;}, {&quot;type&quot;: &quot;location&quot;, &quot;name&quot;: &quot;ancient ruins&quot;, &quot;description&quot;: &quot;Ancient structures scattered throughout the Lost Valley with new chambers and strange energy emanations&quot;, &quot;confidence&quot;: 0.8, &quot;status&quot;: &quot;existing&quot;, &quot;existing_id&quot;: &quot;location_e4730cf0&quot;}]&#39;
+- ]"""
++                 return '[{"type": "location", "name": "Lost Valley", "description": "Hidden valley surrounded by impassable mountains with ancient ruins and magical anomalies", "confidence": 0.9, "status": "existing", "existing_id": "location_ea89195b"}, {"type": "character", "name": "Elena", "description": "Mayor of Haven who protects valley inhabitants and investigates strange occurrences", "confidence": 0.9, "status": "existing", "existing_id": "character_1369e31a"}, {"type": "location", "name": "ancient ruins", "description": "Ancient structures scattered throughout the Lost Valley with new chambers and strange energy emanations", "confidence": 0.8, "status": "existing", "existing_id": "location_e4730cf0"}]'
           
           # Relationship extraction responses
 ```
@@ -3449,7 +3449,7 @@ Lines added: 2, lines removed: 58
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: tests/graph_memory/test_alternative_extractors_comprehensive.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: tests/graph_memory/test_alternative_extractors_comprehensive.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 16
@@ -3457,24 +3457,24 @@ Lines added: 1, lines removed: 16
 ```diff
 @@ -58,20 +58,5 @@
           # Relationship extraction responses
-          elif &quot;relationship&quot; in prompt.lower():
--             return &quot;&quot;&quot;[
+          elif "relationship" in prompt.lower():
+-             return """[
 -     {
--         &quot;from_entity&quot;: &quot;Elena&quot;,
--         &quot;to_entity&quot;: &quot;Haven&quot;, 
--         &quot;relationship&quot;: &quot;located_in&quot;,
--         &quot;confidence&quot;: 0.9,
--         &quot;evidence&quot;: &quot;Elena serves as Mayor of Haven&quot;
+-         "from_entity": "Elena",
+-         "to_entity": "Haven", 
+-         "relationship": "located_in",
+-         "confidence": 0.9,
+-         "evidence": "Elena serves as Mayor of Haven"
 -     },
 -     {
--         &quot;from_entity&quot;: &quot;ancient ruins&quot;,
--         &quot;to_entity&quot;: &quot;Lost Valley&quot;,
--         &quot;relationship&quot;: &quot;located_in&quot;,
--         &quot;confidence&quot;: 0.8,
--         &quot;evidence&quot;: &quot;ancient ruins scattered throughout the Lost Valley&quot;
+-         "from_entity": "ancient ruins",
+-         "to_entity": "Lost Valley",
+-         "relationship": "located_in",
+-         "confidence": 0.8,
+-         "evidence": "ancient ruins scattered throughout the Lost Valley"
 -     }
-- ]&quot;&quot;&quot;
-+             return &#39;[{&quot;from_entity&quot;: &quot;Elena&quot;, &quot;to_entity&quot;: &quot;Haven&quot;, &quot;relationship&quot;: &quot;located_in&quot;, &quot;confidence&quot;: 0.9, &quot;evidence&quot;: &quot;Elena serves as Mayor of Haven&quot;}, {&quot;from_entity&quot;: &quot;ancient ruins&quot;, &quot;to_entity&quot;: &quot;Lost Valley&quot;, &quot;relationship&quot;: &quot;located_in&quot;, &quot;confidence&quot;: 0.8, &quot;evidence&quot;: &quot;ancient ruins scattered throughout the Lost Valley&quot;}]&#39;
+- ]"""
++             return '[{"from_entity": "Elena", "to_entity": "Haven", "relationship": "located_in", "confidence": 0.9, "evidence": "Elena serves as Mayor of Haven"}, {"from_entity": "ancient ruins", "to_entity": "Lost Valley", "relationship": "located_in", "confidence": 0.8, "evidence": "ancient ruins scattered throughout the Lost Valley"}]'
           
           # Default response
 ```
@@ -3490,7 +3490,7 @@ Now let me run the test again:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: python tests/graph_memory/test_alternative_extractors_comprehensive.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: python tests/graph_memory/test_alternative_extractors_comprehensive.py</summary>
 
 ```bash
 python tests/graph_memory/test_alternative_extractors_comprehensive.py
@@ -3612,23 +3612,23 @@ I can see the issue! The `_parse_entity_response` method uses a regex to find JS
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: tests/graph_memory/test_alternative_extractors_comprehensive.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: tests/graph_memory/test_alternative_extractors_comprehensive.py</summary>
 
 **Chunk 1**
 Lines added: 8, lines removed: undefined
 
 ```diff
 @@ -46,4 +46,12 @@
-          print(f&quot;Prompt length: {len(prompt)} characters&quot;)
-          print(f&quot;First 200 chars: {prompt[:200]}...&quot;)
+          print(f"Prompt length: {len(prompt)} characters")
+          print(f"First 200 chars: {prompt[:200]}...")
 +         
 +         # Determine response type
-+         response_type = &quot;unknown&quot;
-+         if &quot;extract entities&quot; in prompt.lower() or &quot;entity_extraction.prompt&quot; in prompt:
-+             response_type = &quot;entity_extraction&quot;
-+         elif &quot;relationship&quot; in prompt.lower():
-+             response_type = &quot;relationship_extraction&quot;
-+         print(f&quot;Response type: {response_type}&quot;)
++         response_type = "unknown"
++         if "extract entities" in prompt.lower() or "entity_extraction.prompt" in prompt:
++             response_type = "entity_extraction"
++         elif "relationship" in prompt.lower():
++             response_type = "relationship_extraction"
++         print(f"Response type: {response_type}")
           
           # Entity extraction responses
 ```
@@ -3645,7 +3645,7 @@ Let me also add some debug output to see what response is being returned:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: tests/graph_memory/test_alternative_extractors_comprehensive.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: tests/graph_memory/test_alternative_extractors_comprehensive.py</summary>
 
 **Chunk 1**
 Lines added: 3, lines removed: 1
@@ -3654,9 +3654,9 @@ Lines added: 3, lines removed: 1
 @@ -69,5 +69,7 @@
           
           # Default response
--         return &#39;{&quot;entities&quot;: [], &quot;relationships&quot;: []}&#39;
-+         response = &#39;[]&#39;
-+         print(f&quot;Returning response: {response[:100]}...&quot;)
+-         return '{"entities": [], "relationships": []}'
++         response = '[]'
++         print(f"Returning response: {response[:100]}...")
 +         return response
   
   
@@ -3674,24 +3674,24 @@ Let me also add debug output for the entity and relationship responses:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: tests/graph_memory/test_alternative_extractors_comprehensive.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: tests/graph_memory/test_alternative_extractors_comprehensive.py</summary>
 
 **Chunk 1**
 Lines added: 6, lines removed: 2
 
 ```diff
 @@ -59,8 +59,12 @@
-              if &quot;candidate&quot; in prompt.lower() or self.call_count % 4 == 1:
+              if "candidate" in prompt.lower() or self.call_count % 4 == 1:
                   # First pass - candidate entities
--                 return &#39;[{&quot;type&quot;: &quot;location&quot;, &quot;name&quot;: &quot;Lost Valley&quot;, &quot;description&quot;: &quot;Hidden valley surrounded by impassable mountains with ancient ruins&quot;, &quot;confidence&quot;: 0.9}, {&quot;type&quot;: &quot;location&quot;, &quot;name&quot;: &quot;Haven&quot;, &quot;description&quot;: &quot;Central settlement where Elena serves as Mayor&quot;, &quot;confidence&quot;: 0.8}, {&quot;type&quot;: &quot;character&quot;, &quot;name&quot;: &quot;Elena&quot;, &quot;description&quot;: &quot;Mayor of Haven investigating strange occurrences&quot;, &quot;confidence&quot;: 0.9}, {&quot;type&quot;: &quot;location&quot;, &quot;name&quot;: &quot;ancient ruins&quot;, &quot;description&quot;: &quot;Ancient structures scattered throughout the valley with mysterious properties&quot;, &quot;confidence&quot;: 0.7}, {&quot;type&quot;: &quot;concept&quot;, &quot;name&quot;: &quot;magical anomalies&quot;, &quot;description&quot;: &quot;Mysterious magical effects affecting the valley and wildlife&quot;, &quot;confidence&quot;: 0.8}]&#39;
-+                 response = &#39;[{&quot;type&quot;: &quot;location&quot;, &quot;name&quot;: &quot;Lost Valley&quot;, &quot;description&quot;: &quot;Hidden valley surrounded by impassable mountains with ancient ruins&quot;, &quot;confidence&quot;: 0.9}, {&quot;type&quot;: &quot;location&quot;, &quot;name&quot;: &quot;Haven&quot;, &quot;description&quot;: &quot;Central settlement where Elena serves as Mayor&quot;, &quot;confidence&quot;: 0.8}, {&quot;type&quot;: &quot;character&quot;, &quot;name&quot;: &quot;Elena&quot;, &quot;description&quot;: &quot;Mayor of Haven investigating strange occurrences&quot;, &quot;confidence&quot;: 0.9}, {&quot;type&quot;: &quot;location&quot;, &quot;name&quot;: &quot;ancient ruins&quot;, &quot;description&quot;: &quot;Ancient structures scattered throughout the valley with mysterious properties&quot;, &quot;confidence&quot;: 0.7}, {&quot;type&quot;: &quot;concept&quot;, &quot;name&quot;: &quot;magical anomalies&quot;, &quot;description&quot;: &quot;Mysterious magical effects affecting the valley and wildlife&quot;, &quot;confidence&quot;: 0.8}]&#39;
-+                 print(f&quot;Returning candidate entities: {response[:100]}...&quot;)
+-                 return '[{"type": "location", "name": "Lost Valley", "description": "Hidden valley surrounded by impassable mountains with ancient ruins", "confidence": 0.9}, {"type": "location", "name": "Haven", "description": "Central settlement where Elena serves as Mayor", "confidence": 0.8}, {"type": "character", "name": "Elena", "description": "Mayor of Haven investigating strange occurrences", "confidence": 0.9}, {"type": "location", "name": "ancient ruins", "description": "Ancient structures scattered throughout the valley with mysterious properties", "confidence": 0.7}, {"type": "concept", "name": "magical anomalies", "description": "Mysterious magical effects affecting the valley and wildlife", "confidence": 0.8}]'
++                 response = '[{"type": "location", "name": "Lost Valley", "description": "Hidden valley surrounded by impassable mountains with ancient ruins", "confidence": 0.9}, {"type": "location", "name": "Haven", "description": "Central settlement where Elena serves as Mayor", "confidence": 0.8}, {"type": "character", "name": "Elena", "description": "Mayor of Haven investigating strange occurrences", "confidence": 0.9}, {"type": "location", "name": "ancient ruins", "description": "Ancient structures scattered throughout the valley with mysterious properties", "confidence": 0.7}, {"type": "concept", "name": "magical anomalies", "description": "Mysterious magical effects affecting the valley and wildlife", "confidence": 0.8}]'
++                 print(f"Returning candidate entities: {response[:100]}...")
 +                 return response
               else:
                   # Second pass - final entities with existing context
--                 return &#39;[{&quot;type&quot;: &quot;location&quot;, &quot;name&quot;: &quot;Lost Valley&quot;, &quot;description&quot;: &quot;Hidden valley surrounded by impassable mountains with ancient ruins and magical anomalies&quot;, &quot;confidence&quot;: 0.9, &quot;status&quot;: &quot;existing&quot;, &quot;existing_id&quot;: &quot;location_ea89195b&quot;}, {&quot;type&quot;: &quot;character&quot;, &quot;name&quot;: &quot;Elena&quot;, &quot;description&quot;: &quot;Mayor of Haven who protects valley inhabitants and investigates strange occurrences&quot;, &quot;confidence&quot;: 0.9, &quot;status&quot;: &quot;existing&quot;, &quot;existing_id&quot;: &quot;character_1369e31a&quot;}, {&quot;type&quot;: &quot;location&quot;, &quot;name&quot;: &quot;ancient ruins&quot;, &quot;description&quot;: &quot;Ancient structures scattered throughout the Lost Valley with new chambers and strange energy emanations&quot;, &quot;confidence&quot;: 0.8, &quot;status&quot;: &quot;existing&quot;, &quot;existing_id&quot;: &quot;location_e4730cf0&quot;}]&#39;
-+                 response = &#39;[{&quot;type&quot;: &quot;location&quot;, &quot;name&quot;: &quot;Lost Valley&quot;, &quot;description&quot;: &quot;Hidden valley surrounded by impassable mountains with ancient ruins and magical anomalies&quot;, &quot;confidence&quot;: 0.9, &quot;status&quot;: &quot;existing&quot;, &quot;existing_id&quot;: &quot;location_ea89195b&quot;}, {&quot;type&quot;: &quot;character&quot;, &quot;name&quot;: &quot;Elena&quot;, &quot;description&quot;: &quot;Mayor of Haven who protects valley inhabitants and investigates strange occurrences&quot;, &quot;confidence&quot;: 0.9, &quot;status&quot;: &quot;existing&quot;, &quot;existing_id&quot;: &quot;character_1369e31a&quot;}, {&quot;type&quot;: &quot;location&quot;, &quot;name&quot;: &quot;ancient ruins&quot;, &quot;description&quot;: &quot;Ancient structures scattered throughout the Lost Valley with new chambers and strange energy emanations&quot;, &quot;confidence&quot;: 0.8, &quot;status&quot;: &quot;existing&quot;, &quot;existing_id&quot;: &quot;location_e4730cf0&quot;}]&#39;
-+                 print(f&quot;Returning final entities: {response[:100]}...&quot;)
+-                 return '[{"type": "location", "name": "Lost Valley", "description": "Hidden valley surrounded by impassable mountains with ancient ruins and magical anomalies", "confidence": 0.9, "status": "existing", "existing_id": "location_ea89195b"}, {"type": "character", "name": "Elena", "description": "Mayor of Haven who protects valley inhabitants and investigates strange occurrences", "confidence": 0.9, "status": "existing", "existing_id": "character_1369e31a"}, {"type": "location", "name": "ancient ruins", "description": "Ancient structures scattered throughout the Lost Valley with new chambers and strange energy emanations", "confidence": 0.8, "status": "existing", "existing_id": "location_e4730cf0"}]'
++                 response = '[{"type": "location", "name": "Lost Valley", "description": "Hidden valley surrounded by impassable mountains with ancient ruins and magical anomalies", "confidence": 0.9, "status": "existing", "existing_id": "location_ea89195b"}, {"type": "character", "name": "Elena", "description": "Mayor of Haven who protects valley inhabitants and investigates strange occurrences", "confidence": 0.9, "status": "existing", "existing_id": "character_1369e31a"}, {"type": "location", "name": "ancient ruins", "description": "Ancient structures scattered throughout the Lost Valley with new chambers and strange energy emanations", "confidence": 0.8, "status": "existing", "existing_id": "location_e4730cf0"}]'
++                 print(f"Returning final entities: {response[:100]}...")
 +                 return response
           
           # Relationship extraction responses
@@ -3705,7 +3705,7 @@ Lines added: 6, lines removed: 2
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: tests/graph_memory/test_alternative_extractors_comprehensive.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: tests/graph_memory/test_alternative_extractors_comprehensive.py</summary>
 
 **Chunk 1**
 Lines added: 3, lines removed: 1
@@ -3713,10 +3713,10 @@ Lines added: 3, lines removed: 1
 ```diff
 @@ -70,5 +70,7 @@
           # Relationship extraction responses
-          elif &quot;relationship&quot; in prompt.lower():
--             return &#39;[{&quot;from_entity&quot;: &quot;Elena&quot;, &quot;to_entity&quot;: &quot;Haven&quot;, &quot;relationship&quot;: &quot;located_in&quot;, &quot;confidence&quot;: 0.9, &quot;evidence&quot;: &quot;Elena serves as Mayor of Haven&quot;}, {&quot;from_entity&quot;: &quot;ancient ruins&quot;, &quot;to_entity&quot;: &quot;Lost Valley&quot;, &quot;relationship&quot;: &quot;located_in&quot;, &quot;confidence&quot;: 0.8, &quot;evidence&quot;: &quot;ancient ruins scattered throughout the Lost Valley&quot;}]&#39;
-+             response = &#39;[{&quot;from_entity&quot;: &quot;Elena&quot;, &quot;to_entity&quot;: &quot;Haven&quot;, &quot;relationship&quot;: &quot;located_in&quot;, &quot;confidence&quot;: 0.9, &quot;evidence&quot;: &quot;Elena serves as Mayor of Haven&quot;}, {&quot;from_entity&quot;: &quot;ancient ruins&quot;, &quot;to_entity&quot;: &quot;Lost Valley&quot;, &quot;relationship&quot;: &quot;located_in&quot;, &quot;confidence&quot;: 0.8, &quot;evidence&quot;: &quot;ancient ruins scattered throughout the Lost Valley&quot;}]&#39;
-+             print(f&quot;Returning relationships: {response[:100]}...&quot;)
+          elif "relationship" in prompt.lower():
+-             return '[{"from_entity": "Elena", "to_entity": "Haven", "relationship": "located_in", "confidence": 0.9, "evidence": "Elena serves as Mayor of Haven"}, {"from_entity": "ancient ruins", "to_entity": "Lost Valley", "relationship": "located_in", "confidence": 0.8, "evidence": "ancient ruins scattered throughout the Lost Valley"}]'
++             response = '[{"from_entity": "Elena", "to_entity": "Haven", "relationship": "located_in", "confidence": 0.9, "evidence": "Elena serves as Mayor of Haven"}, {"from_entity": "ancient ruins", "to_entity": "Lost Valley", "relationship": "located_in", "confidence": 0.8, "evidence": "ancient ruins scattered throughout the Lost Valley"}]'
++             print(f"Returning relationships: {response[:100]}...")
 +             return response
           
           # Default response
@@ -3733,7 +3733,7 @@ Now let me run the test again to see what's happening:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: python tests/graph_memory/test_alternative_extractors_comprehensive.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: python tests/graph_memory/test_alternative_extractors_comprehensive.py</summary>
 
 ```bash
 python tests/graph_memory/test_alternative_extractors_comprehensive.py
@@ -3843,7 +3843,7 @@ Perfect! I can see the prompt starts with "You are an expert entity extraction s
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: tests/graph_memory/test_alternative_extractors_comprehensive.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: tests/graph_memory/test_alternative_extractors_comprehensive.py</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: 2
@@ -3851,14 +3851,14 @@ Lines added: 2, lines removed: 2
 ```diff
 @@ -49,7 +49,7 @@
           # Determine response type
-          response_type = &quot;unknown&quot;
--         if &quot;extract entities&quot; in prompt.lower() or &quot;entity_extraction.prompt&quot; in prompt:
-+         if &quot;expert entity extraction system&quot; in prompt.lower():
-              response_type = &quot;entity_extraction&quot;
--         elif &quot;relationship&quot; in prompt.lower():
-+         elif &quot;expert relationship extraction system&quot; in prompt.lower():
-              response_type = &quot;relationship_extraction&quot;
-          print(f&quot;Response type: {response_type}&quot;)
+          response_type = "unknown"
+-         if "extract entities" in prompt.lower() or "entity_extraction.prompt" in prompt:
++         if "expert entity extraction system" in prompt.lower():
+              response_type = "entity_extraction"
+-         elif "relationship" in prompt.lower():
++         elif "expert relationship extraction system" in prompt.lower():
+              response_type = "relationship_extraction"
+          print(f"Response type: {response_type}")
 ```
 
 </details>
@@ -3869,7 +3869,7 @@ Lines added: 2, lines removed: 2
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: tests/graph_memory/test_alternative_extractors_comprehensive.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: tests/graph_memory/test_alternative_extractors_comprehensive.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -3878,9 +3878,9 @@ Lines added: 1, lines removed: 1
 @@ -56,5 +56,5 @@
           
           # Entity extraction responses
--         if &quot;extract entities&quot; in prompt.lower() or &quot;entity_extraction.prompt&quot; in prompt:
-+         if &quot;expert entity extraction system&quot; in prompt.lower():
-              if &quot;candidate&quot; in prompt.lower() or self.call_count % 4 == 1:
+-         if "extract entities" in prompt.lower() or "entity_extraction.prompt" in prompt:
++         if "expert entity extraction system" in prompt.lower():
+              if "candidate" in prompt.lower() or self.call_count % 4 == 1:
                   # First pass - candidate entities
 ```
 
@@ -4001,7 +4001,7 @@ Now let me update the test script to use real LLM services:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: tests/graph_memory/test_alternative_extractors_comprehensive.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: tests/graph_memory/test_alternative_extractors_comprehensive.py</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: undefined
@@ -4138,7 +4138,7 @@ Now I can see the current state. I need to replace the MockLLMService with real 
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: tests/graph_memory/test_alternative_extractors_comprehensive.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: tests/graph_memory/test_alternative_extractors_comprehensive.py</summary>
 
 **Chunk 1**
 Lines added: 28, lines removed: 47
@@ -4148,74 +4148,74 @@ Lines added: 28, lines removed: 47
   
   
 - class MockLLMService:
--     &quot;&quot;&quot;Mock LLM service for testing without actual API calls.&quot;&quot;&quot;
+-     """Mock LLM service for testing without actual API calls."""
 -     
 -     def __init__(self):
 -         self.call_count = 0
--         self.last_prompt = &quot;&quot;
+-         self.last_prompt = ""
 -         
 -     def generate(self, prompt: str, **kwargs) -&gt; str:
--         &quot;&quot;&quot;Generate mock responses based on the prompt content.&quot;&quot;&quot;
+-         """Generate mock responses based on the prompt content."""
 -         self.call_count += 1
 -         self.last_prompt = prompt
 -         
--         print(f&quot;\n[MOCK LLM CALL #{self.call_count}]&quot;)
--         print(f&quot;Prompt length: {len(prompt)} characters&quot;)
--         print(f&quot;First 200 chars: {prompt[:200]}...&quot;)
+-         print(f"\n[MOCK LLM CALL #{self.call_count}]")
+-         print(f"Prompt length: {len(prompt)} characters")
+-         print(f"First 200 chars: {prompt[:200]}...")
 -         
 -         # Determine response type
--         response_type = &quot;unknown&quot;
--         if &quot;expert entity extraction system&quot; in prompt.lower():
--             response_type = &quot;entity_extraction&quot;
--         elif &quot;expert relationship extraction system&quot; in prompt.lower():
--             response_type = &quot;relationship_extraction&quot;
--         print(f&quot;Response type: {response_type}&quot;)
+-         response_type = "unknown"
+-         if "expert entity extraction system" in prompt.lower():
+-             response_type = "entity_extraction"
+-         elif "expert relationship extraction system" in prompt.lower():
+-             response_type = "relationship_extraction"
+-         print(f"Response type: {response_type}")
 -         
 -         # Entity extraction responses
--         if &quot;expert entity extraction system&quot; in prompt.lower():
--             if &quot;candidate&quot; in prompt.lower() or self.call_count % 4 == 1:
+-         if "expert entity extraction system" in prompt.lower():
+-             if "candidate" in prompt.lower() or self.call_count % 4 == 1:
 -                 # First pass - candidate entities
--                 response = &#39;[{&quot;type&quot;: &quot;location&quot;, &quot;name&quot;: &quot;Lost Valley&quot;, &quot;description&quot;: &quot;Hidden valley surrounded by impassable mountains with ancient ruins&quot;, &quot;confidence&quot;: 0.9}, {&quot;type&quot;: &quot;location&quot;, &quot;name&quot;: &quot;Haven&quot;, &quot;description&quot;: &quot;Central settlement where Elena serves as Mayor&quot;, &quot;confidence&quot;: 0.8}, {&quot;type&quot;: &quot;character&quot;, &quot;name&quot;: &quot;Elena&quot;, &quot;description&quot;: &quot;Mayor of Haven investigating strange occurrences&quot;, &quot;confidence&quot;: 0.9}, {&quot;type&quot;: &quot;location&quot;, &quot;name&quot;: &quot;ancient ruins&quot;, &quot;description&quot;: &quot;Ancient structures scattered throughout the valley with mysterious properties&quot;, &quot;confidence&quot;: 0.7}, {&quot;type&quot;: &quot;concept&quot;, &quot;name&quot;: &quot;magical anomalies&quot;, &quot;description&quot;: &quot;Mysterious magical effects affecting the valley and wildlife&quot;, &quot;confidence&quot;: 0.8}]&#39;
--                 print(f&quot;Returning candidate entities: {response[:100]}...&quot;)
+-                 response = '[{"type": "location", "name": "Lost Valley", "description": "Hidden valley surrounded by impassable mountains with ancient ruins", "confidence": 0.9}, {"type": "location", "name": "Haven", "description": "Central settlement where Elena serves as Mayor", "confidence": 0.8}, {"type": "character", "name": "Elena", "description": "Mayor of Haven investigating strange occurrences", "confidence": 0.9}, {"type": "location", "name": "ancient ruins", "description": "Ancient structures scattered throughout the valley with mysterious properties", "confidence": 0.7}, {"type": "concept", "name": "magical anomalies", "description": "Mysterious magical effects affecting the valley and wildlife", "confidence": 0.8}]'
+-                 print(f"Returning candidate entities: {response[:100]}...")
 -                 return response
 -             else:
 -                 # Second pass - final entities with existing context
--                 response = &#39;[{&quot;type&quot;: &quot;location&quot;, &quot;name&quot;: &quot;Lost Valley&quot;, &quot;description&quot;: &quot;Hidden valley surrounded by impassable mountains with ancient ruins and magical anomalies&quot;, &quot;confidence&quot;: 0.9, &quot;status&quot;: &quot;existing&quot;, &quot;existing_id&quot;: &quot;location_ea89195b&quot;}, {&quot;type&quot;: &quot;character&quot;, &quot;name&quot;: &quot;Elena&quot;, &quot;description&quot;: &quot;Mayor of Haven who protects valley inhabitants and investigates strange occurrences&quot;, &quot;confidence&quot;: 0.9, &quot;status&quot;: &quot;existing&quot;, &quot;existing_id&quot;: &quot;character_1369e31a&quot;}, {&quot;type&quot;: &quot;location&quot;, &quot;name&quot;: &quot;ancient ruins&quot;, &quot;description&quot;: &quot;Ancient structures scattered throughout the Lost Valley with new chambers and strange energy emanations&quot;, &quot;confidence&quot;: 0.8, &quot;status&quot;: &quot;existing&quot;, &quot;existing_id&quot;: &quot;location_e4730cf0&quot;}]&#39;
--                 print(f&quot;Returning final entities: {response[:100]}...&quot;)
+-                 response = '[{"type": "location", "name": "Lost Valley", "description": "Hidden valley surrounded by impassable mountains with ancient ruins and magical anomalies", "confidence": 0.9, "status": "existing", "existing_id": "location_ea89195b"}, {"type": "character", "name": "Elena", "description": "Mayor of Haven who protects valley inhabitants and investigates strange occurrences", "confidence": 0.9, "status": "existing", "existing_id": "character_1369e31a"}, {"type": "location", "name": "ancient ruins", "description": "Ancient structures scattered throughout the Lost Valley with new chambers and strange energy emanations", "confidence": 0.8, "status": "existing", "existing_id": "location_e4730cf0"}]'
+-                 print(f"Returning final entities: {response[:100]}...")
 -                 return response
 -         
 -         # Relationship extraction responses
--         elif &quot;relationship&quot; in prompt.lower():
--             response = &#39;[{&quot;from_entity&quot;: &quot;Elena&quot;, &quot;to_entity&quot;: &quot;Haven&quot;, &quot;relationship&quot;: &quot;located_in&quot;, &quot;confidence&quot;: 0.9, &quot;evidence&quot;: &quot;Elena serves as Mayor of Haven&quot;}, {&quot;from_entity&quot;: &quot;ancient ruins&quot;, &quot;to_entity&quot;: &quot;Lost Valley&quot;, &quot;relationship&quot;: &quot;located_in&quot;, &quot;confidence&quot;: 0.8, &quot;evidence&quot;: &quot;ancient ruins scattered throughout the Lost Valley&quot;}]&#39;
--             print(f&quot;Returning relationships: {response[:100]}...&quot;)
+-         elif "relationship" in prompt.lower():
+-             response = '[{"from_entity": "Elena", "to_entity": "Haven", "relationship": "located_in", "confidence": 0.9, "evidence": "Elena serves as Mayor of Haven"}, {"from_entity": "ancient ruins", "to_entity": "Lost Valley", "relationship": "located_in", "confidence": 0.8, "evidence": "ancient ruins scattered throughout the Lost Valley"}]'
+-             print(f"Returning relationships: {response[:100]}...")
 -             return response
 -         
 -         # Default response
--         response = &#39;[]&#39;
--         print(f&quot;Returning response: {response[:100]}...&quot;)
+-         response = '[]'
+-         print(f"Returning response: {response[:100]}...")
 -         return response
 + def setup_ollama_services():
-+     &quot;&quot;&quot;Set up real Ollama LLM and embeddings services using environment variables.&quot;&quot;&quot;
++     """Set up real Ollama LLM and embeddings services using environment variables."""
 +     
 +     # Get environment variables
-+     base_url = os.getenv(&quot;OLLAMA_BASE_URL&quot;, &quot;http://localhost:11434&quot;)
-+     model = os.getenv(&quot;OLLAMA_MODEL&quot;, &quot;gemma3&quot;)
-+     embed_model = os.getenv(&quot;OLLAMA_EMBED_MODEL&quot;, &quot;mxbai-embed-large&quot;)
++     base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
++     model = os.getenv("OLLAMA_MODEL", "gemma3")
++     embed_model = os.getenv("OLLAMA_EMBED_MODEL", "mxbai-embed-large")
 +     
-+     print(f&quot;Setting up Ollama services:&quot;)
-+     print(f&quot;  Base URL: {base_url}&quot;)
-+     print(f&quot;  Model: {model}&quot;)
-+     print(f&quot;  Embedding Model: {embed_model}&quot;)
++     print(f"Setting up Ollama services:")
++     print(f"  Base URL: {base_url}")
++     print(f"  Model: {model}")
++     print(f"  Embedding Model: {embed_model}")
 +     
 +     # Configure LLM service
 +     llm_config = {
-+         &quot;base_url&quot;: base_url,
-+         &quot;model&quot;: model,
-+         &quot;temperature&quot;: 0.7,
-+         &quot;debug&quot;: True,
-+         &quot;debug_file&quot;: &quot;logs/test_ollama.log&quot;,
-+         &quot;debug_scope&quot;: &quot;test_extraction&quot;,
-+         &quot;console_output&quot;: True
++         "base_url": base_url,
++         "model": model,
++         "temperature": 0.7,
++         "debug": True,
++         "debug_file": "logs/test_ollama.log",
++         "debug_scope": "test_extraction",
++         "console_output": True
 +     }
 +     
 +     # Initialize services
@@ -4238,7 +4238,7 @@ Now I need to update the ComprehensiveTestRunner to use the real LLM services:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: tests/graph_memory/test_alternative_extractors_comprehensive.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: tests/graph_memory/test_alternative_extractors_comprehensive.py</summary>
 
 **Chunk 1**
 Lines added: 7, lines removed: 2
@@ -4253,11 +4253,11 @@ Lines added: 7, lines removed: 2
 +         self.llm_service, self.embed_model = setup_ollama_services()
 +         
 +         # Initialize embeddings manager
-+         embeddings_file = str(self.tmp_dir / &quot;test_embeddings.jsonl&quot;)
++         embeddings_file = str(self.tmp_dir / "test_embeddings.jsonl")
 +         self.embeddings_manager = EmbeddingsManager(embeddings_file, self.llm_service)
 +         
           self.results = {
-              &quot;start_time&quot;: datetime.now().isoformat(),
+              "start_time": datetime.now().isoformat(),
 ```
 
 </details>
@@ -4272,14 +4272,14 @@ Now update the AltGraphManager initialization to use the real services:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: tests/graph_memory/test_alternative_extractors_comprehensive.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: tests/graph_memory/test_alternative_extractors_comprehensive.py</summary>
 
 **Chunk 1**
 Lines added: 3, lines removed: 2
 
 ```diff
 @@ -108,8 +108,9 @@
-          print(f&quot;Loaded {len(self.conversation_data[&#39;entries&#39;])} conversation entries&quot;)
+          print(f"Loaded {len(self.conversation_data['entries'])} conversation entries")
           
 -         # Initialize AltGraphManager with tmp directory
 +         # Initialize AltGraphManager with real LLM services
@@ -4304,17 +4304,17 @@ I need to also update the analysis to track actual LLM calls instead of mock cal
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: tests/graph_memory/test_alternative_extractors_comprehensive.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: tests/graph_memory/test_alternative_extractors_comprehensive.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
 
 ```diff
 @@ -305,5 +305,5 @@
-                  &quot;edges_added&quot;: final_stats[&quot;edge_count&quot;] - baseline_stats.get(&quot;edge_count&quot;, 0)
+                  "edges_added": final_stats["edge_count"] - baseline_stats.get("edge_count", 0)
               },
--             &quot;llm_calls&quot;: self.mock_llm.call_count
-+             &quot;llm_calls&quot;: &quot;tracked_via_debug_logs&quot;
+-             "llm_calls": self.mock_llm.call_count
++             "llm_calls": "tracked_via_debug_logs"
           }
           
 ```
@@ -4331,17 +4331,17 @@ Let me also update the print statement in the analysis:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: tests/graph_memory/test_alternative_extractors_comprehensive.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: tests/graph_memory/test_alternative_extractors_comprehensive.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
 
 ```diff
 @@ -314,5 +314,5 @@
-          print(f&quot;Final edges: {final_stats[&#39;edge_count&#39;]}&quot;)
-          print(f&quot;Edges added: {analysis[&#39;changes&#39;][&#39;edges_added&#39;]}&quot;)
--         print(f&quot;Total LLM calls: {analysis[&#39;llm_calls&#39;]}&quot;)
-+         print(f&quot;LLM calls: {analysis[&#39;llm_calls&#39;]}&quot;)
+          print(f"Final edges: {final_stats['edge_count']}")
+          print(f"Edges added: {analysis['changes']['edges_added']}")
+-         print(f"Total LLM calls: {analysis['llm_calls']}")
++         print(f"LLM calls: {analysis['llm_calls']}")
           
           return analysis
 ```
@@ -4358,7 +4358,7 @@ Now let me create a simple script to set the environment variables and run the t
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: tests/graph_memory/run_comprehensive_test.sh</summary>
+<details><summary>Tool use: **edit_file** • Edit file: tests/graph_memory/run_comprehensive_test.sh</summary>
 
 I am creating a shell script that sets the required environment variables and runs the comprehensive test.
 
@@ -4376,12 +4376,12 @@ Lines added: 17, lines removed: 1
 + export OLLAMA_MODEL=gemma3
 + export OLLAMA_EMBED_MODEL=mxbai-embed-large
 + 
-+ echo &quot;Environment variables set:&quot;
-+ echo &quot;  DEV_MODE=$DEV_MODE&quot;
-+ echo &quot;  OLLAMA_BASE_URL=$OLLAMA_BASE_URL&quot;
-+ echo &quot;  OLLAMA_MODEL=$OLLAMA_MODEL&quot;
-+ echo &quot;  OLLAMA_EMBED_MODEL=$OLLAMA_EMBED_MODEL&quot;
-+ echo &quot;&quot;
++ echo "Environment variables set:"
++ echo "  DEV_MODE=$DEV_MODE"
++ echo "  OLLAMA_BASE_URL=$OLLAMA_BASE_URL"
++ echo "  OLLAMA_MODEL=$OLLAMA_MODEL"
++ echo "  OLLAMA_EMBED_MODEL=$OLLAMA_EMBED_MODEL"
++ echo ""
 + 
 + # Run the comprehensive test
 + python test_alternative_extractors_comprehensive.py 
@@ -4398,7 +4398,7 @@ Make the script executable and run it:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: chmod +x tests/graph_memory/run_comprehensive_test.sh</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: chmod +x tests/graph_memory/run_comprehensive_test.sh</summary>
 
 ```bash
 chmod +x tests/graph_memory/run_comprehensive_test.sh
@@ -4414,7 +4414,7 @@ chmod +x tests/graph_memory/run_comprehensive_test.sh
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: cd tests/graph_memory && ./run_comprehensive_test.sh</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: cd tests/graph_memory && ./run_comprehensive_test.sh</summary>
 
 ```bash
 cd tests/graph_memory && ./run_comprehensive_test.sh
@@ -4422,7 +4422,7 @@ cd tests/graph_memory && ./run_comprehensive_test.sh
 
 ```
 (.venv) (base) andrewrapo@Andrews-MacBook-Pro-16b graph_memory % 
-he Captain of Riverwatch, responsible for the valley&#39;s defense, and she is concerned by an increase in monst
+he Captain of Riverwatch, responsible for the valley's defense, and she is concerned by an increase in monst
 er activity. Currently, trade routes between the settlements have been disrupted, and merchants are seeking
 protection. Explorers have recently discovered new chambers within the ancient ruins, accompanied by strange
  energy emanations, and valuable artifacts have been found. Furthermore, random magical effects are occurrin
@@ -4431,13 +4431,13 @@ g, impacting the local wildlife, and there is a suspected connection between the
 **Similar Existing Entities:**
 - The Lost Valley (location): A hidden valley surrounded by impassable mountains, serving as the campaign se
 tting.
-- Lost Valley (location): A valley region containing ancient ruins and magical anomalies. It&#39;s the setting f
+- Lost Valley (location): A valley region containing ancient ruins and magical anomalies. It's the setting f
 or exploration and discovery.
 - Haven (location): A settlement located to the east of the central valley, commanded by Captain Sara.
 - Riverwatch (location): A settlement located to the west of the central valley.
-- Elena (character): Mayor of Haven, motivated to protect the valley&#39;s inhabitants, investigating strange oc
+- Elena (character): Mayor of Haven, motivated to protect the valley's inhabitants, investigating strange oc
 currences in Haven.
-- Sara (character): Captain of Riverwatch, responsible for the valley&#39;s defense, concerned by increased mons
+- Sara (character): Captain of Riverwatch, responsible for the valley's defense, concerned by increased mons
 ter activity.
 - ancient ruins (location): Scattered throughout The Lost Valley; contain new chambers with strange energy e
 manations and valuable artifacts.
@@ -4448,30 +4448,30 @@ scriptions.
 cient Ruins.
 
 **Instructions:** For each candidate entity, decide if it matches an existing entity above or if it should b
-e created as new. If it matches existing, use the existing entity&#39;s name exactly.
+e created as new. If it matches existing, use the existing entity's name exactly.
 
 ## Output Format
 
 Respond with a JSON array of entities. Each entity must have:
-- &quot;type&quot;: one of the defined entity types
-- &quot;name&quot;: clear, specific name for the entity
-- &quot;description&quot;: detailed description suitable for semantic matching and graph storage
-- &quot;confidence&quot;: your confidence in this entity being graph-worthy (0.0 to 1.0)
+- "type": one of the defined entity types
+- "name": clear, specific name for the entity
+- "description": detailed description suitable for semantic matching and graph storage
+- "confidence": your confidence in this entity being graph-worthy (0.0 to 1.0)
 
 **Example Response:**
 &#96;&#96;&#96;json
 [
     {
-        &quot;type&quot;: &quot;character&quot;,
-        &quot;name&quot;: &quot;Elena&quot;,
-        &quot;description&quot;: &quot;Mayor of Haven who is investigating strange occurrences in the valley&quot;,
-        &quot;confidence&quot;: 0.9
+        "type": "character",
+        "name": "Elena",
+        "description": "Mayor of Haven who is investigating strange occurrences in the valley",
+        "confidence": 0.9
     },
     {
-        &quot;type&quot;: &quot;location&quot;, 
-        &quot;name&quot;: &quot;Haven&quot;,
-        &quot;description&quot;: &quot;A settlement in the valley where Elena serves as mayor&quot;,
-        &quot;confidence&quot;: 0.8
+        "type": "location", 
+        "name": "Haven",
+        "description": "A settlement in the valley where Elena serves as mayor",
+        "confidence": 0.8
     }
 ]
 &#96;&#96;&#96;
@@ -4481,8 +4481,8 @@ Respond with a JSON array of entities. Each entity must have:
 [test_extraction]:[_generate_impl]::[]:Sending request to Ollama API:
 URL: http://192.168.1.173:11434/api/generate
 Data: {
-  &quot;model&quot;: &quot;gemma3&quot;,
-  &quot;prompt&quot;: &quot;You are an expert entity extraction system for knowledge graph construction. Your task is to an
+  "model": "gemma3",
+  "prompt": "You are an expert entity extraction system for knowledge graph construction. Your task is to an
 alyze conversation text and identify entities (characters, locations, objects, concepts, events, organizatio
 ns) that should be stored in a knowledge graph.\n\n## Instructions\n\nAnalyze the provided conversation entr
 y and digest to identify graph-worthy entities. Focus on specific, identifiable entities that would be valua
@@ -4497,153 +4497,153 @@ criptive names that would help identify the entity later\n- Include sufficient d
 hing and understanding\n\n## Input Format\n\n**Conversation Entry:** \nCampaign Setting: The Lost Valley\n\n
 World Details:\n- Hidden valley surrounded by impassable mountains\n- Ancient ruins scattered throughout\n-
 Mysterious magical anomalies\n- Three main settlements: Haven (central), Riverwatch (east), Mountainkeep (we
-st)\n\nKey NPCs:\n1. Elena\n   - Role: Mayor of Haven\n   - Motivation: Protect the valley&#39;s inhabitants\n
+st)\n\nKey NPCs:\n1. Elena\n   - Role: Mayor of Haven\n   - Motivation: Protect the valley's inhabitants\n
  - Current Quest: Investigate strange occurrences in Haven\n\n2. Theron\n   - Role: Master Scholar\n   - Exp
 ertise: Ancient ruins and artifacts\n   - Current Research: Decoding ruin inscriptions\n\n3. Sara\n   - Role
-: Captain of Riverwatch\n   - Responsibility: Valley&#39;s defense\n   - Current Concern: Increased monster acti
+: Captain of Riverwatch\n   - Responsibility: Valley's defense\n   - Current Concern: Increased monster acti
 vity\n\nCurrent Situations:\n1. Trade Routes\n   - Main road between settlements disrupted\n   - Merchants s
 eeking protection\n   - Alternative routes needed\n\n2. Ancient Ruins\n   - New chambers discovered\n   - St
 range energy emanations\n   - Valuable artifacts found\n\n3. Magical Anomalies\n   - Random magical effects\
 n   - Affecting local wildlife\n   - Possible connection to ruins\n\n**Digest:** The Lost Valley is a campai
 gn setting defined by a hidden valley, completely surrounded by impassable mountains. Scattered throughout t
 he valley are ancient ruins, and the area is punctuated by mysterious magical anomalies. There are three mai
-n settlements: Haven, located at the valley&#39;s center; Riverwatch, situated to the east; and Mountainkeep, lo
+n settlements: Haven, located at the valley's center; Riverwatch, situated to the east; and Mountainkeep, lo
 cated to the west. Key non-player characters include Elena, who serves as the Mayor of Haven and is motivate
-d by a desire to protect the valley&#39;s inhabitants. She is currently investigating strange occurrences within
+d by a desire to protect the valley's inhabitants. She is currently investigating strange occurrences within
  Haven. Theron is a Master Scholar with expertise in ancient ruins and artifacts, and he is presently focuse
 d on decoding inscriptions found within the ruins. Finally, Sara is the Captain of Riverwatch, responsible f
-or the valley&#39;s defense, and she is concerned by an increase in monster activity. Currently, trade routes be
+or the valley's defense, and she is concerned by an increase in monster activity. Currently, trade routes be
 tween the settlements have been disrupted, and merchants are seeking protection. Explorers have recently dis
 covered new chambers within the ancient ruins, accompanied by strange energy emanations, and valuable artifa
 cts have been found. Furthermore, random magical effects are occurring, impacting the local wildlife, and th
 ere is a suspected connection between these anomalies and the ruins.\n\n\n**Similar Existing Entities:**\n-
 The Lost Valley (location): A hidden valley surrounded by impassable mountains, serving as the campaign sett
-ing.\n- Lost Valley (location): A valley region containing ancient ruins and magical anomalies. It&#39;s the set
+ing.\n- Lost Valley (location): A valley region containing ancient ruins and magical anomalies. It's the set
 ting for exploration and discovery.\n- Haven (location): A settlement located to the east of the central val
 ley, commanded by Captain Sara.\n- Riverwatch (location): A settlement located to the west of the central va
-lley.\n- Elena (character): Mayor of Haven, motivated to protect the valley&#39;s inhabitants, investigating str
-ange occurrences in Haven.\n- Sara (character): Captain of Riverwatch, responsible for the valley&#39;s defense,
+lley.\n- Elena (character): Mayor of Haven, motivated to protect the valley's inhabitants, investigating str
+ange occurrences in Haven.\n- Sara (character): Captain of Riverwatch, responsible for the valley's defense,
  concerned by increased monster activity.\n- ancient ruins (location): Scattered throughout The Lost Valley;
  contain new chambers with strange energy emanations and valuable artifacts.\n- Theron (character): Master S
 cholar specializing in ancient ruins and artifacts, currently decoding ruin inscriptions.\n- Trade Routes (c
 oncept): Disrupted routes between the settlements, requiring merchants seeking protection.\n- magical anomal
 ies (concept): Random magical effects impacting local wildlife, potentially linked to the Ancient Ruins.\n\n
 **Instructions:** For each candidate entity, decide if it matches an existing entity above or if it should b
-e created as new. If it matches existing, use the existing entity&#39;s name exactly.\n\n## Output Format\n\nRes
-pond with a JSON array of entities. Each entity must have:\n- \&quot;type\&quot;: one of the defined entity types\n- \
-&quot;name\&quot;: clear, specific name for the entity\n- \&quot;description\&quot;: detailed description suitable for semantic
-matching and graph storage\n- \&quot;confidence\&quot;: your confidence in this entity being graph-worthy (0.0 to 1.0)
-\n\n**Example Response:**\n&#96;&#96;&#96;json\n[\n    {\n        \&quot;type\&quot;: \&quot;character\&quot;,\n        \&quot;name\&quot;: \&quot;Elena\&quot;,
-\n        \&quot;description\&quot;: \&quot;Mayor of Haven who is investigating strange occurrences in the valley\&quot;,\n
-   \&quot;confidence\&quot;: 0.9\n    },\n    {\n        \&quot;type\&quot;: \&quot;location\&quot;, \n        \&quot;name\&quot;: \&quot;Haven\&quot;,\n
-   \&quot;description\&quot;: \&quot;A settlement in the valley where Elena serves as mayor\&quot;,\n        \&quot;confidence\&quot;: 0.8
-\n    }\n]\n&#96;&#96;&#96;\n\n**Entities:**\n&quot;,
-  &quot;temperature&quot;: 0.7,
-  &quot;stream&quot;: false
+e created as new. If it matches existing, use the existing entity's name exactly.\n\n## Output Format\n\nRes
+pond with a JSON array of entities. Each entity must have:\n- \"type\": one of the defined entity types\n- \
+"name\": clear, specific name for the entity\n- \"description\": detailed description suitable for semantic
+matching and graph storage\n- \"confidence\": your confidence in this entity being graph-worthy (0.0 to 1.0)
+\n\n**Example Response:**\n&#96;&#96;&#96;json\n[\n    {\n        \"type\": \"character\",\n        \"name\": \"Elena\",
+\n        \"description\": \"Mayor of Haven who is investigating strange occurrences in the valley\",\n
+   \"confidence\": 0.9\n    },\n    {\n        \"type\": \"location\", \n        \"name\": \"Haven\",\n
+   \"description\": \"A settlement in the valley where Elena serves as mayor\",\n        \"confidence\": 0.8
+\n    }\n]\n&#96;&#96;&#96;\n\n**Entities:**\n",
+  "temperature": 0.7,
+  "stream": false
 }
 [test_extraction]:[_generate_impl]::[]:Received response from Ollama API:
 {
-  &quot;model&quot;: &quot;gemma3&quot;,
-  &quot;created_at&quot;: &quot;2025-06-08T18:26:18.3656126Z&quot;,
-  &quot;response&quot;: &quot;&#96;&#96;&#96;json\n[\n    {\n        \&quot;type\&quot;: \&quot;location\&quot;,\n        \&quot;name\&quot;: \&quot;The Lost Valley\&quot;,\n 
-       \&quot;description\&quot;: \&quot;A hidden valley surrounded by impassable mountains, serving as the campaign settin
-g.\&quot;,\n        \&quot;confidence\&quot;: 0.95\n    },\n    {\n        \&quot;type\&quot;: \&quot;location\&quot;,\n        \&quot;name\&quot;: \&quot;Hav
-en\&quot;,\n        \&quot;description\&quot;: \&quot;A settlement located at the valley&#39;s center, commanded by Mayor Elena\&quot;,\n
-        \&quot;confidence\&quot;: 0.9\n    },\n    {\n        \&quot;type\&quot;: \&quot;location\&quot;,\n        \&quot;name\&quot;: \&quot;Riverwatch\
-&quot;,\n        \&quot;description\&quot;: \&quot;A settlement located to the east of the central valley, commanded by Captain
-Sara.\&quot;,\n        \&quot;confidence\&quot;: 0.9\n    },\n    {\n        \&quot;type\&quot;: \&quot;location\&quot;,\n        \&quot;name\&quot;: \&quot;M
-ountainkeep\&quot;,\n        \&quot;description\&quot;: \&quot;A settlement located to the west of the central valley.\&quot;,\n
-   \&quot;confidence\&quot;: 0.8\n    },\n    {\n        \&quot;type\&quot;: \&quot;character\&quot;,\n        \&quot;name\&quot;: \&quot;Elena\&quot;,\n
-   \&quot;description\&quot;: \&quot;Mayor of Haven, motivated to protect the valley&#39;s inhabitants, investigating strange o
-ccurrences in Haven.\&quot;,\n        \&quot;confidence\&quot;: 0.95\n    },\n    {\n        \&quot;type\&quot;: \&quot;character\&quot;,\n
-    \&quot;name\&quot;: \&quot;Theron\&quot;,\n        \&quot;description\&quot;: \&quot;Master Scholar specializing in ancient ruins and artif
-acts, currently decoding ruin inscriptions.\&quot;,\n        \&quot;confidence\&quot;: 0.9\n    },\n    {\n        \&quot;type\&quot;
-: \&quot;character\&quot;,\n        \&quot;name\&quot;: \&quot;Sara\&quot;,\n        \&quot;description\&quot;: \&quot;Captain of Riverwatch, responsible
- for the valley&#39;s defense, concerned by increased monster activity.\&quot;,\n        \&quot;confidence\&quot;: 0.9\n    },\
-n    {\n        \&quot;type\&quot;: \&quot;location\&quot;,\n        \&quot;name\&quot;: \&quot;Ancient Ruins\&quot;,\n        \&quot;description\&quot;: \&quot;Sc
+  "model": "gemma3",
+  "created_at": "2025-06-08T18:26:18.3656126Z",
+  "response": "&#96;&#96;&#96;json\n[\n    {\n        \"type\": \"location\",\n        \"name\": \"The Lost Valley\",\n 
+       \"description\": \"A hidden valley surrounded by impassable mountains, serving as the campaign settin
+g.\",\n        \"confidence\": 0.95\n    },\n    {\n        \"type\": \"location\",\n        \"name\": \"Hav
+en\",\n        \"description\": \"A settlement located at the valley's center, commanded by Mayor Elena\",\n
+        \"confidence\": 0.9\n    },\n    {\n        \"type\": \"location\",\n        \"name\": \"Riverwatch\
+",\n        \"description\": \"A settlement located to the east of the central valley, commanded by Captain
+Sara.\",\n        \"confidence\": 0.9\n    },\n    {\n        \"type\": \"location\",\n        \"name\": \"M
+ountainkeep\",\n        \"description\": \"A settlement located to the west of the central valley.\",\n
+   \"confidence\": 0.8\n    },\n    {\n        \"type\": \"character\",\n        \"name\": \"Elena\",\n
+   \"description\": \"Mayor of Haven, motivated to protect the valley's inhabitants, investigating strange o
+ccurrences in Haven.\",\n        \"confidence\": 0.95\n    },\n    {\n        \"type\": \"character\",\n
+    \"name\": \"Theron\",\n        \"description\": \"Master Scholar specializing in ancient ruins and artif
+acts, currently decoding ruin inscriptions.\",\n        \"confidence\": 0.9\n    },\n    {\n        \"type\"
+: \"character\",\n        \"name\": \"Sara\",\n        \"description\": \"Captain of Riverwatch, responsible
+ for the valley's defense, concerned by increased monster activity.\",\n        \"confidence\": 0.9\n    },\
+n    {\n        \"type\": \"location\",\n        \"name\": \"Ancient Ruins\",\n        \"description\": \"Sc
 attered throughout The Lost Valley; contain new chambers with strange energy emanations and valuable artifac
-ts.\&quot;,\n        \&quot;confidence\&quot;: 0.95\n    },\n    {\n        \&quot;type\&quot;: \&quot;concept\&quot;,\n        \&quot;name\&quot;: \&quot;Tra
-de Routes\&quot;,\n        \&quot;description\&quot;: \&quot;Disrupted routes between the settlements, requiring merchants seeki
-ng protection.\&quot;,\n        \&quot;confidence\&quot;: 0.7\n    },\n    {\n        \&quot;type\&quot;: \&quot;concept\&quot;,\n        \&quot;nam
-e\&quot;: \&quot;Magical Anomalies\&quot;,\n        \&quot;description\&quot;: \&quot;Random magical effects impacting local wildlife, pot
-entially linked to the Ancient Ruins.\&quot;,\n        \&quot;confidence\&quot;: 0.9\n    }\n]\n&#96;&#96;&#96;&quot;,
-  &quot;done&quot;: true,
-  &quot;done_reason&quot;: &quot;stop&quot;,
-  &quot;total_duration&quot;: 5427279600,
-  &quot;load_duration&quot;: 37621900,
-  &quot;prompt_eval_count&quot;: 1201,
-  &quot;prompt_eval_duration&quot;: 242898900,
-  &quot;eval_count&quot;: 546,
-  &quot;eval_duration&quot;: 5146758800
+ts.\",\n        \"confidence\": 0.95\n    },\n    {\n        \"type\": \"concept\",\n        \"name\": \"Tra
+de Routes\",\n        \"description\": \"Disrupted routes between the settlements, requiring merchants seeki
+ng protection.\",\n        \"confidence\": 0.7\n    },\n    {\n        \"type\": \"concept\",\n        \"nam
+e\": \"Magical Anomalies\",\n        \"description\": \"Random magical effects impacting local wildlife, pot
+entially linked to the Ancient Ruins.\",\n        \"confidence\": 0.9\n    }\n]\n&#96;&#96;&#96;",
+  "done": true,
+  "done_reason": "stop",
+  "total_duration": 5427279600,
+  "load_duration": 37621900,
+  "prompt_eval_count": 1201,
+  "prompt_eval_duration": 242898900,
+  "eval_count": 546,
+  "eval_duration": 5146758800
 }
 [test_extraction]:[generate]::[]:Generated response:
 &#96;&#96;&#96;json
 [
     {
-        &quot;type&quot;: &quot;location&quot;,
-        &quot;name&quot;: &quot;The Lost Valley&quot;,
-        &quot;description&quot;: &quot;A hidden valley surrounded by impassable mountains, serving as the campaign setting.
-&quot;,
-        &quot;confidence&quot;: 0.95
+        "type": "location",
+        "name": "The Lost Valley",
+        "description": "A hidden valley surrounded by impassable mountains, serving as the campaign setting.
+",
+        "confidence": 0.95
     },
     {
-        &quot;type&quot;: &quot;location&quot;,
-        &quot;name&quot;: &quot;Haven&quot;,
-        &quot;description&quot;: &quot;A settlement located at the valley&#39;s center, commanded by Mayor Elena&quot;,
-        &quot;confidence&quot;: 0.9
+        "type": "location",
+        "name": "Haven",
+        "description": "A settlement located at the valley's center, commanded by Mayor Elena",
+        "confidence": 0.9
     },
     {
-        &quot;type&quot;: &quot;location&quot;,
-        &quot;name&quot;: &quot;Riverwatch&quot;,
-        &quot;description&quot;: &quot;A settlement located to the east of the central valley, commanded by Captain Sara.&quot;,
-        &quot;confidence&quot;: 0.9
+        "type": "location",
+        "name": "Riverwatch",
+        "description": "A settlement located to the east of the central valley, commanded by Captain Sara.",
+        "confidence": 0.9
     },
     {
-        &quot;type&quot;: &quot;location&quot;,
-        &quot;name&quot;: &quot;Mountainkeep&quot;,
-        &quot;description&quot;: &quot;A settlement located to the west of the central valley.&quot;,
-        &quot;confidence&quot;: 0.8
+        "type": "location",
+        "name": "Mountainkeep",
+        "description": "A settlement located to the west of the central valley.",
+        "confidence": 0.8
     },
     {
-        &quot;type&quot;: &quot;character&quot;,
-        &quot;name&quot;: &quot;Elena&quot;,
-        &quot;description&quot;: &quot;Mayor of Haven, motivated to protect the valley&#39;s inhabitants, investigating strange
- occurrences in Haven.&quot;,
-        &quot;confidence&quot;: 0.95
+        "type": "character",
+        "name": "Elena",
+        "description": "Mayor of Haven, motivated to protect the valley's inhabitants, investigating strange
+ occurrences in Haven.",
+        "confidence": 0.95
     },
     {
-        &quot;type&quot;: &quot;character&quot;,
-        &quot;name&quot;: &quot;Theron&quot;,
-        &quot;description&quot;: &quot;Master Scholar specializing in ancient ruins and artifacts, currently decoding ruin 
-inscriptions.&quot;,
-        &quot;confidence&quot;: 0.9
+        "type": "character",
+        "name": "Theron",
+        "description": "Master Scholar specializing in ancient ruins and artifacts, currently decoding ruin 
+inscriptions.",
+        "confidence": 0.9
     },
     {
-        &quot;type&quot;: &quot;character&quot;,
-        &quot;name&quot;: &quot;Sara&quot;,
-        &quot;description&quot;: &quot;Captain of Riverwatch, responsible for the valley&#39;s defense, concerned by increased 
-monster activity.&quot;,
-        &quot;confidence&quot;: 0.9
+        "type": "character",
+        "name": "Sara",
+        "description": "Captain of Riverwatch, responsible for the valley's defense, concerned by increased 
+monster activity.",
+        "confidence": 0.9
     },
     {
-        &quot;type&quot;: &quot;location&quot;,
-        &quot;name&quot;: &quot;Ancient Ruins&quot;,
-        &quot;description&quot;: &quot;Scattered throughout The Lost Valley; contain new chambers with strange energy emana
-tions and valuable artifacts.&quot;,
-        &quot;confidence&quot;: 0.95
+        "type": "location",
+        "name": "Ancient Ruins",
+        "description": "Scattered throughout The Lost Valley; contain new chambers with strange energy emana
+tions and valuable artifacts.",
+        "confidence": 0.95
     },
     {
-        &quot;type&quot;: &quot;concept&quot;,
-        &quot;name&quot;: &quot;Trade Routes&quot;,
-        &quot;description&quot;: &quot;Disrupted routes between the settlements, requiring merchants seeking protection.&quot;,
-        &quot;confidence&quot;: 0.7
+        "type": "concept",
+        "name": "Trade Routes",
+        "description": "Disrupted routes between the settlements, requiring merchants seeking protection.",
+        "confidence": 0.7
     },
     {
-        &quot;type&quot;: &quot;concept&quot;,
-        &quot;name&quot;: &quot;Magical Anomalies&quot;,
-        &quot;description&quot;: &quot;Random magical effects impacting local wildlife, potentially linked to the Ancient R
-uins.&quot;,
-        &quot;confidence&quot;: 0.9
+        "type": "concept",
+        "name": "Magical Anomalies",
+        "description": "Random magical effects impacting local wildlife, potentially linked to the Ancient R
+uins.",
+        "confidence": 0.9
     }
 ]
 &#96;&#96;&#96;
@@ -4659,26 +4659,26 @@ Existing entity location_riverwatch not found in graph
 A settlement located to the west of the central valley.
 [test_extraction]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_extraction]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.173:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;A settlement located to the west of the central valley.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "A settlement located to the west of the central valley."
 }
 [test_extraction]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_extraction]:[generate_embedding]::[embedding]:Generating embedding for text:
 A settlement located to the west of the central valley.
 [test_extraction]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_extraction]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.173:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;A settlement located to the west of the central valley.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "A settlement located to the west of the central valley."
 }
 [test_extraction]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 Existing entity character_elena not found in graph
@@ -4729,25 +4729,25 @@ d valuable artifacts have been found.
 ## Output Format
 
 Respond with a JSON array of entities. Each entity must have:
-- &quot;type&quot;: one of the defined entity types
-- &quot;name&quot;: clear, specific name for the entity
-- &quot;description&quot;: detailed description suitable for semantic matching and graph storage
-- &quot;confidence&quot;: your confidence in this entity being graph-worthy (0.0 to 1.0)
+- "type": one of the defined entity types
+- "name": clear, specific name for the entity
+- "description": detailed description suitable for semantic matching and graph storage
+- "confidence": your confidence in this entity being graph-worthy (0.0 to 1.0)
 
 **Example Response:**
 &#96;&#96;&#96;json
 [
     {
-        &quot;type&quot;: &quot;character&quot;,
-        &quot;name&quot;: &quot;Elena&quot;,
-        &quot;description&quot;: &quot;Mayor of Haven who is investigating strange occurrences in the valley&quot;,
-        &quot;confidence&quot;: 0.9
+        "type": "character",
+        "name": "Elena",
+        "description": "Mayor of Haven who is investigating strange occurrences in the valley",
+        "confidence": 0.9
     },
     {
-        &quot;type&quot;: &quot;location&quot;, 
-        &quot;name&quot;: &quot;Haven&quot;,
-        &quot;description&quot;: &quot;A settlement in the valley where Elena serves as mayor&quot;,
-        &quot;confidence&quot;: 0.8
+        "type": "location", 
+        "name": "Haven",
+        "description": "A settlement in the valley where Elena serves as mayor",
+        "confidence": 0.8
     }
 ]
 &#96;&#96;&#96;
@@ -4757,8 +4757,8 @@ Respond with a JSON array of entities. Each entity must have:
 [test_extraction]:[_generate_impl]::[]:Sending request to Ollama API:
 URL: http://192.168.1.173:11434/api/generate
 Data: {
-  &quot;model&quot;: &quot;gemma3&quot;,
-  &quot;prompt&quot;: &quot;You are an expert entity extraction system for knowledge graph construction. Your task is to an
+  "model": "gemma3",
+  "prompt": "You are an expert entity extraction system for knowledge graph construction. Your task is to an
 alyze conversation text and identify entities (characters, locations, objects, concepts, events, organizatio
 ns) that should be stored in a knowledge graph.\n\n## Instructions\n\nAnalyze the provided conversation entr
 y and digest to identify graph-worthy entities. Focus on specific, identifiable entities that would be valua
@@ -4776,87 +4776,87 @@ e ancient ruins, punctuated by mysterious magical anomalies. Explorers have rece
 * Scattered throughout the Lost Valley are ancient ruins, punctuated by mysterious magical anomalies. Explor
 ers have recently discovered new chambers within them, accompanied by strange energy emanations and valuable
  artifacts have been found.\n\n\n\n## Output Format\n\nRespond with a JSON array of entities. Each entity mu
-st have:\n- \&quot;type\&quot;: one of the defined entity types\n- \&quot;name\&quot;: clear, specific name for the entity\n- \&quot;
-description\&quot;: detailed description suitable for semantic matching and graph storage\n- \&quot;confidence\&quot;: your
+st have:\n- \"type\": one of the defined entity types\n- \"name\": clear, specific name for the entity\n- \"
+description\": detailed description suitable for semantic matching and graph storage\n- \"confidence\": your
  confidence in this entity being graph-worthy (0.0 to 1.0)\n\n**Example Response:**\n&#96;&#96;&#96;json\n[\n    {\n
-    \&quot;type\&quot;: \&quot;character\&quot;,\n        \&quot;name\&quot;: \&quot;Elena\&quot;,\n        \&quot;description\&quot;: \&quot;Mayor of Haven who is
- investigating strange occurrences in the valley\&quot;,\n        \&quot;confidence\&quot;: 0.9\n    },\n    {\n        \&quot;t
-ype\&quot;: \&quot;location\&quot;, \n        \&quot;name\&quot;: \&quot;Haven\&quot;,\n        \&quot;description\&quot;: \&quot;A settlement in the valley w
-here Elena serves as mayor\&quot;,\n        \&quot;confidence\&quot;: 0.8\n    }\n]\n&#96;&#96;&#96;\n\n**Entities:**\n&quot;,
-  &quot;temperature&quot;: 0.7,
-  &quot;stream&quot;: false
+    \"type\": \"character\",\n        \"name\": \"Elena\",\n        \"description\": \"Mayor of Haven who is
+ investigating strange occurrences in the valley\",\n        \"confidence\": 0.9\n    },\n    {\n        \"t
+ype\": \"location\", \n        \"name\": \"Haven\",\n        \"description\": \"A settlement in the valley w
+here Elena serves as mayor\",\n        \"confidence\": 0.8\n    }\n]\n&#96;&#96;&#96;\n\n**Entities:**\n",
+  "temperature": 0.7,
+  "stream": false
 }
 [test_extraction]:[_generate_impl]::[]:Received response from Ollama API:
 {
-  &quot;model&quot;: &quot;gemma3&quot;,
-  &quot;created_at&quot;: &quot;2025-06-08T18:26:21.7260127Z&quot;,
-  &quot;response&quot;: &quot;&#96;&#96;&#96;json\n[\n    {\n        \&quot;type\&quot;: \&quot;location\&quot;,\n        \&quot;name\&quot;: \&quot;Lost Valley\&quot;,\n
+  "model": "gemma3",
+  "created_at": "2025-06-08T18:26:21.7260127Z",
+  "response": "&#96;&#96;&#96;json\n[\n    {\n        \"type\": \"location\",\n        \"name\": \"Lost Valley\",\n
 
-   \&quot;description\&quot;: \&quot;A valley region containing ancient ruins and magical anomalies.\&quot;,\n        \&quot;confiden
-ce\&quot;: 0.95\n    },\n    {\n        \&quot;type\&quot;: \&quot;location\&quot;,\n        \&quot;name\&quot;: \&quot;Ancient Ruins\&quot;,\n        \&quot;
-description\&quot;: \&quot;Remnants of a past civilization located within the Lost Valley, exhibiting signs of magical
- activity.\&quot;,\n        \&quot;confidence\&quot;: 0.9\n    },\n    {\n        \&quot;type\&quot;: \&quot;concept\&quot;,\n        \&quot;name\&quot;:
- \&quot;Magical Anomalies\&quot;,\n        \&quot;description\&quot;: \&quot;Mysterious occurrences within the ruins, characterized b
-y strange energy emanations and potentially unknown magical effects.\&quot;,\n        \&quot;confidence\&quot;: 0.85\n    }
-,\n    {\n        \&quot;type\&quot;: \&quot;object\&quot;,\n        \&quot;name\&quot;: \&quot;Chambers\&quot;,\n        \&quot;description\&quot;: \&quot;Newly d
-iscovered rooms within the ancient ruins, containing valuable artifacts and exhibiting energy emanations.\&quot;,
-\n        \&quot;confidence\&quot;: 0.8\n    },\n    {\n        \&quot;type\&quot;: \&quot;object\&quot;,\n        \&quot;name\&quot;: \&quot;Artifacts\&quot;
-,\n        \&quot;description\&quot;: \&quot;Valuable items found within the chambers, suggesting historical or magical sig
-nificance.\&quot;,\n        \&quot;confidence\&quot;: 0.75\n    },\n    {\n        \&quot;type\&quot;: \&quot;concept\&quot;,\n        \&quot;name\&quot;
-: \&quot;Energy Emanations\&quot;,\n        \&quot;description\&quot;: \&quot;Strange surges of energy observed within the chambers,
-likely related to the magical anomalies.\&quot;,\n        \&quot;confidence\&quot;: 0.7\n    }\n]\n&#96;&#96;&#96;&quot;,
-  &quot;done&quot;: true,
-  &quot;done_reason&quot;: &quot;stop&quot;,
-  &quot;total_duration&quot;: 3219663900,
-  &quot;load_duration&quot;: 41001500,
-  &quot;prompt_eval_count&quot;: 539,
-  &quot;prompt_eval_duration&quot;: 72102800,
-  &quot;eval_count&quot;: 337,
-  &quot;eval_duration&quot;: 3106058700
+   \"description\": \"A valley region containing ancient ruins and magical anomalies.\",\n        \"confiden
+ce\": 0.95\n    },\n    {\n        \"type\": \"location\",\n        \"name\": \"Ancient Ruins\",\n        \"
+description\": \"Remnants of a past civilization located within the Lost Valley, exhibiting signs of magical
+ activity.\",\n        \"confidence\": 0.9\n    },\n    {\n        \"type\": \"concept\",\n        \"name\":
+ \"Magical Anomalies\",\n        \"description\": \"Mysterious occurrences within the ruins, characterized b
+y strange energy emanations and potentially unknown magical effects.\",\n        \"confidence\": 0.85\n    }
+,\n    {\n        \"type\": \"object\",\n        \"name\": \"Chambers\",\n        \"description\": \"Newly d
+iscovered rooms within the ancient ruins, containing valuable artifacts and exhibiting energy emanations.\",
+\n        \"confidence\": 0.8\n    },\n    {\n        \"type\": \"object\",\n        \"name\": \"Artifacts\"
+,\n        \"description\": \"Valuable items found within the chambers, suggesting historical or magical sig
+nificance.\",\n        \"confidence\": 0.75\n    },\n    {\n        \"type\": \"concept\",\n        \"name\"
+: \"Energy Emanations\",\n        \"description\": \"Strange surges of energy observed within the chambers,
+likely related to the magical anomalies.\",\n        \"confidence\": 0.7\n    }\n]\n&#96;&#96;&#96;",
+  "done": true,
+  "done_reason": "stop",
+  "total_duration": 3219663900,
+  "load_duration": 41001500,
+  "prompt_eval_count": 539,
+  "prompt_eval_duration": 72102800,
+  "eval_count": 337,
+  "eval_duration": 3106058700
 }
 [test_extraction]:[generate]::[]:Generated response:
 &#96;&#96;&#96;json
 [
     {
-        &quot;type&quot;: &quot;location&quot;,
-        &quot;name&quot;: &quot;Lost Valley&quot;,
-        &quot;description&quot;: &quot;A valley region containing ancient ruins and magical anomalies.&quot;,
-        &quot;confidence&quot;: 0.95
+        "type": "location",
+        "name": "Lost Valley",
+        "description": "A valley region containing ancient ruins and magical anomalies.",
+        "confidence": 0.95
     },
     {
-        &quot;type&quot;: &quot;location&quot;,
-        &quot;name&quot;: &quot;Ancient Ruins&quot;,
-        &quot;description&quot;: &quot;Remnants of a past civilization located within the Lost Valley, exhibiting signs of 
-magical activity.&quot;,
-        &quot;confidence&quot;: 0.9
+        "type": "location",
+        "name": "Ancient Ruins",
+        "description": "Remnants of a past civilization located within the Lost Valley, exhibiting signs of 
+magical activity.",
+        "confidence": 0.9
     },
     {
-        &quot;type&quot;: &quot;concept&quot;,
-        &quot;name&quot;: &quot;Magical Anomalies&quot;,
-        &quot;description&quot;: &quot;Mysterious occurrences within the ruins, characterized by strange energy emanations 
-and potentially unknown magical effects.&quot;,
-        &quot;confidence&quot;: 0.85
+        "type": "concept",
+        "name": "Magical Anomalies",
+        "description": "Mysterious occurrences within the ruins, characterized by strange energy emanations 
+and potentially unknown magical effects.",
+        "confidence": 0.85
     },
     {
-        &quot;type&quot;: &quot;object&quot;,
-        &quot;name&quot;: &quot;Chambers&quot;,
-        &quot;description&quot;: &quot;Newly discovered rooms within the ancient ruins, containing valuable artifacts and e
-xhibiting energy emanations.&quot;,
-        &quot;confidence&quot;: 0.8
+        "type": "object",
+        "name": "Chambers",
+        "description": "Newly discovered rooms within the ancient ruins, containing valuable artifacts and e
+xhibiting energy emanations.",
+        "confidence": 0.8
     },
     {
-        &quot;type&quot;: &quot;object&quot;,
-        &quot;name&quot;: &quot;Artifacts&quot;,
-        &quot;description&quot;: &quot;Valuable items found within the chambers, suggesting historical or magical significa
-nce.&quot;,
-        &quot;confidence&quot;: 0.75
+        "type": "object",
+        "name": "Artifacts",
+        "description": "Valuable items found within the chambers, suggesting historical or magical significa
+nce.",
+        "confidence": 0.75
     },
     {
-        &quot;type&quot;: &quot;concept&quot;,
-        &quot;name&quot;: &quot;Energy Emanations&quot;,
-        &quot;description&quot;: &quot;Strange surges of energy observed within the chambers, likely related to the magical
- anomalies.&quot;,
-        &quot;confidence&quot;: 0.7
+        "type": "concept",
+        "name": "Energy Emanations",
+        "description": "Strange surges of energy observed within the chambers, likely related to the magical
+ anomalies.",
+        "confidence": 0.7
     }
 ]
 &#96;&#96;&#96;
@@ -4869,13 +4869,13 @@ nce.&quot;,
 Lost Valley A valley region containing ancient ruins and magical anomalies.
 [test_extraction]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_extraction]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.173:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;Lost Valley A valley region containing ancient ruins and magical anomalies.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "Lost Valley A valley region containing ancient ruins and magical anomalies."
 }
 [test_extraction]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_extraction]:[generate_embedding]::[embedding]:Generating embedding for text:
@@ -4883,14 +4883,14 @@ Ancient Ruins Remnants of a past civilization located within the Lost Valley, ex
 tivity.
 [test_extraction]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_extraction]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.173:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;Ancient Ruins Remnants of a past civilization located within the Lost Valley, exhibiting signs 
-of magical activity.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "Ancient Ruins Remnants of a past civilization located within the Lost Valley, exhibiting signs 
+of magical activity."
 }
 [test_extraction]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_extraction]:[generate_embedding]::[embedding]:Generating embedding for text:
@@ -4898,14 +4898,14 @@ Magical Anomalies Mysterious occurrences within the ruins, characterized by stra
 tentially unknown magical effects.
 [test_extraction]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_extraction]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.173:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;Magical Anomalies Mysterious occurrences within the ruins, characterized by strange energy eman
-ations and potentially unknown magical effects.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "Magical Anomalies Mysterious occurrences within the ruins, characterized by strange energy eman
+ations and potentially unknown magical effects."
 }
 [test_extraction]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_extraction]:[generate_embedding]::[embedding]:Generating embedding for text:
@@ -4913,28 +4913,28 @@ Chambers Newly discovered rooms within the ancient ruins, containing valuable ar
 y emanations.
 [test_extraction]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_extraction]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.173:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;Chambers Newly discovered rooms within the ancient ruins, containing valuable artifacts and exh
-ibiting energy emanations.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "Chambers Newly discovered rooms within the ancient ruins, containing valuable artifacts and exh
+ibiting energy emanations."
 }
 [test_extraction]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_extraction]:[generate_embedding]::[embedding]:Generating embedding for text:
 Artifacts Valuable items found within the chambers, suggesting historical or magical significance.
 [test_extraction]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_extraction]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.173:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;Artifacts Valuable items found within the chambers, suggesting historical or magical significan
-ce.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "Artifacts Valuable items found within the chambers, suggesting historical or magical significan
+ce."
 }
 [test_extraction]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_extraction]:[generate_embedding]::[embedding]:Generating embedding for text:
@@ -4942,14 +4942,14 @@ Energy Emanations Strange surges of energy observed within the chambers, likely 
 lies.
 [test_extraction]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_extraction]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.173:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;Energy Emanations Strange surges of energy observed within the chambers, likely related to the 
-magical anomalies.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "Energy Emanations Strange surges of energy observed within the chambers, likely related to the 
+magical anomalies."
 }
 [test_extraction]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_extraction]:[generate]::[]:Generating response for prompt:
@@ -4989,7 +4989,7 @@ d valuable artifacts have been found.
 
 
 **Similar Existing Entities:**
-- Lost Valley (location): A valley region containing ancient ruins and magical anomalies. It&#39;s the setting f
+- Lost Valley (location): A valley region containing ancient ruins and magical anomalies. It's the setting f
 or exploration and discovery.
 - ancient ruins (location): Scattered throughout The Lost Valley; contain new chambers with strange energy e
 manations and valuable artifacts.
@@ -4998,30 +4998,30 @@ cient Ruins.
 - artifacts (object): Valuable items discovered within the ancient ruins of the Lost Valley.
 
 **Instructions:** For each candidate entity, decide if it matches an existing entity above or if it should b
-e created as new. If it matches existing, use the existing entity&#39;s name exactly.
+e created as new. If it matches existing, use the existing entity's name exactly.
 
 ## Output Format
 
 Respond with a JSON array of entities. Each entity must have:
-- &quot;type&quot;: one of the defined entity types
-- &quot;name&quot;: clear, specific name for the entity
-- &quot;description&quot;: detailed description suitable for semantic matching and graph storage
-- &quot;confidence&quot;: your confidence in this entity being graph-worthy (0.0 to 1.0)
+- "type": one of the defined entity types
+- "name": clear, specific name for the entity
+- "description": detailed description suitable for semantic matching and graph storage
+- "confidence": your confidence in this entity being graph-worthy (0.0 to 1.0)
 
 **Example Response:**
 &#96;&#96;&#96;json
 [
     {
-        &quot;type&quot;: &quot;character&quot;,
-        &quot;name&quot;: &quot;Elena&quot;,
-        &quot;description&quot;: &quot;Mayor of Haven who is investigating strange occurrences in the valley&quot;,
-        &quot;confidence&quot;: 0.9
+        "type": "character",
+        "name": "Elena",
+        "description": "Mayor of Haven who is investigating strange occurrences in the valley",
+        "confidence": 0.9
     },
     {
-        &quot;type&quot;: &quot;location&quot;, 
-        &quot;name&quot;: &quot;Haven&quot;,
-        &quot;description&quot;: &quot;A settlement in the valley where Elena serves as mayor&quot;,
-        &quot;confidence&quot;: 0.8
+        "type": "location", 
+        "name": "Haven",
+        "description": "A settlement in the valley where Elena serves as mayor",
+        "confidence": 0.8
     }
 ]
 &#96;&#96;&#96;
@@ -5031,8 +5031,8 @@ Respond with a JSON array of entities. Each entity must have:
 [test_extraction]:[_generate_impl]::[]:Sending request to Ollama API:
 URL: http://192.168.1.173:11434/api/generate
 Data: {
-  &quot;model&quot;: &quot;gemma3&quot;,
-  &quot;prompt&quot;: &quot;You are an expert entity extraction system for knowledge graph construction. Your task is to an
+  "model": "gemma3",
+  "prompt": "You are an expert entity extraction system for knowledge graph construction. Your task is to an
 alyze conversation text and identify entities (characters, locations, objects, concepts, events, organizatio
 ns) that should be stored in a knowledge graph.\n\n## Instructions\n\nAnalyze the provided conversation entr
 y and digest to identify graph-worthy entities. Focus on specific, identifiable entities that would be valua
@@ -5050,96 +5050,96 @@ e ancient ruins, punctuated by mysterious magical anomalies. Explorers have rece
 * Scattered throughout the Lost Valley are ancient ruins, punctuated by mysterious magical anomalies. Explor
 ers have recently discovered new chambers within them, accompanied by strange energy emanations and valuable
  artifacts have been found.\n\n\n**Similar Existing Entities:**\n- Lost Valley (location): A valley region c
-ontaining ancient ruins and magical anomalies. It&#39;s the setting for exploration and discovery.\n- ancient ru
+ontaining ancient ruins and magical anomalies. It's the setting for exploration and discovery.\n- ancient ru
 ins (location): Scattered throughout The Lost Valley; contain new chambers with strange energy emanations an
 d valuable artifacts.\n- magical anomalies (concept): Random magical effects impacting local wildlife, poten
 tially linked to the Ancient Ruins.\n- artifacts (object): Valuable items discovered within the ancient ruin
 s of the Lost Valley.\n\n**Instructions:** For each candidate entity, decide if it matches an existing entit
-y above or if it should be created as new. If it matches existing, use the existing entity&#39;s name exactly.\n
-\n## Output Format\n\nRespond with a JSON array of entities. Each entity must have:\n- \&quot;type\&quot;: one of the
-defined entity types\n- \&quot;name\&quot;: clear, specific name for the entity\n- \&quot;description\&quot;: detailed descripti
-on suitable for semantic matching and graph storage\n- \&quot;confidence\&quot;: your confidence in this entity being
-graph-worthy (0.0 to 1.0)\n\n**Example Response:**\n&#96;&#96;&#96;json\n[\n    {\n        \&quot;type\&quot;: \&quot;character\&quot;,\n
-     \&quot;name\&quot;: \&quot;Elena\&quot;,\n        \&quot;description\&quot;: \&quot;Mayor of Haven who is investigating strange occurrence
-s in the valley\&quot;,\n        \&quot;confidence\&quot;: 0.9\n    },\n    {\n        \&quot;type\&quot;: \&quot;location\&quot;, \n        \&quot;
-name\&quot;: \&quot;Haven\&quot;,\n        \&quot;description\&quot;: \&quot;A settlement in the valley where Elena serves as mayor\&quot;,\n
-      \&quot;confidence\&quot;: 0.8\n    }\n]\n&#96;&#96;&#96;\n\n**Entities:**\n&quot;,
-  &quot;temperature&quot;: 0.7,
-  &quot;stream&quot;: false
+y above or if it should be created as new. If it matches existing, use the existing entity's name exactly.\n
+\n## Output Format\n\nRespond with a JSON array of entities. Each entity must have:\n- \"type\": one of the
+defined entity types\n- \"name\": clear, specific name for the entity\n- \"description\": detailed descripti
+on suitable for semantic matching and graph storage\n- \"confidence\": your confidence in this entity being
+graph-worthy (0.0 to 1.0)\n\n**Example Response:**\n&#96;&#96;&#96;json\n[\n    {\n        \"type\": \"character\",\n
+     \"name\": \"Elena\",\n        \"description\": \"Mayor of Haven who is investigating strange occurrence
+s in the valley\",\n        \"confidence\": 0.9\n    },\n    {\n        \"type\": \"location\", \n        \"
+name\": \"Haven\",\n        \"description\": \"A settlement in the valley where Elena serves as mayor\",\n
+      \"confidence\": 0.8\n    }\n]\n&#96;&#96;&#96;\n\n**Entities:**\n",
+  "temperature": 0.7,
+  "stream": false
 }
 [test_extraction]:[_generate_impl]::[]:Received response from Ollama API:
 {
-  &quot;model&quot;: &quot;gemma3&quot;,
-  &quot;created_at&quot;: &quot;2025-06-08T18:26:25.3749787Z&quot;,
-  &quot;response&quot;: &quot;&#96;&#96;&#96;json\n[\n    {\n        \&quot;type\&quot;: \&quot;location\&quot;,\n        \&quot;name\&quot;: \&quot;Lost Valley\&quot;,\n
+  "model": "gemma3",
+  "created_at": "2025-06-08T18:26:25.3749787Z",
+  "response": "&#96;&#96;&#96;json\n[\n    {\n        \"type\": \"location\",\n        \"name\": \"Lost Valley\",\n
 
-   \&quot;description\&quot;: \&quot;A valley region containing ancient ruins and magical anomalies, serving as the primary
- setting for exploration and discovery.\&quot;,\n        \&quot;confidence\&quot;: 0.95\n    },\n    {\n        \&quot;type\&quot;: \
-&quot;location\&quot;,\n        \&quot;name\&quot;: \&quot;ancient ruins\&quot;,\n        \&quot;description\&quot;: \&quot;Ruins scattered throughout th
-e Lost Valley; contain new chambers with strange energy emanations and valuable artifacts.\&quot;,\n        \&quot;con
-fidence\&quot;: 0.9\n    },\n    {\n        \&quot;type\&quot;: \&quot;concept\&quot;,\n        \&quot;name\&quot;: \&quot;magical anomalies\&quot;,\n
-     \&quot;description\&quot;: \&quot;Mysterious magical effects impacting the Lost Valley, potentially linked to the anci
-ent ruins.\&quot;,\n        \&quot;confidence\&quot;: 0.85\n    },\n    {\n        \&quot;type\&quot;: \&quot;object\&quot;,\n        \&quot;name\&quot;:
- \&quot;artifacts\&quot;,\n        \&quot;description\&quot;: \&quot;Valuable items discovered within the ancient ruins of the Lost V
-alley.  Specifically, items of significant historical or magical value.\&quot;,\n        \&quot;confidence\&quot;: 0.9\n
- },\n    {\n        \&quot;type\&quot;: \&quot;event\&quot;,\n        \&quot;name\&quot;: \&quot;discovery of new chambers\&quot;,\n        \&quot;descri
-ption\&quot;: \&quot;Recent exploration events resulting in the identification of new chambers within the ancient ruin
-s.\&quot;,\n        \&quot;confidence\&quot;: 0.7\n    },\n    {\n        \&quot;type\&quot;: \&quot;concept\&quot;,\n        \&quot;name\&quot;: \&quot;energ
-y emanations\&quot;,\n        \&quot;description\&quot;: \&quot;Strange energy signals associated with the magical anomalies and
- new chambers found within the ancient ruins.\&quot;,\n        \&quot;confidence\&quot;: 0.65\n    }\n]\n&#96;&#96;&#96;&quot;,
-  &quot;done&quot;: true,
-  &quot;done_reason&quot;: &quot;stop&quot;,
-  &quot;total_duration&quot;: 3360016000,
-  &quot;load_duration&quot;: 41521300,
-  &quot;prompt_eval_count&quot;: 676,
-  &quot;prompt_eval_duration&quot;: 45490700,
-  &quot;eval_count&quot;: 355,
-  &quot;eval_duration&quot;: 3273004000
+   \"description\": \"A valley region containing ancient ruins and magical anomalies, serving as the primary
+ setting for exploration and discovery.\",\n        \"confidence\": 0.95\n    },\n    {\n        \"type\": \
+"location\",\n        \"name\": \"ancient ruins\",\n        \"description\": \"Ruins scattered throughout th
+e Lost Valley; contain new chambers with strange energy emanations and valuable artifacts.\",\n        \"con
+fidence\": 0.9\n    },\n    {\n        \"type\": \"concept\",\n        \"name\": \"magical anomalies\",\n
+     \"description\": \"Mysterious magical effects impacting the Lost Valley, potentially linked to the anci
+ent ruins.\",\n        \"confidence\": 0.85\n    },\n    {\n        \"type\": \"object\",\n        \"name\":
+ \"artifacts\",\n        \"description\": \"Valuable items discovered within the ancient ruins of the Lost V
+alley.  Specifically, items of significant historical or magical value.\",\n        \"confidence\": 0.9\n
+ },\n    {\n        \"type\": \"event\",\n        \"name\": \"discovery of new chambers\",\n        \"descri
+ption\": \"Recent exploration events resulting in the identification of new chambers within the ancient ruin
+s.\",\n        \"confidence\": 0.7\n    },\n    {\n        \"type\": \"concept\",\n        \"name\": \"energ
+y emanations\",\n        \"description\": \"Strange energy signals associated with the magical anomalies and
+ new chambers found within the ancient ruins.\",\n        \"confidence\": 0.65\n    }\n]\n&#96;&#96;&#96;",
+  "done": true,
+  "done_reason": "stop",
+  "total_duration": 3360016000,
+  "load_duration": 41521300,
+  "prompt_eval_count": 676,
+  "prompt_eval_duration": 45490700,
+  "eval_count": 355,
+  "eval_duration": 3273004000
 }
 [test_extraction]:[generate]::[]:Generated response:
 &#96;&#96;&#96;json
 [
     {
-        &quot;type&quot;: &quot;location&quot;,
-        &quot;name&quot;: &quot;Lost Valley&quot;,
-        &quot;description&quot;: &quot;A valley region containing ancient ruins and magical anomalies, serving as the prima
-ry setting for exploration and discovery.&quot;,
-        &quot;confidence&quot;: 0.95
+        "type": "location",
+        "name": "Lost Valley",
+        "description": "A valley region containing ancient ruins and magical anomalies, serving as the prima
+ry setting for exploration and discovery.",
+        "confidence": 0.95
     },
     {
-        &quot;type&quot;: &quot;location&quot;,
-        &quot;name&quot;: &quot;ancient ruins&quot;,
-        &quot;description&quot;: &quot;Ruins scattered throughout the Lost Valley; contain new chambers with strange energy
- emanations and valuable artifacts.&quot;,
-        &quot;confidence&quot;: 0.9
+        "type": "location",
+        "name": "ancient ruins",
+        "description": "Ruins scattered throughout the Lost Valley; contain new chambers with strange energy
+ emanations and valuable artifacts.",
+        "confidence": 0.9
     },
     {
-        &quot;type&quot;: &quot;concept&quot;,
-        &quot;name&quot;: &quot;magical anomalies&quot;,
-        &quot;description&quot;: &quot;Mysterious magical effects impacting the Lost Valley, potentially linked to the anci
-ent ruins.&quot;,
-        &quot;confidence&quot;: 0.85
+        "type": "concept",
+        "name": "magical anomalies",
+        "description": "Mysterious magical effects impacting the Lost Valley, potentially linked to the anci
+ent ruins.",
+        "confidence": 0.85
     },
     {
-        &quot;type&quot;: &quot;object&quot;,
-        &quot;name&quot;: &quot;artifacts&quot;,
-        &quot;description&quot;: &quot;Valuable items discovered within the ancient ruins of the Lost Valley.  Specifically
-, items of significant historical or magical value.&quot;,
-        &quot;confidence&quot;: 0.9
+        "type": "object",
+        "name": "artifacts",
+        "description": "Valuable items discovered within the ancient ruins of the Lost Valley.  Specifically
+, items of significant historical or magical value.",
+        "confidence": 0.9
     },
     {
-        &quot;type&quot;: &quot;event&quot;,
-        &quot;name&quot;: &quot;discovery of new chambers&quot;,
-        &quot;description&quot;: &quot;Recent exploration events resulting in the identification of new chambers within the
- ancient ruins.&quot;,
-        &quot;confidence&quot;: 0.7
+        "type": "event",
+        "name": "discovery of new chambers",
+        "description": "Recent exploration events resulting in the identification of new chambers within the
+ ancient ruins.",
+        "confidence": 0.7
     },
     {
-        &quot;type&quot;: &quot;concept&quot;,
-        &quot;name&quot;: &quot;energy emanations&quot;,
-        &quot;description&quot;: &quot;Strange energy signals associated with the magical anomalies and new chambers found 
-within the ancient ruins.&quot;,
-        &quot;confidence&quot;: 0.65
+        "type": "concept",
+        "name": "energy emanations",
+        "description": "Strange energy signals associated with the magical anomalies and new chambers found 
+within the ancient ruins.",
+        "confidence": 0.65
     }
 ]
 &#96;&#96;&#96;
@@ -5156,28 +5156,28 @@ Existing entity object_artifacts not found in graph
 Recent exploration events resulting in the identification of new chambers within the ancient ruins.
 [test_extraction]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_extraction]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.173:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;Recent exploration events resulting in the identification of new chambers within the ancient ru
-ins.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "Recent exploration events resulting in the identification of new chambers within the ancient ru
+ins."
 }
 [test_extraction]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_extraction]:[generate_embedding]::[embedding]:Generating embedding for text:
 Recent exploration events resulting in the identification of new chambers within the ancient ruins.
 [test_extraction]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_extraction]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.173:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;Recent exploration events resulting in the identification of new chambers within the ancient ru
-ins.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "Recent exploration events resulting in the identification of new chambers within the ancient ru
+ins."
 }
 [test_extraction]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_extraction]:[generate_embedding]::[embedding]:Generating embedding for text:
@@ -5185,14 +5185,14 @@ Strange energy signals associated with the magical anomalies and new chambers fo
 .
 [test_extraction]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_extraction]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.173:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;Strange energy signals associated with the magical anomalies and new chambers found within the 
-ancient ruins.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "Strange energy signals associated with the magical anomalies and new chambers found within the 
+ancient ruins."
 }
 [test_extraction]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_extraction]:[generate_embedding]::[embedding]:Generating embedding for text:
@@ -5200,14 +5200,14 @@ Strange energy signals associated with the magical anomalies and new chambers fo
 .
 [test_extraction]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_extraction]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.173:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;Strange energy signals associated with the magical anomalies and new chambers found within the 
-ancient ruins.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "Strange energy signals associated with the magical anomalies and new chambers found within the 
+ancient ruins."
 }
 [test_extraction]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_extraction]:[generate]::[]:Generating response for prompt:
@@ -5267,28 +5267,28 @@ rs within the ancient ruins.
 ## Output Format
 
 Respond with a JSON array of relationships. Each relationship must have:
-- &quot;from_entity&quot;: name of the source entity (exactly as listed above)
-- &quot;to_entity&quot;: name of the target entity (exactly as listed above)  
-- &quot;relationship&quot;: type of relationship (from the defined types)
-- &quot;confidence&quot;: confidence score from 0.0 to 1.0
-- &quot;evidence&quot;: brief quote or description from text supporting this relationship
+- "from_entity": name of the source entity (exactly as listed above)
+- "to_entity": name of the target entity (exactly as listed above)  
+- "relationship": type of relationship (from the defined types)
+- "confidence": confidence score from 0.0 to 1.0
+- "evidence": brief quote or description from text supporting this relationship
 
 **Example Response:**
 &#96;&#96;&#96;json
 [
     {
-        &quot;from_entity&quot;: &quot;Elena&quot;,
-        &quot;to_entity&quot;: &quot;Haven&quot;,
-        &quot;relationship&quot;: &quot;located_in&quot;,
-        &quot;confidence&quot;: 0.9,
-        &quot;evidence&quot;: &quot;Elena serves as Mayor of Haven&quot;
+        "from_entity": "Elena",
+        "to_entity": "Haven",
+        "relationship": "located_in",
+        "confidence": 0.9,
+        "evidence": "Elena serves as Mayor of Haven"
     },
     {
-        &quot;from_entity&quot;: &quot;Elena&quot;, 
-        &quot;to_entity&quot;: &quot;investigation&quot;,
-        &quot;relationship&quot;: &quot;participates_in&quot;,
-        &quot;confidence&quot;: 0.8,
-        &quot;evidence&quot;: &quot;Elena is investigating strange occurrences&quot;
+        "from_entity": "Elena", 
+        "to_entity": "investigation",
+        "relationship": "participates_in",
+        "confidence": 0.8,
+        "evidence": "Elena is investigating strange occurrences"
     }
 ]
 &#96;&#96;&#96;
@@ -5298,8 +5298,8 @@ Respond with a JSON array of relationships. Each relationship must have:
 [test_extraction]:[_generate_impl]::[]:Sending request to Ollama API:
 URL: http://192.168.1.173:11434/api/generate
 Data: {
-  &quot;model&quot;: &quot;gemma3&quot;,
-  &quot;prompt&quot;: &quot;You are an expert relationship extraction system for knowledge graph construction. Your task is
+  "model": "gemma3",
+  "prompt": "You are an expert relationship extraction system for knowledge graph construction. Your task is
  to analyze conversation text and identify meaningful relationships between the entities that have been extr
 acted from this content.\n\n## Instructions\n\nAnalyze the provided conversation entry and digest to identif
 y relationships between the given entities. Focus on relationships that are explicitly stated or clearly imp
@@ -5327,81 +5327,81 @@ ecifically, items of significant historical or magical value.\n- discovery of ne
 xploration events resulting in the identification of new chambers within the ancient ruins.\n- energy emanat
 ions (concept): Strange energy signals associated with the magical anomalies and new chambers found within t
 he ancient ruins.\n\n## Output Format\n\nRespond with a JSON array of relationships. Each relationship must
-have:\n- \&quot;from_entity\&quot;: name of the source entity (exactly as listed above)\n- \&quot;to_entity\&quot;: name of the
-target entity (exactly as listed above)  \n- \&quot;relationship\&quot;: type of relationship (from the defined types)
-\n- \&quot;confidence\&quot;: confidence score from 0.0 to 1.0\n- \&quot;evidence\&quot;: brief quote or description from text s
-upporting this relationship\n\n**Example Response:**\n&#96;&#96;&#96;json\n[\n    {\n        \&quot;from_entity\&quot;: \&quot;Elena\&quot;,
-\n        \&quot;to_entity\&quot;: \&quot;Haven\&quot;,\n        \&quot;relationship\&quot;: \&quot;located_in\&quot;,\n        \&quot;confidence\&quot;: 0.9,
-\n        \&quot;evidence\&quot;: \&quot;Elena serves as Mayor of Haven\&quot;\n    },\n    {\n        \&quot;from_entity\&quot;: \&quot;Elena\
-&quot;, \n        \&quot;to_entity\&quot;: \&quot;investigation\&quot;,\n        \&quot;relationship\&quot;: \&quot;participates_in\&quot;,\n        \&quot;co
-nfidence\&quot;: 0.8,\n        \&quot;evidence\&quot;: \&quot;Elena is investigating strange occurrences\&quot;\n    }\n]\n&#96;&#96;&#96;\n\n**R
-elationships:**\n&quot;,
-  &quot;temperature&quot;: 0.7,
-  &quot;stream&quot;: false
+have:\n- \"from_entity\": name of the source entity (exactly as listed above)\n- \"to_entity\": name of the
+target entity (exactly as listed above)  \n- \"relationship\": type of relationship (from the defined types)
+\n- \"confidence\": confidence score from 0.0 to 1.0\n- \"evidence\": brief quote or description from text s
+upporting this relationship\n\n**Example Response:**\n&#96;&#96;&#96;json\n[\n    {\n        \"from_entity\": \"Elena\",
+\n        \"to_entity\": \"Haven\",\n        \"relationship\": \"located_in\",\n        \"confidence\": 0.9,
+\n        \"evidence\": \"Elena serves as Mayor of Haven\"\n    },\n    {\n        \"from_entity\": \"Elena\
+", \n        \"to_entity\": \"investigation\",\n        \"relationship\": \"participates_in\",\n        \"co
+nfidence\": 0.8,\n        \"evidence\": \"Elena is investigating strange occurrences\"\n    }\n]\n&#96;&#96;&#96;\n\n**R
+elationships:**\n",
+  "temperature": 0.7,
+  "stream": false
 }
 [test_extraction]:[_generate_impl]::[]:Received response from Ollama API:
 {
-  &quot;model&quot;: &quot;gemma3&quot;,
-  &quot;created_at&quot;: &quot;2025-06-08T18:26:28.9247697Z&quot;,
-  &quot;response&quot;: &quot;&#96;&#96;&#96;json\n[\n    {\n        \&quot;from_entity\&quot;: \&quot;Lost Valley\&quot;,\n        \&quot;to_entity\&quot;: \&quot;ancien
-t ruins\&quot;,\n        \&quot;relationship\&quot;: \&quot;located_in\&quot;,\n        \&quot;confidence\&quot;: 0.95,\n        \&quot;evidence\&quot;:
-\&quot;Scattered throughout the Lost Valley are ancient ruins\&quot;\n    },\n    {\n        \&quot;from_entity\&quot;: \&quot;ancien
-t ruins\&quot;,\n        \&quot;to_entity\&quot;: \&quot;magical anomalies\&quot;,\n        \&quot;relationship\&quot;: \&quot;located_in\&quot;,\n
-  \&quot;confidence\&quot;: 0.85,\n        \&quot;evidence\&quot;: \&quot;punctuated by mysterious magical anomalies\&quot;\n    },\n    {
-\n        \&quot;from_entity\&quot;: \&quot;Explorers\&quot;,\n        \&quot;to_entity\&quot;: \&quot;discovery of new chambers\&quot;,\n        \&quot;
-relationship\&quot;: \&quot;participates_in\&quot;,\n        \&quot;confidence\&quot;: 0.9,\n        \&quot;evidence\&quot;: \&quot;Explorers have r
-ecently discovered new chambers within them\&quot;\n    },\n    {\n        \&quot;from_entity\&quot;: \&quot;discovery of new ch
-ambers\&quot;,\n        \&quot;to_entity\&quot;: \&quot;artifacts\&quot;,\n        \&quot;relationship\&quot;: \&quot;participates_in\&quot;,\n        \&quot;
-confidence\&quot;: 0.8,\n        \&quot;evidence\&quot;: \&quot;accompanied by strange energy emanations and valuable artifacts
-have been found\&quot;\n    },\n    {\n        \&quot;from_entity\&quot;: \&quot;artifacts\&quot;,\n        \&quot;to_entity\&quot;: \&quot;Lost Val
-ley\&quot;,\n        \&quot;relationship\&quot;: \&quot;located_in\&quot;,\n        \&quot;confidence\&quot;: 0.7,\n        \&quot;evidence\&quot;: \&quot;val
-uable artifacts have been found within the ancient ruins of the Lost Valley\&quot;\n    }\n]\n&#96;&#96;&#96;&quot;,
-  &quot;done&quot;: true,
-  &quot;done_reason&quot;: &quot;stop&quot;,
-  &quot;total_duration&quot;: 3299695000,
-  &quot;load_duration&quot;: 41036900,
-  &quot;prompt_eval_count&quot;: 783,
-  &quot;prompt_eval_duration&quot;: 91085100,
-  &quot;eval_count&quot;: 344,
-  &quot;eval_duration&quot;: 3167573000
+  "model": "gemma3",
+  "created_at": "2025-06-08T18:26:28.9247697Z",
+  "response": "&#96;&#96;&#96;json\n[\n    {\n        \"from_entity\": \"Lost Valley\",\n        \"to_entity\": \"ancien
+t ruins\",\n        \"relationship\": \"located_in\",\n        \"confidence\": 0.95,\n        \"evidence\":
+\"Scattered throughout the Lost Valley are ancient ruins\"\n    },\n    {\n        \"from_entity\": \"ancien
+t ruins\",\n        \"to_entity\": \"magical anomalies\",\n        \"relationship\": \"located_in\",\n
+  \"confidence\": 0.85,\n        \"evidence\": \"punctuated by mysterious magical anomalies\"\n    },\n    {
+\n        \"from_entity\": \"Explorers\",\n        \"to_entity\": \"discovery of new chambers\",\n        \"
+relationship\": \"participates_in\",\n        \"confidence\": 0.9,\n        \"evidence\": \"Explorers have r
+ecently discovered new chambers within them\"\n    },\n    {\n        \"from_entity\": \"discovery of new ch
+ambers\",\n        \"to_entity\": \"artifacts\",\n        \"relationship\": \"participates_in\",\n        \"
+confidence\": 0.8,\n        \"evidence\": \"accompanied by strange energy emanations and valuable artifacts
+have been found\"\n    },\n    {\n        \"from_entity\": \"artifacts\",\n        \"to_entity\": \"Lost Val
+ley\",\n        \"relationship\": \"located_in\",\n        \"confidence\": 0.7,\n        \"evidence\": \"val
+uable artifacts have been found within the ancient ruins of the Lost Valley\"\n    }\n]\n&#96;&#96;&#96;",
+  "done": true,
+  "done_reason": "stop",
+  "total_duration": 3299695000,
+  "load_duration": 41036900,
+  "prompt_eval_count": 783,
+  "prompt_eval_duration": 91085100,
+  "eval_count": 344,
+  "eval_duration": 3167573000
 }
 [test_extraction]:[generate]::[]:Generated response:
 &#96;&#96;&#96;json
 [
     {
-        &quot;from_entity&quot;: &quot;Lost Valley&quot;,
-        &quot;to_entity&quot;: &quot;ancient ruins&quot;,
-        &quot;relationship&quot;: &quot;located_in&quot;,
-        &quot;confidence&quot;: 0.95,
-        &quot;evidence&quot;: &quot;Scattered throughout the Lost Valley are ancient ruins&quot;
+        "from_entity": "Lost Valley",
+        "to_entity": "ancient ruins",
+        "relationship": "located_in",
+        "confidence": 0.95,
+        "evidence": "Scattered throughout the Lost Valley are ancient ruins"
     },
     {
-        &quot;from_entity&quot;: &quot;ancient ruins&quot;,
-        &quot;to_entity&quot;: &quot;magical anomalies&quot;,
-        &quot;relationship&quot;: &quot;located_in&quot;,
-        &quot;confidence&quot;: 0.85,
-        &quot;evidence&quot;: &quot;punctuated by mysterious magical anomalies&quot;
+        "from_entity": "ancient ruins",
+        "to_entity": "magical anomalies",
+        "relationship": "located_in",
+        "confidence": 0.85,
+        "evidence": "punctuated by mysterious magical anomalies"
     },
     {
-        &quot;from_entity&quot;: &quot;Explorers&quot;,
-        &quot;to_entity&quot;: &quot;discovery of new chambers&quot;,
-        &quot;relationship&quot;: &quot;participates_in&quot;,
-        &quot;confidence&quot;: 0.9,
-        &quot;evidence&quot;: &quot;Explorers have recently discovered new chambers within them&quot;
+        "from_entity": "Explorers",
+        "to_entity": "discovery of new chambers",
+        "relationship": "participates_in",
+        "confidence": 0.9,
+        "evidence": "Explorers have recently discovered new chambers within them"
     },
     {
-        &quot;from_entity&quot;: &quot;discovery of new chambers&quot;,
-        &quot;to_entity&quot;: &quot;artifacts&quot;,
-        &quot;relationship&quot;: &quot;participates_in&quot;,
-        &quot;confidence&quot;: 0.8,
-        &quot;evidence&quot;: &quot;accompanied by strange energy emanations and valuable artifacts have been found&quot;
+        "from_entity": "discovery of new chambers",
+        "to_entity": "artifacts",
+        "relationship": "participates_in",
+        "confidence": 0.8,
+        "evidence": "accompanied by strange energy emanations and valuable artifacts have been found"
     },
     {
-        &quot;from_entity&quot;: &quot;artifacts&quot;,
-        &quot;to_entity&quot;: &quot;Lost Valley&quot;,
-        &quot;relationship&quot;: &quot;located_in&quot;,
-        &quot;confidence&quot;: 0.7,
-        &quot;evidence&quot;: &quot;valuable artifacts have been found within the ancient ruins of the Lost Valley&quot;
+        "from_entity": "artifacts",
+        "to_entity": "Lost Valley",
+        "relationship": "located_in",
+        "confidence": 0.7,
+        "evidence": "valuable artifacts have been found within the ancient ruins of the Lost Valley"
     }
 ]
 &#96;&#96;&#96;
@@ -5410,17 +5410,17 @@ uable artifacts have been found within the ancient ruins of the Lost Valley\&quo
 
 
 
-Could not find nodes for relationship {&#39;from_entity&#39;: &#39;Lost Valley&#39;, &#39;to_entity&#39;: &#39;ancient ruins&#39;, &#39;relation
-ship&#39;: &#39;located_in&#39;, &#39;confidence&#39;: 0.95, &#39;evidence&#39;: &#39;Scattered throughout the Lost Valley are ancient ruins
-&#39;}
-Could not find nodes for relationship {&#39;from_entity&#39;: &#39;ancient ruins&#39;, &#39;to_entity&#39;: &#39;magical anomalies&#39;, &#39;re
-lationship&#39;: &#39;located_in&#39;, &#39;confidence&#39;: 0.85, &#39;evidence&#39;: &#39;punctuated by mysterious magical anomalies&#39;}
-Could not find nodes for relationship {&#39;from_entity&#39;: &#39;discovery of new chambers&#39;, &#39;to_entity&#39;: &#39;artifacts&#39;,
- &#39;relationship&#39;: &#39;participates_in&#39;, &#39;confidence&#39;: 0.8, &#39;evidence&#39;: &#39;accompanied by strange energy emanations
- and valuable artifacts have been found&#39;}
-Could not find nodes for relationship {&#39;from_entity&#39;: &#39;artifacts&#39;, &#39;to_entity&#39;: &#39;Lost Valley&#39;, &#39;relationship
-&#39;: &#39;located_in&#39;, &#39;confidence&#39;: 0.7, &#39;evidence&#39;: &#39;valuable artifacts have been found within the ancient ruins
- of the Lost Valley&#39;}
+Could not find nodes for relationship {'from_entity': 'Lost Valley', 'to_entity': 'ancient ruins', 'relation
+ship': 'located_in', 'confidence': 0.95, 'evidence': 'Scattered throughout the Lost Valley are ancient ruins
+'}
+Could not find nodes for relationship {'from_entity': 'ancient ruins', 'to_entity': 'magical anomalies', 're
+lationship': 'located_in', 'confidence': 0.85, 'evidence': 'punctuated by mysterious magical anomalies'}
+Could not find nodes for relationship {'from_entity': 'discovery of new chambers', 'to_entity': 'artifacts',
+ 'relationship': 'participates_in', 'confidence': 0.8, 'evidence': 'accompanied by strange energy emanations
+ and valuable artifacts have been found'}
+Could not find nodes for relationship {'from_entity': 'artifacts', 'to_entity': 'Lost Valley', 'relationship
+': 'located_in', 'confidence': 0.7, 'evidence': 'valuable artifacts have been found within the ancient ruins
+ of the Lost Valley'}
 
 === ANALYZING RESULTS ===
 Baseline nodes: 18
@@ -5631,7 +5631,7 @@ Absolutely! I can see that the test script already has a `copy_results_to_graph_
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: cp tests/test_files/tmp/graph_nodes.json graph-viewer/public/sample-data/ && cp tests/test_files/tmp/graph_edges.json graph-viewer/public/sample-data/ && cp tests/test_files/tmp/graph_metadata.json graph-viewer/public/sample-data/</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: cp tests/test_files/tmp/graph_nodes.json graph-viewer/public/sample-data/ && cp tests/test_files/tmp/graph_edges.json graph-viewer/public/sample-data/ && cp tests/test_files/tmp/graph_metadata.json graph-viewer/public/sample-data/</summary>
 
 ```bash
 cp tests/test_files/tmp/graph_nodes.json graph-viewer/public/sample-data/ && cp tests/test_files/tmp/graph_edges.json graph-viewer/public/sample-data/ && cp tests/test_files/tmp/graph_metadata.json graph-viewer/public/sample-data/
@@ -5647,7 +5647,7 @@ Let me check if the graph-viewer directory exists and verify the current copying
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed directory graph-viewer/public • **4** results</summary>
+            <summary>Tool use: **list_dir** • Listed directory graph-viewer/public, 4 results</summary>
         
 | Name |
 |-------|
@@ -5663,7 +5663,7 @@ Let me check if the graph-viewer directory exists and verify the current copying
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed directory graph-viewer/public/sample-data • **3** results</summary>
+            <summary>Tool use: **list_dir** • Listed directory graph-viewer/public/sample-data, 3 results</summary>
         
 | Name |
 |-------|
@@ -5703,46 +5703,46 @@ Let me enhance the copying functionality to make it more robust and provide bett
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: tests/graph_memory/test_alternative_extractors_comprehensive.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: tests/graph_memory/test_alternative_extractors_comprehensive.py</summary>
 
 **Chunk 1**
 Lines added: 17, lines removed: 4
 
 ```diff
 @@ -322,18 +322,31 @@
-          print(&quot;\n=== COPYING RESULTS TO GRAPH VIEWER ===&quot;)
+          print("\n=== COPYING RESULTS TO GRAPH VIEWER ===")
           
 +         # Ensure graph-viewer directory exists
           if not self.graph_viewer_dir.exists():
--             print(f&quot;Graph viewer directory not found: {self.graph_viewer_dir}&quot;)
+-             print(f"Graph viewer directory not found: {self.graph_viewer_dir}")
 -             return
-+             print(f&quot;Creating graph-viewer directory: {self.graph_viewer_dir}&quot;)
++             print(f"Creating graph-viewer directory: {self.graph_viewer_dir}")
 +             self.graph_viewer_dir.mkdir(parents=True, exist_ok=True)
               
           try:
 +             files_copied = 0
-              for file in [&quot;graph_nodes.json&quot;, &quot;graph_edges.json&quot;, &quot;graph_metadata.json&quot;]:
+              for file in ["graph_nodes.json", "graph_edges.json", "graph_metadata.json"]:
                   src = self.tmp_dir / file
                   dst = self.graph_viewer_dir / file
                   if src.exists():
                       shutil.copy2(src, dst)
--                     print(f&quot;Copied {file} to graph-viewer&quot;)
+-                     print(f"Copied {file} to graph-viewer")
 +                     file_size = src.stat().st_size
-+                     print(f&quot;✅ Copied {file} ({file_size:,} bytes) to graph-viewer&quot;)
++                     print(f"✅ Copied {file} ({file_size:,} bytes) to graph-viewer")
 +                     files_copied += 1
 +                 else:
-+                     print(f&quot;⚠️  Source file not found: {src}&quot;)
++                     print(f"⚠️  Source file not found: {src}")
 +             
 +             if files_copied &gt; 0:
-+                 print(f&quot;🎉 Successfully copied {files_copied} files to graph-viewer!&quot;)
-+                 print(f&quot;📊 View results at: {self.graph_viewer_dir}&quot;)
-+                 print(&quot;🌐 Open graph-viewer/public/d3-graph.html to visualize the knowledge graph&quot;)
++                 print(f"🎉 Successfully copied {files_copied} files to graph-viewer!")
++                 print(f"📊 View results at: {self.graph_viewer_dir}")
++                 print("🌐 Open graph-viewer/public/d3-graph.html to visualize the knowledge graph")
 +             else:
-+                 print(&quot;❌ No files were copied&quot;)
++                 print("❌ No files were copied")
                       
           except Exception as e:
--             print(f&quot;Error copying to graph-viewer: {e}&quot;)
-+             print(f&quot;❌ Error copying to graph-viewer: {e}&quot;)
+-             print(f"Error copying to graph-viewer: {e}")
++             print(f"❌ Error copying to graph-viewer: {e}")
               
       def save_test_report(self):
 ```
@@ -5758,7 +5758,7 @@ Now let's test the enhanced copying functionality by running the test again:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: ./run_comprehensive_test.sh</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: ./run_comprehensive_test.sh</summary>
 
 ```bash
 ./run_comprehensive_test.sh
@@ -5767,7 +5767,7 @@ Now let's test the enhanced copying functionality by running the test again:
 ```
 (.venv) (base) andrewrapo@Andrews-MacBook-Pro-16b graph_memory % 
 d artifacts, and he is presently focused on decoding inscriptions found within the ruins. Finally, Sara is t
-he Captain of Riverwatch, responsible for the valley&#39;s defense, and she is concerned by an increase in monst
+he Captain of Riverwatch, responsible for the valley's defense, and she is concerned by an increase in monst
 er activity. Currently, trade routes between the settlements have been disrupted, and merchants are seeking
 protection. Explorers have recently discovered new chambers within the ancient ruins, accompanied by strange
  energy emanations, and valuable artifacts have been found. Furthermore, random magical effects are occurrin
@@ -5775,50 +5775,50 @@ g, impacting the local wildlife, and there is a suspected connection between the
 **Entities in this content:**
 - The Lost Valley (location) [EXISTING]: A hidden valley surrounded by impassable mountains, serving as the 
 campaign setting and containing ancient ruins and magical anomalies.
-- Haven (location) [EXISTING]: A settlement located at the valley&#39;s center, commanded by Mayor Elena and ser
+- Haven (location) [EXISTING]: A settlement located at the valley's center, commanded by Mayor Elena and ser
 ving as a key hub for trade and investigation.
 - Riverwatch (location) [EXISTING]: A settlement situated to the east of the central valley, responsible for
- the valley&#39;s defense and led by Captain Sara.
+ the valley's defense and led by Captain Sara.
 - Mountainkeep (location): A settlement located to the west of the central valley, serving as a strategic ou
 tpost and potentially holding further ancient ruins.
-- Elena (character) [EXISTING]: Mayor of Haven, driven by a desire to protect the valley&#39;s inhabitants and c
+- Elena (character) [EXISTING]: Mayor of Haven, driven by a desire to protect the valley's inhabitants and c
 urrently investigating strange occurrences within Haven.
 - Theron (character) [EXISTING]: A Master Scholar specializing in ancient ruins and artifacts, currently foc
 used on decoding inscriptions found within the ruins.
-- Sara (character) [EXISTING]: Captain of Riverwatch, responsible for the valley&#39;s defense and concerned abo
+- Sara (character) [EXISTING]: Captain of Riverwatch, responsible for the valley's defense and concerned abo
 ut increased monster activity.
 - Ancient Ruins (location) [EXISTING]: Scattered throughout The Lost Valley, containing new chambers, strang
 e energy emanations, and valuable artifacts.  A primary focus of research for Theron.
 - Magical Anomalies (concept) [EXISTING]: Random magical effects impacting local wildlife, potentially linke
-d to the Ancient Ruins and a key element of the valley&#39;s mysteries.
+d to the Ancient Ruins and a key element of the valley's mysteries.
 - Trade Routes (location): The disrupted trade routes between settlements, creating a point of concern and p
-otential for conflict, and a key factor in the valley&#39;s current situation.
+otential for conflict, and a key factor in the valley's current situation.
 
 ## Output Format
 
 Respond with a JSON array of relationships. Each relationship must have:
-- &quot;from_entity&quot;: name of the source entity (exactly as listed above)
-- &quot;to_entity&quot;: name of the target entity (exactly as listed above)  
-- &quot;relationship&quot;: type of relationship (from the defined types)
-- &quot;confidence&quot;: confidence score from 0.0 to 1.0
-- &quot;evidence&quot;: brief quote or description from text supporting this relationship
+- "from_entity": name of the source entity (exactly as listed above)
+- "to_entity": name of the target entity (exactly as listed above)  
+- "relationship": type of relationship (from the defined types)
+- "confidence": confidence score from 0.0 to 1.0
+- "evidence": brief quote or description from text supporting this relationship
 
 **Example Response:**
 &#96;&#96;&#96;json
 [
     {
-        &quot;from_entity&quot;: &quot;Elena&quot;,
-        &quot;to_entity&quot;: &quot;Haven&quot;,
-        &quot;relationship&quot;: &quot;located_in&quot;,
-        &quot;confidence&quot;: 0.9,
-        &quot;evidence&quot;: &quot;Elena serves as Mayor of Haven&quot;
+        "from_entity": "Elena",
+        "to_entity": "Haven",
+        "relationship": "located_in",
+        "confidence": 0.9,
+        "evidence": "Elena serves as Mayor of Haven"
     },
     {
-        &quot;from_entity&quot;: &quot;Elena&quot;, 
-        &quot;to_entity&quot;: &quot;investigation&quot;,
-        &quot;relationship&quot;: &quot;participates_in&quot;,
-        &quot;confidence&quot;: 0.8,
-        &quot;evidence&quot;: &quot;Elena is investigating strange occurrences&quot;
+        "from_entity": "Elena", 
+        "to_entity": "investigation",
+        "relationship": "participates_in",
+        "confidence": 0.8,
+        "evidence": "Elena is investigating strange occurrences"
     }
 ]
 &#96;&#96;&#96;
@@ -5828,8 +5828,8 @@ Respond with a JSON array of relationships. Each relationship must have:
 [test_extraction]:[_generate_impl]::[]:Sending request to Ollama API:
 URL: http://192.168.1.173:11434/api/generate
 Data: {
-  &quot;model&quot;: &quot;gemma3&quot;,
-  &quot;prompt&quot;: &quot;You are an expert relationship extraction system for knowledge graph construction. Your task is
+  "model": "gemma3",
+  "prompt": "You are an expert relationship extraction system for knowledge graph construction. Your task is
  to analyze conversation text and identify meaningful relationships between the entities that have been extr
 acted from this content.\n\n## Instructions\n\nAnalyze the provided conversation entry and digest to identif
 y relationships between the given entities. Focus on relationships that are explicitly stated or clearly imp
@@ -5845,163 +5845,163 @@ Provide evidence from the text to support each relationship\n- Focus on meaningf
 ps that add value to the knowledge base\n\n## Input Format\n\n**Conversation Entry:** \nCampaign Setting: Th
 e Lost Valley\n\nWorld Details:\n- Hidden valley surrounded by impassable mountains\n- Ancient ruins scatter
 ed throughout\n- Mysterious magical anomalies\n- Three main settlements: Haven (central), Riverwatch (east),
- Mountainkeep (west)\n\nKey NPCs:\n1. Elena\n   - Role: Mayor of Haven\n   - Motivation: Protect the valley&#39;
+ Mountainkeep (west)\n\nKey NPCs:\n1. Elena\n   - Role: Mayor of Haven\n   - Motivation: Protect the valley'
 s inhabitants\n   - Current Quest: Investigate strange occurrences in Haven\n\n2. Theron\n   - Role: Master
 Scholar\n   - Expertise: Ancient ruins and artifacts\n   - Current Research: Decoding ruin inscriptions\n\n3
-. Sara\n   - Role: Captain of Riverwatch\n   - Responsibility: Valley&#39;s defense\n   - Current Concern: Incre
+. Sara\n   - Role: Captain of Riverwatch\n   - Responsibility: Valley's defense\n   - Current Concern: Incre
 ased monster activity\n\nCurrent Situations:\n1. Trade Routes\n   - Main road between settlements disrupted\
 n   - Merchants seeking protection\n   - Alternative routes needed\n\n2. Ancient Ruins\n   - New chambers di
 scovered\n   - Strange energy emanations\n   - Valuable artifacts found\n\n3. Magical Anomalies\n   - Random
  magical effects\n   - Affecting local wildlife\n   - Possible connection to ruins\n\n**Digest:** The Lost V
 alley is a campaign setting defined by a hidden valley, completely surrounded by impassable mountains. Scatt
 ered throughout the valley are ancient ruins, and the area is punctuated by mysterious magical anomalies. Th
-ere are three main settlements: Haven, located at the valley&#39;s center; Riverwatch, situated to the east; and
+ere are three main settlements: Haven, located at the valley's center; Riverwatch, situated to the east; and
  Mountainkeep, located to the west. Key non-player characters include Elena, who serves as the Mayor of Have
-n and is motivated by a desire to protect the valley&#39;s inhabitants. She is currently investigating strange o
+n and is motivated by a desire to protect the valley's inhabitants. She is currently investigating strange o
 ccurrences within Haven. Theron is a Master Scholar with expertise in ancient ruins and artifacts, and he is
  presently focused on decoding inscriptions found within the ruins. Finally, Sara is the Captain of Riverwat
-ch, responsible for the valley&#39;s defense, and she is concerned by an increase in monster activity. Currently
+ch, responsible for the valley's defense, and she is concerned by an increase in monster activity. Currently
 , trade routes between the settlements have been disrupted, and merchants are seeking protection. Explorers
 have recently discovered new chambers within the ancient ruins, accompanied by strange energy emanations, an
 d valuable artifacts have been found. Furthermore, random magical effects are occurring, impacting the local
  wildlife, and there is a suspected connection between these anomalies and the ruins.\n\n**Entities in this
 content:**\n- The Lost Valley (location) [EXISTING]: A hidden valley surrounded by impassable mountains, ser
 ving as the campaign setting and containing ancient ruins and magical anomalies.\n- Haven (location) [EXISTI
-NG]: A settlement located at the valley&#39;s center, commanded by Mayor Elena and serving as a key hub for trad
+NG]: A settlement located at the valley's center, commanded by Mayor Elena and serving as a key hub for trad
 e and investigation.\n- Riverwatch (location) [EXISTING]: A settlement situated to the east of the central v
-alley, responsible for the valley&#39;s defense and led by Captain Sara.\n- Mountainkeep (location): A settlemen
+alley, responsible for the valley's defense and led by Captain Sara.\n- Mountainkeep (location): A settlemen
 t located to the west of the central valley, serving as a strategic outpost and potentially holding further
-ancient ruins.\n- Elena (character) [EXISTING]: Mayor of Haven, driven by a desire to protect the valley&#39;s i
+ancient ruins.\n- Elena (character) [EXISTING]: Mayor of Haven, driven by a desire to protect the valley's i
 nhabitants and currently investigating strange occurrences within Haven.\n- Theron (character) [EXISTING]: A
  Master Scholar specializing in ancient ruins and artifacts, currently focused on decoding inscriptions foun
-d within the ruins.\n- Sara (character) [EXISTING]: Captain of Riverwatch, responsible for the valley&#39;s defe
+d within the ruins.\n- Sara (character) [EXISTING]: Captain of Riverwatch, responsible for the valley's defe
 nse and concerned about increased monster activity.\n- Ancient Ruins (location) [EXISTING]: Scattered throug
 hout The Lost Valley, containing new chambers, strange energy emanations, and valuable artifacts.  A primary
  focus of research for Theron.\n- Magical Anomalies (concept) [EXISTING]: Random magical effects impacting l
-ocal wildlife, potentially linked to the Ancient Ruins and a key element of the valley&#39;s mysteries.\n- Trade
+ocal wildlife, potentially linked to the Ancient Ruins and a key element of the valley's mysteries.\n- Trade
  Routes (location): The disrupted trade routes between settlements, creating a point of concern and potentia
-l for conflict, and a key factor in the valley&#39;s current situation.\n\n## Output Format\n\nRespond with a JS
-ON array of relationships. Each relationship must have:\n- \&quot;from_entity\&quot;: name of the source entity (exact
-ly as listed above)\n- \&quot;to_entity\&quot;: name of the target entity (exactly as listed above)  \n- \&quot;relationshi
-p\&quot;: type of relationship (from the defined types)\n- \&quot;confidence\&quot;: confidence score from 0.0 to 1.0\n- \&quot;
-evidence\&quot;: brief quote or description from text supporting this relationship\n\n**Example Response:**\n&#96;&#96;&#96;j
-son\n[\n    {\n        \&quot;from_entity\&quot;: \&quot;Elena\&quot;,\n        \&quot;to_entity\&quot;: \&quot;Haven\&quot;,\n        \&quot;relationshi
-p\&quot;: \&quot;located_in\&quot;,\n        \&quot;confidence\&quot;: 0.9,\n        \&quot;evidence\&quot;: \&quot;Elena serves as Mayor of Haven\&quot;
-\n    },\n    {\n        \&quot;from_entity\&quot;: \&quot;Elena\&quot;, \n        \&quot;to_entity\&quot;: \&quot;investigation\&quot;,\n        \&quot;
-relationship\&quot;: \&quot;participates_in\&quot;,\n        \&quot;confidence\&quot;: 0.8,\n        \&quot;evidence\&quot;: \&quot;Elena is investi
-gating strange occurrences\&quot;\n    }\n]\n&#96;&#96;&#96;\n\n**Relationships:**\n&quot;,
-  &quot;temperature&quot;: 0.7,
-  &quot;stream&quot;: false
+l for conflict, and a key factor in the valley's current situation.\n\n## Output Format\n\nRespond with a JS
+ON array of relationships. Each relationship must have:\n- \"from_entity\": name of the source entity (exact
+ly as listed above)\n- \"to_entity\": name of the target entity (exactly as listed above)  \n- \"relationshi
+p\": type of relationship (from the defined types)\n- \"confidence\": confidence score from 0.0 to 1.0\n- \"
+evidence\": brief quote or description from text supporting this relationship\n\n**Example Response:**\n&#96;&#96;&#96;j
+son\n[\n    {\n        \"from_entity\": \"Elena\",\n        \"to_entity\": \"Haven\",\n        \"relationshi
+p\": \"located_in\",\n        \"confidence\": 0.9,\n        \"evidence\": \"Elena serves as Mayor of Haven\"
+\n    },\n    {\n        \"from_entity\": \"Elena\", \n        \"to_entity\": \"investigation\",\n        \"
+relationship\": \"participates_in\",\n        \"confidence\": 0.8,\n        \"evidence\": \"Elena is investi
+gating strange occurrences\"\n    }\n]\n&#96;&#96;&#96;\n\n**Relationships:**\n",
+  "temperature": 0.7,
+  "stream": false
 }
 [test_extraction]:[_generate_impl]::[]:Received response from Ollama API:
 {
-  &quot;model&quot;: &quot;gemma3&quot;,
-  &quot;created_at&quot;: &quot;2025-06-08T18:42:55.4478413Z&quot;,
-  &quot;response&quot;: &quot;&#96;&#96;&#96;json\n[\n    {\n        \&quot;from_entity\&quot;: \&quot;The Lost Valley\&quot;,\n        \&quot;to_entity\&quot;: \&quot;Ha
-ven\&quot;,\n        \&quot;relationship\&quot;: \&quot;located_in\&quot;,\n        \&quot;confidence\&quot;: 0.95,\n        \&quot;evidence\&quot;: \&quot;Ha
-ven is located at the valley&#39;s center.\&quot;\n    },\n    {\n        \&quot;from_entity\&quot;: \&quot;The Lost Valley\&quot;,\n
-    \&quot;to_entity\&quot;: \&quot;Riverwatch\&quot;,\n        \&quot;relationship\&quot;: \&quot;located_in\&quot;,\n        \&quot;confidence\&quot;: 0.9,\
-n        \&quot;evidence\&quot;: \&quot;Riverwatch is situated to the east of the central valley.\&quot;\n    },\n    {\n
- \&quot;from_entity\&quot;: \&quot;The Lost Valley\&quot;,\n        \&quot;to_entity\&quot;: \&quot;Mountainkeep\&quot;,\n        \&quot;relationship\&quot;:
-\&quot;located_in\&quot;,\n        \&quot;confidence\&quot;: 0.85,\n        \&quot;evidence\&quot;: \&quot;Mountainkeep is located to the west
-of the central valley.\&quot;\n    },\n    {\n        \&quot;from_entity\&quot;: \&quot;Elena\&quot;,\n        \&quot;to_entity\&quot;: \&quot;Haven
-\&quot;,\n        \&quot;relationship\&quot;: \&quot;member_of\&quot;,\n        \&quot;confidence\&quot;: 0.9,\n        \&quot;evidence\&quot;: \&quot;Elena s
-erves as the Mayor of Haven.\&quot;\n    },\n    {\n        \&quot;from_entity\&quot;: \&quot;Theron\&quot;,\n        \&quot;to_entity\&quot;:
-\&quot;Ancient Ruins\&quot;,\n        \&quot;relationship\&quot;: \&quot;uses\&quot;,\n        \&quot;confidence\&quot;: 0.8,\n        \&quot;evidence\&quot;:
- \&quot;Theron specializes in ancient ruins and artifacts.\&quot;\n    },\n    {\n        \&quot;from_entity\&quot;: \&quot;Sara\&quot;,\n
-        \&quot;to_entity\&quot;: \&quot;Riverwatch\&quot;,\n        \&quot;relationship\&quot;: \&quot;member_of\&quot;,\n        \&quot;confidence\&quot;: 0.
-95,\n        \&quot;evidence\&quot;: \&quot;Sara is the Captain of Riverwatch.\&quot;\n    },\n    {\n        \&quot;from_entity\&quot;: \
-&quot;The Lost Valley\&quot;,\n        \&quot;to_entity\&quot;: \&quot;Ancient Ruins\&quot;,\n        \&quot;relationship\&quot;: \&quot;contains\&quot;,\n
-     \&quot;confidence\&quot;: 0.9,\n        \&quot;evidence\&quot;: \&quot;Ancient ruins scattered throughout The Lost Valley\&quot;\n
- },\n    {\n        \&quot;from_entity\&quot;: \&quot;The Lost Valley\&quot;,\n        \&quot;to_entity\&quot;: \&quot;Magical Anomalies\&quot;,\n
-      \&quot;relationship\&quot;: \&quot;contains\&quot;,\n        \&quot;confidence\&quot;: 0.8,\n        \&quot;evidence\&quot;: \&quot;Magical Anomali
-es are a key element of the valley&#39;s mysteries.\&quot;\n    },\n    {\n        \&quot;from_entity\&quot;: \&quot;The Lost Valley
-\&quot;,\n        \&quot;to_entity\&quot;: \&quot;Trade Routes\&quot;,\n        \&quot;relationship\&quot;: \&quot;impacts\&quot;,\n        \&quot;confidence\
-&quot;: 0.7,\n        \&quot;evidence\&quot;: \&quot;The disrupted trade routes between settlements\&quot;\n    },\n    {\n        \&quot;
-from_entity\&quot;: \&quot;The Lost Valley\&quot;,\n        \&quot;to_entity\&quot;: \&quot;Ancient Ruins\&quot;,\n        \&quot;relationship\&quot;: \&quot;
-features\&quot;,\n        \&quot;confidence\&quot;: 0.8,\n        \&quot;evidence\&quot;: \&quot;New chambers discovered within the ancien
-t ruins.\&quot;\n    }\n]\n&#96;&#96;&#96;&quot;,
-  &quot;done&quot;: true,
-  &quot;done_reason&quot;: &quot;stop&quot;,
-  &quot;total_duration&quot;: 6252114000,
-  &quot;load_duration&quot;: 41720700,
-  &quot;prompt_eval_count&quot;: 1343,
-  &quot;prompt_eval_duration&quot;: 153847900,
-  &quot;eval_count&quot;: 645,
-  &quot;eval_duration&quot;: 6056041800
+  "model": "gemma3",
+  "created_at": "2025-06-08T18:42:55.4478413Z",
+  "response": "&#96;&#96;&#96;json\n[\n    {\n        \"from_entity\": \"The Lost Valley\",\n        \"to_entity\": \"Ha
+ven\",\n        \"relationship\": \"located_in\",\n        \"confidence\": 0.95,\n        \"evidence\": \"Ha
+ven is located at the valley's center.\"\n    },\n    {\n        \"from_entity\": \"The Lost Valley\",\n
+    \"to_entity\": \"Riverwatch\",\n        \"relationship\": \"located_in\",\n        \"confidence\": 0.9,\
+n        \"evidence\": \"Riverwatch is situated to the east of the central valley.\"\n    },\n    {\n
+ \"from_entity\": \"The Lost Valley\",\n        \"to_entity\": \"Mountainkeep\",\n        \"relationship\":
+\"located_in\",\n        \"confidence\": 0.85,\n        \"evidence\": \"Mountainkeep is located to the west
+of the central valley.\"\n    },\n    {\n        \"from_entity\": \"Elena\",\n        \"to_entity\": \"Haven
+\",\n        \"relationship\": \"member_of\",\n        \"confidence\": 0.9,\n        \"evidence\": \"Elena s
+erves as the Mayor of Haven.\"\n    },\n    {\n        \"from_entity\": \"Theron\",\n        \"to_entity\":
+\"Ancient Ruins\",\n        \"relationship\": \"uses\",\n        \"confidence\": 0.8,\n        \"evidence\":
+ \"Theron specializes in ancient ruins and artifacts.\"\n    },\n    {\n        \"from_entity\": \"Sara\",\n
+        \"to_entity\": \"Riverwatch\",\n        \"relationship\": \"member_of\",\n        \"confidence\": 0.
+95,\n        \"evidence\": \"Sara is the Captain of Riverwatch.\"\n    },\n    {\n        \"from_entity\": \
+"The Lost Valley\",\n        \"to_entity\": \"Ancient Ruins\",\n        \"relationship\": \"contains\",\n
+     \"confidence\": 0.9,\n        \"evidence\": \"Ancient ruins scattered throughout The Lost Valley\"\n
+ },\n    {\n        \"from_entity\": \"The Lost Valley\",\n        \"to_entity\": \"Magical Anomalies\",\n
+      \"relationship\": \"contains\",\n        \"confidence\": 0.8,\n        \"evidence\": \"Magical Anomali
+es are a key element of the valley's mysteries.\"\n    },\n    {\n        \"from_entity\": \"The Lost Valley
+\",\n        \"to_entity\": \"Trade Routes\",\n        \"relationship\": \"impacts\",\n        \"confidence\
+": 0.7,\n        \"evidence\": \"The disrupted trade routes between settlements\"\n    },\n    {\n        \"
+from_entity\": \"The Lost Valley\",\n        \"to_entity\": \"Ancient Ruins\",\n        \"relationship\": \"
+features\",\n        \"confidence\": 0.8,\n        \"evidence\": \"New chambers discovered within the ancien
+t ruins.\"\n    }\n]\n&#96;&#96;&#96;",
+  "done": true,
+  "done_reason": "stop",
+  "total_duration": 6252114000,
+  "load_duration": 41720700,
+  "prompt_eval_count": 1343,
+  "prompt_eval_duration": 153847900,
+  "eval_count": 645,
+  "eval_duration": 6056041800
 }
 [test_extraction]:[generate]::[]:Generated response:
 &#96;&#96;&#96;json
 [
     {
-        &quot;from_entity&quot;: &quot;The Lost Valley&quot;,
-        &quot;to_entity&quot;: &quot;Haven&quot;,
-        &quot;relationship&quot;: &quot;located_in&quot;,
-        &quot;confidence&quot;: 0.95,
-        &quot;evidence&quot;: &quot;Haven is located at the valley&#39;s center.&quot;
+        "from_entity": "The Lost Valley",
+        "to_entity": "Haven",
+        "relationship": "located_in",
+        "confidence": 0.95,
+        "evidence": "Haven is located at the valley's center."
     },
     {
-        &quot;from_entity&quot;: &quot;The Lost Valley&quot;,
-        &quot;to_entity&quot;: &quot;Riverwatch&quot;,
-        &quot;relationship&quot;: &quot;located_in&quot;,
-        &quot;confidence&quot;: 0.9,
-        &quot;evidence&quot;: &quot;Riverwatch is situated to the east of the central valley.&quot;
+        "from_entity": "The Lost Valley",
+        "to_entity": "Riverwatch",
+        "relationship": "located_in",
+        "confidence": 0.9,
+        "evidence": "Riverwatch is situated to the east of the central valley."
     },
     {
-        &quot;from_entity&quot;: &quot;The Lost Valley&quot;,
-        &quot;to_entity&quot;: &quot;Mountainkeep&quot;,
-        &quot;relationship&quot;: &quot;located_in&quot;,
-        &quot;confidence&quot;: 0.85,
-        &quot;evidence&quot;: &quot;Mountainkeep is located to the west of the central valley.&quot;
+        "from_entity": "The Lost Valley",
+        "to_entity": "Mountainkeep",
+        "relationship": "located_in",
+        "confidence": 0.85,
+        "evidence": "Mountainkeep is located to the west of the central valley."
     },
     {
-        &quot;from_entity&quot;: &quot;Elena&quot;,
-        &quot;to_entity&quot;: &quot;Haven&quot;,
-        &quot;relationship&quot;: &quot;member_of&quot;,
-        &quot;confidence&quot;: 0.9,
-        &quot;evidence&quot;: &quot;Elena serves as the Mayor of Haven.&quot;
+        "from_entity": "Elena",
+        "to_entity": "Haven",
+        "relationship": "member_of",
+        "confidence": 0.9,
+        "evidence": "Elena serves as the Mayor of Haven."
     },
     {
-        &quot;from_entity&quot;: &quot;Theron&quot;,
-        &quot;to_entity&quot;: &quot;Ancient Ruins&quot;,
-        &quot;relationship&quot;: &quot;uses&quot;,
-        &quot;confidence&quot;: 0.8,
-        &quot;evidence&quot;: &quot;Theron specializes in ancient ruins and artifacts.&quot;
+        "from_entity": "Theron",
+        "to_entity": "Ancient Ruins",
+        "relationship": "uses",
+        "confidence": 0.8,
+        "evidence": "Theron specializes in ancient ruins and artifacts."
     },
     {
-        &quot;from_entity&quot;: &quot;Sara&quot;,
-        &quot;to_entity&quot;: &quot;Riverwatch&quot;,
-        &quot;relationship&quot;: &quot;member_of&quot;,
-        &quot;confidence&quot;: 0.95,
-        &quot;evidence&quot;: &quot;Sara is the Captain of Riverwatch.&quot;
+        "from_entity": "Sara",
+        "to_entity": "Riverwatch",
+        "relationship": "member_of",
+        "confidence": 0.95,
+        "evidence": "Sara is the Captain of Riverwatch."
     },
     {
-        &quot;from_entity&quot;: &quot;The Lost Valley&quot;,
-        &quot;to_entity&quot;: &quot;Ancient Ruins&quot;,
-        &quot;relationship&quot;: &quot;contains&quot;,
-        &quot;confidence&quot;: 0.9,
-        &quot;evidence&quot;: &quot;Ancient ruins scattered throughout The Lost Valley&quot;
+        "from_entity": "The Lost Valley",
+        "to_entity": "Ancient Ruins",
+        "relationship": "contains",
+        "confidence": 0.9,
+        "evidence": "Ancient ruins scattered throughout The Lost Valley"
     },
     {
-        &quot;from_entity&quot;: &quot;The Lost Valley&quot;,
-        &quot;to_entity&quot;: &quot;Magical Anomalies&quot;,
-        &quot;relationship&quot;: &quot;contains&quot;,
-        &quot;confidence&quot;: 0.8,
-        &quot;evidence&quot;: &quot;Magical Anomalies are a key element of the valley&#39;s mysteries.&quot;
+        "from_entity": "The Lost Valley",
+        "to_entity": "Magical Anomalies",
+        "relationship": "contains",
+        "confidence": 0.8,
+        "evidence": "Magical Anomalies are a key element of the valley's mysteries."
     },
     {
-        &quot;from_entity&quot;: &quot;The Lost Valley&quot;,
-        &quot;to_entity&quot;: &quot;Trade Routes&quot;,
-        &quot;relationship&quot;: &quot;impacts&quot;,
-        &quot;confidence&quot;: 0.7,
-        &quot;evidence&quot;: &quot;The disrupted trade routes between settlements&quot;
+        "from_entity": "The Lost Valley",
+        "to_entity": "Trade Routes",
+        "relationship": "impacts",
+        "confidence": 0.7,
+        "evidence": "The disrupted trade routes between settlements"
     },
     {
-        &quot;from_entity&quot;: &quot;The Lost Valley&quot;,
-        &quot;to_entity&quot;: &quot;Ancient Ruins&quot;,
-        &quot;relationship&quot;: &quot;features&quot;,
-        &quot;confidence&quot;: 0.8,
-        &quot;evidence&quot;: &quot;New chambers discovered within the ancient ruins.&quot;
+        "from_entity": "The Lost Valley",
+        "to_entity": "Ancient Ruins",
+        "relationship": "features",
+        "confidence": 0.8,
+        "evidence": "New chambers discovered within the ancient ruins."
     }
 ]
 &#96;&#96;&#96;
@@ -6010,20 +6010,20 @@ t ruins.\&quot;\n    }\n]\n&#96;&#96;&#96;&quot;,
 
 
 
-Could not find nodes for relationship {&#39;from_entity&#39;: &#39;The Lost Valley&#39;, &#39;to_entity&#39;: &#39;Haven&#39;, &#39;relationship
-&#39;: &#39;located_in&#39;, &#39;confidence&#39;: 0.95, &#39;evidence&#39;: &quot;Haven is located at the valley&#39;s center.&quot;}
-Could not find nodes for relationship {&#39;from_entity&#39;: &#39;The Lost Valley&#39;, &#39;to_entity&#39;: &#39;Riverwatch&#39;, &#39;relatio
-nship&#39;: &#39;located_in&#39;, &#39;confidence&#39;: 0.9, &#39;evidence&#39;: &#39;Riverwatch is situated to the east of the central vall
-ey.&#39;}
-Could not find nodes for relationship {&#39;from_entity&#39;: &#39;The Lost Valley&#39;, &#39;to_entity&#39;: &#39;Mountainkeep&#39;, &#39;relat
-ionship&#39;: &#39;located_in&#39;, &#39;confidence&#39;: 0.85, &#39;evidence&#39;: &#39;Mountainkeep is located to the west of the central
-valley.&#39;}
-Could not find nodes for relationship {&#39;from_entity&#39;: &#39;Elena&#39;, &#39;to_entity&#39;: &#39;Haven&#39;, &#39;relationship&#39;: &#39;member
-_of&#39;, &#39;confidence&#39;: 0.9, &#39;evidence&#39;: &#39;Elena serves as the Mayor of Haven.&#39;}
-Could not find nodes for relationship {&#39;from_entity&#39;: &#39;Theron&#39;, &#39;to_entity&#39;: &#39;Ancient Ruins&#39;, &#39;relationship&#39;
-: &#39;uses&#39;, &#39;confidence&#39;: 0.8, &#39;evidence&#39;: &#39;Theron specializes in ancient ruins and artifacts.&#39;}
-Could not find nodes for relationship {&#39;from_entity&#39;: &#39;Sara&#39;, &#39;to_entity&#39;: &#39;Riverwatch&#39;, &#39;relationship&#39;: &#39;me
-mber_of&#39;, &#39;confidence&#39;: 0.95, &#39;evidence&#39;: &#39;Sara is the Captain of Riverwatch.&#39;}
+Could not find nodes for relationship {'from_entity': 'The Lost Valley', 'to_entity': 'Haven', 'relationship
+': 'located_in', 'confidence': 0.95, 'evidence': "Haven is located at the valley's center."}
+Could not find nodes for relationship {'from_entity': 'The Lost Valley', 'to_entity': 'Riverwatch', 'relatio
+nship': 'located_in', 'confidence': 0.9, 'evidence': 'Riverwatch is situated to the east of the central vall
+ey.'}
+Could not find nodes for relationship {'from_entity': 'The Lost Valley', 'to_entity': 'Mountainkeep', 'relat
+ionship': 'located_in', 'confidence': 0.85, 'evidence': 'Mountainkeep is located to the west of the central
+valley.'}
+Could not find nodes for relationship {'from_entity': 'Elena', 'to_entity': 'Haven', 'relationship': 'member
+_of', 'confidence': 0.9, 'evidence': 'Elena serves as the Mayor of Haven.'}
+Could not find nodes for relationship {'from_entity': 'Theron', 'to_entity': 'Ancient Ruins', 'relationship'
+: 'uses', 'confidence': 0.8, 'evidence': 'Theron specializes in ancient ruins and artifacts.'}
+Could not find nodes for relationship {'from_entity': 'Sara', 'to_entity': 'Riverwatch', 'relationship': 'me
+mber_of', 'confidence': 0.95, 'evidence': 'Sara is the Captain of Riverwatch.'}
 
 Extracting relationships from entry 821918f0...
 [test_extraction]:[generate]::[]:Generating response for prompt:
@@ -6066,25 +6066,25 @@ d valuable artifacts have been found.
 ## Output Format
 
 Respond with a JSON array of entities. Each entity must have:
-- &quot;type&quot;: one of the defined entity types
-- &quot;name&quot;: clear, specific name for the entity
-- &quot;description&quot;: detailed description suitable for semantic matching and graph storage
-- &quot;confidence&quot;: your confidence in this entity being graph-worthy (0.0 to 1.0)
+- "type": one of the defined entity types
+- "name": clear, specific name for the entity
+- "description": detailed description suitable for semantic matching and graph storage
+- "confidence": your confidence in this entity being graph-worthy (0.0 to 1.0)
 
 **Example Response:**
 &#96;&#96;&#96;json
 [
     {
-        &quot;type&quot;: &quot;character&quot;,
-        &quot;name&quot;: &quot;Elena&quot;,
-        &quot;description&quot;: &quot;Mayor of Haven who is investigating strange occurrences in the valley&quot;,
-        &quot;confidence&quot;: 0.9
+        "type": "character",
+        "name": "Elena",
+        "description": "Mayor of Haven who is investigating strange occurrences in the valley",
+        "confidence": 0.9
     },
     {
-        &quot;type&quot;: &quot;location&quot;, 
-        &quot;name&quot;: &quot;Haven&quot;,
-        &quot;description&quot;: &quot;A settlement in the valley where Elena serves as mayor&quot;,
-        &quot;confidence&quot;: 0.8
+        "type": "location", 
+        "name": "Haven",
+        "description": "A settlement in the valley where Elena serves as mayor",
+        "confidence": 0.8
     }
 ]
 &#96;&#96;&#96;
@@ -6094,8 +6094,8 @@ Respond with a JSON array of entities. Each entity must have:
 [test_extraction]:[_generate_impl]::[]:Sending request to Ollama API:
 URL: http://192.168.1.173:11434/api/generate
 Data: {
-  &quot;model&quot;: &quot;gemma3&quot;,
-  &quot;prompt&quot;: &quot;You are an expert entity extraction system for knowledge graph construction. Your task is to an
+  "model": "gemma3",
+  "prompt": "You are an expert entity extraction system for knowledge graph construction. Your task is to an
 alyze conversation text and identify entities (characters, locations, objects, concepts, events, organizatio
 ns) that should be stored in a knowledge graph.\n\n## Instructions\n\nAnalyze the provided conversation entr
 y and digest to identify graph-worthy entities. Focus on specific, identifiable entities that would be valua
@@ -6113,89 +6113,89 @@ e ancient ruins, punctuated by mysterious magical anomalies. Explorers have rece
 * Scattered throughout the Lost Valley are ancient ruins, punctuated by mysterious magical anomalies. Explor
 ers have recently discovered new chambers within them, accompanied by strange energy emanations and valuable
  artifacts have been found.\n\n\n\n## Output Format\n\nRespond with a JSON array of entities. Each entity mu
-st have:\n- \&quot;type\&quot;: one of the defined entity types\n- \&quot;name\&quot;: clear, specific name for the entity\n- \&quot;
-description\&quot;: detailed description suitable for semantic matching and graph storage\n- \&quot;confidence\&quot;: your
+st have:\n- \"type\": one of the defined entity types\n- \"name\": clear, specific name for the entity\n- \"
+description\": detailed description suitable for semantic matching and graph storage\n- \"confidence\": your
  confidence in this entity being graph-worthy (0.0 to 1.0)\n\n**Example Response:**\n&#96;&#96;&#96;json\n[\n    {\n
-    \&quot;type\&quot;: \&quot;character\&quot;,\n        \&quot;name\&quot;: \&quot;Elena\&quot;,\n        \&quot;description\&quot;: \&quot;Mayor of Haven who is
- investigating strange occurrences in the valley\&quot;,\n        \&quot;confidence\&quot;: 0.9\n    },\n    {\n        \&quot;t
-ype\&quot;: \&quot;location\&quot;, \n        \&quot;name\&quot;: \&quot;Haven\&quot;,\n        \&quot;description\&quot;: \&quot;A settlement in the valley w
-here Elena serves as mayor\&quot;,\n        \&quot;confidence\&quot;: 0.8\n    }\n]\n&#96;&#96;&#96;\n\n**Entities:**\n&quot;,
-  &quot;temperature&quot;: 0.7,
-  &quot;stream&quot;: false
+    \"type\": \"character\",\n        \"name\": \"Elena\",\n        \"description\": \"Mayor of Haven who is
+ investigating strange occurrences in the valley\",\n        \"confidence\": 0.9\n    },\n    {\n        \"t
+ype\": \"location\", \n        \"name\": \"Haven\",\n        \"description\": \"A settlement in the valley w
+here Elena serves as mayor\",\n        \"confidence\": 0.8\n    }\n]\n&#96;&#96;&#96;\n\n**Entities:**\n",
+  "temperature": 0.7,
+  "stream": false
 }
 [test_extraction]:[_generate_impl]::[]:Received response from Ollama API:
 {
-  &quot;model&quot;: &quot;gemma3&quot;,
-  &quot;created_at&quot;: &quot;2025-06-08T18:42:58.7017358Z&quot;,
-  &quot;response&quot;: &quot;&#96;&#96;&#96;json\n[\n    {\n        \&quot;type\&quot;: \&quot;location\&quot;,\n        \&quot;name\&quot;: \&quot;Lost Valley\&quot;,\n
+  "model": "gemma3",
+  "created_at": "2025-06-08T18:42:58.7017358Z",
+  "response": "&#96;&#96;&#96;json\n[\n    {\n        \"type\": \"location\",\n        \"name\": \"Lost Valley\",\n
 
-   \&quot;description\&quot;: \&quot;A valley containing ancient ruins and magical anomalies, the site of recent explorer a
-ctivity.\&quot;,\n        \&quot;confidence\&quot;: 0.95\n    },\n    {\n        \&quot;type\&quot;: \&quot;location\&quot;,\n        \&quot;name\&quot;:
- \&quot;Ancient Ruins\&quot;,\n        \&quot;description\&quot;: \&quot;Ruins scattered throughout the Lost Valley, containing chamb
-ers and potentially sources of magical anomalies.\&quot;,\n        \&quot;confidence\&quot;: 0.9\n    },\n    {\n        \&quot;
-type\&quot;: \&quot;concept\&quot;,\n        \&quot;name\&quot;: \&quot;Magical Anomalies\&quot;,\n        \&quot;description\&quot;: \&quot;Mysterious occurr
+   \"description\": \"A valley containing ancient ruins and magical anomalies, the site of recent explorer a
+ctivity.\",\n        \"confidence\": 0.95\n    },\n    {\n        \"type\": \"location\",\n        \"name\":
+ \"Ancient Ruins\",\n        \"description\": \"Ruins scattered throughout the Lost Valley, containing chamb
+ers and potentially sources of magical anomalies.\",\n        \"confidence\": 0.9\n    },\n    {\n        \"
+type\": \"concept\",\n        \"name\": \"Magical Anomalies\",\n        \"description\": \"Mysterious occurr
 ences within the Lost Valley, characterized by strange energy emanations and potentially linked to the Ancie
-nt Ruins.\&quot;,\n        \&quot;confidence\&quot;: 0.85\n    },\n    {\n        \&quot;type\&quot;: \&quot;object\&quot;,\n        \&quot;name\&quot;:
-\&quot;Chambers\&quot;,\n        \&quot;description\&quot;: \&quot;New chambers discovered within the Ancient Ruins, containing energ
-y emanations and artifacts.\&quot;,\n        \&quot;confidence\&quot;: 0.8\n    },\n    {\n        \&quot;type\&quot;: \&quot;object\&quot;,\n
-       \&quot;name\&quot;: \&quot;Artifacts\&quot;,\n        \&quot;description\&quot;: \&quot;Valuable items found within the chambers, indica
-ting potential historical or magical significance.\&quot;,\n        \&quot;confidence\&quot;: 0.75\n    },\n    {\n
-\&quot;type\&quot;: \&quot;concept\&quot;,\n        \&quot;name\&quot;: \&quot;Energy Emanations\&quot;,\n        \&quot;description\&quot;: \&quot;Strange energy
-fields observed in the chambers, likely related to the magical anomalies.\&quot;,\n        \&quot;confidence\&quot;: 0.7\n
-   }\n]\n&#96;&#96;&#96;&quot;,
-  &quot;done&quot;: true,
-  &quot;done_reason&quot;: &quot;stop&quot;,
-  &quot;total_duration&quot;: 3230465400,
-  &quot;load_duration&quot;: 38650900,
-  &quot;prompt_eval_count&quot;: 539,
-  &quot;prompt_eval_duration&quot;: 71648300,
-  &quot;eval_count&quot;: 343,
-  &quot;eval_duration&quot;: 3120166200
+nt Ruins.\",\n        \"confidence\": 0.85\n    },\n    {\n        \"type\": \"object\",\n        \"name\":
+\"Chambers\",\n        \"description\": \"New chambers discovered within the Ancient Ruins, containing energ
+y emanations and artifacts.\",\n        \"confidence\": 0.8\n    },\n    {\n        \"type\": \"object\",\n
+       \"name\": \"Artifacts\",\n        \"description\": \"Valuable items found within the chambers, indica
+ting potential historical or magical significance.\",\n        \"confidence\": 0.75\n    },\n    {\n
+\"type\": \"concept\",\n        \"name\": \"Energy Emanations\",\n        \"description\": \"Strange energy
+fields observed in the chambers, likely related to the magical anomalies.\",\n        \"confidence\": 0.7\n
+   }\n]\n&#96;&#96;&#96;",
+  "done": true,
+  "done_reason": "stop",
+  "total_duration": 3230465400,
+  "load_duration": 38650900,
+  "prompt_eval_count": 539,
+  "prompt_eval_duration": 71648300,
+  "eval_count": 343,
+  "eval_duration": 3120166200
 }
 [test_extraction]:[generate]::[]:Generated response:
 &#96;&#96;&#96;json
 [
     {
-        &quot;type&quot;: &quot;location&quot;,
-        &quot;name&quot;: &quot;Lost Valley&quot;,
-        &quot;description&quot;: &quot;A valley containing ancient ruins and magical anomalies, the site of recent explorer
- activity.&quot;,
-        &quot;confidence&quot;: 0.95
+        "type": "location",
+        "name": "Lost Valley",
+        "description": "A valley containing ancient ruins and magical anomalies, the site of recent explorer
+ activity.",
+        "confidence": 0.95
     },
     {
-        &quot;type&quot;: &quot;location&quot;,
-        &quot;name&quot;: &quot;Ancient Ruins&quot;,
-        &quot;description&quot;: &quot;Ruins scattered throughout the Lost Valley, containing chambers and potentially sour
-ces of magical anomalies.&quot;,
-        &quot;confidence&quot;: 0.9
+        "type": "location",
+        "name": "Ancient Ruins",
+        "description": "Ruins scattered throughout the Lost Valley, containing chambers and potentially sour
+ces of magical anomalies.",
+        "confidence": 0.9
     },
     {
-        &quot;type&quot;: &quot;concept&quot;,
-        &quot;name&quot;: &quot;Magical Anomalies&quot;,
-        &quot;description&quot;: &quot;Mysterious occurrences within the Lost Valley, characterized by strange energy emana
-tions and potentially linked to the Ancient Ruins.&quot;,
-        &quot;confidence&quot;: 0.85
+        "type": "concept",
+        "name": "Magical Anomalies",
+        "description": "Mysterious occurrences within the Lost Valley, characterized by strange energy emana
+tions and potentially linked to the Ancient Ruins.",
+        "confidence": 0.85
     },
     {
-        &quot;type&quot;: &quot;object&quot;,
-        &quot;name&quot;: &quot;Chambers&quot;,
-        &quot;description&quot;: &quot;New chambers discovered within the Ancient Ruins, containing energy emanations and a
-rtifacts.&quot;,
-        &quot;confidence&quot;: 0.8
+        "type": "object",
+        "name": "Chambers",
+        "description": "New chambers discovered within the Ancient Ruins, containing energy emanations and a
+rtifacts.",
+        "confidence": 0.8
     },
     {
-        &quot;type&quot;: &quot;object&quot;,
-        &quot;name&quot;: &quot;Artifacts&quot;,
-        &quot;description&quot;: &quot;Valuable items found within the chambers, indicating potential historical or magical
- significance.&quot;,
-        &quot;confidence&quot;: 0.75
+        "type": "object",
+        "name": "Artifacts",
+        "description": "Valuable items found within the chambers, indicating potential historical or magical
+ significance.",
+        "confidence": 0.75
     },
     {
-        &quot;type&quot;: &quot;concept&quot;,
-        &quot;name&quot;: &quot;Energy Emanations&quot;,
-        &quot;description&quot;: &quot;Strange energy fields observed in the chambers, likely related to the magical anomal
-ies.&quot;,
-        &quot;confidence&quot;: 0.7
+        "type": "concept",
+        "name": "Energy Emanations",
+        "description": "Strange energy fields observed in the chambers, likely related to the magical anomal
+ies.",
+        "confidence": 0.7
     }
 ]
 &#96;&#96;&#96;
@@ -6208,14 +6208,14 @@ ies.&quot;,
 Lost Valley A valley containing ancient ruins and magical anomalies, the site of recent explorer activity.
 [test_extraction]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_extraction]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.173:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;Lost Valley A valley containing ancient ruins and magical anomalies, the site of recent explore
-r activity.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "Lost Valley A valley containing ancient ruins and magical anomalies, the site of recent explore
+r activity."
 }
 [test_extraction]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_extraction]:[generate_embedding]::[embedding]:Generating embedding for text:
@@ -6223,14 +6223,14 @@ Ancient Ruins Ruins scattered throughout the Lost Valley, containing chambers an
 ical anomalies.
 [test_extraction]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_extraction]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.173:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;Ancient Ruins Ruins scattered throughout the Lost Valley, containing chambers and potentially s
-ources of magical anomalies.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "Ancient Ruins Ruins scattered throughout the Lost Valley, containing chambers and potentially s
+ources of magical anomalies."
 }
 [test_extraction]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_extraction]:[generate_embedding]::[embedding]:Generating embedding for text:
@@ -6238,56 +6238,56 @@ Magical Anomalies Mysterious occurrences within the Lost Valley, characterized b
 and potentially linked to the Ancient Ruins.
 [test_extraction]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_extraction]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.173:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;Magical Anomalies Mysterious occurrences within the Lost Valley, characterized by strange energ
-y emanations and potentially linked to the Ancient Ruins.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "Magical Anomalies Mysterious occurrences within the Lost Valley, characterized by strange energ
+y emanations and potentially linked to the Ancient Ruins."
 }
 [test_extraction]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_extraction]:[generate_embedding]::[embedding]:Generating embedding for text:
 Chambers New chambers discovered within the Ancient Ruins, containing energy emanations and artifacts.
 [test_extraction]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_extraction]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.173:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;Chambers New chambers discovered within the Ancient Ruins, containing energy emanations and art
-ifacts.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "Chambers New chambers discovered within the Ancient Ruins, containing energy emanations and art
+ifacts."
 }
 [test_extraction]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_extraction]:[generate_embedding]::[embedding]:Generating embedding for text:
 Artifacts Valuable items found within the chambers, indicating potential historical or magical significance.
 [test_extraction]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_extraction]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.173:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;Artifacts Valuable items found within the chambers, indicating potential historical or magical 
-significance.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "Artifacts Valuable items found within the chambers, indicating potential historical or magical 
+significance."
 }
 [test_extraction]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_extraction]:[generate_embedding]::[embedding]:Generating embedding for text:
 Energy Emanations Strange energy fields observed in the chambers, likely related to the magical anomalies.
 [test_extraction]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_extraction]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.173:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;Energy Emanations Strange energy fields observed in the chambers, likely related to the magical
- anomalies.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "Energy Emanations Strange energy fields observed in the chambers, likely related to the magical
+ anomalies."
 }
 [test_extraction]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_extraction]:[generate]::[]:Generating response for prompt:
@@ -6337,30 +6337,30 @@ cient Ruins.
 ion that built them.
 
 **Instructions:** For each candidate entity, decide if it matches an existing entity above or if it should b
-e created as new. If it matches existing, use the existing entity&#39;s name exactly.
+e created as new. If it matches existing, use the existing entity's name exactly.
 
 ## Output Format
 
 Respond with a JSON array of entities. Each entity must have:
-- &quot;type&quot;: one of the defined entity types
-- &quot;name&quot;: clear, specific name for the entity
-- &quot;description&quot;: detailed description suitable for semantic matching and graph storage
-- &quot;confidence&quot;: your confidence in this entity being graph-worthy (0.0 to 1.0)
+- "type": one of the defined entity types
+- "name": clear, specific name for the entity
+- "description": detailed description suitable for semantic matching and graph storage
+- "confidence": your confidence in this entity being graph-worthy (0.0 to 1.0)
 
 **Example Response:**
 &#96;&#96;&#96;json
 [
     {
-        &quot;type&quot;: &quot;character&quot;,
-        &quot;name&quot;: &quot;Elena&quot;,
-        &quot;description&quot;: &quot;Mayor of Haven who is investigating strange occurrences in the valley&quot;,
-        &quot;confidence&quot;: 0.9
+        "type": "character",
+        "name": "Elena",
+        "description": "Mayor of Haven who is investigating strange occurrences in the valley",
+        "confidence": 0.9
     },
     {
-        &quot;type&quot;: &quot;location&quot;, 
-        &quot;name&quot;: &quot;Haven&quot;,
-        &quot;description&quot;: &quot;A settlement in the valley where Elena serves as mayor&quot;,
-        &quot;confidence&quot;: 0.8
+        "type": "location", 
+        "name": "Haven",
+        "description": "A settlement in the valley where Elena serves as mayor",
+        "confidence": 0.8
     }
 ]
 &#96;&#96;&#96;
@@ -6370,8 +6370,8 @@ Respond with a JSON array of entities. Each entity must have:
 [test_extraction]:[_generate_impl]::[]:Sending request to Ollama API:
 URL: http://192.168.1.173:11434/api/generate
 Data: {
-  &quot;model&quot;: &quot;gemma3&quot;,
-  &quot;prompt&quot;: &quot;You are an expert entity extraction system for knowledge graph construction. Your task is to an
+  "model": "gemma3",
+  "prompt": "You are an expert entity extraction system for knowledge graph construction. Your task is to an
 alyze conversation text and identify entities (characters, locations, objects, concepts, events, organizatio
 ns) that should be stored in a knowledge graph.\n\n## Instructions\n\nAnalyze the provided conversation entr
 y and digest to identify graph-worthy entities. Focus on specific, identifiable entities that would be valua
@@ -6395,93 +6395,93 @@ trange energy emanations, and valuable artifacts.\n- magical anomalies (concept)
 acting local wildlife, potentially linked to the Ancient Ruins.\n- artifacts (object): Valuable objects disc
 overed within the ancient ruins, likely remnants of the civilization that built them.\n\n**Instructions:** F
 or each candidate entity, decide if it matches an existing entity above or if it should be created as new. I
-f it matches existing, use the existing entity&#39;s name exactly.\n\n## Output Format\n\nRespond with a JSON ar
-ray of entities. Each entity must have:\n- \&quot;type\&quot;: one of the defined entity types\n- \&quot;name\&quot;: clear, spe
-cific name for the entity\n- \&quot;description\&quot;: detailed description suitable for semantic matching and graph
-storage\n- \&quot;confidence\&quot;: your confidence in this entity being graph-worthy (0.0 to 1.0)\n\n**Example Respo
-nse:**\n&#96;&#96;&#96;json\n[\n    {\n        \&quot;type\&quot;: \&quot;character\&quot;,\n        \&quot;name\&quot;: \&quot;Elena\&quot;,\n        \&quot;descrip
-tion\&quot;: \&quot;Mayor of Haven who is investigating strange occurrences in the valley\&quot;,\n        \&quot;confidence\&quot;:
-0.9\n    },\n    {\n        \&quot;type\&quot;: \&quot;location\&quot;, \n        \&quot;name\&quot;: \&quot;Haven\&quot;,\n        \&quot;description\&quot;:
- \&quot;A settlement in the valley where Elena serves as mayor\&quot;,\n        \&quot;confidence\&quot;: 0.8\n    }\n]\n&#96;&#96;&#96;\n\n
-**Entities:**\n&quot;,
-  &quot;temperature&quot;: 0.7,
-  &quot;stream&quot;: false
+f it matches existing, use the existing entity's name exactly.\n\n## Output Format\n\nRespond with a JSON ar
+ray of entities. Each entity must have:\n- \"type\": one of the defined entity types\n- \"name\": clear, spe
+cific name for the entity\n- \"description\": detailed description suitable for semantic matching and graph
+storage\n- \"confidence\": your confidence in this entity being graph-worthy (0.0 to 1.0)\n\n**Example Respo
+nse:**\n&#96;&#96;&#96;json\n[\n    {\n        \"type\": \"character\",\n        \"name\": \"Elena\",\n        \"descrip
+tion\": \"Mayor of Haven who is investigating strange occurrences in the valley\",\n        \"confidence\":
+0.9\n    },\n    {\n        \"type\": \"location\", \n        \"name\": \"Haven\",\n        \"description\":
+ \"A settlement in the valley where Elena serves as mayor\",\n        \"confidence\": 0.8\n    }\n]\n&#96;&#96;&#96;\n\n
+**Entities:**\n",
+  "temperature": 0.7,
+  "stream": false
 }
 [test_extraction]:[_generate_impl]::[]:Received response from Ollama API:
 {
-  &quot;model&quot;: &quot;gemma3&quot;,
-  &quot;created_at&quot;: &quot;2025-06-08T18:43:02.7358416Z&quot;,
-  &quot;response&quot;: &quot;&#96;&#96;&#96;json\n[\n    {\n        \&quot;type\&quot;: \&quot;location\&quot;,\n        \&quot;name\&quot;: \&quot;Lost Valley\&quot;,\n
+  "model": "gemma3",
+  "created_at": "2025-06-08T18:43:02.7358416Z",
+  "response": "&#96;&#96;&#96;json\n[\n    {\n        \"type\": \"location\",\n        \"name\": \"Lost Valley\",\n
 
-   \&quot;description\&quot;: \&quot;A geographically defined valley containing ancient ruins, magical anomalies, and newly
- discovered chambers. It is the primary setting for exploration and discovery.\&quot;,\n        \&quot;confidence\&quot;: 0
-.95\n    },\n    {\n        \&quot;type\&quot;: \&quot;location\&quot;,\n        \&quot;name\&quot;: \&quot;ancient ruins\&quot;,\n        \&quot;descrip
-tion\&quot;: \&quot;The remnants of an ancient civilization, located within the Lost Valley and containing newly disco
-vered chambers. They are a source of artifacts and magical anomalies.\&quot;,\n        \&quot;confidence\&quot;: 0.9\n    }
-,\n    {\n        \&quot;type\&quot;: \&quot;concept\&quot;,\n        \&quot;name\&quot;: \&quot;magical anomalies\&quot;,\n        \&quot;description\&quot;:
- \&quot;Mysterious and unexplained magical occurrences within the Lost Valley, potentially linked to the ancient
-ruins and influencing local wildlife.\&quot;,\n        \&quot;confidence\&quot;: 0.85\n    },\n    {\n        \&quot;type\&quot;: \&quot;o
-bject\&quot;,\n        \&quot;name\&quot;: \&quot;artifacts\&quot;,\n        \&quot;description\&quot;: \&quot;Valuable objects discovered within th
+   \"description\": \"A geographically defined valley containing ancient ruins, magical anomalies, and newly
+ discovered chambers. It is the primary setting for exploration and discovery.\",\n        \"confidence\": 0
+.95\n    },\n    {\n        \"type\": \"location\",\n        \"name\": \"ancient ruins\",\n        \"descrip
+tion\": \"The remnants of an ancient civilization, located within the Lost Valley and containing newly disco
+vered chambers. They are a source of artifacts and magical anomalies.\",\n        \"confidence\": 0.9\n    }
+,\n    {\n        \"type\": \"concept\",\n        \"name\": \"magical anomalies\",\n        \"description\":
+ \"Mysterious and unexplained magical occurrences within the Lost Valley, potentially linked to the ancient
+ruins and influencing local wildlife.\",\n        \"confidence\": 0.85\n    },\n    {\n        \"type\": \"o
+bject\",\n        \"name\": \"artifacts\",\n        \"description\": \"Valuable objects discovered within th
 e ancient ruins, representing remnants of the civilization that built them. Their exact nature and value are
- currently unknown.\&quot;,\n        \&quot;confidence\&quot;: 0.9\n    },\n    {\n        \&quot;type\&quot;: \&quot;location\&quot;,\n
- \&quot;name\&quot;: \&quot;chambers\&quot;,\n        \&quot;description\&quot;: \&quot;New rooms or spaces discovered within the ancient ruins
-, containing artifacts and associated energy emanations.\&quot;,\n        \&quot;confidence\&quot;: 0.7\n    },\n    {\n
-     \&quot;type\&quot;: \&quot;concept\&quot;,\n        \&quot;name\&quot;: \&quot;energy emanations\&quot;,\n        \&quot;description\&quot;: \&quot;Strange ra
+ currently unknown.\",\n        \"confidence\": 0.9\n    },\n    {\n        \"type\": \"location\",\n
+ \"name\": \"chambers\",\n        \"description\": \"New rooms or spaces discovered within the ancient ruins
+, containing artifacts and associated energy emanations.\",\n        \"confidence\": 0.7\n    },\n    {\n
+     \"type\": \"concept\",\n        \"name\": \"energy emanations\",\n        \"description\": \"Strange ra
 diating energies associated with the chambers and likely linked to the magical anomalies. Their source and p
-roperties require further investigation.\&quot;,\n        \&quot;confidence\&quot;: 0.65\n    }\n]\n&#96;&#96;&#96;&quot;,
-  &quot;done&quot;: true,
-  &quot;done_reason&quot;: &quot;stop&quot;,
-  &quot;total_duration&quot;: 3636123700,
-  &quot;load_duration&quot;: 38205700,
-  &quot;prompt_eval_count&quot;: 683,
-  &quot;prompt_eval_duration&quot;: 46056300,
-  &quot;eval_count&quot;: 385,
-  &quot;eval_duration&quot;: 3551363900
+roperties require further investigation.\",\n        \"confidence\": 0.65\n    }\n]\n&#96;&#96;&#96;",
+  "done": true,
+  "done_reason": "stop",
+  "total_duration": 3636123700,
+  "load_duration": 38205700,
+  "prompt_eval_count": 683,
+  "prompt_eval_duration": 46056300,
+  "eval_count": 385,
+  "eval_duration": 3551363900
 }
 [test_extraction]:[generate]::[]:Generated response:
 &#96;&#96;&#96;json
 [
     {
-        &quot;type&quot;: &quot;location&quot;,
-        &quot;name&quot;: &quot;Lost Valley&quot;,
-        &quot;description&quot;: &quot;A geographically defined valley containing ancient ruins, magical anomalies, and new
-ly discovered chambers. It is the primary setting for exploration and discovery.&quot;,
-        &quot;confidence&quot;: 0.95
+        "type": "location",
+        "name": "Lost Valley",
+        "description": "A geographically defined valley containing ancient ruins, magical anomalies, and new
+ly discovered chambers. It is the primary setting for exploration and discovery.",
+        "confidence": 0.95
     },
     {
-        &quot;type&quot;: &quot;location&quot;,
-        &quot;name&quot;: &quot;ancient ruins&quot;,
-        &quot;description&quot;: &quot;The remnants of an ancient civilization, located within the Lost Valley and containi
-ng newly discovered chambers. They are a source of artifacts and magical anomalies.&quot;,
-        &quot;confidence&quot;: 0.9
+        "type": "location",
+        "name": "ancient ruins",
+        "description": "The remnants of an ancient civilization, located within the Lost Valley and containi
+ng newly discovered chambers. They are a source of artifacts and magical anomalies.",
+        "confidence": 0.9
     },
     {
-        &quot;type&quot;: &quot;concept&quot;,
-        &quot;name&quot;: &quot;magical anomalies&quot;,
-        &quot;description&quot;: &quot;Mysterious and unexplained magical occurrences within the Lost Valley, potentially l
-inked to the ancient ruins and influencing local wildlife.&quot;,
-        &quot;confidence&quot;: 0.85
+        "type": "concept",
+        "name": "magical anomalies",
+        "description": "Mysterious and unexplained magical occurrences within the Lost Valley, potentially l
+inked to the ancient ruins and influencing local wildlife.",
+        "confidence": 0.85
     },
     {
-        &quot;type&quot;: &quot;object&quot;,
-        &quot;name&quot;: &quot;artifacts&quot;,
-        &quot;description&quot;: &quot;Valuable objects discovered within the ancient ruins, representing remnants of the c
-ivilization that built them. Their exact nature and value are currently unknown.&quot;,
-        &quot;confidence&quot;: 0.9
+        "type": "object",
+        "name": "artifacts",
+        "description": "Valuable objects discovered within the ancient ruins, representing remnants of the c
+ivilization that built them. Their exact nature and value are currently unknown.",
+        "confidence": 0.9
     },
     {
-        &quot;type&quot;: &quot;location&quot;,
-        &quot;name&quot;: &quot;chambers&quot;,
-        &quot;description&quot;: &quot;New rooms or spaces discovered within the ancient ruins, containing artifacts and as
-sociated energy emanations.&quot;,
-        &quot;confidence&quot;: 0.7
+        "type": "location",
+        "name": "chambers",
+        "description": "New rooms or spaces discovered within the ancient ruins, containing artifacts and as
+sociated energy emanations.",
+        "confidence": 0.7
     },
     {
-        &quot;type&quot;: &quot;concept&quot;,
-        &quot;name&quot;: &quot;energy emanations&quot;,
-        &quot;description&quot;: &quot;Strange radiating energies associated with the chambers and likely linked to the mag
-ical anomalies. Their source and properties require further investigation.&quot;,
-        &quot;confidence&quot;: 0.65
+        "type": "concept",
+        "name": "energy emanations",
+        "description": "Strange radiating energies associated with the chambers and likely linked to the mag
+ical anomalies. Their source and properties require further investigation.",
+        "confidence": 0.65
     }
 ]
 &#96;&#96;&#96;
@@ -6499,14 +6499,14 @@ New rooms or spaces discovered within the ancient ruins, containing artifacts an
 ns.
 [test_extraction]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_extraction]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.173:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;New rooms or spaces discovered within the ancient ruins, containing artifacts and associated en
-ergy emanations.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "New rooms or spaces discovered within the ancient ruins, containing artifacts and associated en
+ergy emanations."
 }
 [test_extraction]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_extraction]:[generate_embedding]::[embedding]:Generating embedding for text:
@@ -6514,14 +6514,14 @@ New rooms or spaces discovered within the ancient ruins, containing artifacts an
 ns.
 [test_extraction]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_extraction]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.173:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;New rooms or spaces discovered within the ancient ruins, containing artifacts and associated en
-ergy emanations.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "New rooms or spaces discovered within the ancient ruins, containing artifacts and associated en
+ergy emanations."
 }
 [test_extraction]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_extraction]:[generate_embedding]::[embedding]:Generating embedding for text:
@@ -6529,14 +6529,14 @@ Strange radiating energies associated with the chambers and likely linked to the
 urce and properties require further investigation.
 [test_extraction]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_extraction]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.173:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;Strange radiating energies associated with the chambers and likely linked to the magical anomal
-ies. Their source and properties require further investigation.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "Strange radiating energies associated with the chambers and likely linked to the magical anomal
+ies. Their source and properties require further investigation."
 }
 [test_extraction]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_extraction]:[generate_embedding]::[embedding]:Generating embedding for text:
@@ -6544,14 +6544,14 @@ Strange radiating energies associated with the chambers and likely linked to the
 urce and properties require further investigation.
 [test_extraction]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_extraction]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.173:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;Strange radiating energies associated with the chambers and likely linked to the magical anomal
-ies. Their source and properties require further investigation.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "Strange radiating energies associated with the chambers and likely linked to the magical anomal
+ies. Their source and properties require further investigation."
 }
 [test_extraction]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_extraction]:[generate]::[]:Generating response for prompt:
@@ -6611,28 +6611,28 @@ the magical anomalies. Their source and properties require further investigation
 ## Output Format
 
 Respond with a JSON array of relationships. Each relationship must have:
-- &quot;from_entity&quot;: name of the source entity (exactly as listed above)
-- &quot;to_entity&quot;: name of the target entity (exactly as listed above)  
-- &quot;relationship&quot;: type of relationship (from the defined types)
-- &quot;confidence&quot;: confidence score from 0.0 to 1.0
-- &quot;evidence&quot;: brief quote or description from text supporting this relationship
+- "from_entity": name of the source entity (exactly as listed above)
+- "to_entity": name of the target entity (exactly as listed above)  
+- "relationship": type of relationship (from the defined types)
+- "confidence": confidence score from 0.0 to 1.0
+- "evidence": brief quote or description from text supporting this relationship
 
 **Example Response:**
 &#96;&#96;&#96;json
 [
     {
-        &quot;from_entity&quot;: &quot;Elena&quot;,
-        &quot;to_entity&quot;: &quot;Haven&quot;,
-        &quot;relationship&quot;: &quot;located_in&quot;,
-        &quot;confidence&quot;: 0.9,
-        &quot;evidence&quot;: &quot;Elena serves as Mayor of Haven&quot;
+        "from_entity": "Elena",
+        "to_entity": "Haven",
+        "relationship": "located_in",
+        "confidence": 0.9,
+        "evidence": "Elena serves as Mayor of Haven"
     },
     {
-        &quot;from_entity&quot;: &quot;Elena&quot;, 
-        &quot;to_entity&quot;: &quot;investigation&quot;,
-        &quot;relationship&quot;: &quot;participates_in&quot;,
-        &quot;confidence&quot;: 0.8,
-        &quot;evidence&quot;: &quot;Elena is investigating strange occurrences&quot;
+        "from_entity": "Elena", 
+        "to_entity": "investigation",
+        "relationship": "participates_in",
+        "confidence": 0.8,
+        "evidence": "Elena is investigating strange occurrences"
     }
 ]
 &#96;&#96;&#96;
@@ -6642,8 +6642,8 @@ Respond with a JSON array of relationships. Each relationship must have:
 [test_extraction]:[_generate_impl]::[]:Sending request to Ollama API:
 URL: http://192.168.1.173:11434/api/generate
 Data: {
-  &quot;model&quot;: &quot;gemma3&quot;,
-  &quot;prompt&quot;: &quot;You are an expert relationship extraction system for knowledge graph construction. Your task is
+  "model": "gemma3",
+  "prompt": "You are an expert relationship extraction system for knowledge graph construction. Your task is
  to analyze conversation text and identify meaningful relationships between the entities that have been extr
 acted from this content.\n\n## Instructions\n\nAnalyze the provided conversation entry and digest to identif
 y relationships between the given entities. Focus on relationships that are explicitly stated or clearly imp
@@ -6673,80 +6673,80 @@ ruins, representing remnants of the civilization that built them. Their exact na
 cts and associated energy emanations.\n- energy emanations (concept): Strange radiating energies associated
 with the chambers and likely linked to the magical anomalies. Their source and properties require further in
 vestigation.\n\n## Output Format\n\nRespond with a JSON array of relationships. Each relationship must have:
-\n- \&quot;from_entity\&quot;: name of the source entity (exactly as listed above)\n- \&quot;to_entity\&quot;: name of the targe
-t entity (exactly as listed above)  \n- \&quot;relationship\&quot;: type of relationship (from the defined types)\n- \
-&quot;confidence\&quot;: confidence score from 0.0 to 1.0\n- \&quot;evidence\&quot;: brief quote or description from text suppor
-ting this relationship\n\n**Example Response:**\n&#96;&#96;&#96;json\n[\n    {\n        \&quot;from_entity\&quot;: \&quot;Elena\&quot;,\n
-     \&quot;to_entity\&quot;: \&quot;Haven\&quot;,\n        \&quot;relationship\&quot;: \&quot;located_in\&quot;,\n        \&quot;confidence\&quot;: 0.9,\n
-     \&quot;evidence\&quot;: \&quot;Elena serves as Mayor of Haven\&quot;\n    },\n    {\n        \&quot;from_entity\&quot;: \&quot;Elena\&quot;, \n
-        \&quot;to_entity\&quot;: \&quot;investigation\&quot;,\n        \&quot;relationship\&quot;: \&quot;participates_in\&quot;,\n        \&quot;confide
-nce\&quot;: 0.8,\n        \&quot;evidence\&quot;: \&quot;Elena is investigating strange occurrences\&quot;\n    }\n]\n&#96;&#96;&#96;\n\n**Relati
-onships:**\n&quot;,
-  &quot;temperature&quot;: 0.7,
-  &quot;stream&quot;: false
+\n- \"from_entity\": name of the source entity (exactly as listed above)\n- \"to_entity\": name of the targe
+t entity (exactly as listed above)  \n- \"relationship\": type of relationship (from the defined types)\n- \
+"confidence\": confidence score from 0.0 to 1.0\n- \"evidence\": brief quote or description from text suppor
+ting this relationship\n\n**Example Response:**\n&#96;&#96;&#96;json\n[\n    {\n        \"from_entity\": \"Elena\",\n
+     \"to_entity\": \"Haven\",\n        \"relationship\": \"located_in\",\n        \"confidence\": 0.9,\n
+     \"evidence\": \"Elena serves as Mayor of Haven\"\n    },\n    {\n        \"from_entity\": \"Elena\", \n
+        \"to_entity\": \"investigation\",\n        \"relationship\": \"participates_in\",\n        \"confide
+nce\": 0.8,\n        \"evidence\": \"Elena is investigating strange occurrences\"\n    }\n]\n&#96;&#96;&#96;\n\n**Relati
+onships:**\n",
+  "temperature": 0.7,
+  "stream": false
 }
 [test_extraction]:[_generate_impl]::[]:Received response from Ollama API:
 {
-  &quot;model&quot;: &quot;gemma3&quot;,
-  &quot;created_at&quot;: &quot;2025-06-08T18:43:06.0542543Z&quot;,
-  &quot;response&quot;: &quot;&#96;&#96;&#96;json\n[\n    {\n        \&quot;from_entity\&quot;: \&quot;Lost Valley\&quot;,\n        \&quot;to_entity\&quot;: \&quot;ancien
-t ruins\&quot;,\n        \&quot;relationship\&quot;: \&quot;located_in\&quot;,\n        \&quot;confidence\&quot;: 0.95,\n        \&quot;evidence\&quot;:
-\&quot;Scattered throughout the Lost Valley are ancient ruins\&quot;\n    },\n    {\n        \&quot;from_entity\&quot;: \&quot;ancien
-t ruins\&quot;,\n        \&quot;to_entity\&quot;: \&quot;magical anomalies\&quot;,\n        \&quot;relationship\&quot;: \&quot;located_in\&quot;,\n
-  \&quot;confidence\&quot;: 0.85,\n        \&quot;evidence\&quot;: \&quot;punctuated by mysterious magical anomalies\&quot;\n    },\n    {
-\n        \&quot;from_entity\&quot;: \&quot;Lost Valley\&quot;,\n        \&quot;to_entity\&quot;: \&quot;chambers\&quot;,\n        \&quot;relationship\&quot;:
- \&quot;located_in\&quot;,\n        \&quot;confidence\&quot;: 0.75,\n        \&quot;evidence\&quot;: \&quot;new chambers within them\&quot;\n    },\
-n    {\n        \&quot;from_entity\&quot;: \&quot;chambers\&quot;,\n        \&quot;to_entity\&quot;: \&quot;artifacts\&quot;,\n        \&quot;relationshi
-p\&quot;: \&quot;contains\&quot;,\n        \&quot;confidence\&quot;: 0.8,\n        \&quot;evidence\&quot;: \&quot;valuable artifacts have been found
-\&quot;\n    },\n    {\n        \&quot;from_entity\&quot;: \&quot;magical anomalies\&quot;,\n        \&quot;to_entity\&quot;: \&quot;energy emanatio
-ns\&quot;,\n        \&quot;relationship\&quot;: \&quot;associated_with\&quot;,\n        \&quot;confidence\&quot;: 0.7,\n        \&quot;evidence\&quot;: \
-&quot;strange energy emanations\&quot;\n    }\n]\n&#96;&#96;&#96;&quot;,
-  &quot;done&quot;: true,
-  &quot;done_reason&quot;: &quot;stop&quot;,
-  &quot;total_duration&quot;: 3049679400,
-  &quot;load_duration&quot;: 37963200,
-  &quot;prompt_eval_count&quot;: 813,
-  &quot;prompt_eval_duration&quot;: 94285000,
-  &quot;eval_count&quot;: 317,
-  &quot;eval_duration&quot;: 2916930700
+  "model": "gemma3",
+  "created_at": "2025-06-08T18:43:06.0542543Z",
+  "response": "&#96;&#96;&#96;json\n[\n    {\n        \"from_entity\": \"Lost Valley\",\n        \"to_entity\": \"ancien
+t ruins\",\n        \"relationship\": \"located_in\",\n        \"confidence\": 0.95,\n        \"evidence\":
+\"Scattered throughout the Lost Valley are ancient ruins\"\n    },\n    {\n        \"from_entity\": \"ancien
+t ruins\",\n        \"to_entity\": \"magical anomalies\",\n        \"relationship\": \"located_in\",\n
+  \"confidence\": 0.85,\n        \"evidence\": \"punctuated by mysterious magical anomalies\"\n    },\n    {
+\n        \"from_entity\": \"Lost Valley\",\n        \"to_entity\": \"chambers\",\n        \"relationship\":
+ \"located_in\",\n        \"confidence\": 0.75,\n        \"evidence\": \"new chambers within them\"\n    },\
+n    {\n        \"from_entity\": \"chambers\",\n        \"to_entity\": \"artifacts\",\n        \"relationshi
+p\": \"contains\",\n        \"confidence\": 0.8,\n        \"evidence\": \"valuable artifacts have been found
+\"\n    },\n    {\n        \"from_entity\": \"magical anomalies\",\n        \"to_entity\": \"energy emanatio
+ns\",\n        \"relationship\": \"associated_with\",\n        \"confidence\": 0.7,\n        \"evidence\": \
+"strange energy emanations\"\n    }\n]\n&#96;&#96;&#96;",
+  "done": true,
+  "done_reason": "stop",
+  "total_duration": 3049679400,
+  "load_duration": 37963200,
+  "prompt_eval_count": 813,
+  "prompt_eval_duration": 94285000,
+  "eval_count": 317,
+  "eval_duration": 2916930700
 }
 [test_extraction]:[generate]::[]:Generated response:
 &#96;&#96;&#96;json
 [
     {
-        &quot;from_entity&quot;: &quot;Lost Valley&quot;,
-        &quot;to_entity&quot;: &quot;ancient ruins&quot;,
-        &quot;relationship&quot;: &quot;located_in&quot;,
-        &quot;confidence&quot;: 0.95,
-        &quot;evidence&quot;: &quot;Scattered throughout the Lost Valley are ancient ruins&quot;
+        "from_entity": "Lost Valley",
+        "to_entity": "ancient ruins",
+        "relationship": "located_in",
+        "confidence": 0.95,
+        "evidence": "Scattered throughout the Lost Valley are ancient ruins"
     },
     {
-        &quot;from_entity&quot;: &quot;ancient ruins&quot;,
-        &quot;to_entity&quot;: &quot;magical anomalies&quot;,
-        &quot;relationship&quot;: &quot;located_in&quot;,
-        &quot;confidence&quot;: 0.85,
-        &quot;evidence&quot;: &quot;punctuated by mysterious magical anomalies&quot;
+        "from_entity": "ancient ruins",
+        "to_entity": "magical anomalies",
+        "relationship": "located_in",
+        "confidence": 0.85,
+        "evidence": "punctuated by mysterious magical anomalies"
     },
     {
-        &quot;from_entity&quot;: &quot;Lost Valley&quot;,
-        &quot;to_entity&quot;: &quot;chambers&quot;,
-        &quot;relationship&quot;: &quot;located_in&quot;,
-        &quot;confidence&quot;: 0.75,
-        &quot;evidence&quot;: &quot;new chambers within them&quot;
+        "from_entity": "Lost Valley",
+        "to_entity": "chambers",
+        "relationship": "located_in",
+        "confidence": 0.75,
+        "evidence": "new chambers within them"
     },
     {
-        &quot;from_entity&quot;: &quot;chambers&quot;,
-        &quot;to_entity&quot;: &quot;artifacts&quot;,
-        &quot;relationship&quot;: &quot;contains&quot;,
-        &quot;confidence&quot;: 0.8,
-        &quot;evidence&quot;: &quot;valuable artifacts have been found&quot;
+        "from_entity": "chambers",
+        "to_entity": "artifacts",
+        "relationship": "contains",
+        "confidence": 0.8,
+        "evidence": "valuable artifacts have been found"
     },
     {
-        &quot;from_entity&quot;: &quot;magical anomalies&quot;,
-        &quot;to_entity&quot;: &quot;energy emanations&quot;,
-        &quot;relationship&quot;: &quot;associated_with&quot;,
-        &quot;confidence&quot;: 0.7,
-        &quot;evidence&quot;: &quot;strange energy emanations&quot;
+        "from_entity": "magical anomalies",
+        "to_entity": "energy emanations",
+        "relationship": "associated_with",
+        "confidence": 0.7,
+        "evidence": "strange energy emanations"
     }
 ]
 &#96;&#96;&#96;
@@ -6755,13 +6755,13 @@ ns\&quot;,\n        \&quot;relationship\&quot;: \&quot;associated_with\&quot;,\n
 
 
 
-Could not find nodes for relationship {&#39;from_entity&#39;: &#39;Lost Valley&#39;, &#39;to_entity&#39;: &#39;ancient ruins&#39;, &#39;relation
-ship&#39;: &#39;located_in&#39;, &#39;confidence&#39;: 0.95, &#39;evidence&#39;: &#39;Scattered throughout the Lost Valley are ancient ruins
-&#39;}
-Could not find nodes for relationship {&#39;from_entity&#39;: &#39;ancient ruins&#39;, &#39;to_entity&#39;: &#39;magical anomalies&#39;, &#39;re
-lationship&#39;: &#39;located_in&#39;, &#39;confidence&#39;: 0.85, &#39;evidence&#39;: &#39;punctuated by mysterious magical anomalies&#39;}
-Could not find nodes for relationship {&#39;from_entity&#39;: &#39;Lost Valley&#39;, &#39;to_entity&#39;: &#39;chambers&#39;, &#39;relationship&#39;
-: &#39;located_in&#39;, &#39;confidence&#39;: 0.75, &#39;evidence&#39;: &#39;new chambers within them&#39;}
+Could not find nodes for relationship {'from_entity': 'Lost Valley', 'to_entity': 'ancient ruins', 'relation
+ship': 'located_in', 'confidence': 0.95, 'evidence': 'Scattered throughout the Lost Valley are ancient ruins
+'}
+Could not find nodes for relationship {'from_entity': 'ancient ruins', 'to_entity': 'magical anomalies', 're
+lationship': 'located_in', 'confidence': 0.85, 'evidence': 'punctuated by mysterious magical anomalies'}
+Could not find nodes for relationship {'from_entity': 'Lost Valley', 'to_entity': 'chambers', 'relationship'
+: 'located_in', 'confidence': 0.75, 'evidence': 'new chambers within them'}
 
 === ANALYZING RESULTS ===
 Baseline nodes: 18
@@ -6858,7 +6858,7 @@ I'll create a shell script that copies graph memory files from a specific conver
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: tests/graph_memory/copy_graph_to_viewer.sh</summary>
+<details><summary>Tool use: **edit_file** • Edit file: tests/graph_memory/copy_graph_to_viewer.sh</summary>
 
 I'm creating a new shell script that copies graph memory files from agent_memories to graph-viewer using a conversation GUID argument.
 
@@ -6876,31 +6876,31 @@ Lines added: 128, lines removed: 1
 + set -e  # Exit on any error
 + 
 + # Default values
-+ GUID=&quot;&quot;
-+ SCRIPT_DIR=&quot;$(cd &quot;$(dirname &quot;${BASH_SOURCE[0]}&quot;)&quot; &amp;&amp; pwd)&quot;
-+ WORKSPACE_ROOT=&quot;$(cd &quot;$SCRIPT_DIR/../..&quot; &amp;&amp; pwd)&quot;
++ GUID=""
++ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &amp;&amp; pwd)"
++ WORKSPACE_ROOT="$(cd "$SCRIPT_DIR/../.." &amp;&amp; pwd)"
 + 
 + # Function to show usage
 + show_usage() {
-+     echo &quot;Usage: $0 --guid &lt;conversation_guid&gt;&quot;
-+     echo &quot;&quot;
-+     echo &quot;Copy graph memory files from agent_memories to graph-viewer for visualization&quot;
-+     echo &quot;&quot;
-+     echo &quot;Arguments:&quot;
-+     echo &quot;  --guid &lt;guid&gt;    Required. The conversation GUID to copy graph data from&quot;
-+     echo &quot;&quot;
-+     echo &quot;Example:&quot;
-+     echo &quot;  $0 --guid abc123def-456-789-ghi&quot;
-+     echo &quot;&quot;
-+     echo &quot;Source: agent_memories/standard/&lt;guid&gt;/agent_memory_graph_data/*&quot;
-+     echo &quot;Destination: graph-viewer/public/sample-data/&quot;
++     echo "Usage: $0 --guid &lt;conversation_guid&gt;"
++     echo ""
++     echo "Copy graph memory files from agent_memories to graph-viewer for visualization"
++     echo ""
++     echo "Arguments:"
++     echo "  --guid &lt;guid&gt;    Required. The conversation GUID to copy graph data from"
++     echo ""
++     echo "Example:"
++     echo "  $0 --guid abc123def-456-789-ghi"
++     echo ""
++     echo "Source: agent_memories/standard/&lt;guid&gt;/agent_memory_graph_data/*"
++     echo "Destination: graph-viewer/public/sample-data/"
 + }
 + 
 + # Parse command line arguments
 + while [[ $# -gt 0 ]]; do
 +     case $1 in
 +         --guid)
-+             GUID=&quot;$2&quot;
++             GUID="$2"
 +             shift 2
 +             ;;
 +         -h|--help)
@@ -6908,7 +6908,7 @@ Lines added: 128, lines removed: 1
 +             exit 0
 +             ;;
 +         *)
-+             echo &quot;❌ Unknown argument: $1&quot;
++             echo "❌ Unknown argument: $1"
 +             show_usage
 +             exit 1
 +             ;;
@@ -6916,84 +6916,84 @@ Lines added: 128, lines removed: 1
 + done
 + 
 + # Validate required arguments
-+ if [[ -z &quot;$GUID&quot; ]]; then
-+     echo &quot;❌ Error: --guid argument is required&quot;
++ if [[ -z "$GUID" ]]; then
++     echo "❌ Error: --guid argument is required"
 +     show_usage
 +     exit 1
 + fi
 + 
 + # Define paths
-+ SOURCE_DIR=&quot;$WORKSPACE_ROOT/agent_memories/standard/$GUID/agent_memory_graph_data&quot;
-+ DEST_DIR=&quot;$WORKSPACE_ROOT/graph-viewer/public/sample-data&quot;
++ SOURCE_DIR="$WORKSPACE_ROOT/agent_memories/standard/$GUID/agent_memory_graph_data"
++ DEST_DIR="$WORKSPACE_ROOT/graph-viewer/public/sample-data"
 + 
-+ echo &quot;🔍 Copying graph memory files for conversation: $GUID&quot;
-+ echo &quot;📂 Source: $SOURCE_DIR&quot;
-+ echo &quot;📂 Destination: $DEST_DIR&quot;
-+ echo &quot;&quot;
++ echo "🔍 Copying graph memory files for conversation: $GUID"
++ echo "📂 Source: $SOURCE_DIR"
++ echo "📂 Destination: $DEST_DIR"
++ echo ""
 + 
 + # Check if source directory exists
-+ if [[ ! -d &quot;$SOURCE_DIR&quot; ]]; then
-+     echo &quot;❌ Error: Source directory not found: $SOURCE_DIR&quot;
-+     echo &quot;&quot;
-+     echo &quot;💡 Make sure:&quot;
-+     echo &quot;   1. The conversation GUID is correct&quot;
-+     echo &quot;   2. The agent memory has been created for this conversation&quot;
-+     echo &quot;   3. Graph data has been generated&quot;
++ if [[ ! -d "$SOURCE_DIR" ]]; then
++     echo "❌ Error: Source directory not found: $SOURCE_DIR"
++     echo ""
++     echo "💡 Make sure:"
++     echo "   1. The conversation GUID is correct"
++     echo "   2. The agent memory has been created for this conversation"
++     echo "   3. Graph data has been generated"
 +     exit 1
 + fi
 + 
-+ # Create destination directory if it doesn&#39;t exist
-+ if [[ ! -d &quot;$DEST_DIR&quot; ]]; then
-+     echo &quot;📁 Creating destination directory: $DEST_DIR&quot;
-+     mkdir -p &quot;$DEST_DIR&quot;
++ # Create destination directory if it doesn't exist
++ if [[ ! -d "$DEST_DIR" ]]; then
++     echo "📁 Creating destination directory: $DEST_DIR"
++     mkdir -p "$DEST_DIR"
 + fi
 + 
 + # Copy graph files
 + FILES_COPIED=0
 + TOTAL_SIZE=0
 + 
-+ for file in &quot;graph_nodes.json&quot; &quot;graph_edges.json&quot; &quot;graph_metadata.json&quot;; do
-+     SOURCE_FILE=&quot;$SOURCE_DIR/$file&quot;
-+     DEST_FILE=&quot;$DEST_DIR/$file&quot;
++ for file in "graph_nodes.json" "graph_edges.json" "graph_metadata.json"; do
++     SOURCE_FILE="$SOURCE_DIR/$file"
++     DEST_FILE="$DEST_DIR/$file"
 +     
-+     if [[ -f &quot;$SOURCE_FILE&quot; ]]; then
-+         cp &quot;$SOURCE_FILE&quot; &quot;$DEST_FILE&quot;
-+         FILE_SIZE=$(stat -f%z &quot;$SOURCE_FILE&quot; 2&gt;/dev/null || stat -c%s &quot;$SOURCE_FILE&quot; 2&gt;/dev/null || echo &quot;0&quot;)
++     if [[ -f "$SOURCE_FILE" ]]; then
++         cp "$SOURCE_FILE" "$DEST_FILE"
++         FILE_SIZE=$(stat -f%z "$SOURCE_FILE" 2&gt;/dev/null || stat -c%s "$SOURCE_FILE" 2&gt;/dev/null || echo "0")
 +         TOTAL_SIZE=$((TOTAL_SIZE + FILE_SIZE))
 +         FILES_COPIED=$((FILES_COPIED + 1))
-+         echo &quot;✅ Copied $file ($(numfmt --to=iec-i --suffix=B $FILE_SIZE))&quot;
++         echo "✅ Copied $file ($(numfmt --to=iec-i --suffix=B $FILE_SIZE))"
 +     else
-+         echo &quot;⚠️  File not found: $file&quot;
++         echo "⚠️  File not found: $file"
 +     fi
 + done
 + 
-+ echo &quot;&quot;
++ echo ""
 + 
 + if [[ $FILES_COPIED -gt 0 ]]; then
-+     echo &quot;🎉 Successfully copied $FILES_COPIED files ($(numfmt --to=iec-i --suffix=B $TOTAL_SIZE) total)&quot;
-+     echo &quot;📊 Graph data is now available in graph-viewer&quot;
-+     echo &quot;🌐 Open graph-viewer/public/d3-graph.html to visualize the knowledge graph&quot;
-+     echo &quot;&quot;
-+     echo &quot;📈 Quick stats:&quot;
++     echo "🎉 Successfully copied $FILES_COPIED files ($(numfmt --to=iec-i --suffix=B $TOTAL_SIZE) total)"
++     echo "📊 Graph data is now available in graph-viewer"
++     echo "🌐 Open graph-viewer/public/d3-graph.html to visualize the knowledge graph"
++     echo ""
++     echo "📈 Quick stats:"
 +     
 +     # Show quick stats from the files
-+     if [[ -f &quot;$DEST_DIR/graph_nodes.json&quot; ]]; then
-+         NODE_COUNT=$(jq &#39;length&#39; &quot;$DEST_DIR/graph_nodes.json&quot; 2&gt;/dev/null || echo &quot;unknown&quot;)
-+         echo &quot;   📍 Nodes: $NODE_COUNT&quot;
++     if [[ -f "$DEST_DIR/graph_nodes.json" ]]; then
++         NODE_COUNT=$(jq 'length' "$DEST_DIR/graph_nodes.json" 2&gt;/dev/null || echo "unknown")
++         echo "   📍 Nodes: $NODE_COUNT"
 +     fi
 +     
-+     if [[ -f &quot;$DEST_DIR/graph_edges.json&quot; ]]; then
-+         EDGE_COUNT=$(jq &#39;length&#39; &quot;$DEST_DIR/graph_edges.json&quot; 2&gt;/dev/null || echo &quot;unknown&quot;)
-+         echo &quot;   🔗 Edges: $EDGE_COUNT&quot;
++     if [[ -f "$DEST_DIR/graph_edges.json" ]]; then
++         EDGE_COUNT=$(jq 'length' "$DEST_DIR/graph_edges.json" 2&gt;/dev/null || echo "unknown")
++         echo "   🔗 Edges: $EDGE_COUNT"
 +     fi
 +     
-+     if [[ -f &quot;$DEST_DIR/graph_metadata.json&quot; ]]; then
-+         LAST_UPDATED=$(jq -r &#39;.last_updated // &quot;unknown&quot;&#39; &quot;$DEST_DIR/graph_metadata.json&quot; 2&gt;/dev/null || echo &quot;unknown&quot;)
-+         echo &quot;   🕒 Last updated: $LAST_UPDATED&quot;
++     if [[ -f "$DEST_DIR/graph_metadata.json" ]]; then
++         LAST_UPDATED=$(jq -r '.last_updated // "unknown"' "$DEST_DIR/graph_metadata.json" 2&gt;/dev/null || echo "unknown")
++         echo "   🕒 Last updated: $LAST_UPDATED"
 +     fi
 + else
-+     echo &quot;❌ No files were copied&quot;
-+     echo &quot;💡 Check that the conversation has generated graph memory data&quot;
++     echo "❌ No files were copied"
++     echo "💡 Check that the conversation has generated graph memory data"
 +     exit 1
 + fi 
 ```
@@ -7009,7 +7009,7 @@ Now let's make the script executable:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: chmod +x copy_graph_to_viewer.sh</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: chmod +x copy_graph_to_viewer.sh</summary>
 
 ```bash
 chmod +x copy_graph_to_viewer.sh
@@ -7029,7 +7029,7 @@ Let's test the script to make sure it works properly by running it with the help
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: ./copy_graph_to_viewer.sh --help</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: ./copy_graph_to_viewer.sh --help</summary>
 
 ```bash
 ./copy_graph_to_viewer.sh --help
@@ -7060,7 +7060,7 @@ Perfect! Let's also test the error handling by running it without arguments:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: ./copy_graph_to_viewer.sh</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: ./copy_graph_to_viewer.sh</summary>
 
 ```bash
 ./copy_graph_to_viewer.sh
@@ -7093,7 +7093,7 @@ Excellent! The script is working perfectly. Let's also check if there are any ex
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed directory agent_memories • **3** results</summary>
+            <summary>Tool use: **list_dir** • Listed directory agent_memories, 3 results</summary>
         
 | Name |
 |-------|
@@ -7108,7 +7108,7 @@ Excellent! The script is working perfectly. Let's also check if there are any ex
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed directory agent_memories/standard • **3** results</summary>
+            <summary>Tool use: **list_dir** • Listed directory agent_memories/standard, 3 results</summary>
         
 | Name |
 |-------|
@@ -7126,7 +7126,7 @@ Perfect! Let's test the script with one of the existing conversation GUIDs:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: ./copy_graph_to_viewer.sh --guid dnd5g8</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: ./copy_graph_to_viewer.sh --guid dnd5g8</summary>
 
 ```bash
 ./copy_graph_to_viewer.sh --guid dnd5g8
@@ -7167,7 +7167,7 @@ Great! The script works but there's a small issue - `numfmt` command is not avai
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: tests/graph_memory/copy_graph_to_viewer.sh</summary>
+<details><summary>Tool use: **search_replace** • Edit file: tests/graph_memory/copy_graph_to_viewer.sh</summary>
 
 **Chunk 1**
 Lines added: 14, lines removed: 1
@@ -7176,23 +7176,23 @@ Lines added: 14, lines removed: 1
 @@ -92,5 +92,18 @@
           TOTAL_SIZE=$((TOTAL_SIZE + FILE_SIZE))
           FILES_COPIED=$((FILES_COPIED + 1))
--         echo &quot;✅ Copied $file ($(numfmt --to=iec-i --suffix=B $FILE_SIZE))&quot;
+-         echo "✅ Copied $file ($(numfmt --to=iec-i --suffix=B $FILE_SIZE))"
 +         # Format file size in human readable format
 +         if command -v numfmt &gt;/dev/null 2&gt;&amp;1; then
-+             FORMATTED_SIZE=&quot;$(numfmt --to=iec-i --suffix=B $FILE_SIZE)&quot;
++             FORMATTED_SIZE="$(numfmt --to=iec-i --suffix=B $FILE_SIZE)"
 +         else
 +             # Fallback for macOS
 +             if [[ $FILE_SIZE -gt 1048576 ]]; then
-+                 FORMATTED_SIZE=&quot;$(echo &quot;scale=1; $FILE_SIZE/1048576&quot; | bc)MB&quot;
++                 FORMATTED_SIZE="$(echo "scale=1; $FILE_SIZE/1048576" | bc)MB"
 +             elif [[ $FILE_SIZE -gt 1024 ]]; then
-+                 FORMATTED_SIZE=&quot;$(echo &quot;scale=1; $FILE_SIZE/1024&quot; | bc)KB&quot;
++                 FORMATTED_SIZE="$(echo "scale=1; $FILE_SIZE/1024" | bc)KB"
 +             else
-+                 FORMATTED_SIZE=&quot;${FILE_SIZE}B&quot;
++                 FORMATTED_SIZE="${FILE_SIZE}B"
 +             fi
 +         fi
-+         echo &quot;✅ Copied $file ($FORMATTED_SIZE)&quot;
++         echo "✅ Copied $file ($FORMATTED_SIZE)"
       else
-          echo &quot;⚠️  File not found: $file&quot;
+          echo "⚠️  File not found: $file"
 ```
 
 </details>
@@ -7203,7 +7203,7 @@ Lines added: 14, lines removed: 1
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: tests/graph_memory/copy_graph_to_viewer.sh</summary>
+<details><summary>Tool use: **search_replace** • Edit file: tests/graph_memory/copy_graph_to_viewer.sh</summary>
 
 **Chunk 1**
 Lines added: 14, lines removed: 1
@@ -7212,23 +7212,23 @@ Lines added: 14, lines removed: 1
 @@ -114,5 +114,18 @@
   
   if [[ $FILES_COPIED -gt 0 ]]; then
--     echo &quot;🎉 Successfully copied $FILES_COPIED files ($(numfmt --to=iec-i --suffix=B $TOTAL_SIZE) total)&quot;
+-     echo "🎉 Successfully copied $FILES_COPIED files ($(numfmt --to=iec-i --suffix=B $TOTAL_SIZE) total)"
 +     # Format total size in human readable format
 +     if command -v numfmt &gt;/dev/null 2&gt;&amp;1; then
-+         FORMATTED_TOTAL=&quot;$(numfmt --to=iec-i --suffix=B $TOTAL_SIZE)&quot;
++         FORMATTED_TOTAL="$(numfmt --to=iec-i --suffix=B $TOTAL_SIZE)"
 +     else
 +         # Fallback for macOS
 +         if [[ $TOTAL_SIZE -gt 1048576 ]]; then
-+             FORMATTED_TOTAL=&quot;$(echo &quot;scale=1; $TOTAL_SIZE/1048576&quot; | bc)MB&quot;
++             FORMATTED_TOTAL="$(echo "scale=1; $TOTAL_SIZE/1048576" | bc)MB"
 +         elif [[ $TOTAL_SIZE -gt 1024 ]]; then
-+             FORMATTED_TOTAL=&quot;$(echo &quot;scale=1; $TOTAL_SIZE/1024&quot; | bc)KB&quot;
++             FORMATTED_TOTAL="$(echo "scale=1; $TOTAL_SIZE/1024" | bc)KB"
 +         else
-+             FORMATTED_TOTAL=&quot;${TOTAL_SIZE}B&quot;
++             FORMATTED_TOTAL="${TOTAL_SIZE}B"
 +         fi
 +     fi
-+     echo &quot;🎉 Successfully copied $FILES_COPIED files ($FORMATTED_TOTAL total)&quot;
-      echo &quot;📊 Graph data is now available in graph-viewer&quot;
-      echo &quot;🌐 Open graph-viewer/public/d3-graph.html to visualize the knowledge graph&quot;
++     echo "🎉 Successfully copied $FILES_COPIED files ($FORMATTED_TOTAL total)"
+      echo "📊 Graph data is now available in graph-viewer"
+      echo "🌐 Open graph-viewer/public/d3-graph.html to visualize the knowledge graph"
 ```
 
 </details>
@@ -7242,10 +7242,10 @@ Now let's test the fixed script:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: ./copy_graph_to_viewer.sh --guid dnd5g7</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: ./copy_graph_to_viewer.sh --guid dnd5g8</summary>
 
 ```bash
-./copy_graph_to_viewer.sh --guid dnd5g7
+./copy_graph_to_viewer.sh --guid dnd5g8
 ```
 
 ```
@@ -7279,7 +7279,7 @@ Perfect! The script is now working beautifully with proper file size formatting 
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: tests/graph_memory/README_COPY_SCRIPT.md</summary>
+<details><summary>Tool use: **edit_file** • Edit file: tests/graph_memory/README_COPY_SCRIPT.md</summary>
 
 I'm creating documentation for the new copy_graph_to_viewer.sh script.
 
@@ -7450,7 +7450,7 @@ I'll create the new `scripts` folder at the project root and copy both the scrip
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: cd ../../ && mkdir -p scripts</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: cd ../../ && mkdir -p scripts</summary>
 
 ```bash
 cd ../../ && mkdir -p scripts
@@ -7466,7 +7466,7 @@ cd ../../ && mkdir -p scripts
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: cp tests/graph_memory/copy_graph_to_viewer.sh scripts/ && cp tests/graph_memory/README_COPY_SCRIPT.md scripts/</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: cp tests/graph_memory/copy_graph_to_viewer.sh scripts/ && cp tests/graph_memory/README_COPY_SCRIPT.md scripts/</summary>
 
 ```bash
 cp tests/graph_memory/copy_graph_to_viewer.sh scripts/ && cp tests/graph_memory/README_COPY_SCRIPT.md scripts/
@@ -7487,7 +7487,7 @@ Let's verify the files were copied correctly:
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed directory scripts • **2** results</summary>
+            <summary>Tool use: **list_dir** • Listed directory scripts, 2 results</summary>
         
 | Name |
 |-------|
@@ -7504,7 +7504,7 @@ Perfect! Now let's test that the script still works from its new location:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: scripts/copy_graph_to_viewer.sh --help</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: scripts/copy_graph_to_viewer.sh --help</summary>
 
 ```bash
 scripts/copy_graph_to_viewer.sh --help
@@ -7535,10 +7535,10 @@ Great! Let's also test it with an actual GUID to make sure the path resolution s
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: scripts/copy_graph_to_viewer.sh --guid dnd5g6</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: scripts/copy_graph_to_viewer.sh --guid dnd5g8</summary>
 
 ```bash
-scripts/copy_graph_to_viewer.sh --guid dnd5g6
+scripts/copy_graph_to_viewer.sh --guid dnd5g8
 ```
 
 ```
@@ -7578,17 +7578,17 @@ I see the issue! The script is now in `/scripts/` so when it calculates `WORKSPA
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: scripts/copy_graph_to_viewer.sh</summary>
+<details><summary>Tool use: **search_replace** • Edit file: scripts/copy_graph_to_viewer.sh</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
 
 ```diff
 @@ -9,5 +9,5 @@
-  GUID=&quot;&quot;
-  SCRIPT_DIR=&quot;$(cd &quot;$(dirname &quot;${BASH_SOURCE[0]}&quot;)&quot; &amp;&amp; pwd)&quot;
-- WORKSPACE_ROOT=&quot;$(cd &quot;$SCRIPT_DIR/../..&quot; &amp;&amp; pwd)&quot;
-+ WORKSPACE_ROOT=&quot;$(cd &quot;$SCRIPT_DIR/..&quot; &amp;&amp; pwd)&quot;
+  GUID=""
+  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &amp;&amp; pwd)"
+- WORKSPACE_ROOT="$(cd "$SCRIPT_DIR/../.." &amp;&amp; pwd)"
++ WORKSPACE_ROOT="$(cd "$SCRIPT_DIR/.." &amp;&amp; pwd)"
   
   # Function to show usage
 ```
@@ -7604,7 +7604,7 @@ Now let's test the corrected script:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: scripts/copy_graph_to_viewer.sh --guid dnd5g8</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: scripts/copy_graph_to_viewer.sh --guid dnd5g8</summary>
 
 ```bash
 scripts/copy_graph_to_viewer.sh --guid dnd5g8
@@ -7641,7 +7641,7 @@ Perfect! Now let's update the README to reflect the new location and usage:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: scripts/README_COPY_SCRIPT.md</summary>
+<details><summary>Tool use: **search_replace** • Edit file: scripts/README_COPY_SCRIPT.md</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -7664,7 +7664,7 @@ Lines added: 1, lines removed: 1
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: scripts/README_COPY_SCRIPT.md</summary>
+<details><summary>Tool use: **search_replace** • Edit file: scripts/README_COPY_SCRIPT.md</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: 2
@@ -7695,7 +7695,7 @@ Let's also add a note about the new location at the top of the README:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: scripts/README_COPY_SCRIPT.md</summary>
+<details><summary>Tool use: **search_replace** • Edit file: scripts/README_COPY_SCRIPT.md</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: undefined
@@ -7722,7 +7722,7 @@ Perfect! Now let's create a quick summary README for the entire scripts director
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: scripts/README.md</summary>
+<details><summary>Tool use: **edit_file** • Edit file: scripts/README.md</summary>
 
 I'm creating a general README for the scripts directory that provides an overview of all scripts available.
 
@@ -7769,7 +7769,7 @@ Lines added: 40, lines removed: 1
 + 
 + 1. Make them executable: &#96;chmod +x script_name.sh&#96;
 + 2. Design them to work from the project root
-+ 3. Use robust path resolution: &#96;SCRIPT_DIR=&quot;$(cd &quot;$(dirname &quot;${BASH_SOURCE[0]}&quot;)&quot; &amp;&amp; pwd)&quot;&#96;
++ 3. Use robust path resolution: &#96;SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &amp;&amp; pwd)"&#96;
 + 4. Include comprehensive help text and error handling
 + 5. Add documentation to this README 
 ```
@@ -7786,7 +7786,7 @@ Let's verify the final structure of our new scripts directory:
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed directory scripts • **3** results</summary>
+            <summary>Tool use: **list_dir** • Listed directory scripts, 3 results</summary>
         
 | Name |
 |-------|
@@ -7804,7 +7804,7 @@ Perfect! Let's do one final test to make sure everything works correctly:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: scripts/copy_graph_to_viewer.sh --help</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: scripts/copy_graph_to_viewer.sh --help</summary>
 
 ```bash
 scripts/copy_graph_to_viewer.sh --help
@@ -7999,7 +7999,7 @@ Perfect! I found the import at line 52. Now I'll make the switch to use `AltGrap
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -8108,7 +8108,7 @@ Let me create a simple test file instead:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: tests/graph_memory/test_memory_manager_switch.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: tests/graph_memory/test_memory_manager_switch.py</summary>
 
 Creating a test to verify that MemoryManager is now using AltGraphManager.
 
@@ -8119,10 +8119,10 @@ Lines added: 51, lines removed: 1
 @@ -1,1 +1,51 @@
 - 
 + #!/usr/bin/env python3
-+ &quot;&quot;&quot;Test to verify that MemoryManager is using AltGraphManager.&quot;&quot;&quot;
++ """Test to verify that MemoryManager is using AltGraphManager."""
 + 
 + import sys
-+ sys.path.append(&#39;../..&#39;)
++ sys.path.append('../..')
 + 
 + import tempfile
 + import os
@@ -8130,23 +8130,23 @@ Lines added: 51, lines removed: 1
 + from src.memory.memory_manager import MemoryManager
 + 
 + class MockLLM:
-+     &quot;&quot;&quot;Mock LLM service for testing.&quot;&quot;&quot;
++     """Mock LLM service for testing."""
 +     def generate(self, prompt): 
-+         return &#39;mock response&#39;
++         return 'mock response'
 +     
 +     def generate_embedding(self, text): 
 +         return [0.1] * 128
 + 
 + def test_memory_manager_uses_alt_graph_manager():
-+     &quot;&quot;&quot;Test that MemoryManager uses AltGraphManager.&quot;&quot;&quot;
-+     print(&quot;Testing MemoryManager graph manager switch...&quot;)
++     """Test that MemoryManager uses AltGraphManager."""
++     print("Testing MemoryManager graph manager switch...")
 +     
 +     with tempfile.TemporaryDirectory() as temp_dir:
-+         memory_file = os.path.join(temp_dir, &#39;test_memory.json&#39;)
++         memory_file = os.path.join(temp_dir, 'test_memory.json')
 +         
 +         # Initialize MemoryManager
 +         memory_manager = MemoryManager(
-+             memory_guid=&#39;test-guid&#39;,
++             memory_guid='test-guid',
 +             memory_file=memory_file,
 +             llm_service=MockLLM(),
 +             enable_graph_memory=True
@@ -8154,19 +8154,19 @@ Lines added: 51, lines removed: 1
 +         
 +         if memory_manager.graph_manager:
 +             graph_class = memory_manager.graph_manager.__class__.__name__
-+             print(f&quot;Graph manager class: {graph_class}&quot;)
++             print(f"Graph manager class: {graph_class}")
 +             
-+             if graph_class == &#39;AltGraphManager&#39;:
-+                 print(&quot;✅ SUCCESS: MemoryManager is using AltGraphManager!&quot;)
++             if graph_class == 'AltGraphManager':
++                 print("✅ SUCCESS: MemoryManager is using AltGraphManager!")
 +                 return True
 +             else:
-+                 print(f&quot;❌ UNEXPECTED: MemoryManager is using {graph_class}&quot;)
++                 print(f"❌ UNEXPECTED: MemoryManager is using {graph_class}")
 +                 return False
 +         else:
-+             print(&quot;⚠️  Graph manager is None&quot;)
++             print("⚠️  Graph manager is None")
 +             return False
 + 
-+ if __name__ == &quot;__main__&quot;:
++ if __name__ == "__main__":
 +     success = test_memory_manager_uses_alt_graph_manager()
 +     exit(0 if success else 1) 
 ```
@@ -8178,15 +8178,15 @@ Lines added: 51, lines removed: 1
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: python test_memory_manager_switch.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python test_memory_manager_switch.py</summary>
 
 ```bash
-python test_memory_manager_switch.py
+OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python test_memory_manager_switch.py
 ```
 
 ```
-/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/bin/python: can&#39;t open file &#39;/Users/andrewrapo/
-github/cursor/cursor-hello-llm-agent/test_memory_manager_switch.py&#39;: [Errno 2] No such file or directory
+/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/bin/python: can't open file '/Users/andrewrapo/
+github/cursor/cursor-hello-llm-agent/test_memory_manager_switch.py': [Errno 2] No such file or directory
 
 ```
 </details>
@@ -8199,10 +8199,10 @@ Let me run the test from the correct directory:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: cd tests/graph_memory && python test_memory_manager_switch.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: cd tests/graph_memory && OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python test_memory_manager_switch.py</summary>
 
 ```bash
-cd tests/graph_memory && python test_memory_manager_switch.py
+cd tests/graph_memory && OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python test_memory_manager_switch.py
 ```
 
 ```
@@ -8318,7 +8318,7 @@ Let me create a comprehensive update section that covers all the important aspec
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: README-phase-5.md</summary>
+<details><summary>Tool use: **search_replace** • Edit file: README-phase-5.md</summary>
 
 **Chunk 1**
 Lines added: 124, lines removed: 1
@@ -8451,7 +8451,7 @@ Lines added: 124, lines removed: 1
 + 
 + The MemoryManager has been successfully switched to use the alternative system, providing enhanced graph memory capabilities automatically to all agent frameworks without requiring any code changes in existing applications.
 + 
-+ This represents a significant advancement in the graph memory system&#39;s sophistication, moving from algorithmic processing to AI-driven knowledge extraction with measurable improvements in accuracy and domain understanding.
++ This represents a significant advancement in the graph memory system's sophistication, moving from algorithmic processing to AI-driven knowledge extraction with measurable improvements in accuracy and domain understanding.
   
   
 ```

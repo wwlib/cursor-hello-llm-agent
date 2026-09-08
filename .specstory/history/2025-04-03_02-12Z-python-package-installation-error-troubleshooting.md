@@ -145,7 +145,7 @@ Let me check the project structure:
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed current directory • **14** results</summary>
+            <summary>Tool use: **list_dir** • Listed current directory, 14 results</summary>
         
 | Name |
 |-------|

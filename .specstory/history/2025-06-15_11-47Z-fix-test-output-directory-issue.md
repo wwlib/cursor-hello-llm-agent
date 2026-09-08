@@ -111,7 +111,7 @@ Let me fix this:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: tests/graph_memory/test_entity_resolver_real_llm.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: tests/graph_memory/test_entity_resolver_real_llm.py</summary>
 
 **Chunk 1**
 Lines added: 5, lines removed: 3
@@ -121,11 +121,11 @@ Lines added: 5, lines removed: 3
           import shutil
           
 -         # Create test output directory
--         test_output_dir = os.path.join(os.path.dirname(__file__), &quot;test_files&quot;, &quot;tmp&quot;, test_name)
+-         test_output_dir = os.path.join(os.path.dirname(__file__), "test_files", "tmp", test_name)
 -         os.makedirs(test_output_dir, exist_ok=True)
 +         # Create test output directory using project root (same pattern as temp_storage_path fixture)
 +         project_root = Path(__file__).parent.parent.parent  # Go up to project root
-+         test_output_dir = project_root / &quot;tests&quot; / &quot;test_files&quot; / &quot;tmp&quot; / test_name
++         test_output_dir = project_root / "tests" / "test_files" / "tmp" / test_name
 +         test_output_dir.mkdir(parents=True, exist_ok=True)
 +         test_output_dir = str(test_output_dir)
           
@@ -249,7 +249,7 @@ Let me fix the command format:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: cd /Users/andrewrapo/github/cursor/cursor-hello-llm-agent && python -c "import sys; import os; from pathlib import Path; __file__ = 'tests/graph_memory/test_entity_resolver_real_llm.py'; old_path = os.path.join(os.path.dirname(__file__), 'test_files', 'tmp', 'test_name'); print('Old path:', old_path); project_root = Path(__file__).parent.parent.parent; new_path = project_root / 'tests' / 'test_files' / 'tmp' / 'test_name'; print('New path:', str(new_path))"</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: cd /Users/andrewrapo/github/cursor/cursor-hello-llm-agent && python -c "import sys; import os; from pathlib import Path; __file__ = 'tests/graph_memory/test_entity_resolver_real_llm.py'; old_path = os.path.join(os.path.dirname(__file__), 'test_files', 'tmp', 'test_name'); print('Old path:', old_path); project_root = Path(__file__).parent.parent.parent; new_path = project_root / 'tests' / 'test_files' / 'tmp' / 'test_name'; print('New path:', str(new_path))"</summary>
 
 ```bash
 cd /Users/andrewrapo/github/cursor/cursor-hello-llm-agent && python -c "import sys; import os; from pathlib import Path; __file__ = 'tests/graph_memory/test_entity_resolver_real_llm.py'; old_path = os.path.join(os.path.dirname(__file__), 'test_files', 'tmp', 'test_name'); print('Old path:', old_path); project_root = Path(__file__).parent.parent.parent; new_path = project_root / 'tests' / 'test_files' / 'tmp' / 'test_name'; print('New path:', str(new_path))"
@@ -257,15 +257,15 @@ cd /Users/andrewrapo/github/cursor/cursor-hello-llm-agent && python -c "import s
 
 ```
 (.venv) (base) andrewrapo@Andrews-MacBook-Pro-16b cursor-hello-llm-agent % cd /Users/andrewrapo/github/curso
-r/cursor-hello-llm-agent &amp;&amp; python -c &quot;import sys; import os; from pathlib import Path; __file__ = &#39;tests/gr
-aph_memory/test_entity_resolver_real_llm.py&#39;; old_path = os.path.join(os.path.dirname(__file__), &#39;test_files
-&#39;, &#39;tmp&#39;, &#39;test_name&#39;); print(&#39;Old path:&#39;, old_path); project_root = Path(__file__).parent.parent.parent; ne
-w_path = project_root / &#39;tests&#39; / &#39;test_files&#39; / &#39;tmp&#39; / &#39;test_name&#39;; print(&#39;New path:&#39;, str(new_path))&quot;   c
-d /Users/andrewrapo/github/cursor/cursor-hello-llm-agent &amp;&amp; python -c &quot;import sys; import os; from pathlib i
-mport Path; __file__ = &#39;tests/graph_memory/test_entity_resolver_real_llm.py&#39;; old_path = os.path.join(os.pat
-h.dirname(__file__), &#39;test_files&#39;, &#39;tmp&#39;, &#39;test_name&#39;); print(&#39;Old path:&#39;, old_path); project_root = Path(__
-file__).parent.parent.parent; new_path = project_root / &#39;tests&#39; / &#39;test_files&#39; / &#39;tmp&#39; / &#39;test_name&#39;; print(
-&#39;New path:&#39;, str(new_path))&quot;
+r/cursor-hello-llm-agent &amp;&amp; python -c "import sys; import os; from pathlib import Path; __file__ = 'tests/gr
+aph_memory/test_entity_resolver_real_llm.py'; old_path = os.path.join(os.path.dirname(__file__), 'test_files
+', 'tmp', 'test_name'); print('Old path:', old_path); project_root = Path(__file__).parent.parent.parent; ne
+w_path = project_root / 'tests' / 'test_files' / 'tmp' / 'test_name'; print('New path:', str(new_path))"   c
+d /Users/andrewrapo/github/cursor/cursor-hello-llm-agent &amp;&amp; python -c "import sys; import os; from pathlib i
+mport Path; __file__ = 'tests/graph_memory/test_entity_resolver_real_llm.py'; old_path = os.path.join(os.pat
+h.dirname(__file__), 'test_files', 'tmp', 'test_name'); print('Old path:', old_path); project_root = Path(__
+file__).parent.parent.parent; new_path = project_root / 'tests' / 'test_files' / 'tmp' / 'test_name'; print(
+'New path:', str(new_path))"
 Old path: tests/graph_memory/test_files/tmp/test_name
 New path: tests/test_files/tmp/test_name
 (.venv) (base) andrewrapo@Andrews-MacBook-Pro-16b cursor-hello-llm-agent %
@@ -426,23 +426,23 @@ Looking at how the method is called, all callers already have access to `temp_st
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: tests/graph_memory/test_entity_resolver_real_llm.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: tests/graph_memory/test_entity_resolver_real_llm.py</summary>
 
 **Chunk 1**
 Lines added: 6, lines removed: 4
 
 ```diff
 @@ -693,11 +693,13 @@
-          print(f&quot;✓ Graph files successfully created and ready for graph viewer&quot;)
+          print(f"✓ Graph files successfully created and ready for graph viewer")
   
 -     def _copy_graph_files_for_viewer(self, source_path: str, test_name: str):
 +     def _copy_graph_files_for_viewer(self, source_path: str, test_name: str, temp_storage_path: str):
-          &quot;&quot;&quot;Copy generated graph files to a location for graph viewer.&quot;&quot;&quot;
+          """Copy generated graph files to a location for graph viewer."""
           import shutil
           
 -         # Create test output directory using project root (same pattern as temp_storage_path fixture)
 -         project_root = Path(__file__).parent.parent.parent  # Go up to project root
--         test_output_dir = project_root / &quot;tests&quot; / &quot;test_files&quot; / &quot;tmp&quot; / test_name
+-         test_output_dir = project_root / "tests" / "test_files" / "tmp" / test_name
 +         # Create test output directory using the temp_storage_path base
 +         # temp_storage_path is like: /path/to/project/tests/test_files/tmp/entity_resolver_test_uuid
 +         # We want: /path/to/project/tests/test_files/tmp/test_name
@@ -500,7 +500,7 @@ I see the issue. The current calls are passing `temp_storage_path` as the `sourc
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: tests/graph_memory/test_entity_resolver_real_llm.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: tests/graph_memory/test_entity_resolver_real_llm.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -509,8 +509,8 @@ Lines added: 1, lines removed: 1
 @@ -476,5 +476,5 @@
           
           # Copy generated graph files for graph viewer
--         self._copy_graph_files_for_viewer(temp_storage_path, &quot;sample_data_test&quot;)
-+         self._copy_graph_files_for_viewer(temp_storage_path, &quot;sample_data_test&quot;, temp_storage_path)
+-         self._copy_graph_files_for_viewer(temp_storage_path, "sample_data_test")
++         self._copy_graph_files_for_viewer(temp_storage_path, "sample_data_test", temp_storage_path)
       
       def test_rag_candidate_selection(self, entity_resolver, embeddings_manager):
 ```
@@ -523,7 +523,7 @@ Lines added: 1, lines removed: 1
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: tests/graph_memory/test_entity_resolver_real_llm.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: tests/graph_memory/test_entity_resolver_real_llm.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -532,8 +532,8 @@ Lines added: 1, lines removed: 1
 @@ -680,5 +680,5 @@
           
           # Copy files for graph viewer
--         self._copy_graph_files_for_viewer(temp_storage_path, &quot;full_workflow_test&quot;)
-+         self._copy_graph_files_for_viewer(temp_storage_path, &quot;full_workflow_test&quot;, temp_storage_path)
+-         self._copy_graph_files_for_viewer(temp_storage_path, "full_workflow_test")
++         self._copy_graph_files_for_viewer(temp_storage_path, "full_workflow_test", temp_storage_path)
           
           # Verify files were created
 ```
@@ -546,7 +546,7 @@ Lines added: 1, lines removed: 1
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: tests/graph_memory/test_entity_resolver_real_llm.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: tests/graph_memory/test_entity_resolver_real_llm.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -555,8 +555,8 @@ Lines added: 1, lines removed: 1
 @@ -874,5 +874,5 @@
           
           # Copy graph files to graph-viewer
--         self._copy_graph_files_for_viewer(temp_storage_path, &quot;full_pipeline_duplicate_test&quot;)
-+         self._copy_graph_files_for_viewer(temp_storage_path, &quot;full_pipeline_duplicate_test&quot;, temp_storage_path)
+-         self._copy_graph_files_for_viewer(temp_storage_path, "full_pipeline_duplicate_test")
++         self._copy_graph_files_for_viewer(temp_storage_path, "full_pipeline_duplicate_test", temp_storage_path)
           
           # Validation assertions
 ```
@@ -613,20 +613,20 @@ Perfect! You're absolutely right - this approach is much cleaner and eliminates 
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: python -c "from pathlib import Path; temp_storage_path = '/project/tests/test_files/tmp/entity_resolver_test_12345678'; temp_base = Path(temp_storage_path).parent; test_output_dir = temp_base / 'sample_data_test'; print('temp_storage_path:', temp_storage_path); print('temp_base:', temp_base); print('test_output_dir:', test_output_dir)"</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: python -c "from pathlib import Path; temp_storage_path = '/project/tests/test_files/tmp/entity_resolver_test_12345678'; temp_base = Path(temp_storage_path).parent; test_output_dir = temp_base / 'sample_data_test'; print('temp_storage_path:', temp_storage_path); print('temp_base:', temp_base); print('test_output_dir:', test_output_dir)"</summary>
 
 ```bash
 python -c "from pathlib import Path; temp_storage_path = '/project/tests/test_files/tmp/entity_resolver_test_12345678'; temp_base = Path(temp_storage_path).parent; test_output_dir = temp_base / 'sample_data_test'; print('temp_storage_path:', temp_storage_path); print('temp_base:', temp_base); print('test_output_dir:', test_output_dir)"
 ```
 
 ```
-(.venv) (base) andrewrapo@Andrews-MacBook-Pro-16b cursor-hello-llm-agent % python -c &quot;from pathlib import Pa
-th; temp_storage_path = &#39;/project/tests/test_files/tmp/entity_resolver_test_12345678&#39;; temp_base = Path(temp
-_storage_path).parent; test_output_dir = temp_base / &#39;sample_data_test&#39;; print(&#39;temp_storage_path:&#39;, temp_st
-orage_path); print(&#39;temp_base:&#39;, temp_base); print(&#39;test_output_dir:&#39;, testpython -c &quot;from pathlib import Pa
-th; temp_storage_path = &#39;/project/tests/test_files/tmp/entity_resolver_test_12345678&#39;; temp_base = Path(temp
-_storage_path).parent; test_output_dir = temp_base / &#39;sample_data_test&#39;; print(&#39;temp_storage_path:&#39;, temp_st
-orage_path); print(&#39;temp_base:&#39;, temp_base); print(&#39;test_output_dir:&#39;, test_output_dir)&quot;
+(.venv) (base) andrewrapo@Andrews-MacBook-Pro-16b cursor-hello-llm-agent % python -c "from pathlib import Pa
+th; temp_storage_path = '/project/tests/test_files/tmp/entity_resolver_test_12345678'; temp_base = Path(temp
+_storage_path).parent; test_output_dir = temp_base / 'sample_data_test'; print('temp_storage_path:', temp_st
+orage_path); print('temp_base:', temp_base); print('test_output_dir:', testpython -c "from pathlib import Pa
+th; temp_storage_path = '/project/tests/test_files/tmp/entity_resolver_test_12345678'; temp_base = Path(temp
+_storage_path).parent; test_output_dir = temp_base / 'sample_data_test'; print('temp_storage_path:', temp_st
+orage_path); print('temp_base:', temp_base); print('test_output_dir:', test_output_dir)"
 temp_storage_path: /project/tests/test_files/tmp/entity_resolver_test_12345678
 temp_base: /project/tests/test_files/tmp
 test_output_dir: /project/tests/test_files/tmp/sample_data_test
@@ -691,7 +691,7 @@ Let me run the test command they provided.</details></think>
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large pytest tests/graph_memory/test_entity_resolver_real_llm.py::TestEntityResolverRealLLM::test_full_pipeline_duplicate_detection -v -s</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large pytest tests/graph_memory/test_entity_resolver_real_llm.py::TestEntityResolverRealLLM::test_full_pipeline_duplicate_detection -v -s</summary>
 
 ```bash
 DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large pytest tests/graph_memory/test_entity_resolver_real_llm.py::TestEntityResolverRealLLM::test_full_pipeline_duplicate_detection -v -s
@@ -725,14 +725,14 @@ _detection Setting up Ollama service:
 ✅ Found system entry with 8 segments
 🏗️ GraphManager with EntityResolver initialized
 
-📍 Processing segment 1: &#39;The Lost Valley is a campaign setting defined by a...&#39;
+📍 Processing segment 1: 'The Lost Valley is a campaign setting defined by a...'
    📊 Extracted 4 entities
      • The Lost Valley (location): location_the_lost_valley_0af1c407
      • Ancient Ruins (location): location_ancient_ruins_f4ce34f8
      • Magical Anomalies (concept): concept_magical_anomalies_d7bcc6e9
      • Impassable Mountains (location): location_impassable_mountains_5e18c1f6
 
-📍 Processing segment 2: &#39;There are three main settlements: Haven, located a...&#39;
+📍 Processing segment 2: 'There are three main settlements: Haven, located a...'
    📊 Extracted 8 entities
      • The Lost Valley (location): location_the_lost_valley_0af1c407
      • The Lost Valley (location): location_the_lost_valley_0af1c407
@@ -743,13 +743,13 @@ _detection Setting up Ollama service:
      • Impassable Mountains (location): location_impassable_mountains_5e18c1f6
      • Magical Anomalies (concept): concept_magical_anomalies_d7bcc6e9
 
-📍 Processing segment 3: &#39;Key non-player characters include Elena, who serve...&#39;
+📍 Processing segment 3: 'Key non-player characters include Elena, who serve...'
    📊 Extracted 3 entities
      • Elena (character): character_elena_b4dfd0ac
      • The Lost Valley (location): location_the_lost_valley_0af1c407
      • The Lost Valley (location): location_the_lost_valley_0af1c407
 
-📍 Processing segment 4: &#39;Theron is a Master Scholar with expertise in ancie...&#39;
+📍 Processing segment 4: 'Theron is a Master Scholar with expertise in ancie...'
    📊 Extracted 6 entities
      • Elena (character): character_elena_b4dfd0ac
      • Ancient Ruins (location): location_ancient_ruins_f4ce34f8
@@ -758,7 +758,7 @@ _detection Setting up Ollama service:
      • Ancient Ruins (location): location_ancient_ruins_f4ce34f8
      • Magical Anomalies (concept): concept_magical_anomalies_d7bcc6e9
 
-📍 Processing segment 5: &#39;Finally, Sara is the Captain of Riverwatch, respon...&#39;
+📍 Processing segment 5: 'Finally, Sara is the Captain of Riverwatch, respon...'
    📊 Extracted 6 entities
      • Elena (character): character_elena_b4dfd0ac
      • The Lost Valley (location): location_the_lost_valley_0af1c407
@@ -767,13 +767,13 @@ _detection Setting up Ollama service:
      • The Lost Valley (location): location_the_lost_valley_0af1c407
      • Magical Anomalies (concept): concept_magical_anomalies_d7bcc6e9
 
-📍 Processing segment 6: &#39;Currently, trade routes between the settlements ha...&#39;
+📍 Processing segment 6: 'Currently, trade routes between the settlements ha...'
    📊 Extracted 3 entities
      • Ancient Ruins (location): location_ancient_ruins_f4ce34f8
      • Merchants (organization): organization_merchants_fdcc8e60
      • Ancient Ruins (location): location_ancient_ruins_f4ce34f8
 
-📍 Processing segment 7: &#39;Explorers have recently discovered new chambers wi...&#39;
+📍 Processing segment 7: 'Explorers have recently discovered new chambers wi...'
    📊 Extracted 6 entities
      • Ancient Ruins (location): location_ancient_ruins_f4ce34f8
      • Magical Anomalies (concept): concept_magical_anomalies_d7bcc6e9
@@ -782,7 +782,7 @@ _detection Setting up Ollama service:
      • Magical Anomalies (concept): concept_magical_anomalies_d7bcc6e9
      • Ancient Ruins (location): location_ancient_ruins_f4ce34f8
 
-📍 Processing segment 8: &#39;Furthermore, random magical effects are occurring,...&#39;
+📍 Processing segment 8: 'Furthermore, random magical effects are occurring,...'
    📊 Extracted 6 entities
      • Ancient Ruins (location): location_ancient_ruins_f4ce34f8
      • Ancient Ruins (location): location_ancient_ruins_f4ce34f8
@@ -906,7 +906,7 @@ I'll create comprehensive LLM-driven tests for the RelationshipExtractor, follow
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: tests/graph_memory/test_relationship_extractor_real_llm.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: tests/graph_memory/test_relationship_extractor_real_llm.py</summary>
 
 Create a new test file for RelationshipExtractor with real LLM integration tests, following the same patterns as test_entity_resolver_real_llm.py
 
@@ -922,7 +922,7 @@ I need to import the missing `datetime` module. Let me fix that:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: tests/graph_memory/test_relationship_extractor_real_llm.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: tests/graph_memory/test_relationship_extractor_real_llm.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: undefined
@@ -947,7 +947,7 @@ Now let's run a simple test to make sure everything is set up correctly:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large pytest tests/graph_memory/test_relationship_extractor_real_llm.py::TestRelationshipExtractorRealLLM::test_basic_relationship_extraction -v -s</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large pytest tests/graph_memory/test_relationship_extractor_real_llm.py::TestRelationshipExtractorRealLLM::test_basic_relationship_extraction -v -s</summary>
 
 ```bash
 DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large pytest tests/graph_memory/test_relationship_extractor_real_llm.py::TestRelationshipExtractorRealLLM::test_basic_relationship_extraction -v -s
@@ -1019,7 +1019,7 @@ Excellent! The basic test is working perfectly. Let's run the domain-specific te
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large pytest tests/graph_memory/test_relationship_extractor_real_llm.py::TestRelationshipExtractorRealLLM::test_domain_specific_relationships -v -s</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large pytest tests/graph_memory/test_relationship_extractor_real_llm.py::TestRelationshipExtractorRealLLM::test_domain_specific_relationships -v -s</summary>
 
 ```bash
 DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large pytest tests/graph_memory/test_relationship_extractor_real_llm.py::TestRelationshipExtractorRealLLM::test_domain_specific_relationships -v -s
@@ -1057,16 +1057,16 @@ Extracted 5 D&amp;D relationships:
     • Gandalf the Grey -&gt; Fellowship of the Ring
 
   USES relationships:
-    • Gandalf the Grey -&gt; Wizard&#39;s Staff
+    • Gandalf the Grey -&gt; Wizard's Staff
     • Gandalf the Grey -&gt; Fireball
 
   ENEMIES_WITH relationships:
     • Fellowship of the Ring -&gt; Sauron
     • Sauron -&gt; Fellowship of the Ring
 
-Relationship types found: [&#39;enemies_with&#39;, &#39;leads_to&#39;, &#39;uses&#39;]
-D&amp;D domain types available: [&#39;allies_with&#39;, &#39;created_by&#39;, &#39;enemies_with&#39;, &#39;leads_to&#39;, &#39;located_in&#39;, &#39;member_
-of&#39;, &#39;mentions&#39;, &#39;owns&#39;, &#39;participates_in&#39;, &#39;related_to&#39;, &#39;uses&#39;]
+Relationship types found: ['enemies_with', 'leads_to', 'uses']
+D&amp;D domain types available: ['allies_with', 'created_by', 'enemies_with', 'leads_to', 'located_in', 'member_
+of', 'mentions', 'owns', 'participates_in', 'related_to', 'uses']
   💾 Test results saved to: /Users/andrewrapo/github/cursor/cursor-hello-llm-agent/tests/test_files/tmp/rela
 tionship_extractor_test_272445b6/dnd_domain_test_results.json
 ✅ Domain-specific D&amp;D relationship extraction test passed!
@@ -1085,7 +1085,7 @@ Perfect! Now let's run all the tests to see the full functionality:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large pytest tests/graph_memory/test_relationship_extractor_real_llm.py -v -s</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large pytest tests/graph_memory/test_relationship_extractor_real_llm.py -v -s</summary>
 
 ```bash
 DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large pytest tests/graph_memory/test_relationship_extractor_real_llm.py -v -s
@@ -1155,16 +1155,16 @@ Extracted 5 D&amp;D relationships:
     • Gandalf the Grey -&gt; Fellowship of the Ring
 
   USES relationships:
-    • Gandalf the Grey -&gt; Wizard&#39;s Staff
+    • Gandalf the Grey -&gt; Wizard's Staff
     • Gandalf the Grey -&gt; Fireball
 
   ENEMIES_WITH relationships:
     • Fellowship of the Ring -&gt; Sauron
     • Gandalf the Grey -&gt; Sauron
 
-Relationship types found: [&#39;enemies_with&#39;, &#39;leads_to&#39;, &#39;uses&#39;]
-D&amp;D domain types available: [&#39;allies_with&#39;, &#39;created_by&#39;, &#39;enemies_with&#39;, &#39;leads_to&#39;, &#39;located_in&#39;, &#39;member_
-of&#39;, &#39;mentions&#39;, &#39;owns&#39;, &#39;participates_in&#39;, &#39;related_to&#39;, &#39;uses&#39;]
+Relationship types found: ['enemies_with', 'leads_to', 'uses']
+D&amp;D domain types available: ['allies_with', 'created_by', 'enemies_with', 'leads_to', 'located_in', 'member_
+of', 'mentions', 'owns', 'participates_in', 'related_to', 'uses']
   💾 Test results saved to: /Users/andrewrapo/github/cursor/cursor-hello-llm-agent/tests/test_files/tmp/rela
 tionship_extractor_test_11901a46/dnd_domain_test_results.json
 ✅ Domain-specific D&amp;D relationship extraction test passed!
@@ -1191,9 +1191,9 @@ Extracted 5 relationships from entity analysis:
   💾 Test results saved to: /Users/andrewrapo/github/cursor/cursor-hello-llm-agent/tests/test_files/tmp/rela
 tionship_extractor_test_11901a46/entity_only_test_results.json
 
-Relationship pairs found: [(&#39;Ironhold Castle&#39;, &#39;King Aldric&#39;), (&#39;King Aldric&#39;, &#39;Ironhold Castle&#39;), (&#39;King Al
-dric&#39;, &#39;Crown of Kings&#39;), (&#39;Royal Guard&#39;, &#39;Ironhold Castle&#39;), (&#39;King Aldric&#39;, &#39;Royal Guard&#39;)]
-Available entities: [&#39;Ironhold Castle&#39;, &#39;King Aldric&#39;, &#39;Crown of Kings&#39;, &#39;Royal Guard&#39;]
+Relationship pairs found: [('Ironhold Castle', 'King Aldric'), ('King Aldric', 'Ironhold Castle'), ('King Al
+dric', 'Crown of Kings'), ('Royal Guard', 'Ironhold Castle'), ('King Aldric', 'Royal Guard')]
+Available entities: ['Ironhold Castle', 'King Aldric', 'Crown of Kings', 'Royal Guard']
 ✅ Entity-only relationship extraction test passed!
 PASSED
 tests/graph_memory/test_relationship_extractor_real_llm.py::TestRelationshipExtractorRealLLM::test_relations
@@ -1300,7 +1300,7 @@ Excellent! All tests passed successfully. Let's check what files were generated 
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed directory tests/test_files/tmp • **7** results</summary>
+            <summary>Tool use: **list_dir** • Listed directory tests/test_files/tmp, 7 results</summary>
         
 | Name |
 |-------|
@@ -1319,7 +1319,7 @@ Excellent! All tests passed successfully. Let's check what files were generated 
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed directory tests/test_files/tmp/relationship_extractor_test_11901a46 • **5** results</summary>
+            <summary>Tool use: **list_dir** • Listed directory tests/test_files/tmp/relationship_extractor_test_11901a46, 5 results</summary>
         
 | Name |
 |-------|
@@ -1404,7 +1404,7 @@ Let me also check the logs to see what the LLM interactions look like:
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed directory logs/11901a46 • **1** results</summary>
+            <summary>Tool use: **list_dir** • Listed directory logs/11901a46, 1 result</summary>
         
 | Name |
 |-------|

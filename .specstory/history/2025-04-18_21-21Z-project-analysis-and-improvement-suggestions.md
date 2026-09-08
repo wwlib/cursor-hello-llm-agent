@@ -43,7 +43,7 @@ Let me get a better understanding of the project structure.
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed directory src • **6** results</summary>
+            <summary>Tool use: **list_dir** • Listed directory src, 6 results</summary>
         
 | Name |
 |-------|
@@ -61,7 +61,7 @@ Let me get a better understanding of the project structure.
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed directory src/memory • **9** results</summary>
+            <summary>Tool use: **list_dir** • Listed directory src/memory, 9 results</summary>
         
 | Name |
 |-------|
@@ -82,7 +82,7 @@ Let me get a better understanding of the project structure.
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed directory src/memory/templates • **8** results</summary>
+            <summary>Tool use: **list_dir** • Listed directory src/memory/templates, 8 results</summary>
         
 | Name |
 |-------|
@@ -157,20 +157,20 @@ Now I understand the current state of the project better. Based on the codebase 
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 3, lines removed: 1
 
 ```diff
 @@ -52,5 +52,7 @@
-      &quot;&quot;&quot;
+      """
   
--     def __init__(self, memory_file: str = &quot;memory.json&quot;, domain_config: Optional[Dict[str, Any]] = None, llm_service = None, memory_guid: str = None):
-+     def __init__(self, memory_file: str = &quot;memory.json&quot;, domain_config: Optional[Dict[str, Any]] = None, 
+-     def __init__(self, memory_file: str = "memory.json", domain_config: Optional[Dict[str, Any]] = None, llm_service = None, memory_guid: str = None):
++     def __init__(self, memory_file: str = "memory.json", domain_config: Optional[Dict[str, Any]] = None, 
 +                  llm_service = None, memory_guid: str = None, max_recent_conversations: int = 10, 
 +                  importance_threshold: int = 3):
-          &quot;&quot;&quot;Initialize the MemoryManager with an LLM service and domain configuration.
+          """Initialize the MemoryManager with an LLM service and domain configuration.
           
 ```
 
@@ -183,7 +183,7 @@ Lines added: 2, lines removed: undefined
                          a new one will be generated or loaded from existing file.
 +             max_recent_conversations: Maximum number of recent conversations to keep before compression
 +             importance_threshold: Threshold for segment importance (1-5 scale) to keep during compression
-          &quot;&quot;&quot;
+          """
           if llm_service is None:
 ```
 
@@ -202,7 +202,7 @@ Lines added: 4, lines removed: 5
 +         # Configurable memory parameters
 +         self.max_recent_conversations = max_recent_conversations
 +         self.importance_threshold = importance_threshold
-+         print(f&quot;Memory configuration: max_recent_conversations={max_recent_conversations}, importance_threshold={importance_threshold}&quot;)
++         print(f"Memory configuration: max_recent_conversations={max_recent_conversations}, importance_threshold={importance_threshold}")
   
       def _ensure_memory_guid(self):
 ```
@@ -252,14 +252,14 @@ Now, let's implement another item from the TODO list in the README: save the con
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/base_memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/base_memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
 
 ```diff
 @@ -16,5 +16,5 @@
-  &quot;&quot;&quot;
+  """
   
 - from typing import Any, Dict, Optional
 + from typing import Any, Dict, Optional, List
@@ -279,103 +279,103 @@ Lines added: 103, lines removed: undefined
 +         self._init_conversation_history_file()
 + 
 +     def _init_conversation_history_file(self):
-+         &quot;&quot;&quot;Initialize the conversation history file path based on memory file.&quot;&quot;&quot;
++         """Initialize the conversation history file path based on memory file."""
 +         # Determine memory directory and base filename
-+         memory_dir = os.path.dirname(self.memory_file) or &quot;.&quot;
-+         memory_base = os.path.basename(self.memory_file).split(&quot;.&quot;)[0]
++         memory_dir = os.path.dirname(self.memory_file) or "."
++         memory_base = os.path.basename(self.memory_file).split(".")[0]
 +         
 +         # Create conversation history file name based on memory file
-+         self.conversation_history_file = os.path.join(memory_dir, f&quot;{memory_base}_conversations.json&quot;)
-+         print(f&quot;Conversation history file: {self.conversation_history_file}&quot;)
++         self.conversation_history_file = os.path.join(memory_dir, f"{memory_base}_conversations.json")
++         print(f"Conversation history file: {self.conversation_history_file}")
 +         
-+         # Initialize conversation history structure if it doesn&#39;t exist
++         # Initialize conversation history structure if it doesn't exist
 +         if not os.path.exists(self.conversation_history_file):
 +             self._initialize_conversation_history()
 +         
 +     def _initialize_conversation_history(self):
-+         &quot;&quot;&quot;Create initial conversation history file structure.&quot;&quot;&quot;
++         """Create initial conversation history file structure."""
 +         # Create initial structure with memory GUID
 +         conversation_data = {
-+             &quot;memory_file_guid&quot;: self.memory_guid or &quot;&quot;,  # Will be updated when memory GUID is set
-+             &quot;entries&quot;: []
++             "memory_file_guid": self.memory_guid or "",  # Will be updated when memory GUID is set
++             "entries": []
 +         }
 +         
 +         # Save to file
 +         try:
-+             with open(self.conversation_history_file, &#39;w&#39;) as f:
++             with open(self.conversation_history_file, 'w') as f:
 +                 json.dump(conversation_data, f, indent=2)
-+             print(f&quot;Created new conversation history file: {self.conversation_history_file}&quot;)
++             print(f"Created new conversation history file: {self.conversation_history_file}")
 +         except Exception as e:
-+             print(f&quot;Error creating conversation history file: {str(e)}&quot;)
++             print(f"Error creating conversation history file: {str(e)}")
 +             
 +     def _load_conversation_history(self) -&gt; Dict[str, Any]:
-+         &quot;&quot;&quot;Load conversation history from file.&quot;&quot;&quot;
++         """Load conversation history from file."""
 +         try:
 +             if os.path.exists(self.conversation_history_file):
-+                 with open(self.conversation_history_file, &#39;r&#39;) as f:
++                 with open(self.conversation_history_file, 'r') as f:
 +                     conversation_data = json.load(f)
 +                     
 +                 # Ensure the memory GUID matches
-+                 if self.memory_guid and conversation_data.get(&quot;memory_file_guid&quot;) != self.memory_guid:
-+                     print(f&quot;Warning: Conversation history GUID mismatch. Expected {self.memory_guid}, found {conversation_data.get(&#39;memory_file_guid&#39;)}&quot;)
++                 if self.memory_guid and conversation_data.get("memory_file_guid") != self.memory_guid:
++                     print(f"Warning: Conversation history GUID mismatch. Expected {self.memory_guid}, found {conversation_data.get('memory_file_guid')}")
 +                     # Update the GUID to match current memory
-+                     conversation_data[&quot;memory_file_guid&quot;] = self.memory_guid
++                     conversation_data["memory_file_guid"] = self.memory_guid
 +                     self._save_conversation_history(conversation_data)
 +                     
 +                 return conversation_data
 +             else:
 +                 return self._initialize_conversation_history()
 +         except Exception as e:
-+             print(f&quot;Error loading conversation history: {str(e)}&quot;)
-+             return {&quot;memory_file_guid&quot;: self.memory_guid or &quot;&quot;, &quot;entries&quot;: []}
++             print(f"Error loading conversation history: {str(e)}")
++             return {"memory_file_guid": self.memory_guid or "", "entries": []}
 +             
 +     def _save_conversation_history(self, conversation_data: Dict[str, Any]) -&gt; bool:
-+         &quot;&quot;&quot;Save conversation history to file.&quot;&quot;&quot;
++         """Save conversation history to file."""
 +         try:
 +             # Ensure memory GUID is set in conversation history
 +             if self.memory_guid:
-+                 conversation_data[&quot;memory_file_guid&quot;] = self.memory_guid
++                 conversation_data["memory_file_guid"] = self.memory_guid
 +                 
-+             with open(self.conversation_history_file, &#39;w&#39;) as f:
++             with open(self.conversation_history_file, 'w') as f:
 +                 json.dump(conversation_data, f, indent=2)
 +             return True
 +         except Exception as e:
-+             print(f&quot;Error saving conversation history: {str(e)}&quot;)
++             print(f"Error saving conversation history: {str(e)}")
 +             return False
 +             
 +     def add_to_conversation_history(self, entry: Dict[str, Any]) -&gt; bool:
-+         &quot;&quot;&quot;Add an entry to the conversation history.
++         """Add an entry to the conversation history.
 +         
 +         Args:
 +             entry: Dictionary containing the conversation entry with role, content, etc.
 +             
 +         Returns:
 +             bool: True if entry was added successfully
-+         &quot;&quot;&quot;
++         """
 +         try:
 +             # Load current conversation history
 +             conversation_data = self._load_conversation_history()
 +             
 +             # Add entry to history
-+             conversation_data[&quot;entries&quot;].append(entry)
++             conversation_data["entries"].append(entry)
 +             
 +             # Save updated history
 +             return self._save_conversation_history(conversation_data)
 +         except Exception as e:
-+             print(f&quot;Error adding to conversation history: {str(e)}&quot;)
++             print(f"Error adding to conversation history: {str(e)}")
 +             return False
 +             
 +     def get_conversation_history(self) -&gt; List[Dict[str, Any]]:
-+         &quot;&quot;&quot;Get the full conversation history.
++         """Get the full conversation history.
 +         
 +         Returns:
 +             list: List of conversation entries
-+         &quot;&quot;&quot;
++         """
 +         try:
 +             conversation_data = self._load_conversation_history()
-+             return conversation_data.get(&quot;entries&quot;, [])
++             return conversation_data.get("entries", [])
 +         except Exception as e:
-+             print(f&quot;Error getting conversation history: {str(e)}&quot;)
++             print(f"Error getting conversation history: {str(e)}")
 +             return []
   
       def _load_memory(self) -&gt; None:
@@ -393,7 +393,7 @@ There seems to be an issue with the code edit. Let's fix the _load_memory method
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/base_memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/base_memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 15, lines removed: 6
@@ -403,28 +403,28 @@ Lines added: 15, lines removed: 6
               return []
   
 -     def _load_memory(self) -&gt; None:
--         &quot;&quot;&quot;Load memory from JSON file if it exists&quot;&quot;&quot;
+-         """Load memory from JSON file if it exists"""
 +     def _load_memory(self) -&gt; Dict[str, Any]:
-+         &quot;&quot;&quot;Load memory from file.&quot;&quot;&quot;
++         """Load memory from file."""
 +         try:
               if os.path.exists(self.memory_file):
--             print(f&quot;Loading existing memory from {self.memory_file}&quot;)
-                  with open(self.memory_file, &#39;r&#39;) as f:
+-             print(f"Loading existing memory from {self.memory_file}")
+                  with open(self.memory_file, 'r') as f:
 -                 self.memory = json.load(f)
--             print(&quot;Memory loaded successfully&quot;)
+-             print("Memory loaded successfully")
 +                     memory_data = json.load(f)
-+                     # If memory already has a GUID and we weren&#39;t given one
-+                     if &quot;guid&quot; in memory_data and not self.memory_guid:
-+                         self.memory_guid = memory_data[&quot;guid&quot;]
-+                         print(f&quot;Loaded memory with existing GUID: {self.memory_guid}&quot;)
-+                 print(&quot;Memory loaded from file&quot;)
++                     # If memory already has a GUID and we weren't given one
++                     if "guid" in memory_data and not self.memory_guid:
++                         self.memory_guid = memory_data["guid"]
++                         print(f"Loaded memory with existing GUID: {self.memory_guid}")
++                 print("Memory loaded from file")
 +                 return memory_data
               else:
--             print(&quot;No existing memory file found&quot;)
-+                 print(&quot;Memory file not found, will create new memory&quot;)
+-             print("No existing memory file found")
++                 print("Memory file not found, will create new memory")
 +                 return {}
 +         except Exception as e:
-+             print(f&quot;Error loading memory: {str(e)}&quot;)
++             print(f"Error loading memory: {str(e)}")
 +             return {}
   
       def save_memory(self, phase: str) -&gt; None:
@@ -442,7 +442,7 @@ Now let's update the save_memory method to match our signature:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/base_memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/base_memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 19, lines removed: 28
@@ -452,53 +452,53 @@ Lines added: 19, lines removed: 28
               return {}
   
 -     def save_memory(self, phase: str) -&gt; None:
--         &quot;&quot;&quot;Save current memory state to JSON file and create a backup.
--         Backups are created with incrementing numbers (e.g. memory_bak_1.json).&quot;&quot;&quot;
--         print(f&quot;\nSaving memory during {phase} phase to {self.memory_file}&quot;)
+-         """Save current memory state to JSON file and create a backup.
+-         Backups are created with incrementing numbers (e.g. memory_bak_1.json)."""
+-         print(f"\nSaving memory during {phase} phase to {self.memory_file}")
 -         
 -         try:
 -             # Create backup with incrementing number
 -             base_path = os.path.splitext(self.memory_file)[0]
 -             backup_num = 1
--             while os.path.exists(f&quot;{base_path}_bak_{backup_num}.json&quot;):
+-             while os.path.exists(f"{base_path}_bak_{backup_num}.json"):
 -                 backup_num += 1
--             backup_file = f&quot;{base_path}_bak_{backup_num}.json&quot;
+-             backup_file = f"{base_path}_bak_{backup_num}.json"
 -             
 -             # Save current memory to both files
--             self.memory[&quot;saved_during_phase&quot;] = phase
+-             self.memory["saved_during_phase"] = phase
 -             for file_path in [self.memory_file, backup_file]:
--                 with open(file_path, &#39;w&#39;) as f:
-+     def save_memory(self, operation_name: str = &quot;unknown&quot;) -&gt; bool:
-+         &quot;&quot;&quot;Save memory to file.&quot;&quot;&quot;
+-                 with open(file_path, 'w') as f:
++     def save_memory(self, operation_name: str = "unknown") -&gt; bool:
++         """Save memory to file."""
 +         try:
 +             # Backup existing file if it exists
 +             if os.path.exists(self.memory_file):
-+                 timestamp = datetime.now().strftime(&quot;%Y%m%d_%H%M%S&quot;)
-+                 backup_file = f&quot;{os.path.splitext(self.memory_file)[0]}_bak_{timestamp}{os.path.splitext(self.memory_file)[1]}&quot;
++                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
++                 backup_file = f"{os.path.splitext(self.memory_file)[0]}_bak_{timestamp}{os.path.splitext(self.memory_file)[1]}"
 +                 os.rename(self.memory_file, backup_file)
-+                 print(f&quot;Backup created: {backup_file}&quot;)
++                 print(f"Backup created: {backup_file}")
 +             
 +             # Ensure memory has current GUID
 +             if self.memory_guid and self.memory:
-+                 self.memory[&quot;guid&quot;] = self.memory_guid
++                 self.memory["guid"] = self.memory_guid
 +             
 +             # Write updated memory to file
-+             with open(self.memory_file, &#39;w&#39;) as f:
++             with open(self.memory_file, 'w') as f:
                   json.dump(self.memory, f, indent=2)
 -             
--             print(f&quot;Memory saved successfully with backup: {backup_file}&quot;)
+-             print(f"Memory saved successfully with backup: {backup_file}")
 -             
-+             print(f&quot;Memory saved after &#39;{operation_name}&#39; operation&quot;)
++             print(f"Memory saved after '{operation_name}' operation")
 +             return True
           except Exception as e:
-              print(f&quot;Error saving memory: {str(e)}&quot;)
+              print(f"Error saving memory: {str(e)}")
 -             # Try to at least save the main file
 -             try:
--                 with open(self.memory_file, &#39;w&#39;) as f:
+-                 with open(self.memory_file, 'w') as f:
 -                     json.dump(self.memory, f, indent=2)
--                 print(&quot;Memory saved to main file despite backup error&quot;)
+-                 print("Memory saved to main file despite backup error")
 -             except Exception as e2:
--                 print(f&quot;Critical error: Failed to save memory: {str(e2)}&quot;)
+-                 print(f"Critical error: Failed to save memory: {str(e2)}")
 -                 raise
 +             return False
   
@@ -517,7 +517,7 @@ Now let's update the MemoryManager's query_memory method to use our new separate
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 2
@@ -528,9 +528,9 @@ Lines added: 1, lines removed: 2
   
 -     def query_memory(self, query_context: Dict[str, Any]) -&gt; dict:
 +     def query_memory(self, query_context: Dict[str, Any]) -&gt; str:
-          &quot;&quot;&quot;Query memory with the given context.&quot;&quot;&quot;
+          """Query memory with the given context."""
           try:
-              print(&quot;\nQuerying memory...&quot;)
+              print("\nQuerying memory...")
 -             print(query_context)
               
               # Add user message to history
@@ -541,13 +541,13 @@ Lines added: 2, lines removed: 1
 
 ```diff
 @@ -282,5 +281,6 @@
-                  user_entry[&quot;digest&quot;] = user_digest
+                  user_entry["digest"] = user_digest
                   
 -                 # Add to conversation history
 +                 # Add to both conversation history file and memory
 +                 self.add_to_conversation_history(user_entry)
-                  self.memory[&quot;conversation_history&quot;].append(user_entry)
-                  print(f&quot;Added user message to history with digest: {user_message}&quot;)
+                  self.memory["conversation_history"].append(user_entry)
+                  print(f"Added user message to history with digest: {user_message}")
 ```
 
 **Chunk 3**
@@ -555,7 +555,7 @@ Lines added: undefined, lines removed: 3
 
 ```diff
 @@ -306,7 +306,4 @@
-              print(&quot;Generating response using LLM...&quot;)
+              print("Generating response using LLM...")
               llm_response = self.llm.generate(prompt)
 -             
 -            
@@ -569,17 +569,17 @@ Lines added: 3, lines removed: 2
 
 ```diff
 @@ -323,9 +320,10 @@
-              assistant_entry[&quot;digest&quot;] = assistant_digest
+              assistant_entry["digest"] = assistant_digest
               
 -             # Add to conversation history
 +             # Add to both conversation history file and memory
 +             self.add_to_conversation_history(assistant_entry)
-              self.memory[&quot;conversation_history&quot;].append(assistant_entry)
-              print(&quot;Added assistant response to history with digest&quot;)
+              self.memory["conversation_history"].append(assistant_entry)
+              print("Added assistant response to history with digest")
   
 -             # Save to persist conversation history
 +             # Save to persist memory updates
-              self.save_memory(&quot;query_memory&quot;)
+              self.save_memory("query_memory")
               
 ```
 
@@ -595,7 +595,7 @@ Now let's update the _compress_conversation_history method to leave a reference 
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 8, lines removed: undefined
@@ -608,12 +608,12 @@ Lines added: 8, lines removed: undefined
 +             
               for entry in entries_to_compress:
 +                 # Store GUID of compressed entry for reference
-+                 entry_guid = entry.get(&quot;guid&quot;)
++                 entry_guid = entry.get("guid")
 +                 if entry_guid:
 +                     compressed_guids.append(entry_guid)
 +                     
 +                 # Process digest if available
-                  if &quot;digest&quot; in entry and &quot;rated_segments&quot; in entry[&quot;digest&quot;]:
+                  if "digest" in entry and "rated_segments" in entry["digest"]:
                       # Filter segments by importance
 ```
 
@@ -622,11 +622,11 @@ Lines added: 2, lines removed: 1
 
 ```diff
 @@ -450,5 +458,6 @@
-                                  &quot;topics&quot;: segment.get(&quot;topics&quot;, []),
-                                  &quot;role&quot;: entry[&quot;role&quot;],
--                                 &quot;timestamp&quot;: entry[&quot;timestamp&quot;]
-+                                 &quot;timestamp&quot;: entry[&quot;timestamp&quot;],
-+                                 &quot;source_guid&quot;: entry_guid  # Link back to original entry
+                                  "topics": segment.get("topics", []),
+                                  "role": entry["role"],
+-                                 "timestamp": entry["timestamp"]
++                                 "timestamp": entry["timestamp"],
++                                 "source_guid": entry_guid  # Link back to original entry
                               })
               
 ```
@@ -640,20 +640,20 @@ Lines added: 13, lines removed: 1
               
 -             # Keep only the most recent conversations
 +             # Keep only the most recent conversations in memory
-              self.memory[&quot;conversation_history&quot;] = self.memory[&quot;conversation_history&quot;][-keep_recent:]
+              self.memory["conversation_history"] = self.memory["conversation_history"][-keep_recent:]
 +             
 +             # Add a record of compressed entries
-+             if &quot;compressed_entries&quot; not in self.memory:
-+                 self.memory[&quot;compressed_entries&quot;] = []
++             if "compressed_entries" not in self.memory:
++                 self.memory["compressed_entries"] = []
 +             
 +             # Record this compression operation
-+             self.memory[&quot;compressed_entries&quot;].append({
-+                 &quot;timestamp&quot;: datetime.now().isoformat(),
-+                 &quot;entry_guids&quot;: compressed_guids,
-+                 &quot;count&quot;: len(compressed_guids)
++             self.memory["compressed_entries"].append({
++                 "timestamp": datetime.now().isoformat(),
++                 "entry_guids": compressed_guids,
++                 "count": len(compressed_guids)
 +             })
 +             
-              print(f&quot;Compressed memory to keep {keep_recent} recent messages&quot;)
+              print(f"Compressed memory to keep {keep_recent} recent messages")
               
 ```
 
@@ -669,7 +669,7 @@ Now let's make one final update to update the compression template to handle the
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/templates/compress_memory.prompt</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/templates/compress_memory.prompt</summary>
 
 **Chunk 1**
 Lines added: 6, lines removed: 4
@@ -683,19 +683,19 @@ Lines added: 6, lines removed: 4
   
   For example:
   {{
-    &quot;characters&quot;: [
--     {{&quot;text&quot;: &quot;Gandalf is a powerful wizard&quot;, &quot;attribution&quot;: &quot;user&quot;, &quot;timestamp&quot;: &quot;2023-05-01T10:30:00&quot;}},
--     {{&quot;text&quot;: &quot;Frodo is the ring-bearer&quot;, &quot;attribution&quot;: &quot;assistant&quot;, &quot;timestamp&quot;: &quot;2023-05-01T10:32:00&quot;}}
-+     {{&quot;text&quot;: &quot;Gandalf is a powerful wizard&quot;, &quot;attribution&quot;: &quot;user&quot;, &quot;timestamp&quot;: &quot;2023-05-01T10:30:00&quot;, &quot;source_guid&quot;: &quot;abc-123-def-456&quot;}},
-+     {{&quot;text&quot;: &quot;Frodo is the ring-bearer&quot;, &quot;attribution&quot;: &quot;assistant&quot;, &quot;timestamp&quot;: &quot;2023-05-01T10:32:00&quot;, &quot;source_guid&quot;: &quot;def-456-ghi-789&quot;}}
+    "characters": [
+-     {{"text": "Gandalf is a powerful wizard", "attribution": "user", "timestamp": "2023-05-01T10:30:00"}},
+-     {{"text": "Frodo is the ring-bearer", "attribution": "assistant", "timestamp": "2023-05-01T10:32:00"}}
++     {{"text": "Gandalf is a powerful wizard", "attribution": "user", "timestamp": "2023-05-01T10:30:00", "source_guid": "abc-123-def-456"}},
++     {{"text": "Frodo is the ring-bearer", "attribution": "assistant", "timestamp": "2023-05-01T10:32:00", "source_guid": "def-456-ghi-789"}}
     ],
-    &quot;plot_points&quot;: [
--     {{&quot;text&quot;: &quot;The fellowship was formed in Rivendell&quot;, &quot;attribution&quot;: &quot;user&quot;, &quot;timestamp&quot;: &quot;2023-05-01T10:35:00&quot;}}
-+     {{&quot;text&quot;: &quot;The fellowship was formed in Rivendell&quot;, &quot;attribution&quot;: &quot;user&quot;, &quot;timestamp&quot;: &quot;2023-05-01T10:35:00&quot;, &quot;source_guid&quot;: &quot;ghi-789-jkl-012&quot;}}
+    "plot_points": [
+-     {{"text": "The fellowship was formed in Rivendell", "attribution": "user", "timestamp": "2023-05-01T10:35:00"}}
++     {{"text": "The fellowship was formed in Rivendell", "attribution": "user", "timestamp": "2023-05-01T10:35:00", "source_guid": "ghi-789-jkl-012"}}
     ]
   }}
   
-  If you&#39;re creating a new topic, choose a descriptive name. If a topic exists in the current context, update it by integrating new information and removing redundancies.
+  If you're creating a new topic, choose a descriptive name. If a topic exists in the current context, update it by integrating new information and removing redundancies.
 + 
 + The source_guid field allows tracing back to the original conversation entry and should be preserved in all entries.
   
@@ -714,7 +714,7 @@ Great! Let's summarize the changes we've made to implement the requested improve
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: README-phase-2.md</summary>
+<details><summary>Tool use: **edit_file** • Edit file: README-phase-2.md</summary>
 
 **Chunk 1**
 Lines added: 37, lines removed: 32
@@ -725,7 +725,7 @@ Lines added: 37, lines removed: 32
   
 + ## Phase 2 Update - April 18, 2025 - Separate Conversation History Storage &amp; Configurable Compression
 + 
-+ We&#39;ve implemented key improvements to make the memory system more scalable and configurable:
++ We've implemented key improvements to make the memory system more scalable and configurable:
 + 
 + 1. **Separate Conversation History Storage**:
 +    - Conversations are now stored in a separate JSON file from the memory state
@@ -755,7 +755,7 @@ Lines added: 37, lines removed: 32
 + - Complete conversation history is preserved for future reference or analysis
 + - System can be fine-tuned for different domains with different memory requirements
 + 
-+ The implementation follows the &quot;principle of least knowledge&quot; where components only know what they need to know, making the system more modular and easier to extend.
++ The implementation follows the "principle of least knowledge" where components only know what they need to know, making the system more modular and easier to extend.
   
   ## TODO
   
@@ -775,8 +775,8 @@ Lines added: 37, lines removed: 32
 - 
 - &#96;&#96;&#96;json
 - {
--     &quot;memory_file_guid&quot;: &quot;596ab0a4-2ad8-4370-8919-6d34288200c8&quot;,
--     &quot;entries&quot;: []
+-     "memory_file_guid": "596ab0a4-2ad8-4370-8919-6d34288200c8",
+-     "entries": []
 - }
 - 
 - &#96;&#96;&#96;
@@ -785,10 +785,10 @@ Lines added: 37, lines removed: 32
 - 
 - &#96;&#96;&#96;json
 - {
--     &quot;guid&quot;: &quot;519b036c-a652-4849-a037-cae3fd9ee767&quot;,
--     &quot;role&quot;: &quot;assistant&quot;,
--     &quot;content&quot;: &quot;The air hangs heavy with the scent of pine and damp earth as you recall the recent events. Just yesterday, Captain Silas, a grizzled veteran of the Merchant Guard, approached you with a proposition. He&#39;d detected unusual activity near the Blackwood Caves \u2013 whispers of monstrous spiders weaving webs of shadow and venom. He offered a reward of 50 gold pieces plus a share of any recovered goods, a considerable sum considering the dangers. You accepted, eager for adventure and a bit of coin. The task: track down these venomous spiders and eliminate the threat to the surrounding settlements. The caves themselves are known to be a labyrinthine network, riddled with traps and, as Silas ominously warned, the spiders themselves.&quot;,
--     &quot;digest&quot;: {}
+-     "guid": "519b036c-a652-4849-a037-cae3fd9ee767",
+-     "role": "assistant",
+-     "content": "The air hangs heavy with the scent of pine and damp earth as you recall the recent events. Just yesterday, Captain Silas, a grizzled veteran of the Merchant Guard, approached you with a proposition. He'd detected unusual activity near the Blackwood Caves \u2013 whispers of monstrous spiders weaving webs of shadow and venom. He offered a reward of 50 gold pieces plus a share of any recovered goods, a considerable sum considering the dangers. You accepted, eager for adventure and a bit of coin. The task: track down these venomous spiders and eliminate the threat to the surrounding settlements. The caves themselves are known to be a labyrinthine network, riddled with traps and, as Silas ominously warned, the spiders themselves.",
+-     "digest": {}
 - }
 - &#96;&#96;&#96;
 + - Implement search functions to retrieve information from both memory and conversation history
@@ -809,7 +809,7 @@ Let's create a quick example file to demonstrate how to use the new configurable
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/configure_memory_example.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: examples/configure_memory_example.py</summary>
 
 **Chunk 1**
 Lines added: 168, lines removed: 1
@@ -835,45 +835,45 @@ Lines added: 168, lines removed: 1
 + from src.agent.agent import Agent
 + 
 + def print_section_header(title):
-+     &quot;&quot;&quot;Print a formatted section header&quot;&quot;&quot;
-+     print(f&quot;\n{&#39;=&#39;*80}&quot;)
-+     print(f&quot;  {title}&quot;)
-+     print(f&quot;{&#39;=&#39;*80}\n&quot;)
++     """Print a formatted section header"""
++     print(f"\n{'='*80}")
++     print(f"  {title}")
++     print(f"{'='*80}\n")
 + 
 + async def main():
-+     &quot;&quot;&quot;Demonstrate configurable memory parameters&quot;&quot;&quot;
-+     print_section_header(&quot;Configurable Memory Parameters Example&quot;)
++     """Demonstrate configurable memory parameters"""
++     print_section_header("Configurable Memory Parameters Example")
 +     
 +     # Create a temporary directory for this example
-+     memory_dir = os.path.join(project_root, &quot;examples&quot;, &quot;temp_memories&quot;)
++     memory_dir = os.path.join(project_root, "examples", "temp_memories")
 +     os.makedirs(memory_dir, exist_ok=True)
 +     
 +     # Sample domain config
 +     domain_config = {
-+         &quot;domain_specific_prompt_instructions&quot;: {
-+             &quot;create_memory&quot;: &quot;You are creating memory for a note-taking assistant.&quot;,
-+             &quot;query&quot;: &quot;You are a helpful note-taking assistant.&quot;,
-+             &quot;update&quot;: &quot;You are updating memory for a note-taking assistant.&quot;
++         "domain_specific_prompt_instructions": {
++             "create_memory": "You are creating memory for a note-taking assistant.",
++             "query": "You are a helpful note-taking assistant.",
++             "update": "You are updating memory for a note-taking assistant."
 +         },
-+         &quot;initial_data&quot;: (
-+             &quot;This is a note-taking assistant that helps users organize their thoughts and ideas. &quot;
-+             &quot;It can take notes, categorize them, and retrieve them based on user queries.&quot;
++         "initial_data": (
++             "This is a note-taking assistant that helps users organize their thoughts and ideas. "
++             "It can take notes, categorize them, and retrieve them based on user queries."
 +         )
 +     }
 +     
 +     try:
 +         # Initialize LLM service
-+         print(&quot;Initializing LLM service...&quot;)
++         print("Initializing LLM service...")
 +         llm_service = OllamaService({
-+             &quot;base_url&quot;: &quot;http://192.168.1.173:11434&quot;,  # Update this to your Ollama server
-+             &quot;model&quot;: &quot;gemma3&quot;,
-+             &quot;temperature&quot;: 0.7,
-+             &quot;stream&quot;: False
++             "base_url": "http://192.168.1.173:11434",  # Update this to your Ollama server
++             "model": "gemma3",
++             "temperature": 0.7,
++             "stream": False
 +         })
 +         
 +         # Create the first MemoryManager with default settings
-+         print(&quot;\nCreating MemoryManager with default settings...&quot;)
-+         default_memory_file = os.path.join(memory_dir, &quot;default_memory.json&quot;)
++         print("\nCreating MemoryManager with default settings...")
++         default_memory_file = os.path.join(memory_dir, "default_memory.json")
 +         default_memory = MemoryManager(
 +             memory_file=default_memory_file,
 +             domain_config=domain_config,
@@ -881,8 +881,8 @@ Lines added: 168, lines removed: 1
 +         )
 +         
 +         # Create the second MemoryManager with custom compression settings
-+         print(&quot;\nCreating MemoryManager with custom compression settings...&quot;)
-+         custom_memory_file = os.path.join(memory_dir, &quot;custom_memory.json&quot;)
++         print("\nCreating MemoryManager with custom compression settings...")
++         custom_memory_file = os.path.join(memory_dir, "custom_memory.json")
 +         custom_memory = MemoryManager(
 +             memory_file=custom_memory_file,
 +             domain_config=domain_config,
@@ -892,35 +892,35 @@ Lines added: 168, lines removed: 1
 +         )
 +         
 +         # Initialize agent with default memory manager
-+         default_agent = Agent(llm_service, default_memory, domain_name=&quot;notes&quot;)
++         default_agent = Agent(llm_service, default_memory, domain_name="notes")
 +         
 +         # Initialize agent with custom memory manager
-+         custom_agent = Agent(llm_service, custom_memory, domain_name=&quot;notes&quot;)
++         custom_agent = Agent(llm_service, custom_memory, domain_name="notes")
 +         
 +         # Initialize memories
-+         print(&quot;\nInitializing memories with initial data...&quot;)
-+         await default_agent.learn(domain_config[&quot;initial_data&quot;])
-+         await custom_agent.learn(domain_config[&quot;initial_data&quot;])
++         print("\nInitializing memories with initial data...")
++         await default_agent.learn(domain_config["initial_data"])
++         await custom_agent.learn(domain_config["initial_data"])
 +         
 +         # Process some messages for both agents to demonstrate different compression behaviors
-+         print(&quot;\nProcessing messages for both agents...&quot;)
++         print("\nProcessing messages for both agents...")
 +         messages = [
-+             &quot;I need to take notes about my garden project.&quot;,
-+             &quot;The tomatoes should be planted in April.&quot;,
-+             &quot;Carrots need to be thinned once they sprout.&quot;,
-+             &quot;Water the garden daily during hot weather.&quot;,
-+             &quot;Apply fertilizer once a month.&quot;,
-+             &quot;Harvest tomatoes when they&#39;re bright red.&quot;,
-+             &quot;Keep an eye out for pests like aphids.&quot;,
-+             &quot;Mulch helps retain moisture in the soil.&quot;,
-+             &quot;Plant flowers to attract beneficial insects.&quot;,
-+             &quot;Rotate crops each season to prevent disease.&quot;,
-+             &quot;Consider using organic pest control methods.&quot;,
-+             &quot;Start seeds indoors for an early start.&quot;
++             "I need to take notes about my garden project.",
++             "The tomatoes should be planted in April.",
++             "Carrots need to be thinned once they sprout.",
++             "Water the garden daily during hot weather.",
++             "Apply fertilizer once a month.",
++             "Harvest tomatoes when they're bright red.",
++             "Keep an eye out for pests like aphids.",
++             "Mulch helps retain moisture in the soil.",
++             "Plant flowers to attract beneficial insects.",
++             "Rotate crops each season to prevent disease.",
++             "Consider using organic pest control methods.",
++             "Start seeds indoors for an early start."
 +         ]
 +         
 +         for i, message in enumerate(messages):
-+             print(f&quot;\nProcessing message {i+1}: {message}&quot;)
++             print(f"\nProcessing message {i+1}: {message}")
 +             
 +             # Process with default agent
 +             await default_agent.process_message(message)
@@ -930,60 +930,60 @@ Lines added: 168, lines removed: 1
 +             
 +             # After 8 messages, check memory state to compare compression
 +             if i == 7:
-+                 print(&quot;\nAfter 8 messages:&quot;)
-+                 print(&quot;\nDefault memory manager state (max_recent_conversations=10, importance_threshold=3):&quot;)
-+                 print(f&quot;Conversation history length: {len(default_memory.memory[&#39;conversation_history&#39;])}&quot;)
++                 print("\nAfter 8 messages:")
++                 print("\nDefault memory manager state (max_recent_conversations=10, importance_threshold=3):")
++                 print(f"Conversation history length: {len(default_memory.memory['conversation_history'])}")
 +                 
-+                 print(&quot;\nCustom memory manager state (max_recent_conversations=5, importance_threshold=4):&quot;)
-+                 print(f&quot;Conversation history length: {len(custom_memory.memory[&#39;conversation_history&#39;])}&quot;)
++                 print("\nCustom memory manager state (max_recent_conversations=5, importance_threshold=4):")
++                 print(f"Conversation history length: {len(custom_memory.memory['conversation_history'])}")
 +                 
 +                 # Check for compressed entries
-+                 if &quot;compressed_entries&quot; in custom_memory.memory:
-+                     print(f&quot;\nCompressed entries in custom memory: {len(custom_memory.memory[&#39;compressed_entries&#39;])}&quot;)
-+                     print(f&quot;Total entries compressed: {sum(entry[&#39;count&#39;] for entry in custom_memory.memory[&#39;compressed_entries&#39;])}&quot;)
++                 if "compressed_entries" in custom_memory.memory:
++                     print(f"\nCompressed entries in custom memory: {len(custom_memory.memory['compressed_entries'])}")
++                     print(f"Total entries compressed: {sum(entry['count'] for entry in custom_memory.memory['compressed_entries'])}")
 +         
 +         # Compare final state
-+         print(&quot;\n\nFinal memory state comparison:&quot;)
++         print("\n\nFinal memory state comparison:")
 +         
 +         # Default memory
-+         print(&quot;\nDefault memory manager (max_recent_conversations=10, importance_threshold=3):&quot;)
-+         print(f&quot;Conversation history length: {len(default_memory.memory[&#39;conversation_history&#39;])}&quot;)
-+         if &quot;compressed_entries&quot; in default_memory.memory:
-+             print(f&quot;Compressed entries: {len(default_memory.memory[&#39;compressed_entries&#39;])}&quot;)
-+             print(f&quot;Total entries compressed: {sum(entry[&#39;count&#39;] for entry in default_memory.memory[&#39;compressed_entries&#39;])}&quot;)
++         print("\nDefault memory manager (max_recent_conversations=10, importance_threshold=3):")
++         print(f"Conversation history length: {len(default_memory.memory['conversation_history'])}")
++         if "compressed_entries" in default_memory.memory:
++             print(f"Compressed entries: {len(default_memory.memory['compressed_entries'])}")
++             print(f"Total entries compressed: {sum(entry['count'] for entry in default_memory.memory['compressed_entries'])}")
 +         else:
-+             print(&quot;No compression occurred with default settings&quot;)
++             print("No compression occurred with default settings")
 +         
 +         # Custom memory
-+         print(&quot;\nCustom memory manager (max_recent_conversations=5, importance_threshold=4):&quot;)
-+         print(f&quot;Conversation history length: {len(custom_memory.memory[&#39;conversation_history&#39;])}&quot;)
-+         if &quot;compressed_entries&quot; in custom_memory.memory:
-+             print(f&quot;Compressed entries: {len(custom_memory.memory[&#39;compressed_entries&#39;])}&quot;)
-+             print(f&quot;Total entries compressed: {sum(entry[&#39;count&#39;] for entry in custom_memory.memory[&#39;compressed_entries&#39;])}&quot;)
++         print("\nCustom memory manager (max_recent_conversations=5, importance_threshold=4):")
++         print(f"Conversation history length: {len(custom_memory.memory['conversation_history'])}")
++         if "compressed_entries" in custom_memory.memory:
++             print(f"Compressed entries: {len(custom_memory.memory['compressed_entries'])}")
++             print(f"Total entries compressed: {sum(entry['count'] for entry in custom_memory.memory['compressed_entries'])}")
 +         
 +         # Compare conversation history files
-+         print(&quot;\nComparing conversation history files:&quot;)
++         print("\nComparing conversation history files:")
 +         default_convo_file = default_memory.conversation_history_file
 +         custom_convo_file = custom_memory.conversation_history_file
 +         
-+         with open(default_convo_file, &#39;r&#39;) as f:
++         with open(default_convo_file, 'r') as f:
 +             default_conversations = json.load(f)
 +         
-+         with open(custom_convo_file, &#39;r&#39;) as f:
++         with open(custom_convo_file, 'r') as f:
 +             custom_conversations = json.load(f)
 +         
-+         print(f&quot;Default conversation history file entries: {len(default_conversations[&#39;entries&#39;])}&quot;)
-+         print(f&quot;Custom conversation history file entries: {len(custom_conversations[&#39;entries&#39;])}&quot;)
++         print(f"Default conversation history file entries: {len(default_conversations['entries'])}")
++         print(f"Custom conversation history file entries: {len(custom_conversations['entries'])}")
 +         
-+         print(&quot;\nThis demonstrates that even though the memory file may contain fewer conversations due to compression,&quot;)
-+         print(&quot;all conversations are still preserved in the separate conversation history file.&quot;)
++         print("\nThis demonstrates that even though the memory file may contain fewer conversations due to compression,")
++         print("all conversations are still preserved in the separate conversation history file.")
 +         
 +     except Exception as e:
-+         print(f&quot;Error during example: {str(e)}&quot;)
++         print(f"Error during example: {str(e)}")
 +     finally:
-+         print_section_header(&quot;Example Complete&quot;)
++         print_section_header("Example Complete")
 + 
-+ if __name__ == &quot;__main__&quot;:
++ if __name__ == "__main__":
 +     asyncio.run(main()) 
 ```
 
@@ -1106,7 +1106,7 @@ I'll update the MemoryManager and query_memory.prompt to use the domain-specific
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/templates/query_memory.prompt</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/templates/query_memory.prompt</summary>
 
 **Chunk 1**
 Lines added: 3, lines removed: undefined
@@ -1128,7 +1128,7 @@ Lines added: 1, lines removed: undefined
 ```diff
 @@ -23,4 +26,5 @@
   3. Formulate a helpful, accurate response
-  4. Only mention information that&#39;s relevant to the query
+  4. Only mention information that's relevant to the query
 + 5. Follow the domain-specific instructions provided above
   
   Your response should be conversational and natural. Provide the most relevant information without unnecessarily mentioning the memory system unless asked about it directly.
@@ -1148,7 +1148,7 @@ Now let's update the MemoryManager to pass the domain-specific instructions to t
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 7, lines removed: 1
@@ -1158,12 +1158,12 @@ Lines added: 7, lines removed: 1
               conversation_history_text = self._format_conversation_history_as_text()
               
 +             # Get domain-specific instructions
-+             domain_instructions = &quot;&quot;
-+             if self.domain_config and &quot;domain_specific_prompt_instructions&quot; in self.domain_config:
-+                 domain_instructions = self.domain_config[&quot;domain_specific_prompt_instructions&quot;].get(&quot;query&quot;, &quot;&quot;)
++             domain_instructions = ""
++             if self.domain_config and "domain_specific_prompt_instructions" in self.domain_config:
++                 domain_instructions = self.domain_config["domain_specific_prompt_instructions"].get("query", "")
 +             
               # Create prompt with formatted text
-              prompt = self.templates[&quot;query&quot;].format(
+              prompt = self.templates["query"].format(
                   static_memory_text=static_memory_text,
                   context_text=context_text,
                   conversation_history_text=conversation_history_text,
@@ -1256,25 +1256,25 @@ I'll help implement these changes to improve the memory structure. Let's break t
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 4, lines removed: 3
 
 ```diff
 @@ -162,9 +162,10 @@
-          &quot;&quot;&quot;Use LLM to structure initial input data into memory format.
+          """Use LLM to structure initial input data into memory format.
           
 -         The LLM is free to choose the internal structure of static_memory
 -         based on what makes sense for the domain.
 +         The initial data is processed through the DigestGenerator to create a structured
 +         markdown representation of the static knowledge.
-          &quot;&quot;&quot;
+          """
 +         try:
               # Check if we have valid existing memory
--         if self.memory and all(key in self.memory for key in [&quot;initial_data&quot;, &quot;static_memory&quot;, &quot;context&quot;, &quot;conversation_history&quot;]):
-+             if self.memory and all(key in self.memory for key in [&quot;static_memory&quot;, &quot;context&quot;, &quot;conversation_history&quot;]):
-                  print(&quot;Valid memory structure already exists, skipping initialization&quot;)
+-         if self.memory and all(key in self.memory for key in ["initial_data", "static_memory", "context", "conversation_history"]):
++             if self.memory and all(key in self.memory for key in ["static_memory", "context", "conversation_history"]):
+                  print("Valid memory structure already exists, skipping initialization")
                   # Ensure GUID exists even for pre-existing memories
 ```
 
@@ -1283,84 +1283,84 @@ Lines added: 19, lines removed: 60
 
 ```diff
 @@ -174,64 +175,23 @@
-              print(&quot;\nCreating initial memory structure...&quot;)
+              print("\nCreating initial memory structure...")
   
 -         # Include domain-specific instructions if available
--         domain_guidance = &quot;&quot;
--         if self.domain_config and &quot;domain_specific_prompt_instructions&quot; in self.domain_config:
--             domain_guidance = &quot;\nDomain-Specific Guidance:\n&quot;
--             create_memory_instructions = self.domain_config[&quot;domain_specific_prompt_instructions&quot;][&quot;create_memory&quot;]
+-         domain_guidance = ""
+-         if self.domain_config and "domain_specific_prompt_instructions" in self.domain_config:
+-             domain_guidance = "\nDomain-Specific Guidance:\n"
+-             create_memory_instructions = self.domain_config["domain_specific_prompt_instructions"]["create_memory"]
 -             domain_guidance += create_memory_instructions
 - 
--         if self.domain_config and &quot;domain_specific_schema_suggestions&quot; in self.domain_config:
--             domain_guidance += &quot;\n\nDomain-Specific Schema Suggestions:\n&quot;
--             schema_suggestions = self.domain_config[&quot;domain_specific_schema_suggestions&quot;]
+-         if self.domain_config and "domain_specific_schema_suggestions" in self.domain_config:
+-             domain_guidance += "\n\nDomain-Specific Schema Suggestions:\n"
+-             schema_suggestions = self.domain_config["domain_specific_schema_suggestions"]
 -             domain_guidance += json.dumps(schema_suggestions, indent=2)
 -         
 -         try:
--             print(&quot;Generating memory structure using LLM...&quot;)
--             prompt = self.templates[&quot;create&quot;].format(
+-             print("Generating memory structure using LLM...")
+-             prompt = self.templates["create"].format(
 -                 input_data=input_data,
 -                 domain_guidance=domain_guidance
 -             )
 -             
 -             # Print the prompt to debug format placeholders
--             print(f&quot;DEBUG - FORMATTED PROMPT (first 200 chars):\n{prompt[:200]}...&quot;)
--             print(f&quot;DEBUG - FORMATTED PROMPT (last 200 chars):\n{prompt[-200:]}...&quot;)
+-             print(f"DEBUG - FORMATTED PROMPT (first 200 chars):\n{prompt[:200]}...")
+-             print(f"DEBUG - FORMATTED PROMPT (last 200 chars):\n{prompt[-200:]}...")
 -             
 -             llm_response = self.llm.generate(prompt)
 -             
 -             # Print the response to debug
--             print(f&quot;DEBUG - LLM RESPONSE (first 200 chars):\n{llm_response[:200]}...&quot;)
--             print(f&quot;DEBUG - LLM RESPONSE (last 200 chars):\n{llm_response[-200:]}...&quot;)
+-             print(f"DEBUG - LLM RESPONSE (first 200 chars):\n{llm_response[:200]}...")
+-             print(f"DEBUG - LLM RESPONSE (last 200 chars):\n{llm_response[-200:]}...")
 -             
 -             try:
 -                 memory_data = json.loads(llm_response)
 -             except json.JSONDecodeError:
 -                 import re
--                 print(&quot;Failed to parse direct JSON, attempting to extract JSON structure...&quot;)
--                 json_match = re.search(r&#39;\{[\s\S]*\}&#39;, llm_response)
+-                 print("Failed to parse direct JSON, attempting to extract JSON structure...")
+-                 json_match = re.search(r'\{[\s\S]*\}', llm_response)
 -                 if json_match:
 -                     try:
 -                         json_str = json_match.group(0)
 -                         # Remove any markdown code block markers
--                         json_str = re.sub(r&#39;&#96;&#96;&#96;json\s*|\s*&#96;&#96;&#96;&#39;, &#39;&#39;, json_str)
+-                         json_str = re.sub(r'&#96;&#96;&#96;json\s*|\s*&#96;&#96;&#96;', '', json_str)
 -                         memory_data = json.loads(json_str)
--                         print(&quot;Successfully extracted and fixed JSON structure&quot;)
+-                         print("Successfully extracted and fixed JSON structure")
 -                     except json.JSONDecodeError as e:
--                         print(f&quot;Error parsing extracted JSON structure: {str(e)}&quot;)
+-                         print(f"Error parsing extracted JSON structure: {str(e)}")
 -                         return False
 -                 else:
--                     print(&quot;Could not find JSON structure in LLM response&quot;)
+-                     print("Could not find JSON structure in LLM response")
 -                     return False
 -             
 -             # Validate only the top-level structure
--             if &quot;static_memory&quot; not in memory_data:
--                 print(&quot;Missing static_memory in LLM response&quot;)
+-             if "static_memory" not in memory_data:
+-                 print("Missing static_memory in LLM response")
 -                 return False
 -             
 -             # Use existing GUID if it was provided or already generated, only generate a new one as a last resort
 -             if not self.memory_guid:
 -                 self.memory_guid = str(uuid.uuid4())
--                 print(f&quot;Generated new GUID for memory: {self.memory_guid}&quot;)
+-                 print(f"Generated new GUID for memory: {self.memory_guid}")
 -             else:
--                 print(f&quot;Using existing GUID for memory: {self.memory_guid}&quot;)
+-                 print(f"Using existing GUID for memory: {self.memory_guid}")
 +             # Create system entry for initial data
 +             system_entry = {
-+                 &quot;guid&quot;: str(uuid.uuid4()),
-+                 &quot;role&quot;: &quot;system&quot;,
-+                 &quot;content&quot;: input_data,
-+                 &quot;timestamp&quot;: datetime.now().isoformat()
++                 "guid": str(uuid.uuid4()),
++                 "role": "system",
++                 "content": input_data,
++                 "timestamp": datetime.now().isoformat()
 +             }
 +             
 +             # Generate digest for initial data
-+             print(&quot;Generating digest for initial data...&quot;)
++             print("Generating digest for initial data...")
 +             initial_digest = self.digest_generator.generate_digest(system_entry)
-+             system_entry[&quot;digest&quot;] = initial_digest
++             system_entry["digest"] = initial_digest
 +             
 +             # Add to conversation history
 +             self.add_to_conversation_history(system_entry)
-+             self.memory[&quot;conversation_history&quot;] = [system_entry]
++             self.memory["conversation_history"] = [system_entry]
 +             
 +             # Create static memory from digest
 +             static_memory = self._create_static_memory_from_digest(initial_digest)
@@ -1373,18 +1373,18 @@ Lines added: 2, lines removed: 4
 
 ```diff
 @@ -240,13 +200,11 @@
-                  &quot;guid&quot;: self.memory_guid,            # Use the GUID we already have or just generated
-                  &quot;memory_type&quot;: &quot;standard&quot;,           # Explicitly mark this as a standard memory type
--                 &quot;initial_data&quot;: input_data,         # Store the initial raw input data
--                 &quot;static_memory&quot;: memory_data[&quot;static_memory&quot;],
-+                 &quot;static_memory&quot;: static_memory,      # Markdown/YAML formatted static knowledge
-                  &quot;context&quot;: {},                       # Organized important information by topic
-                  &quot;metadata&quot;: {
-                      &quot;created_at&quot;: now,
-                      &quot;last_updated&quot;: now,
-                      &quot;version&quot;: &quot;1.0&quot;
+                  "guid": self.memory_guid,            # Use the GUID we already have or just generated
+                  "memory_type": "standard",           # Explicitly mark this as a standard memory type
+-                 "initial_data": input_data,         # Store the initial raw input data
+-                 "static_memory": memory_data["static_memory"],
++                 "static_memory": static_memory,      # Markdown/YAML formatted static knowledge
+                  "context": {},                       # Organized important information by topic
+                  "metadata": {
+                      "created_at": now,
+                      "last_updated": now,
+                      "version": "1.0"
 -                 },
--                 &quot;conversation_history&quot;: []
+-                 "conversation_history": []
 +                 }
               }
               
@@ -1395,26 +1395,26 @@ Lines added: 41, lines removed: undefined
 
 ```diff
 @@ -259,4 +217,45 @@
-              print(f&quot;Full error: {repr(e)}&quot;)
+              print(f"Full error: {repr(e)}")
               return False
 +             
 +     def _create_static_memory_from_digest(self, digest: Dict[str, Any]) -&gt; str:
-+         &quot;&quot;&quot;Convert digest into markdown/YAML formatted static memory.
++         """Convert digest into markdown/YAML formatted static memory.
 +         
 +         Args:
 +             digest: The digest containing rated segments and topics
 +             
 +         Returns:
 +             str: Markdown formatted static memory
-+         &quot;&quot;&quot;
++         """
 +         try:
 +             # Get domain-specific instructions for formatting
-+             format_instructions = &quot;&quot;
-+             if self.domain_config and &quot;domain_specific_prompt_instructions&quot; in self.domain_config:
-+                 format_instructions = self.domain_config[&quot;domain_specific_prompt_instructions&quot;].get(&quot;create_memory&quot;, &quot;&quot;)
++             format_instructions = ""
++             if self.domain_config and "domain_specific_prompt_instructions" in self.domain_config:
++                 format_instructions = self.domain_config["domain_specific_prompt_instructions"].get("create_memory", "")
 +             
 +             # Create prompt for formatting static memory
-+             prompt = f&quot;&quot;&quot;Convert the following digest into a well-organized markdown document.
++             prompt = f"""Convert the following digest into a well-organized markdown document.
 +             The document should be structured by topics and include all important information.
 +             Each topic should be a level 2 heading (##) and contain relevant information as bullet points.
 +             Use level 3 headings (###) for subtopics if needed.
@@ -1424,20 +1424,20 @@ Lines added: 41, lines removed: undefined
 +             Digest:
 +             {json.dumps(digest, indent=2)}
 +             
-+             Return ONLY the markdown document, no additional text or explanation.&quot;&quot;&quot;
++             Return ONLY the markdown document, no additional text or explanation."""
 +             
 +             # Get formatted markdown from LLM
 +             markdown = self.llm.generate(prompt)
 +             
 +             # Clean up any markdown code block markers
-+             markdown = re.sub(r&#39;&#96;&#96;&#96;markdown\s*|\s*&#96;&#96;&#96;&#39;, &#39;&#39;, markdown)
++             markdown = re.sub(r'&#96;&#96;&#96;markdown\s*|\s*&#96;&#96;&#96;', '', markdown)
 +             
 +             return markdown.strip()
 +             
 +         except Exception as e:
-+             print(f&quot;Error creating static memory from digest: {str(e)}&quot;)
++             print(f"Error creating static memory from digest: {str(e)}")
 +             # Return a basic markdown structure if formatting fails
-+             return &quot;## Error\nFailed to format static memory properly.&quot;
++             return "## Error\nFailed to format static memory properly."
   
       def query_memory(self, query_context: Dict[str, Any]) -&gt; str:
 ```
@@ -1458,7 +1458,7 @@ Now let's update the _format_static_memory_as_text method to handle the new mark
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 6, lines removed: 15
@@ -1467,28 +1467,28 @@ Lines added: 6, lines removed: 15
 @@ -346,23 +346,14 @@
   
       def _format_static_memory_as_text(self) -&gt; str:
--         &quot;&quot;&quot;Format static memory as readable text instead of JSON.&quot;&quot;&quot;
-+         &quot;&quot;&quot;Format static memory as readable text.&quot;&quot;&quot;
-          if &quot;static_memory&quot; not in self.memory:
-              return &quot;No static memory available.&quot;
+-         """Format static memory as readable text instead of JSON."""
++         """Format static memory as readable text."""
+          if "static_memory" not in self.memory:
+              return "No static memory available."
               
-          static_memory = self.memory[&quot;static_memory&quot;]
--         if &quot;topics&quot; not in static_memory:
--             return f&quot;Static memory available but not in topic format: {json.dumps(static_memory, indent=2)}&quot;
+          static_memory = self.memory["static_memory"]
+-         if "topics" not in static_memory:
+-             return f"Static memory available but not in topic format: {json.dumps(static_memory, indent=2)}"
 -         
 -         result = []
--         for topic_name, segments in static_memory[&quot;topics&quot;].items():
--             result.append(f&quot;TOPIC: {topic_name}&quot;)
+-         for topic_name, segments in static_memory["topics"].items():
+-             result.append(f"TOPIC: {topic_name}")
 -             for segment in segments:
--                 importance = segment.get(&quot;importance&quot;, 3)
--                 importance_str = &quot;*&quot; * importance  # Visualize importance with asterisks
--                 text = segment.get(&quot;text&quot;, &quot;&quot;)
--                 result.append(f&quot;{importance_str} {text}&quot;)
--             result.append(&quot;&quot;)  # Empty line between topics
+-                 importance = segment.get("importance", 3)
+-                 importance_str = "*" * importance  # Visualize importance with asterisks
+-                 text = segment.get("text", "")
+-                 result.append(f"{importance_str} {text}")
+-             result.append("")  # Empty line between topics
 -         
--         return &quot;\n&quot;.join(result)
+-         return "\n".join(result)
 +         if not static_memory:
-+             return &quot;Static memory is empty.&quot;
++             return "Static memory is empty."
 +         
 +         # Static memory is now stored as markdown, so we can return it directly
 +         return static_memory

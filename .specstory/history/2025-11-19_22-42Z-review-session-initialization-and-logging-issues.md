@@ -1125,7 +1125,6 @@ _**Agent (model default, mode Ask)**_
 
 ---
 
-
 Searching other API files for references to enabling or activating the graph manager.
 
 
@@ -1242,7 +1241,7 @@ Output mode: content
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed directory undefined • **0** results</summary>
+            <summary>Tool use: **list_dir** • Listed directory, 0 results</summary>
         
 No results found
 </details>
@@ -1275,7 +1274,6 @@ No results found
 
 
 ---
-
 
 Reviewing files that reference `enable_graph` to see if any start a process:
 
@@ -1317,7 +1315,6 @@ Reviewing files that reference `enable_graph` to see if any start a process:
 
 
 ---
-
 
 ## Summary: No graph manager startup code in API files
 

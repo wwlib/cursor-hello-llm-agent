@@ -23,7 +23,7 @@ I'll help review the codebase to understand its current state. Let me start by e
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed directory src • **6** results</summary>
+            <summary>Tool use: **list_dir** • Listed directory src, 6 results</summary>
         
 | Name |
 |-------|
@@ -46,7 +46,7 @@ I see the main components are organized into three key directories: `ai/`, `memo
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed directory src/ai • **7** results</summary>
+            <summary>Tool use: **list_dir** • Listed directory src/ai, 7 results</summary>
         
 | Name |
 |-------|
@@ -65,7 +65,7 @@ I see the main components are organized into three key directories: `ai/`, `memo
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed directory src/agent • **3** results</summary>
+            <summary>Tool use: **list_dir** • Listed directory src/agent, 3 results</summary>
         
 | Name |
 |-------|
@@ -80,7 +80,7 @@ I see the main components are organized into three key directories: `ai/`, `memo
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed directory src/memory • **14** results</summary>
+            <summary>Tool use: **list_dir** • Listed directory src/memory, 14 results</summary>
         
 | Name |
 |-------|
@@ -282,7 +282,7 @@ Here's my proposal for making these operations asynchronous:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: undefined
@@ -301,11 +301,11 @@ Lines added: 114, lines removed: undefined
 
 ```diff
 @@ -595,3 +596,117 @@
-              print(f&quot;Error updating memory with conversations: {str(e)}&quot;)
+              print(f"Error updating memory with conversations: {str(e)}")
               return False
 + 
 + class AsyncMemoryManager(MemoryManager):
-+     &quot;&quot;&quot;Asynchronous version of MemoryManager that handles digest generation and embeddings updates asynchronously.&quot;&quot;&quot;
++     """Asynchronous version of MemoryManager that handles digest generation and embeddings updates asynchronously."""
 +     
 +     def __init__(self, *args, **kwargs):
 +         super().__init__(*args, **kwargs)
@@ -313,108 +313,108 @@ Lines added: 114, lines removed: undefined
 +         self._pending_embeddings = set()  # set of guids
 +         
 +     async def add_conversation_entry(self, entry: Dict[str, Any]) -&gt; bool:
-+         &quot;&quot;&quot;Add a conversation entry with asynchronous digest generation and embeddings update.
++         """Add a conversation entry with asynchronous digest generation and embeddings update.
 +         
 +         Args:
 +             entry: Dictionary containing the conversation entry:
 +                   - guid: Optional unique identifier (will be generated if missing)
-+                   - role: Role (e.g., &quot;user&quot;, &quot;agent&quot;, &quot;system&quot;)
++                   - role: Role (e.g., "user", "agent", "system")
 +                   - content: Entry content text
 +                   - timestamp: Optional timestamp (will be generated if missing)
 +                   
 +         Returns:
 +             bool: True if the entry was added successfully
-+         &quot;&quot;&quot;
++         """
 +         try:
 +             # Ensure basic fields exist
-+             if &quot;content&quot; not in entry:
-+                 print(&quot;Error: Conversation entry must have &#39;content&#39;&quot;)
++             if "content" not in entry:
++                 print("Error: Conversation entry must have 'content'")
 +                 return False
 +                 
-+             if &quot;role&quot; not in entry:
-+                 print(&quot;Error: Conversation entry must have &#39;role&#39;&quot;)
++             if "role" not in entry:
++                 print("Error: Conversation entry must have 'role'")
 +                 return False
 +                 
 +             # Ensure GUID
-+             if &quot;guid&quot; not in entry:
-+                 entry[&quot;guid&quot;] = str(uuid.uuid4())
++             if "guid" not in entry:
++                 entry["guid"] = str(uuid.uuid4())
 +                 
 +             # Ensure timestamp
-+             if &quot;timestamp&quot; not in entry:
-+                 entry[&quot;timestamp&quot;] = datetime.now().isoformat()
++             if "timestamp" not in entry:
++                 entry["timestamp"] = datetime.now().isoformat()
 +             
 +             # Add to conversation history file and memory immediately
 +             self.add_to_conversation_history(entry)
 +             
-+             if &quot;conversation_history&quot; not in self.memory:
-+                 self.memory[&quot;conversation_history&quot;] = []
++             if "conversation_history" not in self.memory:
++                 self.memory["conversation_history"] = []
 +                 
-+             self.memory[&quot;conversation_history&quot;].append(entry)
-+             print(f&quot;Added {entry[&#39;role&#39;]} entry to conversation history&quot;)
++             self.memory["conversation_history"].append(entry)
++             print(f"Added {entry['role']} entry to conversation history")
 +             
 +             # Save to persist memory updates
-+             self.save_memory(&quot;add_conversation_entry&quot;)
++             self.save_memory("add_conversation_entry")
 +             
 +             # Start async digest generation if not already present
-+             if &quot;digest&quot; not in entry:
-+                 print(f&quot;Starting async digest generation for {entry[&#39;role&#39;]} entry...&quot;)
-+                 self._pending_digests[entry[&quot;guid&quot;]] = entry
++             if "digest" not in entry:
++                 print(f"Starting async digest generation for {entry['role']} entry...")
++                 self._pending_digests[entry["guid"]] = entry
 +                 asyncio.create_task(self._generate_digest_async(entry))
 +             else:
 +                 # If digest exists, start embeddings update
-+                 self._pending_embeddings.add(entry[&quot;guid&quot;])
++                 self._pending_embeddings.add(entry["guid"])
 +                 asyncio.create_task(self._update_embeddings_async(entry))
 + 
 +             return True
 +             
 +         except Exception as e:
-+             print(f&quot;Error adding conversation entry: {str(e)}&quot;)
++             print(f"Error adding conversation entry: {str(e)}")
 +             return False
 +     
 +     async def _generate_digest_async(self, entry: Dict[str, Any]) -&gt; None:
-+         &quot;&quot;&quot;Asynchronously generate digest for an entry.&quot;&quot;&quot;
++         """Asynchronously generate digest for an entry."""
 +         try:
 +             # Generate digest
-+             entry[&quot;digest&quot;] = self.digest_generator.generate_digest(entry, self.memory)
++             entry["digest"] = self.digest_generator.generate_digest(entry, self.memory)
 +             
 +             # Remove from pending digests
-+             self._pending_digests.pop(entry[&quot;guid&quot;], None)
++             self._pending_digests.pop(entry["guid"], None)
 +             
 +             # Start embeddings update
-+             self._pending_embeddings.add(entry[&quot;guid&quot;])
++             self._pending_embeddings.add(entry["guid"])
 +             await self._update_embeddings_async(entry)
 +             
 +             # Save memory to persist the digest
-+             self.save_memory(&quot;async_digest_generation&quot;)
++             self.save_memory("async_digest_generation")
 +             
 +         except Exception as e:
-+             print(f&quot;Error in async digest generation: {str(e)}&quot;)
++             print(f"Error in async digest generation: {str(e)}")
 +     
 +     async def _update_embeddings_async(self, entry: Dict[str, Any]) -&gt; None:
-+         &quot;&quot;&quot;Asynchronously update embeddings for an entry.&quot;&quot;&quot;
++         """Asynchronously update embeddings for an entry."""
 +         try:
 +             # Update embeddings
 +             self.embeddings_manager.update_indices([entry])
 +             
 +             # Remove from pending embeddings
-+             self._pending_embeddings.discard(entry[&quot;guid&quot;])
++             self._pending_embeddings.discard(entry["guid"])
 +             
 +         except Exception as e:
-+             print(f&quot;Error in async embeddings update: {str(e)}&quot;)
++             print(f"Error in async embeddings update: {str(e)}")
 +     
 +     def get_pending_operations(self) -&gt; Dict[str, Any]:
-+         &quot;&quot;&quot;Get information about pending async operations.
++         """Get information about pending async operations.
 +         
 +         Returns:
 +             Dict with counts of pending digests and embeddings
-+         &quot;&quot;&quot;
++         """
 +         return {
-+             &quot;pending_digests&quot;: len(self._pending_digests),
-+             &quot;pending_embeddings&quot;: len(self._pending_embeddings)
++             "pending_digests": len(self._pending_digests),
++             "pending_embeddings": len(self._pending_embeddings)
 +         }
 +     
 +     async def wait_for_pending_operations(self) -&gt; None:
-+         &quot;&quot;&quot;Wait for all pending async operations to complete.&quot;&quot;&quot;
++         """Wait for all pending async operations to complete."""
 +         while self._pending_digests or self._pending_embeddings:
 +             await asyncio.sleep(0.1)  # Small delay to prevent busy waiting
   
@@ -446,7 +446,7 @@ Let me update the `Agent` class to use the async memory manager:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/agent/agent.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/agent/agent.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: undefined
@@ -469,8 +469,8 @@ Lines added: 1, lines removed: 1
               llm_service: Service for LLM operations
 -             memory_manager: Service for memory operations
 +             memory_manager: Service for memory operations (should be AsyncMemoryManager)
-              domain_name: Name of the domain (e.g., &quot;dnd_campaign&quot;, &quot;user_stories&quot;)
-          &quot;&quot;&quot;
+              domain_name: Name of the domain (e.g., "dnd_campaign", "user_stories")
+          """
 ```
 
 **Chunk 3**
@@ -478,8 +478,8 @@ Lines added: 3, lines removed: undefined
 
 ```diff
 @@ -24,4 +25,7 @@
-          print(f&quot;Agent initialized for domain: {domain_name}&quot;)
-          print(f&quot;Memory management is handled transparently by the MemoryManager&quot;)
+          print(f"Agent initialized for domain: {domain_name}")
+          print(f"Memory management is handled transparently by the MemoryManager")
 +         
 +         # Track pending operations
 +         self._pending_operations = False
@@ -493,21 +493,21 @@ Lines added: 8, lines removed: undefined
 ```diff
 @@ -33,9 +37,17 @@
           memory_context = self.memory.get_memory_context()
-          return memory_context.get(&quot;conversation_history&quot;, [])
+          return memory_context.get("conversation_history", [])
 +         
 +     def has_pending_operations(self) -&gt; bool:
-+         &quot;&quot;&quot;Check if there are any pending async operations.&quot;&quot;&quot;
-+         if hasattr(self.memory, &#39;get_pending_operations&#39;):
++         """Check if there are any pending async operations."""
++         if hasattr(self.memory, 'get_pending_operations'):
 +             pending = self.memory.get_pending_operations()
-+             return pending[&quot;pending_digests&quot;] &gt; 0 or pending[&quot;pending_embeddings&quot;] &gt; 0
++             return pending["pending_digests"] &gt; 0 or pending["pending_embeddings"] &gt; 0
 +         return False
   
       async def process_message(self, message: str) -&gt; str:
-          &quot;&quot;&quot;Process a user message and return a response.
+          """Process a user message and return a response.
           
           Memory management (compression, etc.) is automatically handled by the MemoryManager.
 +         Digest generation and embeddings updates happen asynchronously.
-          &quot;&quot;&quot;
+          """
           try:
 ```
 
@@ -516,12 +516,12 @@ Lines added: 5, lines removed: undefined
 
 ```diff
 @@ -107,3 +119,8 @@
-              print(f&quot;Error learning information: {str(e)}&quot;)
+              print(f"Error learning information: {str(e)}")
               return False
 +             
 +     async def wait_for_pending_operations(self) -&gt; None:
-+         &quot;&quot;&quot;Wait for all pending async operations to complete.&quot;&quot;&quot;
-+         if hasattr(self.memory, &#39;wait_for_pending_operations&#39;):
++         """Wait for all pending async operations to complete."""
++         if hasattr(self.memory, 'wait_for_pending_operations'):
 +             await self.memory.wait_for_pending_operations()
   
 ```
@@ -613,7 +613,7 @@ First, I'll edit the `Agent` class to make `process_message` more efficient:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/agent/agent.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/agent/agent.py</summary>
 
 </details>
 
@@ -628,7 +628,7 @@ I see that the `process_message` method is already optimized for this use case s
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/agent_usage_example.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: examples/agent_usage_example.py</summary>
 
 **Chunk 1**
 Lines added: 13, lines removed: undefined
@@ -640,22 +640,22 @@ Lines added: 13, lines removed: undefined
 +             # Check for pending operations before getting user input
 +             if agent.has_pending_operations():
 +                 pending = agent.memory.get_pending_operations()
-+                 print(f&quot;\nWaiting for background operations to complete...&quot;)
-+                 print(f&quot;Pending digests: {pending[&#39;pending_digests&#39;]}&quot;)
-+                 print(f&quot;Pending embeddings: {pending[&#39;pending_embeddings&#39;]}&quot;)
++                 print(f"\nWaiting for background operations to complete...")
++                 print(f"Pending digests: {pending['pending_digests']}")
++                 print(f"Pending embeddings: {pending['pending_embeddings']}")
 +                 await agent.wait_for_pending_operations()
-+                 print(&quot;Background operations completed.&quot;)
++                 print("Background operations completed.")
 +             
-              user_input = input(&quot;\nYou: &quot;).strip().lower()
+              user_input = input("\nYou: ").strip().lower()
               
-              if user_input == &#39;quit&#39; or user_input == &#39;exit&#39; or user_input == &#39;q&#39;:
-                  print(&quot;\nEnding session...&quot;)
+              if user_input == 'quit' or user_input == 'exit' or user_input == 'q':
+                  print("\nEnding session...")
 +                 # Wait for any pending operations before exiting
 +                 if agent.has_pending_operations():
-+                     print(&quot;Waiting for background operations to complete before exiting...&quot;)
++                     print("Waiting for background operations to complete before exiting...")
 +                     await agent.wait_for_pending_operations()
                   break
-              elif user_input == &#39;help&#39;:
+              elif user_input == 'help':
 ```
 
 **Chunk 2**
@@ -663,16 +663,16 @@ Lines added: 7, lines removed: undefined
 
 ```diff
 @@ -494,6 +507,13 @@
-              print(f&quot;\nAgent: {response}&quot;)
+              print(f"\nAgent: {response}")
               
 +             # Add a small delay to allow background processing to start
 +             await asyncio.sleep(0.1)
 +             
           except KeyboardInterrupt:
-              print(&quot;\nSession interrupted by user.&quot;)
+              print("\nSession interrupted by user.")
 +             # Wait for any pending operations before exiting
 +             if agent.has_pending_operations():
-+                 print(&quot;Waiting for background operations to complete before exiting...&quot;)
++                 print("Waiting for background operations to complete before exiting...")
 +                 await agent.wait_for_pending_operations()
               break
           except Exception as e:
@@ -736,14 +736,14 @@ Yes! We can modify the `query_memory` method in `MemoryManager` to return the LL
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
 
 ```diff
 @@ -287,5 +287,5 @@
-              query = query_context.get(&quot;query&quot;, &quot;&quot;)
+              query = query_context.get("query", "")
   
 -             # Add user message to history and trigger embedding/indexing
 +             # Add user message to history immediately
@@ -756,15 +756,15 @@ Lines added: 6, lines removed: 1
 
 ```diff
 @@ -295,5 +295,10 @@
-                      &quot;timestamp&quot;: datetime.now().isoformat()
+                      "timestamp": datetime.now().isoformat()
                   }
 -                 self.add_conversation_entry(user_entry)
 +                 # Add to conversation history file and memory immediately
 +                 self.add_to_conversation_history(user_entry)
-+                 if &quot;conversation_history&quot; not in self.memory:
-+                     self.memory[&quot;conversation_history&quot;] = []
-+                 self.memory[&quot;conversation_history&quot;].append(user_entry)
-+                 self.save_memory(&quot;add_user_entry&quot;)
++                 if "conversation_history" not in self.memory:
++                     self.memory["conversation_history"] = []
++                 self.memory["conversation_history"].append(user_entry)
++                 self.save_memory("add_user_entry")
               
               # Use concatenated initial segments for static memory in prompts
 ```
@@ -784,7 +784,7 @@ Lines added: 6, lines removed: 1
 +             
 +             # Create agent entry
               agent_entry = {
-                  &quot;guid&quot;: str(uuid.uuid4()),
+                  "guid": str(uuid.uuid4()),
 ```
 
 **Chunk 4**
@@ -792,32 +792,32 @@ Lines added: 12, lines removed: 6
 
 ```diff
 @@ -347,14 +357,20 @@
-                  &quot;timestamp&quot;: datetime.now().isoformat()
+                  "timestamp": datetime.now().isoformat()
               }
 -             self.add_conversation_entry(agent_entry)
 - 
 -             # Save to persist memory updates
--             self.save_memory(&quot;query_memory&quot;)
+-             self.save_memory("query_memory")
 +             
 +             # Add agent response to history immediately
 +             self.add_to_conversation_history(agent_entry)
-+             if &quot;conversation_history&quot; not in self.memory:
-+                 self.memory[&quot;conversation_history&quot;] = []
-+             self.memory[&quot;conversation_history&quot;].append(agent_entry)
-+             self.save_memory(&quot;add_agent_entry&quot;)
++             if "conversation_history" not in self.memory:
++                 self.memory["conversation_history"] = []
++             self.memory["conversation_history"].append(agent_entry)
++             self.save_memory("add_agent_entry")
 +             
 +             # Start background processing for agent entry
 +             asyncio.create_task(self._process_entry_async(agent_entry))
               
               # Check if we should compress memory based on number of conversations
-              conversation_entries = len(self.memory[&quot;conversation_history&quot;])
+              conversation_entries = len(self.memory["conversation_history"])
               if conversation_entries &gt; self.max_recent_conversation_entries:
--                 print(f&quot;Memory has {conversation_entries} conversations, compressing...&quot;)
--                 self.update_memory({&quot;operation&quot;: &quot;update&quot;})
-+                 print(f&quot;Memory has {conversation_entries} conversations, scheduling compression...&quot;)
+-                 print(f"Memory has {conversation_entries} conversations, compressing...")
+-                 self.update_memory({"operation": "update"})
++                 print(f"Memory has {conversation_entries} conversations, scheduling compression...")
 +                 asyncio.create_task(self._compress_memory_async())
               
-              return {&quot;response&quot;: llm_response}
+              return {"response": llm_response}
 ```
 
 **Chunk 5**
@@ -825,32 +825,32 @@ Lines added: 24, lines removed: undefined
 
 ```diff
 @@ -363,4 +379,28 @@
-              print(f&quot;Error in query_memory: {str(e)}&quot;)
-              return {&quot;response&quot;: f&quot;Error processing query: {str(e)}&quot;, &quot;error&quot;: str(e)}
+              print(f"Error in query_memory: {str(e)}")
+              return {"response": f"Error processing query: {str(e)}", "error": str(e)}
 +             
 +     async def _process_entry_async(self, entry: Dict[str, Any]) -&gt; None:
-+         &quot;&quot;&quot;Process a conversation entry asynchronously (digest generation and embeddings).&quot;&quot;&quot;
++         """Process a conversation entry asynchronously (digest generation and embeddings)."""
 +         try:
 +             # Generate digest if not already present
-+             if &quot;digest&quot; not in entry:
-+                 print(f&quot;Generating digest for {entry[&#39;role&#39;]} entry...&quot;)
-+                 entry[&quot;digest&quot;] = self.digest_generator.generate_digest(entry, self.memory)
-+                 self.save_memory(&quot;async_digest_generation&quot;)
++             if "digest" not in entry:
++                 print(f"Generating digest for {entry['role']} entry...")
++                 entry["digest"] = self.digest_generator.generate_digest(entry, self.memory)
++                 self.save_memory("async_digest_generation")
 +             
 +             # Update embeddings
-+             print(f&quot;Updating embeddings for {entry[&#39;role&#39;]} entry...&quot;)
++             print(f"Updating embeddings for {entry['role']} entry...")
 +             self.embeddings_manager.update_indices([entry])
 +             
 +         except Exception as e:
-+             print(f&quot;Error in async entry processing: {str(e)}&quot;)
++             print(f"Error in async entry processing: {str(e)}")
 +             
 +     async def _compress_memory_async(self) -&gt; None:
-+         &quot;&quot;&quot;Compress memory asynchronously.&quot;&quot;&quot;
++         """Compress memory asynchronously."""
 +         try:
-+             print(&quot;Starting async memory compression...&quot;)
++             print("Starting async memory compression...")
 +             self._compress_conversation_history()
 +         except Exception as e:
-+             print(f&quot;Error in async memory compression: {str(e)}&quot;)
++             print(f"Error in async memory compression: {str(e)}")
   
       def _format_static_memory_as_text(self) -&gt; str:
 ```
@@ -916,7 +916,7 @@ I'll help you create a commit message that summarizes the changes we've made to 
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: git add src/memory/memory_manager.py examples/agent_usage_example.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: git add src/memory/memory_manager.py examples/agent_usage_example.py</summary>
 
 ```bash
 git add src/memory/memory_manager.py examples/agent_usage_example.py
@@ -1996,18 +1996,18 @@ _**Agent (mode Agent)**_
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
 
 ```diff
 @@ -58,5 +58,5 @@
-      def __init__(self, memory_file: str = &quot;memory.json&quot;, domain_config: Optional[Dict[str, Any]] = None, 
+      def __init__(self, memory_file: str = "memory.json", domain_config: Optional[Dict[str, Any]] = None, 
                    llm_service = None, digest_llm_service = None, embeddings_llm_service = None, memory_guid: str = None, 
 -                  max_recent_conversation_entries: int = 8, importance_threshold: int = 3):
 +                  max_recent_conversation_entries: int = 8, importance_threshold: int = 3, logger=None):
-          &quot;&quot;&quot;Initialize the MemoryManager with LLM service instances and domain configuration.
+          """Initialize the MemoryManager with LLM service instances and domain configuration.
           
 ```
 
@@ -2019,9 +2019,9 @@ Lines added: 4, lines removed: undefined
               max_recent_conversation_entries: Maximum number of recent conversation entries to keep before compression
               importance_threshold: Threshold for segment importance (1-5 scale) to keep during compression
 +             logger: Optional logger instance for this MemoryManager
-          &quot;&quot;&quot;
+          """
           if llm_service is None:
-              raise ValueError(&quot;llm_service is required for MemoryManager&quot;)
+              raise ValueError("llm_service is required for MemoryManager")
 +             
 +         # Store the logger instance
 +         self.logger = logger
@@ -2111,7 +2111,7 @@ _**Agent (mode Agent)**_
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: undefined
@@ -2130,7 +2130,7 @@ Lines added: 2, lines removed: 2
 
 ```diff
 @@ -79,6 +80,6 @@
-              raise ValueError(&quot;llm_service is required for MemoryManager&quot;)
+              raise ValueError("llm_service is required for MemoryManager")
               
 -         # Store the logger instance
 -         self.logger = logger
@@ -2222,7 +2222,7 @@ _**Agent (mode Agent)**_
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/base_memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/base_memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: undefined
@@ -2241,11 +2241,11 @@ Lines added: 1, lines removed: 1
 
 ```diff
 @@ -30,5 +31,5 @@
-      &quot;&quot;&quot;
+      """
       
--     def __init__(self, memory_file: str = &quot;memory.json&quot;, domain_config: Optional[Dict[str, Any]] = None, memory_guid: Optional[str] = None):
-+     def __init__(self, memory_file: str = &quot;memory.json&quot;, domain_config: Optional[Dict[str, Any]] = None, memory_guid: Optional[str] = None, logger=None):
-          &quot;&quot;&quot;Initialize the base memory manager.
+-     def __init__(self, memory_file: str = "memory.json", domain_config: Optional[Dict[str, Any]] = None, memory_guid: Optional[str] = None):
++     def __init__(self, memory_file: str = "memory.json", domain_config: Optional[Dict[str, Any]] = None, memory_guid: Optional[str] = None, logger=None):
+          """Initialize the base memory manager.
           
 ```
 
@@ -2257,7 +2257,7 @@ Lines added: 1, lines removed: undefined
                            - prompts: Domain-specific prompt templates
               memory_guid: Optional GUID to identify this memory instance
 +             logger: Optional logger instance for logging
-          &quot;&quot;&quot;
+          """
           self.memory_file = memory_file
 ```
 
@@ -2342,14 +2342,14 @@ _**Agent (mode Agent)**_
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: 5
 
 ```diff
 @@ -80,9 +80,6 @@
-              raise ValueError(&quot;llm_service is required for MemoryManager&quot;)
+              raise ValueError("llm_service is required for MemoryManager")
               
 -         # Store the logger instance, or get a default logger for this module
 -         self.logger = logger or logging.getLogger(__name__)
@@ -2358,7 +2358,7 @@ Lines added: 2, lines removed: 5
 -         super().__init__(memory_file, domain_config, memory_guid)
 +         # Pass memory_guid and logger to the parent constructor
 +         super().__init__(memory_file, domain_config, memory_guid, logger=logger)
-          print(f&quot;\nInitializing MemoryManager with file: {memory_file}&quot;)
+          print(f"\nInitializing MemoryManager with file: {memory_file}")
           self.llm = llm_service
 ```
 
@@ -2392,7 +2392,7 @@ _**Agent (mode Agent)**_
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/content_segmenter.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/content_segmenter.py</summary>
 
 **Chunk 1**
 Lines added: 4, lines removed: 1
@@ -2404,16 +2404,16 @@ Lines added: 4, lines removed: 1
 + import logging
   
   class ContentSegmenter:
-      &quot;&quot;&quot;Handles segmentation of text content into meaningful chunks.&quot;&quot;&quot;
+      """Handles segmentation of text content into meaningful chunks."""
       
 -     def __init__(self, llm_service):
 +     def __init__(self, llm_service, logger=None):
-          &quot;&quot;&quot;Initialize the ContentSegmenter.
+          """Initialize the ContentSegmenter.
           
           Args:
               llm_service: Service for LLM operations
 +             logger: Logger instance for logging
-          &quot;&quot;&quot;
+          """
           self.llm = llm_service
 +         self.logger = logger or logging.getLogger(__name__)
           self._load_templates()
@@ -2428,7 +2428,7 @@ Lines added: 4, lines removed: 1
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/data_preprocessor.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/data_preprocessor.py</summary>
 
 **Chunk 1**
 Lines added: 4, lines removed: 1
@@ -2440,16 +2440,16 @@ Lines added: 4, lines removed: 1
 + import logging
   
   class DataPreprocessor:
-      &quot;&quot;&quot;Transforms structured or unstructured world data into embeddable phrases using LLM and a prompt template.&quot;&quot;&quot;
+      """Transforms structured or unstructured world data into embeddable phrases using LLM and a prompt template."""
   
 -     def __init__(self, llm_service):
 +     def __init__(self, llm_service, logger=None):
-          &quot;&quot;&quot;Initialize the DataPreprocessor.
+          """Initialize the DataPreprocessor.
           
           Args:
               llm_service: Service for LLM operations
 +             logger: Logger instance for logging
-          &quot;&quot;&quot;
+          """
           self.llm = llm_service
 +         self.logger = logger or logging.getLogger(__name__)
           self._load_templates()
@@ -2464,7 +2464,7 @@ Lines added: 4, lines removed: 1
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/digest_generator.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/digest_generator.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: undefined
@@ -2483,16 +2483,16 @@ Lines added: 3, lines removed: 1
 
 ```diff
 @@ -18,11 +19,13 @@
-      &quot;&quot;&quot;
+      """
       
 -     def __init__(self, llm_service):
 +     def __init__(self, llm_service, logger=None):
-          &quot;&quot;&quot;Initialize the DigestGenerator.
+          """Initialize the DigestGenerator.
           
           Args:
               llm_service: Service for LLM operations
 +             logger: Optional logger instance
-          &quot;&quot;&quot;
+          """
           self.llm = llm_service
 +         self.logger = logger or logging.getLogger(__name__)
           self.content_segmenter = ContentSegmenter(llm_service)
@@ -2507,41 +2507,41 @@ Lines added: 3, lines removed: 1
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/embeddings_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/embeddings_manager.py</summary>
 
 **Chunk 1**
 Lines added: 3, lines removed: 11
 
 ```diff
 @@ -65,25 +65,17 @@
-      &quot;&quot;&quot;
+      """
       
 -     def __init__(self, embeddings_file: str, llm_service=None):
 +     def __init__(self, embeddings_file: str, llm_service=None, logger=None):
-          &quot;&quot;&quot;Initialize the EmbeddingsManager.
+          """Initialize the EmbeddingsManager.
           
           Args:
               embeddings_file: Path to the JSONL file for storing embeddings
               llm_service: Optional LLM service for generating embeddings
 +             logger: Optional logger instance
-          &quot;&quot;&quot;
+          """
           self.embeddings_file = embeddings_file
           self.llm_service = llm_service
           self.embeddings = []  # List of (embedding, metadata) tuples
 -         # Always use the embedding model from env or default
-          self.embedding_model = os.getenv(&quot;OLLAMA_EMBED_MODEL&quot;, &quot;mxbai-embed-large&quot;)
+          self.embedding_model = os.getenv("OLLAMA_EMBED_MODEL", "mxbai-embed-large")
 -         
 -         # Configure logging
--         self.logger = logging.getLogger(&quot;embeddings_manager&quot;)
+-         self.logger = logging.getLogger("embeddings_manager")
 -         # Set up basic console handler if none exists
 -         if not self.logger.handlers:
 -             handler = logging.StreamHandler()
--             handler.setFormatter(logging.Formatter(&#39;%(name)s - %(levelname)s - %(message)s&#39;))
+-             handler.setFormatter(logging.Formatter('%(name)s - %(levelname)s - %(message)s'))
 -             self.logger.addHandler(handler)
 -             self.logger.setLevel(logging.INFO)
 +         self.logger = logger or logging.getLogger(__name__)
           
-          # Initialize embeddings file directory if it doesn&#39;t exist
+          # Initialize embeddings file directory if it doesn't exist
 ```
 
 </details>
@@ -2552,7 +2552,7 @@ Lines added: 3, lines removed: 11
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_compressor.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/memory_compressor.py</summary>
 
 **Chunk 1**
 Lines added: 4, lines removed: 1
@@ -2564,17 +2564,17 @@ Lines added: 4, lines removed: 1
 + import logging
   
   class MemoryCompressor:
-      &quot;&quot;&quot;Handles compression of conversation history into efficient memory format.&quot;&quot;&quot;
+      """Handles compression of conversation history into efficient memory format."""
       
 -     def __init__(self, llm_service, importance_threshold: int = 3):
 +     def __init__(self, llm_service, importance_threshold: int = 3, logger=None):
-          &quot;&quot;&quot;Initialize the MemoryCompressor.
+          """Initialize the MemoryCompressor.
           
           Args:
               llm_service: Service for LLM operations
               importance_threshold: Minimum importance score (1-5) to keep segments
 +             logger: Logger instance for logging
-          &quot;&quot;&quot;
+          """
           self.llm = llm_service
           self.importance_threshold = importance_threshold
 +         self.logger = logger or logging.getLogger(__name__)
@@ -2590,33 +2590,33 @@ Lines added: 4, lines removed: 1
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/rag_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/rag_manager.py</summary>
 
 **Chunk 1**
 Lines added: 3, lines removed: 10
 
 ```diff
 @@ -143,22 +143,15 @@
-      &quot;&quot;&quot;
+      """
       
 -     def __init__(self, llm_service, embeddings_manager):
 +     def __init__(self, llm_service, embeddings_manager, logger=None):
-          &quot;&quot;&quot;Initialize the RAGManager.
+          """Initialize the RAGManager.
           
           Args:
               llm_service: Service for LLM operations
               embeddings_manager: Manager for embeddings and semantic search
 +             logger: Optional logger instance
-          &quot;&quot;&quot;
+          """
           self.llm_service = llm_service
           self.embeddings_manager = embeddings_manager
 -         
 -         # Configure logging
--         self.logger = logging.getLogger(&quot;rag_manager&quot;)
+-         self.logger = logging.getLogger("rag_manager")
 -         # Set up basic console handler if none exists
 -         if not self.logger.handlers:
 -             handler = logging.StreamHandler()
--             handler.setFormatter(logging.Formatter(&#39;%(name)s - %(levelname)s - %(message)s&#39;))
+-             handler.setFormatter(logging.Formatter('%(name)s - %(levelname)s - %(message)s'))
 -             self.logger.addHandler(handler)
 -             self.logger.setLevel(logging.INFO)
 +         self.logger = logger or logging.getLogger(__name__)
@@ -2632,7 +2632,7 @@ Lines added: 3, lines removed: 10
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/simple_memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/simple_memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: undefined
@@ -2651,11 +2651,11 @@ Lines added: 1, lines removed: 1
 
 ```diff
 @@ -27,5 +28,5 @@
-      &quot;&quot;&quot;
+      """
       
--     def __init__(self, memory_file: str = &quot;memory.json&quot;, domain_config: Optional[Dict[str, Any]] = None, llm_service = None, memory_guid: str = None):
-+     def __init__(self, memory_file: str = &quot;memory.json&quot;, domain_config: Optional[Dict[str, Any]] = None, llm_service = None, memory_guid: str = None, logger=None):
-          &quot;&quot;&quot;Initialize the SimpleMemoryManager.
+-     def __init__(self, memory_file: str = "memory.json", domain_config: Optional[Dict[str, Any]] = None, llm_service = None, memory_guid: str = None):
++     def __init__(self, memory_file: str = "memory.json", domain_config: Optional[Dict[str, Any]] = None, llm_service = None, memory_guid: str = None, logger=None):
+          """Initialize the SimpleMemoryManager.
           
 ```
 
@@ -2667,14 +2667,14 @@ Lines added: 3, lines removed: 1
               memory_guid: Optional GUID to identify this memory instance. If not provided, 
                          a new one will be generated or loaded from existing file.
 +             logger: Optional logger instance for logging
-          &quot;&quot;&quot;
+          """
           if llm_service is None:
-              raise ValueError(&quot;llm_service is required for SimpleMemoryManager&quot;)
+              raise ValueError("llm_service is required for SimpleMemoryManager")
           
           # Pass memory_guid to the parent constructor
 -         super().__init__(memory_file, domain_config, memory_guid)
 +         super().__init__(memory_file, domain_config, memory_guid, logger=logger)
-          print(f&quot;\nInitializing SimpleMemoryManager with file: {memory_file}&quot;)
+          print(f"\nInitializing SimpleMemoryManager with file: {memory_file}")
           self.llm = llm_service
 +         self.logger = logger or logging.getLogger(__name__)
           
@@ -2857,7 +2857,7 @@ Let me edit the `setup_services` function to create the correct directory struct
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/agent_usage_example.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: examples/agent_usage_example.py</summary>
 
 **Chunk 1**
 Lines added: 19, lines removed: 6
@@ -2865,14 +2865,14 @@ Lines added: 19, lines removed: 6
 ```diff
 @@ -343,12 +343,25 @@
       # Create logs directory structure
-      logs_dir = os.path.join(project_root, &quot;logs&quot;)
+      logs_dir = os.path.join(project_root, "logs")
 -     guid_logs_dir = os.path.join(logs_dir, guid)
 -     os.makedirs(guid_logs_dir, exist_ok=True)
--     logger.debug(f&quot;Logs directory: {guid_logs_dir}&quot;)
+-     logger.debug(f"Logs directory: {guid_logs_dir}")
 +     os.makedirs(logs_dir, exist_ok=True)
 +     
 +     # Create memory logs directory structure
-+     memory_logs_dir = os.path.join(logs_dir, &quot;memory&quot;)
++     memory_logs_dir = os.path.join(logs_dir, "memory")
 +     os.makedirs(memory_logs_dir, exist_ok=True)
 +     
 +     # Create type-specific memory logs directory
@@ -2883,18 +2883,18 @@ Lines added: 19, lines removed: 6
 +     guid_memory_logs_dir = os.path.join(type_memory_logs_dir, guid)
 +     os.makedirs(guid_memory_logs_dir, exist_ok=True)
 +     
-+     logger.debug(f&quot;Logs directory: {logs_dir}&quot;)
-+     logger.debug(f&quot;Memory logs directory: {guid_memory_logs_dir}&quot;)
++     logger.debug(f"Logs directory: {logs_dir}")
++     logger.debug(f"Memory logs directory: {guid_memory_logs_dir}")
       
       # Create separate debug files for each service within the GUID directory
--     ollama_general_debug_file = os.path.join(guid_logs_dir, &quot;ollama_general.log&quot;)
--     ollama_digest_debug_file = os.path.join(guid_logs_dir, &quot;ollama_digest.log&quot;)
--     ollama_embed_debug_file = os.path.join(guid_logs_dir, &quot;ollama_embed.log&quot;)
-+     ollama_general_debug_file = os.path.join(guid_memory_logs_dir, &quot;ollama_general.log&quot;)
-+     ollama_digest_debug_file = os.path.join(guid_memory_logs_dir, &quot;ollama_digest.log&quot;)
-+     ollama_embed_debug_file = os.path.join(guid_memory_logs_dir, &quot;ollama_embed.log&quot;)
+-     ollama_general_debug_file = os.path.join(guid_logs_dir, "ollama_general.log")
+-     ollama_digest_debug_file = os.path.join(guid_logs_dir, "ollama_digest.log")
+-     ollama_embed_debug_file = os.path.join(guid_logs_dir, "ollama_embed.log")
++     ollama_general_debug_file = os.path.join(guid_memory_logs_dir, "ollama_general.log")
++     ollama_digest_debug_file = os.path.join(guid_memory_logs_dir, "ollama_digest.log")
++     ollama_embed_debug_file = os.path.join(guid_memory_logs_dir, "ollama_embed.log")
       
-      logger.debug(f&quot;Ollama debug log files:&quot;)
+      logger.debug(f"Ollama debug log files:")
 ```
 
 **Chunk 2**
@@ -2903,12 +2903,12 @@ Lines added: 3, lines removed: 3
 ```diff
 @@ -404,7 +417,7 @@
           # Set up logging for the memory manager
-          memory_manager_logger = logging.getLogger(f&quot;memory_manager.{memory_type}&quot;)
+          memory_manager_logger = logging.getLogger(f"memory_manager.{memory_type}")
 -         # logs should be written to the logs directory: /logs/agent_memories/memory_type/memory_guid/memory_manager.log
--         memory_manager_logger.addHandler(logging.FileHandler(os.path.join(logs_dir, &quot;agent_memories&quot;, memory_type, guid, &quot;memory_manager.log&quot;)))
+-         memory_manager_logger.addHandler(logging.FileHandler(os.path.join(logs_dir, "agent_memories", memory_type, guid, "memory_manager.log")))
 - 
 +         # Create memory manager log file in the GUID-specific directory
-+         memory_manager_log_file = os.path.join(guid_memory_logs_dir, &quot;memory_manager.log&quot;)
++         memory_manager_log_file = os.path.join(guid_memory_logs_dir, "memory_manager.log")
 +         memory_manager_logger.addHandler(logging.FileHandler(memory_manager_log_file))
           
           # Create memory manager instance based on type
@@ -2965,7 +2965,7 @@ Let me modify the `setup_services` function to implement this structure:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/agent_usage_example.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: examples/agent_usage_example.py</summary>
 
 **Chunk 1**
 Lines added: 7, lines removed: 16
@@ -2975,7 +2975,7 @@ Lines added: 7, lines removed: 16
       os.makedirs(logs_dir, exist_ok=True)
       
 -     # Create memory logs directory structure
--     memory_logs_dir = os.path.join(logs_dir, &quot;memory&quot;)
+-     memory_logs_dir = os.path.join(logs_dir, "memory")
 -     os.makedirs(memory_logs_dir, exist_ok=True)
 -     
 -     # Create type-specific memory logs directory
@@ -2989,19 +2989,19 @@ Lines added: 7, lines removed: 16
 +     guid_logs_dir = os.path.join(logs_dir, guid)
 +     os.makedirs(guid_logs_dir, exist_ok=True)
       
--     logger.debug(f&quot;Logs directory: {logs_dir}&quot;)
--     logger.debug(f&quot;Memory logs directory: {guid_memory_logs_dir}&quot;)
-+     logger.debug(f&quot;Logs directory: {guid_logs_dir}&quot;)
+-     logger.debug(f"Logs directory: {logs_dir}")
+-     logger.debug(f"Memory logs directory: {guid_memory_logs_dir}")
++     logger.debug(f"Logs directory: {guid_logs_dir}")
       
       # Create separate debug files for each service within the GUID directory
--     ollama_general_debug_file = os.path.join(guid_memory_logs_dir, &quot;ollama_general.log&quot;)
--     ollama_digest_debug_file = os.path.join(guid_memory_logs_dir, &quot;ollama_digest.log&quot;)
--     ollama_embed_debug_file = os.path.join(guid_memory_logs_dir, &quot;ollama_embed.log&quot;)
-+     ollama_general_debug_file = os.path.join(guid_logs_dir, &quot;ollama_general.log&quot;)
-+     ollama_digest_debug_file = os.path.join(guid_logs_dir, &quot;ollama_digest.log&quot;)
-+     ollama_embed_debug_file = os.path.join(guid_logs_dir, &quot;ollama_embed.log&quot;)
+-     ollama_general_debug_file = os.path.join(guid_memory_logs_dir, "ollama_general.log")
+-     ollama_digest_debug_file = os.path.join(guid_memory_logs_dir, "ollama_digest.log")
+-     ollama_embed_debug_file = os.path.join(guid_memory_logs_dir, "ollama_embed.log")
++     ollama_general_debug_file = os.path.join(guid_logs_dir, "ollama_general.log")
++     ollama_digest_debug_file = os.path.join(guid_logs_dir, "ollama_digest.log")
++     ollama_embed_debug_file = os.path.join(guid_logs_dir, "ollama_embed.log")
       
-      logger.debug(f&quot;Ollama debug log files:&quot;)
+      logger.debug(f"Ollama debug log files:")
 ```
 
 **Chunk 2**
@@ -3009,10 +3009,10 @@ Lines added: 1, lines removed: 1
 
 ```diff
 @@ -418,5 +409,5 @@
-          memory_manager_logger = logging.getLogger(f&quot;memory_manager.{memory_type}&quot;)
+          memory_manager_logger = logging.getLogger(f"memory_manager.{memory_type}")
           # Create memory manager log file in the GUID-specific directory
--         memory_manager_log_file = os.path.join(guid_memory_logs_dir, &quot;memory_manager.log&quot;)
-+         memory_manager_log_file = os.path.join(guid_logs_dir, &quot;memory_manager.log&quot;)
+-         memory_manager_log_file = os.path.join(guid_memory_logs_dir, "memory_manager.log")
++         memory_manager_log_file = os.path.join(guid_logs_dir, "memory_manager.log")
           memory_manager_logger.addHandler(logging.FileHandler(memory_manager_log_file))
           
 ```
@@ -3116,7 +3116,7 @@ Let me update the `setup_services` function to match this structure:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/agent_usage_example.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: examples/agent_usage_example.py</summary>
 
 </details>
 
@@ -3233,7 +3233,7 @@ I see the issue. The `get_memory_file_by_guid` function is returning a tuple of 
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/agent_usage_example.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: examples/agent_usage_example.py</summary>
 
 **Chunk 1**
 Lines added: 6, lines removed: 1
@@ -3279,7 +3279,7 @@ I see the issue. The `get_memory_file_by_guid` function is returning a tuple of 
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/agent_usage_example.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: examples/agent_usage_example.py</summary>
 
 **Chunk 1**
 Lines added: 10, lines removed: 10
@@ -3290,28 +3290,28 @@ Lines added: 10, lines removed: 10
           
 -         # Pattern to match: agent_memory_GUID.json but not backup files
 -         for filename in os.listdir(memory_dir):
--             if filename.startswith(MEMORY_FILE_PREFIX) and filename.endswith(&quot;.json&quot;) and &quot;_bak_&quot; not in filename:
+-             if filename.startswith(MEMORY_FILE_PREFIX) and filename.endswith(".json") and "_bak_" not in filename:
 -                 try:
 -                     # Extract GUID from filename
--                     filename_guid = filename.replace(MEMORY_FILE_PREFIX + &quot;_&quot;, &quot;&quot;).replace(&quot;.json&quot;, &quot;&quot;)
+-                     filename_guid = filename.replace(MEMORY_FILE_PREFIX + "_", "").replace(".json", "")
 -                     
--                     with open(os.path.join(memory_dir, filename), &#39;r&#39;) as f:
+-                     with open(os.path.join(memory_dir, filename), 'r') as f:
 +         # Look for memory files in GUID-specific directories
 +         for guid_dir in os.listdir(memory_dir):
 +             guid_path = os.path.join(memory_dir, guid_dir)
 +             if os.path.isdir(guid_path):
-+                 memory_file = os.path.join(guid_path, f&quot;{MEMORY_FILE_PREFIX}.json&quot;)
++                 memory_file = os.path.join(guid_path, f"{MEMORY_FILE_PREFIX}.json")
 +                 if os.path.exists(memory_file):
 +                     try:
-+                         with open(memory_file, &#39;r&#39;) as f:
++                         with open(memory_file, 'r') as f:
                               data = json.load(f)
-                              if &quot;guid&quot; in data:
+                              if "guid" in data:
                                   # Store both the internal GUID and filename GUID
--                             files[data[&quot;guid&quot;]] = (mem_type, filename, filename_guid)
-+                                 files[data[&quot;guid&quot;]] = (mem_type, memory_file, guid_dir)
+-                             files[data["guid"]] = (mem_type, filename, filename_guid)
++                                 files[data["guid"]] = (mem_type, memory_file, guid_dir)
                       except Exception as e:
--                     logger.error(f&quot;Error reading {filename}: {str(e)}&quot;)
-+                         logger.error(f&quot;Error reading {memory_file}: {str(e)}&quot;)
+-                     logger.error(f"Error reading {filename}: {str(e)}")
++                         logger.error(f"Error reading {memory_file}: {str(e)}")
       
       return files
 ```
@@ -3329,7 +3329,7 @@ Now let me check the `get_memory_file_by_guid` function to make sure it's using 
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/agent_usage_example.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: examples/agent_usage_example.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 2
@@ -3427,7 +3427,7 @@ DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.143:11434 OLLAMA_MODEL=gemma3 OLL
 _**Agent (mode Agent)**_
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.143:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/agent_usage_example.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.143:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/agent_usage_example.py</summary>
 
 ```bash
 DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.143:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/agent_usage_example.py
@@ -3472,20 +3472,20 @@ I will add debug print/log statements in `initialize_session` and `get_memory_fi
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/agent_usage_example.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: examples/agent_usage_example.py</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: 1
 
 ```diff
 @@ -248,7 +248,8 @@
-      &quot;&quot;&quot;
+      """
       files = list_memory_files()
-+     print(f&quot;[DEBUG] list_memory_files() returned: {files}&quot;)
++     print(f"[DEBUG] list_memory_files() returned: {files}")
       if guid in files:
           mem_type, file_path, _ = files[guid]
 -         
-+         print(f&quot;[DEBUG] get_memory_file_by_guid: guid={guid}, file_path={file_path}, mem_type={mem_type}&quot;)
++         print(f"[DEBUG] get_memory_file_by_guid: guid={guid}, file_path={file_path}, mem_type={mem_type}")
           # Verify memory_type in the file matches expected type
           try:
 ```
@@ -3497,7 +3497,7 @@ Lines added: 1, lines removed: undefined
 @@ -297,4 +298,5 @@
           # Check if the GUID exists
           result = get_memory_file_by_guid(provided_guid, memory_type)
-+         print(f&quot;[DEBUG] initialize_session: get_memory_file_by_guid({provided_guid}, {memory_type}) returned: {result}&quot;)
++         print(f"[DEBUG] initialize_session: get_memory_file_by_guid({provided_guid}, {memory_type}) returned: {result}")
           if result is None:
               memory_file = None
 ```
@@ -3509,7 +3509,7 @@ Lines added: 1, lines removed: undefined
 @@ -314,4 +316,5 @@
                   memory_type = found_type
                   
-+             print(f&quot;[DEBUG] initialize_session: returning (session_guid={session_guid}, memory_file={memory_file}, memory_type={memory_type})&quot;)
++             print(f"[DEBUG] initialize_session: returning (session_guid={session_guid}, memory_file={memory_file}, memory_type={memory_type})")
               return session_guid, memory_file, memory_type
           else:
 ```
@@ -3520,9 +3520,9 @@ Lines added: 1, lines removed: 1
 ```diff
 @@ -327,5 +330,5 @@
       memory_file = get_memory_filename(memory_type, session_guid)
-      logger.debug(f&quot;Memory file path: {memory_file}&quot;)
+      logger.debug(f"Memory file path: {memory_file}")
 -     
-+     print(f&quot;[DEBUG] initialize_session: returning (session_guid={session_guid}, memory_file={memory_file}, memory_type={memory_type})&quot;)
++     print(f"[DEBUG] initialize_session: returning (session_guid={session_guid}, memory_file={memory_file}, memory_type={memory_type})")
       return session_guid, memory_file, memory_type
   
 ```
@@ -3556,7 +3556,7 @@ DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.143:11434 OLLAMA_MODEL=gemma3 OLL
 _**Agent (mode Agent)**_
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.143:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/agent_usage_example.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.143:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/agent_usage_example.py</summary>
 
 ```bash
 DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.143:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/agent_usage_example.py
@@ -3695,7 +3695,7 @@ _**Agent (mode Agent)**_
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -3706,7 +3706,7 @@ Lines added: 1, lines removed: 1
           # Pass memory_guid and logger to the parent constructor
 -         super().__init__(memory_file, domain_config, memory_guid, logger=logger)
 +         super().__init__(memory_guid, memory_file, domain_config, logger=logger)
-          print(f&quot;\nInitializing MemoryManager with file: {memory_file}&quot;)
+          print(f"\nInitializing MemoryManager with file: {memory_file}")
           self.llm = llm_service
 ```
 
@@ -3718,7 +3718,7 @@ Lines added: 1, lines removed: 1
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/simple_memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/simple_memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -3729,7 +3729,7 @@ Lines added: 1, lines removed: 1
           # Pass memory_guid to the parent constructor
 -         super().__init__(memory_file, domain_config, memory_guid, logger=logger)
 +         super().__init__(memory_guid, memory_file, domain_config, logger=logger)
-          print(f&quot;\nInitializing SimpleMemoryManager with file: {memory_file}&quot;)
+          print(f"\nInitializing SimpleMemoryManager with file: {memory_file}")
           self.llm = llm_service
 ```
 
@@ -3883,7 +3883,7 @@ _**Agent (mode Agent)**_
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/agent_usage_example.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: examples/agent_usage_example.py</summary>
 
 **Chunk 1**
 Lines added: 14, lines removed: 5
@@ -3898,18 +3898,18 @@ Lines added: 14, lines removed: 5
 +     logging.root.removeHandler(handler)
 + 
 + # Set up logging for the agent example (file only, no console)
-  logs_dir = os.path.join(project_root, &quot;logs&quot;)
+  logs_dir = os.path.join(project_root, "logs")
   os.makedirs(logs_dir, exist_ok=True)
 - # Set up logging for the agent example
 - logging.basicConfig(level=logging.INFO)
-+ file_handler = logging.FileHandler(os.path.join(logs_dir, &quot;agent_usage_example.log&quot;))
++ file_handler = logging.FileHandler(os.path.join(logs_dir, "agent_usage_example.log"))
 + file_handler.setLevel(logging.INFO)
-+ formatter = logging.Formatter(&#39;%(asctime)s %(levelname)s:%(name)s:%(message)s&#39;)
++ formatter = logging.Formatter('%(asctime)s %(levelname)s:%(name)s:%(message)s')
 + file_handler.setFormatter(formatter)
 + 
   logger = logging.getLogger(__name__)
 - # log should be written to the logs directory
-- logger.addHandler(logging.FileHandler(os.path.join(logs_dir, &quot;agent_usage_example.log&quot;)))
+- logger.addHandler(logging.FileHandler(os.path.join(logs_dir, "agent_usage_example.log")))
 + logger.setLevel(logging.INFO)
 + logger.addHandler(file_handler)
   
@@ -3983,7 +3983,7 @@ _**Agent (mode Agent)**_
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/agent_usage_example.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: examples/agent_usage_example.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: undefined
@@ -3991,10 +3991,10 @@ Lines added: 1, lines removed: undefined
 ```diff
 @@ -56,4 +56,5 @@
   def print_section_header(title):
-      &quot;&quot;&quot;Print a formatted section header&quot;&quot;&quot;
-+     logger.debug(f&quot;Section header: {title}&quot;)
-      print(f&quot;\n{&#39;=&#39;*80}&quot;)
-      print(f&quot;  {title}&quot;)
+      """Print a formatted section header"""
++     logger.debug(f"Section header: {title}")
+      print(f"\n{'='*80}")
+      print(f"  {title}")
 ```
 
 **Chunk 2**
@@ -4002,11 +4002,11 @@ Lines added: 1, lines removed: undefined
 
 ```diff
 @@ -62,4 +63,5 @@
-  def print_memory_state(memory_manager, title=&quot;Current Memory State&quot;):
-      &quot;&quot;&quot;Helper to print memory state in a readable format&quot;&quot;&quot;
-+     logger.debug(f&quot;Printing memory state: {title}&quot;)
-      print(f&quot;\n{title}&quot;)
-      print(&quot;=&quot; * len(title))
+  def print_memory_state(memory_manager, title="Current Memory State"):
+      """Helper to print memory state in a readable format"""
++     logger.debug(f"Printing memory state: {title}")
+      print(f"\n{title}")
+      print("=" * len(title))
 ```
 
 **Chunk 3**
@@ -4015,27 +4015,27 @@ Lines added: 2, lines removed: 17
 ```diff
 @@ -80,22 +82,7 @@
       # Print static memory if available
-      if &quot;static_memory&quot; in memory_context:
--         # print(&quot;\nStatic Memory (Read-Only):&quot;)
--         # print(&quot;-&quot; * 30)
--         static_mem = memory_context[&quot;static_memory&quot;]
+      if "static_memory" in memory_context:
+-         # print("\nStatic Memory (Read-Only):")
+-         # print("-" * 30)
+-         static_mem = memory_context["static_memory"]
 -         # if isinstance(static_mem, str):
 -         #     # New markdown format
 -         #     print(static_mem)
-+         logger.debug(&quot;Static memory present.&quot;)
++         logger.debug("Static memory present.")
       else:
--         print(&quot;No static memory&quot;)
+-         print("No static memory")
 -     
 -     # Print working memory if available
--     # if &quot;working_memory&quot; in memory_context:
--     #     print(&quot;\nWorking Memory:&quot;)
--     #     print(&quot;-&quot; * 30)
--     #     working_mem = memory_context[&quot;working_memory&quot;]
--     #     print(&quot;\nStructured Data:&quot;)
--     #     print(json.dumps(working_mem.get(&quot;structured_data&quot;, {}), indent=2))
--     #     print(&quot;\nKnowledge Graph:&quot;)
--     #     print(json.dumps(working_mem.get(&quot;knowledge_graph&quot;, {}), indent=2))
-+         logger.debug(&quot;No static memory&quot;)
+-     # if "working_memory" in memory_context:
+-     #     print("\nWorking Memory:")
+-     #     print("-" * 30)
+-     #     working_mem = memory_context["working_memory"]
+-     #     print("\nStructured Data:")
+-     #     print(json.dumps(working_mem.get("structured_data", {}), indent=2))
+-     #     print("\nKnowledge Graph:")
+-     #     print(json.dumps(working_mem.get("knowledge_graph", {}), indent=2))
++         logger.debug("No static memory")
       
       # Print metadata if available
 ```
@@ -4045,16 +4045,16 @@ Lines added: 2, lines removed: undefined
 
 ```diff
 @@ -111,9 +98,11 @@
-  def print_conversation_history(memory_manager, title=&quot;Conversation History&quot;):
-      &quot;&quot;&quot;Print the accumulated conversation history from memory&quot;&quot;&quot;
-+     logger.debug(f&quot;Printing conversation history: {title}&quot;)
-      print(f&quot;\n{title}&quot;)
-      print(&quot;=&quot; * len(title))
+  def print_conversation_history(memory_manager, title="Conversation History"):
+      """Print the accumulated conversation history from memory"""
++     logger.debug(f"Printing conversation history: {title}")
+      print(f"\n{title}")
+      print("=" * len(title))
       memory_context = memory_manager.get_memory_context()
-      messages = memory_context.get(&quot;conversation_history&quot;, [])
+      messages = memory_context.get("conversation_history", [])
       if not messages:
-+         logger.debug(&quot;No conversation history in memory&quot;)
-          print(&quot;No conversation history in memory&quot;)
++         logger.debug("No conversation history in memory")
+          print("No conversation history in memory")
           return
 ```
 
@@ -4063,15 +4063,15 @@ Lines added: 2, lines removed: undefined
 
 ```diff
 @@ -127,8 +116,10 @@
-  def print_recent_history(agent, title=&quot;Recent History&quot;):
-      &quot;&quot;&quot;Print the agent&#39;s current session history&quot;&quot;&quot;
-+     logger.debug(f&quot;Printing recent history: {title}&quot;)
-      print(f&quot;\n{title}&quot;)
-      print(&quot;=&quot; * len(title))
+  def print_recent_history(agent, title="Recent History"):
+      """Print the agent's current session history"""
++     logger.debug(f"Printing recent history: {title}")
+      print(f"\n{title}")
+      print("=" * len(title))
       history = agent.get_conversation_history()
       if not history:
-+         logger.debug(&quot;No recent history&quot;)
-          print(&quot;No recent history&quot;)
++         logger.debug("No recent history")
+          print("No recent history")
           return
 ```
 
@@ -4081,10 +4081,10 @@ Lines added: 1, lines removed: undefined
 ```diff
 @@ -142,4 +133,5 @@
   def print_help():
-      &quot;&quot;&quot;Print available commands and their descriptions&quot;&quot;&quot;
-+     logger.debug(&quot;Printing help message&quot;)
-      print(&quot;\nAvailable Commands:&quot;)
-      print(&quot;------------------&quot;)
+      """Print available commands and their descriptions"""
++     logger.debug("Printing help message")
+      print("\nAvailable Commands:")
+      print("------------------")
 ```
 
 **Chunk 7**
@@ -4092,9 +4092,9 @@ Lines added: 1, lines removed: undefined
 
 ```diff
 @@ -231,4 +223,5 @@
-          memory_type: Optional type to filter (&#39;standard&#39; or &#39;simple&#39;)
-      &quot;&quot;&quot;
-+     logger.debug(f&quot;Printing memory files for type: {memory_type}&quot;)
+          memory_type: Optional type to filter ('standard' or 'simple')
+      """
++     logger.debug(f"Printing memory files for type: {memory_type}")
       files = list_memory_files(memory_type)
       if not files:
 ```
@@ -4184,7 +4184,7 @@ _**Agent (mode Agent)**_
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: undefined, lines removed: 1
@@ -4193,7 +4193,7 @@ Lines added: undefined, lines removed: 1
 @@ -82,5 +82,4 @@
           # Pass memory_guid and logger to the parent constructor
           super().__init__(memory_guid, memory_file, domain_config, logger=logger)
--         print(f&quot;\nInitializing MemoryManager with file: {memory_file}&quot;)
+-         print(f"\nInitializing MemoryManager with file: {memory_file}")
           self.llm = llm_service
           self.digest_llm = digest_llm_service or llm_service
 ```
@@ -4205,18 +4205,18 @@ Lines added: undefined, lines removed: 4
 @@ -90,16 +89,12 @@
           # Initialize DigestGenerator with dedicated LLM service
           self.digest_generator = DigestGenerator(self.digest_llm, logger=logger)
--         print(&quot;Initialized DigestGenerator&quot;)
+-         print("Initialized DigestGenerator")
           
           # Initialize MemoryCompressor (uses general LLM)
           self.memory_compressor = MemoryCompressor(self.llm, importance_threshold, logger=logger)
--         print(&quot;Initialized MemoryCompressor&quot;)
+-         print("Initialized MemoryCompressor")
           
           # Initialize EmbeddingsManager and RAGManager with dedicated embeddings LLM service
-          embeddings_file = os.path.splitext(memory_file)[0] + &quot;_embeddings.jsonl&quot;
+          embeddings_file = os.path.splitext(memory_file)[0] + "_embeddings.jsonl"
           self.embeddings_manager = EmbeddingsManager(embeddings_file, self.embeddings_llm, logger=logger)
           self.rag_manager = RAGManager(self.embeddings_llm, self.embeddings_manager, logger=logger)
--         print(&quot;Initialized EmbeddingsManager and RAGManager&quot;)
--         print(f&quot;Embeddings file: {embeddings_file}&quot;)
+-         print("Initialized EmbeddingsManager and RAGManager")
+-         print(f"Embeddings file: {embeddings_file}")
           
           # Ensure memory has a GUID
 ```
@@ -4228,8 +4228,8 @@ Lines added: 1, lines removed: 1
 @@ -109,5 +104,5 @@
           self.max_recent_conversation_entries = max_recent_conversation_entries
           self.importance_threshold = importance_threshold
--         print(f&quot;Memory configuration: max_recent_conversation_entries={max_recent_conversation_entries}, importance_threshold={importance_threshold}&quot;)
-+         logger.debug(f&quot;MemoryManager initialized with file: {memory_file}&quot;)
+-         print(f"Memory configuration: max_recent_conversation_entries={max_recent_conversation_entries}, importance_threshold={importance_threshold}")
++         logger.debug(f"MemoryManager initialized with file: {memory_file}")
   
       def _ensure_memory_guid(self):
 ```
@@ -4241,8 +4241,8 @@ Lines added: 1, lines removed: 1
 @@ -118,5 +113,5 @@
               if not self.memory_guid:
                   self.memory_guid = str(uuid.uuid4())
--                 print(f&quot;Generated new GUID: {self.memory_guid} for memory file that will be created&quot;)
-+                 self.logger.debug(f&quot;Generated new GUID: {self.memory_guid} for memory file that will be created&quot;)
+-                 print(f"Generated new GUID: {self.memory_guid} for memory file that will be created")
++                 self.logger.debug(f"Generated new GUID: {self.memory_guid} for memory file that will be created")
               return
               
 ```
@@ -4253,27 +4253,27 @@ Lines added: 4, lines removed: 6
 ```diff
 @@ -130,20 +125,18 @@
               # Force the memory to use our provided GUID, overriding any existing GUID
-              if &quot;guid&quot; in self.memory and self.memory[&quot;guid&quot;] != self.memory_guid:
--                 print(f&quot;Replacing existing memory GUID: {self.memory[&#39;guid&#39;]} with provided GUID: {self.memory_guid}&quot;)
-+                 self.logger.debug(f&quot;Replacing existing memory GUID: {self.memory[&#39;guid&#39;]} with provided GUID: {self.memory_guid}&quot;)
+              if "guid" in self.memory and self.memory["guid"] != self.memory_guid:
+-                 print(f"Replacing existing memory GUID: {self.memory['guid']} with provided GUID: {self.memory_guid}")
++                 self.logger.debug(f"Replacing existing memory GUID: {self.memory['guid']} with provided GUID: {self.memory_guid}")
               
               # Set the GUID in memory
-              self.memory[&quot;guid&quot;] = self.memory_guid
--             print(f&quot;Using provided GUID for memory: {self.memory_guid}&quot;)
+              self.memory["guid"] = self.memory_guid
+-             print(f"Using provided GUID for memory: {self.memory_guid}")
 -             # self.save_memory()
-+             self.logger.debug(f&quot;Using provided GUID for memory: {self.memory_guid}&quot;)
++             self.logger.debug(f"Using provided GUID for memory: {self.memory_guid}")
           # If no GUID was provided but one exists in memory, use that
-          elif &quot;guid&quot; in self.memory:
-              self.memory_guid = self.memory[&quot;guid&quot;]
--             print(f&quot;Using existing memory GUID: {self.memory_guid}&quot;)
-+             self.logger.debug(f&quot;Using existing memory GUID: {self.memory_guid}&quot;)
+          elif "guid" in self.memory:
+              self.memory_guid = self.memory["guid"]
+-             print(f"Using existing memory GUID: {self.memory_guid}")
++             self.logger.debug(f"Using existing memory GUID: {self.memory_guid}")
           # If no GUID was provided and none exists in memory, generate a new one
           else:
               self.memory_guid = str(uuid.uuid4())
-              self.memory[&quot;guid&quot;] = self.memory_guid
--             print(f&quot;Generated new GUID for memory: {self.memory_guid}&quot;)
+              self.memory["guid"] = self.memory_guid
+-             print(f"Generated new GUID for memory: {self.memory_guid}")
 -             # self.save_memory()
-+             self.logger.debug(f&quot;Generated new GUID for memory: {self.memory_guid}&quot;)
++             self.logger.debug(f"Generated new GUID for memory: {self.memory_guid}")
   
       def _get_default_config(self) -&gt; dict:
 ```
@@ -4283,15 +4283,15 @@ Lines added: 2, lines removed: 2
 
 ```diff
 @@ -170,7 +163,7 @@
-                  with open(path, &#39;r&#39;) as f:
+                  with open(path, 'r') as f:
                       self.templates[key] = f.read().strip()
--                 print(f&quot;Loaded template: {filename}&quot;)
-+                 self.logger.debug(f&quot;Loaded template: {filename}&quot;)
+-                 print(f"Loaded template: {filename}")
++                 self.logger.debug(f"Loaded template: {filename}")
               except Exception as e:
--                 print(f&quot;Error loading template {filename}: {str(e)}&quot;)
-+                 self.logger.error(f&quot;Error loading template {filename}: {str(e)}&quot;)
+-                 print(f"Error loading template {filename}: {str(e)}")
++                 self.logger.error(f"Error loading template {filename}: {str(e)}")
                   # Raise an exception if the template cannot be loaded
-                  raise Exception(f&quot;Failed to load template: {filename}&quot;)
+                  raise Exception(f"Failed to load template: {filename}")
 ```
 
 **Chunk 7**
@@ -4300,21 +4300,21 @@ Lines added: 3, lines removed: 3
 ```diff
 @@ -185,15 +178,15 @@
               # Check if we have valid existing memory
-              if self.memory and all(key in self.memory for key in [&quot;static_memory&quot;, &quot;context&quot;, &quot;conversation_history&quot;]):
--                 print(&quot;Valid memory structure already exists, skipping initialization&quot;)
-+                 self.logger.debug(&quot;Valid memory structure already exists, skipping initialization&quot;)
+              if self.memory and all(key in self.memory for key in ["static_memory", "context", "conversation_history"]):
+-                 print("Valid memory structure already exists, skipping initialization")
++                 self.logger.debug("Valid memory structure already exists, skipping initialization")
                   # Ensure GUID exists even for pre-existing memories
                   self._ensure_memory_guid()
                   return True
   
--             print(&quot;\nCreating initial memory structure...&quot;)
-+             self.logger.debug(&quot;Creating initial memory structure...&quot;)
+-             print("\nCreating initial memory structure...")
++             self.logger.debug("Creating initial memory structure...")
   
               # Use DataPreprocessor to segment the input data
               data_preprocessor = DataPreprocessor(self.llm)
               preprocessed_segments = data_preprocessor.preprocess_data(input_data)
--             print(f&quot;Preprocessed segments: {preprocessed_segments}&quot;)
-+             self.logger.debug(f&quot;Preprocessed segments: {preprocessed_segments}&quot;)
+-             print(f"Preprocessed segments: {preprocessed_segments}")
++             self.logger.debug(f"Preprocessed segments: {preprocessed_segments}")
   
               # Create system entry for initial data
 ```
@@ -4326,10 +4326,10 @@ Lines added: 1, lines removed: 1
 @@ -206,5 +199,5 @@
               
               # Generate digest for initial data using pre-segmented content
--             print(&quot;Generating digest for initial data with pre-segmented content...&quot;)
-+             self.logger.debug(&quot;Generating digest for initial data with pre-segmented content...&quot;)
+-             print("Generating digest for initial data with pre-segmented content...")
++             self.logger.debug("Generating digest for initial data with pre-segmented content...")
               initial_digest = self.digest_generator.generate_digest(system_entry, segments=preprocessed_segments)
-              system_entry[&quot;digest&quot;] = initial_digest
+              system_entry["digest"] = initial_digest
 ```
 
 **Chunk 9**
@@ -4339,12 +4339,12 @@ Lines added: 2, lines removed: 2
 @@ -238,8 +231,8 @@
               self.embeddings_manager.update_indices([system_entry])
   
--             print(&quot;Memory created and initialized with static knowledge&quot;)
-+             self.logger.debug(&quot;Memory created and initialized with static knowledge&quot;)
+-             print("Memory created and initialized with static knowledge")
++             self.logger.debug("Memory created and initialized with static knowledge")
               return True
           except Exception as e:
--             print(f&quot;Error creating initial memory: {str(e)}&quot;)
-+             self.logger.error(f&quot;Error creating initial memory: {str(e)}&quot;)
+-             print(f"Error creating initial memory: {str(e)}")
++             self.logger.error(f"Error creating initial memory: {str(e)}")
               return False
   
 ```
@@ -4356,16 +4356,16 @@ Lines added: 2, lines removed: 2
 @@ -250,11 +243,11 @@
               
               if not rated_segments:
--                 print(&quot;Warning: No rated segments found in digest, using empty static memory&quot;)
-+                 self.logger.debug(&quot;Warning: No rated segments found in digest, using empty static memory&quot;)
-                  return &quot;&quot;
+-                 print("Warning: No rated segments found in digest, using empty static memory")
++                 self.logger.debug("Warning: No rated segments found in digest, using empty static memory")
+                  return ""
               
-              return &quot;\n&quot;.join(segment.get(&quot;text&quot;, &quot;&quot;) for segment in rated_segments)
+              return "\n".join(segment.get("text", "") for segment in rated_segments)
               
           except Exception as e:
--             print(f&quot;Error creating static memory from digest: {str(e)}&quot;)
-+             self.logger.error(f&quot;Error creating static memory from digest: {str(e)}&quot;)
-              return &quot;&quot;
+-             print(f"Error creating static memory from digest: {str(e)}")
++             self.logger.error(f"Error creating static memory from digest: {str(e)}")
+              return ""
   
 ```
 
@@ -4374,10 +4374,10 @@ Lines added: 1, lines removed: 1
 
 ```diff
 @@ -284,5 +277,5 @@
-          &quot;&quot;&quot;
+          """
           try:
--             print(&quot;\nQuerying memory...&quot;)
-+             self.logger.debug(&quot;Querying memory...&quot;)
+-             print("\nQuerying memory...")
++             self.logger.debug("Querying memory...")
               
               # Extract query text
 ```
@@ -4387,13 +4387,13 @@ Lines added: 2, lines removed: 2
 
 ```diff
 @@ -319,7 +312,7 @@
-                  rag_context = enhanced_context.get(&quot;rag_context&quot;, &quot;&quot;)
+                  rag_context = enhanced_context.get("rag_context", "")
                   if rag_context:
--                     print(&quot;Using RAG-enhanced context for memory query (auto-generated)&quot;)
-+                     self.logger.debug(&quot;Using RAG-enhanced context for memory query (auto-generated)&quot;)
+-                     print("Using RAG-enhanced context for memory query (auto-generated)")
++                     self.logger.debug("Using RAG-enhanced context for memory query (auto-generated)")
               else:
--                 print(&quot;Using RAG-enhanced context for memory query (provided)&quot;)
-+                 self.logger.debug(&quot;Using RAG-enhanced context for memory query (provided)&quot;)
+-                 print("Using RAG-enhanced context for memory query (provided)")
++                 self.logger.debug("Using RAG-enhanced context for memory query (provided)")
               
               # Get domain-specific instructions (use provided or get from config)
 ```
@@ -4405,8 +4405,8 @@ Lines added: 1, lines removed: 1
 @@ -341,5 +334,5 @@
               
               # Get response from LLM
--             print(&quot;Generating response using LLM...&quot;)
-+             self.logger.debug(&quot;Generating response using LLM...&quot;)
+-             print("Generating response using LLM...")
++             self.logger.debug("Generating response using LLM...")
               llm_response = self.llm.generate(
                   prompt,
 ```
@@ -4416,18 +4416,18 @@ Lines added: 2, lines removed: 2
 
 ```diff
 @@ -373,11 +366,11 @@
-              conversation_entries = len(self.memory[&quot;conversation_history&quot;])
+              conversation_entries = len(self.memory["conversation_history"])
               if conversation_entries &gt; self.max_recent_conversation_entries:
--                 print(f&quot;Memory has {conversation_entries} conversations, scheduling compression...&quot;)
-+                 self.logger.debug(f&quot;Memory has {conversation_entries} conversations, scheduling compression...&quot;)
+-                 print(f"Memory has {conversation_entries} conversations, scheduling compression...")
++                 self.logger.debug(f"Memory has {conversation_entries} conversations, scheduling compression...")
                   asyncio.create_task(self._compress_memory_async())
               
-              return {&quot;response&quot;: llm_response}
+              return {"response": llm_response}
   
           except Exception as e:
--             print(f&quot;Error in query_memory: {str(e)}&quot;)
-+             self.logger.error(f&quot;Error in query_memory: {str(e)}&quot;)
-              return {&quot;response&quot;: f&quot;Error processing query: {str(e)}&quot;, &quot;error&quot;: str(e)}
+-             print(f"Error in query_memory: {str(e)}")
++             self.logger.error(f"Error in query_memory: {str(e)}")
+              return {"response": f"Error processing query: {str(e)}", "error": str(e)}
               
 ```
 
@@ -4437,30 +4437,30 @@ Lines added: 5, lines removed: 5
 ```diff
 @@ -387,22 +380,22 @@
               # Generate digest if not already present
-              if &quot;digest&quot; not in entry:
--                 print(f&quot;Generating digest for {entry[&#39;role&#39;]} entry...&quot;)
-+                 self.logger.debug(f&quot;Generating digest for {entry[&#39;role&#39;]} entry...&quot;)
-                  entry[&quot;digest&quot;] = self.digest_generator.generate_digest(entry, self.memory)
-                  self.save_memory(&quot;async_digest_generation&quot;)
+              if "digest" not in entry:
+-                 print(f"Generating digest for {entry['role']} entry...")
++                 self.logger.debug(f"Generating digest for {entry['role']} entry...")
+                  entry["digest"] = self.digest_generator.generate_digest(entry, self.memory)
+                  self.save_memory("async_digest_generation")
               
               # Update embeddings
--             print(f&quot;Updating embeddings for {entry[&#39;role&#39;]} entry...&quot;)
-+             self.logger.debug(f&quot;Updating embeddings for {entry[&#39;role&#39;]} entry...&quot;)
+-             print(f"Updating embeddings for {entry['role']} entry...")
++             self.logger.debug(f"Updating embeddings for {entry['role']} entry...")
               self.embeddings_manager.update_indices([entry])
               
           except Exception as e:
--             print(f&quot;Error in async entry processing: {str(e)}&quot;)
-+             self.logger.error(f&quot;Error in async entry processing: {str(e)}&quot;)
+-             print(f"Error in async entry processing: {str(e)}")
++             self.logger.error(f"Error in async entry processing: {str(e)}")
               
       async def _compress_memory_async(self) -&gt; None:
-          &quot;&quot;&quot;Compress memory asynchronously.&quot;&quot;&quot;
+          """Compress memory asynchronously."""
           try:
--             print(&quot;Starting async memory compression...&quot;)
-+             self.logger.debug(&quot;Starting async memory compression...&quot;)
+-             print("Starting async memory compression...")
++             self.logger.debug("Starting async memory compression...")
               self._compress_conversation_history()
           except Exception as e:
--             print(f&quot;Error in async memory compression: {str(e)}&quot;)
-+             self.logger.error(f&quot;Error in async memory compression: {str(e)}&quot;)
+-             print(f"Error in async memory compression: {str(e)}")
++             self.logger.error(f"Error in async memory compression: {str(e)}")
   
       def _format_static_memory_as_text(self) -&gt; str:
 ```
@@ -4470,24 +4470,24 @@ Lines added: 4, lines removed: 4
 
 ```diff
 @@ -503,16 +496,16 @@
-          &quot;&quot;&quot;
+          """
           try:
--             print(&quot;\nUpdating memory...&quot;)
-+             self.logger.debug(&quot;Updating memory...&quot;)
+-             print("\nUpdating memory...")
++             self.logger.debug("Updating memory...")
               
               # Only handle updating memory operations
-              if update_context.get(&quot;operation&quot;) != &quot;update&quot;:
--                 print(&quot;update_memory should only be used for updating memory operations&quot;)
-+                 self.logger.debug(&quot;update_memory should only be used for updating memory operations&quot;)
+              if update_context.get("operation") != "update":
+-                 print("update_memory should only be used for updating memory operations")
++                 self.logger.debug("update_memory should only be used for updating memory operations")
                   return False
   
--             print(&quot;\nCompressing conversation history...&quot;)            
-+             self.logger.debug(&quot;Compressing conversation history...&quot;)            
+-             print("\nCompressing conversation history...")            
++             self.logger.debug("Compressing conversation history...")            
               return self._compress_conversation_history()
               
           except Exception as e:
--             print(f&quot;Error updating memory: {str(e)}&quot;)
-+             self.logger.error(f&quot;Error updating memory: {str(e)}&quot;)
+-             print(f"Error updating memory: {str(e)}")
++             self.logger.error(f"Error updating memory: {str(e)}")
               return False
   
 ```
@@ -4497,15 +4497,15 @@ Lines added: 2, lines removed: 2
 
 ```diff
 @@ -553,9 +546,9 @@
-              self.save_memory(&quot;compress_conversation_history&quot;)
+              self.save_memory("compress_conversation_history")
               
--             print(f&quot;Compressed conversation history. Remaining entries: {len(self.memory[&#39;conversation_history&#39;])}&quot;)
-+             self.logger.debug(f&quot;Compressed conversation history. Remaining entries: {len(self.memory[&#39;conversation_history&#39;])}&quot;)
+-             print(f"Compressed conversation history. Remaining entries: {len(self.memory['conversation_history'])}")
++             self.logger.debug(f"Compressed conversation history. Remaining entries: {len(self.memory['conversation_history'])}")
               return True
               
           except Exception as e:
--             print(f&quot;Error compressing conversation history: {str(e)}&quot;)
-+             self.logger.error(f&quot;Error compressing conversation history: {str(e)}&quot;)
+-             print(f"Error compressing conversation history: {str(e)}")
++             self.logger.error(f"Error compressing conversation history: {str(e)}")
               return False
               
 ```
@@ -4516,14 +4516,14 @@ Lines added: 2, lines removed: 2
 ```diff
 @@ -576,9 +569,9 @@
               # Ensure basic fields exist
-              if &quot;content&quot; not in entry:
--                 print(&quot;Error: Conversation entry must have &#39;content&#39;&quot;)
-+                 self.logger.error(&quot;Error: Conversation entry must have &#39;content&#39;&quot;)
+              if "content" not in entry:
+-                 print("Error: Conversation entry must have 'content'")
++                 self.logger.error("Error: Conversation entry must have 'content'")
                   return False
                   
-              if &quot;role&quot; not in entry:
--                 print(&quot;Error: Conversation entry must have &#39;role&#39;&quot;)
-+                 self.logger.error(&quot;Error: Conversation entry must have &#39;role&#39;&quot;)
+              if "role" not in entry:
+-                 print("Error: Conversation entry must have 'role'")
++                 self.logger.error("Error: Conversation entry must have 'role'")
                   return False
                   
 ```
@@ -4534,10 +4534,10 @@ Lines added: 1, lines removed: 1
 ```diff
 @@ -593,5 +586,5 @@
               # Generate digest if not already present
-              if &quot;digest&quot; not in entry:
--                 print(f&quot;Generating digest for {entry[&#39;role&#39;]} entry...&quot;)
-+                 self.logger.debug(f&quot;Generating digest for {entry[&#39;role&#39;]} entry...&quot;)
-                  entry[&quot;digest&quot;] = self.digest_generator.generate_digest(entry, self.memory)
+              if "digest" not in entry:
+-                 print(f"Generating digest for {entry['role']} entry...")
++                 self.logger.debug(f"Generating digest for {entry['role']} entry...")
+                  entry["digest"] = self.digest_generator.generate_digest(entry, self.memory)
                   
 ```
 
@@ -4547,9 +4547,9 @@ Lines added: 1, lines removed: 1
 ```diff
 @@ -603,5 +596,5 @@
                   
-              self.memory[&quot;conversation_history&quot;].append(entry)
--             print(f&quot;Added {entry[&#39;role&#39;]} entry to conversation history&quot;)
-+             self.logger.debug(f&quot;Added {entry[&#39;role&#39;]} entry to conversation history&quot;)
+              self.memory["conversation_history"].append(entry)
+-             print(f"Added {entry['role']} entry to conversation history")
++             self.logger.debug(f"Added {entry['role']} entry to conversation history")
               
               # Save to persist memory updates
 ```
@@ -4561,8 +4561,8 @@ Lines added: 1, lines removed: 1
 @@ -614,5 +607,5 @@
               
           except Exception as e:
--             print(f&quot;Error adding conversation entry: {str(e)}&quot;)
-+             self.logger.error(f&quot;Error adding conversation entry: {str(e)}&quot;)
+-             print(f"Error adding conversation entry: {str(e)}")
++             self.logger.error(f"Error adding conversation entry: {str(e)}")
               return False
               
 ```
@@ -4572,18 +4572,18 @@ Lines added: 3, lines removed: 3
 
 ```diff
 @@ -630,11 +623,11 @@
-              conversation_entries = len(self.memory.get(&quot;conversation_history&quot;, []))
+              conversation_entries = len(self.memory.get("conversation_history", []))
               if conversation_entries &gt; self.max_recent_conversation_entries:
--                 print(f&quot;Memory has {conversation_entries} conversations, compressing...&quot;)
-+                 self.logger.debug(f&quot;Memory has {conversation_entries} conversations, compressing...&quot;)
-                  return self.update_memory({&quot;operation&quot;: &quot;update&quot;})
+-                 print(f"Memory has {conversation_entries} conversations, compressing...")
++                 self.logger.debug(f"Memory has {conversation_entries} conversations, compressing...")
+                  return self.update_memory({"operation": "update"})
               else:
--                 print(f&quot;Memory has only {conversation_entries} conversations, compression not needed yet&quot;)
-+                 self.logger.debug(f&quot;Memory has only {conversation_entries} conversations, compression not needed yet&quot;)
+-                 print(f"Memory has only {conversation_entries} conversations, compression not needed yet")
++                 self.logger.debug(f"Memory has only {conversation_entries} conversations, compression not needed yet")
                   return True
           except Exception as e:
--             print(f&quot;Error updating memory with conversations: {str(e)}&quot;)
-+             self.logger.error(f&quot;Error updating memory with conversations: {str(e)}&quot;)
+-             print(f"Error updating memory with conversations: {str(e)}")
++             self.logger.error(f"Error updating memory with conversations: {str(e)}")
               return False
   
 ```
@@ -4594,14 +4594,14 @@ Lines added: 2, lines removed: 2
 ```diff
 @@ -663,9 +656,9 @@
               # Ensure basic fields exist
-              if &quot;content&quot; not in entry:
--                 print(&quot;Error: Conversation entry must have &#39;content&#39;&quot;)
-+                 self.logger.error(&quot;Error: Conversation entry must have &#39;content&#39;&quot;)
+              if "content" not in entry:
+-                 print("Error: Conversation entry must have 'content'")
++                 self.logger.error("Error: Conversation entry must have 'content'")
                   return False
                   
-              if &quot;role&quot; not in entry:
--                 print(&quot;Error: Conversation entry must have &#39;role&#39;&quot;)
-+                 self.logger.error(&quot;Error: Conversation entry must have &#39;role&#39;&quot;)
+              if "role" not in entry:
+-                 print("Error: Conversation entry must have 'role'")
++                 self.logger.error("Error: Conversation entry must have 'role'")
                   return False
                   
 ```
@@ -4612,9 +4612,9 @@ Lines added: 1, lines removed: 1
 ```diff
 @@ -685,5 +678,5 @@
                   
-              self.memory[&quot;conversation_history&quot;].append(entry)
--             print(f&quot;Added {entry[&#39;role&#39;]} entry to conversation history&quot;)
-+             self.logger.debug(f&quot;Added {entry[&#39;role&#39;]} entry to conversation history&quot;)
+              self.memory["conversation_history"].append(entry)
+-             print(f"Added {entry['role']} entry to conversation history")
++             self.logger.debug(f"Added {entry['role']} entry to conversation history")
               
               # Save to persist memory updates
 ```
@@ -4625,10 +4625,10 @@ Lines added: 1, lines removed: 1
 ```diff
 @@ -692,5 +685,5 @@
               # Start async digest generation if not already present
-              if &quot;digest&quot; not in entry:
--                 print(f&quot;Starting async digest generation for {entry[&#39;role&#39;]} entry...&quot;)
-+                 self.logger.debug(f&quot;Starting async digest generation for {entry[&#39;role&#39;]} entry...&quot;)
-                  self._pending_digests[entry[&quot;guid&quot;]] = entry
+              if "digest" not in entry:
+-                 print(f"Starting async digest generation for {entry['role']} entry...")
++                 self.logger.debug(f"Starting async digest generation for {entry['role']} entry...")
+                  self._pending_digests[entry["guid"]] = entry
                   asyncio.create_task(self._generate_digest_async(entry))
 ```
 
@@ -4639,8 +4639,8 @@ Lines added: 1, lines removed: 1
 @@ -703,5 +696,5 @@
               
           except Exception as e:
--             print(f&quot;Error adding conversation entry: {str(e)}&quot;)
-+             self.logger.error(f&quot;Error adding conversation entry: {str(e)}&quot;)
+-             print(f"Error adding conversation entry: {str(e)}")
++             self.logger.error(f"Error adding conversation entry: {str(e)}")
               return False
       
 ```
@@ -4652,8 +4652,8 @@ Lines added: 1, lines removed: 1
 @@ -723,5 +716,5 @@
               
           except Exception as e:
--             print(f&quot;Error in async digest generation: {str(e)}&quot;)
-+             self.logger.error(f&quot;Error in async digest generation: {str(e)}&quot;)
+-             print(f"Error in async digest generation: {str(e)}")
++             self.logger.error(f"Error in async digest generation: {str(e)}")
       
       async def _update_embeddings_async(self, entry: Dict[str, Any]) -&gt; None:
 ```
@@ -4665,8 +4665,8 @@ Lines added: 1, lines removed: 1
 @@ -735,5 +728,5 @@
               
           except Exception as e:
--             print(f&quot;Error in async embeddings update: {str(e)}&quot;)
-+             self.logger.error(f&quot;Error in async embeddings update: {str(e)}&quot;)
+-             print(f"Error in async embeddings update: {str(e)}")
++             self.logger.error(f"Error in async embeddings update: {str(e)}")
       
       def get_pending_operations(self) -&gt; Dict[str, Any]:
 ```
@@ -4908,7 +4908,7 @@ _**Agent (mode Agent)**_
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 5
@@ -4917,12 +4917,12 @@ Lines added: 1, lines removed: 5
 @@ -175,9 +175,5 @@
   
       def create_initial_memory(self, input_data: str) -&gt; bool:
--         &quot;&quot;&quot;Use LLM to structure initial input data into memory format.
+-         """Use LLM to structure initial input data into memory format.
 -         
 -         The initial data is processed through the DigestGenerator to create a structured
 -         markdown representation of the static knowledge.
--         &quot;&quot;&quot;
-+         self.logger.debug(f&quot;[DEBUG] create_initial_memory: memory_file={self.memory_file}, current self.memory={json.dumps(self.memory, indent=2)}&quot;)
+-         """
++         self.logger.debug(f"[DEBUG] create_initial_memory: memory_file={self.memory_file}, current self.memory={json.dumps(self.memory, indent=2)}")
           try:
               # Check if we have valid existing memory
 ```
@@ -4935,7 +4935,7 @@ Lines added: undefined, lines removed: 1
                   self._ensure_memory_guid()
                   return True
 - 
-              self.logger.debug(&quot;Creating initial memory structure...&quot;)
+              self.logger.debug("Creating initial memory structure...")
   
 ```
 
@@ -5101,7 +5101,7 @@ _**Agent (mode Agent)**_
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/base_memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/base_memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 3
@@ -5539,7 +5539,7 @@ _**Agent (mode Agent)**_
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/embeddings_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/embeddings_manager.py</summary>
 
 **Chunk 1**
 Lines added: 33, lines removed: undefined
@@ -5549,40 +5549,40 @@ Lines added: 33, lines removed: undefined
               return []
       
 +     def deduplicate_embeddings_file(self):
-+         &quot;&quot;&quot;Remove redundant embeddings with identical text from the embeddings file.&quot;&quot;&quot;
++         """Remove redundant embeddings with identical text from the embeddings file."""
 +         if not os.path.exists(self.embeddings_file):
-+             self.logger.debug(&quot;Embeddings file does not exist, skipping deduplication.&quot;)
++             self.logger.debug("Embeddings file does not exist, skipping deduplication.")
 +             return
 + 
 +         seen_texts = set()
 +         deduped = []
 +         try:
-+             with open(self.embeddings_file, &quot;r&quot;) as infile:
++             with open(self.embeddings_file, "r") as infile:
 +                 for line in infile:
 +                     try:
 +                         data = json.loads(line)
-+                         meta = data.get(&quot;metadata&quot;, {})
-+                         text = meta.get(&quot;text&quot;) or data.get(&quot;text&quot;)
++                         meta = data.get("metadata", {})
++                         text = meta.get("text") or data.get("text")
 +                         if text is not None:
 +                             text_key = text.strip()
 +                             if text_key not in seen_texts:
 +                                 seen_texts.add(text_key)
 +                                 deduped.append(data)
 +                     except Exception as e:
-+                         self.logger.debug(f&quot;Error parsing line during deduplication: {e}&quot;)
++                         self.logger.debug(f"Error parsing line during deduplication: {e}")
 + 
 +             # Overwrite the file with deduplicated entries
-+             with open(self.embeddings_file, &quot;w&quot;) as outfile:
++             with open(self.embeddings_file, "w") as outfile:
 +                 for item in deduped:
 +                     json.dump(item, outfile)
-+                     outfile.write(&quot;\n&quot;)
++                     outfile.write("\n")
 + 
-+             self.logger.info(f&quot;Deduplicated embeddings file: {len(deduped)} unique texts remain.&quot;)
++             self.logger.info(f"Deduplicated embeddings file: {len(deduped)} unique texts remain.")
 +         except Exception as e:
-+             self.logger.error(f&quot;Error during embeddings deduplication: {e}&quot;)
++             self.logger.error(f"Error during embeddings deduplication: {e}")
 + 
       def update_embeddings(self, conversation_entries: List[Dict]) -&gt; bool:
-          &quot;&quot;&quot;Update embeddings for conversation history entries.
+          """Update embeddings for conversation history entries.
 ```
 
 **Chunk 2**
@@ -5591,7 +5591,7 @@ Lines added: 2, lines removed: undefined
 ```diff
 @@ -439,4 +472,6 @@
               
-              self.logger.debug(f&quot;Updated embeddings: {success_count}/{total_count} successful&quot;)
+              self.logger.debug(f"Updated embeddings: {success_count}/{total_count} successful")
 +             # Deduplicate after batch update
 +             self.deduplicate_embeddings_file()
               return success_count &gt; 0
@@ -5623,7 +5623,7 @@ _**Agent (mode Agent)**_
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/embeddings_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/embeddings_manager.py</summary>
 
 **Chunk 1**
 Lines added: 4, lines removed: 2
@@ -5632,10 +5632,10 @@ Lines added: 4, lines removed: 2
 @@ -386,14 +386,16 @@
       
       def deduplicate_embeddings_file(self):
--         &quot;&quot;&quot;Remove redundant embeddings with identical text from the embeddings file.&quot;&quot;&quot;
-+         &quot;&quot;&quot;Remove redundant embeddings with identical text from the embeddings file. Returns the number of embeddings removed.&quot;&quot;&quot;
+-         """Remove redundant embeddings with identical text from the embeddings file."""
++         """Remove redundant embeddings with identical text from the embeddings file. Returns the number of embeddings removed."""
           if not os.path.exists(self.embeddings_file):
-              self.logger.debug(&quot;Embeddings file does not exist, skipping deduplication.&quot;)
+              self.logger.debug("Embeddings file does not exist, skipping deduplication.")
 -             return
 +             return 0
   
@@ -5643,7 +5643,7 @@ Lines added: 4, lines removed: 2
           deduped = []
 +         original_count = 0
           try:
-              with open(self.embeddings_file, &quot;r&quot;) as infile:
+              with open(self.embeddings_file, "r") as infile:
                   for line in infile:
 +                     original_count += 1
                       try:
@@ -5655,14 +5655,14 @@ Lines added: 4, lines removed: 1
 
 ```diff
 @@ -414,7 +416,10 @@
-                      outfile.write(&quot;\n&quot;)
+                      outfile.write("\n")
   
--             self.logger.info(f&quot;Deduplicated embeddings file: {len(deduped)} unique texts remain.&quot;)
+-             self.logger.info(f"Deduplicated embeddings file: {len(deduped)} unique texts remain.")
 +             removed_count = original_count - len(deduped)
-+             self.logger.info(f&quot;Deduplicated embeddings file: {len(deduped)} unique texts remain. {removed_count} embeddings removed.&quot;)
++             self.logger.info(f"Deduplicated embeddings file: {len(deduped)} unique texts remain. {removed_count} embeddings removed.")
 +             return removed_count
           except Exception as e:
-              self.logger.error(f&quot;Error during embeddings deduplication: {e}&quot;)
+              self.logger.error(f"Error during embeddings deduplication: {e}")
 +             return 0
   
       def update_embeddings(self, conversation_entries: List[Dict]) -&gt; bool:
@@ -5673,11 +5673,11 @@ Lines added: 2, lines removed: 1
 
 ```diff
 @@ -473,5 +478,6 @@
-              self.logger.debug(f&quot;Updated embeddings: {success_count}/{total_count} successful&quot;)
+              self.logger.debug(f"Updated embeddings: {success_count}/{total_count} successful")
               # Deduplicate after batch update
 -             self.deduplicate_embeddings_file()
 +             removed_count = self.deduplicate_embeddings_file()
-+             self.logger.info(f&quot;Deduplication complete: {removed_count} redundant embeddings removed.&quot;)
++             self.logger.info(f"Deduplication complete: {removed_count} redundant embeddings removed.")
               return success_count &gt; 0
           except Exception as e:
 ```
@@ -5867,7 +5867,7 @@ _**Agent (mode Agent)**_
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/agent_usage_example.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: examples/agent_usage_example.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -5891,9 +5891,9 @@ Lines added: 6, lines removed: undefined
   session_guid = None
 + 
 + CONFIG_MAP = {
-+     &quot;dnd&quot;: DND_CONFIG,
-+     &quot;user_story&quot;: USER_STORY_CONFIG,
-+     &quot;lab_assistant&quot;: LAB_ASSISTANT_CONFIG
++     "dnd": DND_CONFIG,
++     "user_story": USER_STORY_CONFIG,
++     "lab_assistant": LAB_ASSISTANT_CONFIG
 + }
   
   # print a formatted section header to the console
@@ -5906,9 +5906,9 @@ Lines added: 1, lines removed: 1
 @@ -344,5 +350,5 @@
       return session_guid, memory_file, memory_type
   
-- async def setup_services(memory_guid=None, memory_type=&quot;standard&quot;):
-+ async def setup_services(memory_guid=None, memory_type=&quot;standard&quot;, domain_config=DND_CONFIG):
-      &quot;&quot;&quot;Initialize the LLM service and memory manager
+- async def setup_services(memory_guid=None, memory_type="standard"):
++ async def setup_services(memory_guid=None, memory_type="standard", domain_config=DND_CONFIG):
+      """Initialize the LLM service and memory manager
       
 ```
 
@@ -5930,10 +5930,10 @@ Lines added: 2, lines removed: undefined
 
 ```diff
 @@ -578,4 +584,6 @@
-      parser.add_argument(&#39;--list-type&#39;, type=str, choices=list(MEMORY_MANAGER_TYPES.keys()),
-                         help=&#39;List memory files for a specific memory manager type&#39;)
-+     parser.add_argument(&#39;--config&#39;, type=str, choices=list(CONFIG_MAP.keys()), default=&#39;dnd&#39;,
-+                        help=&#39;Select domain config: dnd, user_story, lab_assistant&#39;)
+      parser.add_argument('--list-type', type=str, choices=list(MEMORY_MANAGER_TYPES.keys()),
+                         help='List memory files for a specific memory manager type')
++     parser.add_argument('--config', type=str, choices=list(CONFIG_MAP.keys()), default='dnd',
++                        help='Select domain config: dnd, user_story, lab_assistant')
       args = parser.parse_args()
   
 ```

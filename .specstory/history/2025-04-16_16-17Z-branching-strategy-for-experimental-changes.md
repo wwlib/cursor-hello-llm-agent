@@ -19,7 +19,7 @@ Let me check your current branches and help you create a new one.
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: git branch | cat</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: git branch | cat</summary>
 
 ```bash
 git branch | cat
@@ -41,7 +41,7 @@ I can see you're currently on the `feature/update-memory-manager` branch and con
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: git checkout -b feature/update-memory-manager-experimental</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: git checkout -b feature/update-memory-manager-experimental</summary>
 
 ```bash
 git checkout -b feature/update-memory-manager-experimental
@@ -51,7 +51,7 @@ git checkout -b feature/update-memory-manager-experimental
 (base) andrewrapo@MacBookPro cursor-hello-llm-agent % git checkout -b feature/update-memory-manager-experime
 ntal                                                  git checkout -b feature/update-memory-manager-experime
 ntal
-Switched to a new branch &#39;feature/update-memory-manager-experimental&#39;
+Switched to a new branch 'feature/update-memory-manager-experimental'
 (base) andrewrapo@MacBookPro cursor-hello-llm-agent %
 ```
 </details>

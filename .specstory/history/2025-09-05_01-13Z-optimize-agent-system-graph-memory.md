@@ -150,7 +150,7 @@ Perfect! Now I understand the current architecture. The graph memory processing 
 
 <tool-use data-tool-type="write" data-tool-name="write">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/background_processor.py</summary>
+<details><summary>Tool use: **write** • Edit file: src/memory/graph_memory/background_processor.py</summary>
 
 **Chunk 1**
 Lines added: 402, lines removed: 1
@@ -158,7 +158,7 @@ Lines added: 402, lines removed: 1
 ```diff
 @@ -1,1 +1,402 @@
 - 
-+ &quot;&quot;&quot;
++ """
 + Background Graph Processor
 + 
 + Configurable background processing system for graph memory updates.
@@ -171,7 +171,7 @@ Lines added: 402, lines removed: 1
 + - Real-time status monitoring
 + - Graceful degradation when processing is behind
 + - Performance metrics and optimization
-+ &quot;&quot;&quot;
++ """
 + 
 + import asyncio
 + import time
@@ -185,7 +185,7 @@ Lines added: 402, lines removed: 1
 + 
 + 
 + class ProcessingPriority(Enum):
-+     &quot;&quot;&quot;Priority levels for graph processing tasks.&quot;&quot;&quot;
++     """Priority levels for graph processing tasks."""
 +     LOW = 1
 +     NORMAL = 2
 +     HIGH = 3
@@ -194,19 +194,19 @@ Lines added: 402, lines removed: 1
 + 
 + @dataclass
 + class GraphProcessingTask:
-+     &quot;&quot;&quot;Represents a single graph processing task.&quot;&quot;&quot;
++     """Represents a single graph processing task."""
 +     entry_id: str
 +     entry_data: Dict[str, Any]
 +     priority: ProcessingPriority = ProcessingPriority.NORMAL
 +     created_at: float = field(default_factory=time.time)
 +     retry_count: int = 0
 +     max_retries: int = 3
-+     processing_mode: str = &quot;balanced&quot;  # speed, balanced, comprehensive
++     processing_mode: str = "balanced"  # speed, balanced, comprehensive
 + 
 + 
 + @dataclass
 + class ProcessingStats:
-+     &quot;&quot;&quot;Statistics for graph processing performance.&quot;&quot;&quot;
++     """Statistics for graph processing performance."""
 +     total_processed: int = 0
 +     total_failed: int = 0
 +     average_processing_time: float = 0.0
@@ -217,7 +217,7 @@ Lines added: 402, lines removed: 1
 + 
 + 
 + class BackgroundGraphProcessor:
-+     &quot;&quot;&quot;Configurable background processor for graph memory updates.
++     """Configurable background processor for graph memory updates.
 +     
 +     This processor manages a queue of graph processing tasks and processes them
 +     in the background according to configurable schedules and priorities.
@@ -229,7 +229,7 @@ Lines added: 402, lines removed: 1
 +     - Real-time performance monitoring
 +     - Graceful handling of processing delays
 +     - Status callbacks for monitoring
-+     &quot;&quot;&quot;
++     """
 +     
 +     def __init__(self, 
 +                  graph_manager,
@@ -239,7 +239,7 @@ Lines added: 402, lines removed: 1
 +                  enable_priority_processing: bool = True,
 +                  status_callback: Optional[Callable] = None,
 +                  logger: Optional[logging.Logger] = None):
-+         &quot;&quot;&quot;
++         """
 +         Initialize the background graph processor.
 +         
 +         Args:
@@ -250,7 +250,7 @@ Lines added: 402, lines removed: 1
 +             enable_priority_processing: Whether to use priority-based scheduling
 +             status_callback: Optional callback for status updates
 +             logger: Logger instance for debugging
-+         &quot;&quot;&quot;
++         """
 +         self.graph_manager = graph_manager
 +         self.processing_frequency = processing_frequency
 +         self.batch_size = batch_size
@@ -268,34 +268,34 @@ Lines added: 402, lines removed: 1
 +         
 +         # Configuration
 +         self._processing_modes = {
-+             &quot;speed&quot;: {&quot;batch_size&quot;: 10, &quot;timeout&quot;: 5.0},
-+             &quot;balanced&quot;: {&quot;batch_size&quot;: 5, &quot;timeout&quot;: 15.0},
-+             &quot;comprehensive&quot;: {&quot;batch_size&quot;: 3, &quot;timeout&quot;: 30.0}
++             "speed": {"batch_size": 10, "timeout": 5.0},
++             "balanced": {"batch_size": 5, "timeout": 15.0},
++             "comprehensive": {"batch_size": 3, "timeout": 30.0}
 +         }
 +         
 +         # Performance tracking
 +         self._processing_times = deque(maxlen=100)  # Keep last 100 processing times
 +         self._last_processing_cycle = 0.0
 +         
-+         self.logger.info(f&quot;Initialized BackgroundGraphProcessor: &quot;
-+                         f&quot;frequency={processing_frequency}s, batch_size={batch_size}, &quot;
-+                         f&quot;max_queue={max_queue_size}&quot;)
++         self.logger.info(f"Initialized BackgroundGraphProcessor: "
++                         f"frequency={processing_frequency}s, batch_size={batch_size}, "
++                         f"max_queue={max_queue_size}")
 +     
 +     def start(self) -&gt; None:
-+         &quot;&quot;&quot;Start the background processing loop.&quot;&quot;&quot;
++         """Start the background processing loop."""
 +         if self._is_running:
-+             self.logger.warning(&quot;Background processor is already running&quot;)
++             self.logger.warning("Background processor is already running")
 +             return
 +         
 +         self._is_running = True
 +         self._processing_task = asyncio.create_task(self._processing_loop())
-+         self.logger.info(&quot;Started background graph processing&quot;)
++         self.logger.info("Started background graph processing")
 +         
 +         if self.status_callback:
-+             self.status_callback(&quot;started&quot;, {&quot;frequency&quot;: self.processing_frequency})
++             self.status_callback("started", {"frequency": self.processing_frequency})
 +     
 +     def stop(self) -&gt; None:
-+         &quot;&quot;&quot;Stop the background processing loop.&quot;&quot;&quot;
++         """Stop the background processing loop."""
 +         if not self._is_running:
 +             return
 +         
@@ -303,17 +303,17 @@ Lines added: 402, lines removed: 1
 +         if self._processing_task:
 +             self._processing_task.cancel()
 +         
-+         self.logger.info(&quot;Stopped background graph processing&quot;)
++         self.logger.info("Stopped background graph processing")
 +         
 +         if self.status_callback:
-+             self.status_callback(&quot;stopped&quot;, {&quot;queue_size&quot;: len(self._task_queue)})
++             self.status_callback("stopped", {"queue_size": len(self._task_queue)})
 +     
 +     def add_task(self, 
 +                  entry_id: str, 
 +                  entry_data: Dict[str, Any],
 +                  priority: ProcessingPriority = ProcessingPriority.NORMAL,
-+                  processing_mode: str = &quot;balanced&quot;) -&gt; bool:
-+         &quot;&quot;&quot;
++                  processing_mode: str = "balanced") -&gt; bool:
++         """
 +         Add a graph processing task to the queue.
 +         
 +         Args:
@@ -324,10 +324,10 @@ Lines added: 402, lines removed: 1
 +             
 +         Returns:
 +             True if task was added, False if queue is full
-+         &quot;&quot;&quot;
++         """
 +         with self._lock:
 +             if len(self._task_queue) &gt;= self.max_queue_size:
-+                 self.logger.warning(f&quot;Task queue full ({self.max_queue_size}), dropping task {entry_id}&quot;)
++                 self.logger.warning(f"Task queue full ({self.max_queue_size}), dropping task {entry_id}")
 +                 return False
 +             
 +             task = GraphProcessingTask(
@@ -351,11 +351,11 @@ Lines added: 402, lines removed: 1
 +             else:
 +                 self._task_queue.append(task)
 +             
-+             self.logger.debug(f&quot;Added task {entry_id} with priority {priority.name}&quot;)
++             self.logger.debug(f"Added task {entry_id} with priority {priority.name}")
 +             return True
 +     
 +     def get_stats(self) -&gt; Dict[str, Any]:
-+         &quot;&quot;&quot;Get current processing statistics.&quot;&quot;&quot;
++         """Get current processing statistics."""
 +         with self._lock:
 +             current_time = time.time()
 +             
@@ -372,20 +372,20 @@ Lines added: 402, lines removed: 1
 +                 processing_rate = len(recent_times) / 5.0  # tasks per minute
 +             
 +             return {
-+                 &quot;is_running&quot;: self._is_running,
-+                 &quot;queue_size&quot;: len(self._task_queue),
-+                 &quot;total_processed&quot;: self._processing_stats.total_processed,
-+                 &quot;total_failed&quot;: self._processing_stats.total_failed,
-+                 &quot;average_processing_time&quot;: self._processing_stats.average_processing_time,
-+                 &quot;processing_rate&quot;: processing_rate,
-+                 &quot;backlog_age&quot;: backlog_age,
-+                 &quot;last_processing_time&quot;: self._processing_stats.last_processing_time,
-+                 &quot;processing_frequency&quot;: self.processing_frequency,
-+                 &quot;batch_size&quot;: self.batch_size
++                 "is_running": self._is_running,
++                 "queue_size": len(self._task_queue),
++                 "total_processed": self._processing_stats.total_processed,
++                 "total_failed": self._processing_stats.total_failed,
++                 "average_processing_time": self._processing_stats.average_processing_time,
++                 "processing_rate": processing_rate,
++                 "backlog_age": backlog_age,
++                 "last_processing_time": self._processing_stats.last_processing_time,
++                 "processing_frequency": self.processing_frequency,
++                 "batch_size": self.batch_size
 +             }
 +     
 +     def get_queue_status(self) -&gt; Dict[str, Any]:
-+         &quot;&quot;&quot;Get detailed queue status information.&quot;&quot;&quot;
++         """Get detailed queue status information."""
 +         with self._lock:
 +             priority_counts = defaultdict(int)
 +             mode_counts = defaultdict(int)
@@ -395,18 +395,18 @@ Lines added: 402, lines removed: 1
 +                 mode_counts[task.processing_mode] += 1
 +             
 +             return {
-+                 &quot;total_tasks&quot;: len(self._task_queue),
-+                 &quot;priority_distribution&quot;: dict(priority_counts),
-+                 &quot;mode_distribution&quot;: dict(mode_counts),
-+                 &quot;oldest_task_age&quot;: (
++                 "total_tasks": len(self._task_queue),
++                 "priority_distribution": dict(priority_counts),
++                 "mode_distribution": dict(mode_counts),
++                 "oldest_task_age": (
 +                     time.time() - self._task_queue[0].created_at 
 +                     if self._task_queue else 0.0
 +                 )
 +             }
 +     
 +     async def _processing_loop(self) -&gt; None:
-+         &quot;&quot;&quot;Main processing loop that runs in the background.&quot;&quot;&quot;
-+         self.logger.info(&quot;Started background processing loop&quot;)
++         """Main processing loop that runs in the background."""
++         self.logger.info("Started background processing loop")
 +         
 +         while self._is_running:
 +             try:
@@ -416,7 +416,7 @@ Lines added: 402, lines removed: 1
 +                 processed_count = await self._process_batch()
 +                 
 +                 if processed_count &gt; 0:
-+                     self.logger.debug(f&quot;Processed {processed_count} tasks in background&quot;)
++                     self.logger.debug(f"Processed {processed_count} tasks in background")
 +                 
 +                 # Update statistics
 +                 self._update_stats(processed_count, time.time() - start_time)
@@ -425,14 +425,14 @@ Lines added: 402, lines removed: 1
 +                 await asyncio.sleep(self.processing_frequency)
 +                 
 +             except asyncio.CancelledError:
-+                 self.logger.info(&quot;Background processing loop cancelled&quot;)
++                 self.logger.info("Background processing loop cancelled")
 +                 break
 +             except Exception as e:
-+                 self.logger.error(f&quot;Error in background processing loop: {e}&quot;)
++                 self.logger.error(f"Error in background processing loop: {e}")
 +                 await asyncio.sleep(min(self.processing_frequency, 10.0))  # Shorter sleep on error
 +     
 +     async def _process_batch(self) -&gt; int:
-+         &quot;&quot;&quot;Process a batch of tasks from the queue.&quot;&quot;&quot;
++         """Process a batch of tasks from the queue."""
 +         if not self._task_queue:
 +             return 0
 +         
@@ -461,30 +461,30 @@ Lines added: 402, lines removed: 1
 +                         task.retry_count += 1
 +                         with self._lock:
 +                             self._task_queue.append(task)  # Re-queue for retry
-+                         self.logger.warning(f&quot;Retrying task {task.entry_id} (attempt {task.retry_count})&quot;)
++                         self.logger.warning(f"Retrying task {task.entry_id} (attempt {task.retry_count})")
 +                     else:
 +                         self._processing_stats.total_failed += 1
-+                         self.logger.error(f&quot;Failed to process task {task.entry_id} after {task.max_retries} retries&quot;)
++                         self.logger.error(f"Failed to process task {task.entry_id} after {task.max_retries} retries")
 +                 
 +             except Exception as e:
-+                 self.logger.error(f&quot;Error processing task {task.entry_id}: {e}&quot;)
++                 self.logger.error(f"Error processing task {task.entry_id}: {e}")
 +                 self._processing_stats.total_failed += 1
 +         
 +         return processed_count
 +     
 +     async def _process_single_task(self, task: GraphProcessingTask) -&gt; bool:
-+         &quot;&quot;&quot;Process a single graph processing task.&quot;&quot;&quot;
++         """Process a single graph processing task."""
 +         try:
 +             # Get processing configuration for this mode
-+             mode_config = self._processing_modes.get(task.processing_mode, self._processing_modes[&quot;balanced&quot;])
++             mode_config = self._processing_modes.get(task.processing_mode, self._processing_modes["balanced"])
 +             
 +             # Process with timeout
 +             processing_start = time.time()
 +             
 +             # Use the appropriate graph processing method based on mode
-+             if task.processing_mode == &quot;speed&quot;:
++             if task.processing_mode == "speed":
 +                 await self.graph_manager._update_graph_memory_fast_mode(task.entry_data)
-+             elif task.processing_mode == &quot;comprehensive&quot;:
++             elif task.processing_mode == "comprehensive":
 +                 await self.graph_manager._update_graph_memory_comprehensive_mode(task.entry_data)
 +             else:  # balanced
 +                 await self.graph_manager._update_graph_memory_balanced_mode(task.entry_data)
@@ -494,20 +494,20 @@ Lines added: 402, lines removed: 1
 +             # Track processing time
 +             self._processing_times.append(time.time())
 +             
-+             self.logger.debug(f&quot;Processed task {task.entry_id} in {processing_time:.2f}s &quot;
-+                             f&quot;(mode: {task.processing_mode})&quot;)
++             self.logger.debug(f"Processed task {task.entry_id} in {processing_time:.2f}s "
++                             f"(mode: {task.processing_mode})")
 +             
 +             return True
 +             
 +         except asyncio.TimeoutError:
-+             self.logger.warning(f&quot;Task {task.entry_id} timed out after {mode_config[&#39;timeout&#39;]}s&quot;)
++             self.logger.warning(f"Task {task.entry_id} timed out after {mode_config['timeout']}s")
 +             return False
 +         except Exception as e:
-+             self.logger.error(f&quot;Error processing task {task.entry_id}: {e}&quot;)
++             self.logger.error(f"Error processing task {task.entry_id}: {e}")
 +             return False
 +     
 +     def _update_stats(self, processed_count: int, cycle_time: float) -&gt; None:
-+         &quot;&quot;&quot;Update processing statistics.&quot;&quot;&quot;
++         """Update processing statistics."""
 +         if processed_count &gt; 0:
 +             self._processing_stats.last_processing_time = time.time()
 +             
@@ -521,45 +521,45 @@ Lines added: 402, lines removed: 1
 +                   processing_frequency: Optional[float] = None,
 +                   batch_size: Optional[int] = None,
 +                   max_queue_size: Optional[int] = None) -&gt; None:
-+         &quot;&quot;&quot;
++         """
 +         Update processor configuration.
 +         
 +         Args:
 +             processing_frequency: New processing frequency in seconds
 +             batch_size: New batch size
 +             max_queue_size: New maximum queue size
-+         &quot;&quot;&quot;
++         """
 +         if processing_frequency is not None:
 +             self.processing_frequency = processing_frequency
-+             self.logger.info(f&quot;Updated processing frequency to {processing_frequency}s&quot;)
++             self.logger.info(f"Updated processing frequency to {processing_frequency}s")
 +         
 +         if batch_size is not None:
 +             self.batch_size = batch_size
-+             self.logger.info(f&quot;Updated batch size to {batch_size}&quot;)
++             self.logger.info(f"Updated batch size to {batch_size}")
 +         
 +         if max_queue_size is not None:
 +             self.max_queue_size = max_queue_size
-+             self.logger.info(f&quot;Updated max queue size to {max_queue_size}&quot;)
++             self.logger.info(f"Updated max queue size to {max_queue_size}")
 +         
 +         if self.status_callback:
-+             self.status_callback(&quot;configured&quot;, self.get_stats())
++             self.status_callback("configured", self.get_stats())
 +     
 +     def clear_queue(self) -&gt; int:
-+         &quot;&quot;&quot;Clear all pending tasks from the queue.&quot;&quot;&quot;
++         """Clear all pending tasks from the queue."""
 +         with self._lock:
 +             cleared_count = len(self._task_queue)
 +             self._task_queue.clear()
-+             self.logger.info(f&quot;Cleared {cleared_count} tasks from queue&quot;)
++             self.logger.info(f"Cleared {cleared_count} tasks from queue")
 +             return cleared_count
 +     
 +     def get_processing_mode_config(self, mode: str) -&gt; Dict[str, Any]:
-+         &quot;&quot;&quot;Get configuration for a specific processing mode.&quot;&quot;&quot;
-+         return self._processing_modes.get(mode, self._processing_modes[&quot;balanced&quot;])
++         """Get configuration for a specific processing mode."""
++         return self._processing_modes.get(mode, self._processing_modes["balanced"])
 +     
 +     def set_processing_mode_config(self, mode: str, config: Dict[str, Any]) -&gt; None:
-+         &quot;&quot;&quot;Update configuration for a specific processing mode.&quot;&quot;&quot;
++         """Update configuration for a specific processing mode."""
 +         self._processing_modes[mode] = config
-+         self.logger.info(f&quot;Updated {mode} mode configuration: {config}&quot;)
++         self.logger.info(f"Updated {mode} mode configuration: {config}")
 ```
 
 </details>
@@ -603,7 +603,7 @@ Now let me create the configuration system for graph processing:
 
 <tool-use data-tool-type="write" data-tool-name="write">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/config.py</summary>
+<details><summary>Tool use: **write** • Edit file: src/memory/graph_memory/config.py</summary>
 
 **Chunk 1**
 Lines added: 283, lines removed: 1
@@ -611,12 +611,12 @@ Lines added: 283, lines removed: 1
 ```diff
 @@ -1,1 +1,283 @@
 - 
-+ &quot;&quot;&quot;
++ """
 + Graph Memory Configuration
 + 
 + Configuration system for background graph memory processing.
 + Provides configurable processing modes, frequencies, and optimization settings.
-+ &quot;&quot;&quot;
++ """
 + 
 + from typing import Dict, Any, Optional
 + from dataclasses import dataclass
@@ -625,7 +625,7 @@ Lines added: 283, lines removed: 1
 + 
 + @dataclass
 + class GraphProcessingConfig:
-+     &quot;&quot;&quot;Configuration for background graph memory processing.&quot;&quot;&quot;
++     """Configuration for background graph memory processing."""
 +     
 +     # Background processing settings
 +     enable_background_processing: bool = True
@@ -634,7 +634,7 @@ Lines added: 283, lines removed: 1
 +     max_queue_size: int = 100
 +     
 +     # Processing modes
-+     default_processing_mode: str = &quot;balanced&quot;  # speed, balanced, comprehensive
++     default_processing_mode: str = "balanced"  # speed, balanced, comprehensive
 +     enable_priority_processing: bool = True
 +     
 +     # Performance settings
@@ -654,15 +654,15 @@ Lines added: 283, lines removed: 1
 + 
 + 
 + class GraphConfigManager:
-+     &quot;&quot;&quot;Manages graph memory processing configuration.&quot;&quot;&quot;
++     """Manages graph memory processing configuration."""
 +     
 +     def __init__(self, config: Optional[Dict[str, Any]] = None):
-+         &quot;&quot;&quot;
++         """
 +         Initialize configuration manager.
 +         
 +         Args:
 +             config: Optional configuration dictionary to override defaults
-+         &quot;&quot;&quot;
++         """
 +         self.config = GraphProcessingConfig()
 +         
 +         if config:
@@ -672,228 +672,228 @@ Lines added: 283, lines removed: 1
 +         self._load_from_environment()
 +     
 +     def _apply_config(self, config: Dict[str, Any]) -&gt; None:
-+         &quot;&quot;&quot;Apply configuration from dictionary.&quot;&quot;&quot;
++         """Apply configuration from dictionary."""
 +         for key, value in config.items():
 +             if hasattr(self.config, key):
 +                 setattr(self.config, key, value)
 +     
 +     def _load_from_environment(self) -&gt; None:
-+         &quot;&quot;&quot;Load configuration from environment variables.&quot;&quot;&quot;
++         """Load configuration from environment variables."""
 +         env_mappings = {
-+             &quot;GRAPH_BACKGROUND_PROCESSING&quot;: &quot;enable_background_processing&quot;,
-+             &quot;GRAPH_PROCESSING_FREQUENCY&quot;: &quot;processing_frequency&quot;,
-+             &quot;GRAPH_BATCH_SIZE&quot;: &quot;batch_size&quot;,
-+             &quot;GRAPH_MAX_QUEUE_SIZE&quot;: &quot;max_queue_size&quot;,
-+             &quot;GRAPH_DEFAULT_MODE&quot;: &quot;default_processing_mode&quot;,
-+             &quot;GRAPH_PRIORITY_PROCESSING&quot;: &quot;enable_priority_processing&quot;,
-+             &quot;GRAPH_PROCESSING_TIMEOUT&quot;: &quot;processing_timeout&quot;,
-+             &quot;GRAPH_MAX_RETRIES&quot;: &quot;max_retries&quot;,
-+             &quot;GRAPH_RETRY_DELAY&quot;: &quot;retry_delay&quot;,
-+             &quot;GRAPH_REALTIME_CONTEXT&quot;: &quot;enable_realtime_context&quot;,
-+             &quot;GRAPH_CONTEXT_CACHE_TTL&quot;: &quot;context_cache_ttl&quot;,
-+             &quot;GRAPH_MAX_CONTEXT_RESULTS&quot;: &quot;max_context_results&quot;,
-+             &quot;GRAPH_PERFORMANCE_MONITORING&quot;: &quot;enable_performance_monitoring&quot;,
-+             &quot;GRAPH_STATS_UPDATE_FREQUENCY&quot;: &quot;stats_update_frequency&quot;,
-+             &quot;GRAPH_DETAILED_LOGGING&quot;: &quot;enable_detailed_logging&quot;
++             "GRAPH_BACKGROUND_PROCESSING": "enable_background_processing",
++             "GRAPH_PROCESSING_FREQUENCY": "processing_frequency",
++             "GRAPH_BATCH_SIZE": "batch_size",
++             "GRAPH_MAX_QUEUE_SIZE": "max_queue_size",
++             "GRAPH_DEFAULT_MODE": "default_processing_mode",
++             "GRAPH_PRIORITY_PROCESSING": "enable_priority_processing",
++             "GRAPH_PROCESSING_TIMEOUT": "processing_timeout",
++             "GRAPH_MAX_RETRIES": "max_retries",
++             "GRAPH_RETRY_DELAY": "retry_delay",
++             "GRAPH_REALTIME_CONTEXT": "enable_realtime_context",
++             "GRAPH_CONTEXT_CACHE_TTL": "context_cache_ttl",
++             "GRAPH_MAX_CONTEXT_RESULTS": "max_context_results",
++             "GRAPH_PERFORMANCE_MONITORING": "enable_performance_monitoring",
++             "GRAPH_STATS_UPDATE_FREQUENCY": "stats_update_frequency",
++             "GRAPH_DETAILED_LOGGING": "enable_detailed_logging"
 +         }
 +         
 +         for env_var, config_attr in env_mappings.items():
 +             env_value = os.getenv(env_var)
 +             if env_value is not None:
 +                 # Convert string values to appropriate types
-+                 if config_attr in [&quot;enable_background_processing&quot;, &quot;enable_priority_processing&quot;, 
-+                                  &quot;enable_realtime_context&quot;, &quot;enable_performance_monitoring&quot;, 
-+                                  &quot;enable_detailed_logging&quot;]:
-+                     value = env_value.lower() in (&quot;true&quot;, &quot;1&quot;, &quot;yes&quot;, &quot;on&quot;)
-+                 elif config_attr in [&quot;processing_frequency&quot;, &quot;batch_size&quot;, &quot;max_queue_size&quot;,
-+                                    &quot;processing_timeout&quot;, &quot;max_retries&quot;, &quot;retry_delay&quot;,
-+                                    &quot;context_cache_ttl&quot;, &quot;max_context_results&quot;, &quot;stats_update_frequency&quot;]:
-+                     value = float(env_value) if &quot;.&quot; in env_value else int(env_value)
++                 if config_attr in ["enable_background_processing", "enable_priority_processing", 
++                                  "enable_realtime_context", "enable_performance_monitoring", 
++                                  "enable_detailed_logging"]:
++                     value = env_value.lower() in ("true", "1", "yes", "on")
++                 elif config_attr in ["processing_frequency", "batch_size", "max_queue_size",
++                                    "processing_timeout", "max_retries", "retry_delay",
++                                    "context_cache_ttl", "max_context_results", "stats_update_frequency"]:
++                     value = float(env_value) if "." in env_value else int(env_value)
 +                 else:
 +                     value = env_value
 +                 
 +                 setattr(self.config, config_attr, value)
 +     
 +     def get_processing_profiles(self) -&gt; Dict[str, Dict[str, Any]]:
-+         &quot;&quot;&quot;Get predefined processing profiles for different use cases.&quot;&quot;&quot;
++         """Get predefined processing profiles for different use cases."""
 +         return {
-+             &quot;realtime&quot;: {
-+                 &quot;enable_background_processing&quot;: True,
-+                 &quot;processing_frequency&quot;: 10.0,  # Process every 10 seconds
-+                 &quot;batch_size&quot;: 3,
-+                 &quot;max_queue_size&quot;: 50,
-+                 &quot;default_processing_mode&quot;: &quot;speed&quot;,
-+                 &quot;enable_priority_processing&quot;: True,
-+                 &quot;processing_timeout&quot;: 30.0,
-+                 &quot;enable_realtime_context&quot;: True,
-+                 &quot;context_cache_ttl&quot;: 60.0,
-+                 &quot;max_context_results&quot;: 3
++             "realtime": {
++                 "enable_background_processing": True,
++                 "processing_frequency": 10.0,  # Process every 10 seconds
++                 "batch_size": 3,
++                 "max_queue_size": 50,
++                 "default_processing_mode": "speed",
++                 "enable_priority_processing": True,
++                 "processing_timeout": 30.0,
++                 "enable_realtime_context": True,
++                 "context_cache_ttl": 60.0,
++                 "max_context_results": 3
 +             },
-+             &quot;balanced&quot;: {
-+                 &quot;enable_background_processing&quot;: True,
-+                 &quot;processing_frequency&quot;: 30.0,  # Process every 30 seconds
-+                 &quot;batch_size&quot;: 5,
-+                 &quot;max_queue_size&quot;: 100,
-+                 &quot;default_processing_mode&quot;: &quot;balanced&quot;,
-+                 &quot;enable_priority_processing&quot;: True,
-+                 &quot;processing_timeout&quot;: 60.0,
-+                 &quot;enable_realtime_context&quot;: True,
-+                 &quot;context_cache_ttl&quot;: 300.0,
-+                 &quot;max_context_results&quot;: 5
++             "balanced": {
++                 "enable_background_processing": True,
++                 "processing_frequency": 30.0,  # Process every 30 seconds
++                 "batch_size": 5,
++                 "max_queue_size": 100,
++                 "default_processing_mode": "balanced",
++                 "enable_priority_processing": True,
++                 "processing_timeout": 60.0,
++                 "enable_realtime_context": True,
++                 "context_cache_ttl": 300.0,
++                 "max_context_results": 5
 +             },
-+             &quot;comprehensive&quot;: {
-+                 &quot;enable_background_processing&quot;: True,
-+                 &quot;processing_frequency&quot;: 60.0,  # Process every minute
-+                 &quot;batch_size&quot;: 3,
-+                 &quot;max_queue_size&quot;: 200,
-+                 &quot;default_processing_mode&quot;: &quot;comprehensive&quot;,
-+                 &quot;enable_priority_processing&quot;: True,
-+                 &quot;processing_timeout&quot;: 120.0,
-+                 &quot;enable_realtime_context&quot;: True,
-+                 &quot;context_cache_ttl&quot;: 600.0,
-+                 &quot;max_context_results&quot;: 10
++             "comprehensive": {
++                 "enable_background_processing": True,
++                 "processing_frequency": 60.0,  # Process every minute
++                 "batch_size": 3,
++                 "max_queue_size": 200,
++                 "default_processing_mode": "comprehensive",
++                 "enable_priority_processing": True,
++                 "processing_timeout": 120.0,
++                 "enable_realtime_context": True,
++                 "context_cache_ttl": 600.0,
++                 "max_context_results": 10
 +             },
-+             &quot;background_only&quot;: {
-+                 &quot;enable_background_processing&quot;: True,
-+                 &quot;processing_frequency&quot;: 120.0,  # Process every 2 minutes
-+                 &quot;batch_size&quot;: 10,
-+                 &quot;max_queue_size&quot;: 500,
-+                 &quot;default_processing_mode&quot;: &quot;balanced&quot;,
-+                 &quot;enable_priority_processing&quot;: False,
-+                 &quot;processing_timeout&quot;: 180.0,
-+                 &quot;enable_realtime_context&quot;: False,
-+                 &quot;context_cache_ttl&quot;: 0.0,
-+                 &quot;max_context_results&quot;: 0
++             "background_only": {
++                 "enable_background_processing": True,
++                 "processing_frequency": 120.0,  # Process every 2 minutes
++                 "batch_size": 10,
++                 "max_queue_size": 500,
++                 "default_processing_mode": "balanced",
++                 "enable_priority_processing": False,
++                 "processing_timeout": 180.0,
++                 "enable_realtime_context": False,
++                 "context_cache_ttl": 0.0,
++                 "max_context_results": 0
 +             },
-+             &quot;disabled&quot;: {
-+                 &quot;enable_background_processing&quot;: False,
-+                 &quot;processing_frequency&quot;: 0.0,
-+                 &quot;batch_size&quot;: 0,
-+                 &quot;max_queue_size&quot;: 0,
-+                 &quot;default_processing_mode&quot;: &quot;speed&quot;,
-+                 &quot;enable_priority_processing&quot;: False,
-+                 &quot;processing_timeout&quot;: 0.0,
-+                 &quot;enable_realtime_context&quot;: False,
-+                 &quot;context_cache_ttl&quot;: 0.0,
-+                 &quot;max_context_results&quot;: 0
++             "disabled": {
++                 "enable_background_processing": False,
++                 "processing_frequency": 0.0,
++                 "batch_size": 0,
++                 "max_queue_size": 0,
++                 "default_processing_mode": "speed",
++                 "enable_priority_processing": False,
++                 "processing_timeout": 0.0,
++                 "enable_realtime_context": False,
++                 "context_cache_ttl": 0.0,
++                 "max_context_results": 0
 +             }
 +         }
 +     
 +     def apply_profile(self, profile_name: str) -&gt; None:
-+         &quot;&quot;&quot;Apply a predefined processing profile.&quot;&quot;&quot;
++         """Apply a predefined processing profile."""
 +         profiles = self.get_processing_profiles()
 +         if profile_name not in profiles:
-+             raise ValueError(f&quot;Unknown profile: {profile_name}. Available: {list(profiles.keys())}&quot;)
++             raise ValueError(f"Unknown profile: {profile_name}. Available: {list(profiles.keys())}")
 +         
 +         profile_config = profiles[profile_name]
 +         self._apply_config(profile_config)
 +     
 +     def get_config_dict(self) -&gt; Dict[str, Any]:
-+         &quot;&quot;&quot;Get current configuration as dictionary.&quot;&quot;&quot;
++         """Get current configuration as dictionary."""
 +         return {
-+             &quot;enable_background_processing&quot;: self.config.enable_background_processing,
-+             &quot;processing_frequency&quot;: self.config.processing_frequency,
-+             &quot;batch_size&quot;: self.config.batch_size,
-+             &quot;max_queue_size&quot;: self.config.max_queue_size,
-+             &quot;default_processing_mode&quot;: self.config.default_processing_mode,
-+             &quot;enable_priority_processing&quot;: self.config.enable_priority_processing,
-+             &quot;processing_timeout&quot;: self.config.processing_timeout,
-+             &quot;max_retries&quot;: self.config.max_retries,
-+             &quot;retry_delay&quot;: self.config.retry_delay,
-+             &quot;enable_realtime_context&quot;: self.config.enable_realtime_context,
-+             &quot;context_cache_ttl&quot;: self.config.context_cache_ttl,
-+             &quot;max_context_results&quot;: self.config.max_context_results,
-+             &quot;enable_performance_monitoring&quot;: self.config.enable_performance_monitoring,
-+             &quot;stats_update_frequency&quot;: self.config.stats_update_frequency,
-+             &quot;enable_detailed_logging&quot;: self.config.enable_detailed_logging
++             "enable_background_processing": self.config.enable_background_processing,
++             "processing_frequency": self.config.processing_frequency,
++             "batch_size": self.config.batch_size,
++             "max_queue_size": self.config.max_queue_size,
++             "default_processing_mode": self.config.default_processing_mode,
++             "enable_priority_processing": self.config.enable_priority_processing,
++             "processing_timeout": self.config.processing_timeout,
++             "max_retries": self.config.max_retries,
++             "retry_delay": self.config.retry_delay,
++             "enable_realtime_context": self.config.enable_realtime_context,
++             "context_cache_ttl": self.config.context_cache_ttl,
++             "max_context_results": self.config.max_context_results,
++             "enable_performance_monitoring": self.config.enable_performance_monitoring,
++             "stats_update_frequency": self.config.stats_update_frequency,
++             "enable_detailed_logging": self.config.enable_detailed_logging
 +         }
 +     
 +     def update_config(self, **kwargs) -&gt; None:
-+         &quot;&quot;&quot;Update specific configuration values.&quot;&quot;&quot;
++         """Update specific configuration values."""
 +         for key, value in kwargs.items():
 +             if hasattr(self.config, key):
 +                 setattr(self.config, key, value)
 +             else:
-+                 raise ValueError(f&quot;Unknown configuration key: {key}&quot;)
++                 raise ValueError(f"Unknown configuration key: {key}")
 +     
 +     def validate_config(self) -&gt; bool:
-+         &quot;&quot;&quot;Validate current configuration for consistency.&quot;&quot;&quot;
++         """Validate current configuration for consistency."""
 +         issues = []
 +         
 +         if self.config.processing_frequency &lt;= 0:
-+             issues.append(&quot;processing_frequency must be positive&quot;)
++             issues.append("processing_frequency must be positive")
 +         
 +         if self.config.batch_size &lt;= 0:
-+             issues.append(&quot;batch_size must be positive&quot;)
++             issues.append("batch_size must be positive")
 +         
 +         if self.config.max_queue_size &lt;= 0:
-+             issues.append(&quot;max_queue_size must be positive&quot;)
++             issues.append("max_queue_size must be positive")
 +         
-+         if self.config.default_processing_mode not in [&quot;speed&quot;, &quot;balanced&quot;, &quot;comprehensive&quot;]:
-+             issues.append(&quot;default_processing_mode must be one of: speed, balanced, comprehensive&quot;)
++         if self.config.default_processing_mode not in ["speed", "balanced", "comprehensive"]:
++             issues.append("default_processing_mode must be one of: speed, balanced, comprehensive")
 +         
 +         if self.config.processing_timeout &lt;= 0:
-+             issues.append(&quot;processing_timeout must be positive&quot;)
++             issues.append("processing_timeout must be positive")
 +         
 +         if self.config.max_retries &lt; 0:
-+             issues.append(&quot;max_retries must be non-negative&quot;)
++             issues.append("max_retries must be non-negative")
 +         
 +         if self.config.retry_delay &lt; 0:
-+             issues.append(&quot;retry_delay must be non-negative&quot;)
++             issues.append("retry_delay must be non-negative")
 +         
 +         if self.config.context_cache_ttl &lt; 0:
-+             issues.append(&quot;context_cache_ttl must be non-negative&quot;)
++             issues.append("context_cache_ttl must be non-negative")
 +         
 +         if self.config.max_context_results &lt; 0:
-+             issues.append(&quot;max_context_results must be non-negative&quot;)
++             issues.append("max_context_results must be non-negative")
 +         
 +         if self.config.stats_update_frequency &lt;= 0:
-+             issues.append(&quot;stats_update_frequency must be positive&quot;)
++             issues.append("stats_update_frequency must be positive")
 +         
 +         if issues:
-+             raise ValueError(f&quot;Configuration validation failed: {&#39;; &#39;.join(issues)}&quot;)
++             raise ValueError(f"Configuration validation failed: {'; '.join(issues)}")
 +         
 +         return True
 +     
 +     def get_recommended_settings(self, use_case: str) -&gt; Dict[str, Any]:
-+         &quot;&quot;&quot;Get recommended settings for specific use cases.&quot;&quot;&quot;
++         """Get recommended settings for specific use cases."""
 +         recommendations = {
-+             &quot;high_frequency_chat&quot;: {
-+                 &quot;processing_frequency&quot;: 15.0,
-+                 &quot;batch_size&quot;: 3,
-+                 &quot;default_processing_mode&quot;: &quot;speed&quot;,
-+                 &quot;enable_realtime_context&quot;: True,
-+                 &quot;context_cache_ttl&quot;: 60.0
++             "high_frequency_chat": {
++                 "processing_frequency": 15.0,
++                 "batch_size": 3,
++                 "default_processing_mode": "speed",
++                 "enable_realtime_context": True,
++                 "context_cache_ttl": 60.0
 +             },
-+             &quot;document_analysis&quot;: {
-+                 &quot;processing_frequency&quot;: 60.0,
-+                 &quot;batch_size&quot;: 5,
-+                 &quot;default_processing_mode&quot;: &quot;comprehensive&quot;,
-+                 &quot;enable_realtime_context&quot;: True,
-+                 &quot;context_cache_ttl&quot;: 600.0
++             "document_analysis": {
++                 "processing_frequency": 60.0,
++                 "batch_size": 5,
++                 "default_processing_mode": "comprehensive",
++                 "enable_realtime_context": True,
++                 "context_cache_ttl": 600.0
 +             },
-+             &quot;low_resource&quot;: {
-+                 &quot;processing_frequency&quot;: 120.0,
-+                 &quot;batch_size&quot;: 10,
-+                 &quot;default_processing_mode&quot;: &quot;speed&quot;,
-+                 &quot;enable_realtime_context&quot;: False,
-+                 &quot;max_queue_size&quot;: 50
++             "low_resource": {
++                 "processing_frequency": 120.0,
++                 "batch_size": 10,
++                 "default_processing_mode": "speed",
++                 "enable_realtime_context": False,
++                 "max_queue_size": 50
 +             },
-+             &quot;high_accuracy&quot;: {
-+                 &quot;processing_frequency&quot;: 45.0,
-+                 &quot;batch_size&quot;: 3,
-+                 &quot;default_processing_mode&quot;: &quot;comprehensive&quot;,
-+                 &quot;enable_realtime_context&quot;: True,
-+                 &quot;context_cache_ttl&quot;: 900.0
++             "high_accuracy": {
++                 "processing_frequency": 45.0,
++                 "batch_size": 3,
++                 "default_processing_mode": "comprehensive",
++                 "enable_realtime_context": True,
++                 "context_cache_ttl": 900.0
 +             }
 +         }
 +         
 +         return recommendations.get(use_case, {})
 +     
 +     def __str__(self) -&gt; str:
-+         &quot;&quot;&quot;String representation of current configuration.&quot;&quot;&quot;
++         """String representation of current configuration."""
 +         config_dict = self.get_config_dict()
-+         return &quot;\n&quot;.join([f&quot;{key}: {value}&quot; for key, value in config_dict.items()])
++         return "\n".join([f"{key}: {value}" for key, value in config_dict.items()])
 ```
 
 </details>
@@ -936,7 +936,7 @@ Let me add the background processor integration to the memory manager:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 4, lines removed: undefined
@@ -991,21 +991,21 @@ Output mode: content
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 4, lines removed: undefined
 
 ```diff
 @@ -194,4 +194,8 @@
-                  self.logger.debug(f&quot;Initialized GraphManager with storage: {graph_storage_path}&quot;)
-                  graph_logger.debug(f&quot;Graph memory logger initialized for memory: {memory_base}&quot;)
+                  self.logger.debug(f"Initialized GraphManager with storage: {graph_storage_path}")
+                  graph_logger.debug(f"Graph memory logger initialized for memory: {memory_base}")
 +                 
 +                 # Initialize background graph processor
 +                 self._initialize_background_graph_processor()
 +                 
               except Exception as e:
-                  self.logger.warning(f&quot;Failed to initialize GraphManager: {e}. Graph memory disabled.&quot;)
+                  self.logger.warning(f"Failed to initialize GraphManager: {e}. Graph memory disabled.")
 ```
 
 </details>
@@ -1021,7 +1021,7 @@ Now let me add the initialization method for the background processor:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 51, lines removed: undefined
@@ -1031,7 +1031,7 @@ Lines added: 51, lines removed: undefined
           return logs_base_dir
   
 +     def _initialize_background_graph_processor(self):
-+         &quot;&quot;&quot;Initialize the background graph processor with configuration.&quot;&quot;&quot;
++         """Initialize the background graph processor with configuration."""
 +         try:
 +             from src.memory.graph_memory.background_processor import BackgroundGraphProcessor, ProcessingPriority
 +             from src.memory.graph_memory.config import GraphConfigManager
@@ -1041,22 +1041,22 @@ Lines added: 51, lines removed: undefined
 +             
 +             # Apply profile based on processing level
 +             profile_mapping = {
-+                 &quot;speed&quot;: &quot;realtime&quot;,
-+                 &quot;balanced&quot;: &quot;balanced&quot;, 
-+                 &quot;comprehensive&quot;: &quot;comprehensive&quot;
++                 "speed": "realtime",
++                 "balanced": "balanced", 
++                 "comprehensive": "comprehensive"
 +             }
-+             profile = profile_mapping.get(self.graph_memory_processing_level, &quot;balanced&quot;)
++             profile = profile_mapping.get(self.graph_memory_processing_level, "balanced")
 +             self._graph_config_manager.apply_profile(profile)
 +             
 +             # Create status callback for monitoring
 +             def status_callback(status_type: str, data: dict):
 +                 if self.verbose_handler:
-+                     if status_type == &quot;started&quot;:
-+                         self.verbose_handler.success(f&quot;Background graph processing started (frequency: {data.get(&#39;frequency&#39;, &#39;unknown&#39;)}s)&quot;)
-+                     elif status_type == &quot;stopped&quot;:
-+                         self.verbose_handler.warning(f&quot;Background graph processing stopped (queue: {data.get(&#39;queue_size&#39;, 0)})&quot;)
-+                     elif status_type == &quot;configured&quot;:
-+                         self.verbose_handler.info(f&quot;Graph processing configuration updated&quot;)
++                     if status_type == "started":
++                         self.verbose_handler.success(f"Background graph processing started (frequency: {data.get('frequency', 'unknown')}s)")
++                     elif status_type == "stopped":
++                         self.verbose_handler.warning(f"Background graph processing stopped (queue: {data.get('queue_size', 0)})")
++                     elif status_type == "configured":
++                         self.verbose_handler.info(f"Graph processing configuration updated")
 +             
 +             # Initialize background processor
 +             self._background_graph_processor = BackgroundGraphProcessor(
@@ -1072,17 +1072,17 @@ Lines added: 51, lines removed: undefined
 +             # Start background processing if enabled
 +             if self._graph_config_manager.config.enable_background_processing:
 +                 self._background_graph_processor.start()
-+                 self.logger.info(f&quot;Started background graph processor with {profile} profile&quot;)
++                 self.logger.info(f"Started background graph processor with {profile} profile")
 +             else:
-+                 self.logger.info(&quot;Background graph processing disabled by configuration&quot;)
++                 self.logger.info("Background graph processing disabled by configuration")
 +                 
 +         except Exception as e:
-+             self.logger.error(f&quot;Failed to initialize background graph processor: {e}&quot;)
++             self.logger.error(f"Failed to initialize background graph processor: {e}")
 +             self._background_graph_processor = None
 +             self._graph_config_manager = None
 + 
       def _create_graph_manager_logger(self, memory_dir: str, memory_base: str) -&gt; logging.Logger:
-          &quot;&quot;&quot;Create a dedicated logger for graph manager operations.
+          """Create a dedicated logger for graph manager operations.
 ```
 
 </details>
@@ -1123,7 +1123,7 @@ Output mode: content
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 5, lines removed: 1
@@ -1132,12 +1132,12 @@ Lines added: 5, lines removed: 1
 @@ -833,5 +833,9 @@
       
       async def _update_graph_memory_async(self, entry: Dict[str, Any]) -&gt; None:
--         &quot;&quot;&quot;Update graph memory with entities and relationships from a conversation entry.&quot;&quot;&quot;
-+         &quot;&quot;&quot;Update graph memory with entities and relationships from a conversation entry.
+-         """Update graph memory with entities and relationships from a conversation entry."""
++         """Update graph memory with entities and relationships from a conversation entry.
 +         
 +         This method now uses the background processor for non-blocking graph updates.
 +         If background processing is disabled, it falls back to direct processing.
-+         &quot;&quot;&quot;
++         """
           # Import performance tracker
           from src.utils.performance_tracker import get_performance_tracker
 ```
@@ -1147,13 +1147,13 @@ Lines added: 47, lines removed: 13
 
 ```diff
 @@ -844,17 +848,51 @@
-                  self.logger.debug(f&quot;Updating graph memory for {entry[&#39;role&#39;]} entry (mode: {self.graph_memory_processing_level})...&quot;)
+                  self.logger.debug(f"Updating graph memory for {entry['role']} entry (mode: {self.graph_memory_processing_level})...")
                   
 -                 # Choose processing mode based on configuration
--                 if self.graph_memory_processing_level == &quot;speed&quot; or self.enable_graph_memory_fast_mode:
+-                 if self.graph_memory_processing_level == "speed" or self.enable_graph_memory_fast_mode:
 -                     # Fast mode: minimal graph processing
 -                     await self._update_graph_memory_fast_mode(entry)
--                 elif self.graph_memory_processing_level == &quot;comprehensive&quot;:
+-                 elif self.graph_memory_processing_level == "comprehensive":
 -                     # Full mode: complete EntityResolver processing
 -                     await self._update_graph_memory_comprehensive_mode(entry)
 -                 else:
@@ -1161,7 +1161,7 @@ Lines added: 47, lines removed: 13
 -                     await self._update_graph_memory_balanced_mode(entry)
 -                     
 -             except Exception as e:
--                 self.logger.error(f&quot;Error updating graph memory: {e}&quot;)
+-                 self.logger.error(f"Error updating graph memory: {e}")
 +                 # Use background processor if available and enabled
 +                 if (self._background_graph_processor and 
 +                     self._graph_config_manager and 
@@ -1169,22 +1169,22 @@ Lines added: 47, lines removed: 13
 +                     
 +                     # Determine priority based on entry type
 +                     from src.memory.graph_memory.background_processor import ProcessingPriority
-+                     priority = ProcessingPriority.HIGH if entry.get(&quot;role&quot;) == &quot;user&quot; else ProcessingPriority.NORMAL
++                     priority = ProcessingPriority.HIGH if entry.get("role") == "user" else ProcessingPriority.NORMAL
 +                     
 +                     # Add task to background processor
 +                     success = self._background_graph_processor.add_task(
-+                         entry_id=entry.get(&quot;guid&quot;, &quot;&quot;),
++                         entry_id=entry.get("guid", ""),
 +                         entry_data=entry,
 +                         priority=priority,
 +                         processing_mode=self.graph_memory_processing_level
 +                     )
 +                     
 +                     if success:
-+                         self.logger.debug(f&quot;Added graph processing task to background queue: {entry.get(&#39;guid&#39;, &#39;unknown&#39;)}&quot;)
++                         self.logger.debug(f"Added graph processing task to background queue: {entry.get('guid', 'unknown')}")
 +                         if self.verbose_handler:
-+                             self.verbose_handler.info(f&quot;Queued graph processing for background&quot;, level=3)
++                             self.verbose_handler.info(f"Queued graph processing for background", level=3)
 +                     else:
-+                         self.logger.warning(f&quot;Failed to queue graph processing task, falling back to direct processing&quot;)
++                         self.logger.warning(f"Failed to queue graph processing task, falling back to direct processing")
 +                         # Fall back to direct processing
 +                         await self._update_graph_memory_direct(entry)
 +                 else:
@@ -1192,23 +1192,23 @@ Lines added: 47, lines removed: 13
 +                     await self._update_graph_memory_direct(entry)
 +                     
 +             except Exception as e:
-+                 self.logger.error(f&quot;Error updating graph memory: {e}&quot;)
++                 self.logger.error(f"Error updating graph memory: {e}")
 +     
 +     async def _update_graph_memory_direct(self, entry: Dict[str, Any]) -&gt; None:
-+         &quot;&quot;&quot;Direct graph memory update (fallback when background processing is not available).&quot;&quot;&quot;
++         """Direct graph memory update (fallback when background processing is not available)."""
 +         try:
 +             # Choose processing mode based on configuration
-+             if self.graph_memory_processing_level == &quot;speed&quot; or self.enable_graph_memory_fast_mode:
++             if self.graph_memory_processing_level == "speed" or self.enable_graph_memory_fast_mode:
 +                 # Fast mode: minimal graph processing
 +                 await self._update_graph_memory_fast_mode(entry)
-+             elif self.graph_memory_processing_level == &quot;comprehensive&quot;:
++             elif self.graph_memory_processing_level == "comprehensive":
 +                 # Full mode: complete EntityResolver processing
 +                 await self._update_graph_memory_comprehensive_mode(entry)
 +             else:
 +                 # Balanced mode: optimized EntityResolver processing
 +                 await self._update_graph_memory_balanced_mode(entry)
 +         except Exception as e:
-+             self.logger.error(f&quot;Error in direct graph memory update: {e}&quot;)
++             self.logger.error(f"Error in direct graph memory update: {e}")
       
       async def _update_graph_memory_comprehensive_mode(self, entry: Dict[str, Any]) -&gt; None:
 ```
@@ -1226,42 +1226,42 @@ Now let me add methods to manage the background processor and get its status:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 106, lines removed: undefined
 
 ```diff
 @@ -896,4 +896,110 @@
-              self.logger.error(f&quot;Error in direct graph memory update: {e}&quot;)
+              self.logger.error(f"Error in direct graph memory update: {e}")
       
 +     def get_graph_processing_status(self) -&gt; Dict[str, Any]:
-+         &quot;&quot;&quot;Get current status of background graph processing.&quot;&quot;&quot;
++         """Get current status of background graph processing."""
 +         if not self._background_graph_processor:
 +             return {
-+                 &quot;enabled&quot;: False,
-+                 &quot;reason&quot;: &quot;Background processor not initialized&quot;
++                 "enabled": False,
++                 "reason": "Background processor not initialized"
 +             }
 +         
 +         stats = self._background_graph_processor.get_stats()
 +         queue_status = self._background_graph_processor.get_queue_status()
 +         
 +         return {
-+             &quot;enabled&quot;: self._graph_config_manager.config.enable_background_processing if self._graph_config_manager else False,
-+             &quot;is_running&quot;: stats.get(&quot;is_running&quot;, False),
-+             &quot;queue_size&quot;: stats.get(&quot;queue_size&quot;, 0),
-+             &quot;total_processed&quot;: stats.get(&quot;total_processed&quot;, 0),
-+             &quot;total_failed&quot;: stats.get(&quot;total_failed&quot;, 0),
-+             &quot;processing_rate&quot;: stats.get(&quot;processing_rate&quot;, 0.0),
-+             &quot;backlog_age&quot;: stats.get(&quot;backlog_age&quot;, 0.0),
-+             &quot;queue_details&quot;: queue_status,
-+             &quot;config&quot;: self._graph_config_manager.get_config_dict() if self._graph_config_manager else {}
++             "enabled": self._graph_config_manager.config.enable_background_processing if self._graph_config_manager else False,
++             "is_running": stats.get("is_running", False),
++             "queue_size": stats.get("queue_size", 0),
++             "total_processed": stats.get("total_processed", 0),
++             "total_failed": stats.get("total_failed", 0),
++             "processing_rate": stats.get("processing_rate", 0.0),
++             "backlog_age": stats.get("backlog_age", 0.0),
++             "queue_details": queue_status,
++             "config": self._graph_config_manager.get_config_dict() if self._graph_config_manager else {}
 +         }
 +     
 +     def configure_graph_processing(self, **kwargs) -&gt; bool:
-+         &quot;&quot;&quot;Configure background graph processing settings.&quot;&quot;&quot;
++         """Configure background graph processing settings."""
 +         if not self._graph_config_manager:
-+             self.logger.warning(&quot;Graph configuration manager not available&quot;)
++             self.logger.warning("Graph configuration manager not available")
 +             return False
 +         
 +         try:
@@ -1272,22 +1272,22 @@ Lines added: 106, lines removed: undefined
 +             # Update background processor if it exists
 +             if self._background_graph_processor:
 +                 self._background_graph_processor.configure(
-+                     processing_frequency=kwargs.get(&quot;processing_frequency&quot;),
-+                     batch_size=kwargs.get(&quot;batch_size&quot;),
-+                     max_queue_size=kwargs.get(&quot;max_queue_size&quot;)
++                     processing_frequency=kwargs.get("processing_frequency"),
++                     batch_size=kwargs.get("batch_size"),
++                     max_queue_size=kwargs.get("max_queue_size")
 +                 )
 +             
-+             self.logger.info(f&quot;Updated graph processing configuration: {kwargs}&quot;)
++             self.logger.info(f"Updated graph processing configuration: {kwargs}")
 +             return True
 +             
 +         except Exception as e:
-+             self.logger.error(f&quot;Failed to configure graph processing: {e}&quot;)
++             self.logger.error(f"Failed to configure graph processing: {e}")
 +             return False
 +     
 +     def apply_graph_processing_profile(self, profile_name: str) -&gt; bool:
-+         &quot;&quot;&quot;Apply a predefined graph processing profile.&quot;&quot;&quot;
++         """Apply a predefined graph processing profile."""
 +         if not self._graph_config_manager:
-+             self.logger.warning(&quot;Graph configuration manager not available&quot;)
++             self.logger.warning("Graph configuration manager not available")
 +             return False
 +         
 +         try:
@@ -1309,40 +1309,40 @@ Lines added: 106, lines removed: undefined
 +                 if config.enable_background_processing:
 +                     self._background_graph_processor.start()
 +             
-+             self.logger.info(f&quot;Applied graph processing profile: {profile_name}&quot;)
++             self.logger.info(f"Applied graph processing profile: {profile_name}")
 +             return True
 +             
 +         except Exception as e:
-+             self.logger.error(f&quot;Failed to apply graph processing profile {profile_name}: {e}&quot;)
++             self.logger.error(f"Failed to apply graph processing profile {profile_name}: {e}")
 +             return False
 +     
 +     def stop_graph_processing(self) -&gt; None:
-+         &quot;&quot;&quot;Stop background graph processing.&quot;&quot;&quot;
++         """Stop background graph processing."""
 +         if self._background_graph_processor:
 +             self._background_graph_processor.stop()
-+             self.logger.info(&quot;Stopped background graph processing&quot;)
++             self.logger.info("Stopped background graph processing")
 +     
 +     def start_graph_processing(self) -&gt; None:
-+         &quot;&quot;&quot;Start background graph processing.&quot;&quot;&quot;
++         """Start background graph processing."""
 +         if self._background_graph_processor and self._graph_config_manager:
 +             if self._graph_config_manager.config.enable_background_processing:
 +                 self._background_graph_processor.start()
-+                 self.logger.info(&quot;Started background graph processing&quot;)
++                 self.logger.info("Started background graph processing")
 +             else:
-+                 self.logger.warning(&quot;Background graph processing is disabled in configuration&quot;)
++                 self.logger.warning("Background graph processing is disabled in configuration")
 +         else:
-+             self.logger.warning(&quot;Background graph processor not available&quot;)
++             self.logger.warning("Background graph processor not available")
 +     
 +     def clear_graph_processing_queue(self) -&gt; int:
-+         &quot;&quot;&quot;Clear all pending graph processing tasks.&quot;&quot;&quot;
++         """Clear all pending graph processing tasks."""
 +         if self._background_graph_processor:
 +             cleared_count = self._background_graph_processor.clear_queue()
-+             self.logger.info(f&quot;Cleared {cleared_count} graph processing tasks from queue&quot;)
++             self.logger.info(f"Cleared {cleared_count} graph processing tasks from queue")
 +             return cleared_count
 +         return 0
 +     
       async def _update_graph_memory_comprehensive_mode(self, entry: Dict[str, Any]) -&gt; None:
-          &quot;&quot;&quot;Update graph memory using full EntityResolver processing (comprehensive mode).&quot;&quot;&quot;
+          """Update graph memory using full EntityResolver processing (comprehensive mode)."""
 ```
 
 </details>
@@ -1372,7 +1372,7 @@ Now let me create a status monitoring system:
 
 <tool-use data-tool-type="write" data-tool-name="write">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/monitor.py</summary>
+<details><summary>Tool use: **write** • Edit file: src/memory/graph_memory/monitor.py</summary>
 
 **Chunk 1**
 Lines added: 460, lines removed: 1
@@ -1380,12 +1380,12 @@ Lines added: 460, lines removed: 1
 ```diff
 @@ -1,1 +1,460 @@
 - 
-+ &quot;&quot;&quot;
++ """
 + Graph Processing Status Monitor
 + 
 + Real-time monitoring and status reporting for background graph processing.
 + Provides detailed insights into processing performance, queue status, and system health.
-+ &quot;&quot;&quot;
++ """
 + 
 + import time
 + import asyncio
@@ -1399,7 +1399,7 @@ Lines added: 460, lines removed: 1
 + 
 + @dataclass
 + class ProcessingMetrics:
-+     &quot;&quot;&quot;Metrics for graph processing performance.&quot;&quot;&quot;
++     """Metrics for graph processing performance."""
 +     timestamp: float = field(default_factory=time.time)
 +     queue_size: int = 0
 +     processing_rate: float = 0.0  # tasks per minute
@@ -1413,7 +1413,7 @@ Lines added: 460, lines removed: 1
 + 
 + @dataclass
 + class AlertThresholds:
-+     &quot;&quot;&quot;Thresholds for generating alerts.&quot;&quot;&quot;
++     """Thresholds for generating alerts."""
 +     max_queue_size: int = 50
 +     max_backlog_age: float = 300.0  # 5 minutes
 +     min_processing_rate: float = 0.5  # tasks per minute
@@ -1423,11 +1423,11 @@ Lines added: 460, lines removed: 1
 + 
 + 
 + class GraphProcessingMonitor:
-+     &quot;&quot;&quot;Real-time monitor for background graph processing.
++     """Real-time monitor for background graph processing.
 +     
 +     Provides comprehensive monitoring of graph processing performance,
 +     queue status, and system health with configurable alerting.
-+     &quot;&quot;&quot;
++     """
 +     
 +     def __init__(self, 
 +                  memory_manager,
@@ -1435,7 +1435,7 @@ Lines added: 460, lines removed: 1
 +                  metrics_history_size: int = 100,
 +                  alert_callback: Optional[Callable] = None,
 +                  logger: Optional[logging.Logger] = None):
-+         &quot;&quot;&quot;
++         """
 +         Initialize the graph processing monitor.
 +         
 +         Args:
@@ -1444,7 +1444,7 @@ Lines added: 460, lines removed: 1
 +             metrics_history_size: Number of historical metrics to keep
 +             alert_callback: Optional callback for alerts
 +             logger: Logger instance for debugging
-+         &quot;&quot;&quot;
++         """
 +         self.memory_manager = memory_manager
 +         self.update_frequency = update_frequency
 +         self.metrics_history_size = metrics_history_size
@@ -1464,22 +1464,22 @@ Lines added: 460, lines removed: 1
 +         self._last_metrics = None
 +         self._start_time = time.time()
 +         
-+         self.logger.info(f&quot;Initialized GraphProcessingMonitor: &quot;
-+                         f&quot;update_frequency={update_frequency}s, &quot;
-+                         f&quot;history_size={metrics_history_size}&quot;)
++         self.logger.info(f"Initialized GraphProcessingMonitor: "
++                         f"update_frequency={update_frequency}s, "
++                         f"history_size={metrics_history_size}")
 +     
 +     def start_monitoring(self) -&gt; None:
-+         &quot;&quot;&quot;Start the monitoring loop.&quot;&quot;&quot;
++         """Start the monitoring loop."""
 +         if self._is_monitoring:
-+             self.logger.warning(&quot;Monitor is already running&quot;)
++             self.logger.warning("Monitor is already running")
 +             return
 +         
 +         self._is_monitoring = True
 +         self._monitoring_task = asyncio.create_task(self._monitoring_loop())
-+         self.logger.info(&quot;Started graph processing monitoring&quot;)
++         self.logger.info("Started graph processing monitoring")
 +     
 +     def stop_monitoring(self) -&gt; None:
-+         &quot;&quot;&quot;Stop the monitoring loop.&quot;&quot;&quot;
++         """Stop the monitoring loop."""
 +         if not self._is_monitoring:
 +             return
 +         
@@ -1487,43 +1487,43 @@ Lines added: 460, lines removed: 1
 +         if self._monitoring_task:
 +             self._monitoring_task.cancel()
 +         
-+         self.logger.info(&quot;Stopped graph processing monitoring&quot;)
++         self.logger.info("Stopped graph processing monitoring")
 +     
 +     def get_current_status(self) -&gt; Dict[str, Any]:
-+         &quot;&quot;&quot;Get current processing status.&quot;&quot;&quot;
++         """Get current processing status."""
 +         if not self.memory_manager:
-+             return {&quot;error&quot;: &quot;Memory manager not available&quot;}
++             return {"error": "Memory manager not available"}
 +         
 +         try:
 +             status = self.memory_manager.get_graph_processing_status()
 +             
 +             # Add monitoring metadata
-+             status[&quot;monitoring&quot;] = {
-+                 &quot;is_monitoring&quot;: self._is_monitoring,
-+                 &quot;uptime&quot;: time.time() - self._start_time,
-+                 &quot;metrics_count&quot;: len(self._metrics_history),
-+                 &quot;alerts_count&quot;: len(self._alerts)
++             status["monitoring"] = {
++                 "is_monitoring": self._is_monitoring,
++                 "uptime": time.time() - self._start_time,
++                 "metrics_count": len(self._metrics_history),
++                 "alerts_count": len(self._alerts)
 +             }
 +             
 +             # Add recent metrics if available
 +             if self._metrics_history:
 +                 latest_metrics = self._metrics_history[-1]
-+                 status[&quot;latest_metrics&quot;] = {
-+                     &quot;timestamp&quot;: latest_metrics.timestamp,
-+                     &quot;queue_size&quot;: latest_metrics.queue_size,
-+                     &quot;processing_rate&quot;: latest_metrics.processing_rate,
-+                     &quot;average_processing_time&quot;: latest_metrics.average_processing_time,
-+                     &quot;backlog_age&quot;: latest_metrics.backlog_age
++                 status["latest_metrics"] = {
++                     "timestamp": latest_metrics.timestamp,
++                     "queue_size": latest_metrics.queue_size,
++                     "processing_rate": latest_metrics.processing_rate,
++                     "average_processing_time": latest_metrics.average_processing_time,
++                     "backlog_age": latest_metrics.backlog_age
 +                 }
 +             
 +             return status
 +             
 +         except Exception as e:
-+             self.logger.error(f&quot;Error getting current status: {e}&quot;)
-+             return {&quot;error&quot;: str(e)}
++             self.logger.error(f"Error getting current status: {e}")
++             return {"error": str(e)}
 +     
 +     def get_metrics_history(self, limit: Optional[int] = None) -&gt; List[Dict[str, Any]]:
-+         &quot;&quot;&quot;Get historical metrics.&quot;&quot;&quot;
++         """Get historical metrics."""
 +         metrics_list = list(self._metrics_history)
 +         
 +         if limit:
@@ -1531,21 +1531,21 @@ Lines added: 460, lines removed: 1
 +         
 +         return [
 +             {
-+                 &quot;timestamp&quot;: m.timestamp,
-+                 &quot;queue_size&quot;: m.queue_size,
-+                 &quot;processing_rate&quot;: m.processing_rate,
-+                 &quot;average_processing_time&quot;: m.average_processing_time,
-+                 &quot;total_processed&quot;: m.total_processed,
-+                 &quot;total_failed&quot;: m.total_failed,
-+                 &quot;backlog_age&quot;: m.backlog_age,
-+                 &quot;memory_usage&quot;: m.memory_usage,
-+                 &quot;cpu_usage&quot;: m.cpu_usage
++                 "timestamp": m.timestamp,
++                 "queue_size": m.queue_size,
++                 "processing_rate": m.processing_rate,
++                 "average_processing_time": m.average_processing_time,
++                 "total_processed": m.total_processed,
++                 "total_failed": m.total_failed,
++                 "backlog_age": m.backlog_age,
++                 "memory_usage": m.memory_usage,
++                 "cpu_usage": m.cpu_usage
 +             }
 +             for m in metrics_list
 +         ]
 +     
 +     def get_alerts(self, limit: Optional[int] = None) -&gt; List[Dict[str, Any]]:
-+         &quot;&quot;&quot;Get recent alerts.&quot;&quot;&quot;
++         """Get recent alerts."""
 +         alerts_list = list(self._alerts)
 +         
 +         if limit:
@@ -1554,9 +1554,9 @@ Lines added: 460, lines removed: 1
 +         return alerts_list
 +     
 +     def get_performance_summary(self) -&gt; Dict[str, Any]:
-+         &quot;&quot;&quot;Get performance summary over time.&quot;&quot;&quot;
++         """Get performance summary over time."""
 +         if not self._metrics_history:
-+             return {&quot;error&quot;: &quot;No metrics available&quot;}
++             return {"error": "No metrics available"}
 +         
 +         metrics_list = list(self._metrics_history)
 +         
@@ -1566,33 +1566,33 @@ Lines added: 460, lines removed: 1
 +         processing_times = [m.average_processing_time for m in metrics_list]
 +         
 +         return {
-+             &quot;period&quot;: {
-+                 &quot;start&quot;: metrics_list[0].timestamp,
-+                 &quot;end&quot;: metrics_list[-1].timestamp,
-+                 &quot;duration&quot;: metrics_list[-1].timestamp - metrics_list[0].timestamp
++             "period": {
++                 "start": metrics_list[0].timestamp,
++                 "end": metrics_list[-1].timestamp,
++                 "duration": metrics_list[-1].timestamp - metrics_list[0].timestamp
 +             },
-+             &quot;queue_stats&quot;: {
-+                 &quot;average&quot;: sum(queue_sizes) / len(queue_sizes),
-+                 &quot;max&quot;: max(queue_sizes),
-+                 &quot;min&quot;: min(queue_sizes),
-+                 &quot;current&quot;: queue_sizes[-1] if queue_sizes else 0
++             "queue_stats": {
++                 "average": sum(queue_sizes) / len(queue_sizes),
++                 "max": max(queue_sizes),
++                 "min": min(queue_sizes),
++                 "current": queue_sizes[-1] if queue_sizes else 0
 +             },
-+             &quot;processing_stats&quot;: {
-+                 &quot;average_rate&quot;: sum(processing_rates) / len(processing_rates),
-+                 &quot;max_rate&quot;: max(processing_rates),
-+                 &quot;min_rate&quot;: min(processing_rates),
-+                 &quot;current_rate&quot;: processing_rates[-1] if processing_rates else 0
++             "processing_stats": {
++                 "average_rate": sum(processing_rates) / len(processing_rates),
++                 "max_rate": max(processing_rates),
++                 "min_rate": min(processing_rates),
++                 "current_rate": processing_rates[-1] if processing_rates else 0
 +             },
-+             &quot;timing_stats&quot;: {
-+                 &quot;average_time&quot;: sum(processing_times) / len(processing_times),
-+                 &quot;max_time&quot;: max(processing_times),
-+                 &quot;min_time&quot;: min(processing_times),
-+                 &quot;current_time&quot;: processing_times[-1] if processing_times else 0
++             "timing_stats": {
++                 "average_time": sum(processing_times) / len(processing_times),
++                 "max_time": max(processing_times),
++                 "min_time": min(processing_times),
++                 "current_time": processing_times[-1] if processing_times else 0
 +             },
-+             &quot;totals&quot;: {
-+                 &quot;total_processed&quot;: metrics_list[-1].total_processed,
-+                 &quot;total_failed&quot;: metrics_list[-1].total_failed,
-+                 &quot;failure_rate&quot;: (
++             "totals": {
++                 "total_processed": metrics_list[-1].total_processed,
++                 "total_failed": metrics_list[-1].total_failed,
++                 "failure_rate": (
 +                     metrics_list[-1].total_failed / 
 +                     max(metrics_list[-1].total_processed + metrics_list[-1].total_failed, 1)
 +                 )
@@ -1600,17 +1600,17 @@ Lines added: 460, lines removed: 1
 +         }
 +     
 +     def configure_thresholds(self, **kwargs) -&gt; None:
-+         &quot;&quot;&quot;Update alert thresholds.&quot;&quot;&quot;
++         """Update alert thresholds."""
 +         for key, value in kwargs.items():
 +             if hasattr(self.thresholds, key):
 +                 setattr(self.thresholds, key, value)
-+                 self.logger.info(f&quot;Updated threshold {key} to {value}&quot;)
++                 self.logger.info(f"Updated threshold {key} to {value}")
 +             else:
-+                 self.logger.warning(f&quot;Unknown threshold: {key}&quot;)
++                 self.logger.warning(f"Unknown threshold: {key}")
 +     
 +     async def _monitoring_loop(self) -&gt; None:
-+         &quot;&quot;&quot;Main monitoring loop.&quot;&quot;&quot;
-+         self.logger.info(&quot;Started monitoring loop&quot;)
++         """Main monitoring loop."""
++         self.logger.info("Started monitoring loop")
 +         
 +         while self._is_monitoring:
 +             try:
@@ -1630,24 +1630,24 @@ Lines added: 460, lines removed: 1
 +                 await asyncio.sleep(self.update_frequency)
 +                 
 +             except asyncio.CancelledError:
-+                 self.logger.info(&quot;Monitoring loop cancelled&quot;)
++                 self.logger.info("Monitoring loop cancelled")
 +                 break
 +             except Exception as e:
-+                 self.logger.error(f&quot;Error in monitoring loop: {e}&quot;)
++                 self.logger.error(f"Error in monitoring loop: {e}")
 +                 await asyncio.sleep(min(self.update_frequency, 10.0))
 +     
 +     async def _collect_metrics(self) -&gt; ProcessingMetrics:
-+         &quot;&quot;&quot;Collect current processing metrics.&quot;&quot;&quot;
++         """Collect current processing metrics."""
 +         try:
 +             status = self.memory_manager.get_graph_processing_status()
 +             
 +             metrics = ProcessingMetrics(
-+                 queue_size=status.get(&quot;queue_size&quot;, 0),
-+                 processing_rate=status.get(&quot;processing_rate&quot;, 0.0),
-+                 average_processing_time=status.get(&quot;average_processing_time&quot;, 0.0),
-+                 total_processed=status.get(&quot;total_processed&quot;, 0),
-+                 total_failed=status.get(&quot;total_failed&quot;, 0),
-+                 backlog_age=status.get(&quot;backlog_age&quot;, 0.0)
++                 queue_size=status.get("queue_size", 0),
++                 processing_rate=status.get("processing_rate", 0.0),
++                 average_processing_time=status.get("average_processing_time", 0.0),
++                 total_processed=status.get("total_processed", 0),
++                 total_failed=status.get("total_failed", 0),
++                 backlog_age=status.get("backlog_age", 0.0)
 +             )
 +             
 +             # Estimate resource usage (simplified)
@@ -1657,64 +1657,64 @@ Lines added: 460, lines removed: 1
 +             return metrics
 +             
 +         except Exception as e:
-+             self.logger.error(f&quot;Error collecting metrics: {e}&quot;)
++             self.logger.error(f"Error collecting metrics: {e}")
 +             return ProcessingMetrics()
 +     
 +     def _estimate_memory_usage(self, status: Dict[str, Any]) -&gt; float:
-+         &quot;&quot;&quot;Estimate memory usage in MB.&quot;&quot;&quot;
++         """Estimate memory usage in MB."""
 +         # Simple estimation based on queue size and processed items
-+         queue_size = status.get(&quot;queue_size&quot;, 0)
-+         total_processed = status.get(&quot;total_processed&quot;, 0)
++         queue_size = status.get("queue_size", 0)
++         total_processed = status.get("total_processed", 0)
 +         
 +         # Rough estimate: 1MB per 10 items in queue + 0.1MB per processed item
 +         estimated_mb = (queue_size / 10.0) + (total_processed * 0.1)
 +         return min(estimated_mb, 1000.0)  # Cap at 1GB
 +     
 +     def _estimate_cpu_usage(self, status: Dict[str, Any]) -&gt; float:
-+         &quot;&quot;&quot;Estimate CPU usage percentage.&quot;&quot;&quot;
++         """Estimate CPU usage percentage."""
 +         # Simple estimation based on processing rate and queue size
-+         processing_rate = status.get(&quot;processing_rate&quot;, 0.0)
-+         queue_size = status.get(&quot;queue_size&quot;, 0)
++         processing_rate = status.get("processing_rate", 0.0)
++         queue_size = status.get("queue_size", 0)
 +         
 +         # Rough estimate: higher processing rate and queue size = higher CPU
 +         estimated_cpu = min((processing_rate * 10) + (queue_size * 2), 100.0)
 +         return estimated_cpu
 +     
 +     async def _check_alerts(self, metrics: ProcessingMetrics) -&gt; None:
-+         &quot;&quot;&quot;Check metrics against thresholds and generate alerts if needed.&quot;&quot;&quot;
++         """Check metrics against thresholds and generate alerts if needed."""
 +         alerts = []
 +         
 +         # Check queue size
 +         if metrics.queue_size &gt; self.thresholds.max_queue_size:
 +             alerts.append({
-+                 &quot;type&quot;: &quot;high_queue_size&quot;,
-+                 &quot;severity&quot;: &quot;warning&quot;,
-+                 &quot;message&quot;: f&quot;Queue size ({metrics.queue_size}) exceeds threshold ({self.thresholds.max_queue_size})&quot;,
-+                 &quot;timestamp&quot;: metrics.timestamp,
-+                 &quot;value&quot;: metrics.queue_size,
-+                 &quot;threshold&quot;: self.thresholds.max_queue_size
++                 "type": "high_queue_size",
++                 "severity": "warning",
++                 "message": f"Queue size ({metrics.queue_size}) exceeds threshold ({self.thresholds.max_queue_size})",
++                 "timestamp": metrics.timestamp,
++                 "value": metrics.queue_size,
++                 "threshold": self.thresholds.max_queue_size
 +             })
 +         
 +         # Check backlog age
 +         if metrics.backlog_age &gt; self.thresholds.max_backlog_age:
 +             alerts.append({
-+                 &quot;type&quot;: &quot;old_backlog&quot;,
-+                 &quot;severity&quot;: &quot;warning&quot;,
-+                 &quot;message&quot;: f&quot;Backlog age ({metrics.backlog_age:.1f}s) exceeds threshold ({self.thresholds.max_backlog_age}s)&quot;,
-+                 &quot;timestamp&quot;: metrics.timestamp,
-+                 &quot;value&quot;: metrics.backlog_age,
-+                 &quot;threshold&quot;: self.thresholds.max_backlog_age
++                 "type": "old_backlog",
++                 "severity": "warning",
++                 "message": f"Backlog age ({metrics.backlog_age:.1f}s) exceeds threshold ({self.thresholds.max_backlog_age}s)",
++                 "timestamp": metrics.timestamp,
++                 "value": metrics.backlog_age,
++                 "threshold": self.thresholds.max_backlog_age
 +             })
 +         
 +         # Check processing rate
 +         if metrics.processing_rate &lt; self.thresholds.min_processing_rate and metrics.queue_size &gt; 0:
 +             alerts.append({
-+                 &quot;type&quot;: &quot;low_processing_rate&quot;,
-+                 &quot;severity&quot;: &quot;warning&quot;,
-+                 &quot;message&quot;: f&quot;Processing rate ({metrics.processing_rate:.2f}/min) below threshold ({self.thresholds.min_processing_rate}/min)&quot;,
-+                 &quot;timestamp&quot;: metrics.timestamp,
-+                 &quot;value&quot;: metrics.processing_rate,
-+                 &quot;threshold&quot;: self.thresholds.min_processing_rate
++                 "type": "low_processing_rate",
++                 "severity": "warning",
++                 "message": f"Processing rate ({metrics.processing_rate:.2f}/min) below threshold ({self.thresholds.min_processing_rate}/min)",
++                 "timestamp": metrics.timestamp,
++                 "value": metrics.processing_rate,
++                 "threshold": self.thresholds.min_processing_rate
 +             })
 +         
 +         # Check failure rate
@@ -1723,34 +1723,34 @@ Lines added: 460, lines removed: 1
 +             failure_rate = metrics.total_failed / total_operations
 +             if failure_rate &gt; self.thresholds.max_failure_rate:
 +                 alerts.append({
-+                     &quot;type&quot;: &quot;high_failure_rate&quot;,
-+                     &quot;severity&quot;: &quot;error&quot;,
-+                     &quot;message&quot;: f&quot;Failure rate ({failure_rate:.2%}) exceeds threshold ({self.thresholds.max_failure_rate:.2%})&quot;,
-+                     &quot;timestamp&quot;: metrics.timestamp,
-+                     &quot;value&quot;: failure_rate,
-+                     &quot;threshold&quot;: self.thresholds.max_failure_rate
++                     "type": "high_failure_rate",
++                     "severity": "error",
++                     "message": f"Failure rate ({failure_rate:.2%}) exceeds threshold ({self.thresholds.max_failure_rate:.2%})",
++                     "timestamp": metrics.timestamp,
++                     "value": failure_rate,
++                     "threshold": self.thresholds.max_failure_rate
 +                 })
 +         
 +         # Check memory usage
 +         if metrics.memory_usage &gt; self.thresholds.max_memory_usage:
 +             alerts.append({
-+                 &quot;type&quot;: &quot;high_memory_usage&quot;,
-+                 &quot;severity&quot;: &quot;warning&quot;,
-+                 &quot;message&quot;: f&quot;Memory usage ({metrics.memory_usage:.1f}MB) exceeds threshold ({self.thresholds.max_memory_usage}MB)&quot;,
-+                 &quot;timestamp&quot;: metrics.timestamp,
-+                 &quot;value&quot;: metrics.memory_usage,
-+                 &quot;threshold&quot;: self.thresholds.max_memory_usage
++                 "type": "high_memory_usage",
++                 "severity": "warning",
++                 "message": f"Memory usage ({metrics.memory_usage:.1f}MB) exceeds threshold ({self.thresholds.max_memory_usage}MB)",
++                 "timestamp": metrics.timestamp,
++                 "value": metrics.memory_usage,
++                 "threshold": self.thresholds.max_memory_usage
 +             })
 +         
 +         # Check CPU usage
 +         if metrics.cpu_usage &gt; self.thresholds.max_cpu_usage:
 +             alerts.append({
-+                 &quot;type&quot;: &quot;high_cpu_usage&quot;,
-+                 &quot;severity&quot;: &quot;warning&quot;,
-+                 &quot;message&quot;: f&quot;CPU usage ({metrics.cpu_usage:.1f}%) exceeds threshold ({self.thresholds.max_cpu_usage}%)&quot;,
-+                 &quot;timestamp&quot;: metrics.timestamp,
-+                 &quot;value&quot;: metrics.cpu_usage,
-+                 &quot;threshold&quot;: self.thresholds.max_cpu_usage
++                 "type": "high_cpu_usage",
++                 "severity": "warning",
++                 "message": f"CPU usage ({metrics.cpu_usage:.1f}%) exceeds threshold ({self.thresholds.max_cpu_usage}%)",
++                 "timestamp": metrics.timestamp,
++                 "value": metrics.cpu_usage,
++                 "threshold": self.thresholds.max_cpu_usage
 +             })
 +         
 +         # Store alerts and notify callback
@@ -1761,33 +1761,33 @@ Lines added: 460, lines removed: 1
 +                 try:
 +                     await self.alert_callback(alert)
 +                 except Exception as e:
-+                     self.logger.error(f&quot;Error in alert callback: {e}&quot;)
++                     self.logger.error(f"Error in alert callback: {e}")
 +             
-+             self.logger.warning(f&quot;Alert: {alert[&#39;message&#39;]}&quot;)
++             self.logger.warning(f"Alert: {alert['message']}")
 +     
-+     def export_metrics(self, format: str = &quot;json&quot;) -&gt; str:
-+         &quot;&quot;&quot;Export metrics in specified format.&quot;&quot;&quot;
-+         if format == &quot;json&quot;:
++     def export_metrics(self, format: str = "json") -&gt; str:
++         """Export metrics in specified format."""
++         if format == "json":
 +             return json.dumps({
-+                 &quot;metrics&quot;: self.get_metrics_history(),
-+                 &quot;alerts&quot;: self.get_alerts(),
-+                 &quot;summary&quot;: self.get_performance_summary(),
-+                 &quot;thresholds&quot;: {
-+                     &quot;max_queue_size&quot;: self.thresholds.max_queue_size,
-+                     &quot;max_backlog_age&quot;: self.thresholds.max_backlog_age,
-+                     &quot;min_processing_rate&quot;: self.thresholds.min_processing_rate,
-+                     &quot;max_failure_rate&quot;: self.thresholds.max_failure_rate,
-+                     &quot;max_memory_usage&quot;: self.thresholds.max_memory_usage,
-+                     &quot;max_cpu_usage&quot;: self.thresholds.max_cpu_usage
++                 "metrics": self.get_metrics_history(),
++                 "alerts": self.get_alerts(),
++                 "summary": self.get_performance_summary(),
++                 "thresholds": {
++                     "max_queue_size": self.thresholds.max_queue_size,
++                     "max_backlog_age": self.thresholds.max_backlog_age,
++                     "min_processing_rate": self.thresholds.min_processing_rate,
++                     "max_failure_rate": self.thresholds.max_failure_rate,
++                     "max_memory_usage": self.thresholds.max_memory_usage,
++                     "max_cpu_usage": self.thresholds.max_cpu_usage
 +                 }
 +             }, indent=2)
 +         else:
-+             raise ValueError(f&quot;Unsupported export format: {format}&quot;)
++             raise ValueError(f"Unsupported export format: {format}")
 +     
 +     def get_health_score(self) -&gt; Dict[str, Any]:
-+         &quot;&quot;&quot;Calculate overall health score based on current metrics.&quot;&quot;&quot;
++         """Calculate overall health score based on current metrics."""
 +         if not self._metrics_history:
-+             return {&quot;score&quot;: 0, &quot;status&quot;: &quot;unknown&quot;, &quot;details&quot;: &quot;No metrics available&quot;}
++             return {"score": 0, "status": "unknown", "details": "No metrics available"}
 +         
 +         latest = self._metrics_history[-1]
 +         
@@ -1818,26 +1818,26 @@ Lines added: 460, lines removed: 1
 +         
 +         # Determine status
 +         if score &gt;= 90:
-+             status = &quot;excellent&quot;
++             status = "excellent"
 +         elif score &gt;= 75:
-+             status = &quot;good&quot;
++             status = "good"
 +         elif score &gt;= 50:
-+             status = &quot;fair&quot;
++             status = "fair"
 +         elif score &gt;= 25:
-+             status = &quot;poor&quot;
++             status = "poor"
 +         else:
-+             status = &quot;critical&quot;
++             status = "critical"
 +         
 +         return {
-+             &quot;score&quot;: max(0, score),
-+             &quot;status&quot;: status,
-+             &quot;details&quot;: {
-+                 &quot;queue_size&quot;: latest.queue_size,
-+                 &quot;processing_rate&quot;: latest.processing_rate,
-+                 &quot;backlog_age&quot;: latest.backlog_age,
-+                 &quot;failure_rate&quot;: latest.total_failed / max(total_operations, 1),
-+                 &quot;memory_usage&quot;: latest.memory_usage,
-+                 &quot;cpu_usage&quot;: latest.cpu_usage
++             "score": max(0, score),
++             "status": status,
++             "details": {
++                 "queue_size": latest.queue_size,
++                 "processing_rate": latest.processing_rate,
++                 "backlog_age": latest.backlog_age,
++                 "failure_rate": latest.total_failed / max(total_operations, 1),
++                 "memory_usage": latest.memory_usage,
++                 "cpu_usage": latest.cpu_usage
 +             }
 +         }
 ```
@@ -1869,7 +1869,7 @@ Now let me optimize the graph context retrieval for real-time queries:
 
 <tool-use data-tool-type="write" data-tool-name="write">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/context_retriever.py</summary>
+<details><summary>Tool use: **write** • Edit file: src/memory/graph_memory/context_retriever.py</summary>
 
 **Chunk 1**
 Lines added: 406, lines removed: 1
@@ -1877,12 +1877,12 @@ Lines added: 406, lines removed: 1
 ```diff
 @@ -1,1 +1,406 @@
 - 
-+ &quot;&quot;&quot;
++ """
 + Optimized Graph Context Retrieval
 + 
 + High-performance graph context retrieval system optimized for real-time queries.
 + Provides fast context generation with intelligent caching and fallback mechanisms.
-+ &quot;&quot;&quot;
++ """
 + 
 + import time
 + import asyncio
@@ -1896,7 +1896,7 @@ Lines added: 406, lines removed: 1
 + 
 + @dataclass
 + class ContextCacheEntry:
-+     &quot;&quot;&quot;Cache entry for graph context.&quot;&quot;&quot;
++     """Cache entry for graph context."""
 +     query_hash: str
 +     context: str
 +     timestamp: float
@@ -1906,11 +1906,11 @@ Lines added: 406, lines removed: 1
 + 
 + 
 + class OptimizedGraphContextRetriever:
-+     &quot;&quot;&quot;High-performance graph context retrieval with intelligent caching.
++     """High-performance graph context retrieval with intelligent caching.
 +     
 +     Provides fast, cached access to graph context for real-time queries
 +     with fallback mechanisms and performance optimization.
-+     &quot;&quot;&quot;
++     """
 +     
 +     def __init__(self, 
 +                  graph_manager,
@@ -1919,7 +1919,7 @@ Lines added: 406, lines removed: 1
 +                  max_context_length: int = 2000,
 +                  enable_semantic_caching: bool = True,
 +                  logger: Optional[logging.Logger] = None):
-+         &quot;&quot;&quot;
++         """
 +         Initialize the optimized graph context retriever.
 +         
 +         Args:
@@ -1929,7 +1929,7 @@ Lines added: 406, lines removed: 1
 +             max_context_length: Maximum length of generated context
 +             enable_semantic_caching: Whether to use semantic similarity for cache hits
 +             logger: Logger instance for debugging
-+         &quot;&quot;&quot;
++         """
 +         self.graph_manager = graph_manager
 +         self.cache_size = cache_size
 +         self.default_ttl = default_ttl
@@ -1950,16 +1950,16 @@ Lines added: 406, lines removed: 1
 +         # Semantic cache (if enabled)
 +         self._semantic_cache = {} if enable_semantic_caching else None
 +         
-+         self.logger.info(f&quot;Initialized OptimizedGraphContextRetriever: &quot;
-+                         f&quot;cache_size={cache_size}, ttl={default_ttl}s, &quot;
-+                         f&quot;max_length={max_context_length}&quot;)
++         self.logger.info(f"Initialized OptimizedGraphContextRetriever: "
++                         f"cache_size={cache_size}, ttl={default_ttl}s, "
++                         f"max_length={max_context_length}")
 +     
 +     def get_context(self, 
 +                    query: str, 
 +                    max_results: int = 5,
 +                    ttl: Optional[float] = None,
 +                    use_cache: bool = True) -&gt; Tuple[str, Dict[str, Any]]:
-+         &quot;&quot;&quot;
++         """
 +         Get optimized graph context for a query.
 +         
 +         Args:
@@ -1970,7 +1970,7 @@ Lines added: 406, lines removed: 1
 +             
 +         Returns:
 +             Tuple of (context_text, metadata)
-+         &quot;&quot;&quot;
++         """
 +         start_time = time.time()
 +         self._total_queries += 1
 +         
@@ -1983,14 +1983,14 @@ Lines added: 406, lines removed: 1
 +                 cached_context = self._get_cached_context(query_hash)
 +                 if cached_context:
 +                     self._cache_hits += 1
-+                     self.logger.debug(f&quot;Cache hit for query: {query[:50]}...&quot;)
++                     self.logger.debug(f"Cache hit for query: {query[:50]}...")
 +                     
 +                     metadata = {
-+                         &quot;source&quot;: &quot;cache&quot;,
-+                         &quot;cache_hit&quot;: True,
-+                         &quot;query_time&quot;: time.time() - start_time,
-+                         &quot;cache_entry_age&quot;: time.time() - cached_context.timestamp,
-+                         &quot;hit_count&quot;: cached_context.hit_count
++                         "source": "cache",
++                         "cache_hit": True,
++                         "query_time": time.time() - start_time,
++                         "cache_entry_age": time.time() - cached_context.timestamp,
++                         "hit_count": cached_context.hit_count
 +                     }
 +                     
 +                     return cached_context.context, metadata
@@ -2009,28 +2009,28 @@ Lines added: 406, lines removed: 1
 +             self._update_performance_metrics(query_time)
 +             
 +             metadata = {
-+                 &quot;source&quot;: &quot;generated&quot;,
-+                 &quot;cache_hit&quot;: False,
-+                 &quot;query_time&quot;: query_time,
-+                 &quot;context_length&quot;: len(context),
-+                 &quot;max_results&quot;: max_results
++                 "source": "generated",
++                 "cache_hit": False,
++                 "query_time": query_time,
++                 "context_length": len(context),
++                 "max_results": max_results
 +             }
 +             
-+             self.logger.debug(f&quot;Generated context for query: {query[:50]}... &quot;
-+                             f&quot;({len(context)} chars, {query_time:.3f}s)&quot;)
++             self.logger.debug(f"Generated context for query: {query[:50]}... "
++                             f"({len(context)} chars, {query_time:.3f}s)")
 +             
 +             return context, metadata
 +             
 +         except Exception as e:
-+             self.logger.error(f&quot;Error getting graph context: {e}&quot;)
-+             return &quot;&quot;, {&quot;error&quot;: str(e), &quot;query_time&quot;: time.time() - start_time}
++             self.logger.error(f"Error getting graph context: {e}")
++             return "", {"error": str(e), "query_time": time.time() - start_time}
 +     
 +     async def get_context_async(self, 
 +                                query: str, 
 +                                max_results: int = 5,
 +                                ttl: Optional[float] = None,
 +                                use_cache: bool = True) -&gt; Tuple[str, Dict[str, Any]]:
-+         &quot;&quot;&quot;Async version of get_context for non-blocking operation.&quot;&quot;&quot;
++         """Async version of get_context for non-blocking operation."""
 +         # For now, use synchronous version wrapped in asyncio
 +         # In the future, this could be enhanced with async graph operations
 +         loop = asyncio.get_event_loop()
@@ -2044,14 +2044,14 @@ Lines added: 406, lines removed: 1
 +         )
 +     
 +     def _generate_query_hash(self, query: str, max_results: int) -&gt; str:
-+         &quot;&quot;&quot;Generate hash for query caching.&quot;&quot;&quot;
++         """Generate hash for query caching."""
 +         # Normalize query for consistent hashing
 +         normalized_query = query.lower().strip()
-+         hash_input = f&quot;{normalized_query}:{max_results}&quot;
++         hash_input = f"{normalized_query}:{max_results}"
 +         return hashlib.md5(hash_input.encode()).hexdigest()
 +     
 +     def _get_cached_context(self, query_hash: str) -&gt; Optional[ContextCacheEntry]:
-+         &quot;&quot;&quot;Get cached context if available and not expired.&quot;&quot;&quot;
++         """Get cached context if available and not expired."""
 +         if query_hash not in self._context_cache:
 +             return None
 +         
@@ -2070,7 +2070,7 @@ Lines added: 406, lines removed: 1
 +         return entry
 +     
 +     def _cache_context(self, query_hash: str, context: str, ttl: float) -&gt; None:
-+         &quot;&quot;&quot;Cache context with TTL.&quot;&quot;&quot;
++         """Cache context with TTL."""
 +         # Remove oldest entries if cache is full
 +         while len(self._context_cache) &gt;= self.cache_size:
 +             self._evict_oldest_cache_entry()
@@ -2086,70 +2086,70 @@ Lines added: 406, lines removed: 1
 +         self._context_cache[query_hash] = entry
 +         self._cache_access_order.append(query_hash)
 +         
-+         self.logger.debug(f&quot;Cached context for hash: {query_hash[:8]}...&quot;)
++         self.logger.debug(f"Cached context for hash: {query_hash[:8]}...")
 +     
 +     def _evict_oldest_cache_entry(self) -&gt; None:
-+         &quot;&quot;&quot;Evict the least recently used cache entry.&quot;&quot;&quot;
++         """Evict the least recently used cache entry."""
 +         if not self._cache_access_order:
 +             return
 +         
 +         oldest_hash = self._cache_access_order.pop(0)
 +         if oldest_hash in self._context_cache:
 +             del self._context_cache[oldest_hash]
-+             self.logger.debug(f&quot;Evicted cache entry: {oldest_hash[:8]}...&quot;)
++             self.logger.debug(f"Evicted cache entry: {oldest_hash[:8]}...")
 +     
 +     def _remove_cache_entry(self, query_hash: str) -&gt; None:
-+         &quot;&quot;&quot;Remove specific cache entry.&quot;&quot;&quot;
++         """Remove specific cache entry."""
 +         if query_hash in self._context_cache:
 +             del self._context_cache[query_hash]
 +             if query_hash in self._cache_access_order:
 +                 self._cache_access_order.remove(query_hash)
 +     
 +     def _update_cache_access_order(self, query_hash: str) -&gt; None:
-+         &quot;&quot;&quot;Update LRU access order.&quot;&quot;&quot;
++         """Update LRU access order."""
 +         if query_hash in self._cache_access_order:
 +             self._cache_access_order.remove(query_hash)
 +         self._cache_access_order.append(query_hash)
 +     
 +     def _generate_context(self, query: str, max_results: int) -&gt; str:
-+         &quot;&quot;&quot;Generate graph context for the query.&quot;&quot;&quot;
++         """Generate graph context for the query."""
 +         try:
-+             # Use the graph manager&#39;s query method
++             # Use the graph manager's query method
 +             results = self.graph_manager.query_for_context(query, max_results=max_results)
 +             
 +             if not results:
-+                 return &quot;&quot;
++                 return ""
 +             
 +             # Format results into context
 +             context_parts = []
 +             for i, result in enumerate(results, 1):
-+                 name = result.get(&#39;name&#39;, &#39;Unknown&#39;)
-+                 entity_type = result.get(&#39;type&#39;, &#39;entity&#39;)
-+                 description = result.get(&#39;description&#39;, &#39;&#39;)
-+                 relevance_score = result.get(&#39;relevance_score&#39;, 0.0)
++                 name = result.get('name', 'Unknown')
++                 entity_type = result.get('type', 'entity')
++                 description = result.get('description', '')
++                 relevance_score = result.get('relevance_score', 0.0)
 +                 
-+                 context_part = f&quot;{i}. {name} ({entity_type})&quot;
++                 context_part = f"{i}. {name} ({entity_type})"
 +                 if description:
-+                     context_part += f&quot;: {description}&quot;
++                     context_part += f": {description}"
 +                 if relevance_score &gt; 0:
-+                     context_part += f&quot; [relevance: {relevance_score:.2f}]&quot;
++                     context_part += f" [relevance: {relevance_score:.2f}]"
 +                 
 +                 context_parts.append(context_part)
 +             
-+             context = &quot;\n&quot;.join(context_parts)
++             context = "\n".join(context_parts)
 +             
 +             # Truncate if too long
 +             if len(context) &gt; self.max_context_length:
-+                 context = context[:self.max_context_length - 3] + &quot;...&quot;
++                 context = context[:self.max_context_length - 3] + "..."
 +             
 +             return context
 +             
 +         except Exception as e:
-+             self.logger.error(f&quot;Error generating graph context: {e}&quot;)
-+             return &quot;&quot;
++             self.logger.error(f"Error generating graph context: {e}")
++             return ""
 +     
 +     def _update_performance_metrics(self, query_time: float) -&gt; None:
-+         &quot;&quot;&quot;Update performance metrics.&quot;&quot;&quot;
++         """Update performance metrics."""
 +         # Simple moving average
 +         if self._average_query_time == 0:
 +             self._average_query_time = query_time
@@ -2157,49 +2157,49 @@ Lines added: 406, lines removed: 1
 +             self._average_query_time = (self._average_query_time * 0.9) + (query_time * 0.1)
 +     
 +     def get_cache_stats(self) -&gt; Dict[str, Any]:
-+         &quot;&quot;&quot;Get cache performance statistics.&quot;&quot;&quot;
++         """Get cache performance statistics."""
 +         total_requests = self._cache_hits + self._cache_misses
 +         hit_rate = self._cache_hits / max(total_requests, 1)
 +         
 +         return {
-+             &quot;cache_size&quot;: len(self._context_cache),
-+             &quot;max_cache_size&quot;: self.cache_size,
-+             &quot;cache_hits&quot;: self._cache_hits,
-+             &quot;cache_misses&quot;: self._cache_misses,
-+             &quot;hit_rate&quot;: hit_rate,
-+             &quot;total_queries&quot;: self._total_queries,
-+             &quot;average_query_time&quot;: self._average_query_time,
-+             &quot;cache_utilization&quot;: len(self._context_cache) / self.cache_size
++             "cache_size": len(self._context_cache),
++             "max_cache_size": self.cache_size,
++             "cache_hits": self._cache_hits,
++             "cache_misses": self._cache_misses,
++             "hit_rate": hit_rate,
++             "total_queries": self._total_queries,
++             "average_query_time": self._average_query_time,
++             "cache_utilization": len(self._context_cache) / self.cache_size
 +         }
 +     
 +     def get_cache_entries(self) -&gt; List[Dict[str, Any]]:
-+         &quot;&quot;&quot;Get information about cached entries.&quot;&quot;&quot;
++         """Get information about cached entries."""
 +         entries = []
 +         current_time = time.time()
 +         
 +         for hash_key, entry in self._context_cache.items():
 +             entries.append({
-+                 &quot;hash&quot;: hash_key[:8] + &quot;...&quot;,
-+                 &quot;context_length&quot;: len(entry.context),
-+                 &quot;age&quot;: current_time - entry.timestamp,
-+                 &quot;ttl&quot;: entry.ttl,
-+                 &quot;hit_count&quot;: entry.hit_count,
-+                 &quot;last_accessed&quot;: current_time - entry.last_accessed,
-+                 &quot;expires_in&quot;: entry.ttl - (current_time - entry.timestamp)
++                 "hash": hash_key[:8] + "...",
++                 "context_length": len(entry.context),
++                 "age": current_time - entry.timestamp,
++                 "ttl": entry.ttl,
++                 "hit_count": entry.hit_count,
++                 "last_accessed": current_time - entry.last_accessed,
++                 "expires_in": entry.ttl - (current_time - entry.timestamp)
 +             })
 +         
-+         return sorted(entries, key=lambda x: x[&quot;last_accessed&quot;], reverse=True)
++         return sorted(entries, key=lambda x: x["last_accessed"], reverse=True)
 +     
 +     def clear_cache(self) -&gt; int:
-+         &quot;&quot;&quot;Clear all cached contexts.&quot;&quot;&quot;
++         """Clear all cached contexts."""
 +         cleared_count = len(self._context_cache)
 +         self._context_cache.clear()
 +         self._cache_access_order.clear()
-+         self.logger.info(f&quot;Cleared {cleared_count} cache entries&quot;)
++         self.logger.info(f"Cleared {cleared_count} cache entries")
 +         return cleared_count
 +     
 +     def invalidate_cache(self, pattern: Optional[str] = None) -&gt; int:
-+         &quot;&quot;&quot;Invalidate cache entries matching a pattern.&quot;&quot;&quot;
++         """Invalidate cache entries matching a pattern."""
 +         if not pattern:
 +             return self.clear_cache()
 +         
@@ -2214,11 +2214,11 @@ Lines added: 406, lines removed: 1
 +             self._remove_cache_entry(key)
 +             invalidated_count += 1
 +         
-+         self.logger.info(f&quot;Invalidated {invalidated_count} cache entries matching pattern: {pattern}&quot;)
++         self.logger.info(f"Invalidated {invalidated_count} cache entries matching pattern: {pattern}")
 +         return invalidated_count
 +     
 +     def optimize_cache(self) -&gt; Dict[str, Any]:
-+         &quot;&quot;&quot;Optimize cache by removing expired entries and reordering.&quot;&quot;&quot;
++         """Optimize cache by removing expired entries and reordering."""
 +         current_time = time.time()
 +         expired_count = 0
 +         
@@ -2242,45 +2242,45 @@ Lines added: 406, lines removed: 1
 +         self._cache_access_order = [entry[0] for entry in sorted_entries]
 +         
 +         return {
-+             &quot;expired_removed&quot;: expired_count,
-+             &quot;remaining_entries&quot;: len(self._context_cache),
-+             &quot;cache_utilization&quot;: len(self._context_cache) / self.cache_size
++             "expired_removed": expired_count,
++             "remaining_entries": len(self._context_cache),
++             "cache_utilization": len(self._context_cache) / self.cache_size
 +         }
 +     
 +     def configure(self, 
 +                   cache_size: Optional[int] = None,
 +                   default_ttl: Optional[float] = None,
 +                   max_context_length: Optional[int] = None) -&gt; None:
-+         &quot;&quot;&quot;Update retriever configuration.&quot;&quot;&quot;
++         """Update retriever configuration."""
 +         if cache_size is not None:
 +             self.cache_size = cache_size
-+             self.logger.info(f&quot;Updated cache size to {cache_size}&quot;)
++             self.logger.info(f"Updated cache size to {cache_size}")
 +         
 +         if default_ttl is not None:
 +             self.default_ttl = default_ttl
-+             self.logger.info(f&quot;Updated default TTL to {default_ttl}s&quot;)
++             self.logger.info(f"Updated default TTL to {default_ttl}s")
 +         
 +         if max_context_length is not None:
 +             self.max_context_length = max_context_length
-+             self.logger.info(f&quot;Updated max context length to {max_context_length}&quot;)
++             self.logger.info(f"Updated max context length to {max_context_length}")
 +     
 +     def get_performance_report(self) -&gt; Dict[str, Any]:
-+         &quot;&quot;&quot;Get comprehensive performance report.&quot;&quot;&quot;
++         """Get comprehensive performance report."""
 +         cache_stats = self.get_cache_stats()
 +         
 +         return {
-+             &quot;performance&quot;: {
-+                 &quot;total_queries&quot;: self._total_queries,
-+                 &quot;average_query_time&quot;: self._average_query_time,
-+                 &quot;cache_hit_rate&quot;: cache_stats[&quot;hit_rate&quot;],
-+                 &quot;cache_utilization&quot;: cache_stats[&quot;cache_utilization&quot;]
++             "performance": {
++                 "total_queries": self._total_queries,
++                 "average_query_time": self._average_query_time,
++                 "cache_hit_rate": cache_stats["hit_rate"],
++                 "cache_utilization": cache_stats["cache_utilization"]
 +             },
-+             &quot;cache&quot;: cache_stats,
-+             &quot;configuration&quot;: {
-+                 &quot;cache_size&quot;: self.cache_size,
-+                 &quot;default_ttl&quot;: self.default_ttl,
-+                 &quot;max_context_length&quot;: self.max_context_length,
-+                 &quot;semantic_caching&quot;: self.enable_semantic_caching
++             "cache": cache_stats,
++             "configuration": {
++                 "cache_size": self.cache_size,
++                 "default_ttl": self.default_ttl,
++                 "max_context_length": self.max_context_length,
++                 "semantic_caching": self.enable_semantic_caching
 +             }
 +         }
 ```
@@ -2298,7 +2298,7 @@ Now let me integrate the optimized context retriever into the memory manager:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 3, lines removed: undefined
@@ -2311,7 +2311,7 @@ Lines added: 3, lines removed: undefined
 +                 self._initialize_optimized_context_retriever()
 +                 
               except Exception as e:
-                  self.logger.warning(f&quot;Failed to initialize GraphManager: {e}. Graph memory disabled.&quot;)
+                  self.logger.warning(f"Failed to initialize GraphManager: {e}. Graph memory disabled.")
 ```
 
 </details>
@@ -2322,7 +2322,7 @@ Lines added: 3, lines removed: undefined
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: undefined
@@ -2349,7 +2349,7 @@ Now let me add the initialization method for the optimized context retriever:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 32, lines removed: undefined
@@ -2359,7 +2359,7 @@ Lines added: 32, lines removed: undefined
               self._graph_config_manager = None
   
 +     def _initialize_optimized_context_retriever(self):
-+         &quot;&quot;&quot;Initialize the optimized graph context retriever.&quot;&quot;&quot;
++         """Initialize the optimized graph context retriever."""
 +         try:
 +             from src.memory.graph_memory.context_retriever import OptimizedGraphContextRetriever
 +             
@@ -2370,9 +2370,9 @@ Lines added: 32, lines removed: undefined
 +             
 +             if self._graph_config_manager:
 +                 config = self._graph_config_manager.config
-+                 cache_size = getattr(config, &#39;context_cache_size&#39;, cache_size)
-+                 default_ttl = getattr(config, &#39;context_cache_ttl&#39;, default_ttl)
-+                 max_context_length = getattr(config, &#39;max_context_results&#39;, max_context_length) * 200
++                 cache_size = getattr(config, 'context_cache_size', cache_size)
++                 default_ttl = getattr(config, 'context_cache_ttl', default_ttl)
++                 max_context_length = getattr(config, 'max_context_results', max_context_length) * 200
 +             
 +             self._optimized_context_retriever = OptimizedGraphContextRetriever(
 +                 graph_manager=self.graph_manager,
@@ -2383,15 +2383,15 @@ Lines added: 32, lines removed: undefined
 +                 logger=self.logger
 +             )
 +             
-+             self.logger.info(f&quot;Initialized optimized graph context retriever: &quot;
-+                            f&quot;cache_size={cache_size}, ttl={default_ttl}s&quot;)
++             self.logger.info(f"Initialized optimized graph context retriever: "
++                            f"cache_size={cache_size}, ttl={default_ttl}s")
 +             
 +         except Exception as e:
-+             self.logger.error(f&quot;Failed to initialize optimized context retriever: {e}&quot;)
++             self.logger.error(f"Failed to initialize optimized context retriever: {e}")
 +             self._optimized_context_retriever = None
 + 
       def _create_graph_manager_logger(self, memory_dir: str, memory_base: str) -&gt; logging.Logger:
-          &quot;&quot;&quot;Create a dedicated logger for graph manager operations.
+          """Create a dedicated logger for graph manager operations.
 ```
 
 </details>
@@ -2424,7 +2424,7 @@ Output mode: content
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 17, lines removed: 3
@@ -2442,10 +2442,10 @@ Lines added: 17, lines removed: 3
 +                                         use_cache=True
 +                                     )
 +                                     
-+                                     if self.verbose_handler and context_metadata.get(&quot;cache_hit&quot;):
-+                                         self.verbose_handler.success(&quot;Found cached graph context (optimized)&quot;, level=2)
++                                     if self.verbose_handler and context_metadata.get("cache_hit"):
++                                         self.verbose_handler.success("Found cached graph context (optimized)", level=2)
 +                                     elif self.verbose_handler:
-+                                         self.verbose_handler.success(&quot;Generated graph context (optimized)&quot;, level=2)
++                                         self.verbose_handler.success("Generated graph context (optimized)", level=2)
 +                                 else:
 +                                     # Fallback to standard method
 +                                     graph_context = self.get_graph_context(query)
@@ -2455,8 +2455,8 @@ Lines added: 17, lines removed: 3
                                   if graph_context and self.cache_manager:
                                       self.cache_manager.set_graph_context(query, graph_state_hash, graph_context)
                                       if self.verbose_handler:
--                                         self.verbose_handler.success(&quot;Generated and cached graph context&quot;, level=2)
-+                                         self.verbose_handler.success(&quot;Cached graph context&quot;, level=2)
+-                                         self.verbose_handler.success("Generated and cached graph context", level=2)
++                                         self.verbose_handler.success("Cached graph context", level=2)
                               
                               if graph_context:
 ```
@@ -2474,7 +2474,7 @@ Now let me add methods to manage the optimized context retriever:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 35, lines removed: undefined
@@ -2484,42 +2484,42 @@ Lines added: 35, lines removed: undefined
           return 0
       
 +     def get_context_retriever_stats(self) -&gt; Dict[str, Any]:
-+         &quot;&quot;&quot;Get statistics for the optimized context retriever.&quot;&quot;&quot;
++         """Get statistics for the optimized context retriever."""
 +         if not self._optimized_context_retriever:
-+             return {&quot;enabled&quot;: False, &quot;reason&quot;: &quot;Context retriever not initialized&quot;}
++             return {"enabled": False, "reason": "Context retriever not initialized"}
 +         
 +         return {
-+             &quot;enabled&quot;: True,
-+             &quot;stats&quot;: self._optimized_context_retriever.get_cache_stats(),
-+             &quot;performance&quot;: self._optimized_context_retriever.get_performance_report()
++             "enabled": True,
++             "stats": self._optimized_context_retriever.get_cache_stats(),
++             "performance": self._optimized_context_retriever.get_performance_report()
 +         }
 +     
 +     def clear_context_cache(self) -&gt; int:
-+         &quot;&quot;&quot;Clear the graph context cache.&quot;&quot;&quot;
++         """Clear the graph context cache."""
 +         if self._optimized_context_retriever:
 +             cleared_count = self._optimized_context_retriever.clear_cache()
-+             self.logger.info(f&quot;Cleared {cleared_count} context cache entries&quot;)
++             self.logger.info(f"Cleared {cleared_count} context cache entries")
 +             return cleared_count
 +         return 0
 +     
 +     def invalidate_context_cache(self, pattern: Optional[str] = None) -&gt; int:
-+         &quot;&quot;&quot;Invalidate context cache entries matching a pattern.&quot;&quot;&quot;
++         """Invalidate context cache entries matching a pattern."""
 +         if self._optimized_context_retriever:
 +             invalidated_count = self._optimized_context_retriever.invalidate_cache(pattern)
-+             self.logger.info(f&quot;Invalidated {invalidated_count} context cache entries&quot;)
++             self.logger.info(f"Invalidated {invalidated_count} context cache entries")
 +             return invalidated_count
 +         return 0
 +     
 +     def optimize_context_cache(self) -&gt; Dict[str, Any]:
-+         &quot;&quot;&quot;Optimize the context cache.&quot;&quot;&quot;
++         """Optimize the context cache."""
 +         if self._optimized_context_retriever:
 +             optimization_result = self._optimized_context_retriever.optimize_cache()
-+             self.logger.info(f&quot;Optimized context cache: {optimization_result}&quot;)
++             self.logger.info(f"Optimized context cache: {optimization_result}")
 +             return optimization_result
-+         return {&quot;error&quot;: &quot;Context retriever not available&quot;}
++         return {"error": "Context retriever not available"}
 +     
       async def _update_graph_memory_comprehensive_mode(self, entry: Dict[str, Any]) -&gt; None:
-          &quot;&quot;&quot;Update graph memory using full EntityResolver processing (comprehensive mode).&quot;&quot;&quot;
+          """Update graph memory using full EntityResolver processing (comprehensive mode)."""
 ```
 
 </details>
@@ -2549,7 +2549,7 @@ Now let me create a comprehensive example and documentation:
 
 <tool-use data-tool-type="write" data-tool-name="write">
 
-<details><summary>Tool use: **code_edit** • Edit file: README-phase-6-status-week-3-graph-optimization.md</summary>
+<details><summary>Tool use: **write** • Edit file: README-phase-6-status-week-3-graph-optimization.md</summary>
 
 **Chunk 1**
 Lines added: 312, lines removed: 5
@@ -2660,33 +2660,33 @@ Lines added: 312, lines removed: 5
 + #### Realtime Profile
 + &#96;&#96;&#96;python
 + {
-+     &quot;processing_frequency&quot;: 10.0,    # Every 10 seconds
-+     &quot;batch_size&quot;: 3,
-+     &quot;default_processing_mode&quot;: &quot;speed&quot;,
-+     &quot;enable_realtime_context&quot;: True,
-+     &quot;context_cache_ttl&quot;: 60.0
++     "processing_frequency": 10.0,    # Every 10 seconds
++     "batch_size": 3,
++     "default_processing_mode": "speed",
++     "enable_realtime_context": True,
++     "context_cache_ttl": 60.0
 + }
 + &#96;&#96;&#96;
 + 
 + #### Balanced Profile (Default)
 + &#96;&#96;&#96;python
 + {
-+     &quot;processing_frequency&quot;: 30.0,    # Every 30 seconds
-+     &quot;batch_size&quot;: 5,
-+     &quot;default_processing_mode&quot;: &quot;balanced&quot;,
-+     &quot;enable_realtime_context&quot;: True,
-+     &quot;context_cache_ttl&quot;: 300.0
++     "processing_frequency": 30.0,    # Every 30 seconds
++     "batch_size": 5,
++     "default_processing_mode": "balanced",
++     "enable_realtime_context": True,
++     "context_cache_ttl": 300.0
 + }
 + &#96;&#96;&#96;
 + 
 + #### Comprehensive Profile
 + &#96;&#96;&#96;python
 + {
-+     &quot;processing_frequency&quot;: 60.0,     # Every minute
-+     &quot;batch_size&quot;: 3,
-+     &quot;default_processing_mode&quot;: &quot;comprehensive&quot;,
-+     &quot;enable_realtime_context&quot;: True,
-+     &quot;context_cache_ttl&quot;: 600.0
++     "processing_frequency": 60.0,     # Every minute
++     "batch_size": 3,
++     "default_processing_mode": "comprehensive",
++     "enable_realtime_context": True,
++     "context_cache_ttl": 600.0
 + }
 + &#96;&#96;&#96;
 + 
@@ -2699,27 +2699,27 @@ Lines added: 312, lines removed: 5
 + 
 + # Initialize with background processing enabled
 + memory_manager = MemoryManager(
-+     memory_guid=&quot;test_session&quot;,
++     memory_guid="test_session",
 +     enable_graph_memory=True,
-+     graph_memory_processing_level=&quot;balanced&quot;,
++     graph_memory_processing_level="balanced",
 +     verbose=True
 + )
 + 
 + # Query memory - graph processing happens in background
 + response = memory_manager.query_memory({
-+     &quot;query&quot;: &quot;Tell me about Elena&quot;,
-+     &quot;domain_specific_prompt_instructions&quot;: &quot;You are a helpful assistant&quot;
++     "query": "Tell me about Elena",
++     "domain_specific_prompt_instructions": "You are a helpful assistant"
 + })
 + 
 + # Response is returned immediately, graph processing continues in background
-+ print(response[&quot;response&quot;])
++ print(response["response"])
 + &#96;&#96;&#96;
 + 
 + ### Configuration Management
 + 
 + &#96;&#96;&#96;python
 + # Apply a processing profile
-+ memory_manager.apply_graph_processing_profile(&quot;realtime&quot;)
++ memory_manager.apply_graph_processing_profile("realtime")
 + 
 + # Configure specific settings
 + memory_manager.configure_graph_processing(
@@ -2730,8 +2730,8 @@ Lines added: 312, lines removed: 5
 + 
 + # Get current status
 + status = memory_manager.get_graph_processing_status()
-+ print(f&quot;Queue size: {status[&#39;queue_size&#39;]}&quot;)
-+ print(f&quot;Processing rate: {status[&#39;processing_rate&#39;]:.2f} tasks/min&quot;)
++ print(f"Queue size: {status['queue_size']}")
++ print(f"Processing rate: {status['processing_rate']:.2f} tasks/min")
 + &#96;&#96;&#96;
 + 
 + ### Performance Monitoring
@@ -2739,27 +2739,27 @@ Lines added: 312, lines removed: 5
 + &#96;&#96;&#96;python
 + # Get processing statistics
 + stats = memory_manager.get_graph_processing_status()
-+ print(f&quot;Total processed: {stats[&#39;total_processed&#39;]}&quot;)
-+ print(f&quot;Total failed: {stats[&#39;total_failed&#39;]}&quot;)
-+ print(f&quot;Backlog age: {stats[&#39;backlog_age&#39;]:.1f}s&quot;)
++ print(f"Total processed: {stats['total_processed']}")
++ print(f"Total failed: {stats['total_failed']}")
++ print(f"Backlog age: {stats['backlog_age']:.1f}s")
 + 
 + # Get context retriever performance
 + context_stats = memory_manager.get_context_retriever_stats()
-+ print(f&quot;Cache hit rate: {context_stats[&#39;stats&#39;][&#39;hit_rate&#39;]:.2%}&quot;)
-+ print(f&quot;Average query time: {context_stats[&#39;performance&#39;][&#39;average_query_time&#39;]:.3f}s&quot;)
++ print(f"Cache hit rate: {context_stats['stats']['hit_rate']:.2%}")
++ print(f"Average query time: {context_stats['performance']['average_query_time']:.3f}s")
 + &#96;&#96;&#96;
 + 
 + ### Queue Management
 + 
 + &#96;&#96;&#96;python
 + # Check queue status
-+ queue_status = memory_manager.get_graph_processing_status()[&quot;queue_details&quot;]
-+ print(f&quot;Priority distribution: {queue_status[&#39;priority_distribution&#39;]}&quot;)
-+ print(f&quot;Mode distribution: {queue_status[&#39;mode_distribution&#39;]}&quot;)
++ queue_status = memory_manager.get_graph_processing_status()["queue_details"]
++ print(f"Priority distribution: {queue_status['priority_distribution']}")
++ print(f"Mode distribution: {queue_status['mode_distribution']}")
 + 
 + # Clear queue if needed
 + cleared_count = memory_manager.clear_graph_processing_queue()
-+ print(f&quot;Cleared {cleared_count} tasks from queue&quot;)
++ print(f"Cleared {cleared_count} tasks from queue")
 + 
 + # Stop/start processing
 + memory_manager.stop_graph_processing()
@@ -2792,12 +2792,12 @@ Lines added: 312, lines removed: 5
 + ### Alert Thresholds
 + &#96;&#96;&#96;python
 + {
-+     &quot;max_queue_size&quot;: 50,
-+     &quot;max_backlog_age&quot;: 300.0,      # 5 minutes
-+     &quot;min_processing_rate&quot;: 0.5,    # tasks per minute
-+     &quot;max_failure_rate&quot;: 0.1,       # 10%
-+     &quot;max_memory_usage&quot;: 100.0,      # MB
-+     &quot;max_cpu_usage&quot;: 80.0           # percentage
++     "max_queue_size": 50,
++     "max_backlog_age": 300.0,      # 5 minutes
++     "min_processing_rate": 0.5,    # tasks per minute
++     "max_failure_rate": 0.1,       # 10%
++     "max_memory_usage": 100.0,      # MB
++     "max_cpu_usage": 80.0           # percentage
 + }
 + &#96;&#96;&#96;
 + 
@@ -2807,24 +2807,24 @@ Lines added: 312, lines removed: 5
 + status = memory_manager.get_graph_processing_status()
 + 
 + # Monitor queue health
-+ if status[&quot;queue_size&quot;] &gt; 20:
-+     print(&quot;⚠️ High queue size detected&quot;)
++ if status["queue_size"] &gt; 20:
++     print("⚠️ High queue size detected")
 + 
-+ if status[&quot;backlog_age&quot;] &gt; 120:
-+     print(&quot;⚠️ Old backlog detected&quot;)
++ if status["backlog_age"] &gt; 120:
++     print("⚠️ Old backlog detected")
 + 
 + # Check processing efficiency
-+ if status[&quot;processing_rate&quot;] &lt; 1.0:
-+     print(&quot;⚠️ Low processing rate&quot;)
++ if status["processing_rate"] &lt; 1.0:
++     print("⚠️ Low processing rate")
 + &#96;&#96;&#96;
 + 
 + ## Best Practices
 + 
 + ### 1. Profile Selection
-+ - **High-frequency chat**: Use &quot;realtime&quot; profile
-+ - **Document analysis**: Use &quot;comprehensive&quot; profile
-+ - **Low-resource environments**: Use &quot;background_only&quot; profile
-+ - **Development/testing**: Use &quot;disabled&quot; profile
++ - **High-frequency chat**: Use "realtime" profile
++ - **Document analysis**: Use "comprehensive" profile
++ - **Low-resource environments**: Use "background_only" profile
++ - **Development/testing**: Use "disabled" profile
 + 
 + ### 2. Monitoring
 + - Monitor queue size and backlog age regularly
@@ -2850,7 +2850,7 @@ Lines added: 312, lines removed: 5
 + 
 + &#96;&#96;&#96;typescript
 + // Get processing status via API
-+ const status = await fetch(&#39;/api/v1/sessions/{id}/graph-status&#39;);
++ const status = await fetch('/api/v1/sessions/{id}/graph-status');
 + const data = await status.json();
 + 
 + // Display queue information
@@ -2957,7 +2957,7 @@ Let me fix the linting error:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/context_retriever.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/graph_memory/context_retriever.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -3015,7 +3015,7 @@ Perfect! Now let me create a simple test script to demonstrate the new backgroun
 
 <tool-use data-tool-type="write" data-tool-name="write">
 
-<details><summary>Tool use: **code_edit** • Edit file: test_background_graph_processing.py</summary>
+<details><summary>Tool use: **write** • Edit file: test_background_graph_processing.py</summary>
 
 **Chunk 1**
 Lines added: 309, lines removed: 1
@@ -3024,12 +3024,12 @@ Lines added: 309, lines removed: 1
 @@ -1,1 +1,309 @@
 - 
 + #!/usr/bin/env python3
-+ &quot;&quot;&quot;
++ """
 + Test script for background graph processing system.
 + 
 + This script demonstrates the new background processing capabilities
 + and shows how graph memory can be processed without blocking user interactions.
-+ &quot;&quot;&quot;
++ """
 + 
 + import asyncio
 + import time
@@ -3038,7 +3038,7 @@ Lines added: 309, lines removed: 1
 + from typing import Dict, Any
 + 
 + # Add the src directory to the path
-+ sys.path.insert(0, os.path.join(os.path.dirname(__file__), &#39;src&#39;))
++ sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 + 
 + from src.memory.memory_manager import MemoryManager
 + from src.ai.llm_ollama import OllamaService
@@ -3046,31 +3046,31 @@ Lines added: 309, lines removed: 1
 + 
 + 
 + def create_test_llm_service():
-+     &quot;&quot;&quot;Create a test LLM service.&quot;&quot;&quot;
++     """Create a test LLM service."""
 +     config = {
-+         &quot;base_url&quot;: os.getenv(&quot;OLLAMA_BASE_URL&quot;, &quot;http://localhost:11434&quot;),
-+         &quot;model&quot;: os.getenv(&quot;OLLAMA_MODEL&quot;, &quot;gemma3&quot;),
-+         &quot;temperature&quot;: 0.7,
-+         &quot;stream&quot;: False,
-+         &quot;debug&quot;: True
++         "base_url": os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
++         "model": os.getenv("OLLAMA_MODEL", "gemma3"),
++         "temperature": 0.7,
++         "stream": False,
++         "debug": True
 +     }
 +     return OllamaService(config)
 + 
 + 
 + def create_test_embeddings_service():
-+     &quot;&quot;&quot;Create a test embeddings service.&quot;&quot;&quot;
++     """Create a test embeddings service."""
 +     config = {
-+         &quot;base_url&quot;: os.getenv(&quot;OLLAMA_BASE_URL&quot;, &quot;http://localhost:11434&quot;),
-+         &quot;model&quot;: os.getenv(&quot;OLLAMA_EMBED_MODEL&quot;, &quot;mxbai-embed-large&quot;),
-+         &quot;debug&quot;: True
++         "base_url": os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
++         "model": os.getenv("OLLAMA_EMBED_MODEL", "mxbai-embed-large"),
++         "debug": True
 +     }
 +     return OllamaService(config)
 + 
 + 
 + def test_basic_functionality():
-+     &quot;&quot;&quot;Test basic background processing functionality.&quot;&quot;&quot;
-+     print(&quot;🧪 Testing Basic Background Processing Functionality&quot;)
-+     print(&quot;=&quot; * 60)
++     """Test basic background processing functionality."""
++     print("🧪 Testing Basic Background Processing Functionality")
++     print("=" * 60)
 +     
 +     # Create services
 +     llm_service = create_test_llm_service()
@@ -3079,110 +3079,110 @@ Lines added: 309, lines removed: 1
 +     # Create embeddings manager
 +     embeddings_manager = EmbeddingsManager(
 +         llm_service=embeddings_service,
-+         storage_path=&quot;test_embeddings&quot;
++         storage_path="test_embeddings"
 +     )
 +     
 +     # Create memory manager with background processing
 +     memory_manager = MemoryManager(
-+         memory_guid=&quot;test_background_processing&quot;,
++         memory_guid="test_background_processing",
 +         llm_service=llm_service,
 +         embeddings_llm_service=embeddings_service,
 +         enable_graph_memory=True,
-+         graph_memory_processing_level=&quot;balanced&quot;,
++         graph_memory_processing_level="balanced",
 +         verbose=True
 +     )
 +     
-+     print(&quot;✅ Memory manager initialized with background processing&quot;)
++     print("✅ Memory manager initialized with background processing")
 +     
 +     # Test queries
 +     test_queries = [
-+         &quot;Tell me about Elena, the fire wizard&quot;,
-+         &quot;What is Riverwatch?&quot;,
-+         &quot;Describe the ancient ruins&quot;,
-+         &quot;Who are the main characters?&quot;,
-+         &quot;What locations have been mentioned?&quot;
++         "Tell me about Elena, the fire wizard",
++         "What is Riverwatch?",
++         "Describe the ancient ruins",
++         "Who are the main characters?",
++         "What locations have been mentioned?"
 +     ]
 +     
-+     print(&quot;\n📝 Testing queries with background processing...&quot;)
++     print("\n📝 Testing queries with background processing...")
 +     
 +     for i, query in enumerate(test_queries, 1):
-+         print(f&quot;\n--- Query {i}: {query} ---&quot;)
++         print(f"\n--- Query {i}: {query} ---")
 +         
 +         start_time = time.time()
 +         response = memory_manager.query_memory({
-+             &quot;query&quot;: query,
-+             &quot;domain_specific_prompt_instructions&quot;: &quot;You are a helpful assistant for a fantasy game.&quot;
++             "query": query,
++             "domain_specific_prompt_instructions": "You are a helpful assistant for a fantasy game."
 +         })
 +         query_time = time.time() - start_time
 +         
-+         print(f&quot;⏱️  Query time: {query_time:.2f}s&quot;)
-+         print(f&quot;📄 Response: {response[&#39;response&#39;][:100]}...&quot;)
++         print(f"⏱️  Query time: {query_time:.2f}s")
++         print(f"📄 Response: {response['response'][:100]}...")
 +         
 +         # Check processing status
 +         status = memory_manager.get_graph_processing_status()
-+         print(f&quot;📊 Queue size: {status[&#39;queue_size&#39;]}&quot;)
-+         print(f&quot;📈 Processing rate: {status[&#39;processing_rate&#39;]:.2f} tasks/min&quot;)
++         print(f"📊 Queue size: {status['queue_size']}")
++         print(f"📈 Processing rate: {status['processing_rate']:.2f} tasks/min")
 +         
 +         # Small delay to allow background processing
 +         time.sleep(1)
 +     
-+     print(&quot;\n🎯 Testing configuration management...&quot;)
++     print("\n🎯 Testing configuration management...")
 +     
 +     # Test profile switching
-+     print(&quot;🔄 Switching to &#39;realtime&#39; profile...&quot;)
-+     success = memory_manager.apply_graph_processing_profile(&quot;realtime&quot;)
-+     print(f&quot;Profile switch successful: {success}&quot;)
++     print("🔄 Switching to 'realtime' profile...")
++     success = memory_manager.apply_graph_processing_profile("realtime")
++     print(f"Profile switch successful: {success}")
 +     
 +     # Test custom configuration
-+     print(&quot;⚙️  Applying custom configuration...&quot;)
++     print("⚙️  Applying custom configuration...")
 +     success = memory_manager.configure_graph_processing(
 +         processing_frequency=15.0,
 +         batch_size=3,
 +         max_queue_size=50
 +     )
-+     print(f&quot;Configuration successful: {success}&quot;)
++     print(f"Configuration successful: {success}")
 +     
 +     # Get final status
-+     print(&quot;\n📊 Final Processing Status:&quot;)
++     print("\n📊 Final Processing Status:")
 +     final_status = memory_manager.get_graph_processing_status()
 +     for key, value in final_status.items():
-+         if key != &quot;config&quot;:  # Skip detailed config
-+             print(f&quot;  {key}: {value}&quot;)
++         if key != "config":  # Skip detailed config
++             print(f"  {key}: {value}")
 +     
 +     # Get context retriever stats
-+     print(&quot;\n🎯 Context Retriever Performance:&quot;)
++     print("\n🎯 Context Retriever Performance:")
 +     context_stats = memory_manager.get_context_retriever_stats()
-+     if context_stats.get(&quot;enabled&quot;):
-+         stats = context_stats[&quot;stats&quot;]
-+         print(f&quot;  Cache hit rate: {stats[&#39;hit_rate&#39;]:.2%}&quot;)
-+         print(f&quot;  Average query time: {stats[&#39;average_query_time&#39;]:.3f}s&quot;)
-+         print(f&quot;  Cache utilization: {stats[&#39;cache_utilization&#39;]:.2%}&quot;)
++     if context_stats.get("enabled"):
++         stats = context_stats["stats"]
++         print(f"  Cache hit rate: {stats['hit_rate']:.2%}")
++         print(f"  Average query time: {stats['average_query_time']:.3f}s")
++         print(f"  Cache utilization: {stats['cache_utilization']:.2%}")
 +     
-+     print(&quot;\n✅ Basic functionality test completed!&quot;)
++     print("\n✅ Basic functionality test completed!")
 + 
 + 
 + def test_performance_comparison():
-+     &quot;&quot;&quot;Test performance comparison between different processing modes.&quot;&quot;&quot;
-+     print(&quot;\n🚀 Testing Performance Comparison&quot;)
-+     print(&quot;=&quot; * 60)
++     """Test performance comparison between different processing modes."""
++     print("\n🚀 Testing Performance Comparison")
++     print("=" * 60)
 +     
 +     # Create services
 +     llm_service = create_test_llm_service()
 +     embeddings_service = create_test_embeddings_service()
 +     embeddings_manager = EmbeddingsManager(
 +         llm_service=embeddings_service,
-+         storage_path=&quot;test_embeddings_perf&quot;
++         storage_path="test_embeddings_perf"
 +     )
 +     
-+     profiles = [&quot;realtime&quot;, &quot;balanced&quot;, &quot;comprehensive&quot;]
++     profiles = ["realtime", "balanced", "comprehensive"]
 +     results = {}
 +     
 +     for profile in profiles:
-+         print(f&quot;\n📊 Testing {profile} profile...&quot;)
++         print(f"\n📊 Testing {profile} profile...")
 +         
 +         # Create memory manager with specific profile
 +         memory_manager = MemoryManager(
-+             memory_guid=f&quot;test_perf_{profile}&quot;,
++             memory_guid=f"test_perf_{profile}",
 +             llm_service=llm_service,
 +             embeddings_llm_service=embeddings_service,
 +             enable_graph_memory=True,
@@ -3194,12 +3194,12 @@ Lines added: 309, lines removed: 1
 +         memory_manager.apply_graph_processing_profile(profile)
 +         
 +         # Test queries
-+         test_query = &quot;Tell me about Elena and her magical abilities&quot;
++         test_query = "Tell me about Elena and her magical abilities"
 +         
 +         start_time = time.time()
 +         response = memory_manager.query_memory({
-+             &quot;query&quot;: test_query,
-+             &quot;domain_specific_prompt_instructions&quot;: &quot;You are a helpful assistant.&quot;
++             "query": test_query,
++             "domain_specific_prompt_instructions": "You are a helpful assistant."
 +         })
 +         query_time = time.time() - start_time
 +         
@@ -3208,100 +3208,100 @@ Lines added: 309, lines removed: 1
 +         context_stats = memory_manager.get_context_retriever_stats()
 +         
 +         results[profile] = {
-+             &quot;query_time&quot;: query_time,
-+             &quot;queue_size&quot;: status[&quot;queue_size&quot;],
-+             &quot;processing_rate&quot;: status[&quot;processing_rate&quot;],
-+             &quot;cache_hit_rate&quot;: context_stats.get(&quot;stats&quot;, {}).get(&quot;hit_rate&quot;, 0),
-+             &quot;response_length&quot;: len(response[&quot;response&quot;])
++             "query_time": query_time,
++             "queue_size": status["queue_size"],
++             "processing_rate": status["processing_rate"],
++             "cache_hit_rate": context_stats.get("stats", {}).get("hit_rate", 0),
++             "response_length": len(response["response"])
 +         }
 +         
-+         print(f&quot;  Query time: {query_time:.2f}s&quot;)
-+         print(f&quot;  Queue size: {status[&#39;queue_size&#39;]}&quot;)
-+         print(f&quot;  Processing rate: {status[&#39;processing_rate&#39;]:.2f}/min&quot;)
++         print(f"  Query time: {query_time:.2f}s")
++         print(f"  Queue size: {status['queue_size']}")
++         print(f"  Processing rate: {status['processing_rate']:.2f}/min")
 +         
 +         # Wait for background processing
 +         time.sleep(2)
 +     
 +     # Compare results
-+     print(&quot;\n📈 Performance Comparison Results:&quot;)
-+     print(&quot;-&quot; * 60)
-+     print(f&quot;{&#39;Profile&#39;:&lt;12} {&#39;Query Time&#39;:&lt;12} {&#39;Queue Size&#39;:&lt;12} {&#39;Rate&#39;:&lt;12} {&#39;Cache Hit&#39;:&lt;12}&quot;)
-+     print(&quot;-&quot; * 60)
++     print("\n📈 Performance Comparison Results:")
++     print("-" * 60)
++     print(f"{'Profile':&lt;12} {'Query Time':&lt;12} {'Queue Size':&lt;12} {'Rate':&lt;12} {'Cache Hit':&lt;12}")
++     print("-" * 60)
 +     
 +     for profile, data in results.items():
-+         print(f&quot;{profile:&lt;12} {data[&#39;query_time&#39;]:&lt;12.2f} {data[&#39;queue_size&#39;]:&lt;12} &quot;
-+               f&quot;{data[&#39;processing_rate&#39;]:&lt;12.2f} {data[&#39;cache_hit_rate&#39;]:&lt;12.2%}&quot;)
++         print(f"{profile:&lt;12} {data['query_time']:&lt;12.2f} {data['queue_size']:&lt;12} "
++               f"{data['processing_rate']:&lt;12.2f} {data['cache_hit_rate']:&lt;12.2%}")
 +     
-+     print(&quot;\n✅ Performance comparison completed!&quot;)
++     print("\n✅ Performance comparison completed!")
 + 
 + 
 + def test_monitoring_and_alerts():
-+     &quot;&quot;&quot;Test monitoring and alerting capabilities.&quot;&quot;&quot;
-+     print(&quot;\n📊 Testing Monitoring and Alerts&quot;)
-+     print(&quot;=&quot; * 60)
++     """Test monitoring and alerting capabilities."""
++     print("\n📊 Testing Monitoring and Alerts")
++     print("=" * 60)
 +     
 +     # Create services
 +     llm_service = create_test_llm_service()
 +     embeddings_service = create_test_embeddings_service()
 +     embeddings_manager = EmbeddingsManager(
 +         llm_service=embeddings_service,
-+         storage_path=&quot;test_embeddings_monitor&quot;
++         storage_path="test_embeddings_monitor"
 +     )
 +     
 +     # Create memory manager
 +     memory_manager = MemoryManager(
-+         memory_guid=&quot;test_monitoring&quot;,
++         memory_guid="test_monitoring",
 +         llm_service=llm_service,
 +         embeddings_llm_service=embeddings_service,
 +         enable_graph_memory=True,
-+         graph_memory_processing_level=&quot;balanced&quot;,
++         graph_memory_processing_level="balanced",
 +         verbose=True
 +     )
 +     
-+     print(&quot;📈 Monitoring processing status...&quot;)
++     print("📈 Monitoring processing status...")
 +     
 +     # Generate some load
 +     for i in range(5):
-+         query = f&quot;Tell me about character {i+1} in the story&quot;
++         query = f"Tell me about character {i+1} in the story"
 +         response = memory_manager.query_memory({
-+             &quot;query&quot;: query,
-+             &quot;domain_specific_prompt_instructions&quot;: &quot;You are a helpful assistant.&quot;
++             "query": query,
++             "domain_specific_prompt_instructions": "You are a helpful assistant."
 +         })
-+         print(f&quot;  Query {i+1} completed&quot;)
++         print(f"  Query {i+1} completed")
 +         time.sleep(0.5)
 +     
 +     # Check status multiple times
-+     print(&quot;\n📊 Status monitoring over time:&quot;)
++     print("\n📊 Status monitoring over time:")
 +     for i in range(3):
 +         status = memory_manager.get_graph_processing_status()
 +         context_stats = memory_manager.get_context_retriever_stats()
 +         
-+         print(f&quot;\n  Check {i+1}:&quot;)
-+         print(f&quot;    Queue size: {status[&#39;queue_size&#39;]}&quot;)
-+         print(f&quot;    Processing rate: {status[&#39;processing_rate&#39;]:.2f}/min&quot;)
-+         print(f&quot;    Backlog age: {status[&#39;backlog_age&#39;]:.1f}s&quot;)
-+         print(f&quot;    Cache hit rate: {context_stats.get(&#39;stats&#39;, {}).get(&#39;hit_rate&#39;, 0):.2%}&quot;)
++         print(f"\n  Check {i+1}:")
++         print(f"    Queue size: {status['queue_size']}")
++         print(f"    Processing rate: {status['processing_rate']:.2f}/min")
++         print(f"    Backlog age: {status['backlog_age']:.1f}s")
++         print(f"    Cache hit rate: {context_stats.get('stats', {}).get('hit_rate', 0):.2%}")
 +         
 +         time.sleep(2)
 +     
 +     # Test queue management
-+     print(&quot;\n🔧 Testing queue management...&quot;)
++     print("\n🔧 Testing queue management...")
 +     
 +     # Clear cache
 +     cleared = memory_manager.clear_context_cache()
-+     print(f&quot;  Cleared {cleared} context cache entries&quot;)
++     print(f"  Cleared {cleared} context cache entries")
 +     
 +     # Optimize cache
 +     optimization = memory_manager.optimize_context_cache()
-+     print(f&quot;  Cache optimization: {optimization}&quot;)
++     print(f"  Cache optimization: {optimization}")
 +     
-+     print(&quot;\n✅ Monitoring and alerts test completed!&quot;)
++     print("\n✅ Monitoring and alerts test completed!")
 + 
 + 
 + def main():
-+     &quot;&quot;&quot;Main test function.&quot;&quot;&quot;
-+     print(&quot;🎯 Background Graph Processing System Test&quot;)
-+     print(&quot;=&quot; * 80)
++     """Main test function."""
++     print("🎯 Background Graph Processing System Test")
++     print("=" * 80)
 +     
 +     try:
 +         # Test basic functionality
@@ -3313,16 +3313,16 @@ Lines added: 309, lines removed: 1
 +         # Test monitoring
 +         test_monitoring_and_alerts()
 +         
-+         print(&quot;\n🎉 All tests completed successfully!&quot;)
-+         print(&quot;\nKey Benefits Demonstrated:&quot;)
-+         print(&quot;✅ Non-blocking user interactions&quot;)
-+         print(&quot;✅ Configurable processing profiles&quot;)
-+         print(&quot;✅ Real-time performance monitoring&quot;)
-+         print(&quot;✅ Intelligent context caching&quot;)
-+         print(&quot;✅ Queue management and optimization&quot;)
++         print("\n🎉 All tests completed successfully!")
++         print("\nKey Benefits Demonstrated:")
++         print("✅ Non-blocking user interactions")
++         print("✅ Configurable processing profiles")
++         print("✅ Real-time performance monitoring")
++         print("✅ Intelligent context caching")
++         print("✅ Queue management and optimization")
 +         
 +     except Exception as e:
-+         print(f&quot;\n❌ Test failed with error: {e}&quot;)
++         print(f"\n❌ Test failed with error: {e}")
 +         import traceback
 +         traceback.print_exc()
 +         return 1
@@ -3330,7 +3330,7 @@ Lines added: 309, lines removed: 1
 +     return 0
 + 
 + 
-+ if __name__ == &quot;__main__&quot;:
++ if __name__ == "__main__":
 +     exit(main())
 ```
 
@@ -3520,7 +3520,7 @@ Perfect! I can see that `EmbeddingsManager` takes `embeddings_file` as the first
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: test_background_graph_processing.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: test_background_graph_processing.py</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: 2
@@ -3530,8 +3530,8 @@ Lines added: 2, lines removed: 2
       # Create embeddings manager
       embeddings_manager = EmbeddingsManager(
 -         llm_service=embeddings_service,
--         storage_path=&quot;test_embeddings&quot;
-+         embeddings_file=&quot;test_embeddings.jsonl&quot;,
+-         storage_path="test_embeddings"
++         embeddings_file="test_embeddings.jsonl",
 +         llm_service=embeddings_service
       )
       
@@ -3545,7 +3545,7 @@ Lines added: 2, lines removed: 2
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: test_background_graph_processing.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: test_background_graph_processing.py</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: 2
@@ -3555,8 +3555,8 @@ Lines added: 2, lines removed: 2
       embeddings_service = create_test_embeddings_service()
       embeddings_manager = EmbeddingsManager(
 -         llm_service=embeddings_service,
--         storage_path=&quot;test_embeddings_perf&quot;
-+         embeddings_file=&quot;test_embeddings_perf.jsonl&quot;,
+-         storage_path="test_embeddings_perf"
++         embeddings_file="test_embeddings_perf.jsonl",
 +         llm_service=embeddings_service
       )
       
@@ -3570,7 +3570,7 @@ Lines added: 2, lines removed: 2
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: test_background_graph_processing.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: test_background_graph_processing.py</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: 2
@@ -3580,8 +3580,8 @@ Lines added: 2, lines removed: 2
       embeddings_service = create_test_embeddings_service()
       embeddings_manager = EmbeddingsManager(
 -         llm_service=embeddings_service,
--         storage_path=&quot;test_embeddings_monitor&quot;
-+         embeddings_file=&quot;test_embeddings_monitor.jsonl&quot;,
+-         storage_path="test_embeddings_monitor"
++         embeddings_file="test_embeddings_monitor.jsonl",
 +         llm_service=embeddings_service
       )
       
@@ -3622,7 +3622,7 @@ I see that the MemoryManager constructor doesn't take an `embeddings_manager` pa
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: test_background_graph_processing.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: test_background_graph_processing.py</summary>
 
 **Chunk 1**
 Lines added: undefined, lines removed: 6
@@ -3634,7 +3634,7 @@ Lines added: undefined, lines removed: 6
 -     
 -     # Create embeddings manager
 -     embeddings_manager = EmbeddingsManager(
--         embeddings_file=&quot;test_embeddings.jsonl&quot;,
+-         embeddings_file="test_embeddings.jsonl",
 -         llm_service=embeddings_service
 -     )
       
@@ -3649,7 +3649,7 @@ Lines added: undefined, lines removed: 6
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: test_background_graph_processing.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: test_background_graph_processing.py</summary>
 
 **Chunk 1**
 Lines added: undefined, lines removed: 4
@@ -3659,11 +3659,11 @@ Lines added: undefined, lines removed: 4
       llm_service = create_test_llm_service()
       embeddings_service = create_test_embeddings_service()
 -     embeddings_manager = EmbeddingsManager(
--         embeddings_file=&quot;test_embeddings_perf.jsonl&quot;,
+-         embeddings_file="test_embeddings_perf.jsonl",
 -         llm_service=embeddings_service
 -     )
       
-      profiles = [&quot;realtime&quot;, &quot;balanced&quot;, &quot;comprehensive&quot;]
+      profiles = ["realtime", "balanced", "comprehensive"]
 ```
 
 </details>
@@ -3674,7 +3674,7 @@ Lines added: undefined, lines removed: 4
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: test_background_graph_processing.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: test_background_graph_processing.py</summary>
 
 **Chunk 1**
 Lines added: undefined, lines removed: 4
@@ -3684,7 +3684,7 @@ Lines added: undefined, lines removed: 4
       llm_service = create_test_llm_service()
       embeddings_service = create_test_embeddings_service()
 -     embeddings_manager = EmbeddingsManager(
--         embeddings_file=&quot;test_embeddings_monitor.jsonl&quot;,
+-         embeddings_file="test_embeddings_monitor.jsonl",
 -         llm_service=embeddings_service
 -     )
       
@@ -3704,7 +3704,7 @@ Now let me also remove the unused import:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: test_background_graph_processing.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: test_background_graph_processing.py</summary>
 
 **Chunk 1**
 Lines added: undefined, lines removed: 1
@@ -3759,7 +3759,7 @@ Great! I can see that the domain configuration is optional and can be `None`. Le
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: test_background_graph_processing.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: test_background_graph_processing.py</summary>
 
 **Chunk 1**
 Lines added: 14, lines removed: undefined
@@ -3771,15 +3771,15 @@ Lines added: 14, lines removed: undefined
 +     
 +     # Create domain configuration for testing
 +     domain_config = {
-+         &quot;domain_name&quot;: &quot;fantasy_game&quot;,
-+         &quot;domain_specific_prompt_instructions&quot;: {
-+             &quot;query&quot;: &quot;You are a helpful assistant for a fantasy role-playing game. Provide detailed and engaging responses about characters, locations, and story elements.&quot;,
-+             &quot;update&quot;: &quot;Focus on important characters, locations, objects, and story developments in the fantasy world.&quot;
++         "domain_name": "fantasy_game",
++         "domain_specific_prompt_instructions": {
++             "query": "You are a helpful assistant for a fantasy role-playing game. Provide detailed and engaging responses about characters, locations, and story elements.",
++             "update": "Focus on important characters, locations, objects, and story developments in the fantasy world."
 +         },
-+         &quot;graph_memory_config&quot;: {
-+             &quot;entity_types&quot;: [&quot;character&quot;, &quot;location&quot;, &quot;object&quot;, &quot;event&quot;, &quot;concept&quot;],
-+             &quot;relationship_types&quot;: [&quot;located_in&quot;, &quot;owns&quot;, &quot;allies_with&quot;, &quot;enemies_with&quot;, &quot;uses&quot;, &quot;participates_in&quot;],
-+             &quot;similarity_threshold&quot;: 0.8
++         "graph_memory_config": {
++             "entity_types": ["character", "location", "object", "event", "concept"],
++             "relationship_types": ["located_in", "owns", "allies_with", "enemies_with", "uses", "participates_in"],
++             "similarity_threshold": 0.8
 +         }
 +     }
       
@@ -3795,7 +3795,7 @@ Lines added: 1, lines removed: undefined
           embeddings_llm_service=embeddings_service,
 +         domain_config=domain_config,
           enable_graph_memory=True,
-          graph_memory_processing_level=&quot;balanced&quot;,
+          graph_memory_processing_level="balanced",
 ```
 
 </details>
@@ -3811,7 +3811,7 @@ Let me also add the domain config to the other test functions:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: test_background_graph_processing.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: test_background_graph_processing.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: undefined
@@ -3838,7 +3838,7 @@ I need to define the domain_config variable in the performance test function:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: test_background_graph_processing.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: test_background_graph_processing.py</summary>
 
 **Chunk 1**
 Lines added: 14, lines removed: undefined
@@ -3850,19 +3850,19 @@ Lines added: 14, lines removed: undefined
 +     
 +     # Create domain configuration for testing
 +     domain_config = {
-+         &quot;domain_name&quot;: &quot;fantasy_game&quot;,
-+         &quot;domain_specific_prompt_instructions&quot;: {
-+             &quot;query&quot;: &quot;You are a helpful assistant for a fantasy role-playing game.&quot;,
-+             &quot;update&quot;: &quot;Focus on important characters, locations, objects, and story developments.&quot;
++         "domain_name": "fantasy_game",
++         "domain_specific_prompt_instructions": {
++             "query": "You are a helpful assistant for a fantasy role-playing game.",
++             "update": "Focus on important characters, locations, objects, and story developments."
 +         },
-+         &quot;graph_memory_config&quot;: {
-+             &quot;entity_types&quot;: [&quot;character&quot;, &quot;location&quot;, &quot;object&quot;, &quot;event&quot;, &quot;concept&quot;],
-+             &quot;relationship_types&quot;: [&quot;located_in&quot;, &quot;owns&quot;, &quot;allies_with&quot;, &quot;enemies_with&quot;, &quot;uses&quot;, &quot;participates_in&quot;],
-+             &quot;similarity_threshold&quot;: 0.8
++         "graph_memory_config": {
++             "entity_types": ["character", "location", "object", "event", "concept"],
++             "relationship_types": ["located_in", "owns", "allies_with", "enemies_with", "uses", "participates_in"],
++             "similarity_threshold": 0.8
 +         }
 +     }
       
-      profiles = [&quot;realtime&quot;, &quot;balanced&quot;, &quot;comprehensive&quot;]
+      profiles = ["realtime", "balanced", "comprehensive"]
 ```
 
 </details>
@@ -3873,7 +3873,7 @@ Lines added: 14, lines removed: undefined
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: test_background_graph_processing.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: test_background_graph_processing.py</summary>
 
 **Chunk 1**
 Lines added: 14, lines removed: undefined
@@ -3885,15 +3885,15 @@ Lines added: 14, lines removed: undefined
 +     
 +     # Create domain configuration for testing
 +     domain_config = {
-+         &quot;domain_name&quot;: &quot;fantasy_game&quot;,
-+         &quot;domain_specific_prompt_instructions&quot;: {
-+             &quot;query&quot;: &quot;You are a helpful assistant for a fantasy role-playing game.&quot;,
-+             &quot;update&quot;: &quot;Focus on important characters, locations, objects, and story developments.&quot;
++         "domain_name": "fantasy_game",
++         "domain_specific_prompt_instructions": {
++             "query": "You are a helpful assistant for a fantasy role-playing game.",
++             "update": "Focus on important characters, locations, objects, and story developments."
 +         },
-+         &quot;graph_memory_config&quot;: {
-+             &quot;entity_types&quot;: [&quot;character&quot;, &quot;location&quot;, &quot;object&quot;, &quot;event&quot;, &quot;concept&quot;],
-+             &quot;relationship_types&quot;: [&quot;located_in&quot;, &quot;owns&quot;, &quot;allies_with&quot;, &quot;enemies_with&quot;, &quot;uses&quot;, &quot;participates_in&quot;],
-+             &quot;similarity_threshold&quot;: 0.8
++         "graph_memory_config": {
++             "entity_types": ["character", "location", "object", "event", "concept"],
++             "relationship_types": ["located_in", "owns", "allies_with", "enemies_with", "uses", "participates_in"],
++             "similarity_threshold": 0.8
 +         }
 +     }
       
@@ -3909,7 +3909,7 @@ Lines added: 1, lines removed: undefined
           embeddings_llm_service=embeddings_service,
 +         domain_config=domain_config,
           enable_graph_memory=True,
-          graph_memory_processing_level=&quot;balanced&quot;,
+          graph_memory_processing_level="balanced",
 ```
 
 </details>
@@ -3946,7 +3946,7 @@ Good, that looks correct. Now let's run the test script to see if it works:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: cd /Users/andrewrapo/github/cursor/cursor-hello-llm-agent && DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python test_background_graph_processing.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: cd /Users/andrewrapo/github/cursor/cursor-hello-llm-agent && DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python test_background_graph_processing.py</summary>
 
 ```bash
 cd /Users/andrewrapo/github/cursor/cursor-hello-llm-agent && DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python test_background_graph_processing.py
@@ -3960,7 +3960,7 @@ cd /Users/andrewrapo/github/cursor/cursor-hello-llm-agent && DEV_MODE=true OLLAM
 ============================================================
 Failed to initialize background graph processor: no running event loop
 /Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/memory_manager
-.py:488: RuntimeWarning: coroutine &#39;BackgroundGraphProcessor._processing_loop&#39; w
+.py:488: RuntimeWarning: coroutine 'BackgroundGraphProcessor._processing_loop' w
 as never awaited                                        
   self._graph_config_manager = None
 RuntimeWarning: Enable tracemalloc to get the object allocation traceback
@@ -3969,7 +3969,7 @@ RuntimeWarning: Enable tracemalloc to get the object allocation traceback
 📝 Testing queries with background processing...
 
 --- Query 1: Tell me about Elena, the fire wizard ---
-🔄 Processing query: &#39;Tell me about Elena, the fire wizard...&#39;
+🔄 Processing query: 'Tell me about Elena, the fire wizard...'
 🔄   Enhancing query with relevant context (RAG)...
 🔄   Retrieving graph context...
 ✅     Generated graph context (optimized)
@@ -3978,21 +3978,21 @@ RuntimeWarning: Enable tracemalloc to get the object allocation traceback
 🔄   Starting background processing (batch, graph: balanced)...
 Error in query_memory: no running event loop
 /Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/memory_manager
-.py:783: RuntimeWarning: coroutine &#39;MemoryManager._process_entries_batch&#39; was ne
+.py:783: RuntimeWarning: coroutine 'MemoryManager._process_entries_batch' was ne
 ver awaited                                             
-  return {&quot;response&quot;: f&quot;Error processing query: {str(e)}&quot;, &quot;error&quot;: str(e)}
+  return {"response": f"Error processing query: {str(e)}", "error": str(e)}
 RuntimeWarning: Enable tracemalloc to get the object allocation traceback
 ⏱️  Query time: 4.70s
 📄 Response: Error processing query: no running event loop...
 
-❌ Test failed with error: &#39;queue_size&#39;
+❌ Test failed with error: 'queue_size'
 Traceback (most recent call last):
-  File &quot;test_background_graph_processing.py&quot;, line 313, in main
+  File "test_background_graph_processing.py", line 313, in main
     test_basic_functionality()
-  File &quot;test_background_graph_processing.py&quot;, line 106, in test_basic_functional
+  File "test_background_graph_processing.py", line 106, in test_basic_functional
 ity
-    print(f&quot;📊 Queue size: {status[&#39;queue_size&#39;]}&quot;)
-KeyError: &#39;queue_size&#39;
+    print(f"📊 Queue size: {status['queue_size']}")
+KeyError: 'queue_size'
 ```
 </details>
 </tool-use>
@@ -4006,7 +4006,7 @@ I see the issue! The problem is that we're trying to run async code in a synchro
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: test_background_graph_processing.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: test_background_graph_processing.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -4017,8 +4017,8 @@ Lines added: 1, lines removed: 1
   
 - def test_basic_functionality():
 + async def test_basic_functionality():
-      &quot;&quot;&quot;Test basic background processing functionality.&quot;&quot;&quot;
-      print(&quot;🧪 Testing Basic Background Processing Functionality&quot;)
+      """Test basic background processing functionality."""
+      print("🧪 Testing Basic Background Processing Functionality")
 ```
 
 </details>
@@ -4029,7 +4029,7 @@ Lines added: 1, lines removed: 1
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: test_background_graph_processing.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: test_background_graph_processing.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -4040,8 +4040,8 @@ Lines added: 1, lines removed: 1
   
 - def test_performance_comparison():
 + async def test_performance_comparison():
-      &quot;&quot;&quot;Test performance comparison between different processing modes.&quot;&quot;&quot;
-      print(&quot;\n🚀 Testing Performance Comparison&quot;)
+      """Test performance comparison between different processing modes."""
+      print("\n🚀 Testing Performance Comparison")
 ```
 
 </details>
@@ -4052,7 +4052,7 @@ Lines added: 1, lines removed: 1
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: test_background_graph_processing.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: test_background_graph_processing.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -4063,8 +4063,8 @@ Lines added: 1, lines removed: 1
   
 - def test_monitoring_and_alerts():
 + async def test_monitoring_and_alerts():
-      &quot;&quot;&quot;Test monitoring and alerting capabilities.&quot;&quot;&quot;
-      print(&quot;\n📊 Testing Monitoring and Alerts&quot;)
+      """Test monitoring and alerting capabilities."""
+      print("\n📊 Testing Monitoring and Alerts")
 ```
 
 </details>
@@ -4075,7 +4075,7 @@ Lines added: 1, lines removed: 1
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: test_background_graph_processing.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: test_background_graph_processing.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -4086,8 +4086,8 @@ Lines added: 1, lines removed: 1
   
 - def main():
 + async def main():
-      &quot;&quot;&quot;Main test function.&quot;&quot;&quot;
-      print(&quot;🎯 Background Graph Processing System Test&quot;)
+      """Main test function."""
+      print("🎯 Background Graph Processing System Test")
 ```
 
 **Chunk 2**
@@ -4108,7 +4108,7 @@ Lines added: 3, lines removed: 3
 -         test_monitoring_and_alerts()
 +         await test_monitoring_and_alerts()
           
-          print(&quot;\n🎉 All tests completed successfully!&quot;)
+          print("\n🎉 All tests completed successfully!")
 ```
 
 </details>
@@ -4124,7 +4124,7 @@ Now I need to fix the main function call to use asyncio.run():
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: test_background_graph_processing.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: test_background_graph_processing.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -4132,7 +4132,7 @@ Lines added: 1, lines removed: 1
 ```diff
 @@ -337,4 +337,4 @@
   
-  if __name__ == &quot;__main__&quot;:
+  if __name__ == "__main__":
 -     exit(main())
 +     exit(asyncio.run(main()))
   
@@ -4160,7 +4160,7 @@ The asyncio import is already there. Now let me also add some await statements f
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: test_background_graph_processing.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: test_background_graph_processing.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -4172,7 +4172,7 @@ Lines added: 1, lines removed: 1
 -         time.sleep(1)
 +         await asyncio.sleep(1)
       
-      print(&quot;\n🎯 Testing configuration management...&quot;)
+      print("\n🎯 Testing configuration management...")
 ```
 
 </details>
@@ -4183,7 +4183,7 @@ Lines added: 1, lines removed: 1
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: test_background_graph_processing.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: test_background_graph_processing.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -4206,14 +4206,14 @@ Lines added: 1, lines removed: 1
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: test_background_graph_processing.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: test_background_graph_processing.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
 
 ```diff
 @@ -288,5 +288,5 @@
-          print(f&quot;    Cache hit rate: {context_stats.get(&#39;stats&#39;, {}).get(&#39;hit_rate&#39;, 0):.2%}&quot;)
+          print(f"    Cache hit rate: {context_stats.get('stats', {}).get('hit_rate', 0):.2%}")
           
 -         time.sleep(2)
 +         await asyncio.sleep(2)
@@ -4229,7 +4229,7 @@ Lines added: 1, lines removed: 1
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: test_background_graph_processing.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: test_background_graph_processing.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -4237,7 +4237,7 @@ Lines added: 1, lines removed: 1
 ```diff
 @@ -274,5 +274,5 @@
           })
-          print(f&quot;  Query {i+1} completed&quot;)
+          print(f"  Query {i+1} completed")
 -         time.sleep(0.5)
 +         await asyncio.sleep(0.5)
       
@@ -4256,7 +4256,7 @@ Now let's test the script again:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python test_background_graph_processing.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python test_background_graph_processing.py</summary>
 
 ```bash
 DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python test_background_graph_processing.py
@@ -4274,7 +4274,7 @@ DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLL
 📝 Testing queries with background processing...
 
 --- Query 1: Tell me about Elena, the fire wizard ---
-🔄 Processing query: &#39;Tell me about Elena, the fire wizard...&#39;
+🔄 Processing query: 'Tell me about Elena, the fire wizard...'
 🔄   Enhancing query with relevant context (RAG)...
 🔄   Retrieving graph context...
 ✅     Generated graph context (optimized)
@@ -4285,11 +4285,11 @@ DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLL
 📄 Response: Elena is a fire wizard known for her volatile magic and intense heat....
 📊 Queue size: 0
 📈 Processing rate: 0.00 tasks/min
-Error updating graph memory: &#39;VerboseStatusHandler&#39; object has no attribute &#39;info&#39;
-Error updating graph memory: &#39;VerboseStatusHandler&#39; object has no attribute &#39;info&#39;
+Error updating graph memory: 'VerboseStatusHandler' object has no attribute 'info'
+Error updating graph memory: 'VerboseStatusHandler' object has no attribute 'info'
 
 --- Query 2: What is Riverwatch? ---
-🔄 Processing query: &#39;What is Riverwatch?...&#39;
+🔄 Processing query: 'What is Riverwatch?...'
 🔄   Enhancing query with relevant context (RAG)...
 ✅     Generated and cached RAG context
 🔄   Retrieving graph context...
@@ -4298,14 +4298,14 @@ Error updating graph memory: &#39;VerboseStatusHandler&#39; object has no attrib
 ✅     Generated response (46 chars)
 🔄   Starting background processing (batch, graph: balanced)...
 ⏱️  Query time: 1.95s
-📄 Response: I don&#39;t have any information about Riverwatch....
+📄 Response: I don't have any information about Riverwatch....
 📊 Queue size: 2
 📈 Processing rate: 0.00 tasks/min
-Error updating graph memory: &#39;VerboseStatusHandler&#39; object has no attribute &#39;info&#39;
-Error updating graph memory: &#39;VerboseStatusHandler&#39; object has no attribute &#39;info&#39;
+Error updating graph memory: 'VerboseStatusHandler' object has no attribute 'info'
+Error updating graph memory: 'VerboseStatusHandler' object has no attribute 'info'
 
 --- Query 3: Describe the ancient ruins ---
-🔄 Processing query: &#39;Describe the ancient ruins...&#39;
+🔄 Processing query: 'Describe the ancient ruins...'
 🔄   Enhancing query with relevant context (RAG)...
 ✅     Generated and cached RAG context
 🔄   Retrieving graph context...
@@ -4314,14 +4314,14 @@ Error updating graph memory: &#39;VerboseStatusHandler&#39; object has no attrib
 ✅     Generated response (53 chars)
 🔄   Starting background processing (batch, graph: balanced)...
 ⏱️  Query time: 1.99s
-📄 Response: I don&#39;t have any information about the ancient ruins....
+📄 Response: I don't have any information about the ancient ruins....
 📊 Queue size: 4
 📈 Processing rate: 0.00 tasks/min
-Error updating graph memory: &#39;VerboseStatusHandler&#39; object has no attribute &#39;info&#39;
-Error updating graph memory: &#39;VerboseStatusHandler&#39; object has no attribute &#39;info&#39;
+Error updating graph memory: 'VerboseStatusHandler' object has no attribute 'info'
+Error updating graph memory: 'VerboseStatusHandler' object has no attribute 'info'
 
 --- Query 4: Who are the main characters? ---
-🔄 Processing query: &#39;Who are the main characters?...&#39;
+🔄 Processing query: 'Who are the main characters?...'
 🔄   Enhancing query with relevant context (RAG)...
 ✅     Generated and cached RAG context
 🔄   Retrieving graph context...
@@ -4333,34 +4333,34 @@ Error updating graph memory: &#39;VerboseStatusHandler&#39; object has no attrib
 📄 Response: Elena is a fire wizard....
 📊 Queue size: 6
 📈 Processing rate: 0.00 tasks/min
-Error processing task 032de958-a749-4d4b-b037-ab4854a2b608: &#39;GraphManager&#39; object has no attribute &#39;_update_
-graph_memory_balanced_mode&#39;
+Error processing task 032de958-a749-4d4b-b037-ab4854a2b608: 'GraphManager' object has no attribute '_update_
+graph_memory_balanced_mode'
 
 Retrying task 032de958-a749-4d4b-b037-ab4854a2b608 (attempt 1)
-Error processing task 6748d414-8574-434e-ab38-3f4761fe8ad4: &#39;GraphManager&#39; object has no attribute &#39;_update_
-graph_memory_balanced_mode&#39;
+Error processing task 6748d414-8574-434e-ab38-3f4761fe8ad4: 'GraphManager' object has no attribute '_update_
+graph_memory_balanced_mode'
 
 Retrying task 6748d414-8574-434e-ab38-3f4761fe8ad4 (attempt 1)
-Error processing task 1602424f-c7c1-4e55-ae2c-e9f39e7ad781: &#39;GraphManager&#39; object has no attribute &#39;_update_
-graph_memory_balanced_mode&#39;
+Error processing task 1602424f-c7c1-4e55-ae2c-e9f39e7ad781: 'GraphManager' object has no attribute '_update_
+graph_memory_balanced_mode'
 
 Retrying task 1602424f-c7c1-4e55-ae2c-e9f39e7ad781 (attempt 1)
-Error processing task 43fbf999-34bf-478f-912b-4cbcdad501ec: &#39;GraphManager&#39; object has no attribute &#39;_update_
-graph_memory_balanced_mode&#39;
+Error processing task 43fbf999-34bf-478f-912b-4cbcdad501ec: 'GraphManager' object has no attribute '_update_
+graph_memory_balanced_mode'
 
 Retrying task 43fbf999-34bf-478f-912b-4cbcdad501ec (attempt 1)
-Error processing task 869e120e-bf8b-4b14-ab6f-852a45d91ece: &#39;GraphManager&#39; object has no attribute &#39;_update_
-graph_memory_balanced_mode&#39;
+Error processing task 869e120e-bf8b-4b14-ab6f-852a45d91ece: 'GraphManager' object has no attribute '_update_
+graph_memory_balanced_mode'
 
 Retrying task 869e120e-bf8b-4b14-ab6f-852a45d91ece (attempt 1)
-Error during async compression: Ollama async API error: &#39;OllamaService&#39; object has no attribute &#39;temperature
-&#39;
+Error during async compression: Ollama async API error: 'OllamaService' object has no attribute 'temperature
+'
 
-Error updating graph memory: &#39;VerboseStatusHandler&#39; object has no attribute &#39;info&#39;
-Error updating graph memory: &#39;VerboseStatusHandler&#39; object has no attribute &#39;info&#39;
+Error updating graph memory: 'VerboseStatusHandler' object has no attribute 'info'
+Error updating graph memory: 'VerboseStatusHandler' object has no attribute 'info'
 
 --- Query 5: What locations have been mentioned? ---
-🔄 Processing query: &#39;What locations have been mentioned?...&#39;
+🔄 Processing query: 'What locations have been mentioned?...'
 🔄   Enhancing query with relevant context (RAG)...
 ✅     Generated and cached RAG context
 🔄   Retrieving graph context...
@@ -4369,22 +4369,22 @@ Error updating graph memory: &#39;VerboseStatusHandler&#39; object has no attrib
 ✅     Generated response (45 chars)
 🔄   Starting background processing (batch, graph: balanced)...
 ⏱️  Query time: 1.91s
-📄 Response: I don&#39;t have any information about locations....
+📄 Response: I don't have any information about locations....
 📊 Queue size: 8
 📈 Processing rate: 0.00 tasks/min
-Error during async compression: Ollama async API error: &#39;OllamaService&#39; object has no attribute &#39;temperature
-&#39;
+Error during async compression: Ollama async API error: 'OllamaService' object has no attribute 'temperature
+'
 
-Error updating graph memory: &#39;VerboseStatusHandler&#39; object has no attribute &#39;info&#39;
-Error updating graph memory: &#39;VerboseStatusHandler&#39; object has no attribute &#39;info&#39;
+Error updating graph memory: 'VerboseStatusHandler' object has no attribute 'info'
+Error updating graph memory: 'VerboseStatusHandler' object has no attribute 'info'
 
 🎯 Testing configuration management...
-🔄 Switching to &#39;realtime&#39; profile...
+🔄 Switching to 'realtime' profile...
 ⚠️  Background graph processing stopped (queue: 10)
-Failed to apply graph processing profile realtime: &#39;VerboseStatusHandler&#39; object has no attribute &#39;info&#39;
+Failed to apply graph processing profile realtime: 'VerboseStatusHandler' object has no attribute 'info'
 Profile switch successful: False
 ⚙️  Applying custom configuration...
-Failed to configure graph processing: &#39;VerboseStatusHandler&#39; object has no attribute &#39;info&#39;
+Failed to configure graph processing: 'VerboseStatusHandler' object has no attribute 'info'
 Configuration successful: False
 
 📊 Final Processing Status:
@@ -4395,8 +4395,8 @@ Configuration successful: False
   total_failed: 0
   processing_rate: 0.0
   backlog_age: 12.405219078063965
-  queue_details: {&#39;total_tasks&#39;: 10, &#39;priority_distribution&#39;: {&#39;HIGH&#39;: 5, &#39;NORMAL&#39;: 5}, &#39;mode_distribution&#39;:
- {&#39;balanced&#39;: 10}, &#39;oldest_task_age&#39;: 12.40523386001587}
+  queue_details: {'total_tasks': 10, 'priority_distribution': {'HIGH': 5, 'NORMAL': 5}, 'mode_distribution':
+ {'balanced': 10}, 'oldest_task_age': 12.40523386001587}
 
 
 🎯 Context Retriever Performance:
@@ -4413,40 +4413,40 @@ Configuration successful: False
   Query time: 2.03s
   Queue size: 0
   Processing rate: 0.00/min
-Error during async compression: Ollama async API error: &#39;OllamaService&#39; object has no attribute &#39;temperature
-&#39;
+Error during async compression: Ollama async API error: 'OllamaService' object has no attribute 'temperature
+'
 
 
 📊 Testing balanced profile...
   Query time: 2.11s
   Queue size: 0
   Processing rate: 0.00/min
-Error processing task b6e25b16-c5d3-4f3b-bf26-73c651564cad: &#39;GraphManager&#39; object has no attribute &#39;_update_
-graph_memory_balanced_mode&#39;
+Error processing task b6e25b16-c5d3-4f3b-bf26-73c651564cad: 'GraphManager' object has no attribute '_update_
+graph_memory_balanced_mode'
 
 Retrying task b6e25b16-c5d3-4f3b-bf26-73c651564cad (attempt 1)
-Error processing task f8510825-38c8-4525-9f9f-952362e25b39: &#39;GraphManager&#39; object has no attribute &#39;_update_
-graph_memory_balanced_mode&#39;
+Error processing task f8510825-38c8-4525-9f9f-952362e25b39: 'GraphManager' object has no attribute '_update_
+graph_memory_balanced_mode'
 
 Retrying task f8510825-38c8-4525-9f9f-952362e25b39 (attempt 1)
-Error during async compression: Ollama async API error: &#39;OllamaService&#39; object has no attribute &#39;temperature
-&#39;
+Error during async compression: Ollama async API error: 'OllamaService' object has no attribute 'temperature
+'
 
 
 📊 Testing comprehensive profile...
   Query time: 2.48s
   Queue size: 0
   Processing rate: 0.00/min
-Error processing task b6e25b16-c5d3-4f3b-bf26-73c651564cad: &#39;GraphManager&#39; object has no attribute &#39;_update_
-graph_memory_balanced_mode&#39;
+Error processing task b6e25b16-c5d3-4f3b-bf26-73c651564cad: 'GraphManager' object has no attribute '_update_
+graph_memory_balanced_mode'
 
 Retrying task b6e25b16-c5d3-4f3b-bf26-73c651564cad (attempt 2)
-Error processing task f8510825-38c8-4525-9f9f-952362e25b39: &#39;GraphManager&#39; object has no attribute &#39;_update_
-graph_memory_balanced_mode&#39;
+Error processing task f8510825-38c8-4525-9f9f-952362e25b39: 'GraphManager' object has no attribute '_update_
+graph_memory_balanced_mode'
 
 Retrying task f8510825-38c8-4525-9f9f-952362e25b39 (attempt 2)
-Error during async compression: Ollama async API error: &#39;OllamaService&#39; object has no attribute &#39;temperature
-&#39;
+Error during async compression: Ollama async API error: 'OllamaService' object has no attribute 'temperature
+'
 
 
 📈 Performance Comparison Results:
@@ -4463,7 +4463,7 @@ comprehensive 2.48         0            0.00         0.00%
 ============================================================
 ✅ Background graph processing started (frequency: 30.0s)
 📈 Monitoring processing status...
-🔄 Processing query: &#39;Tell me about character 1 in the story...&#39;
+🔄 Processing query: 'Tell me about character 1 in the story...'
 🔄   Enhancing query with relevant context (RAG)...
 ✅     Generated and cached RAG context
 🔄   Retrieving graph context...
@@ -4472,20 +4472,20 @@ comprehensive 2.48         0            0.00         0.00%
 ✅     Generated response (69 chars)
 🔄   Starting background processing (batch, graph: balanced)...
   Query 1 completed
-Error processing task b6e25b16-c5d3-4f3b-bf26-73c651564cad: &#39;GraphManager&#39; object has no attribute &#39;_update_
-graph_memory_balanced_mode&#39;
+Error processing task b6e25b16-c5d3-4f3b-bf26-73c651564cad: 'GraphManager' object has no attribute '_update_
+graph_memory_balanced_mode'
 
 Retrying task b6e25b16-c5d3-4f3b-bf26-73c651564cad (attempt 3)
-Error processing task f8510825-38c8-4525-9f9f-952362e25b39: &#39;GraphManager&#39; object has no attribute &#39;_update_
-graph_memory_balanced_mode&#39;
+Error processing task f8510825-38c8-4525-9f9f-952362e25b39: 'GraphManager' object has no attribute '_update_
+graph_memory_balanced_mode'
 
 Retrying task f8510825-38c8-4525-9f9f-952362e25b39 (attempt 3)
-Error during async compression: Ollama async API error: &#39;OllamaService&#39; object has no attribute &#39;temperature
-&#39;
+Error during async compression: Ollama async API error: 'OllamaService' object has no attribute 'temperature
+'
 
-Error updating graph memory: &#39;VerboseStatusHandler&#39; object has no attribute &#39;info&#39;
-Error updating graph memory: &#39;VerboseStatusHandler&#39; object has no attribute &#39;info&#39;
-🔄 Processing query: &#39;Tell me about character 2 in the story...&#39;
+Error updating graph memory: 'VerboseStatusHandler' object has no attribute 'info'
+Error updating graph memory: 'VerboseStatusHandler' object has no attribute 'info'
+🔄 Processing query: 'Tell me about character 2 in the story...'
 🔄   Enhancing query with relevant context (RAG)...
 ✅     Generated and cached RAG context
 🔄   Retrieving graph context...
@@ -4494,28 +4494,28 @@ Error updating graph memory: &#39;VerboseStatusHandler&#39; object has no attrib
 ✅     Generated response (69 chars)
 🔄   Starting background processing (batch, graph: balanced)...
   Query 2 completed
-Error processing task efd715d2-bf52-4af6-991b-cd1dee47c0b6: &#39;GraphManager&#39; object has no attribute &#39;_update_
-graph_memory_balanced_mode&#39;
+Error processing task efd715d2-bf52-4af6-991b-cd1dee47c0b6: 'GraphManager' object has no attribute '_update_
+graph_memory_balanced_mode'
 
 Retrying task efd715d2-bf52-4af6-991b-cd1dee47c0b6 (attempt 1)
-Error processing task c9c8fbc8-1aed-4d2c-9492-b1cab6b8f912: &#39;GraphManager&#39; object has no attribute &#39;_update_
-graph_memory_balanced_mode&#39;
+Error processing task c9c8fbc8-1aed-4d2c-9492-b1cab6b8f912: 'GraphManager' object has no attribute '_update_
+graph_memory_balanced_mode'
 
 Retrying task c9c8fbc8-1aed-4d2c-9492-b1cab6b8f912 (attempt 1)
-Error processing task b6e25b16-c5d3-4f3b-bf26-73c651564cad: &#39;GraphManager&#39; object has no attribute &#39;_update_
-graph_memory_balanced_mode&#39;
+Error processing task b6e25b16-c5d3-4f3b-bf26-73c651564cad: 'GraphManager' object has no attribute '_update_
+graph_memory_balanced_mode'
 
 Failed to process task b6e25b16-c5d3-4f3b-bf26-73c651564cad after 3 retries
-Error processing task f8510825-38c8-4525-9f9f-952362e25b39: &#39;GraphManager&#39; object has no attribute &#39;_update_
-graph_memory_balanced_mode&#39;
+Error processing task f8510825-38c8-4525-9f9f-952362e25b39: 'GraphManager' object has no attribute '_update_
+graph_memory_balanced_mode'
 
 Failed to process task f8510825-38c8-4525-9f9f-952362e25b39 after 3 retries
-Error during async compression: Ollama async API error: &#39;OllamaService&#39; object has no attribute &#39;temperature
-&#39;
+Error during async compression: Ollama async API error: 'OllamaService' object has no attribute 'temperature
+'
 
-Error updating graph memory: &#39;VerboseStatusHandler&#39; object has no attribute &#39;info&#39;
-Error updating graph memory: &#39;VerboseStatusHandler&#39; object has no attribute &#39;info&#39;
-🔄 Processing query: &#39;Tell me about character 3 in the story...&#39;
+Error updating graph memory: 'VerboseStatusHandler' object has no attribute 'info'
+Error updating graph memory: 'VerboseStatusHandler' object has no attribute 'info'
+🔄 Processing query: 'Tell me about character 3 in the story...'
 🔄   Enhancing query with relevant context (RAG)...
 ✅     Generated and cached RAG context
 🔄   Retrieving graph context...
@@ -4524,12 +4524,12 @@ Error updating graph memory: &#39;VerboseStatusHandler&#39; object has no attrib
 ✅     Generated response (69 chars)
 🔄   Starting background processing (batch, graph: balanced)...
   Query 3 completed
-Error during async compression: Ollama async API error: &#39;OllamaService&#39; object has no attribute &#39;temperature
-&#39;
+Error during async compression: Ollama async API error: 'OllamaService' object has no attribute 'temperature
+'
 
-Error updating graph memory: &#39;VerboseStatusHandler&#39; object has no attribute &#39;info&#39;
-Error updating graph memory: &#39;VerboseStatusHandler&#39; object has no attribute &#39;info&#39;
-🔄 Processing query: &#39;Tell me about character 4 in the story...&#39;
+Error updating graph memory: 'VerboseStatusHandler' object has no attribute 'info'
+Error updating graph memory: 'VerboseStatusHandler' object has no attribute 'info'
+🔄 Processing query: 'Tell me about character 4 in the story...'
 🔄   Enhancing query with relevant context (RAG)...
 ✅     Generated and cached RAG context
 🔄   Retrieving graph context...
@@ -4538,32 +4538,32 @@ Error updating graph memory: &#39;VerboseStatusHandler&#39; object has no attrib
 ✅     Generated response (69 chars)
 🔄   Starting background processing (batch, graph: balanced)...
   Query 4 completed
-Error processing task 6251eae1-d393-4ff7-b62c-85e2e35d5540: &#39;GraphManager&#39; object has no attribute &#39;_update_
-graph_memory_balanced_mode&#39;
+Error processing task 6251eae1-d393-4ff7-b62c-85e2e35d5540: 'GraphManager' object has no attribute '_update_
+graph_memory_balanced_mode'
 
 Retrying task 6251eae1-d393-4ff7-b62c-85e2e35d5540 (attempt 1)
-Error processing task 4870811c-2fb6-42e6-9ca9-a85e08824818: &#39;GraphManager&#39; object has no attribute &#39;_update_
-graph_memory_balanced_mode&#39;
+Error processing task 4870811c-2fb6-42e6-9ca9-a85e08824818: 'GraphManager' object has no attribute '_update_
+graph_memory_balanced_mode'
 
 Retrying task 4870811c-2fb6-42e6-9ca9-a85e08824818 (attempt 1)
-Error processing task c0cb0af5-7988-468f-8ac0-368aaba48f4e: &#39;GraphManager&#39; object has no attribute &#39;_update_
-graph_memory_balanced_mode&#39;
+Error processing task c0cb0af5-7988-468f-8ac0-368aaba48f4e: 'GraphManager' object has no attribute '_update_
+graph_memory_balanced_mode'
 
 Retrying task c0cb0af5-7988-468f-8ac0-368aaba48f4e (attempt 1)
-Error processing task ddcc1c50-88be-4bf5-97af-928e1ae7d978: &#39;GraphManager&#39; object has no attribute &#39;_update_
-graph_memory_balanced_mode&#39;
+Error processing task ddcc1c50-88be-4bf5-97af-928e1ae7d978: 'GraphManager' object has no attribute '_update_
+graph_memory_balanced_mode'
 
 Retrying task ddcc1c50-88be-4bf5-97af-928e1ae7d978 (attempt 1)
-Error processing task a511ad9f-c8db-41b2-a67b-8bfcdea14536: &#39;GraphManager&#39; object has no attribute &#39;_update_
-graph_memory_balanced_mode&#39;
+Error processing task a511ad9f-c8db-41b2-a67b-8bfcdea14536: 'GraphManager' object has no attribute '_update_
+graph_memory_balanced_mode'
 
 Retrying task a511ad9f-c8db-41b2-a67b-8bfcdea14536 (attempt 1)
-Error during async compression: Ollama async API error: &#39;OllamaService&#39; object has no attribute &#39;temperature
-&#39;
+Error during async compression: Ollama async API error: 'OllamaService' object has no attribute 'temperature
+'
 
-Error updating graph memory: &#39;VerboseStatusHandler&#39; object has no attribute &#39;info&#39;
-Error updating graph memory: &#39;VerboseStatusHandler&#39; object has no attribute &#39;info&#39;
-🔄 Processing query: &#39;Tell me about character 5 in the story...&#39;
+Error updating graph memory: 'VerboseStatusHandler' object has no attribute 'info'
+Error updating graph memory: 'VerboseStatusHandler' object has no attribute 'info'
+🔄 Processing query: 'Tell me about character 5 in the story...'
 🔄   Enhancing query with relevant context (RAG)...
 ✅     Generated and cached RAG context
 🔄   Retrieving graph context...
@@ -4572,27 +4572,27 @@ Error updating graph memory: &#39;VerboseStatusHandler&#39; object has no attrib
 ✅     Generated response (69 chars)
 🔄   Starting background processing (batch, graph: balanced)...
   Query 5 completed
-Error processing task efd715d2-bf52-4af6-991b-cd1dee47c0b6: &#39;GraphManager&#39; object has no attribute &#39;_update_
-graph_memory_balanced_mode&#39;
+Error processing task efd715d2-bf52-4af6-991b-cd1dee47c0b6: 'GraphManager' object has no attribute '_update_
+graph_memory_balanced_mode'
 
 Retrying task efd715d2-bf52-4af6-991b-cd1dee47c0b6 (attempt 2)
-Error processing task c9c8fbc8-1aed-4d2c-9492-b1cab6b8f912: &#39;GraphManager&#39; object has no attribute &#39;_update_
-graph_memory_balanced_mode&#39;
+Error processing task c9c8fbc8-1aed-4d2c-9492-b1cab6b8f912: 'GraphManager' object has no attribute '_update_
+graph_memory_balanced_mode'
 
 Retrying task c9c8fbc8-1aed-4d2c-9492-b1cab6b8f912 (attempt 2)
-Error processing task 3092d565-2c8f-45c1-9421-2d1d4d7a3f35: &#39;GraphManager&#39; object has no attribute &#39;_update_
-graph_memory_comprehensive_mode&#39;
+Error processing task 3092d565-2c8f-45c1-9421-2d1d4d7a3f35: 'GraphManager' object has no attribute '_update_
+graph_memory_comprehensive_mode'
 
 Retrying task 3092d565-2c8f-45c1-9421-2d1d4d7a3f35 (attempt 1)
-Error processing task 43a969d2-27e8-40fc-8389-6d04215559bd: &#39;GraphManager&#39; object has no attribute &#39;_update_
-graph_memory_comprehensive_mode&#39;
+Error processing task 43a969d2-27e8-40fc-8389-6d04215559bd: 'GraphManager' object has no attribute '_update_
+graph_memory_comprehensive_mode'
 
 Retrying task 43a969d2-27e8-40fc-8389-6d04215559bd (attempt 1)
-Error during async compression: Ollama async API error: &#39;OllamaService&#39; object has no attribute &#39;temperature
-&#39;
+Error during async compression: Ollama async API error: 'OllamaService' object has no attribute 'temperature
+'
 
-Error updating graph memory: &#39;VerboseStatusHandler&#39; object has no attribute &#39;info&#39;
-Error updating graph memory: &#39;VerboseStatusHandler&#39; object has no attribute &#39;info&#39;
+Error updating graph memory: 'VerboseStatusHandler' object has no attribute 'info'
+Error updating graph memory: 'VerboseStatusHandler' object has no attribute 'info'
 
 📊 Status monitoring over time:
 
@@ -4607,24 +4607,24 @@ Error updating graph memory: &#39;VerboseStatusHandler&#39; object has no attrib
     Processing rate: 0.00/min
     Backlog age: 15.9s
     Cache hit rate: 0.00%
-Error processing task 28683880-bf13-42ab-ad63-863c88ea63af: &#39;GraphManager&#39; object has no attribute &#39;_update_
-graph_memory_balanced_mode&#39;
+Error processing task 28683880-bf13-42ab-ad63-863c88ea63af: 'GraphManager' object has no attribute '_update_
+graph_memory_balanced_mode'
 
 Retrying task 28683880-bf13-42ab-ad63-863c88ea63af (attempt 1)
-Error processing task f4aeee91-8ae7-4764-9b52-cab02e0ff8ac: &#39;GraphManager&#39; object has no attribute &#39;_update_
-graph_memory_balanced_mode&#39;
+Error processing task f4aeee91-8ae7-4764-9b52-cab02e0ff8ac: 'GraphManager' object has no attribute '_update_
+graph_memory_balanced_mode'
 
 Retrying task f4aeee91-8ae7-4764-9b52-cab02e0ff8ac (attempt 1)
-Error processing task 20e00a30-9986-4d6f-9993-f19964afb5d4: &#39;GraphManager&#39; object has no attribute &#39;_update_
-graph_memory_balanced_mode&#39;
+Error processing task 20e00a30-9986-4d6f-9993-f19964afb5d4: 'GraphManager' object has no attribute '_update_
+graph_memory_balanced_mode'
 
 Retrying task 20e00a30-9986-4d6f-9993-f19964afb5d4 (attempt 1)
-Error processing task 6251eae1-d393-4ff7-b62c-85e2e35d5540: &#39;GraphManager&#39; object has no attribute &#39;_update_
-graph_memory_balanced_mode&#39;
+Error processing task 6251eae1-d393-4ff7-b62c-85e2e35d5540: 'GraphManager' object has no attribute '_update_
+graph_memory_balanced_mode'
 
 Retrying task 6251eae1-d393-4ff7-b62c-85e2e35d5540 (attempt 2)
-Error processing task 4870811c-2fb6-42e6-9ca9-a85e08824818: &#39;GraphManager&#39; object has no attribute &#39;_update_
-graph_memory_balanced_mode&#39;
+Error processing task 4870811c-2fb6-42e6-9ca9-a85e08824818: 'GraphManager' object has no attribute '_update_
+graph_memory_balanced_mode'
 
 Retrying task 4870811c-2fb6-42e6-9ca9-a85e08824818 (attempt 2)
 
@@ -4636,7 +4636,7 @@ Retrying task 4870811c-2fb6-42e6-9ca9-a85e08824818 (attempt 2)
 
 🔧 Testing queue management...
   Cleared 5 context cache entries
-  Cache optimization: {&#39;expired_removed&#39;: 0, &#39;remaining_entries&#39;: 0, &#39;cache_utilization&#39;: 0.0}
+  Cache optimization: {'expired_removed': 0, 'remaining_entries': 0, 'cache_utilization': 0.0}
 
 ✅ Monitoring and alerts test completed!
 
@@ -4783,7 +4783,7 @@ Perfect! I can see that GraphManager has a `process_conversation_entry_with_reso
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/background_processor.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/graph_memory/background_processor.py</summary>
 
 **Chunk 1**
 Lines added: 21, lines removed: 7
@@ -4793,19 +4793,19 @@ Lines added: 21, lines removed: 7
               processing_start = time.time()
               
 -             # Use the appropriate graph processing method based on mode
--             if task.processing_mode == &quot;speed&quot;:
+-             if task.processing_mode == "speed":
 -                 await self.graph_manager._update_graph_memory_fast_mode(task.entry_data)
--             elif task.processing_mode == &quot;comprehensive&quot;:
+-             elif task.processing_mode == "comprehensive":
 -                 await self.graph_manager._update_graph_memory_comprehensive_mode(task.entry_data)
 -             else:  # balanced
 -                 await self.graph_manager._update_graph_memory_balanced_mode(task.entry_data)
-+             # Use the GraphManager&#39;s conversation processing method
++             # Use the GraphManager's conversation processing method
 +             # Extract conversation text and digest from entry data
-+             conversation_text = task.entry_data.get(&quot;content&quot;, &quot;&quot;)
-+             digest_text = task.entry_data.get(&quot;digest&quot;, {}).get(&quot;summary&quot;, &quot;&quot;) if isinstance(task.entry_data.get(&quot;digest&quot;), dict) else &quot;&quot;
-+             conversation_guid = task.entry_data.get(&quot;guid&quot;, &quot;&quot;)
++             conversation_text = task.entry_data.get("content", "")
++             digest_text = task.entry_data.get("digest", {}).get("summary", "") if isinstance(task.entry_data.get("digest"), dict) else ""
++             conversation_guid = task.entry_data.get("guid", "")
 +             
-+             # Process the conversation entry using GraphManager&#39;s method
++             # Process the conversation entry using GraphManager's method
 +             # This method handles all the entity extraction and relationship processing
 +             results = self.graph_manager.process_conversation_entry_with_resolver(
 +                 conversation_text=conversation_text,
@@ -4814,12 +4814,12 @@ Lines added: 21, lines removed: 7
 +             )
 +             
 +             # Log the results
-+             if results and not results.get(&quot;error&quot;):
-+                 entities_count = len(results.get(&quot;entities&quot;, []))
-+                 relationships_count = len(results.get(&quot;relationships&quot;, []))
-+                 self.logger.debug(f&quot;Graph processing completed: {entities_count} entities, {relationships_count} relationships&quot;)
++             if results and not results.get("error"):
++                 entities_count = len(results.get("entities", []))
++                 relationships_count = len(results.get("relationships", []))
++                 self.logger.debug(f"Graph processing completed: {entities_count} entities, {relationships_count} relationships")
 +             else:
-+                 self.logger.warning(f&quot;Graph processing failed: {results.get(&#39;error&#39;, &#39;Unknown error&#39;)}&quot;)
++                 self.logger.warning(f"Graph processing failed: {results.get('error', 'Unknown error')}")
               
               processing_time = time.time() - processing_start
 ```
@@ -4904,34 +4904,34 @@ Now I'll add the info method between success and warning:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/utils/verbose_status.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/utils/verbose_status.py</summary>
 
 **Chunk 1**
 Lines added: 17, lines removed: undefined
 
 ```diff
 @@ -108,4 +108,21 @@
-              self._send_websocket_message(&quot;success&quot;, message, level, duration)
+              self._send_websocket_message("success", message, level, duration)
       
 +     def info(self, message: str, level: int = 0):
-+         &quot;&quot;&quot;
++         """
 +         Send an info message.
 +         
 +         Args:
 +             message: The info message
 +             level: Indentation level for hierarchical display
-+         &quot;&quot;&quot;
++         """
 +         if not self.enabled:
 +             return
 +             
 +         with self._lock:
-+             indent = &quot;  &quot; * level
-+             formatted_message = f&quot;ℹ️  {indent}{message}&quot;
++             indent = "  " * level
++             formatted_message = f"ℹ️  {indent}{message}"
 +             self.output_handler(formatted_message)
-+             self._send_websocket_message(&quot;info&quot;, message, level)
++             self._send_websocket_message("info", message, level)
 +     
       def warning(self, message: str, level: int = 0):
-          &quot;&quot;&quot;
+          """
 ```
 
 </details>
@@ -4998,17 +4998,17 @@ I can see the issue! The OllamaService stores the temperature as `self.default_t
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/ai/llm_ollama.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/ai/llm_ollama.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
 
 ```diff
 @@ -223,5 +223,5 @@
-                  &quot;stream&quot;: options.get(&quot;stream&quot;, False),
-                  &quot;options&quot;: {
--                     &quot;temperature&quot;: options.get(&quot;temperature&quot;, self.temperature)
-+                     &quot;temperature&quot;: options.get(&quot;temperature&quot;, self.default_temperature)
+                  "stream": options.get("stream", False),
+                  "options": {
+-                     "temperature": options.get("temperature", self.temperature)
++                     "temperature": options.get("temperature", self.default_temperature)
                   }
               }
 ```
@@ -5167,7 +5167,7 @@ Perfect! Now let's test the fixes by running the test script again:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python test_background_graph_processing.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python test_background_graph_processing.py</summary>
 
 ```bash
 DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python test_background_graph_processing.py
@@ -5185,7 +5185,7 @@ DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLL
 📝 Testing queries with background processing...
 
 --- Query 1: Tell me about Elena, the fire wizard ---
-🔄 Processing query: &#39;Tell me about Elena, the fire wizard...&#39;
+🔄 Processing query: 'Tell me about Elena, the fire wizard...'
 🔄   Enhancing query with relevant context (RAG)...
 🔄   Retrieving graph context...
 ✅     Generated graph context (optimized)
@@ -5200,7 +5200,7 @@ DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLL
 ℹ️        Queued graph processing for background
 
 --- Query 2: What is Riverwatch? ---
-🔄 Processing query: &#39;What is Riverwatch?...&#39;
+🔄 Processing query: 'What is Riverwatch?...'
 🔄   Enhancing query with relevant context (RAG)...
 ✅     Generated and cached RAG context
 🔄   Retrieving graph context...
@@ -5209,14 +5209,14 @@ DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLL
 ✅     Generated response (42 chars)
 🔄   Starting background processing (batch, graph: balanced)...
 ⏱️  Query time: 1.85s
-📄 Response: I don&#39;t have information about Riverwatch....
+📄 Response: I don't have information about Riverwatch....
 📊 Queue size: 2
 📈 Processing rate: 0.00 tasks/min
 ℹ️        Queued graph processing for background
 ℹ️        Queued graph processing for background
 
 --- Query 3: Describe the ancient ruins ---
-🔄 Processing query: &#39;Describe the ancient ruins...&#39;
+🔄 Processing query: 'Describe the ancient ruins...'
 🔄   Enhancing query with relevant context (RAG)...
 ✅     Generated and cached RAG context
 🔄   Retrieving graph context...
@@ -5225,14 +5225,14 @@ DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLL
 ✅     Generated response (49 chars)
 🔄   Starting background processing (batch, graph: balanced)...
 ⏱️  Query time: 1.93s
-📄 Response: I don&#39;t have information about the ancient ruins....
+📄 Response: I don't have information about the ancient ruins....
 📊 Queue size: 4
 📈 Processing rate: 0.00 tasks/min
 ℹ️        Queued graph processing for background
 ℹ️        Queued graph processing for background
 
 --- Query 4: Who are the main characters? ---
-🔄 Processing query: &#39;Who are the main characters?...&#39;
+🔄 Processing query: 'Who are the main characters?...'
 🔄   Enhancing query with relevant context (RAG)...
 ✅     Generated and cached RAG context
 🔄   Retrieving graph context...
@@ -5278,7 +5278,7 @@ DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLL
 ℹ️        Queued graph processing for background
 
 --- Query 5: What locations have been mentioned? ---
-🔄 Processing query: &#39;What locations have been mentioned?...&#39;
+🔄 Processing query: 'What locations have been mentioned?...'
 🔄   Enhancing query with relevant context (RAG)...
 ✅     Generated and cached RAG context
 🔄   Retrieving graph context...
@@ -5287,14 +5287,14 @@ DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLL
 ✅     Generated response (41 chars)
 🔄   Starting background processing (batch, graph: balanced)...
 ⏱️  Query time: 2.17s
-📄 Response: I don&#39;t have information about locations....
+📄 Response: I don't have information about locations....
 📊 Queue size: 3
 📈 Processing rate: 1.00 tasks/min
 ℹ️        Queued graph processing for background
 ℹ️        Queued graph processing for background
 
 🎯 Testing configuration management...
-🔄 Switching to &#39;realtime&#39; profile...
+🔄 Switching to 'realtime' profile...
 ⚠️  Background graph processing stopped (queue: 5)
 ℹ️  Graph processing configuration updated
 ✅ Background graph processing started (frequency: 10.0s)
@@ -5311,8 +5311,8 @@ Configuration successful: True
   total_failed: 0
   processing_rate: 1.0
   backlog_age: 13.360798120498657
-  queue_details: {&#39;total_tasks&#39;: 5, &#39;priority_distribution&#39;: {&#39;HIGH&#39;: 2, &#39;NORMAL&#39;: 3}, &#39;mode_distribution&#39;:
-{&#39;balanced&#39;: 5}, &#39;oldest_task_age&#39;: 13.360846996307373}
+  queue_details: {'total_tasks': 5, 'priority_distribution': {'HIGH': 2, 'NORMAL': 3}, 'mode_distribution':
+{'balanced': 5}, 'oldest_task_age': 13.360846996307373}
 
 
 🎯 Context Retriever Performance:
@@ -5384,7 +5384,7 @@ comprehensive 2.29         0            0.00         0.00%
 ============================================================
 ✅ Background graph processing started (frequency: 30.0s)
 📈 Monitoring processing status...
-🔄 Processing query: &#39;Tell me about character 1 in the story...&#39;
+🔄 Processing query: 'Tell me about character 1 in the story...'
 🔄   Enhancing query with relevant context (RAG)...
 ✅     Generated and cached RAG context
 🔄   Retrieving graph context...
@@ -5395,7 +5395,7 @@ comprehensive 2.29         0            0.00         0.00%
   Query 1 completed
 ℹ️        Queued graph processing for background
 ℹ️        Queued graph processing for background
-🔄 Processing query: &#39;Tell me about character 2 in the story...&#39;
+🔄 Processing query: 'Tell me about character 2 in the story...'
 🔄   Enhancing query with relevant context (RAG)...
 ✅     Generated and cached RAG context
 🔄   Retrieving graph context...
@@ -5406,7 +5406,7 @@ comprehensive 2.29         0            0.00         0.00%
   Query 2 completed
 ℹ️        Queued graph processing for background
 ℹ️        Queued graph processing for background
-🔄 Processing query: &#39;Tell me about character 3 in the story...&#39;
+🔄 Processing query: 'Tell me about character 3 in the story...'
 🔄   Enhancing query with relevant context (RAG)...
 ✅     Generated and cached RAG context
 🔄   Retrieving graph context...
@@ -5437,7 +5437,7 @@ comprehensive 2.29         0            0.00         0.00%
 ⚠️          No entities found in conversation
 ℹ️        Queued graph processing for background
 ℹ️        Queued graph processing for background
-🔄 Processing query: &#39;Tell me about character 4 in the story...&#39;
+🔄 Processing query: 'Tell me about character 4 in the story...'
 🔄   Enhancing query with relevant context (RAG)...
 ✅     Generated and cached RAG context
 🔄   Retrieving graph context...
@@ -5448,7 +5448,7 @@ comprehensive 2.29         0            0.00         0.00%
   Query 4 completed
 ℹ️        Queued graph processing for background
 ℹ️        Queued graph processing for background
-🔄 Processing query: &#39;Tell me about character 5 in the story...&#39;
+🔄 Processing query: 'Tell me about character 5 in the story...'
 🔄   Enhancing query with relevant context (RAG)...
 ✅     Generated and cached RAG context
 🔄   Retrieving graph context...
@@ -5508,7 +5508,7 @@ comprehensive 2.29         0            0.00         0.00%
 
 🔧 Testing queue management...
   Cleared 5 context cache entries
-  Cache optimization: {&#39;expired_removed&#39;: 0, &#39;remaining_entries&#39;: 0, &#39;cache_utilization&#39;: 0.0}
+  Cache optimization: {'expired_removed': 0, 'remaining_entries': 0, 'cache_utilization': 0.0}
 
 ✅ Monitoring and alerts test completed!
 
@@ -5584,7 +5584,7 @@ I'll write a comprehensive status update about the background graph processing s
 
 <tool-use data-tool-type="write" data-tool-name="write">
 
-<details><summary>Tool use: **code_edit** • Edit file: README-phase-6-status-week-3-graph-background-optimization.md</summary>
+<details><summary>Tool use: **write** • Edit file: README-phase-6-status-week-3-graph-background-optimization.md</summary>
 
 **Chunk 1**
 Lines added: 217, lines removed: 1
@@ -5709,9 +5709,9 @@ Lines added: 217, lines removed: 1
 + 
 + # Processing Profiles
 + profiles = {
-+     &quot;realtime&quot;: {&quot;frequency&quot;: 10.0, &quot;batch_size&quot;: 3},
-+     &quot;balanced&quot;: {&quot;frequency&quot;: 30.0, &quot;batch_size&quot;: 5},
-+     &quot;comprehensive&quot;: {&quot;frequency&quot;: 60.0, &quot;batch_size&quot;: 3}
++     "realtime": {"frequency": 10.0, "batch_size": 3},
++     "balanced": {"frequency": 30.0, "batch_size": 5},
++     "comprehensive": {"frequency": 60.0, "batch_size": 3}
 + }
 + &#96;&#96;&#96;
 + 
@@ -5730,12 +5730,12 @@ Lines added: 217, lines removed: 1
 + - **Result**: Proper entity extraction and relationship processing
 + 
 + ### 2. VerboseStatusHandler Missing Method
-+ - **Issue**: &#96;&#39;VerboseStatusHandler&#39; object has no attribute &#39;info&#39;&#96;
++ - **Issue**: &#96;'VerboseStatusHandler' object has no attribute 'info'&#96;
 + - **Solution**: Added &#96;info()&#96; method to VerboseStatusHandler
 + - **Result**: Proper status messaging with ℹ️ info icons
 + 
 + ### 3. OllamaService Temperature Attribute
-+ - **Issue**: &#96;&#39;OllamaService&#39; object has no attribute &#39;temperature&#39;&#96;
++ - **Issue**: &#96;'OllamaService' object has no attribute 'temperature'&#96;
 + - **Solution**: Fixed async method to use &#96;self.default_temperature&#96;
 + - **Result**: Async operations working without errors
 + 
@@ -5868,7 +5868,7 @@ You're absolutely right! Let me fix the date in the status update document.
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: README-phase-6-status-week-3-graph-background-optimization.md</summary>
+<details><summary>Tool use: **search_replace** • Edit file: README-phase-6-status-week-3-graph-background-optimization.md</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1

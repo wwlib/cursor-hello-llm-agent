@@ -143,7 +143,7 @@ Let me first modify the `RelationshipExtractor` to accept an optional dedicated 
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/relationship_extractor.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/graph_memory/relationship_extractor.py</summary>
 
 I will modify the RelationshipExtractor __init__ method to accept an optional dedicated LLM service for relationship extraction, similar to how GraphManager handles separate LLM services for different components.
 
@@ -152,12 +152,12 @@ Lines added: 17, lines removed: 3
 
 ```diff
 @@ -18,17 +18,31 @@
-      &quot;&quot;&quot;Relationship extractor using LLM-centric approach with entity context.&quot;&quot;&quot;
+      """Relationship extractor using LLM-centric approach with entity context."""
       
 -     def __init__(self, llm_service, domain_config: Optional[Dict[str, Any]] = None, logger=None):
 +     def __init__(self, llm_service, domain_config: Optional[Dict[str, Any]] = None, logger=None,
 +                  relationship_llm_service=None):
-          &quot;&quot;&quot;
+          """
           Initialize relationship extractor.
           
           Args:
@@ -168,7 +168,7 @@ Lines added: 17, lines removed: 3
 +             relationship_llm_service: Optional dedicated LLM service for relationship extraction.
 +                                     If provided, this will be used instead of llm_service.
 +                                     This allows for separate logging and model configuration.
-          &quot;&quot;&quot;
+          """
 -         self.llm_service = llm_service
 +         # Use dedicated relationship LLM service if provided, otherwise fall back to default
 +         self.llm_service = relationship_llm_service if relationship_llm_service else llm_service
@@ -180,9 +180,9 @@ Lines added: 17, lines removed: 3
 +         self._dedicated_relationship_llm = relationship_llm_service is not None
 +         
 +         if self._dedicated_relationship_llm:
-+             self.logger.info(&quot;RelationshipExtractor initialized with dedicated LLM service&quot;)
++             self.logger.info("RelationshipExtractor initialized with dedicated LLM service")
 +         else:
-+             self.logger.debug(&quot;RelationshipExtractor initialized with default LLM service&quot;)
++             self.logger.debug("RelationshipExtractor initialized with default LLM service")
 +         
           # Load prompt template
           self.prompt_template = self._load_prompt_template()
@@ -200,7 +200,7 @@ Now I need to add a method to get information about which LLM service is being u
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/relationship_extractor.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/graph_memory/relationship_extractor.py</summary>
 
 I will add methods to get information about the LLM service being used and update the get_stats method to include this information.
 
@@ -210,47 +210,47 @@ Lines added: 37, lines removed: 3
 ```diff
 @@ -342,7 +342,41 @@
       def get_stats(self) -&gt; Dict[str, Any]:
-          &quot;&quot;&quot;Get extraction statistics.&quot;&quot;&quot;
+          """Get extraction statistics."""
 -         return {
 +         stats = {
-              &#39;extractor_type&#39;: &#39;alternative_llm_centric&#39;,
-              &#39;relationship_types_count&#39;: len(self.relationship_types),
--             &#39;domain&#39;: self.domain_config.get(&#39;domain_name&#39;, &#39;general&#39;)
+              'extractor_type': 'alternative_llm_centric',
+              'relationship_types_count': len(self.relationship_types),
+-             'domain': self.domain_config.get('domain_name', 'general')
 -         } 
-+             &#39;domain&#39;: self.domain_config.get(&#39;domain_name&#39;, &#39;general&#39;),
-+             &#39;uses_dedicated_llm&#39;: self._dedicated_relationship_llm
++             'domain': self.domain_config.get('domain_name', 'general'),
++             'uses_dedicated_llm': self._dedicated_relationship_llm
 +         }
 +         
 +         # Add LLM service information if available
-+         if hasattr(self.llm_service, &#39;model&#39;):
-+             stats[&#39;llm_model&#39;] = self.llm_service.model
-+         if hasattr(self.llm_service, &#39;debug_scope&#39;):
-+             stats[&#39;llm_debug_scope&#39;] = self.llm_service.debug_scope
-+         if hasattr(self.llm_service, &#39;debug_file&#39;):
-+             stats[&#39;llm_debug_file&#39;] = self.llm_service.debug_file
++         if hasattr(self.llm_service, 'model'):
++             stats['llm_model'] = self.llm_service.model
++         if hasattr(self.llm_service, 'debug_scope'):
++             stats['llm_debug_scope'] = self.llm_service.debug_scope
++         if hasattr(self.llm_service, 'debug_file'):
++             stats['llm_debug_file'] = self.llm_service.debug_file
 +             
 +         return stats
 +     
 +     def is_using_dedicated_llm(self) -&gt; bool:
-+         &quot;&quot;&quot;Check if this extractor is using a dedicated LLM service.&quot;&quot;&quot;
++         """Check if this extractor is using a dedicated LLM service."""
 +         return self._dedicated_relationship_llm
 +     
 +     def get_llm_service_info(self) -&gt; Dict[str, Any]:
-+         &quot;&quot;&quot;Get information about the LLM service being used.&quot;&quot;&quot;
++         """Get information about the LLM service being used."""
 +         info = {
-+             &#39;using_dedicated_service&#39;: self._dedicated_relationship_llm,
-+             &#39;service_type&#39;: type(self.llm_service).__name__
++             'using_dedicated_service': self._dedicated_relationship_llm,
++             'service_type': type(self.llm_service).__name__
 +         }
 +         
 +         # Add model information if available
-+         if hasattr(self.llm_service, &#39;model&#39;):
-+             info[&#39;model&#39;] = self.llm_service.model
-+         if hasattr(self.llm_service, &#39;temperature&#39;):
-+             info[&#39;temperature&#39;] = self.llm_service.temperature
-+         if hasattr(self.llm_service, &#39;debug_scope&#39;):
-+             info[&#39;debug_scope&#39;] = self.llm_service.debug_scope
-+         if hasattr(self.llm_service, &#39;debug_file&#39;):
-+             info[&#39;debug_file&#39;] = self.llm_service.debug_file
++         if hasattr(self.llm_service, 'model'):
++             info['model'] = self.llm_service.model
++         if hasattr(self.llm_service, 'temperature'):
++             info['temperature'] = self.llm_service.temperature
++         if hasattr(self.llm_service, 'debug_scope'):
++             info['debug_scope'] = self.llm_service.debug_scope
++         if hasattr(self.llm_service, 'debug_file'):
++             info['debug_file'] = self.llm_service.debug_file
 +             
 +         return info 
 ```
@@ -267,7 +267,7 @@ Now I need to modify the `GraphManager` to support creating a dedicated LLM serv
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/graph_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/graph_memory/graph_manager.py</summary>
 
 I will modify the _setup_graph_specific_logging method to create a third dedicated LLM service for relationship extraction with its own log file.
 
@@ -276,13 +276,13 @@ Lines added: 2, lines removed: undefined
 
 ```diff
 @@ -108,7 +108,9 @@
-          graph_manager_debug_file = os.path.join(guid_logs_dir, &quot;graph_manager.log&quot;)
-          entity_resolver_debug_file = os.path.join(guid_logs_dir, &quot;entity_resolver.log&quot;)
-+         relationship_extractor_debug_file = os.path.join(guid_logs_dir, &quot;relationship_extractor.log&quot;)
+          graph_manager_debug_file = os.path.join(guid_logs_dir, "graph_manager.log")
+          entity_resolver_debug_file = os.path.join(guid_logs_dir, "entity_resolver.log")
++         relationship_extractor_debug_file = os.path.join(guid_logs_dir, "relationship_extractor.log")
           
-          self.logger.debug(f&quot;Graph manager debug log: {graph_manager_debug_file}&quot;)
-          self.logger.debug(f&quot;Entity resolver debug log: {entity_resolver_debug_file}&quot;)
-+         self.logger.debug(f&quot;Relationship extractor debug log: {relationship_extractor_debug_file}&quot;)
+          self.logger.debug(f"Graph manager debug log: {graph_manager_debug_file}")
+          self.logger.debug(f"Entity resolver debug log: {entity_resolver_debug_file}")
++         self.logger.debug(f"Relationship extractor debug log: {relationship_extractor_debug_file}")
           
           # Get base configuration from the original service
 ```
@@ -292,17 +292,17 @@ Lines added: 10, lines removed: undefined
 
 ```diff
 @@ -144,4 +146,14 @@
-              &quot;temperature&quot;: 0  # Use deterministic temperature for resolution
+              "temperature": 0  # Use deterministic temperature for resolution
           })
 +         
 +         # Create dedicated LLM service for relationship extraction
 +         relationship_config = base_config.copy()
 +         relationship_config.update({
-+             &quot;debug&quot;: True,
-+             &quot;debug_file&quot;: relationship_extractor_debug_file,
-+             &quot;debug_scope&quot;: &quot;relationship_extractor&quot;,
-+             &quot;console_output&quot;: False,
-+             &quot;temperature&quot;: 0.1  # Use slightly higher temperature for relationship creativity
++             "debug": True,
++             "debug_file": relationship_extractor_debug_file,
++             "debug_scope": "relationship_extractor",
++             "console_output": False,
++             "temperature": 0.1  # Use slightly higher temperature for relationship creativity
 +         })
           
           try:
@@ -315,23 +315,23 @@ Lines added: 4, lines removed: 1
 @@ -150,15 +162,18 @@
                   self.graph_llm_service = OllamaService(graph_config)
                   self.resolver_llm_service = OllamaService(resolver_config)
--                 self.logger.info(&quot;Created dedicated graph and resolver LLM services with separate logging&quot;)
+-                 self.logger.info("Created dedicated graph and resolver LLM services with separate logging")
 +                 self.relationship_llm_service = OllamaService(relationship_config)
-+                 self.logger.info(&quot;Created dedicated graph, resolver, and relationship LLM services with separate logging&quot;)
++                 self.logger.info("Created dedicated graph, resolver, and relationship LLM services with separate logging")
               else:
                   # For other LLM service types, fall back to the original service
-                  self.logger.warning(f&quot;Graph-specific logging not implemented for {type(base_llm_service).__name__}, using original service&quot;)
+                  self.logger.warning(f"Graph-specific logging not implemented for {type(base_llm_service).__name__}, using original service")
                   self.graph_llm_service = base_llm_service
                   self.resolver_llm_service = base_llm_service
 +                 self.relationship_llm_service = base_llm_service
           except Exception as e:
-              self.logger.error(f&quot;Failed to create dedicated LLM services: {e}&quot;)
-              self.logger.warning(&quot;Falling back to original LLM service&quot;)
+              self.logger.error(f"Failed to create dedicated LLM services: {e}")
+              self.logger.warning("Falling back to original LLM service")
               self.graph_llm_service = base_llm_service
               self.resolver_llm_service = base_llm_service
 +             self.relationship_llm_service = base_llm_service
       
-      def process_conversation_entry(self, conversation_text: str, digest_text: str = &quot;&quot;) -&gt; Dict[str, Any]:
+      def process_conversation_entry(self, conversation_text: str, digest_text: str = "") -&gt; Dict[str, Any]:
 ```
 
 </details>
@@ -409,7 +409,7 @@ I need to:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/graph_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/graph_memory/graph_manager.py</summary>
 
 I will initialize the relationship_llm_service attribute and update the RelationshipExtractor initialization to use the dedicated LLM service.
 
@@ -451,7 +451,7 @@ Now let me add a method to `GraphManager` to get information about all the LLM s
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/graph_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/graph_memory/graph_manager.py</summary>
 
 I will add a method to get information about all LLM services being used and update the get_extractor_stats method to include relationship extractor LLM information.
 
@@ -460,65 +460,65 @@ Lines added: 62, lines removed: undefined
 
 ```diff
 @@ -464,6 +464,68 @@
-              stats[&quot;relationship_extractor&quot;] = self.relationship_extractor.get_stats()
+              stats["relationship_extractor"] = self.relationship_extractor.get_stats()
           
 +         # Add LLM service information
-+         stats[&quot;llm_services&quot;] = self.get_llm_services_info()
++         stats["llm_services"] = self.get_llm_services_info()
 +         
           return stats
       
 +     def get_llm_services_info(self) -&gt; Dict[str, Any]:
-+         &quot;&quot;&quot;Get information about all LLM services used by this GraphManager.&quot;&quot;&quot;
++         """Get information about all LLM services used by this GraphManager."""
 +         services_info = {}
 +         
 +         # Graph LLM service
-+         if hasattr(self, &#39;graph_llm_service&#39;) and self.graph_llm_service:
-+             services_info[&#39;graph_llm&#39;] = {
-+                 &#39;service_type&#39;: type(self.graph_llm_service).__name__,
-+                 &#39;model&#39;: getattr(self.graph_llm_service, &#39;model&#39;, &#39;unknown&#39;),
-+                 &#39;debug_scope&#39;: getattr(self.graph_llm_service, &#39;debug_scope&#39;, None),
-+                 &#39;debug_file&#39;: getattr(self.graph_llm_service, &#39;debug_file&#39;, None)
++         if hasattr(self, 'graph_llm_service') and self.graph_llm_service:
++             services_info['graph_llm'] = {
++                 'service_type': type(self.graph_llm_service).__name__,
++                 'model': getattr(self.graph_llm_service, 'model', 'unknown'),
++                 'debug_scope': getattr(self.graph_llm_service, 'debug_scope', None),
++                 'debug_file': getattr(self.graph_llm_service, 'debug_file', None)
 +             }
 +         
 +         # Resolver LLM service
-+         if hasattr(self, &#39;resolver_llm_service&#39;) and self.resolver_llm_service:
-+             services_info[&#39;resolver_llm&#39;] = {
-+                 &#39;service_type&#39;: type(self.resolver_llm_service).__name__,
-+                 &#39;model&#39;: getattr(self.resolver_llm_service, &#39;model&#39;, &#39;unknown&#39;),
-+                 &#39;debug_scope&#39;: getattr(self.resolver_llm_service, &#39;debug_scope&#39;, None),
-+                 &#39;debug_file&#39;: getattr(self.resolver_llm_service, &#39;debug_file&#39;, None)
++         if hasattr(self, 'resolver_llm_service') and self.resolver_llm_service:
++             services_info['resolver_llm'] = {
++                 'service_type': type(self.resolver_llm_service).__name__,
++                 'model': getattr(self.resolver_llm_service, 'model', 'unknown'),
++                 'debug_scope': getattr(self.resolver_llm_service, 'debug_scope', None),
++                 'debug_file': getattr(self.resolver_llm_service, 'debug_file', None)
 +             }
 +         
 +         # Relationship LLM service
-+         if hasattr(self, &#39;relationship_llm_service&#39;) and self.relationship_llm_service:
-+             services_info[&#39;relationship_llm&#39;] = {
-+                 &#39;service_type&#39;: type(self.relationship_llm_service).__name__,
-+                 &#39;model&#39;: getattr(self.relationship_llm_service, &#39;model&#39;, &#39;unknown&#39;),
-+                 &#39;debug_scope&#39;: getattr(self.relationship_llm_service, &#39;debug_scope&#39;, None),
-+                 &#39;debug_file&#39;: getattr(self.relationship_llm_service, &#39;debug_file&#39;, None)
++         if hasattr(self, 'relationship_llm_service') and self.relationship_llm_service:
++             services_info['relationship_llm'] = {
++                 'service_type': type(self.relationship_llm_service).__name__,
++                 'model': getattr(self.relationship_llm_service, 'model', 'unknown'),
++                 'debug_scope': getattr(self.relationship_llm_service, 'debug_scope', None),
++                 'debug_file': getattr(self.relationship_llm_service, 'debug_file', None)
 +             }
 +         
 +         # Check if services are distinct
-+         services_info[&#39;using_dedicated_services&#39;] = self._are_services_distinct()
++         services_info['using_dedicated_services'] = self._are_services_distinct()
 +         
 +         return services_info
 +     
 +     def _are_services_distinct(self) -&gt; Dict[str, bool]:
-+         &quot;&quot;&quot;Check which services are using dedicated instances vs shared instances.&quot;&quot;&quot;
++         """Check which services are using dedicated instances vs shared instances."""
 +         distinct_services = {}
 +         
 +         # Check if services are the same object (shared) or different (dedicated)
-+         base_service = getattr(self, &#39;graph_llm_service&#39;, None)
-+         resolver_service = getattr(self, &#39;resolver_llm_service&#39;, None)
-+         relationship_service = getattr(self, &#39;relationship_llm_service&#39;, None)
++         base_service = getattr(self, 'graph_llm_service', None)
++         resolver_service = getattr(self, 'resolver_llm_service', None)
++         relationship_service = getattr(self, 'relationship_llm_service', None)
 +         
-+         distinct_services[&#39;resolver_dedicated&#39;] = (
++         distinct_services['resolver_dedicated'] = (
 +             resolver_service is not None and 
 +             base_service is not None and 
 +             resolver_service is not base_service
 +         )
 +         
-+         distinct_services[&#39;relationship_dedicated&#39;] = (
++         distinct_services['relationship_dedicated'] = (
 +             relationship_service is not None and 
 +             base_service is not None and 
 +             relationship_service is not base_service
@@ -526,7 +526,7 @@ Lines added: 62, lines removed: undefined
 +         
 +         return distinct_services
 +     
-      def process_conversation_entry_with_resolver(self, conversation_text: str, digest_text: str = &quot;&quot;, 
+      def process_conversation_entry_with_resolver(self, conversation_text: str, digest_text: str = "", 
                                                   conversation_guid: str = None) -&gt; Dict[str, Any]:
 ```
 
@@ -542,7 +542,7 @@ Now let me create a simple test to verify the implementation works correctly:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: test_relationship_extractor_llm.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: test_relationship_extractor_llm.py</summary>
 
 I will create a simple test script to demonstrate the new dedicated LLM service functionality for relationship extraction.
 
@@ -553,12 +553,12 @@ Lines added: 226, lines removed: 1
 @@ -1,1 +1,226 @@
 - 
 + #!/usr/bin/env python3
-+ &quot;&quot;&quot;
++ """
 + Test script to demonstrate dedicated LLM service for RelationshipExtractor.
 + 
 + This script shows how to use the new dedicated LLM service functionality 
 + that allows separate logging and model configuration for relationship extraction.
-+ &quot;&quot;&quot;
++ """
 + 
 + import os
 + import sys
@@ -566,7 +566,7 @@ Lines added: 226, lines removed: 1
 + from typing import Dict, Any
 + 
 + # Add the src directory to the path so we can import our modules
-+ sys.path.insert(0, os.path.join(os.path.dirname(__file__), &#39;src&#39;))
++ sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 + 
 + from src.ai.llm_ollama import OllamaService
 + from src.memory.graph_memory.relationship_extractor import RelationshipExtractor
@@ -575,15 +575,15 @@ Lines added: 226, lines removed: 1
 + 
 + 
 + def create_test_llm_services():
-+     &quot;&quot;&quot;Create test LLM services with different configurations.&quot;&quot;&quot;
++     """Create test LLM services with different configurations."""
 +     
 +     # Base configuration
 +     base_config = {
-+         &quot;base_url&quot;: &quot;http://localhost:11434&quot;,
-+         &quot;model&quot;: &quot;gemma3&quot;,
-+         &quot;temperature&quot;: 0.7,
-+         &quot;stream&quot;: False,
-+         &quot;debug&quot;: False
++         "base_url": "http://localhost:11434",
++         "model": "gemma3",
++         "temperature": 0.7,
++         "stream": False,
++         "debug": False
 +     }
 +     
 +     # Default LLM service
@@ -592,12 +592,12 @@ Lines added: 226, lines removed: 1
 +     # Dedicated relationship extraction LLM service with different model/config
 +     relationship_config = base_config.copy()
 +     relationship_config.update({
-+         &quot;model&quot;: &quot;llama3.2&quot;,  # Different model for relationship extraction
-+         &quot;temperature&quot;: 0.1,   # Lower temperature for more deterministic output
-+         &quot;debug&quot;: True,
-+         &quot;debug_file&quot;: &quot;test_relationship_extractor.log&quot;,
-+         &quot;debug_scope&quot;: &quot;relationship_test&quot;,
-+         &quot;console_output&quot;: True
++         "model": "llama3.2",  # Different model for relationship extraction
++         "temperature": 0.1,   # Lower temperature for more deterministic output
++         "debug": True,
++         "debug_file": "test_relationship_extractor.log",
++         "debug_scope": "relationship_test",
++         "console_output": True
 +     })
 +     
 +     relationship_llm = OllamaService(relationship_config)
@@ -606,85 +606,85 @@ Lines added: 226, lines removed: 1
 + 
 + 
 + def test_relationship_extractor_with_dedicated_llm():
-+     &quot;&quot;&quot;Test RelationshipExtractor with dedicated LLM service.&quot;&quot;&quot;
++     """Test RelationshipExtractor with dedicated LLM service."""
 +     
-+     print(&quot;=== Testing RelationshipExtractor with Dedicated LLM Service ===&quot;)
++     print("=== Testing RelationshipExtractor with Dedicated LLM Service ===")
 +     
 +     # Create LLM services
 +     default_llm, relationship_llm = create_test_llm_services()
 +     
 +     # Test domain configuration
 +     domain_config = {
-+         &quot;domain_name&quot;: &quot;dnd_campaign&quot;,
-+         &quot;graph_memory_config&quot;: {
-+             &quot;similarity_threshold&quot;: 0.8
++         "domain_name": "dnd_campaign",
++         "graph_memory_config": {
++             "similarity_threshold": 0.8
 +         }
 +     }
 +     
 +     # Test 1: RelationshipExtractor with default LLM service
-+     print(&quot;\n1. Testing with default LLM service:&quot;)
++     print("\n1. Testing with default LLM service:")
 +     extractor1 = RelationshipExtractor(default_llm, domain_config)
 +     
-+     print(f&quot;   - Using dedicated LLM: {extractor1.is_using_dedicated_llm()}&quot;)
-+     print(f&quot;   - LLM service info: {json.dumps(extractor1.get_llm_service_info(), indent=2)}&quot;)
-+     print(f&quot;   - Stats: {json.dumps(extractor1.get_stats(), indent=2)}&quot;)
++     print(f"   - Using dedicated LLM: {extractor1.is_using_dedicated_llm()}")
++     print(f"   - LLM service info: {json.dumps(extractor1.get_llm_service_info(), indent=2)}")
++     print(f"   - Stats: {json.dumps(extractor1.get_stats(), indent=2)}")
 +     
 +     # Test 2: RelationshipExtractor with dedicated LLM service
-+     print(&quot;\n2. Testing with dedicated relationship LLM service:&quot;)
++     print("\n2. Testing with dedicated relationship LLM service:")
 +     extractor2 = RelationshipExtractor(default_llm, domain_config, 
 +                                      relationship_llm_service=relationship_llm)
 +     
-+     print(f&quot;   - Using dedicated LLM: {extractor2.is_using_dedicated_llm()}&quot;)
-+     print(f&quot;   - LLM service info: {json.dumps(extractor2.get_llm_service_info(), indent=2)}&quot;)
-+     print(f&quot;   - Stats: {json.dumps(extractor2.get_stats(), indent=2)}&quot;)
++     print(f"   - Using dedicated LLM: {extractor2.is_using_dedicated_llm()}")
++     print(f"   - LLM service info: {json.dumps(extractor2.get_llm_service_info(), indent=2)}")
++     print(f"   - Stats: {json.dumps(extractor2.get_stats(), indent=2)}")
 + 
 + 
 + def test_graph_manager_with_dedicated_llm():
-+     &quot;&quot;&quot;Test GraphManager with dedicated LLM services.&quot;&quot;&quot;
++     """Test GraphManager with dedicated LLM services."""
 +     
-+     print(&quot;\n=== Testing GraphManager with Dedicated LLM Services ===&quot;)
++     print("\n=== Testing GraphManager with Dedicated LLM Services ===")
 +     
 +     # Create a temporary embeddings manager for testing
-+     temp_embeddings_file = &quot;test_embeddings.jsonl&quot;
++     temp_embeddings_file = "test_embeddings.jsonl"
 +     default_llm, _ = create_test_llm_services()
 +     embeddings_manager = EmbeddingsManager(temp_embeddings_file, default_llm)
 +     
 +     # Test domain configuration
 +     domain_config = {
-+         &quot;domain_name&quot;: &quot;dnd_campaign&quot;,
-+         &quot;graph_memory_config&quot;: {
-+             &quot;similarity_threshold&quot;: 0.8
++         "domain_name": "dnd_campaign",
++         "graph_memory_config": {
++             "similarity_threshold": 0.8
 +         }
 +     }
 +     
 +     # Test 1: GraphManager without dedicated logging (should use shared services)
-+     print(&quot;\n1. Testing GraphManager without dedicated logging:&quot;)
++     print("\n1. Testing GraphManager without dedicated logging:")
 +     graph_manager1 = GraphManager(
-+         storage_path=&quot;test_graph_1&quot;,
++         storage_path="test_graph_1",
 +         embeddings_manager=embeddings_manager,
 +         llm_service=default_llm,
 +         domain_config=domain_config
 +     )
 +     
-+     print(f&quot;   - Extractor stats: {json.dumps(graph_manager1.get_extractor_stats(), indent=2)}&quot;)
++     print(f"   - Extractor stats: {json.dumps(graph_manager1.get_extractor_stats(), indent=2)}")
 +     
 +     # Test 2: GraphManager with dedicated logging (should create separate services)
-+     print(&quot;\n2. Testing GraphManager with dedicated logging:&quot;)
++     print("\n2. Testing GraphManager with dedicated logging:")
 +     graph_manager2 = GraphManager(
-+         storage_path=&quot;test_graph_2&quot;,
++         storage_path="test_graph_2",
 +         embeddings_manager=embeddings_manager,
 +         llm_service=default_llm,
 +         domain_config=domain_config,
-+         logs_dir=&quot;.&quot;,  # Current directory
-+         memory_guid=&quot;test-guid-123&quot;
++         logs_dir=".",  # Current directory
++         memory_guid="test-guid-123"
 +     )
 +     
-+     print(f&quot;   - Extractor stats: {json.dumps(graph_manager2.get_extractor_stats(), indent=2)}&quot;)
++     print(f"   - Extractor stats: {json.dumps(graph_manager2.get_extractor_stats(), indent=2)}")
 +     
 +     # Test 3: Check if relationship extractor is using dedicated service
 +     if graph_manager2.relationship_extractor:
-+         print(f&quot;   - Relationship extractor using dedicated LLM: {graph_manager2.relationship_extractor.is_using_dedicated_llm()}&quot;)
-+         print(f&quot;   - Relationship extractor LLM info: {json.dumps(graph_manager2.relationship_extractor.get_llm_service_info(), indent=2)}&quot;)
++         print(f"   - Relationship extractor using dedicated LLM: {graph_manager2.relationship_extractor.is_using_dedicated_llm()}")
++         print(f"   - Relationship extractor LLM info: {json.dumps(graph_manager2.relationship_extractor.get_llm_service_info(), indent=2)}")
 +     
 +     # Cleanup
 +     try:
@@ -694,73 +694,73 @@ Lines added: 226, lines removed: 1
 + 
 + 
 + def demonstrate_relationship_extraction():
-+     &quot;&quot;&quot;Demonstrate actual relationship extraction with dedicated LLM.&quot;&quot;&quot;
++     """Demonstrate actual relationship extraction with dedicated LLM."""
 +     
-+     print(&quot;\n=== Demonstrating Relationship Extraction ===&quot;)
++     print("\n=== Demonstrating Relationship Extraction ===")
 +     
 +     # Create test entities
 +     test_entities = [
 +         {
-+             &quot;name&quot;: &quot;Gandalf&quot;,
-+             &quot;type&quot;: &quot;character&quot;,
-+             &quot;description&quot;: &quot;A wise wizard who guides the Fellowship&quot;
++             "name": "Gandalf",
++             "type": "character",
++             "description": "A wise wizard who guides the Fellowship"
 +         },
 +         {
-+             &quot;name&quot;: &quot;Frodo&quot;,
-+             &quot;type&quot;: &quot;character&quot;, 
-+             &quot;description&quot;: &quot;A hobbit who carries the One Ring&quot;
++             "name": "Frodo",
++             "type": "character", 
++             "description": "A hobbit who carries the One Ring"
 +         },
 +         {
-+             &quot;name&quot;: &quot;The One Ring&quot;,
-+             &quot;type&quot;: &quot;object&quot;,
-+             &quot;description&quot;: &quot;A powerful ring that must be destroyed&quot;
++             "name": "The One Ring",
++             "type": "object",
++             "description": "A powerful ring that must be destroyed"
 +         }
 +     ]
 +     
 +     # Test conversation
-+     conversation_text = &quot;&quot;&quot;
-+     Gandalf looked at Frodo with concern. &quot;You must take the One Ring to Mount Doom,&quot; 
-+     he said. &quot;Only you can carry this burden, Frodo. The Ring calls to others, but 
-+     you are strong enough to resist its power.&quot; Frodo nodded, understanding the weight 
++     conversation_text = """
++     Gandalf looked at Frodo with concern. "You must take the One Ring to Mount Doom," 
++     he said. "Only you can carry this burden, Frodo. The Ring calls to others, but 
++     you are strong enough to resist its power." Frodo nodded, understanding the weight 
 +     of his quest. Gandalf would guide him as far as he could.
-+     &quot;&quot;&quot;
++     """
 +     
 +     # Create LLM services
 +     default_llm, relationship_llm = create_test_llm_services()
 +     
 +     # Test domain configuration
 +     domain_config = {
-+         &quot;domain_name&quot;: &quot;dnd_campaign&quot;
++         "domain_name": "dnd_campaign"
 +     }
 +     
 +     # Create extractor with dedicated LLM
 +     extractor = RelationshipExtractor(default_llm, domain_config, 
 +                                     relationship_llm_service=relationship_llm)
 +     
-+     print(f&quot;Testing relationship extraction with dedicated LLM service:&quot;)
-+     print(f&quot;- Model: {relationship_llm.model}&quot;)
-+     print(f&quot;- Temperature: {relationship_llm.temperature}&quot;)
-+     print(f&quot;- Debug enabled: {relationship_llm.debug}&quot;)
++     print(f"Testing relationship extraction with dedicated LLM service:")
++     print(f"- Model: {relationship_llm.model}")
++     print(f"- Temperature: {relationship_llm.temperature}")
++     print(f"- Debug enabled: {relationship_llm.debug}")
 +     
 +     # Extract relationships
 +     try:
 +         relationships = extractor.extract_relationships_from_conversation(
-+             conversation_text, &quot;&quot;, test_entities)
++             conversation_text, "", test_entities)
 +         
-+         print(f&quot;\nExtracted {len(relationships)} relationships:&quot;)
++         print(f"\nExtracted {len(relationships)} relationships:")
 +         for i, rel in enumerate(relationships, 1):
-+             print(f&quot;  {i}. {rel[&#39;from_entity&#39;]} --[{rel[&#39;relationship&#39;]}]--&gt; {rel[&#39;to_entity&#39;]}&quot;)
-+             print(f&quot;     Confidence: {rel.get(&#39;confidence&#39;, &#39;N/A&#39;)}&quot;)
-+             print(f&quot;     Evidence: {rel.get(&#39;evidence&#39;, &#39;N/A&#39;)}&quot;)
++             print(f"  {i}. {rel['from_entity']} --[{rel['relationship']}]--&gt; {rel['to_entity']}")
++             print(f"     Confidence: {rel.get('confidence', 'N/A')}")
++             print(f"     Evidence: {rel.get('evidence', 'N/A')}")
 +             
 +     except Exception as e:
-+         print(f&quot;Error during relationship extraction: {e}&quot;)
-+         print(&quot;This is expected if Ollama is not running or the model is not available.&quot;)
++         print(f"Error during relationship extraction: {e}")
++         print("This is expected if Ollama is not running or the model is not available.")
 + 
 + 
-+ if __name__ == &quot;__main__&quot;:
-+     print(&quot;Testing Dedicated LLM Service for RelationshipExtractor&quot;)
-+     print(&quot;=&quot; * 60)
++ if __name__ == "__main__":
++     print("Testing Dedicated LLM Service for RelationshipExtractor")
++     print("=" * 60)
 +     
 +     try:
 +         # Test RelationshipExtractor directly
@@ -773,11 +773,11 @@ Lines added: 226, lines removed: 1
 +         demonstrate_relationship_extraction()
 +         
 +     except Exception as e:
-+         print(f&quot;Test failed with error: {e}&quot;)
-+         print(&quot;This is expected if dependencies are not available.&quot;)
++         print(f"Test failed with error: {e}")
++         print("This is expected if dependencies are not available.")
 +     
-+     print(&quot;\n&quot; + &quot;=&quot; * 60)
-+     print(&quot;Test completed. Check the logs for dedicated LLM service activity.&quot;) 
++     print("\n" + "=" * 60)
++     print("Test completed. Check the logs for dedicated LLM service activity.") 
 ```
 
 </details>
@@ -924,7 +924,7 @@ I'll modify the test script to use those environment variables for configuration
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: test_relationship_extractor_llm.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: test_relationship_extractor_llm.py</summary>
 
 I will modify the create_test_llm_services function to use environment variables for configuration, and add a helper function to read environment variables with defaults.
 
@@ -937,40 +937,40 @@ Lines added: 36, lines removed: 9
   
 + 
 + def get_env_config():
-+     &quot;&quot;&quot;Get configuration from environment variables with sensible defaults.&quot;&quot;&quot;
++     """Get configuration from environment variables with sensible defaults."""
 +     config = {
-+         &quot;dev_mode&quot;: os.getenv(&quot;DEV_MODE&quot;, &quot;false&quot;).lower() == &quot;true&quot;,
-+         &quot;base_url&quot;: os.getenv(&quot;OLLAMA_BASE_URL&quot;, &quot;http://localhost:11434&quot;),
-+         &quot;model&quot;: os.getenv(&quot;OLLAMA_MODEL&quot;, &quot;gemma3&quot;),
-+         &quot;embed_model&quot;: os.getenv(&quot;OLLAMA_EMBED_MODEL&quot;, &quot;mxbai-embed-large&quot;)
++         "dev_mode": os.getenv("DEV_MODE", "false").lower() == "true",
++         "base_url": os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
++         "model": os.getenv("OLLAMA_MODEL", "gemma3"),
++         "embed_model": os.getenv("OLLAMA_EMBED_MODEL", "mxbai-embed-large")
 +     }
 +     
-+     print(f&quot;Using environment configuration:&quot;)
-+     print(f&quot;  - DEV_MODE: {config[&#39;dev_mode&#39;]}&quot;)
-+     print(f&quot;  - OLLAMA_BASE_URL: {config[&#39;base_url&#39;]}&quot;)
-+     print(f&quot;  - OLLAMA_MODEL: {config[&#39;model&#39;]}&quot;)
-+     print(f&quot;  - OLLAMA_EMBED_MODEL: {config[&#39;embed_model&#39;]}&quot;)
++     print(f"Using environment configuration:")
++     print(f"  - DEV_MODE: {config['dev_mode']}")
++     print(f"  - OLLAMA_BASE_URL: {config['base_url']}")
++     print(f"  - OLLAMA_MODEL: {config['model']}")
++     print(f"  - OLLAMA_EMBED_MODEL: {config['embed_model']}")
 +     
 +     return config
 + 
   
   def create_test_llm_services():
--     &quot;&quot;&quot;Create test LLM services with different configurations.&quot;&quot;&quot;
-+     &quot;&quot;&quot;Create test LLM services with different configurations using environment variables.&quot;&quot;&quot;
+-     """Create test LLM services with different configurations."""
++     """Create test LLM services with different configurations using environment variables."""
 +     
 +     env_config = get_env_config()
       
 -     # Base configuration
 +     # Base configuration from environment
       base_config = {
--         &quot;base_url&quot;: &quot;http://localhost:11434&quot;,
--         &quot;model&quot;: &quot;gemma3&quot;,
-+         &quot;base_url&quot;: env_config[&quot;base_url&quot;],
-+         &quot;model&quot;: env_config[&quot;model&quot;],
-          &quot;temperature&quot;: 0.7,
-          &quot;stream&quot;: False,
--         &quot;debug&quot;: False
-+         &quot;debug&quot;: env_config[&quot;dev_mode&quot;]  # Enable debug in dev mode
+-         "base_url": "http://localhost:11434",
+-         "model": "gemma3",
++         "base_url": env_config["base_url"],
++         "model": env_config["model"],
+          "temperature": 0.7,
+          "stream": False,
+-         "debug": False
++         "debug": env_config["dev_mode"]  # Enable debug in dev mode
       }
       
       # Default LLM service
@@ -980,23 +980,23 @@ Lines added: 36, lines removed: 9
 +     # Dedicated relationship extraction LLM service with different config
       relationship_config = base_config.copy()
       relationship_config.update({
--         &quot;model&quot;: &quot;llama3.2&quot;,  # Different model for relationship extraction
-          &quot;temperature&quot;: 0.1,   # Lower temperature for more deterministic output
--         &quot;debug&quot;: True,
-+         &quot;debug&quot;: True,        # Always enable debug for relationship extractor in tests
-          &quot;debug_file&quot;: &quot;test_relationship_extractor.log&quot;,
-          &quot;debug_scope&quot;: &quot;relationship_test&quot;,
--         &quot;console_output&quot;: True
-+         &quot;console_output&quot;: env_config[&quot;dev_mode&quot;]  # Console output only in dev mode
+-         "model": "llama3.2",  # Different model for relationship extraction
+          "temperature": 0.1,   # Lower temperature for more deterministic output
+-         "debug": True,
++         "debug": True,        # Always enable debug for relationship extractor in tests
+          "debug_file": "test_relationship_extractor.log",
+          "debug_scope": "relationship_test",
+-         "console_output": True
++         "console_output": env_config["dev_mode"]  # Console output only in dev mode
       })
 +     
 +     # In dev mode, we might want to use a different model for relationship extraction
-+     if env_config[&quot;dev_mode&quot;]:
++     if env_config["dev_mode"]:
 +         # You can override the model for relationship extraction if needed
-+         alt_model = os.getenv(&quot;OLLAMA_RELATIONSHIP_MODEL&quot;)
++         alt_model = os.getenv("OLLAMA_RELATIONSHIP_MODEL")
 +         if alt_model:
-+             relationship_config[&quot;model&quot;] = alt_model
-+             print(f&quot;  - Using alternative model for relationships: {alt_model}&quot;)
++             relationship_config["model"] = alt_model
++             print(f"  - Using alternative model for relationships: {alt_model}")
       
       relationship_llm = OllamaService(relationship_config)
 ```
@@ -1013,7 +1013,7 @@ Now let me also update the `test_graph_manager_with_dedicated_llm` function to u
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: test_relationship_extractor_llm.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: test_relationship_extractor_llm.py</summary>
 
 I will update the test_graph_manager_with_dedicated_llm function to use environment configuration for creating the embeddings manager.
 
@@ -1022,24 +1022,24 @@ Lines added: 15, lines removed: 2
 
 ```diff
 @@ -118,8 +118,21 @@
-      print(&quot;\n=== Testing GraphManager with Dedicated LLM Services ===&quot;)
+      print("\n=== Testing GraphManager with Dedicated LLM Services ===")
       
 -     # Create a temporary embeddings manager for testing
 +     # Get environment configuration
 +     env_config = get_env_config()
 +     
 +     # Create a temporary embeddings manager for testing using env config
-      temp_embeddings_file = &quot;test_embeddings.jsonl&quot;
+      temp_embeddings_file = "test_embeddings.jsonl"
       default_llm, _ = create_test_llm_services()
 -     embeddings_manager = EmbeddingsManager(temp_embeddings_file, default_llm)
 +     
 +     # Create embeddings LLM service using the embed model from environment
 +     embeddings_config = {
-+         &quot;base_url&quot;: env_config[&quot;base_url&quot;],
-+         &quot;model&quot;: env_config[&quot;embed_model&quot;],
-+         &quot;temperature&quot;: 0.0,  # Deterministic for embeddings
-+         &quot;stream&quot;: False,
-+         &quot;debug&quot;: env_config[&quot;dev_mode&quot;]
++         "base_url": env_config["base_url"],
++         "model": env_config["embed_model"],
++         "temperature": 0.0,  # Deterministic for embeddings
++         "stream": False,
++         "debug": env_config["dev_mode"]
 +     }
 +     embeddings_llm = OllamaService(embeddings_config)
 +     embeddings_manager = EmbeddingsManager(temp_embeddings_file, embeddings_llm)
@@ -1059,7 +1059,7 @@ Now let me also add some helpful output at the beginning to show which environme
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: test_relationship_extractor_llm.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: test_relationship_extractor_llm.py</summary>
 
 I will update the main section to show environment variable usage and add better error handling for Ollama connection issues.
 
@@ -1068,16 +1068,16 @@ Lines added: 8, lines removed: undefined
 
 ```diff
 @@ -248,4 +248,12 @@
-      print(&quot;Testing Dedicated LLM Service for RelationshipExtractor&quot;)
-      print(&quot;=&quot; * 60)
+      print("Testing Dedicated LLM Service for RelationshipExtractor")
+      print("=" * 60)
 +     
 +     # Show current environment variable configuration
-+     print(&quot;\nEnvironment Variables:&quot;)
-+     print(f&quot;  DEV_MODE: {os.getenv(&#39;DEV_MODE&#39;, &#39;not set (default: false)&#39;)}&quot;)
-+     print(f&quot;  OLLAMA_BASE_URL: {os.getenv(&#39;OLLAMA_BASE_URL&#39;, &#39;not set (default: http://localhost:11434)&#39;)}&quot;)
-+     print(f&quot;  OLLAMA_MODEL: {os.getenv(&#39;OLLAMA_MODEL&#39;, &#39;not set (default: gemma3)&#39;)}&quot;)
-+     print(f&quot;  OLLAMA_EMBED_MODEL: {os.getenv(&#39;OLLAMA_EMBED_MODEL&#39;, &#39;not set (default: mxbai-embed-large)&#39;)}&quot;)
-+     print(f&quot;  OLLAMA_RELATIONSHIP_MODEL: {os.getenv(&#39;OLLAMA_RELATIONSHIP_MODEL&#39;, &#39;not set (uses OLLAMA_MODEL)&#39;)}&quot;)
++     print("\nEnvironment Variables:")
++     print(f"  DEV_MODE: {os.getenv('DEV_MODE', 'not set (default: false)')}")
++     print(f"  OLLAMA_BASE_URL: {os.getenv('OLLAMA_BASE_URL', 'not set (default: http://localhost:11434)')}")
++     print(f"  OLLAMA_MODEL: {os.getenv('OLLAMA_MODEL', 'not set (default: gemma3)')}")
++     print(f"  OLLAMA_EMBED_MODEL: {os.getenv('OLLAMA_EMBED_MODEL', 'not set (default: mxbai-embed-large)')}")
++     print(f"  OLLAMA_RELATIONSHIP_MODEL: {os.getenv('OLLAMA_RELATIONSHIP_MODEL', 'not set (uses OLLAMA_MODEL)')}")
       
       try:
 ```
@@ -1090,30 +1090,30 @@ Lines added: 19, lines removed: 3
           demonstrate_relationship_extraction()
           
 +     except ConnectionError as e:
-+         print(f&quot;\nConnection Error: {e}&quot;)
-+         print(&quot;Please ensure Ollama is running and accessible at the configured URL.&quot;)
-+         print(&quot;You can set OLLAMA_BASE_URL environment variable to point to your Ollama instance.&quot;)
++         print(f"\nConnection Error: {e}")
++         print("Please ensure Ollama is running and accessible at the configured URL.")
++         print("You can set OLLAMA_BASE_URL environment variable to point to your Ollama instance.")
       except Exception as e:
--         print(f&quot;Test failed with error: {e}&quot;)
--         print(&quot;This is expected if dependencies are not available.&quot;)
-+         print(f&quot;\nTest failed with error: {e}&quot;)
-+         print(&quot;This may be due to missing dependencies or Ollama connection issues.&quot;)
+-         print(f"Test failed with error: {e}")
+-         print("This is expected if dependencies are not available.")
++         print(f"\nTest failed with error: {e}")
++         print("This may be due to missing dependencies or Ollama connection issues.")
 +         
 +         # Print some debugging information
 +         env_config = get_env_config()
-+         print(f&quot;\nTroubleshooting information:&quot;)
-+         print(f&quot;- Trying to connect to: {env_config[&#39;base_url&#39;]}&quot;)
-+         print(f&quot;- Using model: {env_config[&#39;model&#39;]}&quot;)
-+         print(f&quot;- Using embed model: {env_config[&#39;embed_model&#39;]}&quot;)
-+         print(f&quot;- Dev mode: {env_config[&#39;dev_mode&#39;]}&quot;)
++         print(f"\nTroubleshooting information:")
++         print(f"- Trying to connect to: {env_config['base_url']}")
++         print(f"- Using model: {env_config['model']}")
++         print(f"- Using embed model: {env_config['embed_model']}")
++         print(f"- Dev mode: {env_config['dev_mode']}")
       
-      print(&quot;\n&quot; + &quot;=&quot; * 60)
--     print(&quot;Test completed. Check the logs for dedicated LLM service activity.&quot;) 
-+     print(&quot;Test completed.&quot;)
-+     if os.getenv(&quot;DEV_MODE&quot;, &quot;false&quot;).lower() == &quot;true&quot;:
-+         print(&quot;Check test_relationship_extractor.log for detailed relationship extraction logs.&quot;)
-+     print(&quot;To run with your environment variables:&quot;)
-+     print(&quot;DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python test_relationship_extractor_llm.py&quot;) 
+      print("\n" + "=" * 60)
+-     print("Test completed. Check the logs for dedicated LLM service activity.") 
++     print("Test completed.")
++     if os.getenv("DEV_MODE", "false").lower() == "true":
++         print("Check test_relationship_extractor.log for detailed relationship extraction logs.")
++     print("To run with your environment variables:")
++     print("DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python test_relationship_extractor_llm.py") 
 ```
 
 </details>
@@ -1219,7 +1219,7 @@ Let me implement this by creating a dedicated logger for the RelationshipExtract
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/graph_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/graph_memory/graph_manager.py</summary>
 
 I will modify the _setup_graph_specific_logging method to create a dedicated logger for the RelationshipExtractor and update the initialization to use this dedicated logger.
 
@@ -1228,11 +1228,11 @@ Lines added: 4, lines removed: undefined
 
 ```diff
 @@ -118,4 +118,8 @@
-          self.logger.debug(f&quot;Ollama relationship extractor debug log: {llm_relationship_extractor_debug_file}&quot;)
+          self.logger.debug(f"Ollama relationship extractor debug log: {llm_relationship_extractor_debug_file}")
           
 +         # Create dedicated logger for RelationshipExtractor
 +         self.relationship_extractor_logger = self._create_component_logger(
-+             &quot;relationship_extractor&quot;, memory_guid, relationship_extractor_debug_file)
++             "relationship_extractor", memory_guid, relationship_extractor_debug_file)
 +         
           # Get base configuration from the original service
           base_config = {}
@@ -1246,19 +1246,19 @@ Lines added: 41, lines removed: undefined
               self.relationship_llm_service = base_llm_service
       
 +     def _create_component_logger(self, component_name: str, memory_guid: str, log_file_path: str) -&gt; logging.Logger:
-+         &quot;&quot;&quot;
++         """
 +         Create a dedicated logger for a graph component.
 +         
 +         Args:
-+             component_name: Name of the component (e.g., &#39;relationship_extractor&#39;)
++             component_name: Name of the component (e.g., 'relationship_extractor')
 +             memory_guid: Memory GUID for unique logger naming
 +             log_file_path: Path to the log file
 +             
 +         Returns:
 +             Configured logger instance
-+         &quot;&quot;&quot;
++         """
 +         # Create logger name based on component and memory GUID
-+         logger_name = f&quot;graph_memory.{component_name}.{memory_guid}&quot;
++         logger_name = f"graph_memory.{component_name}.{memory_guid}"
 +         component_logger = logging.getLogger(logger_name)
 +         
 +         # Avoid duplicate handlers if logger already exists
@@ -1273,7 +1273,7 @@ Lines added: 41, lines removed: undefined
 +         file_handler.setLevel(logging.DEBUG)
 +         
 +         # Create formatter
-+         formatter = logging.Formatter(&#39;%(asctime)s %(levelname)s:%(name)s:%(message)s&#39;)
++         formatter = logging.Formatter('%(asctime)s %(levelname)s:%(name)s:%(message)s')
 +         file_handler.setFormatter(formatter)
 +         
 +         # Add handler to logger
@@ -1282,12 +1282,12 @@ Lines added: 41, lines removed: undefined
 +         # Prevent propagation to avoid duplicate logs in parent loggers
 +         component_logger.propagate = False
 +         
-+         self.logger.debug(f&quot;Created dedicated logger for {component_name}: {logger_name} -&gt; {log_file_path}&quot;)
++         self.logger.debug(f"Created dedicated logger for {component_name}: {logger_name} -&gt; {log_file_path}")
 +         
 +         return component_logger
 +     
-      def process_conversation_entry(self, conversation_text: str, digest_text: str = &quot;&quot;) -&gt; Dict[str, Any]:
-          &quot;&quot;&quot;
+      def process_conversation_entry(self, conversation_text: str, digest_text: str = "") -&gt; Dict[str, Any]:
+          """
 ```
 
 </details>
@@ -1302,7 +1302,7 @@ Now I need to initialize the `relationship_extractor_logger` attribute and updat
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/graph_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/graph_memory/graph_manager.py</summary>
 
 I will initialize the relationship_extractor_logger attribute in the __init__ method and update the RelationshipExtractor initialization to use the dedicated logger.
 
@@ -1433,7 +1433,7 @@ Let me also update the `get_llm_services_info` method in GraphManager to include
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/graph_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/graph_memory/graph_manager.py</summary>
 
 I will update the get_llm_services_info method to include information about the relationship extractor logger when it's available.
 
@@ -1445,19 +1445,19 @@ Lines added: 12, lines removed: undefined
               }
           
 +         # Relationship ExtractorLogger information
-+         if hasattr(self, &#39;relationship_extractor_logger&#39;) and self.relationship_extractor_logger:
-+             services_info[&#39;relationship_extractor_logger&#39;] = {
-+                 &#39;logger_name&#39;: self.relationship_extractor_logger.name,
-+                 &#39;logger_level&#39;: logging.getLevelName(self.relationship_extractor_logger.level),
-+                 &#39;has_handlers&#39;: len(self.relationship_extractor_logger.handlers) &gt; 0,
-+                 &#39;log_files&#39;: [
++         if hasattr(self, 'relationship_extractor_logger') and self.relationship_extractor_logger:
++             services_info['relationship_extractor_logger'] = {
++                 'logger_name': self.relationship_extractor_logger.name,
++                 'logger_level': logging.getLevelName(self.relationship_extractor_logger.level),
++                 'has_handlers': len(self.relationship_extractor_logger.handlers) &gt; 0,
++                 'log_files': [
 +                     handler.baseFilename for handler in self.relationship_extractor_logger.handlers 
-+                     if hasattr(handler, &#39;baseFilename&#39;)
++                     if hasattr(handler, 'baseFilename')
 +                 ]
 +             }
 +         
           # Check if services are distinct
-          services_info[&#39;using_dedicated_services&#39;] = self._are_services_distinct()
+          services_info['using_dedicated_services'] = self._are_services_distinct()
 ```
 
 </details>
@@ -1472,7 +1472,7 @@ Now let me create a simple test to verify that the dedicated logging is working 
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: test_relationship_extractor_llm.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: test_relationship_extractor_llm.py</summary>
 
 I will add a test function to verify that the dedicated logger for RelationshipExtractor is working correctly and getting its own log file.
 
@@ -1493,91 +1493,91 @@ Lines added: 90, lines removed: undefined
 
 ```diff
 @@ -244,4 +245,94 @@
-          print(&quot;This is expected if Ollama is not running or the model is not available.&quot;)
+          print("This is expected if Ollama is not running or the model is not available.")
   
 + 
 + def test_dedicated_logging():
-+     &quot;&quot;&quot;Test that RelationshipExtractor gets its own dedicated logger.&quot;&quot;&quot;
++     """Test that RelationshipExtractor gets its own dedicated logger."""
 +     
-+     print(&quot;\n=== Testing Dedicated Logging for RelationshipExtractor ===&quot;)
++     print("\n=== Testing Dedicated Logging for RelationshipExtractor ===")
 +     
 +     # Get environment configuration
 +     env_config = get_env_config()
 +     
 +     # Create a temporary embeddings manager for testing using env config
-+     temp_embeddings_file = &quot;test_embeddings_dedicated_logging.jsonl&quot;
++     temp_embeddings_file = "test_embeddings_dedicated_logging.jsonl"
 +     default_llm, _ = create_test_llm_services()
 +     
 +     # Create embeddings LLM service using the embed model from environment
 +     embeddings_config = {
-+         &quot;base_url&quot;: env_config[&quot;base_url&quot;],
-+         &quot;model&quot;: env_config[&quot;embed_model&quot;],
-+         &quot;temperature&quot;: 0.0,  # Deterministic for embeddings
-+         &quot;stream&quot;: False,
-+         &quot;debug&quot;: env_config[&quot;dev_mode&quot;]
++         "base_url": env_config["base_url"],
++         "model": env_config["embed_model"],
++         "temperature": 0.0,  # Deterministic for embeddings
++         "stream": False,
++         "debug": env_config["dev_mode"]
 +     }
 +     embeddings_llm = OllamaService(embeddings_config)
 +     embeddings_manager = EmbeddingsManager(temp_embeddings_file, embeddings_llm)
 +     
 +     # Test domain configuration
 +     domain_config = {
-+         &quot;domain_name&quot;: &quot;dnd_campaign&quot;,
-+         &quot;graph_memory_config&quot;: {
-+             &quot;similarity_threshold&quot;: 0.8
++         "domain_name": "dnd_campaign",
++         "graph_memory_config": {
++             "similarity_threshold": 0.8
 +         }
 +     }
 +     
 +     # Test GraphManager with dedicated logging
-+     print(&quot;\nTesting GraphManager with dedicated logging:&quot;)
++     print("\nTesting GraphManager with dedicated logging:")
 +     graph_manager = GraphManager(
-+         storage_path=&quot;test_graph_dedicated_logging&quot;,
++         storage_path="test_graph_dedicated_logging",
 +         embeddings_manager=embeddings_manager,
 +         llm_service=default_llm,
 +         domain_config=domain_config,
-+         logs_dir=&quot;.&quot;,  # Current directory
-+         memory_guid=&quot;test-dedicated-logging-456&quot;
++         logs_dir=".",  # Current directory
++         memory_guid="test-dedicated-logging-456"
 +     )
 +     
 +     # Check if dedicated logger was created
-+     if hasattr(graph_manager, &#39;relationship_extractor_logger&#39;):
++     if hasattr(graph_manager, 'relationship_extractor_logger'):
 +         rel_logger = graph_manager.relationship_extractor_logger
-+         print(f&quot;✓ Dedicated RelationshipExtractor logger created: {rel_logger.name}&quot;)
-+         print(f&quot;  - Logger level: {logging.getLevelName(rel_logger.level)}&quot;)
-+         print(f&quot;  - Number of handlers: {len(rel_logger.handlers)}&quot;)
++         print(f"✓ Dedicated RelationshipExtractor logger created: {rel_logger.name}")
++         print(f"  - Logger level: {logging.getLevelName(rel_logger.level)}")
++         print(f"  - Number of handlers: {len(rel_logger.handlers)}")
 +         
 +         # Check log file handlers
 +         for handler in rel_logger.handlers:
-+             if hasattr(handler, &#39;baseFilename&#39;):
-+                 print(f&quot;  - Log file: {handler.baseFilename}&quot;)
++             if hasattr(handler, 'baseFilename'):
++                 print(f"  - Log file: {handler.baseFilename}")
 +     else:
-+         print(&quot;✗ No dedicated RelationshipExtractor logger found&quot;)
++         print("✗ No dedicated RelationshipExtractor logger found")
 +     
 +     # Check RelationshipExtractor is using the dedicated logger
 +     if graph_manager.relationship_extractor:
 +         extractor_logger_name = graph_manager.relationship_extractor.logger.name
-+         print(f&quot;✓ RelationshipExtractor using logger: {extractor_logger_name}&quot;)
++         print(f"✓ RelationshipExtractor using logger: {extractor_logger_name}")
 +         
 +         # Test logging - this should go to the dedicated log file
-+         graph_manager.relationship_extractor.logger.info(&quot;Test log message from RelationshipExtractor&quot;)
-+         print(&quot;✓ Wrote test log message to dedicated log file&quot;)
++         graph_manager.relationship_extractor.logger.info("Test log message from RelationshipExtractor")
++         print("✓ Wrote test log message to dedicated log file")
 +         
 +         # Get comprehensive service info
 +         services_info = graph_manager.get_llm_services_info()
-+         print(f&quot;\nService Information:&quot;)
-+         if &#39;relationship_extractor_logger&#39; in services_info:
-+             logger_info = services_info[&#39;relationship_extractor_logger&#39;]
-+             print(f&quot;  - Logger name: {logger_info[&#39;logger_name&#39;]}&quot;)
-+             print(f&quot;  - Logger level: {logger_info[&#39;logger_level&#39;]}&quot;)
-+             print(f&quot;  - Has handlers: {logger_info[&#39;has_handlers&#39;]}&quot;)
-+             print(f&quot;  - Log files: {logger_info[&#39;log_files&#39;]}&quot;)
++         print(f"\nService Information:")
++         if 'relationship_extractor_logger' in services_info:
++             logger_info = services_info['relationship_extractor_logger']
++             print(f"  - Logger name: {logger_info['logger_name']}")
++             print(f"  - Logger level: {logger_info['logger_level']}")
++             print(f"  - Has handlers: {logger_info['has_handlers']}")
++             print(f"  - Log files: {logger_info['log_files']}")
 +         
 +         # Check if using dedicated LLM service
 +         if graph_manager.relationship_extractor.is_using_dedicated_llm():
-+             print(f&quot;✓ RelationshipExtractor using dedicated LLM service&quot;)
++             print(f"✓ RelationshipExtractor using dedicated LLM service")
 +             llm_info = graph_manager.relationship_extractor.get_llm_service_info()
-+             print(f&quot;  - LLM debug file: {llm_info.get(&#39;debug_file&#39;, &#39;None&#39;)}&quot;)
++             print(f"  - LLM debug file: {llm_info.get('debug_file', 'None')}")
 +         else:
-+             print(&quot;○ RelationshipExtractor using shared LLM service&quot;)
++             print("○ RelationshipExtractor using shared LLM service")
 +     
 +     # Cleanup
 +     try:
@@ -1586,7 +1586,7 @@ Lines added: 90, lines removed: undefined
 +         pass
 + 
   
-  if __name__ == &quot;__main__&quot;:
+  if __name__ == "__main__":
 ```
 
 **Chunk 3**
@@ -1600,7 +1600,7 @@ Lines added: 3, lines removed: undefined
 +         test_dedicated_logging()
 +         
       except ConnectionError as e:
-          print(f&quot;\nConnection Error: {e}&quot;)
+          print(f"\nConnection Error: {e}")
 ```
 
 </details>
@@ -2122,7 +2122,7 @@ Let me look at the current implementation and update it with the optimization.</
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/relationship_extractor.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/graph_memory/relationship_extractor.py</summary>
 
 I will update the _build_entities_context method to include resolved node IDs and make the prompt more explicit about using only the provided entities with exact names.
 
@@ -2133,41 +2133,41 @@ Lines added: 19, lines removed: 6
 @@ -172,19 +172,32 @@
       
       def _build_entities_context(self, entities: List[Dict[str, Any]]) -&gt; str:
--         &quot;&quot;&quot;Build formatted entity context for the prompt.&quot;&quot;&quot;
+-         """Build formatted entity context for the prompt."""
 -         entities_lines = []
-+         &quot;&quot;&quot;Build formatted entity context for the prompt with resolved node IDs.&quot;&quot;&quot;
-+         entities_lines = [&quot;AVAILABLE ENTITIES (use exact names):&quot;]
++         """Build formatted entity context for the prompt with resolved node IDs."""
++         entities_lines = ["AVAILABLE ENTITIES (use exact names):"]
 +         
           for entity in entities:
--             status = entity.get(&#39;status&#39;, &#39;new&#39;)
-              name = entity.get(&#39;name&#39;, &#39;&#39;)
-              entity_type = entity.get(&#39;type&#39;, &#39;&#39;)
-              description = entity.get(&#39;description&#39;, &#39;&#39;)
+-             status = entity.get('status', 'new')
+              name = entity.get('name', '')
+              entity_type = entity.get('type', '')
+              description = entity.get('description', '')
 -             
--             line = f&quot;- {name} ({entity_type})&quot;
-+             node_id = entity.get(&#39;resolved_node_id&#39;, &#39;&#39;)
-+             status = entity.get(&#39;status&#39;, &#39;resolved&#39;)
+-             line = f"- {name} ({entity_type})"
++             node_id = entity.get('resolved_node_id', '')
++             status = entity.get('status', 'resolved')
 +             
-+             # Format: &quot;- EntityName (type, ID: node_id): description&quot;
-+             line = f&quot;- {name} ({entity_type}&quot;
++             # Format: "- EntityName (type, ID: node_id): description"
++             line = f"- {name} ({entity_type}"
 +             if node_id:
-+                 line += f&quot;, ID: {node_id}&quot;
-+             line += f&quot;): {description}&quot;
++                 line += f", ID: {node_id}"
++             line += f"): {description}"
 +             
 +             # Add status indicator for clarity
-              if status == &#39;existing&#39;:
-                  line += &quot; [EXISTING]&quot;
--             line += f&quot;: {description}&quot;
-+             elif status == &#39;new&#39;:
-+                 line += &quot; [NEW]&quot;
+              if status == 'existing':
+                  line += " [EXISTING]"
+-             line += f": {description}"
++             elif status == 'new':
++                 line += " [NEW]"
               
               entities_lines.append(line)
           
-+         entities_lines.append(&quot;\nIMPORTANT: Only create relationships between entities listed above.&quot;)
-+         entities_lines.append(&quot;Use the exact entity names as shown.&quot;)
-+         entities_lines.append(&quot;Do not reference any entities not in this list.&quot;)
++         entities_lines.append("\nIMPORTANT: Only create relationships between entities listed above.")
++         entities_lines.append("Use the exact entity names as shown.")
++         entities_lines.append("Do not reference any entities not in this list.")
 +         
-          return &quot;\n&quot;.join(entities_lines)
+          return "\n".join(entities_lines)
       
 ```
 
@@ -2183,7 +2183,7 @@ Now let me also enhance the validation to be more strict about using only the pr
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/relationship_extractor.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/graph_memory/relationship_extractor.py</summary>
 
 I will update the _validate_relationship method to be more strict about validating relationships against the provided entities with their resolved node IDs.
 
@@ -2194,31 +2194,31 @@ Lines added: 8, lines removed: 3
 @@ -237,21 +237,26 @@
       
       def _validate_relationship(self, relationship: Dict[str, Any], entity_names: set) -&gt; bool:
--         &quot;&quot;&quot;Validate extracted relationship structure.&quot;&quot;&quot;
-+         &quot;&quot;&quot;Validate extracted relationship structure and entity references.&quot;&quot;&quot;
-          required_fields = [&#39;from_entity&#39;, &#39;to_entity&#39;, &#39;relationship&#39;]
+-         """Validate extracted relationship structure."""
++         """Validate extracted relationship structure and entity references."""
+          required_fields = ['from_entity', 'to_entity', 'relationship']
           
           # Check required fields exist
           for field in required_fields:
               if field not in relationship or not relationship[field]:
-+                 self.logger.debug(f&quot;Relationship missing required field: {field}&quot;)
++                 self.logger.debug(f"Relationship missing required field: {field}")
                   return False
           
           # Check entities exist in the entity list (case-insensitive)
--         from_name = relationship[&#39;from_entity&#39;].lower()
--         to_name = relationship[&#39;to_entity&#39;].lower()
-+         from_name = relationship[&#39;from_entity&#39;].lower().strip()
-+         to_name = relationship[&#39;to_entity&#39;].lower().strip()
+-         from_name = relationship['from_entity'].lower()
+-         to_name = relationship['to_entity'].lower()
++         from_name = relationship['from_entity'].lower().strip()
++         to_name = relationship['to_entity'].lower().strip()
           
           if from_name not in entity_names or to_name not in entity_names:
-+             self.logger.debug(f&quot;Relationship references unknown entities: {relationship[&#39;from_entity&#39;]} -&gt; {relationship[&#39;to_entity&#39;]}&quot;)
-+             available_entities = &quot;, &quot;.join(sorted(entity_names))
-+             self.logger.debug(f&quot;Available entities: {available_entities}&quot;)
++             self.logger.debug(f"Relationship references unknown entities: {relationship['from_entity']} -&gt; {relationship['to_entity']}")
++             available_entities = ", ".join(sorted(entity_names))
++             self.logger.debug(f"Available entities: {available_entities}")
               return False
           
           # Check relationship type is valid
-          if relationship[&#39;relationship&#39;] not in self.relationship_types:
-+             self.logger.debug(f&quot;Invalid relationship type: {relationship[&#39;relationship&#39;]}&quot;)
+          if relationship['relationship'] not in self.relationship_types:
++             self.logger.debug(f"Invalid relationship type: {relationship['relationship']}")
               return False
           
 ```
@@ -2235,7 +2235,7 @@ Now let me add a helper method to get statistics about the entity context and up
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/relationship_extractor.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/graph_memory/relationship_extractor.py</summary>
 
 I will add a helper method to analyze entity context and update the get_stats method to include information about entity processing.
 
@@ -2244,58 +2244,58 @@ Lines added: 46, lines removed: undefined
 
 ```diff
 @@ -375,6 +375,52 @@
-              stats[&#39;llm_debug_file&#39;] = self.llm_service.debug_file
+              stats['llm_debug_file'] = self.llm_service.debug_file
           
 +         # Add optimization information
-+         stats[&#39;optimization_features&#39;] = {
-+             &#39;entity_id_context&#39;: True,
-+             &#39;strict_entity_validation&#39;: True,
-+             &#39;enhanced_prompt_constraints&#39;: True
++         stats['optimization_features'] = {
++             'entity_id_context': True,
++             'strict_entity_validation': True,
++             'enhanced_prompt_constraints': True
 +         }
 +             
           return stats
       
 +     def analyze_entity_context(self, entities: List[Dict[str, Any]]) -&gt; Dict[str, Any]:
-+         &quot;&quot;&quot;Analyze the entity context to provide debugging information.
++         """Analyze the entity context to provide debugging information.
 +         
 +         Args:
 +             entities: List of entities from entity extraction phase
 +             
 +         Returns:
 +             Dictionary with entity context analysis
-+         &quot;&quot;&quot;
++         """
 +         if not entities:
 +             return {
-+                 &#39;total_entities&#39;: 0,
-+                 &#39;entities_with_ids&#39;: 0,
-+                 &#39;entity_types&#39;: {},
-+                 &#39;status_breakdown&#39;: {}
++                 'total_entities': 0,
++                 'entities_with_ids': 0,
++                 'entity_types': {},
++                 'status_breakdown': {}
 +             }
 +         
 +         analysis = {
-+             &#39;total_entities&#39;: len(entities),
-+             &#39;entities_with_ids&#39;: 0,
-+             &#39;entity_types&#39;: {},
-+             &#39;status_breakdown&#39;: {}
++             'total_entities': len(entities),
++             'entities_with_ids': 0,
++             'entity_types': {},
++             'status_breakdown': {}
 +         }
 +         
 +         for entity in entities:
 +             # Count entities with resolved node IDs
-+             if entity.get(&#39;resolved_node_id&#39;):
-+                 analysis[&#39;entities_with_ids&#39;] += 1
++             if entity.get('resolved_node_id'):
++                 analysis['entities_with_ids'] += 1
 +             
 +             # Count by entity type
-+             entity_type = entity.get(&#39;type&#39;, &#39;unknown&#39;)
-+             analysis[&#39;entity_types&#39;][entity_type] = analysis[&#39;entity_types&#39;].get(entity_type, 0) + 1
++             entity_type = entity.get('type', 'unknown')
++             analysis['entity_types'][entity_type] = analysis['entity_types'].get(entity_type, 0) + 1
 +             
 +             # Count by status
-+             status = entity.get(&#39;status&#39;, &#39;unknown&#39;)
-+             analysis[&#39;status_breakdown&#39;][status] = analysis[&#39;status_breakdown&#39;].get(status, 0) + 1
++             status = entity.get('status', 'unknown')
++             analysis['status_breakdown'][status] = analysis['status_breakdown'].get(status, 0) + 1
 +         
 +         return analysis
 +     
       def is_using_dedicated_llm(self) -&gt; bool:
-          &quot;&quot;&quot;Check if this extractor is using a dedicated LLM service.&quot;&quot;&quot;
+          """Check if this extractor is using a dedicated LLM service."""
 ```
 
 </details>
@@ -2321,7 +2321,7 @@ Finally, let me update the main relationship extraction method to include debug 
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/relationship_extractor.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/graph_memory/relationship_extractor.py</summary>
 
 I will update the extract_relationships_from_conversation method to log entity context analysis for better debugging.
 
@@ -2348,11 +2348,11 @@ Lines added: 6, lines removed: 1
 -             # Build entity context
 +             # Analyze entity context for debugging
 +             entity_analysis = self.analyze_entity_context(entities)
-+             self.logger.debug(f&quot;Entity context analysis: {entity_analysis}&quot;)
++             self.logger.debug(f"Entity context analysis: {entity_analysis}")
 +             
 +             # Build entity context with resolved node IDs
               entities_context = self._build_entities_context(entities)
-+             self.logger.debug(f&quot;Built entity context with {entity_analysis[&#39;entities_with_ids&#39;]}/{entity_analysis[&#39;total_entities&#39;]} entities having resolved IDs&quot;)
++             self.logger.debug(f"Built entity context with {entity_analysis['entities_with_ids']}/{entity_analysis['total_entities']} entities having resolved IDs")
               
               # Build relationship types description
 ```
@@ -2364,8 +2364,8 @@ Lines added: 1, lines removed: 1
 @@ -164,5 +169,5 @@
               relationships = self._parse_relationship_response(response, entities)
               
--             self.logger.debug(f&quot;Extracted {len(relationships)} relationships from conversation&quot;)
-+             self.logger.debug(f&quot;Extracted {len(relationships)} relationships from conversation using {len(entities)} resolved entities&quot;)
+-             self.logger.debug(f"Extracted {len(relationships)} relationships from conversation")
++             self.logger.debug(f"Extracted {len(relationships)} relationships from conversation using {len(entities)} resolved entities")
               return relationships
               
 ```
@@ -2393,7 +2393,7 @@ Now let me update our test script to demonstrate and verify the optimization wor
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: test_relationship_extractor_llm.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: test_relationship_extractor_llm.py</summary>
 
 I will update the demonstrate_relationship_extraction function to show the new optimization with resolved node IDs and enhanced entity context.
 
@@ -2404,38 +2404,38 @@ Lines added: 12, lines removed: 6
 @@ -182,24 +182,30 @@
   
   def demonstrate_relationship_extraction():
--     &quot;&quot;&quot;Demonstrate actual relationship extraction with dedicated LLM.&quot;&quot;&quot;
-+     &quot;&quot;&quot;Demonstrate actual relationship extraction with dedicated LLM and optimized entity context.&quot;&quot;&quot;
+-     """Demonstrate actual relationship extraction with dedicated LLM."""
++     """Demonstrate actual relationship extraction with dedicated LLM and optimized entity context."""
       
--     print(&quot;\n=== Demonstrating Relationship Extraction ===&quot;)
-+     print(&quot;\n=== Demonstrating Optimized Relationship Extraction ===&quot;)
+-     print("\n=== Demonstrating Relationship Extraction ===")
++     print("\n=== Demonstrating Optimized Relationship Extraction ===")
       
 -     # Create test entities
 +     # Create test entities with resolved node IDs (simulating the 2-pass system)
       test_entities = [
           {
-              &quot;name&quot;: &quot;Gandalf&quot;,
-              &quot;type&quot;: &quot;character&quot;,
--             &quot;description&quot;: &quot;A wise wizard who guides the Fellowship&quot;
-+             &quot;description&quot;: &quot;A wise wizard who guides the Fellowship&quot;,
-+             &quot;resolved_node_id&quot;: &quot;char_gandalf_abc123&quot;,
-+             &quot;status&quot;: &quot;existing&quot;
+              "name": "Gandalf",
+              "type": "character",
+-             "description": "A wise wizard who guides the Fellowship"
++             "description": "A wise wizard who guides the Fellowship",
++             "resolved_node_id": "char_gandalf_abc123",
++             "status": "existing"
           },
           {
-              &quot;name&quot;: &quot;Frodo&quot;,
-              &quot;type&quot;: &quot;character&quot;, 
--             &quot;description&quot;: &quot;A hobbit who carries the One Ring&quot;
-+             &quot;description&quot;: &quot;A hobbit who carries the One Ring&quot;,
-+             &quot;resolved_node_id&quot;: &quot;char_frodo_def456&quot;,
-+             &quot;status&quot;: &quot;existing&quot;
+              "name": "Frodo",
+              "type": "character", 
+-             "description": "A hobbit who carries the One Ring"
++             "description": "A hobbit who carries the One Ring",
++             "resolved_node_id": "char_frodo_def456",
++             "status": "existing"
           },
           {
-              &quot;name&quot;: &quot;The One Ring&quot;,
-              &quot;type&quot;: &quot;object&quot;,
--             &quot;description&quot;: &quot;A powerful ring that must be destroyed&quot;
-+             &quot;description&quot;: &quot;A powerful ring that must be destroyed&quot;,
-+             &quot;resolved_node_id&quot;: &quot;obj_ring_ghi789&quot;,
-+             &quot;status&quot;: &quot;new&quot;
+              "name": "The One Ring",
+              "type": "object",
+-             "description": "A powerful ring that must be destroyed"
++             "description": "A powerful ring that must be destroyed",
++             "resolved_node_id": "obj_ring_ghi789",
++             "status": "new"
           }
       ]
 ```
@@ -2447,26 +2447,26 @@ Lines added: 16, lines removed: 1
 @@ -225,8 +231,23 @@
                                       relationship_llm_service=relationship_llm)
       
--     print(f&quot;Testing relationship extraction with dedicated LLM service:&quot;)
-+     print(f&quot;Testing optimized relationship extraction:&quot;)
-      print(f&quot;- Model: {relationship_llm.model}&quot;)
-      print(f&quot;- Temperature: {relationship_llm.config.get(&#39;temperature&#39;, &#39;not set&#39;)}&quot;)
-      print(f&quot;- Debug enabled: {relationship_llm.debug}&quot;)
+-     print(f"Testing relationship extraction with dedicated LLM service:")
++     print(f"Testing optimized relationship extraction:")
+      print(f"- Model: {relationship_llm.model}")
+      print(f"- Temperature: {relationship_llm.config.get('temperature', 'not set')}")
+      print(f"- Debug enabled: {relationship_llm.debug}")
 +     
 +     # Show entity context analysis
 +     entity_analysis = extractor.analyze_entity_context(test_entities)
-+     print(f&quot;\nEntity Context Analysis:&quot;)
-+     print(f&quot;- Total entities: {entity_analysis[&#39;total_entities&#39;]}&quot;)
-+     print(f&quot;- Entities with resolved IDs: {entity_analysis[&#39;entities_with_ids&#39;]}&quot;)
-+     print(f&quot;- Entity types: {entity_analysis[&#39;entity_types&#39;]}&quot;)
-+     print(f&quot;- Status breakdown: {entity_analysis[&#39;status_breakdown&#39;]}&quot;)
++     print(f"\nEntity Context Analysis:")
++     print(f"- Total entities: {entity_analysis['total_entities']}")
++     print(f"- Entities with resolved IDs: {entity_analysis['entities_with_ids']}")
++     print(f"- Entity types: {entity_analysis['entity_types']}")
++     print(f"- Status breakdown: {entity_analysis['status_breakdown']}")
 +     
 +     # Show the enhanced entity context that will be sent to the LLM
 +     entities_context = extractor._build_entities_context(test_entities)
-+     print(f&quot;\nEnhanced Entity Context for LLM:&quot;)
-+     print(&quot;=&quot; * 50)
++     print(f"\nEnhanced Entity Context for LLM:")
++     print("=" * 50)
 +     print(entities_context)
-+     print(&quot;=&quot; * 50)
++     print("=" * 50)
       
       # Extract relationships
 ```
@@ -2476,16 +2476,16 @@ Lines added: 8, lines removed: undefined
 
 ```diff
 @@ -240,4 +261,12 @@
-              print(f&quot;     Confidence: {rel.get(&#39;confidence&#39;, &#39;N/A&#39;)}&quot;)
-              print(f&quot;     Evidence: {rel.get(&#39;evidence&#39;, &#39;N/A&#39;)}&quot;)
+              print(f"     Confidence: {rel.get('confidence', 'N/A')}")
+              print(f"     Evidence: {rel.get('evidence', 'N/A')}")
 +         
 +         # Show optimization stats
 +         stats = extractor.get_stats()
-+         optimization_features = stats.get(&#39;optimization_features&#39;, {})
-+         print(f&quot;\nOptimization Features Enabled:&quot;)
++         optimization_features = stats.get('optimization_features', {})
++         print(f"\nOptimization Features Enabled:")
 +         for feature, enabled in optimization_features.items():
-+             status = &quot;✓&quot; if enabled else &quot;✗&quot;
-+             print(f&quot;  {status} {feature.replace(&#39;_&#39;, &#39; &#39;).title()}&quot;)
++             status = "✓" if enabled else "✗"
++             print(f"  {status} {feature.replace('_', ' ').title()}")
               
       except Exception as e:
 ```
@@ -2583,7 +2583,7 @@ I should write an update that summarizes what was accomplished in this latest ro
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: README-phase-5.md</summary>
+<details><summary>Tool use: **edit_file** • Edit file: README-phase-5.md</summary>
 
 I will add a new update section at the end of the file documenting the RelationshipExtractor optimization work completed on June 17, 2025.
 
@@ -2593,7 +2593,7 @@ Lines added: 70, lines removed: undefined
 ```diff
 @@ -877,4 +877,74 @@
   
-  This debugging effort resolved the final critical issue preventing the EntityResolver from performing its core function, completing the graph memory system&#39;s entity deduplication capabilities essential for building clean, accurate knowledge graphs from conversational data.
+  This debugging effort resolved the final critical issue preventing the EntityResolver from performing its core function, completing the graph memory system's entity deduplication capabilities essential for building clean, accurate knowledge graphs from conversational data.
 + 
 + 
 + ## Phase 5 Update - June 17, 2025 - RelationshipExtractor Entity Context Optimization
@@ -2603,19 +2603,19 @@ Lines added: 70, lines removed: undefined
 + **Implementation Overview**: Optimized the RelationshipExtractor to better utilize resolved entity information from the 2-pass entity extraction system, ensuring relationships reference actual existing nodes rather than allowing LLM hallucination of entity names.
 + 
 + **Core Problem Addressed**: 
-+ The existing RelationshipExtractor was receiving entities from the entity resolution phase but not fully leveraging the resolved node IDs and entity context. This could lead to relationships referencing entity names that don&#39;t exactly match the resolved entities in the graph, reducing relationship accuracy and graph integrity.
++ The existing RelationshipExtractor was receiving entities from the entity resolution phase but not fully leveraging the resolved node IDs and entity context. This could lead to relationships referencing entity names that don't exactly match the resolved entities in the graph, reducing relationship accuracy and graph integrity.
 + 
 + **Key Optimization Implemented**:
 + 
 + • **Enhanced Entity Context Format** (&#96;_build_entities_context()&#96; method):
 +   - Now includes resolved node IDs in the prompt context for precise entity reference
-+   - Added clear header: &quot;AVAILABLE ENTITIES (use exact names):&quot;
-+   - Format: &#96;&quot;- EntityName (type, ID: node_id): description [STATUS]&quot;&#96;
-+   - Added explicit constraints: &quot;Only create relationships between entities listed above&quot;
++   - Added clear header: "AVAILABLE ENTITIES (use exact names):"
++   - Format: &#96;"- EntityName (type, ID: node_id): description [STATUS]"&#96;
++   - Added explicit constraints: "Only create relationships between entities listed above"
 + 
 + • **Strict Entity Reference Constraints**:
 +   - Enhanced prompt with clear instructions to use exact entity names as provided
-+   - Added warning: &quot;Do not reference any entities not in this list&quot;
++   - Added warning: "Do not reference any entities not in this list"
 +   - Prevents LLM from inventing or modifying entity names during relationship extraction
 + 
 + • **Improved Validation and Debugging**:

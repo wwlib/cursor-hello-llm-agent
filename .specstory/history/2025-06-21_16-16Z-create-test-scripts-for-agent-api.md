@@ -56,7 +56,7 @@ I'll read the README file and the referenced documents to understand the plan fo
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed directory src/api • **7** results</summary>
+            <summary>Tool use: **list_dir** • Listed directory src/api, 7 results</summary>
         
 | Name |
 |-------|
@@ -87,7 +87,7 @@ Now let me examine the API routers to understand the endpoints better:
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed directory src/api/routers • **6** results</summary>
+            <summary>Tool use: **list_dir** • Listed directory src/api/routers, 6 results</summary>
         
 | Name |
 |-------|
@@ -133,7 +133,7 @@ Now let me check existing test files to understand the testing pattern and check
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed directory scripts/api • **1** results</summary>
+            <summary>Tool use: **list_dir** • Listed directory scripts/api, 1 result</summary>
         
 | Name |
 |-------|
@@ -152,7 +152,7 @@ Let me create the test scripts:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: scripts/api/test_rest_api.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: scripts/api/test_rest_api.py</summary>
 
 I'll create a comprehensive REST API test script that tests all the endpoints mentioned in the README documents, including session management, agent interaction, memory management, and graph data access.
 
@@ -164,7 +164,7 @@ I'll create a comprehensive REST API test script that tests all the endpoints me
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: scripts/api/test_websocket_api.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: scripts/api/test_websocket_api.py</summary>
 
 I'll create a comprehensive WebSocket API test script that tests all the WebSocket endpoints and message types mentioned in the README documents.
 
@@ -184,7 +184,7 @@ Let me create the WebSocket test script in smaller chunks:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: scripts/api/test_websocket_api.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: scripts/api/test_websocket_api.py</summary>
 
 I'll create a WebSocket API test script focusing on the core functionality first.
 
@@ -196,7 +196,7 @@ I'll create a WebSocket API test script focusing on the core functionality first
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: scripts/api/test_session_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: scripts/api/test_session_manager.py</summary>
 
 I'll create a focused test script to evaluate the API session manager specifically.
 
@@ -208,7 +208,7 @@ I'll create a focused test script to evaluate the API session manager specifical
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: scripts/api/run_api_tests.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: scripts/api/run_api_tests.py</summary>
 
 I'll create a main test runner script that orchestrates all the API tests.
 
@@ -219,12 +219,12 @@ Lines added: 157, lines removed: 1
 @@ -1,1 +1,157 @@
 - 
 + #!/usr/bin/env python3
-+ &quot;&quot;&quot;
++ """
 + API Test Runner
 + 
 + Orchestrates all API tests and provides a comprehensive evaluation of the
 + agent system API implementation.
-+ &quot;&quot;&quot;
++ """
 + 
 + import sys
 + import subprocess
@@ -233,33 +233,33 @@ Lines added: 157, lines removed: 1
 + from datetime import datetime
 + 
 + # Configuration
-+ API_BASE_URL = &quot;http://localhost:8000&quot;
++ API_BASE_URL = "http://localhost:8000"
 + 
 + def print_header(title: str):
-+     &quot;&quot;&quot;Print formatted header&quot;&quot;&quot;
-+     print(f&quot;\n{&#39;=&#39;*80}&quot;)
-+     print(f&quot;  {title}&quot;)
-+     print(f&quot;{&#39;=&#39;*80}&quot;)
++     """Print formatted header"""
++     print(f"\n{'='*80}")
++     print(f"  {title}")
++     print(f"{'='*80}")
 + 
 + def check_api_server() -&gt; bool:
-+     &quot;&quot;&quot;Check if API server is running&quot;&quot;&quot;
++     """Check if API server is running"""
 +     try:
-+         response = requests.get(f&quot;{API_BASE_URL}/health&quot;, timeout=5)
++         response = requests.get(f"{API_BASE_URL}/health", timeout=5)
 +         return response.status_code == 200
 +     except:
 +         return False
 + 
 + def start_api_server():
-+     &quot;&quot;&quot;Instructions to start the API server&quot;&quot;&quot;
-+     print(&quot;🚀 To start the API server, run one of these commands in another terminal:&quot;)
-+     print(&quot;   python -m uvicorn src.api.main:app --host 0.0.0.0 --port 8000 --reload&quot;)
-+     print(&quot;   OR&quot;)
-+     print(&quot;   python src/api/main.py&quot;)
++     """Instructions to start the API server"""
++     print("🚀 To start the API server, run one of these commands in another terminal:")
++     print("   python -m uvicorn src.api.main:app --host 0.0.0.0 --port 8000 --reload")
++     print("   OR")
++     print("   python src/api/main.py")
 + 
 + def run_test_script(script_name: str, description: str) -&gt; bool:
-+     &quot;&quot;&quot;Run a test script and return success status&quot;&quot;&quot;
-+     print(f&quot;\n🧪 Running {description}...&quot;)
-+     print(f&quot;   Script: {script_name}&quot;)
++     """Run a test script and return success status"""
++     print(f"\n🧪 Running {description}...")
++     print(f"   Script: {script_name}")
 +     
 +     try:
 +         result = subprocess.run([sys.executable, script_name], 
@@ -270,110 +270,110 @@ Lines added: 157, lines removed: 1
 +         success = result.returncode == 0
 +         
 +         if success:
-+             print(f&quot;✅ {description} completed successfully&quot;)
++             print(f"✅ {description} completed successfully")
 +         else:
-+             print(f&quot;❌ {description} failed with return code {result.returncode}&quot;)
++             print(f"❌ {description} failed with return code {result.returncode}")
 +         
 +         return success
 +         
 +     except subprocess.TimeoutExpired:
-+         print(f&quot;⏰ {description} timed out after 5 minutes&quot;)
++         print(f"⏰ {description} timed out after 5 minutes")
 +         return False
 +     except Exception as e:
-+         print(f&quot;❌ {description} failed with exception: {e}&quot;)
++         print(f"❌ {description} failed with exception: {e}")
 +         return False
 + 
 + def main():
-+     &quot;&quot;&quot;Main test orchestrator&quot;&quot;&quot;
-+     print_header(&quot;AGENT SYSTEM API COMPREHENSIVE TEST SUITE&quot;)
-+     print(f&quot;Target API: {API_BASE_URL}&quot;)
-+     print(f&quot;Test Time: {datetime.now().strftime(&#39;%Y-%m-%d %H:%M:%S&#39;)}&quot;)
++     """Main test orchestrator"""
++     print_header("AGENT SYSTEM API COMPREHENSIVE TEST SUITE")
++     print(f"Target API: {API_BASE_URL}")
++     print(f"Test Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 +     
 +     # Check if API server is running
-+     print(&quot;\n🔍 Checking API server status...&quot;)
++     print("\n🔍 Checking API server status...")
 +     if not check_api_server():
-+         print(&quot;❌ API server is not responding!&quot;)
++         print("❌ API server is not responding!")
 +         start_api_server()
-+         print(&quot;\nWaiting 10 seconds for you to start the server...&quot;)
++         print("\nWaiting 10 seconds for you to start the server...")
 +         time.sleep(10)
 +         
 +         if not check_api_server():
-+             print(&quot;❌ API server still not responding. Please start the server and try again.&quot;)
++             print("❌ API server still not responding. Please start the server and try again.")
 +             sys.exit(1)
 +     
-+     print(&quot;✅ API server is responding&quot;)
++     print("✅ API server is responding")
 +     
 +     # Test scripts to run
 +     test_scripts = [
-+         (&quot;scripts/api/test_session_manager.py&quot;, &quot;Session Manager Evaluation&quot;),
-+         (&quot;scripts/api/test_rest_api.py&quot;, &quot;REST API Comprehensive Tests&quot;),
-+         (&quot;scripts/api/test_websocket_api.py&quot;, &quot;WebSocket API Comprehensive Tests&quot;)
++         ("scripts/api/test_session_manager.py", "Session Manager Evaluation"),
++         ("scripts/api/test_rest_api.py", "REST API Comprehensive Tests"),
++         ("scripts/api/test_websocket_api.py", "WebSocket API Comprehensive Tests")
 +     ]
 +     
 +     results = {}
 +     
-+     print_header(&quot;RUNNING TEST SUITE&quot;)
++     print_header("RUNNING TEST SUITE")
 +     
 +     for script_path, description in test_scripts:
 +         results[description] = run_test_script(script_path, description)
 +         time.sleep(2)  # Brief pause between test suites
 +     
 +     # Print final summary
-+     print_header(&quot;FINAL TEST RESULTS&quot;)
++     print_header("FINAL TEST RESULTS")
 +     
 +     passed = sum(1 for r in results.values() if r)
 +     total = len(results)
 +     
-+     print(f&quot;Test Suites Run: {total}&quot;)
-+     print(f&quot;Passed: {passed}&quot;)
-+     print(f&quot;Failed: {total - passed}&quot;)
-+     print(f&quot;Success Rate: {(passed/total)*100:.1f}%&quot;)
++     print(f"Test Suites Run: {total}")
++     print(f"Passed: {passed}")
++     print(f"Failed: {total - passed}")
++     print(f"Success Rate: {(passed/total)*100:.1f}%")
 +     
-+     print(&quot;\nDetailed Results:&quot;)
++     print("\nDetailed Results:")
 +     for test_name, success in results.items():
-+         status = &quot;✅ PASS&quot; if success else &quot;❌ FAIL&quot;
-+         print(f&quot;  {status}: {test_name}&quot;)
++         status = "✅ PASS" if success else "❌ FAIL"
++         print(f"  {status}: {test_name}")
 +     
-+     print_header(&quot;API READINESS ASSESSMENT&quot;)
++     print_header("API READINESS ASSESSMENT")
 +     
 +     if passed == total:
-+         print(&quot;🎉 ALL TESTS PASSED!&quot;)
-+         print(&quot;✅ The agent system API is working correctly&quot;)
-+         print(&quot;✅ Session management is functional&quot;)
-+         print(&quot;✅ REST endpoints are operational&quot;)
-+         print(&quot;✅ WebSocket communication is working&quot;)
-+         print(&quot;✅ Ready for browser app integration!&quot;)
++         print("🎉 ALL TESTS PASSED!")
++         print("✅ The agent system API is working correctly")
++         print("✅ Session management is functional")
++         print("✅ REST endpoints are operational")
++         print("✅ WebSocket communication is working")
++         print("✅ Ready for browser app integration!")
 +         
 +     elif passed &gt;= total * 0.8:
-+         print(&quot;⚠️  MOSTLY WORKING&quot;)
-+         print(&quot;✅ Most API components are functional&quot;)
-+         print(&quot;⚠️  Some issues found that should be investigated&quot;)
-+         print(&quot;📋 Review failed tests before browser app integration&quot;)
++         print("⚠️  MOSTLY WORKING")
++         print("✅ Most API components are functional")
++         print("⚠️  Some issues found that should be investigated")
++         print("📋 Review failed tests before browser app integration")
 +         
 +     elif passed &gt;= total * 0.5:
-+         print(&quot;⚠️  PARTIAL FUNCTIONALITY&quot;)
-+         print(&quot;⚠️  Significant issues found in API implementation&quot;)
-+         print(&quot;📋 Fix major issues before proceeding with browser app&quot;)
-+         print(&quot;🔧 API needs improvements and fixes&quot;)
++         print("⚠️  PARTIAL FUNCTIONALITY")
++         print("⚠️  Significant issues found in API implementation")
++         print("📋 Fix major issues before proceeding with browser app")
++         print("🔧 API needs improvements and fixes")
 +         
 +     else:
-+         print(&quot;❌ MAJOR ISSUES FOUND&quot;)
-+         print(&quot;❌ API implementation has serious problems&quot;)
-+         print(&quot;🚫 Do not proceed with browser app until API is fixed&quot;)
-+         print(&quot;🔧 Requires significant debugging and fixes&quot;)
++         print("❌ MAJOR ISSUES FOUND")
++         print("❌ API implementation has serious problems")
++         print("🚫 Do not proceed with browser app until API is fixed")
++         print("🔧 Requires significant debugging and fixes")
 +     
-+     print(f&quot;\nNext Steps:&quot;)
-+     print(f&quot;1. Review detailed output from each test suite above&quot;)
-+     print(f&quot;2. Fix any failing tests&quot;)
-+     print(f&quot;3. Re-run this test suite to verify fixes&quot;)
++     print(f"\nNext Steps:")
++     print(f"1. Review detailed output from each test suite above")
++     print(f"2. Fix any failing tests")
++     print(f"3. Re-run this test suite to verify fixes")
 +     if passed &gt;= total * 0.8:
-+         print(f&quot;4. Proceed with browser app analysis and troubleshooting&quot;)
++         print(f"4. Proceed with browser app analysis and troubleshooting")
 +     
-+     print(f&quot;\nFor more details, run individual test scripts:&quot;)
++     print(f"\nFor more details, run individual test scripts:")
 +     for script_path, description in test_scripts:
-+         print(f&quot;   python {script_path}&quot;)
++         print(f"   python {script_path}")
 + 
-+ if __name__ == &quot;__main__&quot;:
++ if __name__ == "__main__":
 +     main() 
 ```
 
@@ -389,7 +389,7 @@ Now let me update the README to reflect what I've created:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: scripts/api/README-agent-api-scripts.md</summary>
+<details><summary>Tool use: **edit_file** • Edit file: scripts/api/README-agent-api-scripts.md</summary>
 
 I'll update the README to document the test scripts I've created and how to use them.
 
@@ -407,8 +407,8 @@ Lines added: 76, lines removed: 7
   
   Now, we need to determine where fixes and improvements need to be made.
   
-- There is also a new Browser app that calls the API. Before we analayze and troubleshoot the browser app, let&#39;s make sure the API is working correctly.
-+ There is also a new Browser app that calls the API. Before we analyze and troubleshoot the browser app, let&#39;s make sure the API is working correctly.
+- There is also a new Browser app that calls the API. Before we analayze and troubleshoot the browser app, let's make sure the API is working correctly.
++ There is also a new Browser app that calls the API. Before we analyze and troubleshoot the browser app, let's make sure the API is working correctly.
   
 - 
 - ## IMPORTANT
@@ -504,7 +504,7 @@ Finally, let me make the test scripts executable:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: chmod +x scripts/api/*.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: chmod +x scripts/api/*.py</summary>
 
 ```bash
 chmod +x scripts/api/*.py
@@ -603,7 +603,7 @@ I'll run the WebSocket API test script to see the error you mentioned about the 
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: cd scripts/api && python test_websocket_api.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: cd scripts/api && python test_websocket_api.py</summary>
 
 ```bash
 cd scripts/api && python test_websocket_api.py
@@ -623,15 +623,15 @@ Test User ID: test_user_websocket
   WebSocket Connection
 ============================================================
 ✅ PASS: WebSocket connected successfully
-   Data: {&#39;type&#39;: &#39;connection_established&#39;, &#39;data&#39;: {&#39;connection_id&#39;: &#39;20f12f35-ccc8-4647-a306-da0e77f33b39_
-1750539156.545109&#39;, &#39;session_id&#39;: &#39;20f12f35-ccc8-4647-a306-da0e77f33b39&#39;, &#39;timestamp&#39;: &#39;2025-06-21T16...
+   Data: {'type': 'connection_established', 'data': {'connection_id': '20f12f35-ccc8-4647-a306-da0e77f33b39_
+1750539156.545109', 'session_id': '20f12f35-ccc8-4647-a306-da0e77f33b39', 'timestamp': '2025-06-21T16...
 
 ============================================================
   Ping/Pong Test
 ============================================================
 ✅ PASS: Ping/Pong exchange
-   Data: {&#39;type&#39;: &#39;pong&#39;, &#39;data&#39;: {&#39;timestamp&#39;: &#39;2025-06-21T16:52:36.552822&#39;, &#39;session_id&#39;: &#39;20f12f35-ccc8-4
-647-a306-da0e77f33b39&#39;, &#39;message&#39;: &#39;Hello WebSocket!&#39;}}...
+   Data: {'type': 'pong', 'data': {'timestamp': '2025-06-21T16:52:36.552822', 'session_id': '20f12f35-ccc8-4
+647-a306-da0e77f33b39', 'message': 'Hello WebSocket!'}}...
 
 ============================================================
   Get Status Test
@@ -644,45 +644,45 @@ Test User ID: test_user_websocket
 📨 Received: typing_start
 📨 Received: query_response
 ✅ PASS: Agent query (received 2 responses)
-   Data: [{&#39;type&#39;: &#39;typing_start&#39;, &#39;data&#39;: {&#39;session_id&#39;: &#39;20f12f35-ccc8-4647-a306-da0e77f33b39&#39;, &#39;timestamp
-&#39;: &#39;2025-06-21T16:52:41.568520&#39;}}, {&#39;type&#39;: &#39;query_response&#39;, &#39;data&#39;: {&#39;message&#39;: &#39;Dragons in D&amp;D are...
+   Data: [{'type': 'typing_start', 'data': {'session_id': '20f12f35-ccc8-4647-a306-da0e77f33b39', 'timestamp
+': '2025-06-21T16:52:41.568520'}}, {'type': 'query_response', 'data': {'message': 'Dragons in D&amp;D are...
 
 ============================================================
   Get Memory Test
 ============================================================
 ✅ PASS: Memory retrieval
-   Data: {&#39;type&#39;: &#39;memory_response&#39;, &#39;data&#39;: {&#39;session_id&#39;: &#39;20f12f35-ccc8-4647-a306-da0e77f33b39&#39;, &#39;type&#39;: 
-&#39;conversations&#39;, &#39;data&#39;: {&#39;conversations&#39;: [{&#39;guid&#39;: &#39;6144dd2f-164e-424e-a649-521d86a66452&#39;, &#39;role&#39;: ...
+   Data: {'type': 'memory_response', 'data': {'session_id': '20f12f35-ccc8-4647-a306-da0e77f33b39', 'type': 
+'conversations', 'data': {'conversations': [{'guid': '6144dd2f-164e-424e-a649-521d86a66452', 'role': ...
 
 ============================================================
   Search Memory Test
 ============================================================
 ✅ PASS: Memory search
-   Data: {&#39;type&#39;: &#39;search_response&#39;, &#39;data&#39;: {&#39;session_id&#39;: &#39;20f12f35-ccc8-4647-a306-da0e77f33b39&#39;, &#39;query&#39;:
- &#39;dragon&#39;, &#39;results&#39;: [], &#39;total_results&#39;: 0, &#39;timestamp&#39;: &#39;2025-06-21T16:52:47.309089&#39;}}...
+   Data: {'type': 'search_response', 'data': {'session_id': '20f12f35-ccc8-4647-a306-da0e77f33b39', 'query':
+ 'dragon', 'results': [], 'total_results': 0, 'timestamp': '2025-06-21T16:52:47.309089'}}...
 
 ============================================================
   Get Graph Test
 ============================================================
 ✅ PASS: Graph retrieval
-   Data: {&#39;type&#39;: &#39;graph_response&#39;, &#39;data&#39;: {&#39;session_id&#39;: &#39;20f12f35-ccc8-4647-a306-da0e77f33b39&#39;, &#39;format&#39;:
- &#39;json&#39;, &#39;graph_data&#39;: {&#39;nodes&#39;: [], &#39;edges&#39;: [], &#39;metadata&#39;: {&#39;graph_disabled&#39;: True, &#39;message&#39;: &#39;Gr...
+   Data: {'type': 'graph_response', 'data': {'session_id': '20f12f35-ccc8-4647-a306-da0e77f33b39', 'format':
+ 'json', 'graph_data': {'nodes': [], 'edges': [], 'metadata': {'graph_disabled': True, 'message': 'Gr...
 
 ============================================================
   Heartbeat Test
 ============================================================
 ✅ PASS: Heartbeat with response
-   Data: {&#39;type&#39;: &#39;heartbeat_response&#39;, &#39;data&#39;: {&#39;timestamp&#39;: &#39;2025-06-21T16:52:47.321457&#39;, &#39;session_id&#39;: &#39;2
-0f12f35-ccc8-4647-a306-da0e77f33b39&#39;}}...
+   Data: {'type': 'heartbeat_response', 'data': {'timestamp': '2025-06-21T16:52:47.321457', 'session_id': '2
+0f12f35-ccc8-4647-a306-da0e77f33b39'}}...
 
 ============================================================
   Monitor WebSocket Test
 ============================================================
 ✅ PASS: Monitor connected
-   Data: {&#39;type&#39;: &#39;monitor_connected&#39;, &#39;data&#39;: {&#39;active_sessions&#39;: 1, &#39;active_connections&#39;: 0, &#39;timestamp&#39;: 
-&#39;now&#39;}}...
+   Data: {'type': 'monitor_connected', 'data': {'active_sessions': 1, 'active_connections': 0, 'timestamp': 
+'now'}}...
 ✅ PASS: Monitor ping/pong
-   Data: {&#39;type&#39;: &#39;pong&#39;, &#39;data&#39;: {&#39;active_sessions&#39;: 1, &#39;active_connections&#39;: 0, &#39;timestamp&#39;: &#39;now&#39;}}...
+   Data: {'type': 'pong', 'data': {'active_sessions': 1, 'active_connections': 0, 'timestamp': 'now'}}...
 
 ============================================================
   Invalid Session WebSocket Test
@@ -792,17 +792,17 @@ Let me fix this by converting the config to a dictionary:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/api/websocket/handlers.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/api/websocket/handlers.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
 
 ```diff
 @@ -156,5 +156,5 @@
-                  &quot;last_activity&quot;: session.last_activity.isoformat(),
-                  &quot;created_at&quot;: session.created_at.isoformat(),
--                 &quot;config&quot;: session.config
-+                 &quot;config&quot;: session.config.dict() if hasattr(session.config, &#39;dict&#39;) else session.config
+                  "last_activity": session.last_activity.isoformat(),
+                  "created_at": session.created_at.isoformat(),
+-                 "config": session.config
++                 "config": session.config.dict() if hasattr(session.config, 'dict') else session.config
               }
               
 ```
@@ -818,7 +818,7 @@ Now let's test the fix by running the WebSocket test again:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: python test_websocket_api.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: python test_websocket_api.py</summary>
 
 ```bash
 python test_websocket_api.py
@@ -836,15 +836,15 @@ Test User ID: test_user_websocket
   WebSocket Connection
 ============================================================
 ✅ PASS: WebSocket connected successfully
-   Data: {&#39;type&#39;: &#39;connection_established&#39;, &#39;data&#39;: {&#39;connection_id&#39;: &#39;7a3aa80a-1d2d-415e-801d-967257be671f_
-1750539214.482788&#39;, &#39;session_id&#39;: &#39;7a3aa80a-1d2d-415e-801d-967257be671f&#39;, &#39;timestamp&#39;: &#39;2025-06-21T16...
+   Data: {'type': 'connection_established', 'data': {'connection_id': '7a3aa80a-1d2d-415e-801d-967257be671f_
+1750539214.482788', 'session_id': '7a3aa80a-1d2d-415e-801d-967257be671f', 'timestamp': '2025-06-21T16...
 
 ============================================================
   Ping/Pong Test
 ============================================================
 ✅ PASS: Ping/Pong exchange
-   Data: {&#39;type&#39;: &#39;pong&#39;, &#39;data&#39;: {&#39;timestamp&#39;: &#39;2025-06-21T16:53:34.489689&#39;, &#39;session_id&#39;: &#39;7a3aa80a-1d2d-4
-15e-801d-967257be671f&#39;, &#39;message&#39;: &#39;Hello WebSocket!&#39;}}...
+   Data: {'type': 'pong', 'data': {'timestamp': '2025-06-21T16:53:34.489689', 'session_id': '7a3aa80a-1d2d-4
+15e-801d-967257be671f', 'message': 'Hello WebSocket!'}}...
 
 ============================================================
   Get Status Test
@@ -857,45 +857,45 @@ Test User ID: test_user_websocket
 📨 Received: typing_start
 📨 Received: query_response
 ✅ PASS: Agent query (received 2 responses)
-   Data: [{&#39;type&#39;: &#39;typing_start&#39;, &#39;data&#39;: {&#39;session_id&#39;: &#39;7a3aa80a-1d2d-415e-801d-967257be671f&#39;, &#39;timestamp
-&#39;: &#39;2025-06-21T16:53:39.505869&#39;}}, {&#39;type&#39;: &#39;query_response&#39;, &#39;data&#39;: {&#39;message&#39;: &#39;Dragons in D&amp;D are...
+   Data: [{'type': 'typing_start', 'data': {'session_id': '7a3aa80a-1d2d-415e-801d-967257be671f', 'timestamp
+': '2025-06-21T16:53:39.505869'}}, {'type': 'query_response', 'data': {'message': 'Dragons in D&amp;D are...
 
 ============================================================
   Get Memory Test
 ============================================================
 ✅ PASS: Memory retrieval
-   Data: {&#39;type&#39;: &#39;memory_response&#39;, &#39;data&#39;: {&#39;session_id&#39;: &#39;7a3aa80a-1d2d-415e-801d-967257be671f&#39;, &#39;type&#39;: 
-&#39;conversations&#39;, &#39;data&#39;: {&#39;conversations&#39;: [{&#39;guid&#39;: &#39;6144dd2f-164e-424e-a649-521d86a66452&#39;, &#39;role&#39;: ...
+   Data: {'type': 'memory_response', 'data': {'session_id': '7a3aa80a-1d2d-415e-801d-967257be671f', 'type': 
+'conversations', 'data': {'conversations': [{'guid': '6144dd2f-164e-424e-a649-521d86a66452', 'role': ...
 
 ============================================================
   Search Memory Test
 ============================================================
 ✅ PASS: Memory search
-   Data: {&#39;type&#39;: &#39;search_response&#39;, &#39;data&#39;: {&#39;session_id&#39;: &#39;7a3aa80a-1d2d-415e-801d-967257be671f&#39;, &#39;query&#39;:
- &#39;dragon&#39;, &#39;results&#39;: [], &#39;total_results&#39;: 0, &#39;timestamp&#39;: &#39;2025-06-21T16:53:45.447631&#39;}}...
+   Data: {'type': 'search_response', 'data': {'session_id': '7a3aa80a-1d2d-415e-801d-967257be671f', 'query':
+ 'dragon', 'results': [], 'total_results': 0, 'timestamp': '2025-06-21T16:53:45.447631'}}...
 
 ============================================================
   Get Graph Test
 ============================================================
 ✅ PASS: Graph retrieval
-   Data: {&#39;type&#39;: &#39;graph_response&#39;, &#39;data&#39;: {&#39;session_id&#39;: &#39;7a3aa80a-1d2d-415e-801d-967257be671f&#39;, &#39;format&#39;:
- &#39;json&#39;, &#39;graph_data&#39;: {&#39;nodes&#39;: [], &#39;edges&#39;: [], &#39;metadata&#39;: {&#39;graph_disabled&#39;: True, &#39;message&#39;: &#39;Gr...
+   Data: {'type': 'graph_response', 'data': {'session_id': '7a3aa80a-1d2d-415e-801d-967257be671f', 'format':
+ 'json', 'graph_data': {'nodes': [], 'edges': [], 'metadata': {'graph_disabled': True, 'message': 'Gr...
 
 ============================================================
   Heartbeat Test
 ============================================================
 ✅ PASS: Heartbeat with response
-   Data: {&#39;type&#39;: &#39;heartbeat_response&#39;, &#39;data&#39;: {&#39;timestamp&#39;: &#39;2025-06-21T16:53:45.466898&#39;, &#39;session_id&#39;: &#39;7
-a3aa80a-1d2d-415e-801d-967257be671f&#39;}}...
+   Data: {'type': 'heartbeat_response', 'data': {'timestamp': '2025-06-21T16:53:45.466898', 'session_id': '7
+a3aa80a-1d2d-415e-801d-967257be671f'}}...
 
 ============================================================
   Monitor WebSocket Test
 ============================================================
 ✅ PASS: Monitor connected
-   Data: {&#39;type&#39;: &#39;monitor_connected&#39;, &#39;data&#39;: {&#39;active_sessions&#39;: 1, &#39;active_connections&#39;: 0, &#39;timestamp&#39;: 
-&#39;now&#39;}}...
+   Data: {'type': 'monitor_connected', 'data': {'active_sessions': 1, 'active_connections': 0, 'timestamp': 
+'now'}}...
 ✅ PASS: Monitor ping/pong
-   Data: {&#39;type&#39;: &#39;pong&#39;, &#39;data&#39;: {&#39;active_sessions&#39;: 1, &#39;active_connections&#39;: 0, &#39;timestamp&#39;: &#39;now&#39;}}...
+   Data: {'type': 'pong', 'data': {'active_sessions': 1, 'active_connections': 0, 'timestamp': 'now'}}...
 
 ============================================================
   Invalid Session WebSocket Test
@@ -969,7 +969,7 @@ I see the issue is that the test is timing out waiting for a response. Let me mo
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: scripts/api/test_websocket_api.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: scripts/api/test_websocket_api.py</summary>
 
 **Chunk 1**
 Lines added: 5, lines removed: 2
@@ -978,16 +978,16 @@ Lines added: 5, lines removed: 2
 @@ -153,9 +153,12 @@
           try:
               async with websockets.connect(ws_url) as websocket:
-+                 print(f&quot;🔍 Connected to WebSocket for status test&quot;)
++                 print(f"🔍 Connected to WebSocket for status test")
 +                 
                   # Skip connection message if present
                   try:
 -                     await asyncio.wait_for(websocket.recv(), timeout=1.0)
 +                     initial_msg = await asyncio.wait_for(websocket.recv(), timeout=1.0)
-+                     print(f&quot;🔍 Skipped initial message: {initial_msg[:100]}...&quot;)
++                     print(f"🔍 Skipped initial message: {initial_msg[:100]}...")
                   except asyncio.TimeoutError:
 -                     pass
-+                     print(f&quot;🔍 No initial message to skip&quot;)
++                     print(f"🔍 No initial message to skip")
                   
                   # Send status request
 ```
@@ -999,29 +999,29 @@ Lines added: 11, lines removed: 1
 @@ -165,15 +168,25 @@
                   }
                   
-+                 print(f&quot;🔍 Sending status message: {status_message}&quot;)
++                 print(f"🔍 Sending status message: {status_message}")
                   await websocket.send(json.dumps(status_message))
-+                 print(f&quot;🔍 Status message sent, waiting for response...&quot;)
++                 print(f"🔍 Status message sent, waiting for response...")
                   
 -                 # Wait for status response
 +                 # Wait for status response with more detailed timeout handling
 +                 try:
                       status_response = await asyncio.wait_for(websocket.recv(), timeout=5.0)
-+                     print(f&quot;🔍 Received status response: {status_response[:200]}...&quot;)
++                     print(f"🔍 Received status response: {status_response[:200]}...")
                       status_data = json.loads(status_response)
                       
-                      success = status_data.get(&quot;type&quot;) in [&quot;status_response&quot;, &quot;status&quot;]
-                      self.print_result(success, f&quot;Status retrieval&quot;, status_data)
+                      success = status_data.get("type") in ["status_response", "status"]
+                      self.print_result(success, f"Status retrieval", status_data)
                       return success
 +                     
 +                 except asyncio.TimeoutError:
-+                     print(f&quot;🔍 Timeout waiting for status response&quot;)
-+                     self.print_result(False, f&quot;Status test timed out after 5 seconds&quot;)
++                     print(f"🔍 Timeout waiting for status response")
++                     self.print_result(False, f"Status test timed out after 5 seconds")
 +                     return False
                   
           except Exception as e:
-+             print(f&quot;🔍 Exception in status test: {e}&quot;)
-              self.print_result(False, f&quot;Get status test failed: {e}&quot;)
++             print(f"🔍 Exception in status test: {e}")
+              self.print_result(False, f"Get status test failed: {e}")
               return False
 ```
 
@@ -1045,7 +1045,7 @@ Now let's run the test again to see the detailed debug output:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: python test_websocket_api.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: python test_websocket_api.py</summary>
 
 ```bash
 python test_websocket_api.py
@@ -1063,23 +1063,23 @@ Test User ID: test_user_websocket
   WebSocket Connection
 ============================================================
 ✅ PASS: WebSocket connected successfully
-   Data: {&#39;type&#39;: &#39;connection_established&#39;, &#39;data&#39;: {&#39;connection_id&#39;: &#39;0799e16d-179a-4ef0-a68b-eb0242170170_
-1750539269.665768&#39;, &#39;session_id&#39;: &#39;0799e16d-179a-4ef0-a68b-eb0242170170&#39;, &#39;timestamp&#39;: &#39;2025-06-21T16...
+   Data: {'type': 'connection_established', 'data': {'connection_id': '0799e16d-179a-4ef0-a68b-eb0242170170_
+1750539269.665768', 'session_id': '0799e16d-179a-4ef0-a68b-eb0242170170', 'timestamp': '2025-06-21T16...
 
 ============================================================
   Ping/Pong Test
 ============================================================
 ✅ PASS: Ping/Pong exchange
-   Data: {&#39;type&#39;: &#39;pong&#39;, &#39;data&#39;: {&#39;timestamp&#39;: &#39;2025-06-21T16:54:29.673338&#39;, &#39;session_id&#39;: &#39;0799e16d-179a-4
-ef0-a68b-eb0242170170&#39;, &#39;message&#39;: &#39;Hello WebSocket!&#39;}}...
+   Data: {'type': 'pong', 'data': {'timestamp': '2025-06-21T16:54:29.673338', 'session_id': '0799e16d-179a-4
+ef0-a68b-eb0242170170', 'message': 'Hello WebSocket!'}}...
 
 ============================================================
   Get Status Test
 ============================================================
 🔍 Connected to WebSocket for status test
-🔍 Skipped initial message: {&quot;type&quot;: &quot;connection_established&quot;, &quot;data&quot;: {&quot;connection_id&quot;: &quot;0799e16d-179a-4ef0
+🔍 Skipped initial message: {"type": "connection_established", "data": {"connection_id": "0799e16d-179a-4ef0
 -a68b-eb0242170170_1...
-🔍 Sending status message: {&#39;type&#39;: &#39;get_status&#39;, &#39;data&#39;: {}}
+🔍 Sending status message: {'type': 'get_status', 'data': {}}
 🔍 Status message sent, waiting for response...
 🔍 Timeout waiting for status response
 ❌ FAIL: Status test timed out after 5 seconds
@@ -1090,45 +1090,45 @@ ef0-a68b-eb0242170170&#39;, &#39;message&#39;: &#39;Hello WebSocket!&#39;}}...
 📨 Received: typing_start
 📨 Received: query_response
 ✅ PASS: Agent query (received 2 responses)
-   Data: [{&#39;type&#39;: &#39;typing_start&#39;, &#39;data&#39;: {&#39;session_id&#39;: &#39;0799e16d-179a-4ef0-a68b-eb0242170170&#39;, &#39;timestamp
-&#39;: &#39;2025-06-21T16:54:34.691045&#39;}}, {&#39;type&#39;: &#39;query_response&#39;, &#39;data&#39;: {&#39;message&#39;: &#39;Dragons in D&amp;D are...
+   Data: [{'type': 'typing_start', 'data': {'session_id': '0799e16d-179a-4ef0-a68b-eb0242170170', 'timestamp
+': '2025-06-21T16:54:34.691045'}}, {'type': 'query_response', 'data': {'message': 'Dragons in D&amp;D are...
 
 ============================================================
   Get Memory Test
 ============================================================
 ✅ PASS: Memory retrieval
-   Data: {&#39;type&#39;: &#39;memory_response&#39;, &#39;data&#39;: {&#39;session_id&#39;: &#39;0799e16d-179a-4ef0-a68b-eb0242170170&#39;, &#39;type&#39;: 
-&#39;conversations&#39;, &#39;data&#39;: {&#39;conversations&#39;: [{&#39;guid&#39;: &#39;6144dd2f-164e-424e-a649-521d86a66452&#39;, &#39;role&#39;: ...
+   Data: {'type': 'memory_response', 'data': {'session_id': '0799e16d-179a-4ef0-a68b-eb0242170170', 'type': 
+'conversations', 'data': {'conversations': [{'guid': '6144dd2f-164e-424e-a649-521d86a66452', 'role': ...
 
 ============================================================
   Search Memory Test
 ============================================================
 ✅ PASS: Memory search
-   Data: {&#39;type&#39;: &#39;search_response&#39;, &#39;data&#39;: {&#39;session_id&#39;: &#39;0799e16d-179a-4ef0-a68b-eb0242170170&#39;, &#39;query&#39;:
- &#39;dragon&#39;, &#39;results&#39;: [], &#39;total_results&#39;: 0, &#39;timestamp&#39;: &#39;2025-06-21T16:54:40.873246&#39;}}...
+   Data: {'type': 'search_response', 'data': {'session_id': '0799e16d-179a-4ef0-a68b-eb0242170170', 'query':
+ 'dragon', 'results': [], 'total_results': 0, 'timestamp': '2025-06-21T16:54:40.873246'}}...
 
 ============================================================
   Get Graph Test
 ============================================================
 ✅ PASS: Graph retrieval
-   Data: {&#39;type&#39;: &#39;graph_response&#39;, &#39;data&#39;: {&#39;session_id&#39;: &#39;0799e16d-179a-4ef0-a68b-eb0242170170&#39;, &#39;format&#39;:
- &#39;json&#39;, &#39;graph_data&#39;: {&#39;nodes&#39;: [], &#39;edges&#39;: [], &#39;metadata&#39;: {&#39;graph_disabled&#39;: True, &#39;message&#39;: &#39;Gr...
+   Data: {'type': 'graph_response', 'data': {'session_id': '0799e16d-179a-4ef0-a68b-eb0242170170', 'format':
+ 'json', 'graph_data': {'nodes': [], 'edges': [], 'metadata': {'graph_disabled': True, 'message': 'Gr...
 
 ============================================================
   Heartbeat Test
 ============================================================
 ✅ PASS: Heartbeat with response
-   Data: {&#39;type&#39;: &#39;heartbeat_response&#39;, &#39;data&#39;: {&#39;timestamp&#39;: &#39;2025-06-21T16:54:40.885355&#39;, &#39;session_id&#39;: &#39;0
-799e16d-179a-4ef0-a68b-eb0242170170&#39;}}...
+   Data: {'type': 'heartbeat_response', 'data': {'timestamp': '2025-06-21T16:54:40.885355', 'session_id': '0
+799e16d-179a-4ef0-a68b-eb0242170170'}}...
 
 ============================================================
   Monitor WebSocket Test
 ============================================================
 ✅ PASS: Monitor connected
-   Data: {&#39;type&#39;: &#39;monitor_connected&#39;, &#39;data&#39;: {&#39;active_sessions&#39;: 1, &#39;active_connections&#39;: 0, &#39;timestamp&#39;: 
-&#39;now&#39;}}...
+   Data: {'type': 'monitor_connected', 'data': {'active_sessions': 1, 'active_connections': 0, 'timestamp': 
+'now'}}...
 ✅ PASS: Monitor ping/pong
-   Data: {&#39;type&#39;: &#39;pong&#39;, &#39;data&#39;: {&#39;active_sessions&#39;: 1, &#39;active_connections&#39;: 0, &#39;timestamp&#39;: &#39;now&#39;}}...
+   Data: {'type': 'pong', 'data': {'active_sessions': 1, 'active_connections': 0, 'timestamp': 'now'}}...
 
 ============================================================
   Invalid Session WebSocket Test
@@ -1205,7 +1205,7 @@ Let me check the WebSocket message handler logs or add some debug logging to the
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/api/websocket/handlers.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/api/websocket/handlers.py</summary>
 
 **Chunk 1**
 Lines added: 3, lines removed: undefined
@@ -1213,18 +1213,18 @@ Lines added: 3, lines removed: undefined
 ```diff
 @@ -144,10 +144,13 @@
       async def handle_get_status(self, websocket: WebSocket, session_id: str, data: Dict[str, Any], session_manager):
-          &quot;&quot;&quot;Handle status request messages.&quot;&quot;&quot;
-+         logger.info(f&quot;🔍 HANDLER: Handling get_status request for session {session_id}&quot;)
+          """Handle status request messages."""
++         logger.info(f"🔍 HANDLER: Handling get_status request for session {session_id}")
           try:
               session = await session_manager.get_session(session_id)
               if not session:
-+                 logger.error(f&quot;🔍 HANDLER: Session {session_id} not found&quot;)
-                  await self.send_error(websocket, f&quot;Session {session_id} not found&quot;)
++                 logger.error(f"🔍 HANDLER: Session {session_id} not found")
+                  await self.send_error(websocket, f"Session {session_id} not found")
                   return
               
-+             logger.info(f&quot;🔍 HANDLER: Session found, building status data&quot;)
++             logger.info(f"🔍 HANDLER: Session found, building status data")
               status_data = {
-                  &quot;session_id&quot;: session_id,
+                  "session_id": session_id,
 ```
 
 **Chunk 2**
@@ -1234,17 +1234,17 @@ Lines added: 3, lines removed: 1
 @@ -159,11 +162,13 @@
               }
               
-+             logger.info(f&quot;🔍 HANDLER: Sending status response: {status_data}&quot;)
++             logger.info(f"🔍 HANDLER: Sending status response: {status_data}")
               await manager.send_personal_message({
-                  &quot;type&quot;: &quot;status_response&quot;,
-                  &quot;data&quot;: status_data
+                  "type": "status_response",
+                  "data": status_data
               }, websocket)
-+             logger.info(f&quot;🔍 HANDLER: Status response sent successfully&quot;)
++             logger.info(f"🔍 HANDLER: Status response sent successfully")
               
           except Exception as e:
--             logger.error(f&quot;Error getting status: {e}&quot;)
-+             logger.error(f&quot;🔍 HANDLER: Error getting status: {e}&quot;)
-              await self.send_error(websocket, f&quot;Status error: {str(e)}&quot;)
+-             logger.error(f"Error getting status: {e}")
++             logger.error(f"🔍 HANDLER: Error getting status: {e}")
+              await self.send_error(websocket, f"Status error: {str(e)}")
       
 ```
 
@@ -1284,7 +1284,7 @@ Now let me also add debug logging to the main message handler to see if the mess
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/api/websocket/handlers.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/api/websocket/handlers.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: undefined
@@ -1292,10 +1292,10 @@ Lines added: 1, lines removed: undefined
 ```diff
 @@ -36,4 +36,5 @@
           try:
-              message_type = message.get(&quot;type&quot;)
-+             logger.info(f&quot;🔍 ROUTER: Received message type: {message_type} for session {session_id}&quot;)
+              message_type = message.get("type")
++             logger.info(f"🔍 ROUTER: Received message type: {message_type} for session {session_id}")
               if not message_type:
-                  await self.send_error(websocket, &quot;Missing message type&quot;)
+                  await self.send_error(websocket, "Missing message type")
 ```
 
 **Chunk 2**
@@ -1305,18 +1305,18 @@ Lines added: 4, lines removed: 1
 @@ -42,11 +43,14 @@
               handler = self.message_handlers.get(message_type)
               if not handler:
-+                 logger.error(f&quot;🔍 ROUTER: Unknown message type: {message_type}&quot;)
-                  await self.send_error(websocket, f&quot;Unknown message type: {message_type}&quot;)
++                 logger.error(f"🔍 ROUTER: Unknown message type: {message_type}")
+                  await self.send_error(websocket, f"Unknown message type: {message_type}")
                   return
               
-+             logger.info(f&quot;🔍 ROUTER: Routing {message_type} to handler: {handler.__name__}&quot;)
-              await handler(websocket, session_id, message.get(&quot;data&quot;, {}), session_manager)
-+             logger.info(f&quot;🔍 ROUTER: Handler {handler.__name__} completed&quot;)
++             logger.info(f"🔍 ROUTER: Routing {message_type} to handler: {handler.__name__}")
+              await handler(websocket, session_id, message.get("data", {}), session_manager)
++             logger.info(f"🔍 ROUTER: Handler {handler.__name__} completed")
               
           except Exception as e:
--             logger.error(f&quot;Error handling message: {e}&quot;)
-+             logger.error(f&quot;🔍 ROUTER: Error handling message: {e}&quot;)
-              await self.send_error(websocket, f&quot;Internal error: {str(e)}&quot;)
+-             logger.error(f"Error handling message: {e}")
++             logger.error(f"🔍 ROUTER: Error handling message: {e}")
+              await self.send_error(websocket, f"Internal error: {str(e)}")
       
 ```
 
@@ -1331,14 +1331,14 @@ Now let me restart the API server to pick up the debug logging and then run the 
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: curl -s http://localhost:8000/health | head -5</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: curl -s http://localhost:8000/health | head -5</summary>
 
 ```bash
 curl -s http://localhost:8000/health | head -5
 ```
 
 ```
-{&quot;status&quot;:&quot;healthy&quot;,&quot;version&quot;:&quot;1.0.0&quot;,&quot;active_sessions&quot;:0,&quot;websocket_connections&quot;:0}%
+{"status":"healthy","version":"1.0.0","active_sessions":0,"websocket_connections":0}%
 
 
 ```
@@ -1377,7 +1377,7 @@ Great! The server is running. Now let me run just the get_status test portion to
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: scripts/api/debug_status_test.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: scripts/api/debug_status_test.py</summary>
 
 I'll create a simple focused test just for the get_status issue
 
@@ -1388,88 +1388,88 @@ Lines added: 84, lines removed: 1
 @@ -1,1 +1,84 @@
 - 
 + #!/usr/bin/env python3
-+ &quot;&quot;&quot;
++ """
 + Debug Status Test
 + 
 + Focused test to debug the get_status WebSocket message issue.
-+ &quot;&quot;&quot;
++ """
 + 
 + import asyncio
 + import json
 + import websockets
 + import requests
 + 
-+ API_BASE_URL = &quot;http://localhost:8000&quot;
-+ WS_BASE_URL = &quot;ws://localhost:8000&quot;
++ API_BASE_URL = "http://localhost:8000"
++ WS_BASE_URL = "ws://localhost:8000"
 + 
 + async def debug_status_test():
-+     &quot;&quot;&quot;Debug the get_status WebSocket message&quot;&quot;&quot;
++     """Debug the get_status WebSocket message"""
 +     
 +     # Create a test session first
-+     print(&quot;🔧 Creating test session...&quot;)
++     print("🔧 Creating test session...")
 +     session_config = {
-+         &quot;config&quot;: {&quot;domain&quot;: &quot;dnd&quot;, &quot;enable_graph&quot;: True},
-+         &quot;user_id&quot;: &quot;debug_test_user&quot;
++         "config": {"domain": "dnd", "enable_graph": True},
++         "user_id": "debug_test_user"
 +     }
 +     
-+     response = requests.post(f&quot;{API_BASE_URL}/api/v1/sessions&quot;, json=session_config)
++     response = requests.post(f"{API_BASE_URL}/api/v1/sessions", json=session_config)
 +     if response.status_code != 200:
-+         print(f&quot;❌ Failed to create session: {response.status_code}&quot;)
++         print(f"❌ Failed to create session: {response.status_code}")
 +         return
 +     
 +     session_data = response.json()
-+     session_id = session_data[&quot;session_id&quot;]
-+     print(f&quot;✅ Session created: {session_id}&quot;)
++     session_id = session_data["session_id"]
++     print(f"✅ Session created: {session_id}")
 +     
 +     # Connect to WebSocket
-+     ws_url = f&quot;{WS_BASE_URL}/api/v1/ws/sessions/{session_id}&quot;
-+     print(f&quot;🔌 Connecting to: {ws_url}&quot;)
++     ws_url = f"{WS_BASE_URL}/api/v1/ws/sessions/{session_id}"
++     print(f"🔌 Connecting to: {ws_url}")
 +     
 +     try:
 +         async with websockets.connect(ws_url) as websocket:
-+             print(&quot;✅ WebSocket connected&quot;)
++             print("✅ WebSocket connected")
 +             
 +             # Skip initial connection message
 +             try:
 +                 initial_msg = await asyncio.wait_for(websocket.recv(), timeout=2.0)
-+                 print(f&quot;📨 Initial message: {initial_msg}&quot;)
++                 print(f"📨 Initial message: {initial_msg}")
 +             except asyncio.TimeoutError:
-+                 print(&quot;📨 No initial message&quot;)
++                 print("📨 No initial message")
 +             
 +             # Send get_status message
 +             status_message = {
-+                 &quot;type&quot;: &quot;get_status&quot;,
-+                 &quot;data&quot;: {}
++                 "type": "get_status",
++                 "data": {}
 +             }
 +             
-+             print(f&quot;📤 Sending: {json.dumps(status_message)}&quot;)
++             print(f"📤 Sending: {json.dumps(status_message)}")
 +             await websocket.send(json.dumps(status_message))
-+             print(&quot;📤 Message sent, waiting for response...&quot;)
++             print("📤 Message sent, waiting for response...")
 +             
 +             # Wait for response
 +             try:
 +                 response_msg = await asyncio.wait_for(websocket.recv(), timeout=10.0)
-+                 print(f&quot;📥 Response received: {response_msg}&quot;)
++                 print(f"📥 Response received: {response_msg}")
 +                 response_data = json.loads(response_msg)
-+                 print(f&quot;📥 Parsed response: {json.dumps(response_data, indent=2)}&quot;)
++                 print(f"📥 Parsed response: {json.dumps(response_data, indent=2)}")
 +             except asyncio.TimeoutError:
-+                 print(&quot;⏰ Timeout - no response received after 10 seconds&quot;)
++                 print("⏰ Timeout - no response received after 10 seconds")
 +             except Exception as e:
-+                 print(f&quot;❌ Error receiving response: {e}&quot;)
++                 print(f"❌ Error receiving response: {e}")
 +                 
 +     except Exception as e:
-+         print(f&quot;❌ WebSocket connection error: {e}&quot;)
++         print(f"❌ WebSocket connection error: {e}")
 +     
 +     finally:
 +         # Cleanup session
-+         print(f&quot;🧹 Cleaning up session {session_id}&quot;)
-+         cleanup_response = requests.delete(f&quot;{API_BASE_URL}/api/v1/sessions/{session_id}&quot;)
++         print(f"🧹 Cleaning up session {session_id}")
++         cleanup_response = requests.delete(f"{API_BASE_URL}/api/v1/sessions/{session_id}")
 +         if cleanup_response.status_code == 200:
-+             print(&quot;✅ Session cleaned up&quot;)
++             print("✅ Session cleaned up")
 +         else:
-+             print(f&quot;⚠️  Failed to cleanup session: {cleanup_response.status_code}&quot;)
++             print(f"⚠️  Failed to cleanup session: {cleanup_response.status_code}")
 + 
-+ if __name__ == &quot;__main__&quot;:
++ if __name__ == "__main__":
 +     asyncio.run(debug_status_test()) 
 ```
 
@@ -1508,7 +1508,7 @@ Now let me run the focused debug test to see the server logs:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: python debug_status_test.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: python debug_status_test.py</summary>
 
 ```bash
 python debug_status_test.py
@@ -1520,10 +1520,10 @@ python debug_status_test.py
 ✅ Session created: 53bf2679-c31a-49df-91a7-6e6fa86e0def
 🔌 Connecting to: ws://localhost:8000/api/v1/ws/sessions/53bf2679-c31a-49df-91a7-6e6fa86e0def
 ✅ WebSocket connected
-📨 Initial message: {&quot;type&quot;: &quot;connection_established&quot;, &quot;data&quot;: {&quot;connection_id&quot;: &quot;53bf2679-c31a-49df-91a7-6e
-6fa86e0def_1750539369.839428&quot;, &quot;session_id&quot;: &quot;53bf2679-c31a-49df-91a7-6e6fa86e0def&quot;, &quot;timestamp&quot;: &quot;2025-06-2
-1T16:56:09.839549&quot;}}
-📤 Sending: {&quot;type&quot;: &quot;get_status&quot;, &quot;data&quot;: {}}
+📨 Initial message: {"type": "connection_established", "data": {"connection_id": "53bf2679-c31a-49df-91a7-6e
+6fa86e0def_1750539369.839428", "session_id": "53bf2679-c31a-49df-91a7-6e6fa86e0def", "timestamp": "2025-06-2
+1T16:56:09.839549"}}
+📤 Sending: {"type": "get_status", "data": {}}
 📤 Message sent, waiting for response...
 ⏰ Timeout - no response received after 10 seconds
 🧹 Cleaning up session 53bf2679-c31a-49df-91a7-6e6fa86e0def
@@ -1552,7 +1552,7 @@ Let me check the current API server process and restart it with our debug change
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: ps aux | grep uvicorn | grep -v grep</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: ps aux | grep uvicorn | grep -v grep</summary>
 
 ```bash
 ps aux | grep uvicorn | grep -v grep
@@ -1582,7 +1582,7 @@ I can see the server is running in the background. I need to restart it to pick 
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: kill 93720</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: kill 93720</summary>
 
 ```bash
 kill 93720
@@ -1609,7 +1609,7 @@ Now let me go back to the main directory and restart the server with the environ
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: cd ../../ && DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python -m uvicorn src.api.main:app --host 0.0.0.0 --port 8000</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: cd ../../ && DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python -m uvicorn src.api.main:app --host 0.0.0.0 --port 8000</summary>
 
 ```bash
 cd ../../ && DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python -m uvicorn src.api.main:app --host 0.0.0.0 --port 8000
@@ -1631,7 +1631,7 @@ Good, the server is now running in the background. Let me wait a moment for it t
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: sleep 3 && cd scripts/api && python debug_status_test.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: sleep 3 && cd scripts/api && python debug_status_test.py</summary>
 
 ```bash
 sleep 3 && cd scripts/api && python debug_status_test.py
@@ -1659,7 +1659,7 @@ Let me fix the path and run the test:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: sleep 3 && python debug_status_test.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: sleep 3 && python debug_status_test.py</summary>
 
 ```bash
 sleep 3 && python debug_status_test.py
@@ -1671,30 +1671,30 @@ sleep 3 && python debug_status_test.py
 ✅ Session created: dcd688c0-9359-47e0-aeef-63f1b0263f7f
 🔌 Connecting to: ws://localhost:8000/api/v1/ws/sessions/dcd688c0-9359-47e0-aeef-63f1b0263f7f
 ✅ WebSocket connected
-📨 Initial message: {&quot;type&quot;: &quot;connection_established&quot;, &quot;data&quot;: {&quot;connection_id&quot;: &quot;dcd688c0-9359-47e0-aeef-63
-f1b0263f7f_1750539426.252685&quot;, &quot;session_id&quot;: &quot;dcd688c0-9359-47e0-aeef-63f1b0263f7f&quot;, &quot;timestamp&quot;: &quot;2025-06-2
-1T16:57:06.252818&quot;}}
-📤 Sending: {&quot;type&quot;: &quot;get_status&quot;, &quot;data&quot;: {}}
+📨 Initial message: {"type": "connection_established", "data": {"connection_id": "dcd688c0-9359-47e0-aeef-63
+f1b0263f7f_1750539426.252685", "session_id": "dcd688c0-9359-47e0-aeef-63f1b0263f7f", "timestamp": "2025-06-2
+1T16:57:06.252818"}}
+📤 Sending: {"type": "get_status", "data": {}}
 📤 Message sent, waiting for response...
-📥 Response received: {&quot;type&quot;: &quot;status_response&quot;, &quot;data&quot;: {&quot;session_id&quot;: &quot;dcd688c0-9359-47e0-aeef-63f1b0263f
-7f&quot;, &quot;agent_initialized&quot;: true, &quot;memory_manager_initialized&quot;: true, &quot;last_activity&quot;: &quot;2025-06-21T16:57:06.25
-5082&quot;, &quot;created_at&quot;: &quot;2025-06-21T16:57:06.208907&quot;, &quot;config&quot;: {&quot;domain&quot;: &quot;dnd&quot;, &quot;llm_model&quot;: null, &quot;embed_mod
-el&quot;: null, &quot;max_memory_size&quot;: 1000, &quot;enable_graph&quot;: true, &quot;custom_config&quot;: {}}}}
+📥 Response received: {"type": "status_response", "data": {"session_id": "dcd688c0-9359-47e0-aeef-63f1b0263f
+7f", "agent_initialized": true, "memory_manager_initialized": true, "last_activity": "2025-06-21T16:57:06.25
+5082", "created_at": "2025-06-21T16:57:06.208907", "config": {"domain": "dnd", "llm_model": null, "embed_mod
+el": null, "max_memory_size": 1000, "enable_graph": true, "custom_config": {}}}}
 📥 Parsed response: {
-  &quot;type&quot;: &quot;status_response&quot;,
-  &quot;data&quot;: {
-    &quot;session_id&quot;: &quot;dcd688c0-9359-47e0-aeef-63f1b0263f7f&quot;,
-    &quot;agent_initialized&quot;: true,
-    &quot;memory_manager_initialized&quot;: true,
-    &quot;last_activity&quot;: &quot;2025-06-21T16:57:06.255082&quot;,
-    &quot;created_at&quot;: &quot;2025-06-21T16:57:06.208907&quot;,
-    &quot;config&quot;: {
-      &quot;domain&quot;: &quot;dnd&quot;,
-      &quot;llm_model&quot;: null,
-      &quot;embed_model&quot;: null,
-      &quot;max_memory_size&quot;: 1000,
-      &quot;enable_graph&quot;: true,
-      &quot;custom_config&quot;: {}
+  "type": "status_response",
+  "data": {
+    "session_id": "dcd688c0-9359-47e0-aeef-63f1b0263f7f",
+    "agent_initialized": true,
+    "memory_manager_initialized": true,
+    "last_activity": "2025-06-21T16:57:06.255082",
+    "created_at": "2025-06-21T16:57:06.208907",
+    "config": {
+      "domain": "dnd",
+      "llm_model": null,
+      "embed_model": null,
+      "max_memory_size": 1000,
+      "enable_graph": true,
+      "custom_config": {}
     }
   }
 }
@@ -1775,7 +1775,7 @@ Let me now run the full WebSocket test suite to confirm everything is working:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: python test_websocket_api.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: python test_websocket_api.py</summary>
 
 ```bash
 python test_websocket_api.py
@@ -1793,30 +1793,30 @@ Test User ID: test_user_websocket
   WebSocket Connection
 ============================================================
 ✅ PASS: WebSocket connected successfully
-   Data: {&#39;type&#39;: &#39;connection_established&#39;, &#39;data&#39;: {&#39;connection_id&#39;: &#39;a8874605-b88b-450f-9063-8c49fc077c91_
-1750539445.038252&#39;, &#39;session_id&#39;: &#39;a8874605-b88b-450f-9063-8c49fc077c91&#39;, &#39;timestamp&#39;: &#39;2025-06-21T16...
+   Data: {'type': 'connection_established', 'data': {'connection_id': 'a8874605-b88b-450f-9063-8c49fc077c91_
+1750539445.038252', 'session_id': 'a8874605-b88b-450f-9063-8c49fc077c91', 'timestamp': '2025-06-21T16...
 
 ============================================================
   Ping/Pong Test
 ============================================================
 ✅ PASS: Ping/Pong exchange
-   Data: {&#39;type&#39;: &#39;pong&#39;, &#39;data&#39;: {&#39;timestamp&#39;: &#39;2025-06-21T16:57:25.046154&#39;, &#39;session_id&#39;: &#39;a8874605-b88b-4
-50f-9063-8c49fc077c91&#39;, &#39;message&#39;: &#39;Hello WebSocket!&#39;}}...
+   Data: {'type': 'pong', 'data': {'timestamp': '2025-06-21T16:57:25.046154', 'session_id': 'a8874605-b88b-4
+50f-9063-8c49fc077c91', 'message': 'Hello WebSocket!'}}...
 
 ============================================================
   Get Status Test
 ============================================================
 🔍 Connected to WebSocket for status test
-🔍 Skipped initial message: {&quot;type&quot;: &quot;connection_established&quot;, &quot;data&quot;: {&quot;connection_id&quot;: &quot;a8874605-b88b-450f
+🔍 Skipped initial message: {"type": "connection_established", "data": {"connection_id": "a8874605-b88b-450f
 -9063-8c49fc077c91_1...
-🔍 Sending status message: {&#39;type&#39;: &#39;get_status&#39;, &#39;data&#39;: {}}
+🔍 Sending status message: {'type': 'get_status', 'data': {}}
 🔍 Status message sent, waiting for response...
-🔍 Received status response: {&quot;type&quot;: &quot;status_response&quot;, &quot;data&quot;: {&quot;session_id&quot;: &quot;a8874605-b88b-450f-9063-8c4
-9fc077c91&quot;, &quot;agent_initialized&quot;: true, &quot;memory_manager_initialized&quot;: true, &quot;last_activity&quot;: &quot;2025-06-21T16:5
-7:25.054241&quot;,...
+🔍 Received status response: {"type": "status_response", "data": {"session_id": "a8874605-b88b-450f-9063-8c4
+9fc077c91", "agent_initialized": true, "memory_manager_initialized": true, "last_activity": "2025-06-21T16:5
+7:25.054241",...
 ✅ PASS: Status retrieval
-   Data: {&#39;type&#39;: &#39;status_response&#39;, &#39;data&#39;: {&#39;session_id&#39;: &#39;a8874605-b88b-450f-9063-8c49fc077c91&#39;, &#39;agent_i
-nitialized&#39;: True, &#39;memory_manager_initialized&#39;: True, &#39;last_activity&#39;: &#39;2025-06-21T16:57:25.054241&#39;,...
+   Data: {'type': 'status_response', 'data': {'session_id': 'a8874605-b88b-450f-9063-8c49fc077c91', 'agent_i
+nitialized': True, 'memory_manager_initialized': True, 'last_activity': '2025-06-21T16:57:25.054241',...
 
 ============================================================
   Agent Query Test
@@ -1824,45 +1824,45 @@ nitialized&#39;: True, &#39;memory_manager_initialized&#39;: True, &#39;last_act
 📨 Received: typing_start
 📨 Received: query_response
 ✅ PASS: Agent query (received 2 responses)
-   Data: [{&#39;type&#39;: &#39;typing_start&#39;, &#39;data&#39;: {&#39;session_id&#39;: &#39;a8874605-b88b-450f-9063-8c49fc077c91&#39;, &#39;timestamp
-&#39;: &#39;2025-06-21T16:57:25.060684&#39;}}, {&#39;type&#39;: &#39;query_response&#39;, &#39;data&#39;: {&#39;message&#39;: &#39;Hello! Can you tel...
+   Data: [{'type': 'typing_start', 'data': {'session_id': 'a8874605-b88b-450f-9063-8c49fc077c91', 'timestamp
+': '2025-06-21T16:57:25.060684'}}, {'type': 'query_response', 'data': {'message': 'Hello! Can you tel...
 
 ============================================================
   Get Memory Test
 ============================================================
 ✅ PASS: Memory retrieval
-   Data: {&#39;type&#39;: &#39;memory_response&#39;, &#39;data&#39;: {&#39;session_id&#39;: &#39;a8874605-b88b-450f-9063-8c49fc077c91&#39;, &#39;type&#39;: 
-&#39;conversations&#39;, &#39;data&#39;: {&#39;conversations&#39;: [{&#39;guid&#39;: &#39;86b62f57-9102-47c6-b90f-7591f253b1e1&#39;, &#39;role&#39;: ...
+   Data: {'type': 'memory_response', 'data': {'session_id': 'a8874605-b88b-450f-9063-8c49fc077c91', 'type': 
+'conversations', 'data': {'conversations': [{'guid': '86b62f57-9102-47c6-b90f-7591f253b1e1', 'role': ...
 
 ============================================================
   Search Memory Test
 ============================================================
 ✅ PASS: Memory search
-   Data: {&#39;type&#39;: &#39;search_response&#39;, &#39;data&#39;: {&#39;session_id&#39;: &#39;a8874605-b88b-450f-9063-8c49fc077c91&#39;, &#39;query&#39;:
- &#39;dragon&#39;, &#39;results&#39;: [], &#39;total_results&#39;: 0, &#39;timestamp&#39;: &#39;2025-06-21T16:57:31.290889&#39;}}...
+   Data: {'type': 'search_response', 'data': {'session_id': 'a8874605-b88b-450f-9063-8c49fc077c91', 'query':
+ 'dragon', 'results': [], 'total_results': 0, 'timestamp': '2025-06-21T16:57:31.290889'}}...
 
 ============================================================
   Get Graph Test
 ============================================================
 ✅ PASS: Graph retrieval
-   Data: {&#39;type&#39;: &#39;graph_response&#39;, &#39;data&#39;: {&#39;session_id&#39;: &#39;a8874605-b88b-450f-9063-8c49fc077c91&#39;, &#39;format&#39;:
- &#39;json&#39;, &#39;graph_data&#39;: {&#39;nodes&#39;: [], &#39;edges&#39;: [], &#39;metadata&#39;: {&#39;graph_disabled&#39;: True, &#39;message&#39;: &#39;Gr...
+   Data: {'type': 'graph_response', 'data': {'session_id': 'a8874605-b88b-450f-9063-8c49fc077c91', 'format':
+ 'json', 'graph_data': {'nodes': [], 'edges': [], 'metadata': {'graph_disabled': True, 'message': 'Gr...
 
 ============================================================
   Heartbeat Test
 ============================================================
 ✅ PASS: Heartbeat with response
-   Data: {&#39;type&#39;: &#39;heartbeat_response&#39;, &#39;data&#39;: {&#39;timestamp&#39;: &#39;2025-06-21T16:57:31.303675&#39;, &#39;session_id&#39;: &#39;a
-8874605-b88b-450f-9063-8c49fc077c91&#39;}}...
+   Data: {'type': 'heartbeat_response', 'data': {'timestamp': '2025-06-21T16:57:31.303675', 'session_id': 'a
+8874605-b88b-450f-9063-8c49fc077c91'}}...
 
 ============================================================
   Monitor WebSocket Test
 ============================================================
 ✅ PASS: Monitor connected
-   Data: {&#39;type&#39;: &#39;monitor_connected&#39;, &#39;data&#39;: {&#39;active_sessions&#39;: 1, &#39;active_connections&#39;: 0, &#39;timestamp&#39;: 
-&#39;now&#39;}}...
+   Data: {'type': 'monitor_connected', 'data': {'active_sessions': 1, 'active_connections': 0, 'timestamp': 
+'now'}}...
 ✅ PASS: Monitor ping/pong
-   Data: {&#39;type&#39;: &#39;pong&#39;, &#39;data&#39;: {&#39;active_sessions&#39;: 1, &#39;active_connections&#39;: 0, &#39;timestamp&#39;: &#39;now&#39;}}...
+   Data: {'type': 'pong', 'data': {'active_sessions': 1, 'active_connections': 0, 'timestamp': 'now'}}...
 
 ============================================================
   Invalid Session WebSocket Test
@@ -1973,7 +1973,7 @@ I'll run the session manager test to identify the session persistence error you 
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: python test_session_manager.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: python test_session_manager.py</summary>
 
 ```bash
 python test_session_manager.py
@@ -1990,21 +1990,21 @@ Test User Prefix: session_test_user
 ============================================================
 ✅ PASS: Config 1: Session created: 68a53594-66d4-448d-a5d7-c283094c62d0
    Data: {
-  &quot;session_id&quot;: &quot;68a53594-66d4-448d-a5d7-c283094c62d0&quot;,
-  &quot;status&quot;: &quot;success&quot;,
-  &quot;message&quot;: &quot;Session created successfully&quot;
+  "session_id": "68a53594-66d4-448d-a5d7-c283094c62d0",
+  "status": "success",
+  "message": "Session created successfully"
 }...
 ✅ PASS: Config 2: Session created: 4c37ef4a-fb77-4d06-8b22-05712ce0fcfc
    Data: {
-  &quot;session_id&quot;: &quot;4c37ef4a-fb77-4d06-8b22-05712ce0fcfc&quot;,
-  &quot;status&quot;: &quot;success&quot;,
-  &quot;message&quot;: &quot;Session created successfully&quot;
+  "session_id": "4c37ef4a-fb77-4d06-8b22-05712ce0fcfc",
+  "status": "success",
+  "message": "Session created successfully"
 }...
 ✅ PASS: Config 3: Session created: 03417b06-aef7-49ea-abd0-d49d57d6faf5
    Data: {
-  &quot;session_id&quot;: &quot;03417b06-aef7-49ea-abd0-d49d57d6faf5&quot;,
-  &quot;status&quot;: &quot;success&quot;,
-  &quot;message&quot;: &quot;Session created successfully&quot;
+  "session_id": "03417b06-aef7-49ea-abd0-d49d57d6faf5",
+  "status": "success",
+  "message": "Session created successfully"
 }...
 
 ============================================================
@@ -2012,40 +2012,40 @@ Test User Prefix: session_test_user
 ============================================================
 ✅ PASS: Session 68a53594... properly initialized
    Data: {
-  &quot;session_id&quot;: &quot;68a53594-66d4-448d-a5d7-c283094c62d0&quot;,
-  &quot;agent_initialized&quot;: true,
-  &quot;memory_manager_initialized&quot;: true,
-  &quot;session_status&quot;: &quot;active&quot;,
-  &quot;last_activity&quot;: &quot;2025-06-21T22:31:33.391175&quot;,
-  &quot;config&quot;: {
-    &quot;domain&quot;: &quot;dnd&quot;,
-    &quot;enable_graph&quot;: true,
-    &quot;max_memory_size&quot;: 1000
+  "session_id": "68a53594-66d4-448d-a5d7-c283094c62d0",
+  "agent_initialized": true,
+  "memory_manager_initialized": true,
+  "session_status": "active",
+  "last_activity": "2025-06-21T22:31:33.391175",
+  "config": {
+    "domain": "dnd",
+    "enable_graph": true,
+    "max_memory_size": 1000
   }
 }...
 ✅ PASS: Session 4c37ef4a... properly initialized
    Data: {
-  &quot;session_id&quot;: &quot;4c37ef4a-fb77-4d06-8b22-05712ce0fcfc&quot;,
-  &quot;agent_initialized&quot;: true,
-  &quot;memory_manager_initialized&quot;: true,
-  &quot;session_status&quot;: &quot;active&quot;,
-  &quot;last_activity&quot;: &quot;2025-06-21T22:31:33.396897&quot;,
-  &quot;config&quot;: {
-    &quot;domain&quot;: &quot;general&quot;,
-    &quot;enable_graph&quot;: false,
-    &quot;max_memory_size&quot;: 500
+  "session_id": "4c37ef4a-fb77-4d06-8b22-05712ce0fcfc",
+  "agent_initialized": true,
+  "memory_manager_initialized": true,
+  "session_status": "active",
+  "last_activity": "2025-06-21T22:31:33.396897",
+  "config": {
+    "domain": "general",
+    "enable_graph": false,
+    "max_memory_size": 500
   }...
 ✅ PASS: Session 03417b06... properly initialized
    Data: {
-  &quot;session_id&quot;: &quot;03417b06-aef7-49ea-abd0-d49d57d6faf5&quot;,
-  &quot;agent_initialized&quot;: true,
-  &quot;memory_manager_initialized&quot;: true,
-  &quot;session_status&quot;: &quot;active&quot;,
-  &quot;last_activity&quot;: &quot;2025-06-21T22:31:33.401332&quot;,
-  &quot;config&quot;: {
-    &quot;domain&quot;: &quot;dnd&quot;,
-    &quot;enable_graph&quot;: true,
-    &quot;max_memory_size&quot;: 1000
+  "session_id": "03417b06-aef7-49ea-abd0-d49d57d6faf5",
+  "agent_initialized": true,
+  "memory_manager_initialized": true,
+  "session_status": "active",
+  "last_activity": "2025-06-21T22:31:33.401332",
+  "config": {
+    "domain": "dnd",
+    "enable_graph": true,
+    "max_memory_size": 1000
   }
 }...
 
@@ -2054,9 +2054,9 @@ Test User Prefix: session_test_user
 ============================================================
 ✅ PASS: Created 5/5 concurrent sessions in 0.14s
    Data: {
-  &quot;created_sessions&quot;: 5,
-  &quot;active_sessions&quot;: 5,
-  &quot;creation_time&quot;: &quot;0.14s&quot;
+  "created_sessions": 5,
+  "active_sessions": 5,
+  "creation_time": "0.14s"
 }...
 
 ============================================================
@@ -2064,8 +2064,8 @@ Test User Prefix: session_test_user
 ============================================================
 ❌ FAIL: Session persistence verified
    Data: {
-  &quot;total_messages&quot;: 0,
-  &quot;conversation_count&quot;: 0
+  "total_messages": 0,
+  "conversation_count": 0
 }...
 
 ============================================================
@@ -2073,9 +2073,9 @@ Test User Prefix: session_test_user
 ============================================================
 ✅ PASS: Session count consistency
    Data: {
-  &quot;health_endpoint_count&quot;: 8,
-  &quot;session_list_count&quot;: 8,
-  &quot;our_created_sessions&quot;: 8
+  "health_endpoint_count": 8,
+  "session_list_count": 8,
+  "our_created_sessions": 8
 }...
 
 ============================================================
@@ -2083,14 +2083,14 @@ Test User Prefix: session_test_user
 ============================================================
 ✅ PASS: Individual session deletion
    Data: {
-  &quot;deleted_session&quot;: &quot;6cca45f4...&quot;,
-  &quot;verification_status&quot;: 404
+  "deleted_session": "6cca45f4...",
+  "verification_status": 404
 }...
 ✅ PASS: Bulk session cleanup
    Data: {
-  &quot;status&quot;: &quot;success&quot;,
-  &quot;message&quot;: &quot;Expired sessions cleaned up&quot;,
-  &quot;active_sessions&quot;: 7
+  "status": "success",
+  "message": "Expired sessions cleaned up",
+  "active_sessions": 7
 }...
 
 ============================================================
@@ -2302,22 +2302,22 @@ Let me be more specific with the exact text. I see from the line numbers that th
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 3, lines removed: 2
 
 ```diff
 @@ -546,6 +546,7 @@
-                  entry[&quot;digest&quot;] = self.digest_generator.generate_digest(entry, self.memory)
+                  entry["digest"] = self.digest_generator.generate_digest(entry, self.memory)
                   
 -                 # Update conversation history file with the digest
 -                 self._update_conversation_history_entry(entry)
 +                 # Update conversation history file with the digest (only available in AsyncMemoryManager)
-+                 if hasattr(self, &#39;_update_conversation_history_entry&#39;):
++                 if hasattr(self, '_update_conversation_history_entry'):
 +                     self._update_conversation_history_entry(entry)
                   
-                  self.save_memory(&quot;async_digest_generation&quot;)
+                  self.save_memory("async_digest_generation")
 ```
 
 </details>
@@ -2389,7 +2389,7 @@ The issue was only in the base `MemoryManager` class at line 549, which I've now
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: python test_session_manager.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: python test_session_manager.py</summary>
 
 ```bash
 python test_session_manager.py
@@ -2406,21 +2406,21 @@ Test User Prefix: session_test_user
 ============================================================
 ✅ PASS: Config 1: Session created: 193ee713-b1e2-44c0-a8b1-901eb06b3bba
    Data: {
-  &quot;session_id&quot;: &quot;193ee713-b1e2-44c0-a8b1-901eb06b3bba&quot;,
-  &quot;status&quot;: &quot;success&quot;,
-  &quot;message&quot;: &quot;Session created successfully&quot;
+  "session_id": "193ee713-b1e2-44c0-a8b1-901eb06b3bba",
+  "status": "success",
+  "message": "Session created successfully"
 }...
 ✅ PASS: Config 2: Session created: d2753462-7155-4e8d-9cab-41a2e4f633f0
    Data: {
-  &quot;session_id&quot;: &quot;d2753462-7155-4e8d-9cab-41a2e4f633f0&quot;,
-  &quot;status&quot;: &quot;success&quot;,
-  &quot;message&quot;: &quot;Session created successfully&quot;
+  "session_id": "d2753462-7155-4e8d-9cab-41a2e4f633f0",
+  "status": "success",
+  "message": "Session created successfully"
 }...
 ✅ PASS: Config 3: Session created: 11c58694-a230-4809-9e4c-36a2b3126718
    Data: {
-  &quot;session_id&quot;: &quot;11c58694-a230-4809-9e4c-36a2b3126718&quot;,
-  &quot;status&quot;: &quot;success&quot;,
-  &quot;message&quot;: &quot;Session created successfully&quot;
+  "session_id": "11c58694-a230-4809-9e4c-36a2b3126718",
+  "status": "success",
+  "message": "Session created successfully"
 }...
 
 ============================================================
@@ -2428,40 +2428,40 @@ Test User Prefix: session_test_user
 ============================================================
 ✅ PASS: Session 193ee713... properly initialized
    Data: {
-  &quot;session_id&quot;: &quot;193ee713-b1e2-44c0-a8b1-901eb06b3bba&quot;,
-  &quot;agent_initialized&quot;: true,
-  &quot;memory_manager_initialized&quot;: true,
-  &quot;session_status&quot;: &quot;active&quot;,
-  &quot;last_activity&quot;: &quot;2025-06-21T22:33:25.358922&quot;,
-  &quot;config&quot;: {
-    &quot;domain&quot;: &quot;dnd&quot;,
-    &quot;enable_graph&quot;: true,
-    &quot;max_memory_size&quot;: 1000
+  "session_id": "193ee713-b1e2-44c0-a8b1-901eb06b3bba",
+  "agent_initialized": true,
+  "memory_manager_initialized": true,
+  "session_status": "active",
+  "last_activity": "2025-06-21T22:33:25.358922",
+  "config": {
+    "domain": "dnd",
+    "enable_graph": true,
+    "max_memory_size": 1000
   }
 }...
 ✅ PASS: Session d2753462... properly initialized
    Data: {
-  &quot;session_id&quot;: &quot;d2753462-7155-4e8d-9cab-41a2e4f633f0&quot;,
-  &quot;agent_initialized&quot;: true,
-  &quot;memory_manager_initialized&quot;: true,
-  &quot;session_status&quot;: &quot;active&quot;,
-  &quot;last_activity&quot;: &quot;2025-06-21T22:33:25.364058&quot;,
-  &quot;config&quot;: {
-    &quot;domain&quot;: &quot;general&quot;,
-    &quot;enable_graph&quot;: false,
-    &quot;max_memory_size&quot;: 500
+  "session_id": "d2753462-7155-4e8d-9cab-41a2e4f633f0",
+  "agent_initialized": true,
+  "memory_manager_initialized": true,
+  "session_status": "active",
+  "last_activity": "2025-06-21T22:33:25.364058",
+  "config": {
+    "domain": "general",
+    "enable_graph": false,
+    "max_memory_size": 500
   }...
 ✅ PASS: Session 11c58694... properly initialized
    Data: {
-  &quot;session_id&quot;: &quot;11c58694-a230-4809-9e4c-36a2b3126718&quot;,
-  &quot;agent_initialized&quot;: true,
-  &quot;memory_manager_initialized&quot;: true,
-  &quot;session_status&quot;: &quot;active&quot;,
-  &quot;last_activity&quot;: &quot;2025-06-21T22:33:25.369171&quot;,
-  &quot;config&quot;: {
-    &quot;domain&quot;: &quot;dnd&quot;,
-    &quot;enable_graph&quot;: true,
-    &quot;max_memory_size&quot;: 1000
+  "session_id": "11c58694-a230-4809-9e4c-36a2b3126718",
+  "agent_initialized": true,
+  "memory_manager_initialized": true,
+  "session_status": "active",
+  "last_activity": "2025-06-21T22:33:25.369171",
+  "config": {
+    "domain": "dnd",
+    "enable_graph": true,
+    "max_memory_size": 1000
   }
 }...
 
@@ -2470,9 +2470,9 @@ Test User Prefix: session_test_user
 ============================================================
 ✅ PASS: Created 5/5 concurrent sessions in 0.10s
    Data: {
-  &quot;created_sessions&quot;: 5,
-  &quot;active_sessions&quot;: 5,
-  &quot;creation_time&quot;: &quot;0.10s&quot;
+  "created_sessions": 5,
+  "active_sessions": 5,
+  "creation_time": "0.10s"
 }...
 
 ============================================================
@@ -2480,8 +2480,8 @@ Test User Prefix: session_test_user
 ============================================================
 ❌ FAIL: Session persistence verified
    Data: {
-  &quot;total_messages&quot;: 0,
-  &quot;conversation_count&quot;: 0
+  "total_messages": 0,
+  "conversation_count": 0
 }...
 
 ============================================================
@@ -2489,9 +2489,9 @@ Test User Prefix: session_test_user
 ============================================================
 ✅ PASS: Session count consistency
    Data: {
-  &quot;health_endpoint_count&quot;: 8,
-  &quot;session_list_count&quot;: 8,
-  &quot;our_created_sessions&quot;: 8
+  "health_endpoint_count": 8,
+  "session_list_count": 8,
+  "our_created_sessions": 8
 }...
 
 ============================================================
@@ -2499,14 +2499,14 @@ Test User Prefix: session_test_user
 ============================================================
 ✅ PASS: Individual session deletion
    Data: {
-  &quot;deleted_session&quot;: &quot;175c6417...&quot;,
-  &quot;verification_status&quot;: 404
+  "deleted_session": "175c6417...",
+  "verification_status": 404
 }...
 ✅ PASS: Bulk session cleanup
    Data: {
-  &quot;status&quot;: &quot;success&quot;,
-  &quot;message&quot;: &quot;Expired sessions cleaned up&quot;,
-  &quot;active_sessions&quot;: 7
+  "status": "success",
+  "message": "Expired sessions cleaned up",
+  "active_sessions": 7
 }...
 
 ============================================================
@@ -2631,7 +2631,7 @@ The regular `MemoryManager` class doesn't have the same conversation history tra
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/api/services/session_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/api/services/session_manager.py</summary>
 
 **Chunk 1**
 Lines added: 3, lines removed: 1
@@ -2696,7 +2696,7 @@ I need to update the import and type annotation. Let me fix the import at the to
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/api/services/session_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/api/services/session_manager.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -2735,7 +2735,7 @@ Now I need to remove the duplicate import that I added inside the method and upd
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/api/services/session_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/api/services/session_manager.py</summary>
 
 **Chunk 1**
 Lines added: undefined, lines removed: 1
@@ -2773,7 +2773,7 @@ Now let me update the type annotation to reflect that we could be using either t
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/api/services/session_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/api/services/session_manager.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -2812,7 +2812,7 @@ Also need to update the return type annotation for the property:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/api/services/session_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/api/services/session_manager.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -2823,7 +2823,7 @@ Lines added: 1, lines removed: 1
       @property
 -     def memory_manager(self) -&gt; Optional[MemoryManager]:
 +     def memory_manager(self) -&gt; Optional[AsyncMemoryManager]:
-          &quot;&quot;&quot;Get the memory manager instance&quot;&quot;&quot;
+          """Get the memory manager instance"""
           return self._memory_manager
 ```
 
@@ -2850,7 +2850,7 @@ Now let me test the fix by running the session manager test again to see if the 
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: python test_session_manager.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: python test_session_manager.py</summary>
 
 ```bash
 python test_session_manager.py
@@ -2867,21 +2867,21 @@ Test User Prefix: session_test_user
 ============================================================
 ✅ PASS: Config 1: Session created: 036c357c-cf3b-4ca6-af26-a89b3928562f
    Data: {
-  &quot;session_id&quot;: &quot;036c357c-cf3b-4ca6-af26-a89b3928562f&quot;,
-  &quot;status&quot;: &quot;success&quot;,
-  &quot;message&quot;: &quot;Session created successfully&quot;
+  "session_id": "036c357c-cf3b-4ca6-af26-a89b3928562f",
+  "status": "success",
+  "message": "Session created successfully"
 }...
 ✅ PASS: Config 2: Session created: 40740004-f39e-4c8a-aea6-e2e3377879f3
    Data: {
-  &quot;session_id&quot;: &quot;40740004-f39e-4c8a-aea6-e2e3377879f3&quot;,
-  &quot;status&quot;: &quot;success&quot;,
-  &quot;message&quot;: &quot;Session created successfully&quot;
+  "session_id": "40740004-f39e-4c8a-aea6-e2e3377879f3",
+  "status": "success",
+  "message": "Session created successfully"
 }...
 ✅ PASS: Config 3: Session created: bbe4fbb0-8efa-4bcf-91b1-af680226f4cb
    Data: {
-  &quot;session_id&quot;: &quot;bbe4fbb0-8efa-4bcf-91b1-af680226f4cb&quot;,
-  &quot;status&quot;: &quot;success&quot;,
-  &quot;message&quot;: &quot;Session created successfully&quot;
+  "session_id": "bbe4fbb0-8efa-4bcf-91b1-af680226f4cb",
+  "status": "success",
+  "message": "Session created successfully"
 }...
 
 ============================================================
@@ -2889,40 +2889,40 @@ Test User Prefix: session_test_user
 ============================================================
 ✅ PASS: Session 036c357c... properly initialized
    Data: {
-  &quot;session_id&quot;: &quot;036c357c-cf3b-4ca6-af26-a89b3928562f&quot;,
-  &quot;agent_initialized&quot;: true,
-  &quot;memory_manager_initialized&quot;: true,
-  &quot;session_status&quot;: &quot;active&quot;,
-  &quot;last_activity&quot;: &quot;2025-06-21T22:35:09.396821&quot;,
-  &quot;config&quot;: {
-    &quot;domain&quot;: &quot;dnd&quot;,
-    &quot;enable_graph&quot;: true,
-    &quot;max_memory_size&quot;: 1000
+  "session_id": "036c357c-cf3b-4ca6-af26-a89b3928562f",
+  "agent_initialized": true,
+  "memory_manager_initialized": true,
+  "session_status": "active",
+  "last_activity": "2025-06-21T22:35:09.396821",
+  "config": {
+    "domain": "dnd",
+    "enable_graph": true,
+    "max_memory_size": 1000
   }
 }...
 ✅ PASS: Session 40740004... properly initialized
    Data: {
-  &quot;session_id&quot;: &quot;40740004-f39e-4c8a-aea6-e2e3377879f3&quot;,
-  &quot;agent_initialized&quot;: true,
-  &quot;memory_manager_initialized&quot;: true,
-  &quot;session_status&quot;: &quot;active&quot;,
-  &quot;last_activity&quot;: &quot;2025-06-21T22:35:09.403222&quot;,
-  &quot;config&quot;: {
-    &quot;domain&quot;: &quot;general&quot;,
-    &quot;enable_graph&quot;: false,
-    &quot;max_memory_size&quot;: 500
+  "session_id": "40740004-f39e-4c8a-aea6-e2e3377879f3",
+  "agent_initialized": true,
+  "memory_manager_initialized": true,
+  "session_status": "active",
+  "last_activity": "2025-06-21T22:35:09.403222",
+  "config": {
+    "domain": "general",
+    "enable_graph": false,
+    "max_memory_size": 500
   }...
 ✅ PASS: Session bbe4fbb0... properly initialized
    Data: {
-  &quot;session_id&quot;: &quot;bbe4fbb0-8efa-4bcf-91b1-af680226f4cb&quot;,
-  &quot;agent_initialized&quot;: true,
-  &quot;memory_manager_initialized&quot;: true,
-  &quot;session_status&quot;: &quot;active&quot;,
-  &quot;last_activity&quot;: &quot;2025-06-21T22:35:09.409904&quot;,
-  &quot;config&quot;: {
-    &quot;domain&quot;: &quot;dnd&quot;,
-    &quot;enable_graph&quot;: true,
-    &quot;max_memory_size&quot;: 1000
+  "session_id": "bbe4fbb0-8efa-4bcf-91b1-af680226f4cb",
+  "agent_initialized": true,
+  "memory_manager_initialized": true,
+  "session_status": "active",
+  "last_activity": "2025-06-21T22:35:09.409904",
+  "config": {
+    "domain": "dnd",
+    "enable_graph": true,
+    "max_memory_size": 1000
   }
 }...
 
@@ -2931,9 +2931,9 @@ Test User Prefix: session_test_user
 ============================================================
 ✅ PASS: Created 5/5 concurrent sessions in 0.13s
    Data: {
-  &quot;created_sessions&quot;: 5,
-  &quot;active_sessions&quot;: 5,
-  &quot;creation_time&quot;: &quot;0.13s&quot;
+  "created_sessions": 5,
+  "active_sessions": 5,
+  "creation_time": "0.13s"
 }...
 
 ============================================================
@@ -2941,8 +2941,8 @@ Test User Prefix: session_test_user
 ============================================================
 ❌ FAIL: Session persistence verified
    Data: {
-  &quot;total_messages&quot;: 0,
-  &quot;conversation_count&quot;: 0
+  "total_messages": 0,
+  "conversation_count": 0
 }...
 
 ============================================================
@@ -2950,9 +2950,9 @@ Test User Prefix: session_test_user
 ============================================================
 ✅ PASS: Session count consistency
    Data: {
-  &quot;health_endpoint_count&quot;: 8,
-  &quot;session_list_count&quot;: 8,
-  &quot;our_created_sessions&quot;: 8
+  "health_endpoint_count": 8,
+  "session_list_count": 8,
+  "our_created_sessions": 8
 }...
 
 ============================================================
@@ -2960,14 +2960,14 @@ Test User Prefix: session_test_user
 ============================================================
 ✅ PASS: Individual session deletion
    Data: {
-  &quot;deleted_session&quot;: &quot;2d17a0d5...&quot;,
-  &quot;verification_status&quot;: 404
+  "deleted_session": "2d17a0d5...",
+  "verification_status": 404
 }...
 ✅ PASS: Bulk session cleanup
    Data: {
-  &quot;status&quot;: &quot;success&quot;,
-  &quot;message&quot;: &quot;Expired sessions cleaned up&quot;,
-  &quot;active_sessions&quot;: 7
+  "status": "success",
+  "message": "Expired sessions cleaned up",
+  "active_sessions": 7
 }...
 
 ============================================================
@@ -3081,7 +3081,7 @@ Perfect! Now that the server has been restarted with the `AsyncMemoryManager` ch
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: python test_session_manager.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: python test_session_manager.py</summary>
 
 ```bash
 python test_session_manager.py
@@ -3097,21 +3097,21 @@ Test User Prefix: session_test_user
 ============================================================
 ✅ PASS: Config 1: Session created: 799eceb1-89f5-4b5a-b5d6-7341a0e7f5a3
    Data: {
-  &quot;session_id&quot;: &quot;799eceb1-89f5-4b5a-b5d6-7341a0e7f5a3&quot;,
-  &quot;status&quot;: &quot;success&quot;,
-  &quot;message&quot;: &quot;Session created successfully&quot;
+  "session_id": "799eceb1-89f5-4b5a-b5d6-7341a0e7f5a3",
+  "status": "success",
+  "message": "Session created successfully"
 }...
 ✅ PASS: Config 2: Session created: dfe5a1bf-7408-4f89-96b7-591f4533abe1
    Data: {
-  &quot;session_id&quot;: &quot;dfe5a1bf-7408-4f89-96b7-591f4533abe1&quot;,
-  &quot;status&quot;: &quot;success&quot;,
-  &quot;message&quot;: &quot;Session created successfully&quot;
+  "session_id": "dfe5a1bf-7408-4f89-96b7-591f4533abe1",
+  "status": "success",
+  "message": "Session created successfully"
 }...
 ✅ PASS: Config 3: Session created: 5c3befc1-f8e4-4169-8f39-243aa37ba4cb
    Data: {
-  &quot;session_id&quot;: &quot;5c3befc1-f8e4-4169-8f39-243aa37ba4cb&quot;,
-  &quot;status&quot;: &quot;success&quot;,
-  &quot;message&quot;: &quot;Session created successfully&quot;
+  "session_id": "5c3befc1-f8e4-4169-8f39-243aa37ba4cb",
+  "status": "success",
+  "message": "Session created successfully"
 }...
 
 ============================================================
@@ -3119,40 +3119,40 @@ Test User Prefix: session_test_user
 ============================================================
 ✅ PASS: Session 799eceb1... properly initialized
    Data: {
-  &quot;session_id&quot;: &quot;799eceb1-89f5-4b5a-b5d6-7341a0e7f5a3&quot;,
-  &quot;agent_initialized&quot;: true,
-  &quot;memory_manager_initialized&quot;: true,
-  &quot;session_status&quot;: &quot;active&quot;,
-  &quot;last_activity&quot;: &quot;2025-06-21T22:39:20.655019&quot;,
-  &quot;config&quot;: {
-    &quot;domain&quot;: &quot;dnd&quot;,
-    &quot;enable_graph&quot;: true,
-    &quot;max_memory_size&quot;: 1000
+  "session_id": "799eceb1-89f5-4b5a-b5d6-7341a0e7f5a3",
+  "agent_initialized": true,
+  "memory_manager_initialized": true,
+  "session_status": "active",
+  "last_activity": "2025-06-21T22:39:20.655019",
+  "config": {
+    "domain": "dnd",
+    "enable_graph": true,
+    "max_memory_size": 1000
   }
 }...
 ✅ PASS: Session dfe5a1bf... properly initialized
    Data: {
-  &quot;session_id&quot;: &quot;dfe5a1bf-7408-4f89-96b7-591f4533abe1&quot;,
-  &quot;agent_initialized&quot;: true,
-  &quot;memory_manager_initialized&quot;: true,
-  &quot;session_status&quot;: &quot;active&quot;,
-  &quot;last_activity&quot;: &quot;2025-06-21T22:39:20.659974&quot;,
-  &quot;config&quot;: {
-    &quot;domain&quot;: &quot;general&quot;,
-    &quot;enable_graph&quot;: false,
-    &quot;max_memory_size&quot;: 500
+  "session_id": "dfe5a1bf-7408-4f89-96b7-591f4533abe1",
+  "agent_initialized": true,
+  "memory_manager_initialized": true,
+  "session_status": "active",
+  "last_activity": "2025-06-21T22:39:20.659974",
+  "config": {
+    "domain": "general",
+    "enable_graph": false,
+    "max_memory_size": 500
   }...
 ✅ PASS: Session 5c3befc1... properly initialized
    Data: {
-  &quot;session_id&quot;: &quot;5c3befc1-f8e4-4169-8f39-243aa37ba4cb&quot;,
-  &quot;agent_initialized&quot;: true,
-  &quot;memory_manager_initialized&quot;: true,
-  &quot;session_status&quot;: &quot;active&quot;,
-  &quot;last_activity&quot;: &quot;2025-06-21T22:39:20.666085&quot;,
-  &quot;config&quot;: {
-    &quot;domain&quot;: &quot;dnd&quot;,
-    &quot;enable_graph&quot;: true,
-    &quot;max_memory_size&quot;: 1000
+  "session_id": "5c3befc1-f8e4-4169-8f39-243aa37ba4cb",
+  "agent_initialized": true,
+  "memory_manager_initialized": true,
+  "session_status": "active",
+  "last_activity": "2025-06-21T22:39:20.666085",
+  "config": {
+    "domain": "dnd",
+    "enable_graph": true,
+    "max_memory_size": 1000
   }
 }...
 
@@ -3161,9 +3161,9 @@ Test User Prefix: session_test_user
 ============================================================
 ✅ PASS: Created 5/5 concurrent sessions in 0.12s
    Data: {
-  &quot;created_sessions&quot;: 5,
-  &quot;active_sessions&quot;: 5,
-  &quot;creation_time&quot;: &quot;0.12s&quot;
+  "created_sessions": 5,
+  "active_sessions": 5,
+  "creation_time": "0.12s"
 }...
 
 ============================================================
@@ -3171,8 +3171,8 @@ Test User Prefix: session_test_user
 ============================================================
 ❌ FAIL: Session persistence verified
    Data: {
-  &quot;total_messages&quot;: 0,
-  &quot;conversation_count&quot;: 0
+  "total_messages": 0,
+  "conversation_count": 0
 }...
 
 ============================================================
@@ -3180,9 +3180,9 @@ Test User Prefix: session_test_user
 ============================================================
 ✅ PASS: Session count consistency
    Data: {
-  &quot;health_endpoint_count&quot;: 8,
-  &quot;session_list_count&quot;: 8,
-  &quot;our_created_sessions&quot;: 8
+  "health_endpoint_count": 8,
+  "session_list_count": 8,
+  "our_created_sessions": 8
 }...
 
 ============================================================
@@ -3190,14 +3190,14 @@ Test User Prefix: session_test_user
 ============================================================
 ✅ PASS: Individual session deletion
    Data: {
-  &quot;deleted_session&quot;: &quot;c3505ebc...&quot;,
-  &quot;verification_status&quot;: 404
+  "deleted_session": "c3505ebc...",
+  "verification_status": 404
 }...
 ✅ PASS: Bulk session cleanup
    Data: {
-  &quot;status&quot;: &quot;success&quot;,
-  &quot;message&quot;: &quot;Expired sessions cleaned up&quot;,
-  &quot;active_sessions&quot;: 7
+  "status": "success",
+  "message": "Expired sessions cleaned up",
+  "active_sessions": 7
 }...
 
 ============================================================
@@ -3314,7 +3314,7 @@ But the API returns a flat structure with different field names. Let me check wh
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: scripts/api/test_session_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: scripts/api/test_session_manager.py</summary>
 
 **Chunk 1**
 Lines added: 3, lines removed: 3
@@ -3323,15 +3323,15 @@ Lines added: 3, lines removed: 3
 @@ -223,8 +223,8 @@
                   
                   # Check if memory was created
--                 total_messages = memory_stats.get(&quot;memory_stats&quot;, {}).get(&quot;total_messages&quot;, 0)
--                 conversation_count = memory_stats.get(&quot;memory_stats&quot;, {}).get(&quot;conversation_count&quot;, 0)
+-                 total_messages = memory_stats.get("memory_stats", {}).get("total_messages", 0)
+-                 conversation_count = memory_stats.get("memory_stats", {}).get("conversation_count", 0)
 +                 # API returns conversations_count directly, not nested under memory_stats
-+                 conversations_count = memory_stats.get(&quot;conversations_count&quot;, 0)
++                 conversations_count = memory_stats.get("conversations_count", 0)
                   
 -                 success = total_messages &gt; 0 or conversation_count &gt; 0
 +                 success = conversations_count &gt; 0
                   
-                  self.print_result(success, f&quot;Session persistence verified&quot;, {
+                  self.print_result(success, f"Session persistence verified", {
 ```
 
 </details>
@@ -3346,7 +3346,7 @@ Now I need to update the print output to show the correct field:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: scripts/api/test_session_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: scripts/api/test_session_manager.py</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: 2
@@ -3354,11 +3354,11 @@ Lines added: 2, lines removed: 2
 ```diff
 @@ -229,6 +229,6 @@
                   
-                  self.print_result(success, f&quot;Session persistence verified&quot;, {
--                     &quot;total_messages&quot;: total_messages,
--                     &quot;conversation_count&quot;: conversation_count
-+                     &quot;conversations_count&quot;: conversations_count,
-+                     &quot;memory_stats&quot;: memory_stats
+                  self.print_result(success, f"Session persistence verified", {
+-                     "total_messages": total_messages,
+-                     "conversation_count": conversation_count
++                     "conversations_count": conversations_count,
++                     "memory_stats": memory_stats
                   })
                   
 ```
@@ -3374,7 +3374,7 @@ Now let's test the session persistence again with the corrected field names:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: python test_session_manager.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: python test_session_manager.py</summary>
 
 ```bash
 python test_session_manager.py
@@ -3390,21 +3390,21 @@ Test User Prefix: session_test_user
 ============================================================
 ✅ PASS: Config 1: Session created: 6ca9ce9e-11e4-43b1-92b6-b87e80942e38
    Data: {
-  &quot;session_id&quot;: &quot;6ca9ce9e-11e4-43b1-92b6-b87e80942e38&quot;,
-  &quot;status&quot;: &quot;success&quot;,
-  &quot;message&quot;: &quot;Session created successfully&quot;
+  "session_id": "6ca9ce9e-11e4-43b1-92b6-b87e80942e38",
+  "status": "success",
+  "message": "Session created successfully"
 }...
 ✅ PASS: Config 2: Session created: 5c7af476-9ce6-4165-8746-f3959d49757a
    Data: {
-  &quot;session_id&quot;: &quot;5c7af476-9ce6-4165-8746-f3959d49757a&quot;,
-  &quot;status&quot;: &quot;success&quot;,
-  &quot;message&quot;: &quot;Session created successfully&quot;
+  "session_id": "5c7af476-9ce6-4165-8746-f3959d49757a",
+  "status": "success",
+  "message": "Session created successfully"
 }...
 ✅ PASS: Config 3: Session created: 3ee5be7c-e572-4847-9c7c-73f11b2720f6
    Data: {
-  &quot;session_id&quot;: &quot;3ee5be7c-e572-4847-9c7c-73f11b2720f6&quot;,
-  &quot;status&quot;: &quot;success&quot;,
-  &quot;message&quot;: &quot;Session created successfully&quot;
+  "session_id": "3ee5be7c-e572-4847-9c7c-73f11b2720f6",
+  "status": "success",
+  "message": "Session created successfully"
 }...
 
 ============================================================
@@ -3412,40 +3412,40 @@ Test User Prefix: session_test_user
 ============================================================
 ✅ PASS: Session 6ca9ce9e... properly initialized
    Data: {
-  &quot;session_id&quot;: &quot;6ca9ce9e-11e4-43b1-92b6-b87e80942e38&quot;,
-  &quot;agent_initialized&quot;: true,
-  &quot;memory_manager_initialized&quot;: true,
-  &quot;session_status&quot;: &quot;active&quot;,
-  &quot;last_activity&quot;: &quot;2025-06-21T22:40:09.305041&quot;,
-  &quot;config&quot;: {
-    &quot;domain&quot;: &quot;dnd&quot;,
-    &quot;enable_graph&quot;: true,
-    &quot;max_memory_size&quot;: 1000
+  "session_id": "6ca9ce9e-11e4-43b1-92b6-b87e80942e38",
+  "agent_initialized": true,
+  "memory_manager_initialized": true,
+  "session_status": "active",
+  "last_activity": "2025-06-21T22:40:09.305041",
+  "config": {
+    "domain": "dnd",
+    "enable_graph": true,
+    "max_memory_size": 1000
   }
 }...
 ✅ PASS: Session 5c7af476... properly initialized
    Data: {
-  &quot;session_id&quot;: &quot;5c7af476-9ce6-4165-8746-f3959d49757a&quot;,
-  &quot;agent_initialized&quot;: true,
-  &quot;memory_manager_initialized&quot;: true,
-  &quot;session_status&quot;: &quot;active&quot;,
-  &quot;last_activity&quot;: &quot;2025-06-21T22:40:09.308504&quot;,
-  &quot;config&quot;: {
-    &quot;domain&quot;: &quot;general&quot;,
-    &quot;enable_graph&quot;: false,
-    &quot;max_memory_size&quot;: 500
+  "session_id": "5c7af476-9ce6-4165-8746-f3959d49757a",
+  "agent_initialized": true,
+  "memory_manager_initialized": true,
+  "session_status": "active",
+  "last_activity": "2025-06-21T22:40:09.308504",
+  "config": {
+    "domain": "general",
+    "enable_graph": false,
+    "max_memory_size": 500
   }...
 ✅ PASS: Session 3ee5be7c... properly initialized
    Data: {
-  &quot;session_id&quot;: &quot;3ee5be7c-e572-4847-9c7c-73f11b2720f6&quot;,
-  &quot;agent_initialized&quot;: true,
-  &quot;memory_manager_initialized&quot;: true,
-  &quot;session_status&quot;: &quot;active&quot;,
-  &quot;last_activity&quot;: &quot;2025-06-21T22:40:09.312317&quot;,
-  &quot;config&quot;: {
-    &quot;domain&quot;: &quot;dnd&quot;,
-    &quot;enable_graph&quot;: true,
-    &quot;max_memory_size&quot;: 1000
+  "session_id": "3ee5be7c-e572-4847-9c7c-73f11b2720f6",
+  "agent_initialized": true,
+  "memory_manager_initialized": true,
+  "session_status": "active",
+  "last_activity": "2025-06-21T22:40:09.312317",
+  "config": {
+    "domain": "dnd",
+    "enable_graph": true,
+    "max_memory_size": 1000
   }
 }...
 
@@ -3454,9 +3454,9 @@ Test User Prefix: session_test_user
 ============================================================
 ✅ PASS: Created 5/5 concurrent sessions in 0.09s
    Data: {
-  &quot;created_sessions&quot;: 5,
-  &quot;active_sessions&quot;: 5,
-  &quot;creation_time&quot;: &quot;0.09s&quot;
+  "created_sessions": 5,
+  "active_sessions": 5,
+  "creation_time": "0.09s"
 }...
 
 ============================================================
@@ -3464,12 +3464,12 @@ Test User Prefix: session_test_user
 ============================================================
 ✅ PASS: Session persistence verified
    Data: {
-  &quot;conversations_count&quot;: 25,
-  &quot;memory_stats&quot;: {
-    &quot;session_id&quot;: &quot;6ca9ce9e-11e4-43b1-92b6-b87e80942e38&quot;,
-    &quot;conversations_count&quot;: 25,
-    &quot;has_graph_memory&quot;: false,
-    &quot;memory_type&quot;: &quot;AsyncMemoryManager&quot;
+  "conversations_count": 25,
+  "memory_stats": {
+    "session_id": "6ca9ce9e-11e4-43b1-92b6-b87e80942e38",
+    "conversations_count": 25,
+    "has_graph_memory": false,
+    "memory_type": "AsyncMemoryManager"
   }
 }...
 
@@ -3478,9 +3478,9 @@ Test User Prefix: session_test_user
 ============================================================
 ✅ PASS: Session count consistency
    Data: {
-  &quot;health_endpoint_count&quot;: 8,
-  &quot;session_list_count&quot;: 8,
-  &quot;our_created_sessions&quot;: 8
+  "health_endpoint_count": 8,
+  "session_list_count": 8,
+  "our_created_sessions": 8
 }...
 
 ============================================================
@@ -3488,14 +3488,14 @@ Test User Prefix: session_test_user
 ============================================================
 ✅ PASS: Individual session deletion
    Data: {
-  &quot;deleted_session&quot;: &quot;745670fb...&quot;,
-  &quot;verification_status&quot;: 404
+  "deleted_session": "745670fb...",
+  "verification_status": 404
 }...
 ✅ PASS: Bulk session cleanup
    Data: {
-  &quot;status&quot;: &quot;success&quot;,
-  &quot;message&quot;: &quot;Expired sessions cleaned up&quot;,
-  &quot;active_sessions&quot;: 7
+  "status": "success",
+  "message": "Expired sessions cleaned up",
+  "active_sessions": 7
 }...
 
 ============================================================
@@ -3603,7 +3603,7 @@ Let me run the master test script to see what errors are occurring when it tries
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: python run_api_tests.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: python run_api_tests.py</summary>
 
 ```bash
 python run_api_tests.py
@@ -3626,22 +3626,22 @@ Test Time: 2025-06-21 22:43:07
 
 🧪 Running Session Manager Evaluation...
    Script: scripts/api/test_session_manager.py
-/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/bin/python: can&#39;t open file &#39;/Users/andrewrapo/
-github/cursor/cursor-hello-llm-agent/scripts/api/scripts/api/test_session_manager.py&#39;: [Errno 2] No such fil
+/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/bin/python: can't open file '/Users/andrewrapo/
+github/cursor/cursor-hello-llm-agent/scripts/api/scripts/api/test_session_manager.py': [Errno 2] No such fil
 e or directory
 ❌ Session Manager Evaluation failed with return code 2
 
 🧪 Running REST API Comprehensive Tests...
    Script: scripts/api/test_rest_api.py
-/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/bin/python: can&#39;t open file &#39;/Users/andrewrapo/
-github/cursor/cursor-hello-llm-agent/scripts/api/scripts/api/test_rest_api.py&#39;: [Errno 2] No such file or di
+/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/bin/python: can't open file '/Users/andrewrapo/
+github/cursor/cursor-hello-llm-agent/scripts/api/scripts/api/test_rest_api.py': [Errno 2] No such file or di
 rectory
 ❌ REST API Comprehensive Tests failed with return code 2
 
 🧪 Running WebSocket API Comprehensive Tests...
    Script: scripts/api/test_websocket_api.py
-/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/bin/python: can&#39;t open file &#39;/Users/andrewrapo/
-github/cursor/cursor-hello-llm-agent/scripts/api/scripts/api/test_websocket_api.py&#39;: [Errno 2] No such file
+/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/bin/python: can't open file '/Users/andrewrapo/
+github/cursor/cursor-hello-llm-agent/scripts/api/scripts/api/test_websocket_api.py': [Errno 2] No such file
 or directory
 ❌ WebSocket API Comprehensive Tests failed with return code 2
 
@@ -3708,7 +3708,7 @@ Since we're already in the `scripts/api/` directory, the script paths should jus
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: scripts/api/run_api_tests.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: scripts/api/run_api_tests.py</summary>
 
 **Chunk 1**
 Lines added: 3, lines removed: 3
@@ -3717,12 +3717,12 @@ Lines added: 3, lines removed: 3
 @@ -86,7 +86,7 @@
       # Test scripts to run
       test_scripts = [
--         (&quot;scripts/api/test_session_manager.py&quot;, &quot;Session Manager Evaluation&quot;),
--         (&quot;scripts/api/test_rest_api.py&quot;, &quot;REST API Comprehensive Tests&quot;),
--         (&quot;scripts/api/test_websocket_api.py&quot;, &quot;WebSocket API Comprehensive Tests&quot;)
-+         (&quot;test_session_manager.py&quot;, &quot;Session Manager Evaluation&quot;),
-+         (&quot;test_rest_api.py&quot;, &quot;REST API Comprehensive Tests&quot;),
-+         (&quot;test_websocket_api.py&quot;, &quot;WebSocket API Comprehensive Tests&quot;)
+-         ("scripts/api/test_session_manager.py", "Session Manager Evaluation"),
+-         ("scripts/api/test_rest_api.py", "REST API Comprehensive Tests"),
+-         ("scripts/api/test_websocket_api.py", "WebSocket API Comprehensive Tests")
++         ("test_session_manager.py", "Session Manager Evaluation"),
++         ("test_rest_api.py", "REST API Comprehensive Tests"),
++         ("test_websocket_api.py", "WebSocket API Comprehensive Tests")
       ]
       
 ```
@@ -3739,19 +3739,19 @@ I also need to fix the help text at the bottom that shows the command examples:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: scripts/api/run_api_tests.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: scripts/api/run_api_tests.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
 
 ```diff
 @@ -152,5 +152,5 @@
-      print(f&quot;\nFor more details, run individual test scripts:&quot;)
+      print(f"\nFor more details, run individual test scripts:")
       for script_path, description in test_scripts:
--         print(f&quot;   python {script_path}&quot;)
-+         print(f&quot;   python scripts/api/{script_path}&quot;)
+-         print(f"   python {script_path}")
++         print(f"   python scripts/api/{script_path}")
   
-  if __name__ == &quot;__main__&quot;:
+  if __name__ == "__main__":
 ```
 
 </details>
@@ -3765,7 +3765,7 @@ Now let's test the fixed script:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: python run_api_tests.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: python run_api_tests.py</summary>
 
 ```bash
 python run_api_tests.py
@@ -3797,21 +3797,21 @@ Test User Prefix: session_test_user
 ============================================================
 ✅ PASS: Config 1: Session created: 5ea800d2-5070-449f-bf0d-f3b944b06789
    Data: {
-  &quot;session_id&quot;: &quot;5ea800d2-5070-449f-bf0d-f3b944b06789&quot;,
-  &quot;status&quot;: &quot;success&quot;,
-  &quot;message&quot;: &quot;Session created successfully&quot;
+  "session_id": "5ea800d2-5070-449f-bf0d-f3b944b06789",
+  "status": "success",
+  "message": "Session created successfully"
 }...
 ✅ PASS: Config 2: Session created: b74c78e8-b248-499a-8274-075dae3aa1e5
    Data: {
-  &quot;session_id&quot;: &quot;b74c78e8-b248-499a-8274-075dae3aa1e5&quot;,
-  &quot;status&quot;: &quot;success&quot;,
-  &quot;message&quot;: &quot;Session created successfully&quot;
+  "session_id": "b74c78e8-b248-499a-8274-075dae3aa1e5",
+  "status": "success",
+  "message": "Session created successfully"
 }...
 ✅ PASS: Config 3: Session created: 64dcb688-b56d-43e6-95f5-86946f4b0cfa
    Data: {
-  &quot;session_id&quot;: &quot;64dcb688-b56d-43e6-95f5-86946f4b0cfa&quot;,
-  &quot;status&quot;: &quot;success&quot;,
-  &quot;message&quot;: &quot;Session created successfully&quot;
+  "session_id": "64dcb688-b56d-43e6-95f5-86946f4b0cfa",
+  "status": "success",
+  "message": "Session created successfully"
 }...
 
 ============================================================
@@ -3819,40 +3819,40 @@ Test User Prefix: session_test_user
 ============================================================
 ✅ PASS: Session 5ea800d2... properly initialized
    Data: {
-  &quot;session_id&quot;: &quot;5ea800d2-5070-449f-bf0d-f3b944b06789&quot;,
-  &quot;agent_initialized&quot;: true,
-  &quot;memory_manager_initialized&quot;: true,
-  &quot;session_status&quot;: &quot;active&quot;,
-  &quot;last_activity&quot;: &quot;2025-06-21T22:43:44.731716&quot;,
-  &quot;config&quot;: {
-    &quot;domain&quot;: &quot;dnd&quot;,
-    &quot;enable_graph&quot;: true,
-    &quot;max_memory_size&quot;: 1000
+  "session_id": "5ea800d2-5070-449f-bf0d-f3b944b06789",
+  "agent_initialized": true,
+  "memory_manager_initialized": true,
+  "session_status": "active",
+  "last_activity": "2025-06-21T22:43:44.731716",
+  "config": {
+    "domain": "dnd",
+    "enable_graph": true,
+    "max_memory_size": 1000
   }
 }...
 ✅ PASS: Session b74c78e8... properly initialized
    Data: {
-  &quot;session_id&quot;: &quot;b74c78e8-b248-499a-8274-075dae3aa1e5&quot;,
-  &quot;agent_initialized&quot;: true,
-  &quot;memory_manager_initialized&quot;: true,
-  &quot;session_status&quot;: &quot;active&quot;,
-  &quot;last_activity&quot;: &quot;2025-06-21T22:43:44.735638&quot;,
-  &quot;config&quot;: {
-    &quot;domain&quot;: &quot;general&quot;,
-    &quot;enable_graph&quot;: false,
-    &quot;max_memory_size&quot;: 500
+  "session_id": "b74c78e8-b248-499a-8274-075dae3aa1e5",
+  "agent_initialized": true,
+  "memory_manager_initialized": true,
+  "session_status": "active",
+  "last_activity": "2025-06-21T22:43:44.735638",
+  "config": {
+    "domain": "general",
+    "enable_graph": false,
+    "max_memory_size": 500
   }...
 ✅ PASS: Session 64dcb688... properly initialized
    Data: {
-  &quot;session_id&quot;: &quot;64dcb688-b56d-43e6-95f5-86946f4b0cfa&quot;,
-  &quot;agent_initialized&quot;: true,
-  &quot;memory_manager_initialized&quot;: true,
-  &quot;session_status&quot;: &quot;active&quot;,
-  &quot;last_activity&quot;: &quot;2025-06-21T22:43:44.739547&quot;,
-  &quot;config&quot;: {
-    &quot;domain&quot;: &quot;dnd&quot;,
-    &quot;enable_graph&quot;: true,
-    &quot;max_memory_size&quot;: 1000
+  "session_id": "64dcb688-b56d-43e6-95f5-86946f4b0cfa",
+  "agent_initialized": true,
+  "memory_manager_initialized": true,
+  "session_status": "active",
+  "last_activity": "2025-06-21T22:43:44.739547",
+  "config": {
+    "domain": "dnd",
+    "enable_graph": true,
+    "max_memory_size": 1000
   }
 }...
 
@@ -3861,9 +3861,9 @@ Test User Prefix: session_test_user
 ============================================================
 ✅ PASS: Created 5/5 concurrent sessions in 0.10s
    Data: {
-  &quot;created_sessions&quot;: 5,
-  &quot;active_sessions&quot;: 5,
-  &quot;creation_time&quot;: &quot;0.10s&quot;
+  "created_sessions": 5,
+  "active_sessions": 5,
+  "creation_time": "0.10s"
 }...
 
 ============================================================
@@ -3871,12 +3871,12 @@ Test User Prefix: session_test_user
 ============================================================
 ✅ PASS: Session persistence verified
    Data: {
-  &quot;conversations_count&quot;: 27,
-  &quot;memory_stats&quot;: {
-    &quot;session_id&quot;: &quot;5ea800d2-5070-449f-bf0d-f3b944b06789&quot;,
-    &quot;conversations_count&quot;: 27,
-    &quot;has_graph_memory&quot;: false,
-    &quot;memory_type&quot;: &quot;AsyncMemoryManager&quot;
+  "conversations_count": 27,
+  "memory_stats": {
+    "session_id": "5ea800d2-5070-449f-bf0d-f3b944b06789",
+    "conversations_count": 27,
+    "has_graph_memory": false,
+    "memory_type": "AsyncMemoryManager"
   }
 }...
 
@@ -3885,9 +3885,9 @@ Test User Prefix: session_test_user
 ============================================================
 ✅ PASS: Session count consistency
    Data: {
-  &quot;health_endpoint_count&quot;: 8,
-  &quot;session_list_count&quot;: 8,
-  &quot;our_created_sessions&quot;: 8
+  "health_endpoint_count": 8,
+  "session_list_count": 8,
+  "our_created_sessions": 8
 }...
 
 ============================================================
@@ -3895,14 +3895,14 @@ Test User Prefix: session_test_user
 ============================================================
 ✅ PASS: Individual session deletion
    Data: {
-  &quot;deleted_session&quot;: &quot;4b23c84d...&quot;,
-  &quot;verification_status&quot;: 404
+  "deleted_session": "4b23c84d...",
+  "verification_status": 404
 }...
 ✅ PASS: Bulk session cleanup
    Data: {
-  &quot;status&quot;: &quot;success&quot;,
-  &quot;message&quot;: &quot;Expired sessions cleaned up&quot;,
-  &quot;active_sessions&quot;: 7
+  "status": "success",
+  "message": "Expired sessions cleaned up",
+  "active_sessions": 7
 }...
 
 ============================================================
@@ -3952,10 +3952,10 @@ Test User ID: test_user_rest
 ============================================================
 ✅ PASS: Health check (HTTP 200)
    Response: {
-  &quot;status&quot;: &quot;healthy&quot;,
-  &quot;version&quot;: &quot;1.0.0&quot;,
-  &quot;active_sessions&quot;: 0,
-  &quot;websocket_connections&quot;: 0
+  "status": "healthy",
+  "version": "1.0.0",
+  "active_sessions": 0,
+  "websocket_connections": 0
 }...
 
 ============================================================
@@ -3963,9 +3963,9 @@ Test User ID: test_user_rest
 ============================================================
 ✅ PASS: Session created: cef124f5-7c2c-4719-96f5-fb44280769a4
    Response: {
-  &quot;session_id&quot;: &quot;cef124f5-7c2c-4719-96f5-fb44280769a4&quot;,
-  &quot;status&quot;: &quot;success&quot;,
-  &quot;message&quot;: &quot;Session created successfully&quot;
+  "session_id": "cef124f5-7c2c-4719-96f5-fb44280769a4",
+  "status": "success",
+  "message": "Session created successfully"
 }...
 
 ============================================================
@@ -3973,23 +3973,23 @@ Test User ID: test_user_rest
 ============================================================
 ✅ PASS: Get session info (HTTP 200)
    Response: {
-  &quot;session_id&quot;: &quot;cef124f5-7c2c-4719-96f5-fb44280769a4&quot;,
-  &quot;user_id&quot;: &quot;test_user_rest&quot;,
-  &quot;status&quot;: &quot;active&quot;,
-  &quot;created_at&quot;: &quot;2025-06-21T22:43:53.226024&quot;,
-  &quot;last_activity&quot;: &quot;2025-06-21T22:43:54.244...
+  "session_id": "cef124f5-7c2c-4719-96f5-fb44280769a4",
+  "user_id": "test_user_rest",
+  "status": "active",
+  "created_at": "2025-06-21T22:43:53.226024",
+  "last_activity": "2025-06-21T22:43:54.244...
 
 ============================================================
   Session List
 ============================================================
 ✅ PASS: List sessions (HTTP 200)
    Response: {
-  &quot;sessions&quot;: [
+  "sessions": [
     {
-      &quot;session_id&quot;: &quot;cef124f5-7c2c-4719-96f5-fb44280769a4&quot;,
-      &quot;user_id&quot;: &quot;test_user_rest&quot;,
-      &quot;status&quot;: &quot;active&quot;,
-      &quot;created_at&quot;: &quot;2025-06-21T22:43:53.226024&quot;,
+      "session_id": "cef124f5-7c2c-4719-96f5-fb44280769a4",
+      "user_id": "test_user_rest",
+      "status": "active",
+      "created_at": "2025-06-21T22:43:53.226024",
      ...
 
 ============================================================
@@ -3997,31 +3997,31 @@ Test User ID: test_user_rest
 ============================================================
 ✅ PASS: Get agent status (HTTP 200)
    Response: {
-  &quot;session_id&quot;: &quot;cef124f5-7c2c-4719-96f5-fb44280769a4&quot;,
-  &quot;agent_initialized&quot;: true,
-  &quot;memory_manager_initialized&quot;: true,
-  &quot;session_status&quot;: &quot;active&quot;,
-  &quot;last_activity&quot;: &quot;2025-06-21T22:43:54.25269...
+  "session_id": "cef124f5-7c2c-4719-96f5-fb44280769a4",
+  "agent_initialized": true,
+  "memory_manager_initialized": true,
+  "session_status": "active",
+  "last_activity": "2025-06-21T22:43:54.25269...
 
 ============================================================
   Agent Query
 ============================================================
 ✅ PASS: Agent query (HTTP 200)
    Response: {
-  &quot;response&quot;: &quot;Dragons in D&amp;D are large, reptilian creatures with magical abilities.&quot;,
-  &quot;session_id&quot;: &quot;cef124f5-7c2c-4719-96f5-fb44280769a4&quot;,
-  &quot;timestamp&quot;: &quot;2025-06-21T22:43:54.995150&quot;,
-  &quot;memory_...
+  "response": "Dragons in D&amp;D are large, reptilian creatures with magical abilities.",
+  "session_id": "cef124f5-7c2c-4719-96f5-fb44280769a4",
+  "timestamp": "2025-06-21T22:43:54.995150",
+  "memory_...
 
 ============================================================
   Memory Statistics
 ============================================================
 ✅ PASS: Memory stats (HTTP 200)
    Response: {
-  &quot;session_id&quot;: &quot;cef124f5-7c2c-4719-96f5-fb44280769a4&quot;,
-  &quot;conversations_count&quot;: 29,
-  &quot;has_graph_memory&quot;: false,
-  &quot;memory_type&quot;: &quot;AsyncMemoryManager&quot;
+  "session_id": "cef124f5-7c2c-4719-96f5-fb44280769a4",
+  "conversations_count": 29,
+  "has_graph_memory": false,
+  "memory_type": "AsyncMemoryManager"
 }...
 
 ============================================================
@@ -4029,24 +4029,24 @@ Test User ID: test_user_rest
 ============================================================
 ✅ PASS: Memory retrieval (HTTP 200)
    Response: {
-  &quot;data&quot;: [
+  "data": [
     {
-      &quot;type&quot;: &quot;conversation&quot;,
-      &quot;id&quot;: 0,
-      &quot;content&quot;: {
-        &quot;guid&quot;: &quot;6144dd2f-164e-424e-a649-521d86a66452&quot;,
-        &quot;role&quot;: &quot;user&quot;,
-        &quot;content&quot;: &quot;Tell me about th...
+      "type": "conversation",
+      "id": 0,
+      "content": {
+        "guid": "6144dd2f-164e-424e-a649-521d86a66452",
+        "role": "user",
+        "content": "Tell me about th...
 
 ============================================================
   Memory Search
 ============================================================
 ✅ PASS: Memory search (HTTP 200)
    Response: {
-  &quot;results&quot;: [],
-  &quot;relevance_scores&quot;: [],
-  &quot;total&quot;: 0,
-  &quot;query&quot;: &quot;dragon&quot;
+  "results": [],
+  "relevance_scores": [],
+  "total": 0,
+  "query": "dragon"
 }...
 
 ============================================================
@@ -4054,9 +4054,9 @@ Test User ID: test_user_rest
 ============================================================
 ✅ PASS: Graph stats (HTTP 200)
    Response: {
-  &quot;session_id&quot;: &quot;cef124f5-7c2c-4719-96f5-fb44280769a4&quot;,
-  &quot;graph_enabled&quot;: false,
-  &quot;message&quot;: &quot;Graph memory not available for this session&quot;
+  "session_id": "cef124f5-7c2c-4719-96f5-fb44280769a4",
+  "graph_enabled": false,
+  "message": "Graph memory not available for this session"
 }...
 
 ============================================================
@@ -4064,26 +4064,26 @@ Test User ID: test_user_rest
 ============================================================
 ✅ PASS: Graph data JSON (HTTP 200)
    Response: {
-  &quot;nodes&quot;: [],
-  &quot;edges&quot;: [],
-  &quot;metadata&quot;: {
-    &quot;message&quot;: &quot;Graph memory not enabled for this session&quot;
+  "nodes": [],
+  "edges": [],
+  "metadata": {
+    "message": "Graph memory not enabled for this session"
   },
-  &quot;stats&quot;: {
-    &quot;nodes&quot;: 0,
-    &quot;edges&quot;: 0
+  "stats": {
+    "nodes": 0,
+    "edges": 0
   }
 }...
 ✅ PASS: Graph data D3 (HTTP 200)
    Response: {
-  &quot;nodes&quot;: [],
-  &quot;edges&quot;: [],
-  &quot;metadata&quot;: {
-    &quot;message&quot;: &quot;Graph memory not enabled for this session&quot;
+  "nodes": [],
+  "edges": [],
+  "metadata": {
+    "message": "Graph memory not enabled for this session"
   },
-  &quot;stats&quot;: {
-    &quot;nodes&quot;: 0,
-    &quot;edges&quot;: 0
+  "stats": {
+    "nodes": 0,
+    "edges": 0
   }
 }...
 
@@ -4092,9 +4092,9 @@ Test User ID: test_user_rest
 ============================================================
 ✅ PASS: Session cleanup (HTTP 200)
    Response: {
-  &quot;status&quot;: &quot;success&quot;,
-  &quot;message&quot;: &quot;Expired sessions cleaned up&quot;,
-  &quot;active_sessions&quot;: 1
+  "status": "success",
+  "message": "Expired sessions cleaned up",
+  "active_sessions": 1
 }...
 
 ============================================================
@@ -4102,8 +4102,8 @@ Test User ID: test_user_rest
 ============================================================
 ✅ PASS: Session deletion (HTTP 200)
    Response: {
-  &quot;status&quot;: &quot;success&quot;,
-  &quot;message&quot;: &quot;Session cef124f5-7c2c-4719-96f5-fb44280769a4 deleted successfully&quot;
+  "status": "success",
+  "message": "Session cef124f5-7c2c-4719-96f5-fb44280769a4 deleted successfully"
 }...
 
 ============================================================
@@ -4144,30 +4144,30 @@ Test User ID: test_user_websocket
   WebSocket Connection
 ============================================================
 ✅ PASS: WebSocket connected successfully
-   Data: {&#39;type&#39;: &#39;connection_established&#39;, &#39;data&#39;: {&#39;connection_id&#39;: &#39;0dcb223a-93bb-4180-8bc6-9d0f6e60f89d_
-1750560246.119921&#39;, &#39;session_id&#39;: &#39;0dcb223a-93bb-4180-8bc6-9d0f6e60f89d&#39;, &#39;timestamp&#39;: &#39;2025-06-21T22...
+   Data: {'type': 'connection_established', 'data': {'connection_id': '0dcb223a-93bb-4180-8bc6-9d0f6e60f89d_
+1750560246.119921', 'session_id': '0dcb223a-93bb-4180-8bc6-9d0f6e60f89d', 'timestamp': '2025-06-21T22...
 
 ============================================================
   Ping/Pong Test
 ============================================================
 ✅ PASS: Ping/Pong exchange
-   Data: {&#39;type&#39;: &#39;pong&#39;, &#39;data&#39;: {&#39;timestamp&#39;: &#39;2025-06-21T22:44:06.126776&#39;, &#39;session_id&#39;: &#39;0dcb223a-93bb-4
-180-8bc6-9d0f6e60f89d&#39;, &#39;message&#39;: &#39;Hello WebSocket!&#39;}}...
+   Data: {'type': 'pong', 'data': {'timestamp': '2025-06-21T22:44:06.126776', 'session_id': '0dcb223a-93bb-4
+180-8bc6-9d0f6e60f89d', 'message': 'Hello WebSocket!'}}...
 
 ============================================================
   Get Status Test
 ============================================================
 🔍 Connected to WebSocket for status test
-🔍 Skipped initial message: {&quot;type&quot;: &quot;connection_established&quot;, &quot;data&quot;: {&quot;connection_id&quot;: &quot;0dcb223a-93bb-4180
+🔍 Skipped initial message: {"type": "connection_established", "data": {"connection_id": "0dcb223a-93bb-4180
 -8bc6-9d0f6e60f89d_1...
-🔍 Sending status message: {&#39;type&#39;: &#39;get_status&#39;, &#39;data&#39;: {}}
+🔍 Sending status message: {'type': 'get_status', 'data': {}}
 🔍 Status message sent, waiting for response...
-🔍 Received status response: {&quot;type&quot;: &quot;status_response&quot;, &quot;data&quot;: {&quot;session_id&quot;: &quot;0dcb223a-93bb-4180-8bc6-9d0
-f6e60f89d&quot;, &quot;agent_initialized&quot;: true, &quot;memory_manager_initialized&quot;: true, &quot;last_activity&quot;: &quot;2025-06-21T22:4
-4:06.132547&quot;,...
+🔍 Received status response: {"type": "status_response", "data": {"session_id": "0dcb223a-93bb-4180-8bc6-9d0
+f6e60f89d", "agent_initialized": true, "memory_manager_initialized": true, "last_activity": "2025-06-21T22:4
+4:06.132547",...
 ✅ PASS: Status retrieval
-   Data: {&#39;type&#39;: &#39;status_response&#39;, &#39;data&#39;: {&#39;session_id&#39;: &#39;0dcb223a-93bb-4180-8bc6-9d0f6e60f89d&#39;, &#39;agent_i
-nitialized&#39;: True, &#39;memory_manager_initialized&#39;: True, &#39;last_activity&#39;: &#39;2025-06-21T22:44:06.132547&#39;,...
+   Data: {'type': 'status_response', 'data': {'session_id': '0dcb223a-93bb-4180-8bc6-9d0f6e60f89d', 'agent_i
+nitialized': True, 'memory_manager_initialized': True, 'last_activity': '2025-06-21T22:44:06.132547',...
 
 ============================================================
   Agent Query Test
@@ -4175,45 +4175,45 @@ nitialized&#39;: True, &#39;memory_manager_initialized&#39;: True, &#39;last_act
 📨 Received: typing_start
 📨 Received: query_response
 ✅ PASS: Agent query (received 2 responses)
-   Data: [{&#39;type&#39;: &#39;typing_start&#39;, &#39;data&#39;: {&#39;session_id&#39;: &#39;0dcb223a-93bb-4180-8bc6-9d0f6e60f89d&#39;, &#39;timestamp
-&#39;: &#39;2025-06-21T22:44:06.139022&#39;}}, {&#39;type&#39;: &#39;query_response&#39;, &#39;data&#39;: {&#39;message&#39;: &#39;Dragons in D&amp;D are...
+   Data: [{'type': 'typing_start', 'data': {'session_id': '0dcb223a-93bb-4180-8bc6-9d0f6e60f89d', 'timestamp
+': '2025-06-21T22:44:06.139022'}}, {'type': 'query_response', 'data': {'message': 'Dragons in D&amp;D are...
 
 ============================================================
   Get Memory Test
 ============================================================
 ✅ PASS: Memory retrieval
-   Data: {&#39;type&#39;: &#39;memory_response&#39;, &#39;data&#39;: {&#39;session_id&#39;: &#39;0dcb223a-93bb-4180-8bc6-9d0f6e60f89d&#39;, &#39;type&#39;: 
-&#39;conversations&#39;, &#39;data&#39;: {&#39;conversations&#39;: [{&#39;guid&#39;: &#39;6144dd2f-164e-424e-a649-521d86a66452&#39;, &#39;role&#39;: ...
+   Data: {'type': 'memory_response', 'data': {'session_id': '0dcb223a-93bb-4180-8bc6-9d0f6e60f89d', 'type': 
+'conversations', 'data': {'conversations': [{'guid': '6144dd2f-164e-424e-a649-521d86a66452', 'role': ...
 
 ============================================================
   Search Memory Test
 ============================================================
 ✅ PASS: Memory search
-   Data: {&#39;type&#39;: &#39;search_response&#39;, &#39;data&#39;: {&#39;session_id&#39;: &#39;0dcb223a-93bb-4180-8bc6-9d0f6e60f89d&#39;, &#39;query&#39;:
- &#39;dragon&#39;, &#39;results&#39;: [], &#39;total_results&#39;: 0, &#39;timestamp&#39;: &#39;2025-06-21T22:44:15.376288&#39;}}...
+   Data: {'type': 'search_response', 'data': {'session_id': '0dcb223a-93bb-4180-8bc6-9d0f6e60f89d', 'query':
+ 'dragon', 'results': [], 'total_results': 0, 'timestamp': '2025-06-21T22:44:15.376288'}}...
 
 ============================================================
   Get Graph Test
 ============================================================
 ✅ PASS: Graph retrieval
-   Data: {&#39;type&#39;: &#39;graph_response&#39;, &#39;data&#39;: {&#39;session_id&#39;: &#39;0dcb223a-93bb-4180-8bc6-9d0f6e60f89d&#39;, &#39;format&#39;:
- &#39;json&#39;, &#39;graph_data&#39;: {&#39;nodes&#39;: [], &#39;edges&#39;: [], &#39;metadata&#39;: {&#39;graph_disabled&#39;: True, &#39;message&#39;: &#39;Gr...
+   Data: {'type': 'graph_response', 'data': {'session_id': '0dcb223a-93bb-4180-8bc6-9d0f6e60f89d', 'format':
+ 'json', 'graph_data': {'nodes': [], 'edges': [], 'metadata': {'graph_disabled': True, 'message': 'Gr...
 
 ============================================================
   Heartbeat Test
 ============================================================
 ✅ PASS: Heartbeat with response
-   Data: {&#39;type&#39;: &#39;heartbeat_response&#39;, &#39;data&#39;: {&#39;timestamp&#39;: &#39;2025-06-21T22:44:15.395827&#39;, &#39;session_id&#39;: &#39;0
-dcb223a-93bb-4180-8bc6-9d0f6e60f89d&#39;}}...
+   Data: {'type': 'heartbeat_response', 'data': {'timestamp': '2025-06-21T22:44:15.395827', 'session_id': '0
+dcb223a-93bb-4180-8bc6-9d0f6e60f89d'}}...
 
 ============================================================
   Monitor WebSocket Test
 ============================================================
 ✅ PASS: Monitor connected
-   Data: {&#39;type&#39;: &#39;monitor_connected&#39;, &#39;data&#39;: {&#39;active_sessions&#39;: 9, &#39;active_connections&#39;: 0, &#39;timestamp&#39;: 
-&#39;now&#39;}}...
+   Data: {'type': 'monitor_connected', 'data': {'active_sessions': 9, 'active_connections': 0, 'timestamp': 
+'now'}}...
 ✅ PASS: Monitor ping/pong
-   Data: {&#39;type&#39;: &#39;pong&#39;, &#39;data&#39;: {&#39;active_sessions&#39;: 9, &#39;active_connections&#39;: 0, &#39;timestamp&#39;: &#39;now&#39;}}...
+   Data: {'type': 'pong', 'data': {'active_sessions': 9, 'active_connections': 0, 'timestamp': 'now'}}...
 
 ============================================================
   Invalid Session WebSocket Test
@@ -4342,7 +4342,7 @@ I'll add a comprehensive update section to the README-phase-6.md file documentin
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: README-phase-6.md</summary>
+<details><summary>Tool use: **edit_file** • Edit file: README-phase-6.md</summary>
 
 I'll add a comprehensive update section at the end documenting the Week 1 and Week 2 achievements and API testing results
 

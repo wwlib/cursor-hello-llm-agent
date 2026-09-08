@@ -9212,7 +9212,7 @@ Output mode: content
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed directory undefined • **0** results</summary>
+            <summary>Tool use: **list_dir** • Listed directory, 0 results</summary>
         
 No results found
 </details>
@@ -10393,7 +10393,7 @@ Directory: **/Users/andrewrapo/github/cursor/cursor-hello-llm-agent** (2 files)
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed directory undefined • **0** results</summary>
+            <summary>Tool use: **list_dir** • Listed directory, 0 results</summary>
         
 No results found
 </details>
@@ -12308,7 +12308,7 @@ Checking if the README needs updates. Reviewing its contents and comparing with 
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed directory undefined • **0** results</summary>
+            <summary>Tool use: **list_dir** • Listed directory, 0 results</summary>
         
 No results found
 </details>
@@ -14606,7 +14606,7 @@ _No matches found_
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed directory undefined • **0** results</summary>
+            <summary>Tool use: **list_dir** • Listed directory, 0 results</summary>
         
 No results found
 </details>
@@ -16406,7 +16406,6 @@ _**Agent (model default, mode Ask)**_
 
 ---
 
-
 Reviewing README.md to identify where to add the Server and Web UI section.
 
 
@@ -16439,7 +16438,6 @@ Reviewing README.md to identify where to add the Server and Web UI section.
 
 
 ---
-
 
 Add this section at the end of README.md, before the Acknowledgements:
 

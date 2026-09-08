@@ -338,7 +338,7 @@ The user wants me to add the todo list plan I just created to the README-entity-
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/graph_memory_notes/README-entity-resolution-plan.md</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/graph_memory/graph_memory_notes/README-entity-resolution-plan.md</summary>
 
 I will add the comprehensive entity resolution implementation todo list plan to this currently empty file.
 
@@ -349,7 +349,7 @@ Lines added: 136, lines removed: undefined
 @@ -1,3 +1,139 @@
   # README-entity-resolution-plan
 + 
-+ Based on analysis of the README-entity-resolution-prompt.md document, here&#39;s a comprehensive TODO list for implementing the recommended improvements to the entity extraction process:
++ Based on analysis of the README-entity-resolution-prompt.md document, here's a comprehensive TODO list for implementing the recommended improvements to the entity extraction process:
 + 
 + # Entity Resolution Implementation TODO List
 + 
@@ -406,7 +406,7 @@ Lines added: 136, lines removed: undefined
 + 
 + ### 4.1 Improve Duplicate Detection
 + - [ ] **Better semantic matching for existing duplicates**
-+   - Example duplicates found: &quot;ruins&quot; vs &quot;ancient ruins&quot;, &quot;Sara&quot; vs &quot;Captain Sara&quot;
++   - Example duplicates found: "ruins" vs "ancient ruins", "Sara" vs "Captain Sara"
 +   - **Action**: Add alias-aware matching in RAG selection
 +   - **Action**: Implement fuzzy name matching for character entities
 +   - **Action**: Add post-resolution duplicate cleanup
@@ -422,7 +422,7 @@ Lines added: 136, lines removed: undefined
 + ### 5.1 Update Entity Resolution Prompt Template
 + - [ ] **Fix inconsistencies in entity_resolution.prompt**
 +   - **Action**: Add confidence score to output format specification
-+   - **Action**: Fix typos (&quot;mach&quot; → &quot;match&quot;, &quot;nodd&quot; → &quot;node&quot;)
++   - **Action**: Fix typos ("mach" → "match", "nodd" → "node")
 +   - **Action**: Clarify tuple array format with confidence score
 + 
 + ### 5.2 Enhance Entity Extraction Prompt

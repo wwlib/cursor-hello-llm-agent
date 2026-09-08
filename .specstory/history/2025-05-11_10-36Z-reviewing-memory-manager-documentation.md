@@ -22,7 +22,7 @@ _**Agent (mode Agent)**_
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed directory src/memory • **14** results</summary>
+            <summary>Tool use: **list_dir** • Listed directory src/memory, 14 results</summary>
         
 | Name |
 |-------|
@@ -400,7 +400,7 @@ I will now create `tests/memory_manager/test_data_preprocessor.py` with these pa
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: tests/memory_manager/test_data_preprocessor.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: tests/memory_manager/test_data_preprocessor.py</summary>
 
 **Chunk 1**
 Lines added: 94, lines removed: 1
@@ -408,7 +408,7 @@ Lines added: 94, lines removed: 1
 ```diff
 @@ -1,1 +1,94 @@
 - 
-+ &quot;&quot;&quot;Tests for the DataPreprocessor class and preprocess_data.prompt.&quot;&quot;&quot;
++ """Tests for the DataPreprocessor class and preprocess_data.prompt."""
 + 
 + import pytest
 + import os
@@ -416,73 +416,73 @@ Lines added: 94, lines removed: 1
 + from src.ai.llm_ollama import OllamaService
 + 
 + # Configure Ollama connection
-+ OLLAMA_BASE_URL = os.getenv(&quot;OLLAMA_BASE_URL&quot;, &quot;http://localhost:11434&quot;)
-+ OLLAMA_EMBED_MODEL = os.getenv(&quot;OLLAMA_EMBED_MODEL&quot;, &quot;mxbai-embed-large&quot;)
-+ OLLAMA_LLM_MODEL = os.getenv(&quot;OLLAMA_LLM_MODEL&quot;, &quot;gemma3&quot;)
++ OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
++ OLLAMA_EMBED_MODEL = os.getenv("OLLAMA_EMBED_MODEL", "mxbai-embed-large")
++ OLLAMA_LLM_MODEL = os.getenv("OLLAMA_LLM_MODEL", "gemma3")
 + 
 + @pytest.fixture
 + def llm_service():
-+     &quot;&quot;&quot;Create an LLM service for testing.&quot;&quot;&quot;
-+     logs_dir = os.path.join(os.path.dirname(__file__), &quot;logs&quot;)
-+     guid = &quot;data_preprocessor_test&quot;
++     """Create an LLM service for testing."""
++     logs_dir = os.path.join(os.path.dirname(__file__), "logs")
++     guid = "data_preprocessor_test"
 +     guid_logs_dir = os.path.join(logs_dir, guid)
 +     os.makedirs(guid_logs_dir, exist_ok=True)
-+     general_debug_file = os.path.join(guid_logs_dir, &quot;general.log&quot;)
++     general_debug_file = os.path.join(guid_logs_dir, "general.log")
 +     return OllamaService({
-+         &quot;base_url&quot;: OLLAMA_BASE_URL,
-+         &quot;model&quot;: OLLAMA_LLM_MODEL,
-+         &quot;temperature&quot;: 0,
-+         &quot;stream&quot;: False,
-+         &quot;debug&quot;: True,
-+         &quot;debug_file&quot;: general_debug_file,
-+         &quot;debug_scope&quot;: &quot;test_data_preprocessor&quot;,
-+         &quot;console_output&quot;: False
++         "base_url": OLLAMA_BASE_URL,
++         "model": OLLAMA_LLM_MODEL,
++         "temperature": 0,
++         "stream": False,
++         "debug": True,
++         "debug_file": general_debug_file,
++         "debug_scope": "test_data_preprocessor",
++         "console_output": False
 +     })
 + 
 + @pytest.fixture
 + def data_preprocessor(llm_service):
-+     &quot;&quot;&quot;Create a DataPreprocessor instance for testing.&quot;&quot;&quot;
++     """Create a DataPreprocessor instance for testing."""
 +     return DataPreprocessor(llm_service)
 + 
 + def test_preprocess_data_typical(data_preprocessor):
-+     &quot;&quot;&quot;Test preprocessing typical multi-fact input.&quot;&quot;&quot;
-+     input_data = &quot;&quot;&quot;
++     """Test preprocessing typical multi-fact input."""
++     input_data = """
 + The lab is a place for invention. The lab contains cool equipment, including 3D printers, soldering irons, woodworking tools, and more. There are two main workspaces: electronics and fabrication. Safety goggles are required in the fabrication area.
-+ &quot;&quot;&quot;
++ """
 +     phrases = data_preprocessor.preprocess_data(input_data)
-+     assert isinstance(phrases, list), &quot;Output should be a list&quot;
-+     assert len(phrases) &gt;= 2, &quot;Should return multiple phrases for multi-fact input&quot;
++     assert isinstance(phrases, list), "Output should be a list"
++     assert len(phrases) &gt;= 2, "Should return multiple phrases for multi-fact input"
 +     for phrase in phrases:
-+         assert isinstance(phrase, str), &quot;Each phrase should be a string&quot;
-+         assert phrase.strip(), &quot;Each phrase should be non-empty&quot;
++         assert isinstance(phrase, str), "Each phrase should be a string"
++         assert phrase.strip(), "Each phrase should be non-empty"
 +     # Check that key facts are present
-+     combined = &quot; &quot;.join(phrases).lower()
-+     for fact in [&quot;lab is a place for invention&quot;, &quot;3d printers&quot;, &quot;soldering irons&quot;, &quot;woodworking tools&quot;, &quot;safety goggles&quot;]:
-+         assert fact in combined, f&quot;Fact &#39;{fact}&#39; not found in output&quot;
-+     print(&quot;\nPreprocessed Phrases (typical):&quot;)
++     combined = " ".join(phrases).lower()
++     for fact in ["lab is a place for invention", "3d printers", "soldering irons", "woodworking tools", "safety goggles"]:
++         assert fact in combined, f"Fact '{fact}' not found in output"
++     print("\nPreprocessed Phrases (typical):")
 +     for i, phrase in enumerate(phrases):
-+         print(f&quot;Phrase {i+1}: {phrase}&quot;)
++         print(f"Phrase {i+1}: {phrase}")
 + 
 + def test_preprocess_data_empty(data_preprocessor):
-+     &quot;&quot;&quot;Test preprocessing empty input.&quot;&quot;&quot;
-+     phrases = data_preprocessor.preprocess_data(&quot;&quot;)
-+     assert isinstance(phrases, list), &quot;Should return a list&quot;
-+     assert len(phrases) == 0, &quot;Should return an empty list for empty input&quot;
-+     phrases = data_preprocessor.preprocess_data(&quot;   \n\t  &quot;)
-+     assert isinstance(phrases, list), &quot;Should return a list&quot;
-+     assert len(phrases) == 0, &quot;Should return an empty list for whitespace-only input&quot;
++     """Test preprocessing empty input."""
++     phrases = data_preprocessor.preprocess_data("")
++     assert isinstance(phrases, list), "Should return a list"
++     assert len(phrases) == 0, "Should return an empty list for empty input"
++     phrases = data_preprocessor.preprocess_data("   \n\t  ")
++     assert isinstance(phrases, list), "Should return a list"
++     assert len(phrases) == 0, "Should return an empty list for whitespace-only input"
 + 
 + def test_preprocess_data_single_sentence(data_preprocessor):
-+     &quot;&quot;&quot;Test preprocessing a single sentence.&quot;&quot;&quot;
-+     content = &quot;The quick brown fox jumps over the lazy dog.&quot;
++     """Test preprocessing a single sentence."""
++     content = "The quick brown fox jumps over the lazy dog."
 +     phrases = data_preprocessor.preprocess_data(content)
-+     assert isinstance(phrases, list), &quot;Should return a list&quot;
-+     assert len(phrases) == 1, &quot;Should return exactly one phrase for a single sentence&quot;
-+     assert phrases[0] == content, &quot;Should return the original content as a single phrase&quot;
++     assert isinstance(phrases, list), "Should return a list"
++     assert len(phrases) == 1, "Should return exactly one phrase for a single sentence"
++     assert phrases[0] == content, "Should return the original content as a single phrase"
 + 
 + def test_preprocess_data_bulleted(data_preprocessor):
-+     &quot;&quot;&quot;Test preprocessing bulleted/complex input.&quot;&quot;&quot;
-+     input_data = &quot;&quot;&quot;
++     """Test preprocessing bulleted/complex input."""
++     input_data = """
 + - Project: Task Management System
 + - Features:
 +   - User authentication
@@ -491,16 +491,16 @@ Lines added: 94, lines removed: 1
 + - Stakeholders:
 +   - Project Manager
 +   - Team Members
-+ &quot;&quot;&quot;
++ """
 +     phrases = data_preprocessor.preprocess_data(input_data)
-+     assert isinstance(phrases, list), &quot;Should return a list&quot;
-+     assert len(phrases) &gt;= 2, &quot;Should return multiple phrases for bulleted input&quot;
-+     combined = &quot; &quot;.join(phrases).lower()
-+     for fact in [&quot;task management system&quot;, &quot;user authentication&quot;, &quot;task creation&quot;, &quot;due date reminders&quot;, &quot;project manager&quot;, &quot;team members&quot;]:
-+         assert fact in combined, f&quot;Fact &#39;{fact}&#39; not found in output&quot;
-+     print(&quot;\nPreprocessed Phrases (bulleted):&quot;)
++     assert isinstance(phrases, list), "Should return a list"
++     assert len(phrases) &gt;= 2, "Should return multiple phrases for bulleted input"
++     combined = " ".join(phrases).lower()
++     for fact in ["task management system", "user authentication", "task creation", "due date reminders", "project manager", "team members"]:
++         assert fact in combined, f"Fact '{fact}' not found in output"
++     print("\nPreprocessed Phrases (bulleted):")
 +     for i, phrase in enumerate(phrases):
-+         print(f&quot;Phrase {i+1}: {phrase}&quot;)
++         print(f"Phrase {i+1}: {phrase}")
 + 
 ```
 
@@ -558,7 +558,7 @@ _**Agent (mode Agent)**_
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/data_preprocessor.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/data_preprocessor.py</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: 1
@@ -592,11 +592,11 @@ Lines added: 1, lines removed: 1
 
 ```diff
 @@ -30,5 +32,5 @@
-              raise Exception(&quot;Failed to load preprocess_data template&quot;)
+              raise Exception("Failed to load preprocess_data template")
   
 -     def preprocess_data(self, input_data: str) -&gt; List[str]:
 +     def preprocess_data(self, input_data: str) -&gt; Tuple[str, List[str]]:
-          &quot;&quot;&quot;Turn input data into embeddable phrases using the LLM and the preprocess_data prompt.
+          """Turn input data into embeddable phrases using the LLM and the preprocess_data prompt.
           
 ```
 
@@ -609,11 +609,11 @@ Lines added: 3, lines removed: 3
           Returns:
 -             List[str]: List of embeddable phrases
 +             Tuple[str, List[str]]: (prose, segments)
-          &quot;&quot;&quot;
+          """
           try:
               if not input_data or not input_data.strip():
 -                 return []
-+                 return (&quot;&quot;, [])
++                 return ("", [])
   
               prompt = self.preprocess_template.format(input_data=input_data)
 -             llm_response = self.llm.generate(
@@ -635,12 +635,12 @@ Lines added: 3, lines removed: 22
 -             # try:
 -             #     phrases = json.loads(llm_response)
 -             #     if not isinstance(phrases, list) or not all(isinstance(p, str) for p in phrases):
--             #         self.logger.debug(&quot;Preprocessing failed: Response is not a list of strings&quot;)
+-             #         self.logger.debug("Preprocessing failed: Response is not a list of strings")
 -             #         return [input_data]
 -             #     return phrases
 -             # except json.JSONDecodeError:
 -             #     # Try to extract JSON array if embedded in markdown or text
--             #     match = re.search(r&#39;\[\s*&quot;.*?&quot;.*?\]&#39;, llm_response, re.DOTALL)
+-             #     match = re.search(r'\[\s*".*?".*?\]', llm_response, re.DOTALL)
 -             #     if match:
 -             #         try:
 -             #             phrases = json.loads(match.group(0))
@@ -648,12 +648,12 @@ Lines added: 3, lines removed: 22
 -             #                 return phrases
 -             #         except json.JSONDecodeError:
 -             #             pass
--             #     self.logger.error(&quot;Failed to parse embeddable phrases, using input as fallback&quot;)
+-             #     self.logger.error("Failed to parse embeddable phrases, using input as fallback")
 -             #     return [input_data]
 +             segments = self.segmenter.segment_content(prose)
 +             return (prose, segments)
           except Exception as e:
-              self.logger.error(f&quot;Error in data preprocessing: {str(e)}&quot;)
+              self.logger.error(f"Error in data preprocessing: {str(e)}")
 -             return [input_data]
 +             return (input_data, [input_data])
   
@@ -690,7 +690,7 @@ Please review the git log and write a compreshensive update. BTW: Today is May 1
 _**Agent (mode Agent)**_
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: git log --since=2024-05-01 --pretty=format:'%h %ad %s' --date=short</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: git log --since=2024-05-01 --pretty=format:'%h %ad %s' --date=short</summary>
 
 ```bash
 git log --since=2024-05-01 --pretty=format:'%h %ad %s' --date=short
@@ -799,7 +799,7 @@ _**Agent (mode Agent)**_
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: README-phase-3.md</summary>
+<details><summary>Tool use: **edit_file** • Edit file: README-phase-3.md</summary>
 
 **Chunk 1**
 Lines added: 60, lines removed: undefined
@@ -807,7 +807,7 @@ Lines added: 60, lines removed: undefined
 ```diff
 @@ -63,4 +63,64 @@
   
-  These improvements make the system more maintainable and easier to debug, while providing better visibility into the system&#39;s operation and test execution.
+  These improvements make the system more maintainable and easier to debug, while providing better visibility into the system's operation and test execution.
 + 
 + ## Phase 3 Update – May 12, 2025 – Async Memory, Logging, Preprocessing, and Usability
 + 

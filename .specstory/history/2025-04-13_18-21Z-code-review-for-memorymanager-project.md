@@ -18,7 +18,7 @@ I'll explore your project to understand the MemoryManager and its usage. Let me 
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed current directory • **35** results</summary>
+            <summary>Tool use: **list_dir** • Listed current directory, 35 results</summary>
         
 | Name |
 |-------|
@@ -69,7 +69,7 @@ Let me look at the main source directory to understand the project structure.
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed directory src • **5** results</summary>
+            <summary>Tool use: **list_dir** • Listed directory src, 5 results</summary>
         
 | Name |
 |-------|
@@ -90,7 +90,7 @@ Let's examine the memory directory to understand the memory management component
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed directory src/memory • **7** results</summary>
+            <summary>Tool use: **list_dir** • Listed directory src/memory, 7 results</summary>
         
 | Name |
 |-------|
@@ -161,7 +161,7 @@ Let's look at one of the examples to see how the system is actually used:
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed directory examples • **8** results</summary>
+            <summary>Tool use: **list_dir** • Listed directory examples, 8 results</summary>
         
 | Name |
 |-------|
@@ -205,7 +205,7 @@ Let's also check if we can find any template files used for prompting:
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed directory src/memory/templates • **4** results</summary>
+            <summary>Tool use: **list_dir** • Listed directory src/memory/templates, 4 results</summary>
         
 | Name |
 |-------|
@@ -371,7 +371,7 @@ Here's how I'll implement this:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: undefined
@@ -390,11 +390,11 @@ Lines added: 1, lines removed: 1
 
 ```diff
 @@ -51,5 +52,5 @@
-      &quot;&quot;&quot;
+      """
   
--     def __init__(self, memory_file: str = &quot;memory.json&quot;, domain_config: Optional[Dict[str, Any]] = None, llm_service = None):
-+     def __init__(self, memory_file: str = &quot;memory.json&quot;, domain_config: Optional[Dict[str, Any]] = None, llm_service = None, memory_guid: str = None):
-          &quot;&quot;&quot;Initialize the MemoryManager with an LLM service and domain configuration.
+-     def __init__(self, memory_file: str = "memory.json", domain_config: Optional[Dict[str, Any]] = None, llm_service = None):
++     def __init__(self, memory_file: str = "memory.json", domain_config: Optional[Dict[str, Any]] = None, llm_service = None, memory_guid: str = None):
+          """Initialize the MemoryManager with an LLM service and domain configuration.
           
 ```
 
@@ -407,15 +407,15 @@ Lines added: 31, lines removed: undefined
               llm_service: Service for LLM operations (required for this implementation)
 +             memory_guid: Optional GUID to identify this memory instance. If not provided, 
 +                        a new one will be generated or loaded from existing file.
-          &quot;&quot;&quot;
+          """
           if llm_service is None:
-              raise ValueError(&quot;llm_service is required for MemoryManager&quot;)
+              raise ValueError("llm_service is required for MemoryManager")
               
 +         # Store memory_guid if provided
 +         self.memory_guid = memory_guid
 +             
           super().__init__(memory_file, domain_config)
-          print(f&quot;\nInitializing MemoryManager with file: {memory_file}&quot;)
+          print(f"\nInitializing MemoryManager with file: {memory_file}")
           self.llm = llm_service
           self._load_templates()
 +         
@@ -423,26 +423,26 @@ Lines added: 31, lines removed: undefined
 +         self._ensure_memory_guid()
 + 
 +     def _ensure_memory_guid(self):
-+         &quot;&quot;&quot;Ensure that the memory has a GUID, generating one if needed.&quot;&quot;&quot;
-+         # If memory doesn&#39;t exist yet or doesn&#39;t have a guid, we&#39;ll set it later in create_initial_memory
++         """Ensure that the memory has a GUID, generating one if needed."""
++         # If memory doesn't exist yet or doesn't have a guid, we'll set it later in create_initial_memory
 +         if not self.memory:
 +             return
 +             
 +         # If memory exists but no guid was found during load and none was provided
-+         if &quot;guid&quot; not in self.memory and not self.memory_guid:
++         if "guid" not in self.memory and not self.memory_guid:
 +             # Generate a new GUID
 +             self.memory_guid = str(uuid.uuid4())
-+             self.memory[&quot;guid&quot;] = self.memory_guid
-+             print(f&quot;Generated new GUID for existing memory: {self.memory_guid}&quot;)
++             self.memory["guid"] = self.memory_guid
++             print(f"Generated new GUID for existing memory: {self.memory_guid}")
 +             self.save_memory()
-+         elif &quot;guid&quot; in self.memory:
++         elif "guid" in self.memory:
 +             # Store the loaded GUID
-+             self.memory_guid = self.memory[&quot;guid&quot;]
-+             print(f&quot;Using existing memory GUID: {self.memory_guid}&quot;)
++             self.memory_guid = self.memory["guid"]
++             print(f"Using existing memory GUID: {self.memory_guid}")
 +         else:
 +             # Use the provided GUID
-+             self.memory[&quot;guid&quot;] = self.memory_guid
-+             print(f&quot;Applied provided GUID to memory: {self.memory_guid}&quot;)
++             self.memory["guid"] = self.memory_guid
++             print(f"Applied provided GUID to memory: {self.memory_guid}")
 +             self.save_memory()
   
       def _get_default_config(self) -&gt; dict:
@@ -453,8 +453,8 @@ Lines added: 2, lines removed: undefined
 
 ```diff
 @@ -111,4 +143,6 @@
-          if self.memory and all(key in self.memory for key in [&quot;original_data&quot;, &quot;static_memory&quot;, &quot;working_memory&quot;, &quot;metadata&quot;, &quot;conversation_history&quot;]):
-              print(&quot;Valid memory structure already exists, skipping initialization&quot;)
+          if self.memory and all(key in self.memory for key in ["original_data", "static_memory", "working_memory", "metadata", "conversation_history"]):
+              print("Valid memory structure already exists, skipping initialization")
 +             # Ensure GUID exists even for pre-existing memories
 +             self._ensure_memory_guid()
               return True
@@ -468,17 +468,17 @@ Lines added: 6, lines removed: undefined
 @@ -212,7 +246,13 @@
                       return False
               
-+             # Generate a new GUID if one wasn&#39;t provided
++             # Generate a new GUID if one wasn't provided
 +             if not self.memory_guid:
 +                 self.memory_guid = str(uuid.uuid4())
-+                 print(f&quot;Generated new GUID for memory: {self.memory_guid}&quot;)
++                 print(f"Generated new GUID for memory: {self.memory_guid}")
 +             
               # Initialize complete memory structure
               now = datetime.now().isoformat()
               self.memory = {
-+                 &quot;guid&quot;: self.memory_guid,  # Add GUID to memory structure
-                  &quot;original_data&quot;: input_data,  # Store the original raw input data
-                  &quot;static_memory&quot;: static_memory,
++                 "guid": self.memory_guid,  # Add GUID to memory structure
+                  "original_data": input_data,  # Store the original raw input data
+                  "static_memory": static_memory,
 ```
 
 </details>
@@ -505,7 +505,7 @@ Let's update the BaseMemoryManager class to include GUID support:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/base_memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/base_memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: undefined
@@ -537,15 +537,15 @@ Lines added: 8, lines removed: undefined
 
 ```diff
 @@ -147,3 +150,11 @@
-          &quot;&quot;&quot;
+          """
           pass
 + 
 +     def get_memory_guid(self) -&gt; Optional[str]:
-+         &quot;&quot;&quot;Get the GUID of the current memory file.
++         """Get the GUID of the current memory file.
 +         
 +         Returns:
 +             str: The memory GUID if available, None otherwise
-+         &quot;&quot;&quot;
++         """
 +         return self.memory_guid
   
 ```
@@ -562,7 +562,7 @@ Now let's update the SimpleMemoryManager class to support GUIDs as well, since i
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/simple_memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/simple_memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: undefined
@@ -581,11 +581,11 @@ Lines added: 1, lines removed: 1
 
 ```diff
 @@ -26,5 +27,5 @@
-      &quot;&quot;&quot;
+      """
       
--     def __init__(self, memory_file: str = &quot;memory.json&quot;, domain_config: Optional[Dict[str, Any]] = None, llm_service = None):
-+     def __init__(self, memory_file: str = &quot;memory.json&quot;, domain_config: Optional[Dict[str, Any]] = None, llm_service = None, memory_guid: str = None):
-          &quot;&quot;&quot;Initialize the SimpleMemoryManager.
+-     def __init__(self, memory_file: str = "memory.json", domain_config: Optional[Dict[str, Any]] = None, llm_service = None):
++     def __init__(self, memory_file: str = "memory.json", domain_config: Optional[Dict[str, Any]] = None, llm_service = None, memory_guid: str = None):
+          """Initialize the SimpleMemoryManager.
           
 ```
 
@@ -598,41 +598,41 @@ Lines added: 31, lines removed: undefined
               llm_service: Service for LLM operations (required for generating responses)
 +             memory_guid: Optional GUID to identify this memory instance. If not provided, 
 +                        a new one will be generated or loaded from existing file.
-          &quot;&quot;&quot;
+          """
           if llm_service is None:
-              raise ValueError(&quot;llm_service is required for SimpleMemoryManager&quot;)
+              raise ValueError("llm_service is required for SimpleMemoryManager")
 +         
 +         # Store memory_guid if provided
 +         self.memory_guid = memory_guid
               
           super().__init__(memory_file, domain_config)
-          print(f&quot;\nInitializing SimpleMemoryManager with file: {memory_file}&quot;)
+          print(f"\nInitializing SimpleMemoryManager with file: {memory_file}")
           self.llm = llm_service
 +         
 +         # Ensure memory has a GUID
 +         self._ensure_memory_guid()
 +         
 +     def _ensure_memory_guid(self):
-+         &quot;&quot;&quot;Ensure that the memory has a GUID, generating one if needed.&quot;&quot;&quot;
-+         # If memory doesn&#39;t exist yet or doesn&#39;t have a guid, we&#39;ll set it later in create_initial_memory
++         """Ensure that the memory has a GUID, generating one if needed."""
++         # If memory doesn't exist yet or doesn't have a guid, we'll set it later in create_initial_memory
 +         if not self.memory:
 +             return
 +             
 +         # If memory exists but no guid was found during load and none was provided
-+         if &quot;guid&quot; not in self.memory and not self.memory_guid:
++         if "guid" not in self.memory and not self.memory_guid:
 +             # Generate a new GUID
 +             self.memory_guid = str(uuid.uuid4())
-+             self.memory[&quot;guid&quot;] = self.memory_guid
-+             print(f&quot;Generated new GUID for existing memory: {self.memory_guid}&quot;)
++             self.memory["guid"] = self.memory_guid
++             print(f"Generated new GUID for existing memory: {self.memory_guid}")
 +             self.save_memory()
-+         elif &quot;guid&quot; in self.memory:
++         elif "guid" in self.memory:
 +             # Store the loaded GUID
-+             self.memory_guid = self.memory[&quot;guid&quot;]
-+             print(f&quot;Using existing memory GUID: {self.memory_guid}&quot;)
++             self.memory_guid = self.memory["guid"]
++             print(f"Using existing memory GUID: {self.memory_guid}")
 +         else:
 +             # Use the provided GUID
-+             self.memory[&quot;guid&quot;] = self.memory_guid
-+             print(f&quot;Applied provided GUID to memory: {self.memory_guid}&quot;)
++             self.memory["guid"] = self.memory_guid
++             print(f"Applied provided GUID to memory: {self.memory_guid}")
 +             self.save_memory()
   
       def create_initial_memory(self, input_data: str) -&gt; bool:
@@ -643,23 +643,23 @@ Lines added: 8, lines removed: undefined
 
 ```diff
 @@ -55,9 +87,17 @@
-              if self.memory and all(key in self.memory for key in [&quot;initial_data&quot;, &quot;conversation_history&quot;, &quot;last_updated&quot;]):
-                  print(&quot;Valid memory structure already exists, skipping initialization&quot;)
+              if self.memory and all(key in self.memory for key in ["initial_data", "conversation_history", "last_updated"]):
+                  print("Valid memory structure already exists, skipping initialization")
 +                 # Ensure GUID exists even for pre-existing memories
 +                 self._ensure_memory_guid()
                   return True
 +             
-+             # Generate a new GUID if one wasn&#39;t provided
++             # Generate a new GUID if one wasn't provided
 +             if not self.memory_guid:
 +                 self.memory_guid = str(uuid.uuid4())
-+                 print(f&quot;Generated new GUID for memory: {self.memory_guid}&quot;)
++                 print(f"Generated new GUID for memory: {self.memory_guid}")
                   
               # Initialize the simplified memory structure
               now = datetime.now().isoformat()
               self.memory = {
-+                 &quot;guid&quot;: self.memory_guid,  # Add GUID to memory structure
-                  &quot;initial_data&quot;: input_data,
-                  &quot;conversation_history&quot;: [],
++                 "guid": self.memory_guid,  # Add GUID to memory structure
+                  "initial_data": input_data,
+                  "conversation_history": [],
 ```
 
 </details>
@@ -674,7 +674,7 @@ Now, let's update an example to show how to use the GUID feature:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/memory_manager_usage_example.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: examples/memory_manager_usage_example.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: undefined
@@ -693,11 +693,11 @@ Lines added: 3, lines removed: 1
 
 ```diff
 @@ -26,5 +27,7 @@
-      print(f&quot;\n{title}&quot;)
-      print(&quot;=&quot; * len(title))
+      print(f"\n{title}")
+      print("=" * len(title))
 -     print(json.dumps(memory_manager.get_memory_context(), indent=2))
 +     memory_context = memory_manager.get_memory_context()
-+     print(f&quot;Memory GUID: {memory_manager.get_memory_guid()}&quot;)
++     print(f"Memory GUID: {memory_manager.get_memory_guid()}")
 +     print(json.dumps(memory_context, indent=2))
   
   async def demonstrate_memory_creation():
@@ -711,14 +711,14 @@ Lines added: 10, lines removed: 2
       })
       
 -     # Create memory manager with test file
--     memory_manager = MemoryManager(llm_service, &quot;example_memory.json&quot;, USER_STORY_CONFIG)
+-     memory_manager = MemoryManager(llm_service, "example_memory.json", USER_STORY_CONFIG)
 +     # Create memory manager with test file and a specific GUID
 +     demo_guid = str(uuid.uuid4())
-+     print(f&quot;Using predefined GUID for new memory: {demo_guid}&quot;)
++     print(f"Using predefined GUID for new memory: {demo_guid}")
 +     
 +     memory_manager = MemoryManager(
 +         llm_service=llm_service, 
-+         memory_file=&quot;example_memory.json&quot;, 
++         memory_file="example_memory.json", 
 +         domain_config=USER_STORY_CONFIG, 
 +         memory_guid=demo_guid
 +     )
@@ -731,104 +731,104 @@ Lines added: 113, lines removed: undefined
 
 ```diff
 @@ -81,4 +92,117 @@
-          print(&quot;\nFailed to create initial memory&quot;)
+          print("\nFailed to create initial memory")
       
 +     return memory_manager, demo_guid
 + 
 + async def demonstrate_multiple_memories():
-+     &quot;&quot;&quot;Demonstrate working with multiple memory files using GUIDs&quot;&quot;&quot;
-+     print_section_header(&quot;Multiple Memories Demo&quot;)
++     """Demonstrate working with multiple memory files using GUIDs"""
++     print_section_header("Multiple Memories Demo")
 +     
 +     # Initialize services
 +     llm_service = OllamaService({
-+         &quot;base_url&quot;: &quot;http://192.168.1.173:11434&quot;,
-+         &quot;model&quot;: &quot;llama3&quot;,
-+         &quot;temperature&quot;: 0.7,
-+         &quot;stream&quot;: False,
-+         &quot;debug&quot;: True,
-+         &quot;debug_file&quot;: &quot;example_memory_debug.log&quot;,
-+         &quot;debug_scope&quot;: &quot;memory_demo&quot;
++         "base_url": "http://192.168.1.173:11434",
++         "model": "llama3",
++         "temperature": 0.7,
++         "stream": False,
++         "debug": True,
++         "debug_file": "example_memory_debug.log",
++         "debug_scope": "memory_demo"
 +     })
 +     
 +     # Create first memory
 +     guid1 = str(uuid.uuid4())
-+     print(f&quot;Creating first memory with GUID: {guid1}&quot;)
++     print(f"Creating first memory with GUID: {guid1}")
 +     memory1 = MemoryManager(
 +         llm_service=llm_service, 
-+         memory_file=&quot;example_memory_1.json&quot;, 
++         memory_file="example_memory_1.json", 
 +         domain_config=USER_STORY_CONFIG, 
 +         memory_guid=guid1
 +     )
 +     
 +     # Create initial memory structure
-+     success1 = memory1.create_initial_memory(&quot;This is the first memory file about Project A.&quot;)
++     success1 = memory1.create_initial_memory("This is the first memory file about Project A.")
 +     if success1:
-+         print(f&quot;Memory 1 created with GUID: {memory1.get_memory_guid()}&quot;)
++         print(f"Memory 1 created with GUID: {memory1.get_memory_guid()}")
 +     
 +     # Create second memory 
 +     guid2 = str(uuid.uuid4())
-+     print(f&quot;Creating second memory with GUID: {guid2}&quot;)
++     print(f"Creating second memory with GUID: {guid2}")
 +     memory2 = MemoryManager(
 +         llm_service=llm_service,
-+         memory_file=&quot;example_memory_2.json&quot;,
++         memory_file="example_memory_2.json",
 +         domain_config=USER_STORY_CONFIG,
 +         memory_guid=guid2
 +     )
 +     
 +     # Create initial memory structure
-+     success2 = memory2.create_initial_memory(&quot;This is the second memory file about Project B.&quot;)
++     success2 = memory2.create_initial_memory("This is the second memory file about Project B.")
 +     if success2:
-+         print(f&quot;Memory 2 created with GUID: {memory2.get_memory_guid()}&quot;)
++         print(f"Memory 2 created with GUID: {memory2.get_memory_guid()}")
 +     
 +     # Show both memories
-+     print(&quot;\nMemory 1:&quot;)
-+     print_memory_state(memory1, &quot;Memory 1 State&quot;)
++     print("\nMemory 1:")
++     print_memory_state(memory1, "Memory 1 State")
 +     
-+     print(&quot;\nMemory 2:&quot;)
-+     print_memory_state(memory2, &quot;Memory 2 State&quot;)
++     print("\nMemory 2:")
++     print_memory_state(memory2, "Memory 2 State")
 +     
 +     return guid1, guid2
 + 
 + async def demonstrate_load_memory_by_guid(guid):
-+     &quot;&quot;&quot;Demonstrate loading a specific memory by GUID&quot;&quot;&quot;
-+     print_section_header(f&quot;Loading Memory with GUID: {guid}&quot;)
++     """Demonstrate loading a specific memory by GUID"""
++     print_section_header(f"Loading Memory with GUID: {guid}")
 +     
 +     # Initialize service
 +     llm_service = OllamaService({
-+         &quot;base_url&quot;: &quot;http://192.168.1.173:11434&quot;,
-+         &quot;model&quot;: &quot;llama3&quot;,
-+         &quot;temperature&quot;: 0.7,
-+         &quot;stream&quot;: False,
-+         &quot;debug&quot;: True,
-+         &quot;debug_file&quot;: &quot;example_memory_debug.log&quot;,
-+         &quot;debug_scope&quot;: &quot;memory_demo&quot;
++         "base_url": "http://192.168.1.173:11434",
++         "model": "llama3",
++         "temperature": 0.7,
++         "stream": False,
++         "debug": True,
++         "debug_file": "example_memory_debug.log",
++         "debug_scope": "memory_demo"
 +     })
 +     
 +     # In a real application, you might look up the file by GUID in a registry
-+     # For this example, we&#39;ll use hardcoded values based on the previous demo
++     # For this example, we'll use hardcoded values based on the previous demo
 +     
 +     # Determine which file to load based on the GUID
 +     # This is a placeholder for a real GUID-to-filename mapping system
-+     memory_file = &quot;example_memory_1.json&quot;  # Default
++     memory_file = "example_memory_1.json"  # Default
 +     if guid.endswith(guid[-6:]):  # Simple check, would be more robust in production
 +         # Check both files to find the matching GUID
 +         try:
-+             with open(&quot;example_memory_1.json&quot;, &#39;r&#39;) as f:
++             with open("example_memory_1.json", 'r') as f:
 +                 data = json.load(f)
-+                 if data.get(&quot;guid&quot;) == guid:
-+                     memory_file = &quot;example_memory_1.json&quot;
++                 if data.get("guid") == guid:
++                     memory_file = "example_memory_1.json"
 +         except Exception:
 +             pass
 +             
 +         try:
-+             with open(&quot;example_memory_2.json&quot;, &#39;r&#39;) as f:
++             with open("example_memory_2.json", 'r') as f:
 +                 data = json.load(f)
-+                 if data.get(&quot;guid&quot;) == guid:
-+                     memory_file = &quot;example_memory_2.json&quot;
++                 if data.get("guid") == guid:
++                     memory_file = "example_memory_2.json"
 +         except Exception:
 +             pass
 +     
-+     print(f&quot;Loading memory from file: {memory_file}&quot;)
++     print(f"Loading memory from file: {memory_file}")
 +     
 +     # Load the memory with the specified GUID
 +     memory_manager = MemoryManager(
@@ -841,10 +841,10 @@ Lines added: 113, lines removed: undefined
 +     # Check if loaded correctly
 +     loaded_guid = memory_manager.get_memory_guid()
 +     if loaded_guid == guid:
-+         print(f&quot;Successfully loaded memory with GUID: {loaded_guid}&quot;)
-+         print_memory_state(memory_manager, &quot;Loaded Memory State&quot;)
++         print(f"Successfully loaded memory with GUID: {loaded_guid}")
++         print_memory_state(memory_manager, "Loaded Memory State")
 +     else:
-+         print(f&quot;Warning: Loaded memory has different GUID. Expected {guid}, got {loaded_guid}&quot;)
++         print(f"Warning: Loaded memory has different GUID. Expected {guid}, got {loaded_guid}")
 +     
       return memory_manager
   
@@ -968,7 +968,7 @@ Let me list the changed files in the repository:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: git status</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: git status</summary>
 
 ```bash
 git status
@@ -976,11 +976,11 @@ git status
 
 ```
 On branch feature/update-memory-manager
-Your branch is up to date with &#39;origin/feature/update-memory-manager&#39;.
+Your branch is up to date with 'origin/feature/update-memory-manager'.
 
 Changes not staged for commit:
-  (use &quot;git add &lt;file&gt;...&quot; to update what will be committed)
-  (use &quot;git restore &lt;file&gt;...&quot; to discard changes in working directory)
+  (use "git add &lt;file&gt;..." to update what will be committed)
+  (use "git restore &lt;file&gt;..." to discard changes in working directory)
         modified:   README.md
         modified:   examples/memory_manager_usage_example.py
         modified:   src/memory/base_memory_manager.py
@@ -988,7 +988,7 @@ Changes not staged for commit:
         modified:   src/memory/simple_memory_manager.py
 
 Untracked files:
-  (use &quot;git add &lt;file&gt;...&quot; to include in what will be committed)
+  (use "git add &lt;file&gt;..." to include in what will be committed)
         .specstory/history/2025-04-13_18-15-identifying-ai-model-and-capabilitie
 s.md
         .specstory/history/2025-04-13_18-21-code-review-for-memorymanager-projec
@@ -998,7 +998,7 @@ t.md
         README-phase-2.md
         temp.json
 
-no changes added to commit (use &quot;git add&quot; and/or &quot;git commit -a&quot;)
+no changes added to commit (use "git add" and/or "git commit -a")
 
 ```
 </details>
@@ -1043,7 +1043,7 @@ Let's stage all the untracked files except temp.json:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: git add .specstory/ .vscode/ README-phase-1.md README-phase-2.md</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: git add .specstory/ .vscode/ README-phase-1.md README-phase-2.md</summary>
 
 ```bash
 git add .specstory/ .vscode/ README-phase-1.md README-phase-2.md
@@ -1063,7 +1063,7 @@ Now let's add the modified files:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: git add examples/memory_manager_usage_example.py src/memory/base_memory_manager.py src/memory/memory_manager.py src/memory/simple_memory_manager.py README.md</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: git add examples/memory_manager_usage_example.py src/memory/base_memory_manager.py src/memory/memory_manager.py src/memory/simple_memory_manager.py README.md</summary>
 
 ```bash
 git add examples/memory_manager_usage_example.py src/memory/base_memory_manager.py src/memory/memory_manager.py src/memory/simple_memory_manager.py README.md
@@ -1083,7 +1083,7 @@ Let's check the status to confirm all files are staged:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: git status</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: git status</summary>
 
 ```bash
 git status
@@ -1092,10 +1092,10 @@ git status
 ```
 (base) andrewrapo@MacBookPro cursor-hello-llm-agent % git status
 On branch feature/update-memory-manager
-Your branch is up to date with &#39;origin/feature/update-memory-manager&#39;.
+Your branch is up to date with 'origin/feature/update-memory-manager'.
 
 Changes to be committed:
-  (use &quot;git restore --staged &lt;file&gt;...&quot; to unstage)
+  (use "git restore --staged &lt;file&gt;..." to unstage)
         new file:   .specstory/history/2025-04-13_18-15-identifying-ai-model-and-capabilities.md
         new file:   .specstory/history/2025-04-13_18-21-code-review-for-memorymanager-project.md
         new file:   .vscode/settings.json
@@ -1108,8 +1108,8 @@ Changes to be committed:
         modified:   src/memory/simple_memory_manager.py
 
 Changes not staged for commit:
-  (use &quot;git add &lt;file&gt;...&quot; to update what will be committed)
-  (use &quot;git restore &lt;file&gt;...&quot; to discard changes in working directory)
+  (use "git add &lt;file&gt;..." to update what will be committed)
+  (use "git restore &lt;file&gt;..." to discard changes in working directory)
         modified:   .specstory/history/2025-04-13_18-21-code-review-for-memorymanager-project.md
 
 (base) andrewrapo@MacBookPro cursor-hello-llm-agent %
@@ -1124,7 +1124,7 @@ Let's add the remaining file:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: git add .specstory/</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: git add .specstory/</summary>
 
 ```bash
 git add .specstory/
@@ -1144,14 +1144,14 @@ Now let's create the commit with a descriptive message:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: git commit -m "Add support for multiple conversations with GUIDs for memory files. This implements the first TODO item from README-phase-2.md, allowing for better identification and management of separate conversations."</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: git commit -m "Add support for multiple conversations with GUIDs for memory files. This implements the first TODO item from README-phase-2.md, allowing for better identification and management of separate conversations."</summary>
 
 ```bash
 git commit -m "Add support for multiple conversations with GUIDs for memory files. This implements the first TODO item from README-phase-2.md, allowing for better identification and management of separate conversations."
 ```
 
 ```
-&lt;ification and management of separate conversations.&quot;
+&lt;ification and management of separate conversations."
 [feature/update-memory-manager 0883046] Add support for multiple conversations with GUIDs for memory files. 
 This implements the first TODO item from README-phase-2.md, allowing for better identification and managemen
 t of separate conversations.
@@ -1200,7 +1200,7 @@ I'll update the agent_usage_example.py to support GUIDs in memory file naming an
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/agent_usage_example.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: examples/agent_usage_example.py</summary>
 
 **Chunk 1**
 Lines added: 3, lines removed: undefined
@@ -1225,8 +1225,8 @@ Lines added: 4, lines removed: undefined
   from examples.domain_configs import DND_CONFIG
 + 
 + # Constants
-+ MEMORY_DIR = &quot;agent_memories&quot;
-+ MEMORY_FILE_PREFIX = &quot;agent_memory&quot;
++ MEMORY_DIR = "agent_memories"
++ MEMORY_FILE_PREFIX = "agent_memory"
   
   def print_section_header(title):
 ```
@@ -1236,17 +1236,17 @@ Lines added: 6, lines removed: 1
 
 ```diff
 @@ -29,5 +36,10 @@
-      print(&quot;=&quot; * len(title))
+      print("=" * len(title))
       memory_context = memory_manager.get_memory_context()
 -     
 +     
 +     # Print memory GUID
 +     guid = memory_manager.get_memory_guid()
 +     if guid:
-+         print(f&quot;\nMemory GUID: {guid}&quot;)
++         print(f"\nMemory GUID: {guid}")
 +         
       # Print static memory
-      print(&quot;\nStatic Memory (Read-Only):&quot;)
+      print("\nStatic Memory (Read-Only):")
 ```
 
 **Chunk 4**
@@ -1254,78 +1254,78 @@ Lines added: 64, lines removed: 2
 
 ```diff
 @@ -104,8 +116,70 @@
-      print(&quot;history     - View recent session history&quot;)
-      print(&quot;reflect     - Trigger memory reflection&quot;)
-+     print(&quot;guid        - Show the current memory GUID&quot;)
-+     print(&quot;list        - List available memory files&quot;)
-      print(&quot;quit        - End session&quot;)
+      print("history     - View recent session history")
+      print("reflect     - Trigger memory reflection")
++     print("guid        - Show the current memory GUID")
++     print("list        - List available memory files")
+      print("quit        - End session")
   
 - async def setup_services():
--     &quot;&quot;&quot;Initialize the LLM service and memory manager&quot;&quot;&quot;
+-     """Initialize the LLM service and memory manager"""
 + def get_memory_filename(guid=None):
-+     &quot;&quot;&quot;Generate a memory filename based on GUID.
++     """Generate a memory filename based on GUID.
 +     
 +     Args:
 +         guid: Optional GUID to use in the filename
 +         
 +     Returns:
 +         str: Path to the memory file
-+     &quot;&quot;&quot;
-+     # Create memory directory if it doesn&#39;t exist
++     """
++     # Create memory directory if it doesn't exist
 +     os.makedirs(MEMORY_DIR, exist_ok=True)
 +     
 +     if guid:
-+         return os.path.join(MEMORY_DIR, f&quot;{MEMORY_FILE_PREFIX}_{guid}.json&quot;)
++         return os.path.join(MEMORY_DIR, f"{MEMORY_FILE_PREFIX}_{guid}.json")
 +     else:
-+         return os.path.join(MEMORY_DIR, f&quot;{MEMORY_FILE_PREFIX}_{str(uuid.uuid4())}.json&quot;)
++         return os.path.join(MEMORY_DIR, f"{MEMORY_FILE_PREFIX}_{str(uuid.uuid4())}.json")
 + 
 + def list_memory_files():
-+     &quot;&quot;&quot;List all available memory files with their GUIDs
++     """List all available memory files with their GUIDs
 +     
 +     Returns:
 +         dict: Dictionary mapping GUIDs to filenames
-+     &quot;&quot;&quot;
-+     # Create memory directory if it doesn&#39;t exist
++     """
++     # Create memory directory if it doesn't exist
 +     os.makedirs(MEMORY_DIR, exist_ok=True)
 +     
 +     files = {}
 +     
 +     # Pattern to match: agent_memory_GUID.json
 +     for filename in os.listdir(MEMORY_DIR):
-+         if filename.startswith(MEMORY_FILE_PREFIX) and filename.endswith(&quot;.json&quot;):
++         if filename.startswith(MEMORY_FILE_PREFIX) and filename.endswith(".json"):
 +             try:
-+                 with open(os.path.join(MEMORY_DIR, filename), &#39;r&#39;) as f:
++                 with open(os.path.join(MEMORY_DIR, filename), 'r') as f:
 +                     data = json.load(f)
-+                     if &quot;guid&quot; in data:
-+                         files[data[&quot;guid&quot;]] = filename
++                     if "guid" in data:
++                         files[data["guid"]] = filename
 +             except Exception as e:
-+                 print(f&quot;Error reading {filename}: {str(e)}&quot;)
++                 print(f"Error reading {filename}: {str(e)}")
 +     
 +     return files
 +     
 + def print_memory_files():
-+     &quot;&quot;&quot;Print all available memory files&quot;&quot;&quot;
++     """Print all available memory files"""
 +     files = list_memory_files()
 +     if not files:
-+         print(&quot;No memory files found&quot;)
++         print("No memory files found")
 +         return
 +         
-+     print(&quot;\nAvailable Memory Files:&quot;)
-+     print(&quot;-&quot; * 30)
++     print("\nAvailable Memory Files:")
++     print("-" * 30)
 +     for guid, filename in files.items():
-+         print(f&quot;GUID: {guid} - File: {filename}&quot;)
++         print(f"GUID: {guid} - File: {filename}")
 + 
 + async def setup_services(memory_guid=None):
-+     &quot;&quot;&quot;Initialize the LLM service and memory manager
++     """Initialize the LLM service and memory manager
 +     
 +     Args:
 +         memory_guid: Optional GUID to identify which memory file to use
 +         
 +     Returns:
 +         tuple: (agent, memory_manager) instances
-+     &quot;&quot;&quot;
-      print(&quot;\nSetting up services...&quot;)
-      print(&quot;Initializing LLM service (Ollama)...&quot;)
++     """
+      print("\nSetting up services...")
+      print("Initializing LLM service (Ollama)...")
 ```
 
 **Chunk 5**
@@ -1334,7 +1334,7 @@ Lines added: 21, lines removed: 2
 ```diff
 @@ -123,9 +197,28 @@
       try:
-          print(&quot;Creating MemoryManager and Agent instances...&quot;)
+          print("Creating MemoryManager and Agent instances...")
 +         
 +         # Determine memory file path
 +         if memory_guid:
@@ -1342,18 +1342,18 @@ Lines added: 21, lines removed: 2
 +             files = list_memory_files()
 +             if memory_guid in files:
 +                 memory_file = os.path.join(MEMORY_DIR, files[memory_guid])
-+                 print(f&quot;Using existing memory file: {memory_file}&quot;)
++                 print(f"Using existing memory file: {memory_file}")
 +             else:
 +                 # Create a new file with the specified GUID
 +                 memory_file = get_memory_filename(memory_guid)
-+                 print(f&quot;Creating new memory file with specified GUID: {memory_file}&quot;)
++                 print(f"Creating new memory file with specified GUID: {memory_file}")
 +         else:
 +             # Generate a new GUID and filename
 +             memory_file = get_memory_filename()
-+             print(f&quot;Creating new memory file: {memory_file}&quot;)
++             print(f"Creating new memory file: {memory_file}")
 +             
           memory_manager = MemoryManager(
--             memory_file=&quot;agent_memory.json&quot;,
+-             memory_file="agent_memory.json",
 +             memory_file=memory_file,
               domain_config=DND_CONFIG,
 -             llm_service=llm_service
@@ -1361,8 +1361,8 @@ Lines added: 21, lines removed: 2
 +             memory_guid=memory_guid
           )
 +         
-          agent = Agent(llm_service, memory_manager, domain_name=&quot;dnd_campaign&quot;, reflection_threshold=4)
-          print(&quot;Services initialized successfully&quot;)
+          agent = Agent(llm_service, memory_manager, domain_name="dnd_campaign", reflection_threshold=4)
+          print("Services initialized successfully")
 ```
 
 **Chunk 6**
@@ -1370,11 +1370,11 @@ Lines added: 2, lines removed: undefined
 
 ```diff
 @@ -180,4 +273,6 @@
-      print(&quot;\nStarting interactive session...&quot;)
-      print(f&quot;Current phase: {agent.get_current_phase().name}&quot;)
+      print("\nStarting interactive session...")
+      print(f"Current phase: {agent.get_current_phase().name}")
 +     guid = memory_manager.get_memory_guid()
-+     print(f&quot;Memory GUID: {guid}&quot;)
-      print(&#39;Type &quot;help&quot; to see available commands&#39;)
++     print(f"Memory GUID: {guid}")
+      print('Type "help" to see available commands')
       
 ```
 
@@ -1383,16 +1383,16 @@ Lines added: 6, lines removed: undefined
 
 ```diff
 @@ -207,4 +302,10 @@
-                  print_memory_state(memory_manager, &quot;Memory After Reflection&quot;)
+                  print_memory_state(memory_manager, "Memory After Reflection")
                   continue
-+             elif user_input == &#39;guid&#39;:
-+                 print(f&quot;\nCurrent memory GUID: {memory_manager.get_memory_guid()}&quot;)
++             elif user_input == 'guid':
++                 print(f"\nCurrent memory GUID: {memory_manager.get_memory_guid()}")
 +                 continue
-+             elif user_input == &#39;list&#39;:
++             elif user_input == 'list':
 +                 print_memory_files()
 +                 continue
               
-              print(f&quot;\nProcessing message...&quot;)
+              print(f"\nProcessing message...")
 ```
 
 **Chunk 8**
@@ -1401,11 +1401,11 @@ Lines added: 13, lines removed: 2
 ```diff
 @@ -221,9 +322,20 @@
   async def main():
-      &quot;&quot;&quot;Main function to run the agent example&quot;&quot;&quot;
+      """Main function to run the agent example"""
 +     # Set up argument parser
-+     parser = argparse.ArgumentParser(description=&quot;D&amp;D Campaign Agent Example&quot;)
-+     parser.add_argument(&#39;--guid&#39;, type=str, help=&#39;Specify a GUID to load an existing memory file or create a new one with this GUID&#39;)
-+     parser.add_argument(&#39;--list&#39;, action=&#39;store_true&#39;, help=&#39;List available memory files with their GUIDs&#39;)
++     parser = argparse.ArgumentParser(description="D&amp;D Campaign Agent Example")
++     parser.add_argument('--guid', type=str, help='Specify a GUID to load an existing memory file or create a new one with this GUID')
++     parser.add_argument('--list', action='store_true', help='List available memory files with their GUIDs')
 +     args = parser.parse_args()
 +     
 +     # If list flag is set, just list available memory files and exit
@@ -1413,7 +1413,7 @@ Lines added: 13, lines removed: 2
 +         print_memory_files()
 +         return
 +     
-      print_section_header(&quot;D&amp;D Campaign Agent Example&quot;)
+      print_section_header("D&amp;D Campaign Agent Example")
       
       try:
 -         # Setup
@@ -1484,7 +1484,7 @@ Good idea! Let's update the code to filter out backup files from the memory file
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/agent_usage_example.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: examples/agent_usage_example.py</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: 2
@@ -1496,10 +1496,10 @@ Lines added: 2, lines removed: 2
 -     # Pattern to match: agent_memory_GUID.json
 +     # Pattern to match: agent_memory_GUID.json but not backup files
       for filename in os.listdir(MEMORY_DIR):
--         if filename.startswith(MEMORY_FILE_PREFIX) and filename.endswith(&quot;.json&quot;):
-+         if filename.startswith(MEMORY_FILE_PREFIX) and filename.endswith(&quot;.json&quot;) and &quot;_bak_&quot; not in filename:
+-         if filename.startswith(MEMORY_FILE_PREFIX) and filename.endswith(".json"):
++         if filename.startswith(MEMORY_FILE_PREFIX) and filename.endswith(".json") and "_bak_" not in filename:
               try:
-                  with open(os.path.join(MEMORY_DIR, filename), &#39;r&#39;) as f:
+                  with open(os.path.join(MEMORY_DIR, filename), 'r') as f:
 ```
 
 </details>
@@ -1538,7 +1538,7 @@ Great idea! Let's modify the system to support different memory managers through
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/agent_usage_example.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: examples/agent_usage_example.py</summary>
 
 **Chunk 1**
 Lines added: 8, lines removed: 2
@@ -1553,14 +1553,14 @@ Lines added: 8, lines removed: 2
   from examples.domain_configs import DND_CONFIG
   
   # Constants
-- MEMORY_DIR = &quot;agent_memories&quot;
-+ BASE_MEMORY_DIR = &quot;agent_memories&quot;
-  MEMORY_FILE_PREFIX = &quot;agent_memory&quot;
+- MEMORY_DIR = "agent_memories"
++ BASE_MEMORY_DIR = "agent_memories"
+  MEMORY_FILE_PREFIX = "agent_memory"
 + 
 + # Memory manager types
 + MEMORY_MANAGER_TYPES = {
-+     &quot;standard&quot;: MemoryManager,
-+     &quot;simple&quot;: SimpleMemoryManager
++     "standard": MemoryManager,
++     "simple": SimpleMemoryManager
 + }
   
   def print_section_header(title):
@@ -1571,50 +1571,50 @@ Lines added: 15, lines removed: 9
 
 ```diff
 @@ -42,29 +48,35 @@
-          print(f&quot;\nMemory GUID: {guid}&quot;)
+          print(f"\nMemory GUID: {guid}")
       
 -     # Print static memory
--     print(&quot;\nStatic Memory (Read-Only):&quot;)
--     print(&quot;-&quot; * 30)
+-     print("\nStatic Memory (Read-Only):")
+-     print("-" * 30)
 +     # Print memory type
-+     memory_type = memory_context.get(&quot;memory_manager_type&quot;, &quot;unknown&quot;)
-+     print(f&quot;Memory Manager Type: {memory_type}&quot;)
++     memory_type = memory_context.get("memory_manager_type", "unknown")
++     print(f"Memory Manager Type: {memory_type}")
 +         
 +     # Print static memory if available
-      if &quot;static_memory&quot; in memory_context:
-+         print(&quot;\nStatic Memory (Read-Only):&quot;)
-+         print(&quot;-&quot; * 30)
-          static_mem = memory_context[&quot;static_memory&quot;]
-          print(&quot;\nStructured Data:&quot;)
-          print(json.dumps(static_mem.get(&quot;structured_data&quot;, {}), indent=2))
-          print(&quot;\nKnowledge Graph:&quot;)
-          print(json.dumps(static_mem.get(&quot;knowledge_graph&quot;, {}), indent=2))
-+     elif &quot;initial_data&quot; in memory_context:  # SimpleMemoryManager format
-+         print(&quot;\nInitial Data:&quot;)
-+         print(&quot;-&quot; * 30)
-+         print(memory_context.get(&quot;initial_data&quot;, &quot;No initial data&quot;))
+      if "static_memory" in memory_context:
++         print("\nStatic Memory (Read-Only):")
++         print("-" * 30)
+          static_mem = memory_context["static_memory"]
+          print("\nStructured Data:")
+          print(json.dumps(static_mem.get("structured_data", {}), indent=2))
+          print("\nKnowledge Graph:")
+          print(json.dumps(static_mem.get("knowledge_graph", {}), indent=2))
++     elif "initial_data" in memory_context:  # SimpleMemoryManager format
++         print("\nInitial Data:")
++         print("-" * 30)
++         print(memory_context.get("initial_data", "No initial data"))
       else:
-          print(&quot;No static memory&quot;)
+          print("No static memory")
       
 -     # Print working memory
--     print(&quot;\nWorking Memory:&quot;)
--     print(&quot;-&quot; * 30)
+-     print("\nWorking Memory:")
+-     print("-" * 30)
 +     # Print working memory if available
-      if &quot;working_memory&quot; in memory_context:
-+         print(&quot;\nWorking Memory:&quot;)
-+         print(&quot;-&quot; * 30)
-          working_mem = memory_context[&quot;working_memory&quot;]
-          print(&quot;\nStructured Data:&quot;)
-          print(json.dumps(working_mem.get(&quot;structured_data&quot;, {}), indent=2))
-          print(&quot;\nKnowledge Graph:&quot;)
-          print(json.dumps(working_mem.get(&quot;knowledge_graph&quot;, {}), indent=2))
+      if "working_memory" in memory_context:
++         print("\nWorking Memory:")
++         print("-" * 30)
+          working_mem = memory_context["working_memory"]
+          print("\nStructured Data:")
+          print(json.dumps(working_mem.get("structured_data", {}), indent=2))
+          print("\nKnowledge Graph:")
+          print(json.dumps(working_mem.get("knowledge_graph", {}), indent=2))
 -     else:
--         print(&quot;No working memory&quot;)
+-         print("No working memory")
       
 -     # Print metadata
 +     # Print metadata if available
-      if &quot;metadata&quot; in memory_context:
-          print(&quot;\nMetadata:&quot;)
+      if "metadata" in memory_context:
+          print("\nMetadata:")
 ```
 
 **Chunk 3**
@@ -1622,56 +1622,56 @@ Lines added: 64, lines removed: 22
 
 ```diff
 @@ -117,65 +129,107 @@
-      print(&quot;reflect     - Trigger memory reflection&quot;)
-      print(&quot;guid        - Show the current memory GUID&quot;)
-+     print(&quot;type        - Show memory manager type&quot;)
-      print(&quot;list        - List available memory files&quot;)
-      print(&quot;quit        - End session&quot;)
+      print("reflect     - Trigger memory reflection")
+      print("guid        - Show the current memory GUID")
++     print("type        - Show memory manager type")
+      print("list        - List available memory files")
+      print("quit        - End session")
   
 - def get_memory_filename(guid=None):
--     &quot;&quot;&quot;Generate a memory filename based on GUID.
+-     """Generate a memory filename based on GUID.
 + def get_memory_dir(memory_type):
-+     &quot;&quot;&quot;Get the directory path for a specific memory manager type&quot;&quot;&quot;
++     """Get the directory path for a specific memory manager type"""
 +     dir_path = os.path.join(BASE_MEMORY_DIR, memory_type)
 +     os.makedirs(dir_path, exist_ok=True)
 +     return dir_path
 + 
 + def get_memory_filename(memory_type, guid=None):
-+     &quot;&quot;&quot;Generate a memory filename based on memory manager type and GUID.
++     """Generate a memory filename based on memory manager type and GUID.
       
       Args:
-+         memory_type: Type of memory manager (&#39;standard&#39; or &#39;simple&#39;)
++         memory_type: Type of memory manager ('standard' or 'simple')
           guid: Optional GUID to use in the filename
           
       Returns:
           str: Path to the memory file
-      &quot;&quot;&quot;
--     # Create memory directory if it doesn&#39;t exist
+      """
+-     # Create memory directory if it doesn't exist
 -     os.makedirs(MEMORY_DIR, exist_ok=True)
-+     # Create memory directory for this type if it doesn&#39;t exist
++     # Create memory directory for this type if it doesn't exist
 +     memory_dir = get_memory_dir(memory_type)
       
       if guid:
--         return os.path.join(MEMORY_DIR, f&quot;{MEMORY_FILE_PREFIX}_{guid}.json&quot;)
-+         return os.path.join(memory_dir, f&quot;{MEMORY_FILE_PREFIX}_{guid}.json&quot;)
+-         return os.path.join(MEMORY_DIR, f"{MEMORY_FILE_PREFIX}_{guid}.json")
++         return os.path.join(memory_dir, f"{MEMORY_FILE_PREFIX}_{guid}.json")
       else:
--         return os.path.join(MEMORY_DIR, f&quot;{MEMORY_FILE_PREFIX}_{str(uuid.uuid4())}.json&quot;)
-+         return os.path.join(memory_dir, f&quot;{MEMORY_FILE_PREFIX}_{str(uuid.uuid4())}.json&quot;)
+-         return os.path.join(MEMORY_DIR, f"{MEMORY_FILE_PREFIX}_{str(uuid.uuid4())}.json")
++         return os.path.join(memory_dir, f"{MEMORY_FILE_PREFIX}_{str(uuid.uuid4())}.json")
 + 
 + def list_memory_files(memory_type=None):
-+     &quot;&quot;&quot;List all available memory files with their GUIDs for specified type
++     """List all available memory files with their GUIDs for specified type
       
 - def list_memory_files():
--     &quot;&quot;&quot;List all available memory files with their GUIDs
+-     """List all available memory files with their GUIDs
 +     Args:
-+         memory_type: Optional type to filter (&#39;standard&#39; or &#39;simple&#39;).
++         memory_type: Optional type to filter ('standard' or 'simple').
 +                    If None, list all types.
       
       Returns:
 -         dict: Dictionary mapping GUIDs to filenames
 +         dict: Dictionary mapping GUIDs to tuples of (memory_type, filename)
-      &quot;&quot;&quot;
--     # Create memory directory if it doesn&#39;t exist
+      """
+-     # Create memory directory if it doesn't exist
 -     os.makedirs(MEMORY_DIR, exist_ok=True)
 -     
       files = {}
@@ -1690,44 +1690,44 @@ Lines added: 64, lines removed: 22
           # Pattern to match: agent_memory_GUID.json but not backup files
 -     for filename in os.listdir(MEMORY_DIR):
 +         for filename in os.listdir(memory_dir):
-              if filename.startswith(MEMORY_FILE_PREFIX) and filename.endswith(&quot;.json&quot;) and &quot;_bak_&quot; not in filename:
+              if filename.startswith(MEMORY_FILE_PREFIX) and filename.endswith(".json") and "_bak_" not in filename:
                   try:
--                 with open(os.path.join(MEMORY_DIR, filename), &#39;r&#39;) as f:
-+                     with open(os.path.join(memory_dir, filename), &#39;r&#39;) as f:
+-                 with open(os.path.join(MEMORY_DIR, filename), 'r') as f:
++                     with open(os.path.join(memory_dir, filename), 'r') as f:
                           data = json.load(f)
-                          if &quot;guid&quot; in data:
--                         files[data[&quot;guid&quot;]] = filename
-+                             files[data[&quot;guid&quot;]] = (mem_type, filename)
+                          if "guid" in data:
+-                         files[data["guid"]] = filename
++                             files[data["guid"]] = (mem_type, filename)
                   except Exception as e:
-                      print(f&quot;Error reading {filename}: {str(e)}&quot;)
+                      print(f"Error reading {filename}: {str(e)}")
       
       return files
       
 - def print_memory_files():
--     &quot;&quot;&quot;Print all available memory files&quot;&quot;&quot;
+-     """Print all available memory files"""
 -     files = list_memory_files()
 + def print_memory_files(memory_type=None):
-+     &quot;&quot;&quot;Print all available memory files
++     """Print all available memory files
 +     
 +     Args:
-+         memory_type: Optional type to filter (&#39;standard&#39; or &#39;simple&#39;)
-+     &quot;&quot;&quot;
++         memory_type: Optional type to filter ('standard' or 'simple')
++     """
 +     files = list_memory_files(memory_type)
       if not files:
--         print(&quot;No memory files found&quot;)
-+         print(f&quot;No memory files found{&#39; for type: &#39; + memory_type if memory_type else &#39;&#39;}&quot;)
+-         print("No memory files found")
++         print(f"No memory files found{' for type: ' + memory_type if memory_type else ''}")
           return
           
-      print(&quot;\nAvailable Memory Files:&quot;)
-      print(&quot;-&quot; * 30)
+      print("\nAvailable Memory Files:")
+      print("-" * 30)
 -     for guid, filename in files.items():
--         print(f&quot;GUID: {guid} - File: {filename}&quot;)
+-         print(f"GUID: {guid} - File: {filename}")
 +     for guid, (mem_type, filename) in files.items():
-+         print(f&quot;GUID: {guid} - Type: {mem_type} - File: {filename}&quot;)
++         print(f"GUID: {guid} - Type: {mem_type} - File: {filename}")
   
 - async def setup_services(memory_guid=None):
 + def get_memory_file_by_guid(guid, memory_type=None):
-+     &quot;&quot;&quot;Get the full path to a memory file by its GUID
++     """Get the full path to a memory file by its GUID
 +     
 +     Args:
 +         guid: GUID of the memory file
@@ -1735,7 +1735,7 @@ Lines added: 64, lines removed: 22
 +         
 +     Returns:
 +         tuple: (file_path, memory_type) or (None, None) if not found
-+     &quot;&quot;&quot;
++     """
 +     files = list_memory_files(memory_type)
 +     if guid in files:
 +         mem_type, filename = files[guid]
@@ -1743,12 +1743,12 @@ Lines added: 64, lines removed: 22
 +     
 +     return None, None
 + 
-+ async def setup_services(memory_guid=None, memory_type=&quot;standard&quot;):
-      &quot;&quot;&quot;Initialize the LLM service and memory manager
++ async def setup_services(memory_guid=None, memory_type="standard"):
+      """Initialize the LLM service and memory manager
       
       Args:
           memory_guid: Optional GUID to identify which memory file to use
-+         memory_type: Type of memory manager to use (&#39;standard&#39; or &#39;simple&#39;)
++         memory_type: Type of memory manager to use ('standard' or 'simple')
           
       Returns:
 ```
@@ -1760,13 +1760,13 @@ Lines added: 25, lines removed: 7
 @@ -196,23 +250,41 @@
       
       try:
--         print(&quot;Creating MemoryManager and Agent instances...&quot;)
+-         print("Creating MemoryManager and Agent instances...")
 +         # Validate memory type
 +         if memory_type not in MEMORY_MANAGER_TYPES:
-+             print(f&quot;Invalid memory manager type: {memory_type}. Using &#39;standard&#39; instead.&quot;)
-+             memory_type = &quot;standard&quot;
++             print(f"Invalid memory manager type: {memory_type}. Using 'standard' instead.")
++             memory_type = "standard"
 +         
-+         print(f&quot;Creating {memory_type} MemoryManager and Agent instances...&quot;)
++         print(f"Creating {memory_type} MemoryManager and Agent instances...")
 +         
 +         # Get the correct memory manager class
 +         memory_manager_class = MEMORY_MANAGER_TYPES[memory_type]
@@ -1781,25 +1781,25 @@ Lines added: 25, lines removed: 7
 +             memory_file, found_type = get_memory_file_by_guid(memory_guid, memory_type)
 +             
 +             if memory_file:
-+                 # If we found the file but it&#39;s for a different memory manager type,
++                 # If we found the file but it's for a different memory manager type,
 +                 # update the memory_type to match what was found
 +                 if found_type != memory_type:
-+                     print(f&quot;Found memory with GUID {memory_guid} but it uses {found_type} memory manager instead of {memory_type}.&quot;)
-+                     print(f&quot;Switching to {found_type} memory manager type to match the existing file.&quot;)
++                     print(f"Found memory with GUID {memory_guid} but it uses {found_type} memory manager instead of {memory_type}.")
++                     print(f"Switching to {found_type} memory manager type to match the existing file.")
 +                     memory_type = found_type
 +                     memory_manager_class = MEMORY_MANAGER_TYPES[memory_type]
 +                 
-                  print(f&quot;Using existing memory file: {memory_file}&quot;)
+                  print(f"Using existing memory file: {memory_file}")
               else:
                   # Create a new file with the specified GUID
 -                 memory_file = get_memory_filename(memory_guid)
 +                 memory_file = get_memory_filename(memory_type, memory_guid)
-                  print(f&quot;Creating new memory file with specified GUID: {memory_file}&quot;)
+                  print(f"Creating new memory file with specified GUID: {memory_file}")
           else:
               # Generate a new GUID and filename
 -             memory_file = get_memory_filename()
 +             memory_file = get_memory_filename(memory_type)
-              print(f&quot;Creating new memory file: {memory_file}&quot;)
+              print(f"Creating new memory file: {memory_file}")
           
 -         memory_manager = MemoryManager(
 +         # Create memory manager instance based on type
@@ -1816,11 +1816,11 @@ Lines added: 4, lines removed: undefined
           )
           
 +         # Add memory_manager_type to the memory
-+         if hasattr(memory_manager, &#39;memory&#39;) and isinstance(memory_manager.memory, dict):
-+             memory_manager.memory[&quot;memory_manager_type&quot;] = memory_type
++         if hasattr(memory_manager, 'memory') and isinstance(memory_manager.memory, dict):
++             memory_manager.memory["memory_manager_type"] = memory_type
 +         
-          agent = Agent(llm_service, memory_manager, domain_name=&quot;dnd_campaign&quot;, reflection_threshold=4)
-          print(&quot;Services initialized successfully&quot;)
+          agent = Agent(llm_service, memory_manager, domain_name="dnd_campaign", reflection_threshold=4)
+          print("Services initialized successfully")
 ```
 
 **Chunk 6**
@@ -1828,12 +1828,12 @@ Lines added: 2, lines removed: undefined
 
 ```diff
 @@ -274,5 +350,7 @@
-      print(f&quot;Current phase: {agent.get_current_phase().name}&quot;)
+      print(f"Current phase: {agent.get_current_phase().name}")
       guid = memory_manager.get_memory_guid()
-+     memory_type = memory_manager.memory.get(&quot;memory_manager_type&quot;, &quot;unknown&quot;)
-      print(f&quot;Memory GUID: {guid}&quot;)
-+     print(f&quot;Memory Manager Type: {memory_type}&quot;)
-      print(&#39;Type &quot;help&quot; to see available commands&#39;)
++     memory_type = memory_manager.memory.get("memory_manager_type", "unknown")
+      print(f"Memory GUID: {guid}")
++     print(f"Memory Manager Type: {memory_type}")
+      print('Type "help" to see available commands')
       
 ```
 
@@ -1842,12 +1842,12 @@ Lines added: 3, lines removed: undefined
 
 ```diff
 @@ -305,4 +383,7 @@
-                  print(f&quot;\nCurrent memory GUID: {memory_manager.get_memory_guid()}&quot;)
+                  print(f"\nCurrent memory GUID: {memory_manager.get_memory_guid()}")
                   continue
-+             elif user_input == &#39;type&#39;:
-+                 print(f&quot;\nMemory Manager Type: {memory_manager.memory.get(&#39;memory_manager_type&#39;, &#39;unknown&#39;)}&quot;)
++             elif user_input == 'type':
++                 print(f"\nMemory Manager Type: {memory_manager.memory.get('memory_manager_type', 'unknown')}")
 +                 continue
-              elif user_input == &#39;list&#39;:
+              elif user_input == 'list':
                   print_memory_files()
 ```
 
@@ -1856,13 +1856,13 @@ Lines added: 7, lines removed: 3
 
 ```diff
 @@ -325,17 +406,21 @@
-      parser = argparse.ArgumentParser(description=&quot;D&amp;D Campaign Agent Example&quot;)
-      parser.add_argument(&#39;--guid&#39;, type=str, help=&#39;Specify a GUID to load an existing memory file or create a new one with this GUID&#39;)
-+     parser.add_argument(&#39;--type&#39;, type=str, choices=list(MEMORY_MANAGER_TYPES.keys()), default=&#39;standard&#39;,
-+                        help=&#39;Specify memory manager type to use (standard or simple)&#39;)
-      parser.add_argument(&#39;--list&#39;, action=&#39;store_true&#39;, help=&#39;List available memory files with their GUIDs&#39;)
-+     parser.add_argument(&#39;--list-type&#39;, type=str, choices=list(MEMORY_MANAGER_TYPES.keys()),
-+                        help=&#39;List memory files for a specific memory manager type&#39;)
+      parser = argparse.ArgumentParser(description="D&amp;D Campaign Agent Example")
+      parser.add_argument('--guid', type=str, help='Specify a GUID to load an existing memory file or create a new one with this GUID')
++     parser.add_argument('--type', type=str, choices=list(MEMORY_MANAGER_TYPES.keys()), default='standard',
++                        help='Specify memory manager type to use (standard or simple)')
+      parser.add_argument('--list', action='store_true', help='List available memory files with their GUIDs')
++     parser.add_argument('--list-type', type=str, choices=list(MEMORY_MANAGER_TYPES.keys()),
++                        help='List memory files for a specific memory manager type')
       args = parser.parse_args()
       
       # If list flag is set, just list available memory files and exit
@@ -1871,7 +1871,7 @@ Lines added: 7, lines removed: 3
 +         print_memory_files(args.list_type)
           return
       
-      print_section_header(&quot;D&amp;D Campaign Agent Example&quot;)
+      print_section_header("D&amp;D Campaign Agent Example")
       
       try:
 -         # Setup with optional specified GUID
@@ -1926,7 +1926,7 @@ Let's fix this by generating the GUID first and then using it consistently:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/agent_usage_example.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: examples/agent_usage_example.py</summary>
 
 **Chunk 1**
 Lines added: 7, lines removed: 5
@@ -1937,19 +1937,19 @@ Lines added: 7, lines removed: 5
       Returns:
 -         str: Path to the memory file
 +         tuple: (file_path, guid) - Path to the memory file and the GUID (either provided or generated)
-      &quot;&quot;&quot;
-      # Create memory directory for this type if it doesn&#39;t exist
+      """
+      # Create memory directory for this type if it doesn't exist
       memory_dir = get_memory_dir(memory_type)
       
 -     if guid:
--         return os.path.join(memory_dir, f&quot;{MEMORY_FILE_PREFIX}_{guid}.json&quot;)
+-         return os.path.join(memory_dir, f"{MEMORY_FILE_PREFIX}_{guid}.json")
 -     else:
--         return os.path.join(memory_dir, f&quot;{MEMORY_FILE_PREFIX}_{str(uuid.uuid4())}.json&quot;)
+-         return os.path.join(memory_dir, f"{MEMORY_FILE_PREFIX}_{str(uuid.uuid4())}.json")
 +     # If no GUID provided, generate a new one
 +     if not guid:
 +         guid = str(uuid.uuid4())
 +     
-+     file_path = os.path.join(memory_dir, f&quot;{MEMORY_FILE_PREFIX}_{guid}.json&quot;)
++     file_path = os.path.join(memory_dir, f"{MEMORY_FILE_PREFIX}_{guid}.json")
 +     return file_path, guid
   
   def list_memory_files(memory_type=None):
@@ -1964,21 +1964,21 @@ Lines added: 11, lines removed: 3
                   # Create a new file with the specified GUID
 -                 memory_file = get_memory_filename(memory_type, memory_guid)
 +                 memory_file, memory_guid = get_memory_filename(memory_type, memory_guid)
-                  print(f&quot;Creating new memory file with specified GUID: {memory_file}&quot;)
+                  print(f"Creating new memory file with specified GUID: {memory_file}")
           else:
               # Generate a new GUID and filename
 -             memory_file = get_memory_filename(memory_type)
--             print(f&quot;Creating new memory file: {memory_file}&quot;)
+-             print(f"Creating new memory file: {memory_file}")
 +             memory_file, memory_guid = get_memory_filename(memory_type)
-+             print(f&quot;Creating new memory file with GUID: {memory_guid}&quot;)
-+             print(f&quot;Memory file path: {memory_file}&quot;)
++             print(f"Creating new memory file with GUID: {memory_guid}")
++             print(f"Memory file path: {memory_file}")
 +         
 +         # Create unique debug file for this session
-+         debug_file = f&quot;agent_debug_{memory_guid}.log&quot;
-+         print(f&quot;Debug log file: {debug_file}&quot;)
++         debug_file = f"agent_debug_{memory_guid}.log"
++         print(f"Debug log file: {debug_file}")
 +         
 +         # Update the LLM service with the unique debug file
-+         llm_service.config[&quot;debug_file&quot;] = debug_file
++         llm_service.config["debug_file"] = debug_file
           
           # Create memory manager instance based on type
 ```
@@ -2028,7 +2028,7 @@ You're right - there's a mismatch between the filename GUID and the GUID stored 
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/agent_usage_example.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: examples/agent_usage_example.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -2039,7 +2039,7 @@ Lines added: 1, lines removed: 1
       Returns:
 -         dict: Dictionary mapping GUIDs to tuples of (memory_type, filename)
 +         dict: Dictionary mapping internal GUIDs to tuples of (memory_type, filename, filename_guid)
-      &quot;&quot;&quot;
+      """
       files = {}
 ```
 
@@ -2056,19 +2056,19 @@ Lines added: 8, lines removed: 1
           
           # Pattern to match: agent_memory_GUID.json but not backup files
           for filename in os.listdir(memory_dir):
-              if filename.startswith(MEMORY_FILE_PREFIX) and filename.endswith(&quot;.json&quot;) and &quot;_bak_&quot; not in filename:
+              if filename.startswith(MEMORY_FILE_PREFIX) and filename.endswith(".json") and "_bak_" not in filename:
                   try:
 +                     # Extract GUID from filename
-+                     filename_guid = filename.replace(MEMORY_FILE_PREFIX + &quot;_&quot;, &quot;&quot;).replace(&quot;.json&quot;, &quot;&quot;)
++                     filename_guid = filename.replace(MEMORY_FILE_PREFIX + "_", "").replace(".json", "")
 +                     
-                      with open(os.path.join(memory_dir, filename), &#39;r&#39;) as f:
+                      with open(os.path.join(memory_dir, filename), 'r') as f:
                           data = json.load(f)
-                          if &quot;guid&quot; in data:
--                             files[data[&quot;guid&quot;]] = (mem_type, filename)
+                          if "guid" in data:
+-                             files[data["guid"]] = (mem_type, filename)
 +                             # Store both the internal GUID and filename GUID
-+                             files[data[&quot;guid&quot;]] = (mem_type, filename, filename_guid)
++                             files[data["guid"]] = (mem_type, filename, filename_guid)
                   except Exception as e:
-                      print(f&quot;Error reading {filename}: {str(e)}&quot;)
+                      print(f"Error reading {filename}: {str(e)}")
 ```
 
 **Chunk 3**
@@ -2077,18 +2077,18 @@ Lines added: 8, lines removed: 3
 ```diff
 @@ -207,7 +214,12 @@
           
-      print(&quot;\nAvailable Memory Files:&quot;)
--     print(&quot;-&quot; * 30)
+      print("\nAvailable Memory Files:")
+-     print("-" * 30)
 -     for guid, (mem_type, filename) in files.items():
--         print(f&quot;GUID: {guid} - Type: {mem_type} - File: {filename}&quot;)
-+     print(&quot;-&quot; * 50)
+-         print(f"GUID: {guid} - Type: {mem_type} - File: {filename}")
++     print("-" * 50)
 +     for internal_guid, (mem_type, filename, filename_guid) in files.items():
-+         mismatch = &quot; (MISMATCH)&quot; if internal_guid != filename_guid else &quot;&quot;
-+         print(f&quot;Internal GUID: {internal_guid}&quot;)
-+         print(f&quot;Filename GUID: {filename_guid}{mismatch}&quot;)
-+         print(f&quot;Type: {mem_type}&quot;)
-+         print(f&quot;File: {filename}&quot;)
-+         print(&quot;-&quot; * 50)
++         mismatch = " (MISMATCH)" if internal_guid != filename_guid else ""
++         print(f"Internal GUID: {internal_guid}")
++         print(f"Filename GUID: {filename_guid}{mismatch}")
++         print(f"Type: {mem_type}")
++         print(f"File: {filename}")
++         print("-" * 50)
   
   def get_memory_file_by_guid(guid, memory_type=None):
 ```
@@ -2114,18 +2114,18 @@ Lines added: 6, lines removed: 4
               else:
                   # Create a new file with the specified GUID
 -                 memory_file, memory_guid = get_memory_filename(memory_type, memory_guid)
--                 print(f&quot;Creating new memory file with specified GUID: {memory_file}&quot;)
+-                 print(f"Creating new memory file with specified GUID: {memory_file}")
 +                 memory_file, _ = get_memory_filename(memory_type, memory_guid)
-+                 print(f&quot;Creating new memory file with specified GUID: {memory_guid}&quot;)
-+                 print(f&quot;Memory file path: {memory_file}&quot;)
++                 print(f"Creating new memory file with specified GUID: {memory_guid}")
++                 print(f"Memory file path: {memory_file}")
           else:
               # Generate a new GUID and filename
 -             memory_file, memory_guid = get_memory_filename(memory_type)
--             print(f&quot;Creating new memory file with GUID: {memory_guid}&quot;)
+-             print(f"Creating new memory file with GUID: {memory_guid}")
 +             memory_guid = str(uuid.uuid4())
 +             memory_file, _ = get_memory_filename(memory_type, memory_guid)
-+             print(f&quot;Generated new GUID: {memory_guid}&quot;)
-              print(f&quot;Memory file path: {memory_file}&quot;)
++             print(f"Generated new GUID: {memory_guid}")
+              print(f"Memory file path: {memory_file}")
           
 ```
 
@@ -2141,7 +2141,7 @@ Now we need to update the get_memory_filename function to ensure it doesn't retu
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/agent_usage_example.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: examples/agent_usage_example.py</summary>
 
 **Chunk 1**
 Lines added: 5, lines removed: 5
@@ -2149,24 +2149,24 @@ Lines added: 5, lines removed: 5
 ```diff
 @@ -144,18 +144,18 @@
       Args:
-          memory_type: Type of memory manager (&#39;standard&#39; or &#39;simple&#39;)
+          memory_type: Type of memory manager ('standard' or 'simple')
 -         guid: Optional GUID to use in the filename
 +         guid: Optional GUID to use in the filename. Must be provided.
           
       Returns:
 -         tuple: (file_path, guid) - Path to the memory file and the GUID (either provided or generated)
 +         str: Path to the memory file
-      &quot;&quot;&quot;
-      # Create memory directory for this type if it doesn&#39;t exist
+      """
+      # Create memory directory for this type if it doesn't exist
       memory_dir = get_memory_dir(memory_type)
       
 -     # If no GUID provided, generate a new one
-+     # GUID must be provided - we don&#39;t generate it here anymore
++     # GUID must be provided - we don't generate it here anymore
       if not guid:
 -         guid = str(uuid.uuid4())
-+         raise ValueError(&quot;GUID must be provided to get_memory_filename&quot;)
++         raise ValueError("GUID must be provided to get_memory_filename")
       
-      file_path = os.path.join(memory_dir, f&quot;{MEMORY_FILE_PREFIX}_{guid}.json&quot;)
+      file_path = os.path.join(memory_dir, f"{MEMORY_FILE_PREFIX}_{guid}.json")
 -     return file_path, guid
 +     return file_path
   
@@ -2185,7 +2185,7 @@ Let's also make sure we clean up any old agent_memory files:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/agent_usage_example.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: examples/agent_usage_example.py</summary>
 
 **Chunk 1**
 Lines added: 54, lines removed: undefined
@@ -2195,46 +2195,46 @@ Lines added: 54, lines removed: undefined
               continue
   
 + def cleanup_old_memory_files():
-+     &quot;&quot;&quot;Find old memory files in the root directory and move them to the appropriate subdirectory.
++     """Find old memory files in the root directory and move them to the appropriate subdirectory.
 +     
 +     This is a utility function to help migrate from the old flat structure to the new
 +     organized directory structure.
-+     &quot;&quot;&quot;
++     """
 +     # Look for old memory files in the root directory
 +     old_files = []
-+     for filename in os.listdir(&quot;.&quot;):
-+         if filename.startswith(MEMORY_FILE_PREFIX) and filename.endswith(&quot;.json&quot;) and &quot;_bak_&quot; not in filename:
++     for filename in os.listdir("."):
++         if filename.startswith(MEMORY_FILE_PREFIX) and filename.endswith(".json") and "_bak_" not in filename:
 +             old_files.append(filename)
 +     
 +     if not old_files:
 +         return
 +     
-+     print(f&quot;\nFound {len(old_files)} old memory files to migrate&quot;)
++     print(f"\nFound {len(old_files)} old memory files to migrate")
 +     for filename in old_files:
 +         try:
 +             # Read the file to determine the memory manager type
-+             with open(filename, &#39;r&#39;) as f:
++             with open(filename, 'r') as f:
 +                 data = json.load(f)
 +                 
-+                 memory_type = data.get(&quot;memory_manager_type&quot;, &quot;standard&quot;)
-+                 guid = data.get(&quot;guid&quot;)
++                 memory_type = data.get("memory_manager_type", "standard")
++                 guid = data.get("guid")
 +                 
 +                 if not guid:
 +                     # Generate a new GUID for the file
 +                     guid = str(uuid.uuid4())
-+                     data[&quot;guid&quot;] = guid
++                     data["guid"] = guid
 +                     # Write the GUID back to the file
-+                     with open(filename, &#39;w&#39;) as f_write:
++                     with open(filename, 'w') as f_write:
 +                         json.dump(data, f_write, indent=2)
 +                 
 +                 # Extract GUID from filename or use a new one
 +                 filename_guid = None
-+                 if filename.startswith(MEMORY_FILE_PREFIX + &quot;_&quot;) and filename.endswith(&quot;.json&quot;):
-+                     filename_guid = filename.replace(MEMORY_FILE_PREFIX + &quot;_&quot;, &quot;&quot;).replace(&quot;.json&quot;, &quot;&quot;)
++                 if filename.startswith(MEMORY_FILE_PREFIX + "_") and filename.endswith(".json"):
++                     filename_guid = filename.replace(MEMORY_FILE_PREFIX + "_", "").replace(".json", "")
 +                 
-+                 # If filename doesn&#39;t have a valid GUID, rename it
++                 # If filename doesn't have a valid GUID, rename it
 +                 if not filename_guid or filename_guid != guid:
-+                     new_filename = f&quot;{MEMORY_FILE_PREFIX}_{guid}.json&quot;
++                     new_filename = f"{MEMORY_FILE_PREFIX}_{guid}.json"
 +                 else:
 +                     new_filename = filename
 +                 
@@ -2242,14 +2242,14 @@ Lines added: 54, lines removed: undefined
 +                 memory_dir = get_memory_dir(memory_type)
 +                 new_path = os.path.join(memory_dir, new_filename)
 +                 
-+                 print(f&quot;Moving {filename} to {new_path}&quot;)
++                 print(f"Moving {filename} to {new_path}")
 +                 os.rename(filename, new_path)
 +                 
 +         except Exception as e:
-+             print(f&quot;Error migrating {filename}: {str(e)}&quot;)
++             print(f"Error migrating {filename}: {str(e)}")
 + 
   async def main():
-      &quot;&quot;&quot;Main function to run the agent example&quot;&quot;&quot;
+      """Main function to run the agent example"""
 ```
 
 **Chunk 2**
@@ -2257,9 +2257,9 @@ Lines added: 9, lines removed: undefined
 
 ```diff
 @@ -435,11 +489,20 @@
-      parser.add_argument(&#39;--list-type&#39;, type=str, choices=list(MEMORY_MANAGER_TYPES.keys()),
-                         help=&#39;List memory files for a specific memory manager type&#39;)
-+     parser.add_argument(&#39;--cleanup&#39;, action=&#39;store_true&#39;, help=&#39;Cleanup and migrate old memory files&#39;)
+      parser.add_argument('--list-type', type=str, choices=list(MEMORY_MANAGER_TYPES.keys()),
+                         help='List memory files for a specific memory manager type')
++     parser.add_argument('--cleanup', action='store_true', help='Cleanup and migrate old memory files')
       args = parser.parse_args()
       
 +     # If cleanup flag is set, cleanup old memory files
@@ -2275,7 +2275,7 @@ Lines added: 9, lines removed: undefined
 +     # Cleanup old memory files before starting
 +     cleanup_old_memory_files()
 +     
-      print_section_header(&quot;D&amp;D Campaign Agent Example&quot;)
+      print_section_header("D&amp;D Campaign Agent Example")
       
 ```
 
@@ -2337,7 +2337,7 @@ I see the error - it's saying "too many values to unpack (expected 2)" which lik
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/agent_usage_example.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: examples/agent_usage_example.py</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: 2
@@ -2348,15 +2348,15 @@ Lines added: 2, lines removed: 2
                   # Create a new file with the specified GUID
 -                 memory_file, _ = get_memory_filename(memory_type, memory_guid)
 +                 memory_file = get_memory_filename(memory_type, memory_guid)
-                  print(f&quot;Creating new memory file with specified GUID: {memory_guid}&quot;)
-                  print(f&quot;Memory file path: {memory_file}&quot;)
+                  print(f"Creating new memory file with specified GUID: {memory_guid}")
+                  print(f"Memory file path: {memory_file}")
           else:
               # Generate a new GUID and filename
               memory_guid = str(uuid.uuid4())
 -             memory_file, _ = get_memory_filename(memory_type, memory_guid)
 +             memory_file = get_memory_filename(memory_type, memory_guid)
-              print(f&quot;Generated new GUID: {memory_guid}&quot;)
-              print(f&quot;Memory file path: {memory_file}&quot;)
+              print(f"Generated new GUID: {memory_guid}")
+              print(f"Memory file path: {memory_file}")
 ```
 
 </details>
@@ -2393,7 +2393,7 @@ Let me fix the error with the get_memory_filename function:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/agent_usage_example.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: examples/agent_usage_example.py</summary>
 
 </details>
 
@@ -2488,7 +2488,7 @@ We should update the function signature to properly reflect that the `guid` para
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/agent_usage_example.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: examples/agent_usage_example.py</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: 2
@@ -2499,10 +2499,10 @@ Lines added: 2, lines removed: 2
   
 - def get_memory_filename(memory_type, guid=None):
 + def get_memory_filename(memory_type, guid):
-      &quot;&quot;&quot;Generate a memory filename based on memory manager type and GUID.
+      """Generate a memory filename based on memory manager type and GUID.
       
       Args:
-          memory_type: Type of memory manager (&#39;standard&#39; or &#39;simple&#39;)
+          memory_type: Type of memory manager ('standard' or 'simple')
 -         guid: Optional GUID to use in the filename. Must be provided.
 +         guid: GUID to use in the filename (required)
           
@@ -2516,10 +2516,10 @@ Lines added: 1, lines removed: 1
 @@ -152,5 +152,5 @@
       memory_dir = get_memory_dir(memory_type)
       
--     # GUID must be provided - we don&#39;t generate it here anymore
+-     # GUID must be provided - we don't generate it here anymore
 +     # GUID must be provided
       if not guid:
-          raise ValueError(&quot;GUID must be provided to get_memory_filename&quot;)
+          raise ValueError("GUID must be provided to get_memory_filename")
 ```
 
 </details>
@@ -2551,7 +2551,7 @@ I see the problem. Despite our changes, we're still seeing mismatched GUIDs betw
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/agent_usage_example.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: examples/agent_usage_example.py</summary>
 
 **Chunk 1**
 Lines added: 40, lines removed: 1
@@ -2562,16 +2562,16 @@ Lines added: 40, lines removed: 1
   
 - def cleanup_old_memory_files():
 + def fix_guid_mismatches():
-+     &quot;&quot;&quot;Find and fix any mismatches between filename GUIDs and internal GUIDs.
++     """Find and fix any mismatches between filename GUIDs and internal GUIDs.
 +     
 +     This will rename files to match their internal GUIDs, ensuring consistency
 +     between the filename and the content.
-+     &quot;&quot;&quot;
-+     print(&quot;\nChecking for GUID mismatches...&quot;)
++     """
++     print("\nChecking for GUID mismatches...")
 +     files = list_memory_files()
 +     
 +     if not files:
-+         print(&quot;No memory files found&quot;)
++         print("No memory files found")
 +         return
 +     
 +     mismatches = 0
@@ -2581,31 +2581,31 @@ Lines added: 40, lines removed: 1
 +             mismatches += 1
 +             memory_dir = get_memory_dir(mem_type)
 +             old_path = os.path.join(memory_dir, filename)
-+             new_filename = f&quot;{MEMORY_FILE_PREFIX}_{internal_guid}.json&quot;
++             new_filename = f"{MEMORY_FILE_PREFIX}_{internal_guid}.json"
 +             new_path = os.path.join(memory_dir, new_filename)
 +             
-+             print(f&quot;Fixing mismatch: {filename} → {new_filename}&quot;)
++             print(f"Fixing mismatch: {filename} → {new_filename}")
 +             # Rename the file to match its internal GUID
 +             try:
 +                 os.rename(old_path, new_path)
-+                 print(f&quot;  Success: Renamed file to match internal GUID&quot;)
++                 print(f"  Success: Renamed file to match internal GUID")
 +             except Exception as e:
-+                 print(f&quot;  Error: Failed to rename file: {str(e)}&quot;)
++                 print(f"  Error: Failed to rename file: {str(e)}")
 +     
 +     if mismatches == 0:
-+         print(&quot;No GUID mismatches found&quot;)
++         print("No GUID mismatches found")
 +     else:
-+         print(f&quot;Fixed {mismatches} GUID mismatches&quot;)
++         print(f"Fixed {mismatches} GUID mismatches")
 + 
 + def cleanup_old_memory_files(fix_guids=False):
-      &quot;&quot;&quot;Find old memory files in the root directory and move them to the appropriate subdirectory.
+      """Find old memory files in the root directory and move them to the appropriate subdirectory.
       
       This is a utility function to help migrate from the old flat structure to the new
       organized directory structure.
 +     
 +     Args:
 +         fix_guids: If True, also fix any GUID mismatches
-      &quot;&quot;&quot;
+      """
       # Look for old memory files in the root directory
 ```
 
@@ -2618,9 +2618,9 @@ Lines added: 2, lines removed: 2
       if not old_files:
 -         return
 -     
-+         print(&quot;No old memory files found in root directory&quot;)
++         print("No old memory files found in root directory")
 +     else:
-          print(f&quot;\nFound {len(old_files)} old memory files to migrate&quot;)
+          print(f"\nFound {len(old_files)} old memory files to migrate")
           for filename in old_files:
 ```
 
@@ -2634,16 +2634,16 @@ Lines added: 3, lines removed: 4
 -                 # Extract GUID from filename or use a new one
 +                     # Extract GUID from filename or use the internal one
                       filename_guid = None
-                      if filename.startswith(MEMORY_FILE_PREFIX + &quot;_&quot;) and filename.endswith(&quot;.json&quot;):
-                          filename_guid = filename.replace(MEMORY_FILE_PREFIX + &quot;_&quot;, &quot;&quot;).replace(&quot;.json&quot;, &quot;&quot;)
+                      if filename.startswith(MEMORY_FILE_PREFIX + "_") and filename.endswith(".json"):
+                          filename_guid = filename.replace(MEMORY_FILE_PREFIX + "_", "").replace(".json", "")
                       
-                      # If filename doesn&#39;t have a valid GUID, rename it
+                      # If filename doesn't have a valid GUID, rename it
 -                 if not filename_guid or filename_guid != guid:
--                     new_filename = f&quot;{MEMORY_FILE_PREFIX}_{guid}.json&quot;
+-                     new_filename = f"{MEMORY_FILE_PREFIX}_{guid}.json"
 -                 else:
                       new_filename = filename
 +                     if not filename_guid or (fix_guids and filename_guid != guid):
-+                         new_filename = f&quot;{MEMORY_FILE_PREFIX}_{guid}.json&quot;
++                         new_filename = f"{MEMORY_FILE_PREFIX}_{guid}.json"
                       
                       # Move the file to the appropriate directory
 ```
@@ -2654,7 +2654,7 @@ Lines added: 4, lines removed: undefined
 ```diff
 @@ -478,4 +516,8 @@
               except Exception as e:
-                  print(f&quot;Error migrating {filename}: {str(e)}&quot;)
+                  print(f"Error migrating {filename}: {str(e)}")
 +     
 +     # If requested, also fix any GUID mismatches in the proper directories
 +     if fix_guids:
@@ -2668,9 +2668,9 @@ Lines added: 7, lines removed: 1
 
 ```diff
 @@ -490,9 +532,15 @@
-                         help=&#39;List memory files for a specific memory manager type&#39;)
-      parser.add_argument(&#39;--cleanup&#39;, action=&#39;store_true&#39;, help=&#39;Cleanup and migrate old memory files&#39;)
-+     parser.add_argument(&#39;--fix-guids&#39;, action=&#39;store_true&#39;, help=&#39;Fix GUID mismatches between filenames and internal GUIDs&#39;)
+                         help='List memory files for a specific memory manager type')
+      parser.add_argument('--cleanup', action='store_true', help='Cleanup and migrate old memory files')
++     parser.add_argument('--fix-guids', action='store_true', help='Fix GUID mismatches between filenames and internal GUIDs')
       args = parser.parse_args()
       
       # If cleanup flag is set, cleanup old memory files
@@ -2696,7 +2696,7 @@ Lines added: 1, lines removed: 1
 -     cleanup_old_memory_files()
 +     cleanup_old_memory_files(fix_guids=True)
       
-      print_section_header(&quot;D&amp;D Campaign Agent Example&quot;)
+      print_section_header("D&amp;D Campaign Agent Example")
 ```
 
 </details>
@@ -2752,14 +2752,14 @@ The main issue is that we have multiple places where GUIDs are being generated o
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/agent_usage_example.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: examples/agent_usage_example.py</summary>
 
 **Chunk 1**
 Lines added: 3, lines removed: undefined
 
 ```diff
 @@ -30,4 +30,7 @@
-      &quot;simple&quot;: SimpleMemoryManager
+      "simple": SimpleMemoryManager
   }
 + 
 + # Global session guid (will be set during initialization)
@@ -2773,11 +2773,11 @@ Lines added: 3, lines removed: undefined
 
 ```diff
 @@ -51,4 +54,7 @@
-      memory_type = memory_context.get(&quot;memory_manager_type&quot;, &quot;unknown&quot;)
-      print(f&quot;Memory Manager Type: {memory_type}&quot;)
+      memory_type = memory_context.get("memory_manager_type", "unknown")
+      print(f"Memory Manager Type: {memory_type}")
 +     
 +     # Print filename
-+     print(f&quot;Memory File: {memory_manager.memory_file}&quot;)
++     print(f"Memory File: {memory_manager.memory_file}")
           
       # Print static memory if available
 ```
@@ -2790,16 +2790,16 @@ Lines added: 142, lines removed: undefined
       return None, None
   
 + def fix_guid_mismatches():
-+     &quot;&quot;&quot;Find and fix any mismatches between filename GUIDs and internal GUIDs.
++     """Find and fix any mismatches between filename GUIDs and internal GUIDs.
 +     
 +     This will rename files to match their internal GUIDs, ensuring consistency
 +     between the filename and the content.
-+     &quot;&quot;&quot;
-+     print(&quot;\nChecking for GUID mismatches...&quot;)
++     """
++     print("\nChecking for GUID mismatches...")
 +     files = list_memory_files()
 +     
 +     if not files:
-+         print(&quot;No memory files found&quot;)
++         print("No memory files found")
 +         return
 +     
 +     mismatches = 0
@@ -2809,84 +2809,84 @@ Lines added: 142, lines removed: undefined
 +             mismatches += 1
 +             memory_dir = get_memory_dir(mem_type)
 +             old_path = os.path.join(memory_dir, filename)
-+             new_filename = f&quot;{MEMORY_FILE_PREFIX}_{internal_guid}.json&quot;
++             new_filename = f"{MEMORY_FILE_PREFIX}_{internal_guid}.json"
 +             new_path = os.path.join(memory_dir, new_filename)
 +             
-+             print(f&quot;Fixing mismatch: {filename} → {new_filename}&quot;)
++             print(f"Fixing mismatch: {filename} → {new_filename}")
 +             # Rename the file to match its internal GUID
 +             try:
 +                 os.rename(old_path, new_path)
-+                 print(f&quot;  Success: Renamed file to match internal GUID&quot;)
++                 print(f"  Success: Renamed file to match internal GUID")
 +             except Exception as e:
-+                 print(f&quot;  Error: Failed to rename file: {str(e)}&quot;)
++                 print(f"  Error: Failed to rename file: {str(e)}")
 +     
 +     if mismatches == 0:
-+         print(&quot;No GUID mismatches found&quot;)
++         print("No GUID mismatches found")
 +     else:
-+         print(f&quot;Fixed {mismatches} GUID mismatches&quot;)
++         print(f"Fixed {mismatches} GUID mismatches")
 + 
 + def cleanup_old_memory_files(fix_guids=False):
-+     &quot;&quot;&quot;Find old memory files in the root directory and move them to the appropriate subdirectory.
++     """Find old memory files in the root directory and move them to the appropriate subdirectory.
 +     
 +     This is a utility function to help migrate from the old flat structure to the new
 +     organized directory structure.
 +     
 +     Args:
 +         fix_guids: If True, also fix any GUID mismatches
-+     &quot;&quot;&quot;
++     """
 +     # Look for old memory files in the root directory
 +     old_files = []
-+     for filename in os.listdir(&quot;.&quot;):
-+         if filename.startswith(MEMORY_FILE_PREFIX) and filename.endswith(&quot;.json&quot;) and &quot;_bak_&quot; not in filename:
++     for filename in os.listdir("."):
++         if filename.startswith(MEMORY_FILE_PREFIX) and filename.endswith(".json") and "_bak_" not in filename:
 +             old_files.append(filename)
 +     
 +     if not old_files:
-+         print(&quot;No old memory files found in root directory&quot;)
++         print("No old memory files found in root directory")
 +     else:
-+         print(f&quot;\nFound {len(old_files)} old memory files to migrate&quot;)
++         print(f"\nFound {len(old_files)} old memory files to migrate")
 +         for filename in old_files:
 +             try:
 +                 # Read the file to determine the memory manager type
-+                 with open(filename, &#39;r&#39;) as f:
++                 with open(filename, 'r') as f:
 +                     data = json.load(f)
 +                     
-+                     memory_type = data.get(&quot;memory_manager_type&quot;, &quot;standard&quot;)
-+                     guid = data.get(&quot;guid&quot;)
++                     memory_type = data.get("memory_manager_type", "standard")
++                     guid = data.get("guid")
 +                     
 +                     if not guid:
 +                         # Generate a new GUID for the file
 +                         guid = str(uuid.uuid4())
-+                         data[&quot;guid&quot;] = guid
++                         data["guid"] = guid
 +                         # Write the GUID back to the file
-+                         with open(filename, &#39;w&#39;) as f_write:
++                         with open(filename, 'w') as f_write:
 +                             json.dump(data, f_write, indent=2)
 +                     
 +                     # Extract GUID from filename or use the internal one
 +                     filename_guid = None
-+                     if filename.startswith(MEMORY_FILE_PREFIX + &quot;_&quot;) and filename.endswith(&quot;.json&quot;):
-+                         filename_guid = filename.replace(MEMORY_FILE_PREFIX + &quot;_&quot;, &quot;&quot;).replace(&quot;.json&quot;, &quot;&quot;)
++                     if filename.startswith(MEMORY_FILE_PREFIX + "_") and filename.endswith(".json"):
++                         filename_guid = filename.replace(MEMORY_FILE_PREFIX + "_", "").replace(".json", "")
 +                     
-+                     # If filename doesn&#39;t have a valid GUID, rename it
++                     # If filename doesn't have a valid GUID, rename it
 +                     new_filename = filename
 +                     if not filename_guid or (fix_guids and filename_guid != guid):
-+                         new_filename = f&quot;{MEMORY_FILE_PREFIX}_{guid}.json&quot;
++                         new_filename = f"{MEMORY_FILE_PREFIX}_{guid}.json"
 +                     
 +                     # Move the file to the appropriate directory
 +                     memory_dir = get_memory_dir(memory_type)
 +                     new_path = os.path.join(memory_dir, new_filename)
 +                     
-+                     print(f&quot;Moving {filename} to {new_path}&quot;)
++                     print(f"Moving {filename} to {new_path}")
 +                     os.rename(filename, new_path)
 +                     
 +             except Exception as e:
-+                 print(f&quot;Error migrating {filename}: {str(e)}&quot;)
++                 print(f"Error migrating {filename}: {str(e)}")
 +     
 +     # If requested, also fix any GUID mismatches in the proper directories
 +     if fix_guids:
 +         fix_guid_mismatches()
 + 
-+ def initialize_session(provided_guid=None, memory_type=&quot;standard&quot;):
-+     &quot;&quot;&quot;Initialize the session with a consistent GUID.
++ def initialize_session(provided_guid=None, memory_type="standard"):
++     """Initialize the session with a consistent GUID.
 +     
 +     This is the central place where session GUIDs are managed.
 +     
@@ -2896,7 +2896,7 @@ Lines added: 142, lines removed: undefined
 +         
 +     Returns:
 +         tuple: (guid, memory_file_path)
-+     &quot;&quot;&quot;
++     """
 +     global session_guid
 +     
 +     # If a GUID is provided, use it
@@ -2907,32 +2907,32 @@ Lines added: 142, lines removed: undefined
 +         if memory_file:
 +             # Use the existing file with its memory type
 +             session_guid = provided_guid
-+             print(f&quot;Using existing memory with GUID: {session_guid}&quot;)
++             print(f"Using existing memory with GUID: {session_guid}")
 +             
-+             # If memory type doesn&#39;t match, update it
++             # If memory type doesn't match, update it
 +             if found_type != memory_type:
-+                 print(f&quot;Found memory with GUID {session_guid} but it uses {found_type} memory manager instead of {memory_type}.&quot;)
-+                 print(f&quot;Switching to {found_type} memory manager type to match the existing file.&quot;)
++                 print(f"Found memory with GUID {session_guid} but it uses {found_type} memory manager instead of {memory_type}.")
++                 print(f"Switching to {found_type} memory manager type to match the existing file.")
 +                 memory_type = found_type
 +                 
 +             return session_guid, memory_file, memory_type
 +         else:
 +             # Create a new file with the provided GUID
 +             session_guid = provided_guid
-+             print(f&quot;Creating new memory with provided GUID: {session_guid}&quot;)
++             print(f"Creating new memory with provided GUID: {session_guid}")
 +     else:
 +         # Generate a new GUID
 +         session_guid = str(uuid.uuid4())
-+         print(f&quot;Generated new session GUID: {session_guid}&quot;)
++         print(f"Generated new session GUID: {session_guid}")
 +     
 +     # Create memory file path using the session GUID
 +     memory_file = get_memory_filename(memory_type, session_guid)
-+     print(f&quot;Memory file path: {memory_file}&quot;)
++     print(f"Memory file path: {memory_file}")
 +     
 +     return session_guid, memory_file, memory_type
 + 
-  async def setup_services(memory_guid=None, memory_type=&quot;standard&quot;):
-      &quot;&quot;&quot;Initialize the LLM service and memory manager
+  async def setup_services(memory_guid=None, memory_type="standard"):
+      """Initialize the LLM service and memory manager
 ```
 
 **Chunk 4**
@@ -2940,17 +2940,17 @@ Lines added: 8, lines removed: undefined
 
 ```diff
 @@ -251,4 +399,12 @@
-      &quot;&quot;&quot;
-      print(&quot;\nSetting up services...&quot;)
+      """
+      print("\nSetting up services...")
 +     
 +     # Initialize the session first - this sets up the global session_guid
 +     guid, memory_file, memory_type = initialize_session(memory_guid, memory_type)
 +     
 +     # Create unique debug file for this session
-+     debug_file = f&quot;agent_debug_{guid}.log&quot;
-+     print(f&quot;Debug log file: {debug_file}&quot;)
++     debug_file = f"agent_debug_{guid}.log"
++     print(f"Debug log file: {debug_file}")
 +     
-      print(&quot;Initializing LLM service (Ollama)...&quot;)
+      print("Initializing LLM service (Ollama)...")
       llm_service = OllamaService({
 ```
 
@@ -2959,21 +2959,21 @@ Lines added: 2, lines removed: 43
 
 ```diff
 @@ -258,54 +414,13 @@
-          &quot;stream&quot;: False,
-          &quot;debug&quot;: True,
--         &quot;debug_file&quot;: &quot;agent_debug.log&quot;,
-+         &quot;debug_file&quot;: debug_file,
-          &quot;debug_scope&quot;: &quot;agent_example&quot;,
-          &quot;console_output&quot;: False
+          "stream": False,
+          "debug": True,
+-         "debug_file": "agent_debug.log",
++         "debug_file": debug_file,
+          "debug_scope": "agent_example",
+          "console_output": False
       })
       
       try:
 -         # Validate memory type
 -         if memory_type not in MEMORY_MANAGER_TYPES:
--             print(f&quot;Invalid memory manager type: {memory_type}. Using &#39;standard&#39; instead.&quot;)
--             memory_type = &quot;standard&quot;
+-             print(f"Invalid memory manager type: {memory_type}. Using 'standard' instead.")
+-             memory_type = "standard"
 -         
--         print(f&quot;Creating {memory_type} MemoryManager and Agent instances...&quot;)
+-         print(f"Creating {memory_type} MemoryManager and Agent instances...")
 -         
           # Get the correct memory manager class
           memory_manager_class = MEMORY_MANAGER_TYPES[memory_type]
@@ -2985,34 +2985,34 @@ Lines added: 2, lines removed: 43
 -             memory_file, found_type = get_memory_file_by_guid(memory_guid, memory_type)
 -             
 -             if memory_file:
--                 # If we found the file but it&#39;s for a different memory manager type,
+-                 # If we found the file but it's for a different memory manager type,
 -                 # update the memory_type to match what was found
 -                 if found_type != memory_type:
--                     print(f&quot;Found memory with GUID {memory_guid} but it uses {found_type} memory manager instead of {memory_type}.&quot;)
--                     print(f&quot;Switching to {found_type} memory manager type to match the existing file.&quot;)
+-                     print(f"Found memory with GUID {memory_guid} but it uses {found_type} memory manager instead of {memory_type}.")
+-                     print(f"Switching to {found_type} memory manager type to match the existing file.")
 -                     memory_type = found_type
 -                     memory_manager_class = MEMORY_MANAGER_TYPES[memory_type]
 -                 
--                 print(f&quot;Using existing memory file: {memory_file}&quot;)
+-                 print(f"Using existing memory file: {memory_file}")
 -             else:
 -                 # Create a new file with the specified GUID
 -                 memory_file = get_memory_filename(memory_type, memory_guid)
--                 print(f&quot;Creating new memory file with specified GUID: {memory_guid}&quot;)
--                 print(f&quot;Memory file path: {memory_file}&quot;)
+-                 print(f"Creating new memory file with specified GUID: {memory_guid}")
+-                 print(f"Memory file path: {memory_file}")
 -         else:
 -             # Generate a new GUID and filename
 -             memory_guid = str(uuid.uuid4())
 -             memory_file = get_memory_filename(memory_type, memory_guid)
--             print(f&quot;Generated new GUID: {memory_guid}&quot;)
--             print(f&quot;Memory file path: {memory_file}&quot;)
+-             print(f"Generated new GUID: {memory_guid}")
+-             print(f"Memory file path: {memory_file}")
 -         
 -         # Create unique debug file for this session
--         debug_file = f&quot;agent_debug_{memory_guid}.log&quot;
--         print(f&quot;Debug log file: {debug_file}&quot;)
+-         debug_file = f"agent_debug_{memory_guid}.log"
+-         print(f"Debug log file: {debug_file}")
 -         
 -         # Update the LLM service with the unique debug file
--         llm_service.config[&quot;debug_file&quot;] = debug_file
-+         print(f&quot;Creating {memory_type} MemoryManager and Agent instances...&quot;)
+-         llm_service.config["debug_file"] = debug_file
++         print(f"Creating {memory_type} MemoryManager and Agent instances...")
           
           # Create memory manager instance based on type
 ```
@@ -3035,11 +3035,11 @@ Lines added: 1, lines removed: undefined
 
 ```diff
 @@ -406,4 +521,5 @@
-              elif user_input == &#39;guid&#39;:
-                  print(f&quot;\nCurrent memory GUID: {memory_manager.get_memory_guid()}&quot;)
-+                 print(f&quot;Session GUID: {session_guid}&quot;)
+              elif user_input == 'guid':
+                  print(f"\nCurrent memory GUID: {memory_manager.get_memory_guid()}")
++                 print(f"Session GUID: {session_guid}")
                   continue
-              elif user_input == &#39;type&#39;:
+              elif user_input == 'type':
 ```
 
 **Chunk 8**
@@ -3050,16 +3050,16 @@ Lines added: undefined, lines removed: 96
               continue
   
 - def fix_guid_mismatches():
--     &quot;&quot;&quot;Find and fix any mismatches between filename GUIDs and internal GUIDs.
+-     """Find and fix any mismatches between filename GUIDs and internal GUIDs.
 -     
 -     This will rename files to match their internal GUIDs, ensuring consistency
 -     between the filename and the content.
--     &quot;&quot;&quot;
--     print(&quot;\nChecking for GUID mismatches...&quot;)
+-     """
+-     print("\nChecking for GUID mismatches...")
 -     files = list_memory_files()
 -     
 -     if not files:
--         print(&quot;No memory files found&quot;)
+-         print("No memory files found")
 -         return
 -     
 -     mismatches = 0
@@ -3069,84 +3069,84 @@ Lines added: undefined, lines removed: 96
 -             mismatches += 1
 -             memory_dir = get_memory_dir(mem_type)
 -             old_path = os.path.join(memory_dir, filename)
--             new_filename = f&quot;{MEMORY_FILE_PREFIX}_{internal_guid}.json&quot;
+-             new_filename = f"{MEMORY_FILE_PREFIX}_{internal_guid}.json"
 -             new_path = os.path.join(memory_dir, new_filename)
 -             
--             print(f&quot;Fixing mismatch: {filename} → {new_filename}&quot;)
+-             print(f"Fixing mismatch: {filename} → {new_filename}")
 -             # Rename the file to match its internal GUID
 -             try:
 -                 os.rename(old_path, new_path)
--                 print(f&quot;  Success: Renamed file to match internal GUID&quot;)
+-                 print(f"  Success: Renamed file to match internal GUID")
 -             except Exception as e:
--                 print(f&quot;  Error: Failed to rename file: {str(e)}&quot;)
+-                 print(f"  Error: Failed to rename file: {str(e)}")
 -     
 -     if mismatches == 0:
--         print(&quot;No GUID mismatches found&quot;)
+-         print("No GUID mismatches found")
 -     else:
--         print(f&quot;Fixed {mismatches} GUID mismatches&quot;)
+-         print(f"Fixed {mismatches} GUID mismatches")
 - 
 - def cleanup_old_memory_files(fix_guids=False):
--     &quot;&quot;&quot;Find old memory files in the root directory and move them to the appropriate subdirectory.
+-     """Find old memory files in the root directory and move them to the appropriate subdirectory.
 -     
 -     This is a utility function to help migrate from the old flat structure to the new
 -     organized directory structure.
 -     
 -     Args:
 -         fix_guids: If True, also fix any GUID mismatches
--     &quot;&quot;&quot;
+-     """
 -     # Look for old memory files in the root directory
 -     old_files = []
--     for filename in os.listdir(&quot;.&quot;):
--         if filename.startswith(MEMORY_FILE_PREFIX) and filename.endswith(&quot;.json&quot;) and &quot;_bak_&quot; not in filename:
+-     for filename in os.listdir("."):
+-         if filename.startswith(MEMORY_FILE_PREFIX) and filename.endswith(".json") and "_bak_" not in filename:
 -             old_files.append(filename)
 -     
 -     if not old_files:
--         print(&quot;No old memory files found in root directory&quot;)
+-         print("No old memory files found in root directory")
 -     else:
--         print(f&quot;\nFound {len(old_files)} old memory files to migrate&quot;)
+-         print(f"\nFound {len(old_files)} old memory files to migrate")
 -         for filename in old_files:
 -             try:
 -                 # Read the file to determine the memory manager type
--                 with open(filename, &#39;r&#39;) as f:
+-                 with open(filename, 'r') as f:
 -                     data = json.load(f)
 -                     
--                     memory_type = data.get(&quot;memory_manager_type&quot;, &quot;standard&quot;)
--                     guid = data.get(&quot;guid&quot;)
+-                     memory_type = data.get("memory_manager_type", "standard")
+-                     guid = data.get("guid")
 -                     
 -                     if not guid:
 -                         # Generate a new GUID for the file
 -                         guid = str(uuid.uuid4())
--                         data[&quot;guid&quot;] = guid
+-                         data["guid"] = guid
 -                         # Write the GUID back to the file
--                         with open(filename, &#39;w&#39;) as f_write:
+-                         with open(filename, 'w') as f_write:
 -                             json.dump(data, f_write, indent=2)
 -                     
 -                     # Extract GUID from filename or use the internal one
 -                     filename_guid = None
--                     if filename.startswith(MEMORY_FILE_PREFIX + &quot;_&quot;) and filename.endswith(&quot;.json&quot;):
--                         filename_guid = filename.replace(MEMORY_FILE_PREFIX + &quot;_&quot;, &quot;&quot;).replace(&quot;.json&quot;, &quot;&quot;)
+-                     if filename.startswith(MEMORY_FILE_PREFIX + "_") and filename.endswith(".json"):
+-                         filename_guid = filename.replace(MEMORY_FILE_PREFIX + "_", "").replace(".json", "")
 -                     
--                     # If filename doesn&#39;t have a valid GUID, rename it
+-                     # If filename doesn't have a valid GUID, rename it
 -                     new_filename = filename
 -                     if not filename_guid or (fix_guids and filename_guid != guid):
--                         new_filename = f&quot;{MEMORY_FILE_PREFIX}_{guid}.json&quot;
+-                         new_filename = f"{MEMORY_FILE_PREFIX}_{guid}.json"
 -                     
 -                     # Move the file to the appropriate directory
 -                     memory_dir = get_memory_dir(memory_type)
 -                     new_path = os.path.join(memory_dir, new_filename)
 -                     
--                     print(f&quot;Moving {filename} to {new_path}&quot;)
+-                     print(f"Moving {filename} to {new_path}")
 -                     os.rename(filename, new_path)
 -                     
 -             except Exception as e:
--                 print(f&quot;Error migrating {filename}: {str(e)}&quot;)
+-                 print(f"Error migrating {filename}: {str(e)}")
 -     
 -     # If requested, also fix any GUID mismatches in the proper directories
 -     if fix_guids:
 -         fix_guid_mismatches()
 - 
   async def main():
-      &quot;&quot;&quot;Main function to run the agent example&quot;&quot;&quot;
+      """Main function to run the agent example"""
 ```
 
 </details>
@@ -3214,7 +3214,7 @@ Let's fix this by ensuring the memory manager always uses the GUID we provide:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/agent_usage_example.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: examples/agent_usage_example.py</summary>
 
 **Chunk 1**
 Lines added: 30, lines removed: undefined
@@ -3228,37 +3228,37 @@ Lines added: 30, lines removed: undefined
 +         if os.path.exists(memory_file):
 +             # If the file exists, check its GUID
 +             try:
-+                 with open(memory_file, &#39;r&#39;) as f:
++                 with open(memory_file, 'r') as f:
 +                     data = json.load(f)
-+                     file_guid = data.get(&quot;guid&quot;)
++                     file_guid = data.get("guid")
 +                     
 +                     if file_guid and file_guid != guid:
-+                         print(f&quot;Warning: Existing memory file has different GUID: {file_guid}&quot;)
-+                         print(f&quot;Updating memory file to use session GUID: {guid}&quot;)
++                         print(f"Warning: Existing memory file has different GUID: {file_guid}")
++                         print(f"Updating memory file to use session GUID: {guid}")
 +                         
 +                         # Force update the GUID in the memory and the file
-+                         data[&quot;guid&quot;] = guid
-+                         with open(memory_file, &#39;w&#39;) as f_write:
++                         data["guid"] = guid
++                         with open(memory_file, 'w') as f_write:
 +                             json.dump(data, f_write, indent=2)
 +                         
 +                         # Also update it in the memory manager
-+                         memory_manager.memory[&quot;guid&quot;] = guid
++                         memory_manager.memory["guid"] = guid
 +                         memory_manager.memory_guid = guid
 +             except Exception as e:
-+                 print(f&quot;Error checking memory file GUID: {str(e)}&quot;)
++                 print(f"Error checking memory file GUID: {str(e)}")
 +         
 +         # Force set the memory_guid property to match our session GUID
 +         memory_manager.memory_guid = guid
           
           # Add memory_manager_type to the memory
-          if hasattr(memory_manager, &#39;memory&#39;) and isinstance(memory_manager.memory, dict):
-              memory_manager.memory[&quot;memory_manager_type&quot;] = memory_type
-+             memory_manager.memory[&quot;guid&quot;] = guid  # Ensure GUID in memory matches session GUID
+          if hasattr(memory_manager, 'memory') and isinstance(memory_manager.memory, dict):
+              memory_manager.memory["memory_manager_type"] = memory_type
++             memory_manager.memory["guid"] = guid  # Ensure GUID in memory matches session GUID
 +             
 +             # Save the memory to ensure our changes persist
 +             memory_manager.save_memory()
           
-          agent = Agent(llm_service, memory_manager, domain_name=&quot;dnd_campaign&quot;, reflection_threshold=4)
+          agent = Agent(llm_service, memory_manager, domain_name="dnd_campaign", reflection_threshold=4)
 ```
 
 </details>
@@ -3273,14 +3273,14 @@ Now let's also add a fix command to make it easier to correct existing mismatche
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/agent_usage_example.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: examples/agent_usage_example.py</summary>
 
 **Chunk 1**
 Lines added: 4, lines removed: 2
 
 ```diff
 @@ -249,6 +249,8 @@
-      &quot;&quot;&quot;Find and fix any mismatches between filename GUIDs and internal GUIDs.
+      """Find and fix any mismatches between filename GUIDs and internal GUIDs.
       
 -     This will rename files to match their internal GUIDs, ensuring consistency
 -     between the filename and the content.
@@ -3288,8 +3288,8 @@ Lines added: 4, lines removed: 2
 +     1. Renames files to match their internal GUIDs (if the internal GUID is valid)
 +     2. Updates internal GUIDs to match filename GUIDs (if the filename has a valid GUID)
 +     3. Ensures consistency between filename and internal GUIDs
-      &quot;&quot;&quot;
-      print(&quot;\nChecking for GUID mismatches...&quot;)
+      """
+      print("\nChecking for GUID mismatches...")
 ```
 
 **Chunk 2**
@@ -3300,78 +3300,78 @@ Lines added: 58, lines removed: 4
               memory_dir = get_memory_dir(mem_type)
               old_path = os.path.join(memory_dir, filename)
 +             
-+             # Decide which GUID to keep (prefer the internal GUID if it&#39;s valid)
++             # Decide which GUID to keep (prefer the internal GUID if it's valid)
 +             if internal_guid and len(internal_guid) &gt; 30:  # Simple validity check
 +                 final_guid = internal_guid
-+                 print(f&quot;Fixing mismatch: Using internal GUID ({internal_guid})&quot;)
++                 print(f"Fixing mismatch: Using internal GUID ({internal_guid})")
 +                 
 +                 # Rename the file to match internal GUID
-                  new_filename = f&quot;{MEMORY_FILE_PREFIX}_{internal_guid}.json&quot;
+                  new_filename = f"{MEMORY_FILE_PREFIX}_{internal_guid}.json"
                   new_path = os.path.join(memory_dir, new_filename)
 -             
--             print(f&quot;Fixing mismatch: {filename} → {new_filename}&quot;)
+-             print(f"Fixing mismatch: {filename} → {new_filename}")
 -             # Rename the file to match its internal GUID
 -             try:
 +                 try:
 +                     # First update the file content to ensure GUID is consistent
-+                     with open(old_path, &#39;r&#39;) as f:
++                     with open(old_path, 'r') as f:
 +                         data = json.load(f)
 +                         # Double-check the GUID in the file
-+                         if data.get(&quot;guid&quot;) != internal_guid:
-+                             print(f&quot;  Warning: Inconsistent internal GUID in memory data, updating...&quot;)
-+                             data[&quot;guid&quot;] = internal_guid
-+                             with open(old_path, &#39;w&#39;) as f_write:
++                         if data.get("guid") != internal_guid:
++                             print(f"  Warning: Inconsistent internal GUID in memory data, updating...")
++                             data["guid"] = internal_guid
++                             with open(old_path, 'w') as f_write:
 +                                 json.dump(data, f_write, indent=2)
 +                     
-+                     print(f&quot;  Renaming file: {filename} → {new_filename}&quot;)
++                     print(f"  Renaming file: {filename} → {new_filename}")
                       os.rename(old_path, new_path)
-                      print(f&quot;  Success: Renamed file to match internal GUID&quot;)
+                      print(f"  Success: Renamed file to match internal GUID")
                   except Exception as e:
-                      print(f&quot;  Error: Failed to rename file: {str(e)}&quot;)
+                      print(f"  Error: Failed to rename file: {str(e)}")
 +             
 +             elif filename_guid and len(filename_guid) &gt; 30:  # Simple validity check
 +                 final_guid = filename_guid
-+                 print(f&quot;Fixing mismatch: Using filename GUID ({filename_guid})&quot;)
++                 print(f"Fixing mismatch: Using filename GUID ({filename_guid})")
 +                 
 +                 # Update the file content to use the filename GUID
 +                 try:
-+                     with open(old_path, &#39;r&#39;) as f:
++                     with open(old_path, 'r') as f:
 +                         data = json.load(f)
-+                         data[&quot;guid&quot;] = filename_guid
++                         data["guid"] = filename_guid
 +                     
-+                     with open(old_path, &#39;w&#39;) as f_write:
++                     with open(old_path, 'w') as f_write:
 +                         json.dump(data, f_write, indent=2)
-+                     print(f&quot;  Success: Updated file content to use filename GUID&quot;)
++                     print(f"  Success: Updated file content to use filename GUID")
 +                 except Exception as e:
-+                     print(f&quot;  Error: Failed to update file content: {str(e)}&quot;)
++                     print(f"  Error: Failed to update file content: {str(e)}")
 +             
 +             else:
 +                 # Neither GUID looks valid, generate a new one
 +                 final_guid = str(uuid.uuid4())
-+                 print(f&quot;Fixing mismatch: Generating new GUID ({final_guid})&quot;)
++                 print(f"Fixing mismatch: Generating new GUID ({final_guid})")
 +                 
 +                 # Update the file content with the new GUID
 +                 try:
-+                     with open(old_path, &#39;r&#39;) as f:
++                     with open(old_path, 'r') as f:
 +                         data = json.load(f)
-+                         data[&quot;guid&quot;] = final_guid
++                         data["guid"] = final_guid
 +                     
-+                     with open(old_path, &#39;w&#39;) as f_write:
++                     with open(old_path, 'w') as f_write:
 +                         json.dump(data, f_write, indent=2)
 +                     
 +                     # Rename the file to match the new GUID
-+                     new_filename = f&quot;{MEMORY_FILE_PREFIX}_{final_guid}.json&quot;
++                     new_filename = f"{MEMORY_FILE_PREFIX}_{final_guid}.json"
 +                     new_path = os.path.join(memory_dir, new_filename)
 +                     os.rename(old_path, new_path)
-+                     print(f&quot;  Success: Updated file with new GUID and renamed to {new_filename}&quot;)
++                     print(f"  Success: Updated file with new GUID and renamed to {new_filename}")
 +                 except Exception as e:
-+                     print(f&quot;  Error: Failed to fix GUID mismatch: {str(e)}&quot;)
++                     print(f"  Error: Failed to fix GUID mismatch: {str(e)}")
       
       if mismatches == 0:
-          print(&quot;No GUID mismatches found&quot;)
+          print("No GUID mismatches found")
       else:
-          print(f&quot;Fixed {mismatches} GUID mismatches&quot;)
-+         print(&quot;Run --list to verify all mismatches are resolved&quot;)
+          print(f"Fixed {mismatches} GUID mismatches")
++         print("Run --list to verify all mismatches are resolved")
   
   def cleanup_old_memory_files(fix_guids=False):
 ```
@@ -3459,7 +3459,7 @@ After reviewing the memory manager code, I can see the issue. Let's modify the `
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 14, lines removed: 10
@@ -3468,40 +3468,40 @@ Lines added: 14, lines removed: 10
 @@ -80,24 +80,28 @@
   
       def _ensure_memory_guid(self):
--         &quot;&quot;&quot;Ensure that the memory has a GUID, generating one if needed.&quot;&quot;&quot;
--         # If memory doesn&#39;t exist yet or doesn&#39;t have a guid, we&#39;ll set it later in create_initial_memory
-+         &quot;&quot;&quot;Ensure that the memory has a GUID, prioritizing the provided GUID if available.&quot;&quot;&quot;
-+         # If memory doesn&#39;t exist yet, we&#39;ll set the GUID later in create_initial_memory
+-         """Ensure that the memory has a GUID, generating one if needed."""
+-         # If memory doesn't exist yet or doesn't have a guid, we'll set it later in create_initial_memory
++         """Ensure that the memory has a GUID, prioritizing the provided GUID if available."""
++         # If memory doesn't exist yet, we'll set the GUID later in create_initial_memory
           if not self.memory:
               return
               
 -         # If memory exists but no guid was found during load and none was provided
--         if &quot;guid&quot; not in self.memory and not self.memory_guid:
+-         if "guid" not in self.memory and not self.memory_guid:
 -             # Generate a new GUID
 -             self.memory_guid = str(uuid.uuid4())
 +         # If a GUID was explicitly provided during initialization, always use it
 +         if self.memory_guid:
 +             # Force the memory to use our provided GUID, overriding any existing GUID
-+             if &quot;guid&quot; in self.memory and self.memory[&quot;guid&quot;] != self.memory_guid:
-+                 print(f&quot;Replacing existing memory GUID: {self.memory[&#39;guid&#39;]} with provided GUID: {self.memory_guid}&quot;)
++             if "guid" in self.memory and self.memory["guid"] != self.memory_guid:
++                 print(f"Replacing existing memory GUID: {self.memory['guid']} with provided GUID: {self.memory_guid}")
 +             
 +             # Set the GUID in memory
-              self.memory[&quot;guid&quot;] = self.memory_guid
--             print(f&quot;Generated new GUID for existing memory: {self.memory_guid}&quot;)
-+             print(f&quot;Using provided GUID for memory: {self.memory_guid}&quot;)
+              self.memory["guid"] = self.memory_guid
+-             print(f"Generated new GUID for existing memory: {self.memory_guid}")
++             print(f"Using provided GUID for memory: {self.memory_guid}")
               self.save_memory()
 +         # If no GUID was provided but one exists in memory, use that
-          elif &quot;guid&quot; in self.memory:
+          elif "guid" in self.memory:
 -             # Store the loaded GUID
-              self.memory_guid = self.memory[&quot;guid&quot;]
-              print(f&quot;Using existing memory GUID: {self.memory_guid}&quot;)
+              self.memory_guid = self.memory["guid"]
+              print(f"Using existing memory GUID: {self.memory_guid}")
 +         # If no GUID was provided and none exists in memory, generate a new one
           else:
 -             # Use the provided GUID
 +             self.memory_guid = str(uuid.uuid4())
-              self.memory[&quot;guid&quot;] = self.memory_guid
--             print(f&quot;Applied provided GUID to memory: {self.memory_guid}&quot;)
-+             print(f&quot;Generated new GUID for memory: {self.memory_guid}&quot;)
+              self.memory["guid"] = self.memory_guid
+-             print(f"Applied provided GUID to memory: {self.memory_guid}")
++             print(f"Generated new GUID for memory: {self.memory_guid}")
               self.save_memory()
   
 ```
@@ -3518,14 +3518,14 @@ Now let's also check the `create_initial_memory` method to ensure it properly re
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
 
 ```diff
 @@ -39,5 +39,5 @@
-  &quot;&quot;&quot;
+  """
   
 - from typing import Any, Dict, Optional
 + from typing import Any, Dict, Optional, List
@@ -3538,121 +3538,121 @@ Lines added: 42, lines removed: 139
 
 ```diff
 @@ -138,152 +138,55 @@
-                  raise Exception(f&quot;Failed to load template: {filename}&quot;)
+                  raise Exception(f"Failed to load template: {filename}")
   
 -     def create_initial_memory(self, input_data: str) -&gt; bool:
--         &quot;&quot;&quot;Use LLM to structure initial input data into memory format.
+-         """Use LLM to structure initial input data into memory format.
 -         
 -         The LLM is free to choose the internal structure of static_memory and working_memory
 -         based on what makes sense for the domain. We only validate the top-level structure.
--         &quot;&quot;&quot;
+-         """
 -         # Check if we have valid existing memory
--         if self.memory and all(key in self.memory for key in [&quot;original_data&quot;, &quot;static_memory&quot;, &quot;working_memory&quot;, &quot;metadata&quot;, &quot;conversation_history&quot;]):
--             print(&quot;Valid memory structure already exists, skipping initialization&quot;)
+-         if self.memory and all(key in self.memory for key in ["original_data", "static_memory", "working_memory", "metadata", "conversation_history"]):
+-             print("Valid memory structure already exists, skipping initialization")
 -             # Ensure GUID exists even for pre-existing memories
 -             self._ensure_memory_guid()
 -             return True
 - 
--         print(&quot;\nCreating initial memory structure...&quot;)
+-         print("\nCreating initial memory structure...")
 -     
 -         # Include domain-specific instructions if available
--         domain_guidance = &quot;&quot;
--         if self.domain_config and &quot;domain_specific_prompt_instructions&quot; in self.domain_config:
--             domain_guidance = &quot;\nDomain-Specific Guidance:\n&quot;
--             create_memory_instructions = self.domain_config[&quot;domain_specific_prompt_instructions&quot;][&quot;create_memory&quot;]
+-         domain_guidance = ""
+-         if self.domain_config and "domain_specific_prompt_instructions" in self.domain_config:
+-             domain_guidance = "\nDomain-Specific Guidance:\n"
+-             create_memory_instructions = self.domain_config["domain_specific_prompt_instructions"]["create_memory"]
 -             domain_guidance += create_memory_instructions
 - 
--         if self.domain_config and &quot;domain_specific_schema_suggestions&quot; in self.domain_config:
--             domain_guidance += &quot;\n\nDomain-Specific Schema Suggestions:\n&quot;
--             schema_suggestions = self.domain_config[&quot;domain_specific_schema_suggestions&quot;]
+-         if self.domain_config and "domain_specific_schema_suggestions" in self.domain_config:
+-             domain_guidance += "\n\nDomain-Specific Schema Suggestions:\n"
+-             schema_suggestions = self.domain_config["domain_specific_schema_suggestions"]
 -             domain_guidance += json.dumps(schema_suggestions, indent=2)
 -             
 -         try:
--             print(&quot;Generating memory structure using LLM...&quot;)
--             prompt = self.templates[&quot;create&quot;].format(
+-             print("Generating memory structure using LLM...")
+-             prompt = self.templates["create"].format(
 -                 input_data=input_data,
 -                 domain_guidance=domain_guidance
 -             )
 -             
 -             # Print the prompt to debug format placeholders
--             print(f&quot;DEBUG - FORMATTED PROMPT (first 200 chars):\n{prompt[:200]}...&quot;)
--             print(f&quot;DEBUG - FORMATTED PROMPT (last 200 chars):\n{prompt[-200:]}...&quot;)
+-             print(f"DEBUG - FORMATTED PROMPT (first 200 chars):\n{prompt[:200]}...")
+-             print(f"DEBUG - FORMATTED PROMPT (last 200 chars):\n{prompt[-200:]}...")
 -             
 -             llm_response = self.llm.generate(prompt)
 -             
 -             # Print the response to debug
--             print(f&quot;DEBUG - LLM RESPONSE (first 200 chars):\n{llm_response[:200]}...&quot;)
--             print(f&quot;DEBUG - LLM RESPONSE (last 200 chars):\n{llm_response[-200:]}...&quot;)
+-             print(f"DEBUG - LLM RESPONSE (first 200 chars):\n{llm_response[:200]}...")
+-             print(f"DEBUG - LLM RESPONSE (last 200 chars):\n{llm_response[-200:]}...")
 -             
 -             try:
 -                 memory_data = json.loads(llm_response)
 -             except json.JSONDecodeError:
 -                 import re
--                 print(&quot;Failed to parse direct JSON, attempting to extract JSON structure...&quot;)
--                 json_match = re.search(r&#39;\{[\s\S]*\}&#39;, llm_response)
+-                 print("Failed to parse direct JSON, attempting to extract JSON structure...")
+-                 json_match = re.search(r'\{[\s\S]*\}', llm_response)
 -                 if json_match:
 -                     try:
 -                         json_str = json_match.group(0)
 -                         # Remove any markdown code block markers
--                         json_str = re.sub(r&#39;&#96;&#96;&#96;json\s*|\s*&#96;&#96;&#96;&#39;, &#39;&#39;, json_str)
+-                         json_str = re.sub(r'&#96;&#96;&#96;json\s*|\s*&#96;&#96;&#96;', '', json_str)
 -                         memory_data = json.loads(json_str)
--                         print(&quot;Successfully extracted and fixed JSON structure&quot;)
+-                         print("Successfully extracted and fixed JSON structure")
 -                     except json.JSONDecodeError as e:
--                         print(f&quot;Error parsing extracted JSON structure: {str(e)}&quot;)
+-                         print(f"Error parsing extracted JSON structure: {str(e)}")
 -                         return False
 -                 else:
--                     print(&quot;Could not find JSON structure in LLM response&quot;)
+-                     print("Could not find JSON structure in LLM response")
 -                     return False
 -             
 -             # Validate only the top-level structure
--             if &quot;static_memory&quot; not in memory_data:
--                 print(&quot;Missing static_memory in LLM response&quot;)
+-             if "static_memory" not in memory_data:
+-                 print("Missing static_memory in LLM response")
 -                 return False
 -                 
--             static_memory = memory_data[&quot;static_memory&quot;]
+-             static_memory = memory_data["static_memory"]
 -             if not isinstance(static_memory, dict):
--                 print(&quot;static_memory must be a dictionary&quot;)
+-                 print("static_memory must be a dictionary")
 -                 return False
 -                 
--             if &quot;structured_data&quot; not in static_memory or &quot;knowledge_graph&quot; not in static_memory:
--                 print(&quot;static_memory must contain structured_data and knowledge_graph&quot;)
+-             if "structured_data" not in static_memory or "knowledge_graph" not in static_memory:
+-                 print("static_memory must contain structured_data and knowledge_graph")
 -                 return False
 -                 
--             if not isinstance(static_memory[&quot;structured_data&quot;], dict) or not isinstance(static_memory[&quot;knowledge_graph&quot;], dict):
--                 print(&quot;structured_data and knowledge_graph must be dictionaries&quot;)
+-             if not isinstance(static_memory["structured_data"], dict) or not isinstance(static_memory["knowledge_graph"], dict):
+-                 print("structured_data and knowledge_graph must be dictionaries")
 -                 return False
 - 
 -             # Validate knowledge_graph structure
--             static_knowledge_graph = static_memory[&quot;knowledge_graph&quot;]
--             if &quot;simple_facts&quot; not in static_knowledge_graph or &quot;relationships&quot; not in static_knowledge_graph:
--                 print(&quot;knowledge_graph must contain simple_facts and relationships&quot;)
+-             static_knowledge_graph = static_memory["knowledge_graph"]
+-             if "simple_facts" not in static_knowledge_graph or "relationships" not in static_knowledge_graph:
+-                 print("knowledge_graph must contain simple_facts and relationships")
 -                 return False
 - 
--             if not isinstance(static_knowledge_graph[&quot;simple_facts&quot;], list) or not isinstance(static_knowledge_graph[&quot;relationships&quot;], list):
--                 print(&quot;simple_facts and relationships must be lists&quot;)
+-             if not isinstance(static_knowledge_graph["simple_facts"], list) or not isinstance(static_knowledge_graph["relationships"], list):
+-                 print("simple_facts and relationships must be lists")
 -                 return False
 - 
 -             # Validate simple_facts structure
--             for fact in static_knowledge_graph[&quot;simple_facts&quot;]:
+-             for fact in static_knowledge_graph["simple_facts"]:
 -                 if not isinstance(fact, dict):
--                     print(&quot;Each fact must be a dictionary&quot;)
+-                     print("Each fact must be a dictionary")
 -                     return False
--                 required_fields = [&quot;key&quot;, &quot;value&quot;, &quot;context&quot;]
+-                 required_fields = ["key", "value", "context"]
 -                 if not all(field in fact for field in required_fields):
--                     print(f&quot;Fact missing required fields: {required_fields}&quot;)
+-                     print(f"Fact missing required fields: {required_fields}")
 -                     return False
 - 
 -             # Validate relationship structure
--             for relationship in static_knowledge_graph[&quot;relationships&quot;]:
+-             for relationship in static_knowledge_graph["relationships"]:
 -                 if not isinstance(relationship, dict):
--                     print(&quot;Each relationship must be a dictionary&quot;)
+-                     print("Each relationship must be a dictionary")
 -                     return False
--                 required_fields = [&quot;subject&quot;, &quot;predicate&quot;, &quot;object&quot;, &quot;context&quot;]
+-                 required_fields = ["subject", "predicate", "object", "context"]
 -                 if not all(field in relationship for field in required_fields):
--                     print(f&quot;Relationship missing required fields: {required_fields}&quot;)
+-                     print(f"Relationship missing required fields: {required_fields}")
 -                     return False
 -             
--             # Generate a new GUID if one wasn&#39;t provided
+-             # Generate a new GUID if one wasn't provided
 +     def create_initial_memory(self, 
 +                               name: Optional[str] = None, 
 +                               description: Optional[str] = None,
@@ -3660,7 +3660,7 @@ Lines added: 42, lines removed: 139
 +                               required_fields: Optional[List[str]] = None,
 +                               relationships: Optional[Dict[str, List[Dict]]] = None,
 +                               raw_conversation_history: Optional[List[Dict]] = None):
-+         &quot;&quot;&quot;
++         """
 +         Create initial memory structure with provided information.
 +         
 +         Args:
@@ -3670,64 +3670,64 @@ Lines added: 42, lines removed: 139
 +             required_fields: List of fields that are required for this memory
 +             relationships: Dictionary of relationships between entities
 +             raw_conversation_history: Optional conversation history to seed the memory with
-+         &quot;&quot;&quot;
++         """
 +         # Input validation
 +         if relationships:
 +             for rel_type, rel_list in relationships.items():
 +                 for rel in rel_list:
-+                     if not rel.get(&quot;name&quot;):
-+                         raise ValueError(f&quot;Relationship {rel} in {rel_type} is missing required &#39;name&#39; field&quot;)
++                     if not rel.get("name"):
++                         raise ValueError(f"Relationship {rel} in {rel_type} is missing required 'name' field")
 +         
 +         # Initialize memory with metadata
 +         # Always use the provided GUID if it exists, or generate a new one if not
           if not self.memory_guid:
               self.memory_guid = str(uuid.uuid4())
--                 print(f&quot;Generated new GUID for memory: {self.memory_guid}&quot;)
-+             print(f&quot;Generated new GUID for initial memory: {self.memory_guid}&quot;)
+-                 print(f"Generated new GUID for memory: {self.memory_guid}")
++             print(f"Generated new GUID for initial memory: {self.memory_guid}")
           
 -             # Initialize complete memory structure
 -             now = datetime.now().isoformat()
 +         # Create complete memory structure
           self.memory = {
--                 &quot;guid&quot;: self.memory_guid,  # Add GUID to memory structure
--                 &quot;original_data&quot;: input_data,  # Store the original raw input data
--                 &quot;static_memory&quot;: static_memory,
--                 &quot;working_memory&quot;: {
--                     &quot;structured_data&quot;: {
--                         &quot;entities&quot;: []  # Empty list for entities
+-                 "guid": self.memory_guid,  # Add GUID to memory structure
+-                 "original_data": input_data,  # Store the original raw input data
+-                 "static_memory": static_memory,
+-                 "working_memory": {
+-                     "structured_data": {
+-                         "entities": []  # Empty list for entities
 -                     },
--                     &quot;knowledge_graph&quot;: {
--                         &quot;simple_facts&quot;: [],  # For natural language facts
--                         &quot;relationships&quot;: []  # For explicit subject-predicate-object relationships
+-                     "knowledge_graph": {
+-                         "simple_facts": [],  # For natural language facts
+-                         "relationships": []  # For explicit subject-predicate-object relationships
 -                     }
 -                 },
-+             &quot;guid&quot;: self.memory_guid,
-              &quot;metadata&quot;: {
--                     &quot;created_at&quot;: now,
--                     &quot;last_updated&quot;: now,
--                     &quot;version&quot;: &quot;1.0&quot;
++             "guid": self.memory_guid,
+              "metadata": {
+-                     "created_at": now,
+-                     "last_updated": now,
+-                     "version": "1.0"
 -                 },
--                 &quot;conversation_history&quot;: []
-+                 &quot;name&quot;: name or &quot;Unnamed Memory&quot;,
-+                 &quot;description&quot;: description or &quot;No description provided&quot;,
-+                 &quot;type&quot;: memory_type or &quot;default&quot;,
-+                 &quot;created_at&quot;: datetime.datetime.now().isoformat(),
-+                 &quot;last_updated&quot;: datetime.datetime.now().isoformat(),
-+                 &quot;required_fields&quot;: required_fields or []
+-                 "conversation_history": []
++                 "name": name or "Unnamed Memory",
++                 "description": description or "No description provided",
++                 "type": memory_type or "default",
++                 "created_at": datetime.datetime.now().isoformat(),
++                 "last_updated": datetime.datetime.now().isoformat(),
++                 "required_fields": required_fields or []
 +             },
-+             &quot;relationships&quot;: relationships or {},
-+             &quot;conversation_history&quot;: self._initialize_conversation_history(raw_conversation_history)
++             "relationships": relationships or {},
++             "conversation_history": self._initialize_conversation_history(raw_conversation_history)
           }
           
-+         print(f&quot;Created initial memory with GUID: {self.memory_guid}&quot;)
++         print(f"Created initial memory with GUID: {self.memory_guid}")
 +         # Save the newly created memory
           self.save_memory()
--             print(&quot;Initial memory created and saved successfully&quot;)
+-             print("Initial memory created and saved successfully")
 -             return True
           
 -         except Exception as e:
--             print(f&quot;Error creating memory structure: {str(e)}&quot;)
--             print(f&quot;Full error: {repr(e)}&quot;)
+-             print(f"Error creating memory structure: {str(e)}")
+-             print(f"Full error: {repr(e)}")
 -             return False
 +         return self.memory
   
@@ -3753,7 +3753,7 @@ Let's also add the missing `_initialize_conversation_history` method since it's 
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 29, lines removed: undefined
@@ -3763,7 +3763,7 @@ Lines added: 29, lines removed: undefined
               return False
   
 +     def _initialize_conversation_history(self, raw_conversation_history: Optional[List[Dict]] = None) -&gt; List[Dict]:
-+         &quot;&quot;&quot;
++         """
 +         Initialize the conversation history with provided data or an empty list.
 +         
 +         Args:
@@ -3771,7 +3771,7 @@ Lines added: 29, lines removed: undefined
 +             
 +         Returns:
 +             Initialized conversation history list
-+         &quot;&quot;&quot;
++         """
 +         if not raw_conversation_history:
 +             return []
 +         
@@ -3779,13 +3779,13 @@ Lines added: 29, lines removed: undefined
 +         validated_history = []
 +         for entry in raw_conversation_history:
 +             # Ensure each entry has at least role and content
-+             if not isinstance(entry, dict) or &#39;role&#39; not in entry or &#39;content&#39; not in entry:
-+                 print(f&quot;Warning: Skipping invalid conversation history entry: {entry}&quot;)
++             if not isinstance(entry, dict) or 'role' not in entry or 'content' not in entry:
++                 print(f"Warning: Skipping invalid conversation history entry: {entry}")
 +                 continue
 +             
 +             # Add timestamp if not present
-+             if &#39;timestamp&#39; not in entry:
-+                 entry[&#39;timestamp&#39;] = datetime.datetime.now().isoformat()
++             if 'timestamp' not in entry:
++                 entry['timestamp'] = datetime.datetime.now().isoformat()
 +             
 +             validated_history.append(entry)
 +         
@@ -3897,20 +3897,20 @@ I noticed an issue in our implementation. In the `_initialize_conversation_histo
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: 2
 
 ```diff
 @@ -176,6 +176,6 @@
-                  &quot;description&quot;: description or &quot;No description provided&quot;,
-                  &quot;type&quot;: memory_type or &quot;default&quot;,
--                 &quot;created_at&quot;: datetime.datetime.now().isoformat(),
--                 &quot;last_updated&quot;: datetime.datetime.now().isoformat(),
-+                 &quot;created_at&quot;: datetime.now().isoformat(),
-+                 &quot;last_updated&quot;: datetime.now().isoformat(),
-                  &quot;required_fields&quot;: required_fields or []
+                  "description": description or "No description provided",
+                  "type": memory_type or "default",
+-                 "created_at": datetime.datetime.now().isoformat(),
+-                 "last_updated": datetime.datetime.now().isoformat(),
++                 "created_at": datetime.now().isoformat(),
++                 "last_updated": datetime.now().isoformat(),
+                  "required_fields": required_fields or []
               },
 ```
 
@@ -3920,9 +3920,9 @@ Lines added: 1, lines removed: 1
 ```diff
 @@ -423,5 +423,5 @@
               # Add timestamp if not present
-              if &#39;timestamp&#39; not in entry:
--                 entry[&#39;timestamp&#39;] = datetime.datetime.now().isoformat()
-+                 entry[&#39;timestamp&#39;] = datetime.now().isoformat()
+              if 'timestamp' not in entry:
+-                 entry['timestamp'] = datetime.datetime.now().isoformat()
++                 entry['timestamp'] = datetime.now().isoformat()
               
               validated_history.append(entry)
 ```
@@ -3969,7 +3969,7 @@ You're absolutely right. The current code has the wrong mental model for handlin
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 32, lines removed: 18
@@ -3978,8 +3978,8 @@ Lines added: 32, lines removed: 18
 @@ -80,29 +80,43 @@
   
       def _ensure_memory_guid(self):
--         &quot;&quot;&quot;Ensure that the memory has a GUID, prioritizing the provided GUID if available.&quot;&quot;&quot;
-+         &quot;&quot;&quot;
+-         """Ensure that the memory has a GUID, prioritizing the provided GUID if available."""
++         """
 +         Ensure that the memory has a consistent GUID, using self.memory_guid as the source of truth.
 +         
 +         This method enforces that:
@@ -3987,54 +3987,54 @@ Lines added: 32, lines removed: 18
 +         2. If memory_guid was provided in __init__, it is always used
 +         3. If no memory_guid was provided, generate a new one
 +         4. Always ensure the memory data uses the same GUID as self.memory_guid
-+         &quot;&quot;&quot;
-          # If memory doesn&#39;t exist yet, we&#39;ll set the GUID later in create_initial_memory
++         """
+          # If memory doesn't exist yet, we'll set the GUID later in create_initial_memory
           if not self.memory:
 +             # If no memory_guid was provided at initialization, generate one now
 +             if not self.memory_guid:
 +                 self.memory_guid = str(uuid.uuid4())
-+                 print(f&quot;Generated new memory_guid: {self.memory_guid}&quot;)
++                 print(f"Generated new memory_guid: {self.memory_guid}")
               return
           
 -         # If a GUID was explicitly provided during initialization, always use it
 -         if self.memory_guid:
 -             # Force the memory to use our provided GUID, overriding any existing GUID
--             if &quot;guid&quot; in self.memory and self.memory[&quot;guid&quot;] != self.memory_guid:
--                 print(f&quot;Replacing existing memory GUID: {self.memory[&#39;guid&#39;]} with provided GUID: {self.memory_guid}&quot;)
+-             if "guid" in self.memory and self.memory["guid"] != self.memory_guid:
+-                 print(f"Replacing existing memory GUID: {self.memory['guid']} with provided GUID: {self.memory_guid}")
 -             
 -             # Set the GUID in memory
 +         # At this point, memory exists but we need to ensure GUID consistency
 +         
 +         # If memory_guid was not provided at initialization, but memory exists
 +         if not self.memory_guid:
-+             # Generate a new GUID - don&#39;t use what&#39;s in memory as it could be inconsistent
++             # Generate a new GUID - don't use what's in memory as it could be inconsistent
 +             self.memory_guid = str(uuid.uuid4())
-+             print(f&quot;No memory_guid was provided, generated new one: {self.memory_guid}&quot;)
++             print(f"No memory_guid was provided, generated new one: {self.memory_guid}")
 +         
 +         # Now ensure the memory data uses our memory_guid (either provided or generated)
-+         if &quot;guid&quot; not in self.memory or self.memory[&quot;guid&quot;] != self.memory_guid:
-+             # There&#39;s a mismatch or missing GUID in memory
-+             if &quot;guid&quot; in self.memory:
-+                 print(f&quot;Replacing memory GUID: {self.memory[&#39;guid&#39;]} with source of truth: {self.memory_guid}&quot;)
++         if "guid" not in self.memory or self.memory["guid"] != self.memory_guid:
++             # There's a mismatch or missing GUID in memory
++             if "guid" in self.memory:
++                 print(f"Replacing memory GUID: {self.memory['guid']} with source of truth: {self.memory_guid}")
 +             else:
-+                 print(f&quot;Setting memory GUID to: {self.memory_guid}&quot;)
++                 print(f"Setting memory GUID to: {self.memory_guid}")
 +             
 +             # Always update memory to use our source of truth GUID
-              self.memory[&quot;guid&quot;] = self.memory_guid
--             print(f&quot;Using provided GUID for memory: {self.memory_guid}&quot;)
+              self.memory["guid"] = self.memory_guid
+-             print(f"Using provided GUID for memory: {self.memory_guid}")
               self.save_memory()
 -         # If no GUID was provided but one exists in memory, use that
--         elif &quot;guid&quot; in self.memory:
--             self.memory_guid = self.memory[&quot;guid&quot;]
--             print(f&quot;Using existing memory GUID: {self.memory_guid}&quot;)
+-         elif "guid" in self.memory:
+-             self.memory_guid = self.memory["guid"]
+-             print(f"Using existing memory GUID: {self.memory_guid}")
 -         # If no GUID was provided and none exists in memory, generate a new one
           else:
 -             self.memory_guid = str(uuid.uuid4())
--             self.memory[&quot;guid&quot;] = self.memory_guid
--             print(f&quot;Generated new GUID for memory: {self.memory_guid}&quot;)
+-             self.memory["guid"] = self.memory_guid
+-             print(f"Generated new GUID for memory: {self.memory_guid}")
 -             self.save_memory()
 +             # GUIDs match, but log for clarity
-+             print(f&quot;Memory GUID matches source of truth: {self.memory_guid}&quot;)
++             print(f"Memory GUID matches source of truth: {self.memory_guid}")
   
       def _get_default_config(self) -&gt; dict:
 ```
@@ -4051,31 +4051,31 @@ Now let's also update the `create_initial_memory` method to follow the same patt
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 5, lines removed: 4
 
 ```diff
 @@ -177,13 +177,14 @@
-                          raise ValueError(f&quot;Relationship {rel} in {rel_type} is missing required &#39;name&#39; field&quot;)
+                          raise ValueError(f"Relationship {rel} in {rel_type} is missing required 'name' field")
           
 -         # Initialize memory with metadata
 -         # Always use the provided GUID if it exists, or generate a new one if not
 +         # Ensure we have a GUID to use (prioritizing the one provided at initialization)
           if not self.memory_guid:
               self.memory_guid = str(uuid.uuid4())
--             print(f&quot;Generated new GUID for initial memory: {self.memory_guid}&quot;)
-+             print(f&quot;No memory_guid existed, generated one for initial memory: {self.memory_guid}&quot;)
+-             print(f"Generated new GUID for initial memory: {self.memory_guid}")
++             print(f"No memory_guid existed, generated one for initial memory: {self.memory_guid}")
 +         else:
-+             print(f&quot;Using existing memory_guid for initial memory: {self.memory_guid}&quot;)
++             print(f"Using existing memory_guid for initial memory: {self.memory_guid}")
           
           # Create complete memory structure
           self.memory = {
--             &quot;guid&quot;: self.memory_guid,
-+             &quot;guid&quot;: self.memory_guid,  # Always use self.memory_guid as the source of truth
-              &quot;metadata&quot;: {
-                  &quot;name&quot;: name or &quot;Unnamed Memory&quot;,
+-             "guid": self.memory_guid,
++             "guid": self.memory_guid,  # Always use self.memory_guid as the source of truth
+              "metadata": {
+                  "name": name or "Unnamed Memory",
 ```
 
 </details>
@@ -4153,7 +4153,7 @@ Now let's fix the SimpleMemoryManager's `_ensure_memory_guid` method with the sa
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/simple_memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/simple_memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 32, lines removed: 14
@@ -4162,9 +4162,9 @@ Lines added: 32, lines removed: 14
 @@ -52,25 +52,43 @@
           
       def _ensure_memory_guid(self):
--         &quot;&quot;&quot;Ensure that the memory has a GUID, generating one if needed.&quot;&quot;&quot;
--         # If memory doesn&#39;t exist yet or doesn&#39;t have a guid, we&#39;ll set it later in create_initial_memory
-+         &quot;&quot;&quot;
+-         """Ensure that the memory has a GUID, generating one if needed."""
+-         # If memory doesn't exist yet or doesn't have a guid, we'll set it later in create_initial_memory
++         """
 +         Ensure that the memory has a consistent GUID, using self.memory_guid as the source of truth.
 +         
 +         This method enforces that:
@@ -4172,49 +4172,49 @@ Lines added: 32, lines removed: 14
 +         2. If memory_guid was provided in __init__, it is always used
 +         3. If no memory_guid was provided, generate a new one
 +         4. Always ensure the memory data uses the same GUID as self.memory_guid
-+         &quot;&quot;&quot;
-+         # If memory doesn&#39;t exist yet, we&#39;ll set the GUID later in create_initial_memory
++         """
++         # If memory doesn't exist yet, we'll set the GUID later in create_initial_memory
           if not self.memory:
 +             # If no memory_guid was provided at initialization, generate one now
 +             if not self.memory_guid:
 +                 self.memory_guid = str(uuid.uuid4())
-+                 print(f&quot;Generated new memory_guid: {self.memory_guid}&quot;)
++                 print(f"Generated new memory_guid: {self.memory_guid}")
               return
           
 -         # If memory exists but no guid was found during load and none was provided
--         if &quot;guid&quot; not in self.memory and not self.memory_guid:
+-         if "guid" not in self.memory and not self.memory_guid:
 -             # Generate a new GUID
 +         # At this point, memory exists but we need to ensure GUID consistency
 +         
 +         # If memory_guid was not provided at initialization, but memory exists
 +         if not self.memory_guid:
-+             # Generate a new GUID - don&#39;t use what&#39;s in memory as it could be inconsistent
++             # Generate a new GUID - don't use what's in memory as it could be inconsistent
               self.memory_guid = str(uuid.uuid4())
-+             print(f&quot;No memory_guid was provided, generated new one: {self.memory_guid}&quot;)
++             print(f"No memory_guid was provided, generated new one: {self.memory_guid}")
 +         
 +         # Now ensure the memory data uses our memory_guid (either provided or generated)
-+         if &quot;guid&quot; not in self.memory or self.memory[&quot;guid&quot;] != self.memory_guid:
-+             # There&#39;s a mismatch or missing GUID in memory
-+             if &quot;guid&quot; in self.memory:
-+                 print(f&quot;Replacing memory GUID: {self.memory[&#39;guid&#39;]} with source of truth: {self.memory_guid}&quot;)
++         if "guid" not in self.memory or self.memory["guid"] != self.memory_guid:
++             # There's a mismatch or missing GUID in memory
++             if "guid" in self.memory:
++                 print(f"Replacing memory GUID: {self.memory['guid']} with source of truth: {self.memory_guid}")
 +             else:
-+                 print(f&quot;Setting memory GUID to: {self.memory_guid}&quot;)
++                 print(f"Setting memory GUID to: {self.memory_guid}")
 +             
 +             # Always update memory to use our source of truth GUID
-              self.memory[&quot;guid&quot;] = self.memory_guid
--             print(f&quot;Generated new GUID for existing memory: {self.memory_guid}&quot;)
+              self.memory["guid"] = self.memory_guid
+-             print(f"Generated new GUID for existing memory: {self.memory_guid}")
               self.save_memory()
--         elif &quot;guid&quot; in self.memory:
+-         elif "guid" in self.memory:
 -             # Store the loaded GUID
--             self.memory_guid = self.memory[&quot;guid&quot;]
--             print(f&quot;Using existing memory GUID: {self.memory_guid}&quot;)
+-             self.memory_guid = self.memory["guid"]
+-             print(f"Using existing memory GUID: {self.memory_guid}")
           else:
 -             # Use the provided GUID
--             self.memory[&quot;guid&quot;] = self.memory_guid
--             print(f&quot;Applied provided GUID to memory: {self.memory_guid}&quot;)
+-             self.memory["guid"] = self.memory_guid
+-             print(f"Applied provided GUID to memory: {self.memory_guid}")
 -             self.save_memory()
 +             # GUIDs match, but log for clarity
-+             print(f&quot;Memory GUID matches source of truth: {self.memory_guid}&quot;)
++             print(f"Memory GUID matches source of truth: {self.memory_guid}")
   
       def create_initial_memory(self, input_data: str) -&gt; bool:
 ```
@@ -4231,7 +4231,7 @@ Let's also update the `create_initial_memory` method in SimpleMemoryManager:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/simple_memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/simple_memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 5, lines removed: 3
@@ -4240,22 +4240,22 @@ Lines added: 5, lines removed: 3
 @@ -109,13 +109,15 @@
                   return True
               
--             # Generate a new GUID if one wasn&#39;t provided
+-             # Generate a new GUID if one wasn't provided
 +             # Ensure we have a GUID to use (prioritizing the one provided at initialization)
               if not self.memory_guid:
                   self.memory_guid = str(uuid.uuid4())
--                 print(f&quot;Generated new GUID for memory: {self.memory_guid}&quot;)
-+                 print(f&quot;No memory_guid existed, generated one for initial memory: {self.memory_guid}&quot;)
+-                 print(f"Generated new GUID for memory: {self.memory_guid}")
++                 print(f"No memory_guid existed, generated one for initial memory: {self.memory_guid}")
 +             else:
-+                 print(f&quot;Using existing memory_guid for initial memory: {self.memory_guid}&quot;)
++                 print(f"Using existing memory_guid for initial memory: {self.memory_guid}")
               
               # Initialize the simplified memory structure
               now = datetime.now().isoformat()
               self.memory = {
--                 &quot;guid&quot;: self.memory_guid,  # Add GUID to memory structure
-+                 &quot;guid&quot;: self.memory_guid,  # Always use self.memory_guid as source of truth
-                  &quot;initial_data&quot;: input_data,
-                  &quot;conversation_history&quot;: [],
+-                 "guid": self.memory_guid,  # Add GUID to memory structure
++                 "guid": self.memory_guid,  # Always use self.memory_guid as source of truth
+                  "initial_data": input_data,
+                  "conversation_history": [],
 ```
 
 **Chunk 2**
@@ -4265,8 +4265,8 @@ Lines added: 1, lines removed: 1
 @@ -124,5 +126,5 @@
               
               self.save_memory()
--             print(&quot;Initial memory created successfully&quot;)
-+             print(f&quot;Initial memory created with GUID: {self.memory_guid}&quot;)
+-             print("Initial memory created successfully")
++             print(f"Initial memory created with GUID: {self.memory_guid}")
               return True
               
 ```
@@ -4318,7 +4318,7 @@ Here's a simpler, more targeted approach:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 18, lines removed: 32
@@ -4327,7 +4327,7 @@ Lines added: 18, lines removed: 32
 @@ -80,43 +80,29 @@
   
       def _ensure_memory_guid(self):
--         &quot;&quot;&quot;
+-         """
 -         Ensure that the memory has a consistent GUID, using self.memory_guid as the source of truth.
 -         
 -         This method enforces that:
@@ -4335,54 +4335,54 @@ Lines added: 18, lines removed: 32
 -         2. If memory_guid was provided in __init__, it is always used
 -         3. If no memory_guid was provided, generate a new one
 -         4. Always ensure the memory data uses the same GUID as self.memory_guid
--         &quot;&quot;&quot;
--         # If memory doesn&#39;t exist yet, we&#39;ll set the GUID later in create_initial_memory
-+         &quot;&quot;&quot;Ensure that the memory has a GUID, prioritizing the provided GUID if available.&quot;&quot;&quot;
-+         # If memory doesn&#39;t exist yet, we&#39;ll handle this when creating memory
+-         """
+-         # If memory doesn't exist yet, we'll set the GUID later in create_initial_memory
++         """Ensure that the memory has a GUID, prioritizing the provided GUID if available."""
++         # If memory doesn't exist yet, we'll handle this when creating memory
           if not self.memory:
 -             # If no memory_guid was provided at initialization, generate one now
 -             if not self.memory_guid:
 -                 self.memory_guid = str(uuid.uuid4())
--                 print(f&quot;Generated new memory_guid: {self.memory_guid}&quot;)
+-                 print(f"Generated new memory_guid: {self.memory_guid}")
               return
               
 -         # At this point, memory exists but we need to ensure GUID consistency
 -         
 -         # If memory_guid was not provided at initialization, but memory exists
 -         if not self.memory_guid:
--             # Generate a new GUID - don&#39;t use what&#39;s in memory as it could be inconsistent
+-             # Generate a new GUID - don't use what's in memory as it could be inconsistent
 -             self.memory_guid = str(uuid.uuid4())
--             print(f&quot;No memory_guid was provided, generated new one: {self.memory_guid}&quot;)
+-             print(f"No memory_guid was provided, generated new one: {self.memory_guid}")
 -         
 -         # Now ensure the memory data uses our memory_guid (either provided or generated)
--         if &quot;guid&quot; not in self.memory or self.memory[&quot;guid&quot;] != self.memory_guid:
--             # There&#39;s a mismatch or missing GUID in memory
--             if &quot;guid&quot; in self.memory:
--                 print(f&quot;Replacing memory GUID: {self.memory[&#39;guid&#39;]} with source of truth: {self.memory_guid}&quot;)
+-         if "guid" not in self.memory or self.memory["guid"] != self.memory_guid:
+-             # There's a mismatch or missing GUID in memory
+-             if "guid" in self.memory:
+-                 print(f"Replacing memory GUID: {self.memory['guid']} with source of truth: {self.memory_guid}")
 -             else:
--                 print(f&quot;Setting memory GUID to: {self.memory_guid}&quot;)
+-                 print(f"Setting memory GUID to: {self.memory_guid}")
 +         # If a GUID was explicitly provided during initialization, always use it
 +         if self.memory_guid:
 +             # Force the memory to use our provided GUID, overriding any existing GUID
-+             if &quot;guid&quot; in self.memory and self.memory[&quot;guid&quot;] != self.memory_guid:
-+                 print(f&quot;Replacing existing memory GUID: {self.memory[&#39;guid&#39;]} with provided GUID: {self.memory_guid}&quot;)
++             if "guid" in self.memory and self.memory["guid"] != self.memory_guid:
++                 print(f"Replacing existing memory GUID: {self.memory['guid']} with provided GUID: {self.memory_guid}")
               
 -             # Always update memory to use our source of truth GUID
 +             # Set the GUID in memory
-              self.memory[&quot;guid&quot;] = self.memory_guid
-+             print(f&quot;Using provided GUID for memory: {self.memory_guid}&quot;)
+              self.memory["guid"] = self.memory_guid
++             print(f"Using provided GUID for memory: {self.memory_guid}")
               self.save_memory()
 +         # If no GUID was provided but one exists in memory, use that
-+         elif &quot;guid&quot; in self.memory:
-+             self.memory_guid = self.memory[&quot;guid&quot;]
-+             print(f&quot;Using existing memory GUID: {self.memory_guid}&quot;)
++         elif "guid" in self.memory:
++             self.memory_guid = self.memory["guid"]
++             print(f"Using existing memory GUID: {self.memory_guid}")
 +         # If no GUID was provided and none exists in memory, generate a new one
           else:
 -             # GUIDs match, but log for clarity
--             print(f&quot;Memory GUID matches source of truth: {self.memory_guid}&quot;)
+-             print(f"Memory GUID matches source of truth: {self.memory_guid}")
 +             self.memory_guid = str(uuid.uuid4())
-+             self.memory[&quot;guid&quot;] = self.memory_guid
-+             print(f&quot;Generated new GUID for memory: {self.memory_guid}&quot;)
++             self.memory["guid"] = self.memory_guid
++             print(f"Generated new GUID for memory: {self.memory_guid}")
 +             self.save_memory()
   
       def _get_default_config(self) -&gt; dict:
@@ -4400,7 +4400,7 @@ Let's also update the SimpleMemoryManager to match:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/simple_memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/simple_memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 18, lines removed: 32
@@ -4409,7 +4409,7 @@ Lines added: 18, lines removed: 32
 @@ -52,43 +52,29 @@
           
       def _ensure_memory_guid(self):
--         &quot;&quot;&quot;
+-         """
 -         Ensure that the memory has a consistent GUID, using self.memory_guid as the source of truth.
 -         
 -         This method enforces that:
@@ -4417,54 +4417,54 @@ Lines added: 18, lines removed: 32
 -         2. If memory_guid was provided in __init__, it is always used
 -         3. If no memory_guid was provided, generate a new one
 -         4. Always ensure the memory data uses the same GUID as self.memory_guid
--         &quot;&quot;&quot;
--         # If memory doesn&#39;t exist yet, we&#39;ll set the GUID later in create_initial_memory
-+         &quot;&quot;&quot;Ensure that the memory has a GUID, prioritizing the provided GUID if available.&quot;&quot;&quot;
-+         # If memory doesn&#39;t exist yet, we&#39;ll handle this when creating memory
+-         """
+-         # If memory doesn't exist yet, we'll set the GUID later in create_initial_memory
++         """Ensure that the memory has a GUID, prioritizing the provided GUID if available."""
++         # If memory doesn't exist yet, we'll handle this when creating memory
           if not self.memory:
 -             # If no memory_guid was provided at initialization, generate one now
 -             if not self.memory_guid:
 -                 self.memory_guid = str(uuid.uuid4())
--                 print(f&quot;Generated new memory_guid: {self.memory_guid}&quot;)
+-                 print(f"Generated new memory_guid: {self.memory_guid}")
               return
               
 -         # At this point, memory exists but we need to ensure GUID consistency
 -         
 -         # If memory_guid was not provided at initialization, but memory exists
 -         if not self.memory_guid:
--             # Generate a new GUID - don&#39;t use what&#39;s in memory as it could be inconsistent
+-             # Generate a new GUID - don't use what's in memory as it could be inconsistent
 -             self.memory_guid = str(uuid.uuid4())
--             print(f&quot;No memory_guid was provided, generated new one: {self.memory_guid}&quot;)
+-             print(f"No memory_guid was provided, generated new one: {self.memory_guid}")
 -         
 -         # Now ensure the memory data uses our memory_guid (either provided or generated)
--         if &quot;guid&quot; not in self.memory or self.memory[&quot;guid&quot;] != self.memory_guid:
--             # There&#39;s a mismatch or missing GUID in memory
--             if &quot;guid&quot; in self.memory:
--                 print(f&quot;Replacing memory GUID: {self.memory[&#39;guid&#39;]} with source of truth: {self.memory_guid}&quot;)
+-         if "guid" not in self.memory or self.memory["guid"] != self.memory_guid:
+-             # There's a mismatch or missing GUID in memory
+-             if "guid" in self.memory:
+-                 print(f"Replacing memory GUID: {self.memory['guid']} with source of truth: {self.memory_guid}")
 -             else:
--                 print(f&quot;Setting memory GUID to: {self.memory_guid}&quot;)
+-                 print(f"Setting memory GUID to: {self.memory_guid}")
 +         # If a GUID was explicitly provided during initialization, always use it
 +         if self.memory_guid:
 +             # Force the memory to use our provided GUID, overriding any existing GUID
-+             if &quot;guid&quot; in self.memory and self.memory[&quot;guid&quot;] != self.memory_guid:
-+                 print(f&quot;Replacing existing memory GUID: {self.memory[&#39;guid&#39;]} with provided GUID: {self.memory_guid}&quot;)
++             if "guid" in self.memory and self.memory["guid"] != self.memory_guid:
++                 print(f"Replacing existing memory GUID: {self.memory['guid']} with provided GUID: {self.memory_guid}")
               
 -             # Always update memory to use our source of truth GUID
 +             # Set the GUID in memory
-              self.memory[&quot;guid&quot;] = self.memory_guid
-+             print(f&quot;Using provided GUID for memory: {self.memory_guid}&quot;)
+              self.memory["guid"] = self.memory_guid
++             print(f"Using provided GUID for memory: {self.memory_guid}")
               self.save_memory()
 +         # If no GUID was provided but one exists in memory, use that
-+         elif &quot;guid&quot; in self.memory:
-+             self.memory_guid = self.memory[&quot;guid&quot;]
-+             print(f&quot;Using existing memory GUID: {self.memory_guid}&quot;)
++         elif "guid" in self.memory:
++             self.memory_guid = self.memory["guid"]
++             print(f"Using existing memory GUID: {self.memory_guid}")
 +         # If no GUID was provided and none exists in memory, generate a new one
           else:
 -             # GUIDs match, but log for clarity
--             print(f&quot;Memory GUID matches source of truth: {self.memory_guid}&quot;)
+-             print(f"Memory GUID matches source of truth: {self.memory_guid}")
 +             self.memory_guid = str(uuid.uuid4())
-+             self.memory[&quot;guid&quot;] = self.memory_guid
-+             print(f&quot;Generated new GUID for memory: {self.memory_guid}&quot;)
++             self.memory["guid"] = self.memory_guid
++             print(f"Generated new GUID for memory: {self.memory_guid}")
 +             self.save_memory()
   
       def create_initial_memory(self, input_data: str) -&gt; bool:
@@ -4482,7 +4482,7 @@ Now let's update the `create_initial_memory` method in SimpleMemoryManager to en
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/simple_memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/simple_memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 3, lines removed: 5
@@ -4492,21 +4492,21 @@ Lines added: 3, lines removed: 5
                   return True
               
 -             # Ensure we have a GUID to use (prioritizing the one provided at initialization)
-+             # Generate a new GUID if one wasn&#39;t provided
++             # Generate a new GUID if one wasn't provided
               if not self.memory_guid:
                   self.memory_guid = str(uuid.uuid4())
--                 print(f&quot;No memory_guid existed, generated one for initial memory: {self.memory_guid}&quot;)
+-                 print(f"No memory_guid existed, generated one for initial memory: {self.memory_guid}")
 -             else:
--                 print(f&quot;Using existing memory_guid for initial memory: {self.memory_guid}&quot;)
-+                 print(f&quot;Generated new GUID for memory: {self.memory_guid}&quot;)
+-                 print(f"Using existing memory_guid for initial memory: {self.memory_guid}")
++                 print(f"Generated new GUID for memory: {self.memory_guid}")
               
               # Initialize the simplified memory structure
               now = datetime.now().isoformat()
               self.memory = {
--                 &quot;guid&quot;: self.memory_guid,  # Always use self.memory_guid as source of truth
-+                 &quot;guid&quot;: self.memory_guid,  # Use the GUID we already have or just generated
-                  &quot;initial_data&quot;: input_data,
-                  &quot;conversation_history&quot;: [],
+-                 "guid": self.memory_guid,  # Always use self.memory_guid as source of truth
++                 "guid": self.memory_guid,  # Use the GUID we already have or just generated
+                  "initial_data": input_data,
+                  "conversation_history": [],
 ```
 
 </details>
@@ -4533,14 +4533,14 @@ Let's see if we can find an original implementation of the `create_initial_memor
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 140, lines removed: 42
 
 ```diff
 @@ -138,56 +138,154 @@
-                  raise Exception(f&quot;Failed to load template: {filename}&quot;)
+                  raise Exception(f"Failed to load template: {filename}")
   
 -     def create_initial_memory(self, 
 -                               name: Optional[str] = None, 
@@ -4549,7 +4549,7 @@ Lines added: 140, lines removed: 42
 -                               required_fields: Optional[List[str]] = None,
 -                               relationships: Optional[Dict[str, List[Dict]]] = None,
 -                               raw_conversation_history: Optional[List[Dict]] = None):
--         &quot;&quot;&quot;
+-         """
 -         Create initial memory structure with provided information.
 -         
 -         Args:
@@ -4559,180 +4559,180 @@ Lines added: 140, lines removed: 42
 -             required_fields: List of fields that are required for this memory
 -             relationships: Dictionary of relationships between entities
 -             raw_conversation_history: Optional conversation history to seed the memory with
--         &quot;&quot;&quot;
+-         """
 -         # Input validation
 -         if relationships:
 -             for rel_type, rel_list in relationships.items():
 -                 for rel in rel_list:
--                     if not rel.get(&quot;name&quot;):
--                         raise ValueError(f&quot;Relationship {rel} in {rel_type} is missing required &#39;name&#39; field&quot;)
+-                     if not rel.get("name"):
+-                         raise ValueError(f"Relationship {rel} in {rel_type} is missing required 'name' field")
 -         
 -         # Ensure we have a GUID to use (prioritizing the one provided at initialization)
 +     def create_initial_memory(self, input_data: str) -&gt; bool:
-+         &quot;&quot;&quot;Use LLM to structure initial input data into memory format.
++         """Use LLM to structure initial input data into memory format.
 +         
 +         The LLM is free to choose the internal structure of static_memory and working_memory
 +         based on what makes sense for the domain. We only validate the top-level structure.
-+         &quot;&quot;&quot;
++         """
 +         # Check if we have valid existing memory
-+         if self.memory and all(key in self.memory for key in [&quot;original_data&quot;, &quot;static_memory&quot;, &quot;working_memory&quot;, &quot;metadata&quot;, &quot;conversation_history&quot;]):
-+             print(&quot;Valid memory structure already exists, skipping initialization&quot;)
++         if self.memory and all(key in self.memory for key in ["original_data", "static_memory", "working_memory", "metadata", "conversation_history"]):
++             print("Valid memory structure already exists, skipping initialization")
 +             # Ensure GUID exists even for pre-existing memories
 +             self._ensure_memory_guid()
 +             return True
 + 
-+         print(&quot;\nCreating initial memory structure...&quot;)
++         print("\nCreating initial memory structure...")
 + 
 +         # Include domain-specific instructions if available
-+         domain_guidance = &quot;&quot;
-+         if self.domain_config and &quot;domain_specific_prompt_instructions&quot; in self.domain_config:
-+             domain_guidance = &quot;\nDomain-Specific Guidance:\n&quot;
-+             create_memory_instructions = self.domain_config[&quot;domain_specific_prompt_instructions&quot;][&quot;create_memory&quot;]
++         domain_guidance = ""
++         if self.domain_config and "domain_specific_prompt_instructions" in self.domain_config:
++             domain_guidance = "\nDomain-Specific Guidance:\n"
++             create_memory_instructions = self.domain_config["domain_specific_prompt_instructions"]["create_memory"]
 +             domain_guidance += create_memory_instructions
 + 
-+         if self.domain_config and &quot;domain_specific_schema_suggestions&quot; in self.domain_config:
-+             domain_guidance += &quot;\n\nDomain-Specific Schema Suggestions:\n&quot;
-+             schema_suggestions = self.domain_config[&quot;domain_specific_schema_suggestions&quot;]
++         if self.domain_config and "domain_specific_schema_suggestions" in self.domain_config:
++             domain_guidance += "\n\nDomain-Specific Schema Suggestions:\n"
++             schema_suggestions = self.domain_config["domain_specific_schema_suggestions"]
 +             domain_guidance += json.dumps(schema_suggestions, indent=2)
 +         
 +         try:
-+             print(&quot;Generating memory structure using LLM...&quot;)
-+             prompt = self.templates[&quot;create&quot;].format(
++             print("Generating memory structure using LLM...")
++             prompt = self.templates["create"].format(
 +                 input_data=input_data,
 +                 domain_guidance=domain_guidance
 +             )
 +             
 +             # Print the prompt to debug format placeholders
-+             print(f&quot;DEBUG - FORMATTED PROMPT (first 200 chars):\n{prompt[:200]}...&quot;)
-+             print(f&quot;DEBUG - FORMATTED PROMPT (last 200 chars):\n{prompt[-200:]}...&quot;)
++             print(f"DEBUG - FORMATTED PROMPT (first 200 chars):\n{prompt[:200]}...")
++             print(f"DEBUG - FORMATTED PROMPT (last 200 chars):\n{prompt[-200:]}...")
 +             
 +             llm_response = self.llm.generate(prompt)
 +             
 +             # Print the response to debug
-+             print(f&quot;DEBUG - LLM RESPONSE (first 200 chars):\n{llm_response[:200]}...&quot;)
-+             print(f&quot;DEBUG - LLM RESPONSE (last 200 chars):\n{llm_response[-200:]}...&quot;)
++             print(f"DEBUG - LLM RESPONSE (first 200 chars):\n{llm_response[:200]}...")
++             print(f"DEBUG - LLM RESPONSE (last 200 chars):\n{llm_response[-200:]}...")
 +             
 +             try:
 +                 memory_data = json.loads(llm_response)
 +             except json.JSONDecodeError:
 +                 import re
-+                 print(&quot;Failed to parse direct JSON, attempting to extract JSON structure...&quot;)
-+                 json_match = re.search(r&#39;\{[\s\S]*\}&#39;, llm_response)
++                 print("Failed to parse direct JSON, attempting to extract JSON structure...")
++                 json_match = re.search(r'\{[\s\S]*\}', llm_response)
 +                 if json_match:
 +                     try:
 +                         json_str = json_match.group(0)
 +                         # Remove any markdown code block markers
-+                         json_str = re.sub(r&#39;&#96;&#96;&#96;json\s*|\s*&#96;&#96;&#96;&#39;, &#39;&#39;, json_str)
++                         json_str = re.sub(r'&#96;&#96;&#96;json\s*|\s*&#96;&#96;&#96;', '', json_str)
 +                         memory_data = json.loads(json_str)
-+                         print(&quot;Successfully extracted and fixed JSON structure&quot;)
++                         print("Successfully extracted and fixed JSON structure")
 +                     except json.JSONDecodeError as e:
-+                         print(f&quot;Error parsing extracted JSON structure: {str(e)}&quot;)
++                         print(f"Error parsing extracted JSON structure: {str(e)}")
 +                         return False
 +                 else:
-+                     print(&quot;Could not find JSON structure in LLM response&quot;)
++                     print("Could not find JSON structure in LLM response")
 +                     return False
 +             
 +             # Validate only the top-level structure
-+             if &quot;static_memory&quot; not in memory_data:
-+                 print(&quot;Missing static_memory in LLM response&quot;)
++             if "static_memory" not in memory_data:
++                 print("Missing static_memory in LLM response")
 +                 return False
 +             
-+             static_memory = memory_data[&quot;static_memory&quot;]
++             static_memory = memory_data["static_memory"]
 +             if not isinstance(static_memory, dict):
-+                 print(&quot;static_memory must be a dictionary&quot;)
++                 print("static_memory must be a dictionary")
 +                 return False
 +             
-+             if &quot;structured_data&quot; not in static_memory or &quot;knowledge_graph&quot; not in static_memory:
-+                 print(&quot;static_memory must contain structured_data and knowledge_graph&quot;)
++             if "structured_data" not in static_memory or "knowledge_graph" not in static_memory:
++                 print("static_memory must contain structured_data and knowledge_graph")
 +                 return False
 +             
-+             if not isinstance(static_memory[&quot;structured_data&quot;], dict) or not isinstance(static_memory[&quot;knowledge_graph&quot;], dict):
-+                 print(&quot;structured_data and knowledge_graph must be dictionaries&quot;)
++             if not isinstance(static_memory["structured_data"], dict) or not isinstance(static_memory["knowledge_graph"], dict):
++                 print("structured_data and knowledge_graph must be dictionaries")
 +                 return False
 + 
 +             # Validate knowledge_graph structure
-+             static_knowledge_graph = static_memory[&quot;knowledge_graph&quot;]
-+             if &quot;simple_facts&quot; not in static_knowledge_graph or &quot;relationships&quot; not in static_knowledge_graph:
-+                 print(&quot;knowledge_graph must contain simple_facts and relationships&quot;)
++             static_knowledge_graph = static_memory["knowledge_graph"]
++             if "simple_facts" not in static_knowledge_graph or "relationships" not in static_knowledge_graph:
++                 print("knowledge_graph must contain simple_facts and relationships")
 +                 return False
 + 
-+             if not isinstance(static_knowledge_graph[&quot;simple_facts&quot;], list) or not isinstance(static_knowledge_graph[&quot;relationships&quot;], list):
-+                 print(&quot;simple_facts and relationships must be lists&quot;)
++             if not isinstance(static_knowledge_graph["simple_facts"], list) or not isinstance(static_knowledge_graph["relationships"], list):
++                 print("simple_facts and relationships must be lists")
 +                 return False
 + 
 +             # Validate simple_facts structure
-+             for fact in static_knowledge_graph[&quot;simple_facts&quot;]:
++             for fact in static_knowledge_graph["simple_facts"]:
 +                 if not isinstance(fact, dict):
-+                     print(&quot;Each fact must be a dictionary&quot;)
++                     print("Each fact must be a dictionary")
 +                     return False
-+                 required_fields = [&quot;key&quot;, &quot;value&quot;, &quot;context&quot;]
++                 required_fields = ["key", "value", "context"]
 +                 if not all(field in fact for field in required_fields):
-+                     print(f&quot;Fact missing required fields: {required_fields}&quot;)
++                     print(f"Fact missing required fields: {required_fields}")
 +                     return False
 + 
 +             # Validate relationship structure
-+             for relationship in static_knowledge_graph[&quot;relationships&quot;]:
++             for relationship in static_knowledge_graph["relationships"]:
 +                 if not isinstance(relationship, dict):
-+                     print(&quot;Each relationship must be a dictionary&quot;)
++                     print("Each relationship must be a dictionary")
 +                     return False
-+                 required_fields = [&quot;subject&quot;, &quot;predicate&quot;, &quot;object&quot;, &quot;context&quot;]
++                 required_fields = ["subject", "predicate", "object", "context"]
 +                 if not all(field in relationship for field in required_fields):
-+                     print(f&quot;Relationship missing required fields: {required_fields}&quot;)
++                     print(f"Relationship missing required fields: {required_fields}")
 +                     return False
 +             
-+             # Generate a new GUID if one wasn&#39;t provided during initialization
++             # Generate a new GUID if one wasn't provided during initialization
               if not self.memory_guid:
                   self.memory_guid = str(uuid.uuid4())
--             print(f&quot;No memory_guid existed, generated one for initial memory: {self.memory_guid}&quot;)
-+                 print(f&quot;Generated new GUID for memory: {self.memory_guid}&quot;)
+-             print(f"No memory_guid existed, generated one for initial memory: {self.memory_guid}")
++                 print(f"Generated new GUID for memory: {self.memory_guid}")
               else:
--             print(f&quot;Using existing memory_guid for initial memory: {self.memory_guid}&quot;)
-+                 print(f&quot;Using provided GUID for memory: {self.memory_guid}&quot;)
+-             print(f"Using existing memory_guid for initial memory: {self.memory_guid}")
++                 print(f"Using provided GUID for memory: {self.memory_guid}")
               
 -         # Create complete memory structure
 +             # Initialize complete memory structure
 +             now = datetime.now().isoformat()
               self.memory = {
--             &quot;guid&quot;: self.memory_guid,  # Always use self.memory_guid as the source of truth
-+                 &quot;guid&quot;: self.memory_guid,  # Use the GUID we already have or just generated
-+                 &quot;original_data&quot;: input_data,  # Store the original raw input data
-+                 &quot;static_memory&quot;: static_memory,
-+                 &quot;working_memory&quot;: {
-+                     &quot;structured_data&quot;: {
-+                         &quot;entities&quot;: []  # Empty list for entities
+-             "guid": self.memory_guid,  # Always use self.memory_guid as the source of truth
++                 "guid": self.memory_guid,  # Use the GUID we already have or just generated
++                 "original_data": input_data,  # Store the original raw input data
++                 "static_memory": static_memory,
++                 "working_memory": {
++                     "structured_data": {
++                         "entities": []  # Empty list for entities
 +                     },
-+                     &quot;knowledge_graph&quot;: {
-+                         &quot;simple_facts&quot;: [],  # For natural language facts
-+                         &quot;relationships&quot;: []  # For explicit subject-predicate-object relationships
++                     "knowledge_graph": {
++                         "simple_facts": [],  # For natural language facts
++                         "relationships": []  # For explicit subject-predicate-object relationships
 +                     }
 +                 },
-                  &quot;metadata&quot;: {
--                 &quot;name&quot;: name or &quot;Unnamed Memory&quot;,
--                 &quot;description&quot;: description or &quot;No description provided&quot;,
--                 &quot;type&quot;: memory_type or &quot;default&quot;,
--                 &quot;created_at&quot;: datetime.now().isoformat(),
--                 &quot;last_updated&quot;: datetime.now().isoformat(),
--                 &quot;required_fields&quot;: required_fields or []
+                  "metadata": {
+-                 "name": name or "Unnamed Memory",
+-                 "description": description or "No description provided",
+-                 "type": memory_type or "default",
+-                 "created_at": datetime.now().isoformat(),
+-                 "last_updated": datetime.now().isoformat(),
+-                 "required_fields": required_fields or []
 -             },
--             &quot;relationships&quot;: relationships or {},
--             &quot;conversation_history&quot;: self._initialize_conversation_history(raw_conversation_history)
-+                     &quot;created_at&quot;: now,
-+                     &quot;last_updated&quot;: now,
-+                     &quot;version&quot;: &quot;1.0&quot;
+-             "relationships": relationships or {},
+-             "conversation_history": self._initialize_conversation_history(raw_conversation_history)
++                     "created_at": now,
++                     "last_updated": now,
++                     "version": "1.0"
 +                 },
-+                 &quot;conversation_history&quot;: []
++                 "conversation_history": []
               }
               
--         print(f&quot;Created initial memory with GUID: {self.memory_guid}&quot;)
+-         print(f"Created initial memory with GUID: {self.memory_guid}")
 -         # Save the newly created memory
               self.save_memory()
-+             print(f&quot;Initial memory created with GUID: {self.memory_guid}&quot;)
++             print(f"Initial memory created with GUID: {self.memory_guid}")
 +             return True
               
 -         return self.memory
 +         except Exception as e:
-+             print(f&quot;Error creating memory structure: {str(e)}&quot;)
-+             print(f&quot;Full error: {repr(e)}&quot;)
++             print(f"Error creating memory structure: {str(e)}")
++             print(f"Full error: {repr(e)}")
 +             return False
   
       def query_memory(self, query_context: Dict[str, Any]) -&gt; dict:
@@ -4808,7 +4808,7 @@ Here's how we can implement these changes:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 11, lines removed: undefined
@@ -4818,14 +4818,14 @@ Lines added: 11, lines removed: undefined
               return
           
 +         # Verify memory_type is correct for this memory manager
-+         if &quot;memory_type&quot; not in self.memory:
-+             print(&quot;Adding missing memory_type to memory&quot;)
-+             self.memory[&quot;memory_type&quot;] = &quot;standard&quot;
++         if "memory_type" not in self.memory:
++             print("Adding missing memory_type to memory")
++             self.memory["memory_type"] = "standard"
 +             self.save_memory()
-+         elif self.memory[&quot;memory_type&quot;] != &quot;standard&quot;:
-+             print(f&quot;Warning: Memory was created with {self.memory[&#39;memory_type&#39;]} memory manager but is being accessed with standard memory manager&quot;)
++         elif self.memory["memory_type"] != "standard":
++             print(f"Warning: Memory was created with {self.memory['memory_type']} memory manager but is being accessed with standard memory manager")
 +             # Update the memory_type to match this memory manager
-+             self.memory[&quot;memory_type&quot;] = &quot;standard&quot;
++             self.memory["memory_type"] = "standard"
 +             self.save_memory()
 +             
           # If a GUID was explicitly provided during initialization, always use it
@@ -4844,7 +4844,7 @@ Now let's update the `create_initial_memory` method in MemoryManager to include 
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: undefined
@@ -4852,10 +4852,10 @@ Lines added: 1, lines removed: undefined
 ```diff
 @@ -272,4 +272,5 @@
               self.memory = {
-                  &quot;guid&quot;: self.memory_guid,  # Use the GUID we already have or just generated
-+                 &quot;memory_type&quot;: &quot;standard&quot;,  # Explicitly mark this as a standard memory type
-                  &quot;original_data&quot;: input_data,  # Store the original raw input data
-                  &quot;static_memory&quot;: static_memory,
+                  "guid": self.memory_guid,  # Use the GUID we already have or just generated
++                 "memory_type": "standard",  # Explicitly mark this as a standard memory type
+                  "original_data": input_data,  # Store the original raw input data
+                  "static_memory": static_memory,
 ```
 
 **Chunk 2**
@@ -4865,8 +4865,8 @@ Lines added: 1, lines removed: 1
 @@ -292,5 +293,5 @@
               
               self.save_memory()
--             print(f&quot;Initial memory created with GUID: {self.memory_guid}&quot;)
-+             print(f&quot;Initial memory created with GUID: {self.memory_guid} and type: standard&quot;)
+-             print(f"Initial memory created with GUID: {self.memory_guid}")
++             print(f"Initial memory created with GUID: {self.memory_guid} and type: standard")
               return True
               
 ```
@@ -4883,7 +4883,7 @@ Now let's do the same for SimpleMemoryManager:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/simple_memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/simple_memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 11, lines removed: undefined
@@ -4893,14 +4893,14 @@ Lines added: 11, lines removed: undefined
               return
               
 +         # Verify memory_type is correct for this memory manager
-+         if &quot;memory_type&quot; not in self.memory:
-+             print(&quot;Adding missing memory_type to memory&quot;)
-+             self.memory[&quot;memory_type&quot;] = &quot;simple&quot;
++         if "memory_type" not in self.memory:
++             print("Adding missing memory_type to memory")
++             self.memory["memory_type"] = "simple"
 +             self.save_memory()
-+         elif self.memory[&quot;memory_type&quot;] != &quot;simple&quot;:
-+             print(f&quot;Warning: Memory was created with {self.memory[&#39;memory_type&#39;]} memory manager but is being accessed with simple memory manager&quot;)
++         elif self.memory["memory_type"] != "simple":
++             print(f"Warning: Memory was created with {self.memory['memory_type']} memory manager but is being accessed with simple memory manager")
 +             # Update the memory_type to match this memory manager
-+             self.memory[&quot;memory_type&quot;] = &quot;simple&quot;
++             self.memory["memory_type"] = "simple"
 +             self.save_memory()
 +             
           # If a GUID was explicitly provided during initialization, always use it
@@ -4913,10 +4913,10 @@ Lines added: 1, lines removed: undefined
 ```diff
 @@ -104,4 +115,5 @@
               self.memory = {
-                  &quot;guid&quot;: self.memory_guid,  # Use the GUID we already have or just generated
-+                 &quot;memory_type&quot;: &quot;simple&quot;,   # Explicitly mark this as a simple memory type
-                  &quot;initial_data&quot;: input_data,
-                  &quot;conversation_history&quot;: [],
+                  "guid": self.memory_guid,  # Use the GUID we already have or just generated
++                 "memory_type": "simple",   # Explicitly mark this as a simple memory type
+                  "initial_data": input_data,
+                  "conversation_history": [],
 ```
 
 **Chunk 3**
@@ -4926,8 +4926,8 @@ Lines added: 1, lines removed: 1
 @@ -110,5 +122,5 @@
               
               self.save_memory()
--             print(f&quot;Initial memory created with GUID: {self.memory_guid}&quot;)
-+             print(f&quot;Initial memory created with GUID: {self.memory_guid} and type: simple&quot;)
+-             print(f"Initial memory created with GUID: {self.memory_guid}")
++             print(f"Initial memory created with GUID: {self.memory_guid} and type: simple")
               return True
               
 ```
@@ -4944,7 +4944,7 @@ Now, let's update the code in agent_usage_example.py to make sure it checks the 
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/agent_usage_example.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: examples/agent_usage_example.py</summary>
 
 **Chunk 1**
 Lines added: 29, lines removed: 4
@@ -4953,17 +4953,17 @@ Lines added: 29, lines removed: 4
 @@ -230,17 +230,42 @@
   
   def get_memory_file_by_guid(guid, memory_type=None):
--     &quot;&quot;&quot;Get the full path to a memory file by its GUID
-+     &quot;&quot;&quot;Get the full path to a memory file by its GUID and verify memory_type
+-     """Get the full path to a memory file by its GUID
++     """Get the full path to a memory file by its GUID and verify memory_type
       
       Args:
           guid: GUID of the memory file
 -         memory_type: Optional memory manager type. If None, search all types.
-+         memory_type: Optional memory manager type. If provided, will be verified against the file&#39;s memory_type.
++         memory_type: Optional memory manager type. If provided, will be verified against the file's memory_type.
           
       Returns:
           tuple: (file_path, memory_type) or (None, None) if not found
-      &quot;&quot;&quot;
+      """
 -     files = list_memory_files(memory_type)
 +     files = list_memory_files()
       if guid in files:
@@ -4973,27 +4973,27 @@ Lines added: 29, lines removed: 4
 +         
 +         # Verify memory_type in the file matches expected type
 +         try:
-+             with open(file_path, &#39;r&#39;) as f:
++             with open(file_path, 'r') as f:
 +                 data = json.load(f)
-+                 file_memory_type = data.get(&quot;memory_type&quot;)
++                 file_memory_type = data.get("memory_type")
 +                 
 +                 # If memory_type is specified in the file
 +                 if file_memory_type:
-+                     print(f&quot;File has memory_type: {file_memory_type}&quot;)
++                     print(f"File has memory_type: {file_memory_type}")
 +                     
 +                     # If a specific memory_type was requested, verify it matches
 +                     if memory_type and file_memory_type != memory_type:
-+                         print(f&quot;Warning: Requested memory_type &#39;{memory_type}&#39; doesn&#39;t match file&#39;s memory_type &#39;{file_memory_type}&#39;&quot;)
-+                         print(f&quot;Using file&#39;s memory_type: {file_memory_type}&quot;)
++                         print(f"Warning: Requested memory_type '{memory_type}' doesn't match file's memory_type '{file_memory_type}'")
++                         print(f"Using file's memory_type: {file_memory_type}")
 +                     
 +                     # Return the memory_type from the file (this takes precedence)
 +                     return file_path, file_memory_type
 +                 else:
-+                     # If file doesn&#39;t specify memory_type, default to the directory type
-+                     print(f&quot;File doesn&#39;t specify memory_type, using detected type: {mem_type}&quot;)
++                     # If file doesn't specify memory_type, default to the directory type
++                     print(f"File doesn't specify memory_type, using detected type: {mem_type}")
 +                     return file_path, mem_type
 +         except Exception as e:
-+             print(f&quot;Error reading memory file: {str(e)}&quot;)
++             print(f"Error reading memory file: {str(e)}")
 +             return file_path, mem_type
       
       return None, None
@@ -5011,7 +5011,7 @@ Finally, let's update the setup_services function to use the memory_type from th
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/agent_usage_example.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: examples/agent_usage_example.py</summary>
 
 **Chunk 1**
 Lines added: 5, lines removed: undefined
@@ -5022,8 +5022,8 @@ Lines added: 5, lines removed: undefined
       try:
 +         # Ensure the memory manager type is valid
 +         if memory_type not in MEMORY_MANAGER_TYPES:
-+             print(f&quot;Invalid memory type &#39;{memory_type}&#39;, defaulting to &#39;standard&#39;&quot;)
-+             memory_type = &quot;standard&quot;
++             print(f"Invalid memory type '{memory_type}', defaulting to 'standard'")
++             memory_type = "standard"
 +             
           # Get the correct memory manager class
           memory_manager_class = MEMORY_MANAGER_TYPES[memory_type]
@@ -5040,37 +5040,37 @@ Lines added: 3, lines removed: 31
 -         if os.path.exists(memory_file):
 -             # If the file exists, check its GUID
 -             try:
--                 with open(memory_file, &#39;r&#39;) as f:
+-                 with open(memory_file, 'r') as f:
 -                     data = json.load(f)
--                     file_guid = data.get(&quot;guid&quot;)
+-                     file_guid = data.get("guid")
 -                     
 -                     if file_guid and file_guid != guid:
--                         print(f&quot;Warning: Existing memory file has different GUID: {file_guid}&quot;)
--                         print(f&quot;Updating memory file to use session GUID: {guid}&quot;)
+-                         print(f"Warning: Existing memory file has different GUID: {file_guid}")
+-                         print(f"Updating memory file to use session GUID: {guid}")
 -                         
 -                         # Force update the GUID in the memory and the file
--                         data[&quot;guid&quot;] = guid
--                         with open(memory_file, &#39;w&#39;) as f_write:
+-                         data["guid"] = guid
+-                         with open(memory_file, 'w') as f_write:
 -                             json.dump(data, f_write, indent=2)
 -                         
 -                         # Also update it in the memory manager
--                         memory_manager.memory[&quot;guid&quot;] = guid
+-                         memory_manager.memory["guid"] = guid
 -                         memory_manager.memory_guid = guid
 -             except Exception as e:
--                 print(f&quot;Error checking memory file GUID: {str(e)}&quot;)
+-                 print(f"Error checking memory file GUID: {str(e)}")
 -         
 -         # Force set the memory_guid property to match our session GUID
 -         memory_manager.memory_guid = guid
 -         
 -         # Add memory_manager_type to the memory
 +         # Double check the memory_type is correct
-          if hasattr(memory_manager, &#39;memory&#39;) and isinstance(memory_manager.memory, dict):
--             memory_manager.memory[&quot;memory_manager_type&quot;] = memory_type
--             memory_manager.memory[&quot;guid&quot;] = guid  # Ensure GUID in memory matches session GUID
+          if hasattr(memory_manager, 'memory') and isinstance(memory_manager.memory, dict):
+-             memory_manager.memory["memory_manager_type"] = memory_type
+-             memory_manager.memory["guid"] = guid  # Ensure GUID in memory matches session GUID
 -             
 -             # Save the memory to ensure our changes persist
 +             # Set memory_type based on the manager type
-+             memory_manager.memory[&quot;memory_type&quot;] = memory_type
++             memory_manager.memory["memory_type"] = memory_type
               memory_manager.save_memory()
           
 ```
@@ -5087,7 +5087,7 @@ Let's update the initialize_session function to handle memory_type properly:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/agent_usage_example.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: examples/agent_usage_example.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -5098,7 +5098,7 @@ Lines added: 1, lines removed: 1
       Returns:
 -         tuple: (guid, memory_file_path)
 +         tuple: (guid, memory_file_path, memory_type)
-      &quot;&quot;&quot;
+      """
       global session_guid
 ```
 
@@ -5107,15 +5107,15 @@ Lines added: 3, lines removed: 3
 
 ```diff
 @@ -447,8 +447,8 @@
-              print(f&quot;Using existing memory with GUID: {session_guid}&quot;)
+              print(f"Using existing memory with GUID: {session_guid}")
               
--             # If memory type doesn&#39;t match, update it
-+             # If memory type doesn&#39;t match what&#39;s in the file, update memory_type
+-             # If memory type doesn't match, update it
++             # If memory type doesn't match what's in the file, update memory_type
               if found_type != memory_type:
--                 print(f&quot;Found memory with GUID {session_guid} but it uses {found_type} memory manager instead of {memory_type}.&quot;)
--                 print(f&quot;Switching to {found_type} memory manager type to match the existing file.&quot;)
-+                 print(f&quot;Found memory with GUID {session_guid} has memory_type &#39;{found_type}&#39; instead of requested &#39;{memory_type}&#39;.&quot;)
-+                 print(f&quot;Switching to &#39;{found_type}&#39; memory manager to match the existing file.&quot;)
+-                 print(f"Found memory with GUID {session_guid} but it uses {found_type} memory manager instead of {memory_type}.")
+-                 print(f"Switching to {found_type} memory manager type to match the existing file.")
++                 print(f"Found memory with GUID {session_guid} has memory_type '{found_type}' instead of requested '{memory_type}'.")
++                 print(f"Switching to '{found_type}' memory manager to match the existing file.")
                   memory_type = found_type
                   
 ```
@@ -5127,13 +5127,13 @@ Lines added: 2, lines removed: 2
 @@ -457,9 +457,9 @@
               # Create a new file with the provided GUID
               session_guid = provided_guid
--             print(f&quot;Creating new memory with provided GUID: {session_guid}&quot;)
-+             print(f&quot;Creating new memory with provided GUID: {session_guid} and type: {memory_type}&quot;)
+-             print(f"Creating new memory with provided GUID: {session_guid}")
++             print(f"Creating new memory with provided GUID: {session_guid} and type: {memory_type}")
       else:
           # Generate a new GUID
           session_guid = str(uuid.uuid4())
--         print(f&quot;Generated new session GUID: {session_guid}&quot;)
-+         print(f&quot;Generated new session GUID: {session_guid} for {memory_type} memory&quot;)
+-         print(f"Generated new session GUID: {session_guid}")
++         print(f"Generated new session GUID: {session_guid} for {memory_type} memory")
       
       # Create memory file path using the session GUID
 ```
@@ -5294,18 +5294,18 @@ You're right - this is a clear inheritance issue with the constructor chain. Let
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/base_memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/base_memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
 
 ```diff
 @@ -30,5 +30,5 @@
-      &quot;&quot;&quot;
+      """
       
--     def __init__(self, memory_file: str = &quot;memory.json&quot;, domain_config: Optional[Dict[str, Any]] = None):
-+     def __init__(self, memory_file: str = &quot;memory.json&quot;, domain_config: Optional[Dict[str, Any]] = None, memory_guid: Optional[str] = None):
-          &quot;&quot;&quot;Initialize the base memory manager.
+-     def __init__(self, memory_file: str = "memory.json", domain_config: Optional[Dict[str, Any]] = None):
++     def __init__(self, memory_file: str = "memory.json", domain_config: Optional[Dict[str, Any]] = None, memory_guid: Optional[str] = None):
+          """Initialize the base memory manager.
           
 ```
 
@@ -5317,7 +5317,7 @@ Lines added: 3, lines removed: 2
                            - relationships: Domain-specific relationship types
                            - prompts: Domain-specific prompt templates
 +             memory_guid: Optional GUID to identify this memory instance
-          &quot;&quot;&quot;
+          """
           self.memory_file = memory_file
           self.domain_config = domain_config or {}
           self.memory: Dict[str, Any] = {}
@@ -5341,14 +5341,14 @@ Now let's update both memory manager classes to properly pass the memory_guid to
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: 4
 
 ```diff
 @@ -68,8 +68,6 @@
-              raise ValueError(&quot;llm_service is required for MemoryManager&quot;)
+              raise ValueError("llm_service is required for MemoryManager")
               
 -         # Store memory_guid if provided
 -         self.memory_guid = memory_guid
@@ -5356,7 +5356,7 @@ Lines added: 2, lines removed: 4
 -         super().__init__(memory_file, domain_config)
 +         # Pass memory_guid to the parent constructor
 +         super().__init__(memory_file, domain_config, memory_guid)
-          print(f&quot;\nInitializing MemoryManager with file: {memory_file}&quot;)
+          print(f"\nInitializing MemoryManager with file: {memory_file}")
           self.llm = llm_service
 ```
 
@@ -5368,14 +5368,14 @@ Lines added: 2, lines removed: 4
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/simple_memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/simple_memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: 4
 
 ```diff
 @@ -41,8 +41,6 @@
-              raise ValueError(&quot;llm_service is required for SimpleMemoryManager&quot;)
+              raise ValueError("llm_service is required for SimpleMemoryManager")
           
 -         # Store memory_guid if provided
 -         self.memory_guid = memory_guid
@@ -5383,7 +5383,7 @@ Lines added: 2, lines removed: 4
 -         super().__init__(memory_file, domain_config)
 +         # Pass memory_guid to the parent constructor
 +         super().__init__(memory_file, domain_config, memory_guid)
-          print(f&quot;\nInitializing SimpleMemoryManager with file: {memory_file}&quot;)
+          print(f"\nInitializing SimpleMemoryManager with file: {memory_file}")
           self.llm = llm_service
 ```
 
@@ -5399,19 +5399,19 @@ Now let's also update the _ensure_memory_guid methods to account for the fact th
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 4, lines removed: undefined
 
 ```diff
 @@ -81,4 +81,8 @@
-          # If memory doesn&#39;t exist yet, we&#39;ll handle this when creating memory
+          # If memory doesn't exist yet, we'll handle this when creating memory
           if not self.memory:
 +             # Make sure we have a GUID, generating one if needed
 +             if not self.memory_guid:
 +                 self.memory_guid = str(uuid.uuid4())
-+                 print(f&quot;Generated new GUID: {self.memory_guid} for memory file that will be created&quot;)
++                 print(f"Generated new GUID: {self.memory_guid} for memory file that will be created")
               return
           
 ```
@@ -5426,7 +5426,7 @@ Lines added: 6, lines removed: 1
 -         # If a GUID was explicitly provided during initialization, always use it
 +         # Priority order for GUID:
 +         # 1. GUID provided at initialization (self.memory_guid from constructor)
-+         # 2. GUID in existing memory file (self.memory[&quot;guid&quot;])
++         # 2. GUID in existing memory file (self.memory["guid"])
 +         # 3. Generate a new GUID if neither exists
 +         
 +         # If we already have a GUID from initialization, use it
@@ -5446,19 +5446,19 @@ Let's update the SimpleMemoryManager with the same improvements:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/simple_memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/simple_memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 4, lines removed: undefined
 
 ```diff
 @@ -53,4 +53,8 @@
-          # If memory doesn&#39;t exist yet, we&#39;ll handle this when creating memory
+          # If memory doesn't exist yet, we'll handle this when creating memory
           if not self.memory:
 +             # Make sure we have a GUID, generating one if needed
 +             if not self.memory_guid:
 +                 self.memory_guid = str(uuid.uuid4())
-+                 print(f&quot;Generated new GUID: {self.memory_guid} for memory file that will be created&quot;)
++                 print(f"Generated new GUID: {self.memory_guid} for memory file that will be created")
               return
           
 ```
@@ -5473,7 +5473,7 @@ Lines added: 6, lines removed: 1
 -         # If a GUID was explicitly provided during initialization, always use it
 +         # Priority order for GUID:
 +         # 1. GUID provided at initialization (self.memory_guid from constructor)
-+         # 2. GUID in existing memory file (self.memory[&quot;guid&quot;])
++         # 2. GUID in existing memory file (self.memory["guid"])
 +         # 3. Generate a new GUID if neither exists
 +         
 +         # If we already have a GUID from initialization, use it
@@ -5493,7 +5493,7 @@ Finally, let's make one more improvement to ensure we don't generate a new GUID 
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 5, lines removed: 5
@@ -5502,26 +5502,26 @@ Lines added: 5, lines removed: 5
 @@ -268,17 +268,17 @@
                       return False
               
--             # Generate a new GUID if one wasn&#39;t provided during initialization
+-             # Generate a new GUID if one wasn't provided during initialization
 +             # Use existing GUID if it was provided or already generated, only generate a new one as a last resort
               if not self.memory_guid:
                   self.memory_guid = str(uuid.uuid4())
-                  print(f&quot;Generated new GUID for memory: {self.memory_guid}&quot;)
+                  print(f"Generated new GUID for memory: {self.memory_guid}")
               else:
--                 print(f&quot;Using provided GUID for memory: {self.memory_guid}&quot;)
-+                 print(f&quot;Using existing GUID for memory: {self.memory_guid}&quot;)
+-                 print(f"Using provided GUID for memory: {self.memory_guid}")
++                 print(f"Using existing GUID for memory: {self.memory_guid}")
               
               # Initialize complete memory structure
               now = datetime.now().isoformat()
               self.memory = {
--                 &quot;guid&quot;: self.memory_guid,  # Use the GUID we already have or just generated
--                 &quot;memory_type&quot;: &quot;standard&quot;,  # Explicitly mark this as a standard memory type
--                 &quot;original_data&quot;: input_data,  # Store the original raw input data
-+                 &quot;guid&quot;: self.memory_guid,            # Use the GUID we already have or just generated
-+                 &quot;memory_type&quot;: &quot;standard&quot;,           # Explicitly mark this as a standard memory type
-+                 &quot;original_data&quot;: input_data,         # Store the original raw input data
-                  &quot;static_memory&quot;: static_memory,
-                  &quot;working_memory&quot;: {
+-                 "guid": self.memory_guid,  # Use the GUID we already have or just generated
+-                 "memory_type": "standard",  # Explicitly mark this as a standard memory type
+-                 "original_data": input_data,  # Store the original raw input data
++                 "guid": self.memory_guid,            # Use the GUID we already have or just generated
++                 "memory_type": "standard",           # Explicitly mark this as a standard memory type
++                 "original_data": input_data,         # Store the original raw input data
+                  "static_memory": static_memory,
+                  "working_memory": {
 ```
 
 </details>
@@ -5536,7 +5536,7 @@ Let's do the same for SimpleMemoryManager:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/simple_memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/simple_memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 5, lines removed: 3
@@ -5545,23 +5545,23 @@ Lines added: 5, lines removed: 3
 @@ -113,14 +113,16 @@
                   return True
               
--             # Generate a new GUID if one wasn&#39;t provided
+-             # Generate a new GUID if one wasn't provided
 +             # Use existing GUID if it was provided or already generated, only generate a new one as a last resort
               if not self.memory_guid:
                   self.memory_guid = str(uuid.uuid4())
-                  print(f&quot;Generated new GUID for memory: {self.memory_guid}&quot;)
+                  print(f"Generated new GUID for memory: {self.memory_guid}")
 +             else:
-+                 print(f&quot;Using existing GUID for memory: {self.memory_guid}&quot;)
++                 print(f"Using existing GUID for memory: {self.memory_guid}")
               
               # Initialize the simplified memory structure
               now = datetime.now().isoformat()
               self.memory = {
--                 &quot;guid&quot;: self.memory_guid,  # Use the GUID we already have or just generated
--                 &quot;memory_type&quot;: &quot;simple&quot;,   # Explicitly mark this as a simple memory type
-+                 &quot;guid&quot;: self.memory_guid,      # Use the GUID we already have or just generated
-+                 &quot;memory_type&quot;: &quot;simple&quot;,       # Explicitly mark this as a simple memory type
-                  &quot;initial_data&quot;: input_data,
-                  &quot;conversation_history&quot;: [],
+-                 "guid": self.memory_guid,  # Use the GUID we already have or just generated
+-                 "memory_type": "simple",   # Explicitly mark this as a simple memory type
++                 "guid": self.memory_guid,      # Use the GUID we already have or just generated
++                 "memory_type": "simple",       # Explicitly mark this as a simple memory type
+                  "initial_data": input_data,
+                  "conversation_history": [],
 ```
 
 </details>
@@ -5915,7 +5915,7 @@ The recommended change would be to move the `import re` statement from inside th
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: undefined
@@ -5937,8 +5937,8 @@ Lines added: undefined, lines removed: 1
                   result = json.loads(llm_response)
               except json.JSONDecodeError:
 -                 import re
-                  print(&quot;Failed to parse direct JSON, attempting to extract JSON structure...&quot;)
-                  json_match = re.search(r&#39;\{[\s\S]*\}&#39;, llm_response)
+                  print("Failed to parse direct JSON, attempting to extract JSON structure...")
+                  json_match = re.search(r'\{[\s\S]*\}', llm_response)
 ```
 
 </details>

@@ -523,7 +523,7 @@ I'll write a comprehensive phased plan for performance optimization in the READM
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: README-phase-6-status-week-3-optimization.md</summary>
+<details><summary>Tool use: **search_replace** • Edit file: README-phase-6-status-week-3-optimization.md</summary>
 
 **Chunk 1**
 Lines added: 302, lines removed: 1
@@ -603,12 +603,12 @@ Lines added: 302, lines removed: 1
 + **Implementation**:
 + &#96;&#96;&#96;python
 + # Example integration in MemoryManager
-+ with tracker.track_operation(&quot;memory_query_total&quot;):
-+     with tracker.track_operation(&quot;rag_enhancement&quot;):
++ with tracker.track_operation("memory_query_total"):
++     with tracker.track_operation("rag_enhancement"):
 +         # RAG processing
-+     with tracker.track_operation(&quot;graph_context&quot;):
++     with tracker.track_operation("graph_context"):
 +         # Graph context generation
-+     with tracker.track_operation(&quot;llm_generation&quot;, {&quot;prompt_length&quot;: len(prompt)}):
++     with tracker.track_operation("llm_generation", {"prompt_length": len(prompt)}):
 +         # Main LLM response
 + &#96;&#96;&#96;
 + 
@@ -626,7 +626,7 @@ Lines added: 302, lines removed: 1
 + &#96;&#96;&#96;python
 + # New configuration options
 + enable_graph_memory_fast_mode: bool = True
-+ graph_memory_processing_level: str = &quot;fast&quot;  # fast, balanced, comprehensive
++ graph_memory_processing_level: str = "fast"  # fast, balanced, comprehensive
 + &#96;&#96;&#96;
 + 
 + **Fast Mode Changes**:
@@ -684,23 +684,23 @@ Lines added: 302, lines removed: 1
 + 
 + &#96;&#96;&#96;python
 + PERFORMANCE_PROFILES = {
-+     &quot;speed&quot;: {
-+         &quot;enable_graph_memory&quot;: False,
-+         &quot;rag_limit&quot;: 3,
-+         &quot;max_recent_conversation_entries&quot;: 2,
-+         &quot;enable_digest_generation&quot;: False
++     "speed": {
++         "enable_graph_memory": False,
++         "rag_limit": 3,
++         "max_recent_conversation_entries": 2,
++         "enable_digest_generation": False
 +     },
-+     &quot;balanced&quot;: {
-+         &quot;enable_graph_memory&quot;: True,
-+         &quot;enable_graph_memory_fast_mode&quot;: True,
-+         &quot;rag_limit&quot;: 5,
-+         &quot;max_recent_conversation_entries&quot;: 4
++     "balanced": {
++         "enable_graph_memory": True,
++         "enable_graph_memory_fast_mode": True,
++         "rag_limit": 5,
++         "max_recent_conversation_entries": 4
 +     },
-+     &quot;comprehensive&quot;: {
-+         &quot;enable_graph_memory&quot;: True,
-+         &quot;enable_graph_memory_fast_mode&quot;: False,
-+         &quot;rag_limit&quot;: 10,
-+         &quot;max_recent_conversation_entries&quot;: 8
++     "comprehensive": {
++         "enable_graph_memory": True,
++         "enable_graph_memory_fast_mode": False,
++         "rag_limit": 10,
++         "max_recent_conversation_entries": 8
 +     }
 + }
 + &#96;&#96;&#96;
@@ -806,7 +806,7 @@ Lines added: 302, lines removed: 1
 + 
 + ### Technical Risks
 + - **Caching Complexity**: Start with simple TTL-based caching, evolve to smarter invalidation
-+ - **Fast Mode Accuracy**: Extensive testing to ensure fast mode doesn&#39;t compromise quality
++ - **Fast Mode Accuracy**: Extensive testing to ensure fast mode doesn't compromise quality
 + - **Memory Usage**: Monitor memory consumption with caching implementation
 + 
 + ### Implementation Risks
@@ -916,7 +916,7 @@ I'll implement Phase 1 of the performance tracking system to give you visibility
 
 <tool-use data-tool-type="write" data-tool-name="write">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/utils/performance_tracker.py</summary>
+<details><summary>Tool use: **write** • Edit file: src/utils/performance_tracker.py</summary>
 
 **Chunk 1**
 Lines added: 342, lines removed: 1
@@ -924,12 +924,12 @@ Lines added: 342, lines removed: 1
 ```diff
 @@ -1,1 +1,342 @@
 - 
-+ &quot;&quot;&quot;
++ """
 + Performance Tracking System
 + 
 + Provides comprehensive timing and performance measurement capabilities
 + for the agent system to identify bottlenecks and optimize operations.
-+ &quot;&quot;&quot;
++ """
 + 
 + import time
 + import logging
@@ -944,7 +944,7 @@ Lines added: 342, lines removed: 1
 + 
 + @dataclass
 + class OperationTiming:
-+     &quot;&quot;&quot;Data class for storing operation timing information&quot;&quot;&quot;
++     """Data class for storing operation timing information"""
 +     operation_name: str
 +     operation_id: str
 +     start_time: float
@@ -963,7 +963,7 @@ Lines added: 342, lines removed: 1
 + 
 + 
 + class PerformanceTracker:
-+     &quot;&quot;&quot;
++     """
 +     Track timing and performance metrics across the agent system.
 +     
 +     Features:
@@ -972,7 +972,7 @@ Lines added: 342, lines removed: 1
 +     - Automatic performance data persistence
 +     - Context manager for easy operation timing
 +     - Performance summary generation
-+     &quot;&quot;&quot;
++     """
 +     
 +     def __init__(self, session_id: str, logger: Optional[logging.Logger] = None):
 +         self.session_id = session_id
@@ -988,29 +988,29 @@ Lines added: 342, lines removed: 1
 +         self._setup_performance_logging()
 +         
 +     def _setup_performance_logging(self):
-+         &quot;&quot;&quot;Setup performance data logging to file&quot;&quot;&quot;
++         """Setup performance data logging to file"""
 +         try:
 +             # Create logs directory structure
-+             logs_dir = os.path.join(&quot;logs&quot;, self.session_id)
++             logs_dir = os.path.join("logs", self.session_id)
 +             os.makedirs(logs_dir, exist_ok=True)
 +             
 +             # Performance data file
-+             self.performance_file = os.path.join(logs_dir, &quot;performance_data.jsonl&quot;)
++             self.performance_file = os.path.join(logs_dir, "performance_data.jsonl")
 +             
 +             # Performance summary file
-+             self.performance_summary_file = os.path.join(logs_dir, &quot;performance_summary.json&quot;)
++             self.performance_summary_file = os.path.join(logs_dir, "performance_summary.json")
 +             
-+             self.logger.debug(f&quot;Performance tracking initialized for session {self.session_id}&quot;)
-+             self.logger.debug(f&quot;Performance data file: {self.performance_file}&quot;)
++             self.logger.debug(f"Performance tracking initialized for session {self.session_id}")
++             self.logger.debug(f"Performance data file: {self.performance_file}")
 +             
 +         except Exception as e:
-+             self.logger.warning(f&quot;Could not setup performance logging: {e}&quot;)
++             self.logger.warning(f"Could not setup performance logging: {e}")
 +             self.performance_file = None
 +             self.performance_summary_file = None
 +     
 +     @contextmanager
 +     def track_operation(self, operation_name: str, metadata: Optional[Dict[str, Any]] = None):
-+         &quot;&quot;&quot;
++         """
 +         Context manager to track operation timing with hierarchical support.
 +         
 +         Args:
@@ -1019,9 +1019,9 @@ Lines added: 342, lines removed: 1
 +             
 +         Yields:
 +             operation_id: Unique identifier for this operation
-+         &quot;&quot;&quot;
++         """
 +         start_time = time.perf_counter()
-+         operation_id = f&quot;{operation_name}_{int(start_time * 1000000)}&quot;  # Microsecond precision
++         operation_id = f"{operation_name}_{int(start_time * 1000000)}"  # Microsecond precision
 +         
 +         # Determine parent operation
 +         parent_id = None
@@ -1044,8 +1044,8 @@ Lines added: 342, lines removed: 1
 +             self._active_operations[operation_id] = operation_timing
 +         
 +         # Log operation start
-+         indent = &quot;  &quot; * (len(self._operation_stack) - 1) if self._operation_stack else &quot;&quot;
-+         self.logger.info(f&quot;PERF_START: {indent}{operation_name} ({operation_id})&quot;)
++         indent = "  " * (len(self._operation_stack) - 1) if self._operation_stack else ""
++         self.logger.info(f"PERF_START: {indent}{operation_name} ({operation_id})")
 +         
 +         try:
 +             yield operation_id
@@ -1067,40 +1067,40 @@ Lines added: 342, lines removed: 1
 +                     self._operation_stack.pop()
 +             
 +             # Log operation completion
-+             indent = &quot;  &quot; * len(self._operation_stack) if self._operation_stack else &quot;&quot;
-+             self.logger.info(f&quot;PERF_END: {indent}{operation_name} ({operation_id}) - {duration:.3f}s&quot;)
++             indent = "  " * len(self._operation_stack) if self._operation_stack else ""
++             self.logger.info(f"PERF_END: {indent}{operation_name} ({operation_id}) - {duration:.3f}s")
 +             
 +             # Save performance data
 +             self._save_operation_data(operation_timing)
 +     
 +     def _save_operation_data(self, operation_timing: OperationTiming):
-+         &quot;&quot;&quot;Save individual operation data to file&quot;&quot;&quot;
++         """Save individual operation data to file"""
 +         if not self.performance_file:
 +             return
 +             
 +         try:
-+             with open(self.performance_file, &#39;a&#39;) as f:
-+                 f.write(json.dumps(asdict(operation_timing)) + &#39;\n&#39;)
++             with open(self.performance_file, 'a') as f:
++                 f.write(json.dumps(asdict(operation_timing)) + '\n')
 +         except Exception as e:
-+             self.logger.warning(f&quot;Could not save performance data: {e}&quot;)
++             self.logger.warning(f"Could not save performance data: {e}")
 +     
 +     def get_performance_summary(self) -&gt; Dict[str, Any]:
-+         &quot;&quot;&quot;
++         """
 +         Generate comprehensive performance summary.
 +         
 +         Returns:
 +             Dictionary containing performance metrics and analysis
-+         &quot;&quot;&quot;
++         """
 +         with self._lock:
 +             completed_ops = self._completed_operations.copy()
 +             active_ops = list(self._active_operations.values())
 +         
 +         if not completed_ops:
 +             return {
-+                 &quot;session_id&quot;: self.session_id,
-+                 &quot;total_operations&quot;: 0,
-+                 &quot;active_operations&quot;: len(active_ops),
-+                 &quot;message&quot;: &quot;No completed operations yet&quot;
++                 "session_id": self.session_id,
++                 "total_operations": 0,
++                 "active_operations": len(active_ops),
++                 "message": "No completed operations yet"
 +             }
 +         
 +         # Calculate basic statistics
@@ -1121,12 +1121,12 @@ Lines added: 342, lines removed: 1
 +             durations = [op.duration_seconds for op in ops if op.duration_seconds]
 +             if durations:
 +                 operation_stats[name] = {
-+                     &quot;count&quot;: len(ops),
-+                     &quot;total_time&quot;: sum(durations),
-+                     &quot;average_time&quot;: sum(durations) / len(durations),
-+                     &quot;min_time&quot;: min(durations),
-+                     &quot;max_time&quot;: max(durations),
-+                     &quot;percentage_of_total&quot;: (sum(durations) / total_time) * 100 if total_time &gt; 0 else 0
++                     "count": len(ops),
++                     "total_time": sum(durations),
++                     "average_time": sum(durations) / len(durations),
++                     "min_time": min(durations),
++                     "max_time": max(durations),
++                     "percentage_of_total": (sum(durations) / total_time) * 100 if total_time &gt; 0 else 0
 +                 }
 +         
 +         # Find top-level operations (no parent)
@@ -1139,16 +1139,16 @@ Lines added: 342, lines removed: 1
 +             operation_tree = self._build_operation_tree(latest_top_level, completed_ops)
 +         
 +         summary = {
-+             &quot;session_id&quot;: self.session_id,
-+             &quot;timestamp&quot;: datetime.now().isoformat(),
-+             &quot;total_operations&quot;: total_operations,
-+             &quot;active_operations&quot;: len(active_ops),
-+             &quot;total_time_seconds&quot;: total_time,
-+             &quot;operation_statistics&quot;: operation_stats,
-+             &quot;latest_operation_tree&quot;: operation_tree,
-+             &quot;top_operations_by_time&quot;: sorted(
++             "session_id": self.session_id,
++             "timestamp": datetime.now().isoformat(),
++             "total_operations": total_operations,
++             "active_operations": len(active_ops),
++             "total_time_seconds": total_time,
++             "operation_statistics": operation_stats,
++             "latest_operation_tree": operation_tree,
++             "top_operations_by_time": sorted(
 +                 operation_stats.items(), 
-+                 key=lambda x: x[1][&quot;total_time&quot;], 
++                 key=lambda x: x[1]["total_time"], 
 +                 reverse=True
 +             )[:10]
 +         }
@@ -1156,13 +1156,13 @@ Lines added: 342, lines removed: 1
 +         return summary
 +     
 +     def _build_operation_tree(self, root_op: OperationTiming, all_ops: List[OperationTiming]) -&gt; Dict[str, Any]:
-+         &quot;&quot;&quot;Build hierarchical tree of operations starting from root operation&quot;&quot;&quot;
++         """Build hierarchical tree of operations starting from root operation"""
 +         tree = {
-+             &quot;operation_name&quot;: root_op.operation_name,
-+             &quot;operation_id&quot;: root_op.operation_id,
-+             &quot;duration_seconds&quot;: root_op.duration_seconds,
-+             &quot;metadata&quot;: root_op.metadata,
-+             &quot;children&quot;: []
++             "operation_name": root_op.operation_name,
++             "operation_id": root_op.operation_id,
++             "duration_seconds": root_op.duration_seconds,
++             "metadata": root_op.metadata,
++             "children": []
 +         }
 +         
 +         # Find child operations
@@ -1171,70 +1171,70 @@ Lines added: 342, lines removed: 1
 +         
 +         for child_op in child_ops:
 +             child_tree = self._build_operation_tree(child_op, all_ops)
-+             tree[&quot;children&quot;].append(child_tree)
++             tree["children"].append(child_tree)
 +         
 +         return tree
 +     
 +     def save_performance_summary(self):
-+         &quot;&quot;&quot;Save performance summary to file&quot;&quot;&quot;
++         """Save performance summary to file"""
 +         if not self.performance_summary_file:
 +             return
 +             
 +         try:
 +             summary = self.get_performance_summary()
-+             with open(self.performance_summary_file, &#39;w&#39;) as f:
++             with open(self.performance_summary_file, 'w') as f:
 +                 json.dump(summary, f, indent=2)
 +             
-+             self.logger.info(f&quot;Performance summary saved to {self.performance_summary_file}&quot;)
++             self.logger.info(f"Performance summary saved to {self.performance_summary_file}")
 +             
 +         except Exception as e:
-+             self.logger.warning(f&quot;Could not save performance summary: {e}&quot;)
++             self.logger.warning(f"Could not save performance summary: {e}")
 +     
 +     def print_performance_report(self):
-+         &quot;&quot;&quot;Print a formatted performance report to the console&quot;&quot;&quot;
++         """Print a formatted performance report to the console"""
 +         summary = self.get_performance_summary()
 +         
-+         print(&quot;\n&quot; + &quot;=&quot;*80)
-+         print(f&quot;PERFORMANCE REPORT - Session: {self.session_id}&quot;)
-+         print(&quot;=&quot;*80)
++         print("\n" + "="*80)
++         print(f"PERFORMANCE REPORT - Session: {self.session_id}")
++         print("="*80)
 +         
-+         if summary.get(&quot;total_operations&quot;, 0) == 0:
-+             print(&quot;No completed operations to report.&quot;)
++         if summary.get("total_operations", 0) == 0:
++             print("No completed operations to report.")
 +             return
 +         
-+         print(f&quot;Total Operations: {summary[&#39;total_operations&#39;]}&quot;)
-+         print(f&quot;Active Operations: {summary[&#39;active_operations&#39;]}&quot;)
-+         print(f&quot;Total Time: {summary[&#39;total_time_seconds&#39;]:.3f} seconds&quot;)
++         print(f"Total Operations: {summary['total_operations']}")
++         print(f"Active Operations: {summary['active_operations']}")
++         print(f"Total Time: {summary['total_time_seconds']:.3f} seconds")
 +         
-+         print(&quot;\nTOP OPERATIONS BY TIME:&quot;)
-+         print(&quot;-&quot; * 50)
-+         for op_name, stats in summary.get(&quot;top_operations_by_time&quot;, [])[:5]:
-+             print(f&quot;{op_name:30} {stats[&#39;total_time&#39;]:8.3f}s ({stats[&#39;percentage_of_total&#39;]:5.1f}%) x{stats[&#39;count&#39;]}&quot;)
++         print("\nTOP OPERATIONS BY TIME:")
++         print("-" * 50)
++         for op_name, stats in summary.get("top_operations_by_time", [])[:5]:
++             print(f"{op_name:30} {stats['total_time']:8.3f}s ({stats['percentage_of_total']:5.1f}%) x{stats['count']}")
 +         
-+         if summary.get(&quot;latest_operation_tree&quot;):
-+             print(&quot;\nLATEST OPERATION BREAKDOWN:&quot;)
-+             print(&quot;-&quot; * 50)
-+             self._print_operation_tree(summary[&quot;latest_operation_tree&quot;], indent=0)
++         if summary.get("latest_operation_tree"):
++             print("\nLATEST OPERATION BREAKDOWN:")
++             print("-" * 50)
++             self._print_operation_tree(summary["latest_operation_tree"], indent=0)
 +         
-+         print(&quot;=&quot;*80)
++         print("="*80)
 +     
 +     def _print_operation_tree(self, tree: Dict[str, Any], indent: int = 0):
-+         &quot;&quot;&quot;Print operation tree in a hierarchical format&quot;&quot;&quot;
-+         prefix = &quot;  &quot; * indent
-+         duration = tree.get(&quot;duration_seconds&quot;, 0)
++         """Print operation tree in a hierarchical format"""
++         prefix = "  " * indent
++         duration = tree.get("duration_seconds", 0)
 +         
 +         # Add metadata info if available
-+         metadata_str = &quot;&quot;
-+         if tree.get(&quot;metadata&quot;):
-+             metadata = tree[&quot;metadata&quot;]
-+             if &quot;prompt_length&quot; in metadata:
-+                 metadata_str = f&quot; (prompt: {metadata[&#39;prompt_length&#39;]} chars)&quot;
-+             elif &quot;llm_tokens&quot; in metadata:
-+                 metadata_str = f&quot; (tokens: {metadata[&#39;llm_tokens&#39;]})&quot;
++         metadata_str = ""
++         if tree.get("metadata"):
++             metadata = tree["metadata"]
++             if "prompt_length" in metadata:
++                 metadata_str = f" (prompt: {metadata['prompt_length']} chars)"
++             elif "llm_tokens" in metadata:
++                 metadata_str = f" (tokens: {metadata['llm_tokens']})"
 +         
-+         print(f&quot;{prefix}{tree[&#39;operation_name&#39;]:30} {duration:8.3f}s{metadata_str}&quot;)
++         print(f"{prefix}{tree['operation_name']:30} {duration:8.3f}s{metadata_str}")
 +         
-+         for child in tree.get(&quot;children&quot;, []):
++         for child in tree.get("children", []):
 +             self._print_operation_tree(child, indent + 1)
 + 
 + 
@@ -1244,7 +1244,7 @@ Lines added: 342, lines removed: 1
 + 
 + 
 + def get_performance_tracker(session_id: str, logger: Optional[logging.Logger] = None) -&gt; PerformanceTracker:
-+     &quot;&quot;&quot;
++     """
 +     Get or create a performance tracker for a session.
 +     
 +     Args:
@@ -1253,7 +1253,7 @@ Lines added: 342, lines removed: 1
 +         
 +     Returns:
 +         PerformanceTracker instance for the session
-+     &quot;&quot;&quot;
++     """
 +     with _tracker_lock:
 +         if session_id not in _performance_trackers:
 +             _performance_trackers[session_id] = PerformanceTracker(session_id, logger)
@@ -1261,7 +1261,7 @@ Lines added: 342, lines removed: 1
 + 
 + 
 + def cleanup_performance_tracker(session_id: str):
-+     &quot;&quot;&quot;Clean up performance tracker for a session&quot;&quot;&quot;
++     """Clean up performance tracker for a session"""
 +     with _tracker_lock:
 +         if session_id in _performance_trackers:
 +             tracker = _performance_trackers.pop(session_id)
@@ -1291,7 +1291,7 @@ Lines added: 342, lines removed: 1
 
 <tool-use data-tool-type="write" data-tool-name="write">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/utils/performance_analyzer.py</summary>
+<details><summary>Tool use: **write** • Edit file: src/utils/performance_analyzer.py</summary>
 
 **Chunk 1**
 Lines added: 485, lines removed: 1
@@ -1299,12 +1299,12 @@ Lines added: 485, lines removed: 1
 ```diff
 @@ -1,1 +1,485 @@
 - 
-+ &quot;&quot;&quot;
++ """
 + Performance Analysis and Bottleneck Detection
 + 
 + Provides analysis tools for performance data to identify bottlenecks,
 + generate optimization recommendations, and detect performance regressions.
-+ &quot;&quot;&quot;
++ """
 + 
 + import json
 + import os
@@ -1314,15 +1314,15 @@ Lines added: 485, lines removed: 1
 + 
 + 
 + class PerformanceAnalyzer:
-+     &quot;&quot;&quot;
++     """
 +     Analyze performance data to identify bottlenecks and generate recommendations.
-+     &quot;&quot;&quot;
++     """
 +     
 +     def __init__(self, logger: Optional[logging.Logger] = None):
 +         self.logger = logger or logging.getLogger(__name__)
 +     
 +     def analyze_session_performance(self, session_id: str) -&gt; Dict[str, Any]:
-+         &quot;&quot;&quot;
++         """
 +         Analyze performance data for a specific session.
 +         
 +         Args:
@@ -1330,70 +1330,70 @@ Lines added: 485, lines removed: 1
 +             
 +         Returns:
 +             Dictionary containing analysis results and recommendations
-+         &quot;&quot;&quot;
++         """
 +         # Load performance data
 +         performance_data = self._load_performance_data(session_id)
 +         if not performance_data:
-+             return {&quot;error&quot;: f&quot;No performance data found for session {session_id}&quot;}
++             return {"error": f"No performance data found for session {session_id}"}
 +         
 +         # Perform analysis
 +         analysis = {
-+             &quot;session_id&quot;: session_id,
-+             &quot;timestamp&quot;: datetime.now().isoformat(),
-+             &quot;bottlenecks&quot;: self._identify_bottlenecks(performance_data),
-+             &quot;recommendations&quot;: [],
-+             &quot;performance_patterns&quot;: self._analyze_patterns(performance_data),
-+             &quot;resource_utilization&quot;: self._analyze_resource_utilization(performance_data)
++             "session_id": session_id,
++             "timestamp": datetime.now().isoformat(),
++             "bottlenecks": self._identify_bottlenecks(performance_data),
++             "recommendations": [],
++             "performance_patterns": self._analyze_patterns(performance_data),
++             "resource_utilization": self._analyze_resource_utilization(performance_data)
 +         }
 +         
 +         # Generate recommendations based on bottlenecks
-+         analysis[&quot;recommendations&quot;] = self._generate_recommendations(analysis[&quot;bottlenecks&quot;])
++         analysis["recommendations"] = self._generate_recommendations(analysis["bottlenecks"])
 +         
 +         return analysis
 +     
 +     def _load_performance_data(self, session_id: str) -&gt; List[Dict[str, Any]]:
-+         &quot;&quot;&quot;Load performance data from session files&quot;&quot;&quot;
-+         performance_file = os.path.join(&quot;logs&quot;, session_id, &quot;performance_data.jsonl&quot;)
++         """Load performance data from session files"""
++         performance_file = os.path.join("logs", session_id, "performance_data.jsonl")
 +         
 +         if not os.path.exists(performance_file):
-+             self.logger.warning(f&quot;Performance data file not found: {performance_file}&quot;)
++             self.logger.warning(f"Performance data file not found: {performance_file}")
 +             return []
 +         
 +         operations = []
 +         try:
-+             with open(performance_file, &#39;r&#39;) as f:
++             with open(performance_file, 'r') as f:
 +                 for line in f:
 +                     if line.strip():
 +                         operations.append(json.loads(line))
 +         except Exception as e:
-+             self.logger.error(f&quot;Error loading performance data: {e}&quot;)
++             self.logger.error(f"Error loading performance data: {e}")
 +             return []
 +         
 +         return operations
 +     
 +     def _identify_bottlenecks(self, operations: List[Dict[str, Any]]) -&gt; List[Dict[str, Any]]:
-+         &quot;&quot;&quot;
++         """
 +         Identify performance bottlenecks in the operations data.
 +         
 +         Returns:
 +             List of bottleneck descriptions with severity and impact
-+         &quot;&quot;&quot;
++         """
 +         bottlenecks = []
 +         
 +         # Group operations by name for analysis
 +         op_groups = {}
 +         for op in operations:
-+             name = op.get(&quot;operation_name&quot;, &quot;unknown&quot;)
++             name = op.get("operation_name", "unknown")
 +             if name not in op_groups:
 +                 op_groups[name] = []
 +             op_groups[name].append(op)
 +         
 +         # Calculate total time and statistics
-+         total_time = sum(op.get(&quot;duration_seconds&quot;, 0) for op in operations if op.get(&quot;duration_seconds&quot;))
++         total_time = sum(op.get("duration_seconds", 0) for op in operations if op.get("duration_seconds"))
 +         
 +         # Analyze each operation type
 +         for op_name, ops in op_groups.items():
-+             durations = [op.get(&quot;duration_seconds&quot;, 0) for op in ops if op.get(&quot;duration_seconds&quot;)]
++             durations = [op.get("duration_seconds", 0) for op in ops if op.get("duration_seconds")]
 +             if not durations:
 +                 continue
 +             
@@ -1403,92 +1403,92 @@ Lines added: 485, lines removed: 1
 +             
 +             # Identify bottlenecks based on various criteria
 +             bottleneck_reasons = []
-+             severity = &quot;low&quot;
++             severity = "low"
 +             
 +             # High percentage of total time
 +             if percentage_of_total &gt; 30:
-+                 bottleneck_reasons.append(f&quot;Takes {percentage_of_total:.1f}% of total time&quot;)
-+                 severity = &quot;high&quot; if percentage_of_total &gt; 50 else &quot;medium&quot;
++                 bottleneck_reasons.append(f"Takes {percentage_of_total:.1f}% of total time")
++                 severity = "high" if percentage_of_total &gt; 50 else "medium"
 +             
 +             # Slow average duration
 +             if avg_duration &gt; 5.0:
-+                 bottleneck_reasons.append(f&quot;Average duration is {avg_duration:.2f}s&quot;)
-+                 severity = &quot;high&quot; if avg_duration &gt; 10.0 else &quot;medium&quot;
++                 bottleneck_reasons.append(f"Average duration is {avg_duration:.2f}s")
++                 severity = "high" if avg_duration &gt; 10.0 else "medium"
 +             
 +             # High frequency with moderate duration
 +             if len(durations) &gt; 5 and avg_duration &gt; 1.0:
-+                 bottleneck_reasons.append(f&quot;Called {len(durations)} times with {avg_duration:.2f}s average&quot;)
-+                 if severity == &quot;low&quot;:
-+                     severity = &quot;medium&quot;
++                 bottleneck_reasons.append(f"Called {len(durations)} times with {avg_duration:.2f}s average")
++                 if severity == "low":
++                     severity = "medium"
 +             
 +             # Graph memory specific checks
-+             if &quot;graph&quot; in op_name.lower() and avg_duration &gt; 2.0:
-+                 bottleneck_reasons.append(&quot;Graph memory processing is slow&quot;)
-+                 severity = &quot;high&quot;
++             if "graph" in op_name.lower() and avg_duration &gt; 2.0:
++                 bottleneck_reasons.append("Graph memory processing is slow")
++                 severity = "high"
 +             
 +             # LLM generation specific checks
-+             if &quot;llm&quot; in op_name.lower() or &quot;generation&quot; in op_name.lower():
++             if "llm" in op_name.lower() or "generation" in op_name.lower():
 +                 if avg_duration &gt; 3.0:
-+                     bottleneck_reasons.append(&quot;LLM generation is slow&quot;)
-+                     severity = &quot;medium&quot; if severity == &quot;low&quot; else severity
++                     bottleneck_reasons.append("LLM generation is slow")
++                     severity = "medium" if severity == "low" else severity
 +             
 +             if bottleneck_reasons:
 +                 bottlenecks.append({
-+                     &quot;operation_name&quot;: op_name,
-+                     &quot;severity&quot;: severity,
-+                     &quot;reasons&quot;: bottleneck_reasons,
-+                     &quot;statistics&quot;: {
-+                         &quot;count&quot;: len(durations),
-+                         &quot;avg_duration&quot;: avg_duration,
-+                         &quot;total_time&quot;: total_op_time,
-+                         &quot;percentage_of_total&quot;: percentage_of_total,
-+                         &quot;min_duration&quot;: min(durations),
-+                         &quot;max_duration&quot;: max(durations)
++                     "operation_name": op_name,
++                     "severity": severity,
++                     "reasons": bottleneck_reasons,
++                     "statistics": {
++                         "count": len(durations),
++                         "avg_duration": avg_duration,
++                         "total_time": total_op_time,
++                         "percentage_of_total": percentage_of_total,
++                         "min_duration": min(durations),
++                         "max_duration": max(durations)
 +                     }
 +                 })
 +         
 +         # Sort bottlenecks by severity and impact
-+         severity_order = {&quot;high&quot;: 3, &quot;medium&quot;: 2, &quot;low&quot;: 1}
-+         bottlenecks.sort(key=lambda x: (severity_order.get(x[&quot;severity&quot;], 0), x[&quot;statistics&quot;][&quot;percentage_of_total&quot;]), reverse=True)
++         severity_order = {"high": 3, "medium": 2, "low": 1}
++         bottlenecks.sort(key=lambda x: (severity_order.get(x["severity"], 0), x["statistics"]["percentage_of_total"]), reverse=True)
 +         
 +         return bottlenecks
 +     
 +     def _analyze_patterns(self, operations: List[Dict[str, Any]]) -&gt; Dict[str, Any]:
-+         &quot;&quot;&quot;Analyze patterns in performance data&quot;&quot;&quot;
++         """Analyze patterns in performance data"""
 +         patterns = {
-+             &quot;operation_hierarchy&quot;: self._analyze_operation_hierarchy(operations),
-+             &quot;sequential_operations&quot;: self._analyze_sequential_patterns(operations),
-+             &quot;async_patterns&quot;: self._analyze_async_patterns(operations)
++             "operation_hierarchy": self._analyze_operation_hierarchy(operations),
++             "sequential_operations": self._analyze_sequential_patterns(operations),
++             "async_patterns": self._analyze_async_patterns(operations)
 +         }
 +         
 +         return patterns
 +     
 +     def _analyze_operation_hierarchy(self, operations: List[Dict[str, Any]]) -&gt; Dict[str, Any]:
-+         &quot;&quot;&quot;Analyze hierarchical operation patterns&quot;&quot;&quot;
++         """Analyze hierarchical operation patterns"""
 +         # Find operations with and without parents
-+         top_level_ops = [op for op in operations if not op.get(&quot;parent_operation_id&quot;)]
-+         nested_ops = [op for op in operations if op.get(&quot;parent_operation_id&quot;)]
++         top_level_ops = [op for op in operations if not op.get("parent_operation_id")]
++         nested_ops = [op for op in operations if op.get("parent_operation_id")]
 +         
 +         hierarchy_analysis = {
-+             &quot;top_level_operations&quot;: len(top_level_ops),
-+             &quot;nested_operations&quot;: len(nested_ops),
-+             &quot;max_nesting_depth&quot;: self._calculate_max_nesting_depth(operations),
-+             &quot;most_nested_operation&quot;: self._find_most_nested_operation(operations)
++             "top_level_operations": len(top_level_ops),
++             "nested_operations": len(nested_ops),
++             "max_nesting_depth": self._calculate_max_nesting_depth(operations),
++             "most_nested_operation": self._find_most_nested_operation(operations)
 +         }
 +         
 +         return hierarchy_analysis
 +     
 +     def _analyze_sequential_patterns(self, operations: List[Dict[str, Any]]) -&gt; Dict[str, Any]:
-+         &quot;&quot;&quot;Analyze sequential operation patterns&quot;&quot;&quot;
++         """Analyze sequential operation patterns"""
 +         # Sort operations by start time
-+         sorted_ops = sorted(operations, key=lambda x: x.get(&quot;start_time&quot;, 0))
++         sorted_ops = sorted(operations, key=lambda x: x.get("start_time", 0))
 +         
 +         # Look for operations that could be parallelized
 +         sequential_groups = []
 +         current_group = []
 +         
 +         for op in sorted_ops:
-+             if not op.get(&quot;parent_operation_id&quot;):  # Top-level operation
++             if not op.get("parent_operation_id"):  # Top-level operation
 +                 if current_group:
 +                     sequential_groups.append(current_group)
 +                 current_group = [op]
@@ -1499,125 +1499,125 @@ Lines added: 485, lines removed: 1
 +             sequential_groups.append(current_group)
 +         
 +         return {
-+             &quot;sequential_groups&quot;: len(sequential_groups),
-+             &quot;potential_parallelization&quot;: self._identify_parallelization_opportunities(sequential_groups)
++             "sequential_groups": len(sequential_groups),
++             "potential_parallelization": self._identify_parallelization_opportunities(sequential_groups)
 +         }
 +     
 +     def _analyze_async_patterns(self, operations: List[Dict[str, Any]]) -&gt; Dict[str, Any]:
-+         &quot;&quot;&quot;Analyze async operation patterns&quot;&quot;&quot;
-+         async_operations = [op for op in operations if &quot;async&quot; in op.get(&quot;operation_name&quot;, &quot;&quot;).lower()]
++         """Analyze async operation patterns"""
++         async_operations = [op for op in operations if "async" in op.get("operation_name", "").lower()]
 +         
 +         return {
-+             &quot;async_operation_count&quot;: len(async_operations),
-+             &quot;async_efficiency&quot;: self._calculate_async_efficiency(async_operations)
++             "async_operation_count": len(async_operations),
++             "async_efficiency": self._calculate_async_efficiency(async_operations)
 +         }
 +     
 +     def _analyze_resource_utilization(self, operations: List[Dict[str, Any]]) -&gt; Dict[str, Any]:
-+         &quot;&quot;&quot;Analyze resource utilization patterns&quot;&quot;&quot;
++         """Analyze resource utilization patterns"""
 +         llm_operations = [op for op in operations if self._is_llm_operation(op)]
 +         memory_operations = [op for op in operations if self._is_memory_operation(op)]
 +         graph_operations = [op for op in operations if self._is_graph_operation(op)]
 +         
 +         return {
-+             &quot;llm_utilization&quot;: {
-+                 &quot;count&quot;: len(llm_operations),
-+                 &quot;total_time&quot;: sum(op.get(&quot;duration_seconds&quot;, 0) for op in llm_operations),
-+                 &quot;avg_time&quot;: sum(op.get(&quot;duration_seconds&quot;, 0) for op in llm_operations) / len(llm_operations) if llm_operations else 0
++             "llm_utilization": {
++                 "count": len(llm_operations),
++                 "total_time": sum(op.get("duration_seconds", 0) for op in llm_operations),
++                 "avg_time": sum(op.get("duration_seconds", 0) for op in llm_operations) / len(llm_operations) if llm_operations else 0
 +             },
-+             &quot;memory_utilization&quot;: {
-+                 &quot;count&quot;: len(memory_operations),
-+                 &quot;total_time&quot;: sum(op.get(&quot;duration_seconds&quot;, 0) for op in memory_operations),
-+                 &quot;avg_time&quot;: sum(op.get(&quot;duration_seconds&quot;, 0) for op in memory_operations) / len(memory_operations) if memory_operations else 0
++             "memory_utilization": {
++                 "count": len(memory_operations),
++                 "total_time": sum(op.get("duration_seconds", 0) for op in memory_operations),
++                 "avg_time": sum(op.get("duration_seconds", 0) for op in memory_operations) / len(memory_operations) if memory_operations else 0
 +             },
-+             &quot;graph_utilization&quot;: {
-+                 &quot;count&quot;: len(graph_operations),
-+                 &quot;total_time&quot;: sum(op.get(&quot;duration_seconds&quot;, 0) for op in graph_operations),
-+                 &quot;avg_time&quot;: sum(op.get(&quot;duration_seconds&quot;, 0) for op in graph_operations) / len(graph_operations) if graph_operations else 0
++             "graph_utilization": {
++                 "count": len(graph_operations),
++                 "total_time": sum(op.get("duration_seconds", 0) for op in graph_operations),
++                 "avg_time": sum(op.get("duration_seconds", 0) for op in graph_operations) / len(graph_operations) if graph_operations else 0
 +             }
 +         }
 +     
 +     def _generate_recommendations(self, bottlenecks: List[Dict[str, Any]]) -&gt; List[Dict[str, Any]]:
-+         &quot;&quot;&quot;Generate optimization recommendations based on identified bottlenecks&quot;&quot;&quot;
++         """Generate optimization recommendations based on identified bottlenecks"""
 +         recommendations = []
 +         
 +         for bottleneck in bottlenecks:
-+             op_name = bottleneck[&quot;operation_name&quot;]
-+             severity = bottleneck[&quot;severity&quot;]
-+             stats = bottleneck[&quot;statistics&quot;]
++             op_name = bottleneck["operation_name"]
++             severity = bottleneck["severity"]
++             stats = bottleneck["statistics"]
 +             
 +             # Generate specific recommendations based on operation type and patterns
-+             if &quot;graph&quot; in op_name.lower():
++             if "graph" in op_name.lower():
 +                 recommendations.append({
-+                     &quot;priority&quot;: severity,
-+                     &quot;category&quot;: &quot;graph_optimization&quot;,
-+                     &quot;title&quot;: &quot;Optimize Graph Memory Processing&quot;,
-+                     &quot;description&quot;: f&quot;Graph operation &#39;{op_name}&#39; is taking {stats[&#39;avg_duration&#39;]:.2f}s on average&quot;,
-+                     &quot;suggestions&quot;: [
-+                         &quot;Enable graph memory fast mode to skip complex EntityResolver processing&quot;,
-+                         &quot;Consider batching graph operations&quot;,
-+                         &quot;Implement caching for entity similarity computations&quot;,
-+                         &quot;Use async processing for non-critical graph updates&quot;
++                     "priority": severity,
++                     "category": "graph_optimization",
++                     "title": "Optimize Graph Memory Processing",
++                     "description": f"Graph operation '{op_name}' is taking {stats['avg_duration']:.2f}s on average",
++                     "suggestions": [
++                         "Enable graph memory fast mode to skip complex EntityResolver processing",
++                         "Consider batching graph operations",
++                         "Implement caching for entity similarity computations",
++                         "Use async processing for non-critical graph updates"
 +                     ],
-+                     &quot;estimated_improvement&quot;: &quot;50-70% reduction in graph processing time&quot;
++                     "estimated_improvement": "50-70% reduction in graph processing time"
 +                 })
 +             
-+             elif &quot;llm&quot; in op_name.lower() or &quot;generation&quot; in op_name.lower():
++             elif "llm" in op_name.lower() or "generation" in op_name.lower():
 +                 recommendations.append({
-+                     &quot;priority&quot;: severity,
-+                     &quot;category&quot;: &quot;llm_optimization&quot;,
-+                     &quot;title&quot;: &quot;Optimize LLM Operations&quot;,
-+                     &quot;description&quot;: f&quot;LLM operation &#39;{op_name}&#39; is taking {stats[&#39;avg_duration&#39;]:.2f}s on average&quot;,
-+                     &quot;suggestions&quot;: [
-+                         &quot;Cache LLM responses for repeated queries&quot;,
-+                         &quot;Reduce prompt length where possible&quot;,
-+                         &quot;Use batching for multiple LLM calls&quot;,
-+                         &quot;Consider using faster models for non-critical operations&quot;
++                     "priority": severity,
++                     "category": "llm_optimization",
++                     "title": "Optimize LLM Operations",
++                     "description": f"LLM operation '{op_name}' is taking {stats['avg_duration']:.2f}s on average",
++                     "suggestions": [
++                         "Cache LLM responses for repeated queries",
++                         "Reduce prompt length where possible",
++                         "Use batching for multiple LLM calls",
++                         "Consider using faster models for non-critical operations"
 +                     ],
-+                     &quot;estimated_improvement&quot;: &quot;20-40% reduction in LLM processing time&quot;
++                     "estimated_improvement": "20-40% reduction in LLM processing time"
 +                 })
 +             
-+             elif &quot;rag&quot; in op_name.lower():
++             elif "rag" in op_name.lower():
 +                 recommendations.append({
-+                     &quot;priority&quot;: severity,
-+                     &quot;category&quot;: &quot;rag_optimization&quot;,
-+                     &quot;title&quot;: &quot;Optimize RAG Processing&quot;,
-+                     &quot;description&quot;: f&quot;RAG operation &#39;{op_name}&#39; is taking {stats[&#39;avg_duration&#39;]:.2f}s on average&quot;,
-+                     &quot;suggestions&quot;: [
-+                         &quot;Implement RAG context caching&quot;,
-+                         &quot;Reduce RAG search limit for faster queries&quot;,
-+                         &quot;Use embeddings caching for frequently accessed content&quot;,
-+                         &quot;Optimize semantic search algorithms&quot;
++                     "priority": severity,
++                     "category": "rag_optimization",
++                     "title": "Optimize RAG Processing",
++                     "description": f"RAG operation '{op_name}' is taking {stats['avg_duration']:.2f}s on average",
++                     "suggestions": [
++                         "Implement RAG context caching",
++                         "Reduce RAG search limit for faster queries",
++                         "Use embeddings caching for frequently accessed content",
++                         "Optimize semantic search algorithms"
 +                     ],
-+                     &quot;estimated_improvement&quot;: &quot;30-50% reduction in RAG processing time&quot;
++                     "estimated_improvement": "30-50% reduction in RAG processing time"
 +                 })
 +             
-+             elif stats[&quot;percentage_of_total&quot;] &gt; 20:
++             elif stats["percentage_of_total"] &gt; 20:
 +                 recommendations.append({
-+                     &quot;priority&quot;: severity,
-+                     &quot;category&quot;: &quot;general_optimization&quot;,
-+                     &quot;title&quot;: f&quot;Optimize High-Impact Operation: {op_name}&quot;,
-+                     &quot;description&quot;: f&quot;Operation &#39;{op_name}&#39; takes {stats[&#39;percentage_of_total&#39;]:.1f}% of total time&quot;,
-+                     &quot;suggestions&quot;: [
-+                         &quot;Profile this operation in detail to identify sub-bottlenecks&quot;,
-+                         &quot;Consider async processing if not user-facing&quot;,
-+                         &quot;Implement caching if operation is repeated&quot;,
-+                         &quot;Break down into smaller, parallelizable operations&quot;
++                     "priority": severity,
++                     "category": "general_optimization",
++                     "title": f"Optimize High-Impact Operation: {op_name}",
++                     "description": f"Operation '{op_name}' takes {stats['percentage_of_total']:.1f}% of total time",
++                     "suggestions": [
++                         "Profile this operation in detail to identify sub-bottlenecks",
++                         "Consider async processing if not user-facing",
++                         "Implement caching if operation is repeated",
++                         "Break down into smaller, parallelizable operations"
 +                     ],
-+                     &quot;estimated_improvement&quot;: &quot;Significant impact due to high time percentage&quot;
++                     "estimated_improvement": "Significant impact due to high time percentage"
 +                 })
 +         
 +         # Sort recommendations by priority
-+         priority_order = {&quot;high&quot;: 3, &quot;medium&quot;: 2, &quot;low&quot;: 1}
-+         recommendations.sort(key=lambda x: priority_order.get(x[&quot;priority&quot;], 0), reverse=True)
++         priority_order = {"high": 3, "medium": 2, "low": 1}
++         recommendations.sort(key=lambda x: priority_order.get(x["priority"], 0), reverse=True)
 +         
 +         return recommendations
 +     
 +     def _calculate_max_nesting_depth(self, operations: List[Dict[str, Any]]) -&gt; int:
-+         &quot;&quot;&quot;Calculate the maximum nesting depth of operations&quot;&quot;&quot;
++         """Calculate the maximum nesting depth of operations"""
 +         # Build parent-child relationships
 +         children = {}
 +         for op in operations:
-+             parent_id = op.get(&quot;parent_operation_id&quot;)
++             parent_id = op.get("parent_operation_id")
 +             if parent_id:
 +                 if parent_id not in children:
 +                     children[parent_id] = []
@@ -1626,17 +1626,17 @@ Lines added: 485, lines removed: 1
 +         def calculate_depth(op_id: str) -&gt; int:
 +             if op_id not in children:
 +                 return 1
-+             return 1 + max(calculate_depth(child.get(&quot;operation_id&quot;, &quot;&quot;)) for child in children[op_id])
++             return 1 + max(calculate_depth(child.get("operation_id", "")) for child in children[op_id])
 +         
 +         # Find maximum depth from all top-level operations
-+         top_level_ops = [op for op in operations if not op.get(&quot;parent_operation_id&quot;)]
++         top_level_ops = [op for op in operations if not op.get("parent_operation_id")]
 +         if not top_level_ops:
 +             return 0
 +         
-+         return max(calculate_depth(op.get(&quot;operation_id&quot;, &quot;&quot;)) for op in top_level_ops)
++         return max(calculate_depth(op.get("operation_id", "")) for op in top_level_ops)
 +     
 +     def _find_most_nested_operation(self, operations: List[Dict[str, Any]]) -&gt; Optional[str]:
-+         &quot;&quot;&quot;Find the operation with the most nesting levels&quot;&quot;&quot;
++         """Find the operation with the most nesting levels"""
 +         max_depth = 0
 +         most_nested = None
 +         
@@ -1644,55 +1644,55 @@ Lines added: 485, lines removed: 1
 +             depth = self._calculate_operation_depth(op, operations)
 +             if depth &gt; max_depth:
 +                 max_depth = depth
-+                 most_nested = op.get(&quot;operation_name&quot;)
++                 most_nested = op.get("operation_name")
 +         
 +         return most_nested
 +     
 +     def _calculate_operation_depth(self, operation: Dict[str, Any], all_operations: List[Dict[str, Any]]) -&gt; int:
-+         &quot;&quot;&quot;Calculate the depth of a specific operation&quot;&quot;&quot;
++         """Calculate the depth of a specific operation"""
 +         depth = 0
-+         current_parent = operation.get(&quot;parent_operation_id&quot;)
++         current_parent = operation.get("parent_operation_id")
 +         
 +         while current_parent:
 +             depth += 1
 +             # Find parent operation
-+             parent_op = next((op for op in all_operations if op.get(&quot;operation_id&quot;) == current_parent), None)
++             parent_op = next((op for op in all_operations if op.get("operation_id") == current_parent), None)
 +             if parent_op:
-+                 current_parent = parent_op.get(&quot;parent_operation_id&quot;)
++                 current_parent = parent_op.get("parent_operation_id")
 +             else:
 +                 break
 +         
 +         return depth
 +     
 +     def _identify_parallelization_opportunities(self, sequential_groups: List[List[Dict[str, Any]]]) -&gt; List[str]:
-+         &quot;&quot;&quot;Identify operations that could potentially be parallelized&quot;&quot;&quot;
++         """Identify operations that could potentially be parallelized"""
 +         opportunities = []
 +         
 +         for group in sequential_groups:
 +             if len(group) &gt; 2:
-+                 # Look for operations that don&#39;t depend on each other
++                 # Look for operations that don't depend on each other
 +                 independent_ops = []
 +                 for op in group:
 +                     if not self._has_dependencies(op, group):
-+                         independent_ops.append(op.get(&quot;operation_name&quot;, &quot;unknown&quot;))
++                         independent_ops.append(op.get("operation_name", "unknown"))
 +                 
 +                 if len(independent_ops) &gt; 1:
-+                     opportunities.append(f&quot;Parallelize: {&#39;, &#39;.join(independent_ops)}&quot;)
++                     opportunities.append(f"Parallelize: {', '.join(independent_ops)}")
 +         
 +         return opportunities
 +     
 +     def _has_dependencies(self, operation: Dict[str, Any], group: List[Dict[str, Any]]) -&gt; bool:
-+         &quot;&quot;&quot;Check if an operation has dependencies within the group&quot;&quot;&quot;
++         """Check if an operation has dependencies within the group"""
 +         # Simple heuristic: operations with parent_operation_id have dependencies
-+         return bool(operation.get(&quot;parent_operation_id&quot;))
++         return bool(operation.get("parent_operation_id"))
 +     
 +     def _calculate_async_efficiency(self, async_operations: List[Dict[str, Any]]) -&gt; float:
-+         &quot;&quot;&quot;Calculate efficiency of async operations&quot;&quot;&quot;
++         """Calculate efficiency of async operations"""
 +         if not async_operations:
 +             return 0.0
 +         
 +         # Simple efficiency metric based on average duration
-+         avg_duration = sum(op.get(&quot;duration_seconds&quot;, 0) for op in async_operations) / len(async_operations)
++         avg_duration = sum(op.get("duration_seconds", 0) for op in async_operations) / len(async_operations)
 +         
 +         # Efficient async operations should be relatively fast
 +         if avg_duration &lt; 1.0:
@@ -1705,23 +1705,23 @@ Lines added: 485, lines removed: 1
 +             return 0.3
 +     
 +     def _is_llm_operation(self, operation: Dict[str, Any]) -&gt; bool:
-+         &quot;&quot;&quot;Check if operation is LLM-related&quot;&quot;&quot;
-+         op_name = operation.get(&quot;operation_name&quot;, &quot;&quot;).lower()
-+         return &quot;llm&quot; in op_name or &quot;generation&quot; in op_name or &quot;ollama&quot; in op_name
++         """Check if operation is LLM-related"""
++         op_name = operation.get("operation_name", "").lower()
++         return "llm" in op_name or "generation" in op_name or "ollama" in op_name
 +     
 +     def _is_memory_operation(self, operation: Dict[str, Any]) -&gt; bool:
-+         &quot;&quot;&quot;Check if operation is memory-related&quot;&quot;&quot;
-+         op_name = operation.get(&quot;operation_name&quot;, &quot;&quot;).lower()
-+         return &quot;memory&quot; in op_name or &quot;digest&quot; in op_name or &quot;embedding&quot; in op_name
++         """Check if operation is memory-related"""
++         op_name = operation.get("operation_name", "").lower()
++         return "memory" in op_name or "digest" in op_name or "embedding" in op_name
 +     
 +     def _is_graph_operation(self, operation: Dict[str, Any]) -&gt; bool:
-+         &quot;&quot;&quot;Check if operation is graph-related&quot;&quot;&quot;
-+         op_name = operation.get(&quot;operation_name&quot;, &quot;&quot;).lower()
-+         return &quot;graph&quot; in op_name or &quot;entity&quot; in op_name or &quot;relationship&quot; in op_name
++         """Check if operation is graph-related"""
++         op_name = operation.get("operation_name", "").lower()
++         return "graph" in op_name or "entity" in op_name or "relationship" in op_name
 + 
 + 
 + def analyze_session_performance(session_id: str) -&gt; Dict[str, Any]:
-+     &quot;&quot;&quot;
++     """
 +     Convenience function to analyze performance for a session.
 +     
 +     Args:
@@ -1729,61 +1729,61 @@ Lines added: 485, lines removed: 1
 +         
 +     Returns:
 +         Performance analysis results
-+     &quot;&quot;&quot;
++     """
 +     analyzer = PerformanceAnalyzer()
 +     return analyzer.analyze_session_performance(session_id)
 + 
 + 
 + def print_performance_analysis(session_id: str):
-+     &quot;&quot;&quot;Print a formatted performance analysis report&quot;&quot;&quot;
++     """Print a formatted performance analysis report"""
 +     analysis = analyze_session_performance(session_id)
 +     
-+     if &quot;error&quot; in analysis:
-+         print(f&quot;Error: {analysis[&#39;error&#39;]}&quot;)
++     if "error" in analysis:
++         print(f"Error: {analysis['error']}")
 +         return
 +     
-+     print(&quot;\n&quot; + &quot;=&quot;*80)
-+     print(f&quot;PERFORMANCE ANALYSIS - Session: {session_id}&quot;)
-+     print(&quot;=&quot;*80)
++     print("\n" + "="*80)
++     print(f"PERFORMANCE ANALYSIS - Session: {session_id}")
++     print("="*80)
 +     
 +     # Bottlenecks
-+     bottlenecks = analysis.get(&quot;bottlenecks&quot;, [])
++     bottlenecks = analysis.get("bottlenecks", [])
 +     if bottlenecks:
-+         print(&quot;\nIDENTIFIED BOTTLENECKS:&quot;)
-+         print(&quot;-&quot; * 50)
++         print("\nIDENTIFIED BOTTLENECKS:")
++         print("-" * 50)
 +         for bottleneck in bottlenecks[:5]:  # Top 5 bottlenecks
-+             print(f&quot;\n{bottleneck[&#39;operation_name&#39;]} (Severity: {bottleneck[&#39;severity&#39;].upper()})&quot;)
-+             stats = bottleneck[&#39;statistics&#39;]
-+             print(f&quot;  Average Duration: {stats[&#39;avg_duration&#39;]:.3f}s&quot;)
-+             print(f&quot;  Total Time: {stats[&#39;total_time&#39;]:.3f}s ({stats[&#39;percentage_of_total&#39;]:.1f}% of total)&quot;)
-+             print(f&quot;  Call Count: {stats[&#39;count&#39;]}&quot;)
-+             print(&quot;  Issues:&quot;, &quot;, &quot;.join(bottleneck[&#39;reasons&#39;]))
++             print(f"\n{bottleneck['operation_name']} (Severity: {bottleneck['severity'].upper()})")
++             stats = bottleneck['statistics']
++             print(f"  Average Duration: {stats['avg_duration']:.3f}s")
++             print(f"  Total Time: {stats['total_time']:.3f}s ({stats['percentage_of_total']:.1f}% of total)")
++             print(f"  Call Count: {stats['count']}")
++             print("  Issues:", ", ".join(bottleneck['reasons']))
 +     
 +     # Recommendations
-+     recommendations = analysis.get(&quot;recommendations&quot;, [])
++     recommendations = analysis.get("recommendations", [])
 +     if recommendations:
-+         print(&quot;\nOPTIMIZATION RECOMMENDATIONS:&quot;)
-+         print(&quot;-&quot; * 50)
++         print("\nOPTIMIZATION RECOMMENDATIONS:")
++         print("-" * 50)
 +         for i, rec in enumerate(recommendations[:3], 1):  # Top 3 recommendations
-+             print(f&quot;\n{i}. {rec[&#39;title&#39;]} (Priority: {rec[&#39;priority&#39;].upper()})&quot;)
-+             print(f&quot;   {rec[&#39;description&#39;]}&quot;)
-+             print(f&quot;   Estimated Improvement: {rec.get(&#39;estimated_improvement&#39;, &#39;Unknown&#39;)}&quot;)
-+             if rec.get(&#39;suggestions&#39;):
-+                 print(&quot;   Suggestions:&quot;)
-+                 for suggestion in rec[&#39;suggestions&#39;][:2]:  # Top 2 suggestions
-+                     print(f&quot;     • {suggestion}&quot;)
++             print(f"\n{i}. {rec['title']} (Priority: {rec['priority'].upper()})")
++             print(f"   {rec['description']}")
++             print(f"   Estimated Improvement: {rec.get('estimated_improvement', 'Unknown')}")
++             if rec.get('suggestions'):
++                 print("   Suggestions:")
++                 for suggestion in rec['suggestions'][:2]:  # Top 2 suggestions
++                     print(f"     • {suggestion}")
 +     
 +     # Resource utilization
-+     resources = analysis.get(&quot;resource_utilization&quot;, {})
++     resources = analysis.get("resource_utilization", {})
 +     if resources:
-+         print(&quot;\nRESOURCE UTILIZATION:&quot;)
-+         print(&quot;-&quot; * 50)
++         print("\nRESOURCE UTILIZATION:")
++         print("-" * 50)
 +         for resource_type, util in resources.items():
-+             if util.get(&quot;count&quot;, 0) &gt; 0:
-+                 print(f&quot;{resource_type.replace(&#39;_&#39;, &#39; &#39;).title()}: {util[&#39;count&#39;]} operations, &quot;
-+                       f&quot;{util[&#39;total_time&#39;]:.3f}s total, {util[&#39;avg_time&#39;]:.3f}s average&quot;)
++             if util.get("count", 0) &gt; 0:
++                 print(f"{resource_type.replace('_', ' ').title()}: {util['count']} operations, "
++                       f"{util['total_time']:.3f}s total, {util['avg_time']:.3f}s average")
 +     
-+     print(&quot;=&quot;*80)
++     print("="*80)
 ```
 
 </details>
@@ -1821,87 +1821,87 @@ Now let me integrate performance tracking into the MemoryManager. I'll add the t
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 89, lines removed: 74
 
 ```diff
 @@ -433,79 +433,94 @@
-              Dict[str, Any]: Response with the LLM&#39;s answer
-          &quot;&quot;&quot;
+              Dict[str, Any]: Response with the LLM's answer
+          """
 -         try:
--             self.logger.debug(&quot;Querying memory...&quot;)
+-             self.logger.debug("Querying memory...")
 -             
 -             # Extract query text
--             query = query_context.get(&quot;query&quot;, &quot;&quot;)
+-             query = query_context.get("query", "")
 +         # Import performance tracker
 +         from src.utils.performance_tracker import get_performance_tracker
 +         
 +         # Get performance tracker for this session
 +         performance_tracker = get_performance_tracker(self.memory_guid, self.logger)
 +         
-+         with performance_tracker.track_operation(&quot;memory_query_total&quot;):
++         with performance_tracker.track_operation("memory_query_total"):
 +             try:
-+                 self.logger.debug(&quot;Querying memory...&quot;)
++                 self.logger.debug("Querying memory...")
 +                 
 +                 # Extract query text
-+                 query = query_context.get(&quot;query&quot;, &quot;&quot;)
++                 query = query_context.get("query", "")
   
 -             # Add user message to history immediately
 -             if query:
 -                 user_entry = {
--                     &quot;guid&quot;: str(uuid.uuid4()),
--                     &quot;role&quot;: &quot;user&quot;,
--                     &quot;content&quot;: query,
--                     &quot;timestamp&quot;: datetime.now().isoformat()
+-                     "guid": str(uuid.uuid4()),
+-                     "role": "user",
+-                     "content": query,
+-                     "timestamp": datetime.now().isoformat()
 -                 }
 -                 # Add to conversation history file and memory immediately
 -                 self.add_to_conversation_history(user_entry)
--                 if &quot;conversation_history&quot; not in self.memory:
--                     self.memory[&quot;conversation_history&quot;] = []
--                 self.memory[&quot;conversation_history&quot;].append(user_entry)
--                 self.save_memory(&quot;add_user_entry&quot;)
+-                 if "conversation_history" not in self.memory:
+-                     self.memory["conversation_history"] = []
+-                 self.memory["conversation_history"].append(user_entry)
+-                 self.save_memory("add_user_entry")
 -             
 -             # Use concatenated initial segments for static memory in prompts
--             static_memory_text = query_context.get(&quot;static_memory&quot;, &quot;&quot;) or self._get_initial_segments_text() or self._format_static_memory_as_text()
+-             static_memory_text = query_context.get("static_memory", "") or self._get_initial_segments_text() or self._format_static_memory_as_text()
 -             
 -             # Format context as text (use provided or get from memory)
--             previous_context_text = query_context.get(&quot;previous_context&quot;, &quot;&quot;) or self._format_context_as_text()
+-             previous_context_text = query_context.get("previous_context", "") or self._format_context_as_text()
 -             
 -             # Format recent conversation history as text (use provided or get from memory)
--             conversation_history_text = query_context.get(&quot;conversation_history&quot;, &quot;&quot;) or self._format_conversation_history_as_text()
+-             conversation_history_text = query_context.get("conversation_history", "") or self._format_conversation_history_as_text()
 -             
 -             # Get or generate RAG context
--             rag_context = query_context.get(&quot;rag_context&quot;)
+-             rag_context = query_context.get("rag_context")
 -             if not rag_context:
 -                 enhanced_context = self.rag_manager.enhance_memory_query(query_context)
--                 rag_context = enhanced_context.get(&quot;rag_context&quot;, &quot;&quot;)
+-                 rag_context = enhanced_context.get("rag_context", "")
 -                 if rag_context:
--                     self.logger.debug(&quot;Using RAG-enhanced context for memory query (auto-generated)&quot;)
+-                     self.logger.debug("Using RAG-enhanced context for memory query (auto-generated)")
 -             else:
--                 self.logger.debug(&quot;Using RAG-enhanced context for memory query (provided)&quot;)
+-                 self.logger.debug("Using RAG-enhanced context for memory query (provided)")
 -             
 -             # Get graph context if enabled
--             graph_context = &quot;&quot;
+-             graph_context = ""
 -             if self.enable_graph_memory and self.graph_manager:
 -                 try:
 -                     graph_context = self.get_graph_context(query)
 -                     if graph_context:
--                         self.logger.debug(&quot;Added graph context to memory query&quot;)
+-                         self.logger.debug("Added graph context to memory query")
 -                 except Exception as e:
--                     self.logger.warning(f&quot;Failed to get graph context: {e}&quot;)
--                     graph_context = &quot;&quot;
+-                     self.logger.warning(f"Failed to get graph context: {e}")
+-                     graph_context = ""
 -             
 -             # Get domain-specific instructions (use provided or get from config)
--             domain_specific_prompt_instructions = query_context.get(&quot;domain_specific_prompt_instructions&quot;, &quot;&quot;)
+-             domain_specific_prompt_instructions = query_context.get("domain_specific_prompt_instructions", "")
 -             domain_specific_query_prompt_instructions = domain_specific_prompt_instructions
 -             if not domain_specific_prompt_instructions and self.domain_config:
--                 domain_specific_prompt_instructions = self.domain_config.get(&quot;domain_specific_prompt_instructions&quot;, &quot;&quot;)
--                 domain_specific_query_prompt_instructions = domain_specific_prompt_instructions.get(&quot;query&quot;, &quot;&quot;) if isinstance(domain_specific_prompt_instructions, dict) else &quot;&quot;
+-                 domain_specific_prompt_instructions = self.domain_config.get("domain_specific_prompt_instructions", "")
+-                 domain_specific_query_prompt_instructions = domain_specific_prompt_instructions.get("query", "") if isinstance(domain_specific_prompt_instructions, dict) else ""
 -             
 -             # Create prompt with formatted text
--             prompt = self.templates[&quot;query&quot;].format(
+-             prompt = self.templates["query"].format(
 -                 static_memory_text=static_memory_text,
 -                 previous_context_text=previous_context_text,
 -                 conversation_history_text=conversation_history_text,
@@ -1912,72 +1912,72 @@ Lines added: 89, lines removed: 74
 -             )
 -             
 -             # Get response from LLM
--             self.logger.debug(&quot;Generating response using LLM...&quot;)
+-             self.logger.debug("Generating response using LLM...")
 -             llm_response = self.llm.generate(
 -                 prompt,
--                 options={&quot;temperature&quot;: 0.7}
+-                 options={"temperature": 0.7}
 -             )
 +                 # Add user message to history immediately
 +                 user_entry = None
 +                 if query:
-+                     with performance_tracker.track_operation(&quot;add_user_entry&quot;):
++                     with performance_tracker.track_operation("add_user_entry"):
 +                         user_entry = {
-+                             &quot;guid&quot;: str(uuid.uuid4()),
-+                             &quot;role&quot;: &quot;user&quot;,
-+                             &quot;content&quot;: query,
-+                             &quot;timestamp&quot;: datetime.now().isoformat()
++                             "guid": str(uuid.uuid4()),
++                             "role": "user",
++                             "content": query,
++                             "timestamp": datetime.now().isoformat()
 +                         }
 +                         # Add to conversation history file and memory immediately
 +                         self.add_to_conversation_history(user_entry)
-+                         if &quot;conversation_history&quot; not in self.memory:
-+                             self.memory[&quot;conversation_history&quot;] = []
-+                         self.memory[&quot;conversation_history&quot;].append(user_entry)
-+                         self.save_memory(&quot;add_user_entry&quot;)
++                         if "conversation_history" not in self.memory:
++                             self.memory["conversation_history"] = []
++                         self.memory["conversation_history"].append(user_entry)
++                         self.save_memory("add_user_entry")
 +                 
 +                 # Format memory components
-+                 with performance_tracker.track_operation(&quot;format_memory_components&quot;):
++                 with performance_tracker.track_operation("format_memory_components"):
 +                     # Use concatenated initial segments for static memory in prompts
-+                     static_memory_text = query_context.get(&quot;static_memory&quot;, &quot;&quot;) or self._get_initial_segments_text() or self._format_static_memory_as_text()
++                     static_memory_text = query_context.get("static_memory", "") or self._get_initial_segments_text() or self._format_static_memory_as_text()
 +                     
 +                     # Format context as text (use provided or get from memory)
-+                     previous_context_text = query_context.get(&quot;previous_context&quot;, &quot;&quot;) or self._format_context_as_text()
++                     previous_context_text = query_context.get("previous_context", "") or self._format_context_as_text()
 +                     
 +                     # Format recent conversation history as text (use provided or get from memory)
-+                     conversation_history_text = query_context.get(&quot;conversation_history&quot;, &quot;&quot;) or self._format_conversation_history_as_text()
++                     conversation_history_text = query_context.get("conversation_history", "") or self._format_conversation_history_as_text()
 +                 
 +                 # Get or generate RAG context
-+                 rag_context = query_context.get(&quot;rag_context&quot;)
++                 rag_context = query_context.get("rag_context")
 +                 if not rag_context:
-+                     with performance_tracker.track_operation(&quot;rag_enhancement&quot;):
++                     with performance_tracker.track_operation("rag_enhancement"):
 +                         enhanced_context = self.rag_manager.enhance_memory_query(query_context)
-+                         rag_context = enhanced_context.get(&quot;rag_context&quot;, &quot;&quot;)
++                         rag_context = enhanced_context.get("rag_context", "")
 +                         if rag_context:
-+                             self.logger.debug(&quot;Using RAG-enhanced context for memory query (auto-generated)&quot;)
++                             self.logger.debug("Using RAG-enhanced context for memory query (auto-generated)")
 +                 else:
-+                     self.logger.debug(&quot;Using RAG-enhanced context for memory query (provided)&quot;)
++                     self.logger.debug("Using RAG-enhanced context for memory query (provided)")
 +                 
 +                 # Get graph context if enabled
-+                 graph_context = &quot;&quot;
++                 graph_context = ""
 +                 if self.enable_graph_memory and self.graph_manager:
-+                     with performance_tracker.track_operation(&quot;graph_context&quot;):
++                     with performance_tracker.track_operation("graph_context"):
 +                         try:
 +                             graph_context = self.get_graph_context(query)
 +                             if graph_context:
-+                                 self.logger.debug(&quot;Added graph context to memory query&quot;)
++                                 self.logger.debug("Added graph context to memory query")
 +                         except Exception as e:
-+                             self.logger.warning(f&quot;Failed to get graph context: {e}&quot;)
-+                             graph_context = &quot;&quot;
++                             self.logger.warning(f"Failed to get graph context: {e}")
++                             graph_context = ""
 +                 
 +                 # Get domain-specific instructions (use provided or get from config)
-+                 with performance_tracker.track_operation(&quot;format_prompt&quot;):
-+                     domain_specific_prompt_instructions = query_context.get(&quot;domain_specific_prompt_instructions&quot;, &quot;&quot;)
++                 with performance_tracker.track_operation("format_prompt"):
++                     domain_specific_prompt_instructions = query_context.get("domain_specific_prompt_instructions", "")
 +                     domain_specific_query_prompt_instructions = domain_specific_prompt_instructions
 +                     if not domain_specific_prompt_instructions and self.domain_config:
-+                         domain_specific_prompt_instructions = self.domain_config.get(&quot;domain_specific_prompt_instructions&quot;, &quot;&quot;)
-+                         domain_specific_query_prompt_instructions = domain_specific_prompt_instructions.get(&quot;query&quot;, &quot;&quot;) if isinstance(domain_specific_prompt_instructions, dict) else &quot;&quot;
++                         domain_specific_prompt_instructions = self.domain_config.get("domain_specific_prompt_instructions", "")
++                         domain_specific_query_prompt_instructions = domain_specific_prompt_instructions.get("query", "") if isinstance(domain_specific_prompt_instructions, dict) else ""
 +                     
 +                     # Create prompt with formatted text
-+                     prompt = self.templates[&quot;query&quot;].format(
++                     prompt = self.templates["query"].format(
 +                         static_memory_text=static_memory_text,
 +                         previous_context_text=previous_context_text,
 +                         conversation_history_text=conversation_history_text,
@@ -1988,11 +1988,11 @@ Lines added: 89, lines removed: 74
 +                     )
 +                 
 +                 # Get response from LLM
-+                 self.logger.debug(&quot;Generating response using LLM...&quot;)
-+                 with performance_tracker.track_operation(&quot;llm_generation&quot;, {&quot;prompt_length&quot;: len(prompt)}):
++                 self.logger.debug("Generating response using LLM...")
++                 with performance_tracker.track_operation("llm_generation", {"prompt_length": len(prompt)}):
 +                     llm_response = self.llm.generate(
 +                         prompt,
-+                         options={&quot;temperature&quot;: 0.7}
++                         options={"temperature": 0.7}
 +                     )
               
               # Start background processing for user entry and agent response
@@ -2018,14 +2018,14 @@ Now I need to complete the rest of the query_memory method:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 36, lines removed: 34
 
 ```diff
 @@ -523,39 +523,41 @@
-                          options={&quot;temperature&quot;: 0.7}
+                          options={"temperature": 0.7}
                       )
 -             
 -             # Start background processing for user entry and agent response
@@ -2035,48 +2035,48 @@ Lines added: 36, lines removed: 34
 -             
 -             # Create agent entry
 -             agent_entry = {
--                 &quot;guid&quot;: str(uuid.uuid4()),
--                 &quot;role&quot;: &quot;agent&quot;,
--                 &quot;content&quot;: llm_response,
--                 &quot;timestamp&quot;: datetime.now().isoformat()
+-                 "guid": str(uuid.uuid4()),
+-                 "role": "agent",
+-                 "content": llm_response,
+-                 "timestamp": datetime.now().isoformat()
 -             }
 -             
 -             # Add agent response to history immediately
 -             self.add_to_conversation_history(agent_entry)
--             if &quot;conversation_history&quot; not in self.memory:
--                 self.memory[&quot;conversation_history&quot;] = []
--             self.memory[&quot;conversation_history&quot;].append(agent_entry)
--             self.save_memory(&quot;add_agent_entry&quot;)
+-             if "conversation_history" not in self.memory:
+-                 self.memory["conversation_history"] = []
+-             self.memory["conversation_history"].append(agent_entry)
+-             self.save_memory("add_agent_entry")
 -             
 -             # Start background processing for agent entry
 -             asyncio.create_task(self._process_entry_async(agent_entry))
 -             
 -             # Check if we should compress memory based on number of conversations
--             conversation_entries = len(self.memory[&quot;conversation_history&quot;])
+-             conversation_entries = len(self.memory["conversation_history"])
 -             if conversation_entries &gt; self.max_recent_conversation_entries:
--                 self.logger.debug(f&quot;Memory has {conversation_entries} conversations, scheduling compression...&quot;)
+-                 self.logger.debug(f"Memory has {conversation_entries} conversations, scheduling compression...")
 -                 asyncio.create_task(self._compress_memory_async())
 -             
--             return {&quot;response&quot;: llm_response}
+-             return {"response": llm_response}
 +                 
 +                 # Create agent entry and add to history
-+                 with performance_tracker.track_operation(&quot;add_agent_entry&quot;):
++                 with performance_tracker.track_operation("add_agent_entry"):
 +                     agent_entry = {
-+                         &quot;guid&quot;: str(uuid.uuid4()),
-+                         &quot;role&quot;: &quot;agent&quot;,
-+                         &quot;content&quot;: llm_response,
-+                         &quot;timestamp&quot;: datetime.now().isoformat()
++                         "guid": str(uuid.uuid4()),
++                         "role": "agent",
++                         "content": llm_response,
++                         "timestamp": datetime.now().isoformat()
 +                     }
 +                     
 +                     # Add agent response to history immediately
 +                     self.add_to_conversation_history(agent_entry)
-+                     if &quot;conversation_history&quot; not in self.memory:
-+                         self.memory[&quot;conversation_history&quot;] = []
-+                     self.memory[&quot;conversation_history&quot;].append(agent_entry)
-+                     self.save_memory(&quot;add_agent_entry&quot;)
++                     if "conversation_history" not in self.memory:
++                         self.memory["conversation_history"] = []
++                     self.memory["conversation_history"].append(agent_entry)
++                     self.save_memory("add_agent_entry")
 +                 
 +                 # Start background processing for entries
-+                 with performance_tracker.track_operation(&quot;start_async_operations&quot;):
++                 with performance_tracker.track_operation("start_async_operations"):
 +                     if user_entry:
 +                         # Start background processing for user entry
 +                         asyncio.create_task(self._process_entry_async(user_entry))
@@ -2085,19 +2085,19 @@ Lines added: 36, lines removed: 34
 +                     asyncio.create_task(self._process_entry_async(agent_entry))
 +                     
 +                     # Check if we should compress memory based on number of conversations
-+                     conversation_entries = len(self.memory[&quot;conversation_history&quot;])
++                     conversation_entries = len(self.memory["conversation_history"])
 +                     if conversation_entries &gt; self.max_recent_conversation_entries:
-+                         self.logger.debug(f&quot;Memory has {conversation_entries} conversations, scheduling compression...&quot;)
++                         self.logger.debug(f"Memory has {conversation_entries} conversations, scheduling compression...")
 +                         asyncio.create_task(self._compress_memory_async())
 +                 
-+                 return {&quot;response&quot;: llm_response}
++                 return {"response": llm_response}
   
 -         except Exception as e:
--             self.logger.error(f&quot;Error in query_memory: {str(e)}&quot;)
--             return {&quot;response&quot;: f&quot;Error processing query: {str(e)}&quot;, &quot;error&quot;: str(e)}
+-             self.logger.error(f"Error in query_memory: {str(e)}")
+-             return {"response": f"Error processing query: {str(e)}", "error": str(e)}
 +             except Exception as e:
-+                 self.logger.error(f&quot;Error in query_memory: {str(e)}&quot;)
-+                 return {&quot;response&quot;: f&quot;Error processing query: {str(e)}&quot;, &quot;error&quot;: str(e)}
++                 self.logger.error(f"Error in query_memory: {str(e)}")
++                 return {"response": f"Error processing query: {str(e)}", "error": str(e)}
               
       async def _process_entry_async(self, entry: Dict[str, Any]) -&gt; None:
 ```
@@ -2114,7 +2114,7 @@ Now let me add performance tracking to the async processing methods:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 34, lines removed: 25
@@ -2122,21 +2122,21 @@ Lines added: 34, lines removed: 25
 ```diff
 @@ -563,29 +563,38 @@
       async def _process_entry_async(self, entry: Dict[str, Any]) -&gt; None:
-          &quot;&quot;&quot;Process a conversation entry asynchronously (digest generation, embeddings, and graph updates).&quot;&quot;&quot;
+          """Process a conversation entry asynchronously (digest generation, embeddings, and graph updates)."""
 -         try:
 -             # Generate digest if not already present
--             if &quot;digest&quot; not in entry:
--                 self.logger.debug(f&quot;Generating digest for {entry[&#39;role&#39;]} entry...&quot;)
--                 entry[&quot;digest&quot;] = self.digest_generator.generate_digest(entry, self.memory)
+-             if "digest" not in entry:
+-                 self.logger.debug(f"Generating digest for {entry['role']} entry...")
+-                 entry["digest"] = self.digest_generator.generate_digest(entry, self.memory)
 -                 
 -                 # Update conversation history file with the digest
--                 if hasattr(self, &#39;_update_conversation_history_entry&#39;):
+-                 if hasattr(self, '_update_conversation_history_entry'):
 -                     self._update_conversation_history_entry(entry)
 -                 
--                 self.save_memory(&quot;async_digest_generation&quot;)
+-                 self.save_memory("async_digest_generation")
 -             
 -             # Update embeddings
--             self.logger.debug(f&quot;Updating embeddings for {entry[&#39;role&#39;]} entry...&quot;)
+-             self.logger.debug(f"Updating embeddings for {entry['role']} entry...")
 -             self.embeddings_manager.add_new_embeddings([entry])
 -             
 -             # Update graph memory if enabled
@@ -2144,33 +2144,33 @@ Lines added: 34, lines removed: 25
 -                 try:
 -                     await self._update_graph_memory_async(entry)
 -                 except Exception as e:
--                     self.logger.warning(f&quot;Error updating graph memory: {e}&quot;)
+-                     self.logger.warning(f"Error updating graph memory: {e}")
 -             
 -         except Exception as e:
--             self.logger.error(f&quot;Error in async entry processing: {str(e)}&quot;)
+-             self.logger.error(f"Error in async entry processing: {str(e)}")
 +         # Import performance tracker
 +         from src.utils.performance_tracker import get_performance_tracker
 +         
 +         # Get performance tracker for this session
 +         performance_tracker = get_performance_tracker(self.memory_guid, self.logger)
 +         
-+         with performance_tracker.track_operation(f&quot;async_process_entry_{entry.get(&#39;role&#39;, &#39;unknown&#39;)}&quot;):
++         with performance_tracker.track_operation(f"async_process_entry_{entry.get('role', 'unknown')}"):
 +             try:
 +                 # Generate digest if not already present
-+                 if &quot;digest&quot; not in entry:
-+                     with performance_tracker.track_operation(&quot;async_digest_generation&quot;):
-+                         self.logger.debug(f&quot;Generating digest for {entry[&#39;role&#39;]} entry...&quot;)
-+                         entry[&quot;digest&quot;] = self.digest_generator.generate_digest(entry, self.memory)
++                 if "digest" not in entry:
++                     with performance_tracker.track_operation("async_digest_generation"):
++                         self.logger.debug(f"Generating digest for {entry['role']} entry...")
++                         entry["digest"] = self.digest_generator.generate_digest(entry, self.memory)
 +                         
 +                         # Update conversation history file with the digest
-+                         if hasattr(self, &#39;_update_conversation_history_entry&#39;):
++                         if hasattr(self, '_update_conversation_history_entry'):
 +                             self._update_conversation_history_entry(entry)
 +                         
-+                         self.save_memory(&quot;async_digest_generation&quot;)
++                         self.save_memory("async_digest_generation")
 +                 
 +                 # Update embeddings
-+                 with performance_tracker.track_operation(&quot;async_embeddings_update&quot;):
-+                     self.logger.debug(f&quot;Updating embeddings for {entry[&#39;role&#39;]} entry...&quot;)
++                 with performance_tracker.track_operation("async_embeddings_update"):
++                     self.logger.debug(f"Updating embeddings for {entry['role']} entry...")
 +                     self.embeddings_manager.add_new_embeddings([entry])
 +                 
 +                 # Update graph memory if enabled
@@ -2178,10 +2178,10 @@ Lines added: 34, lines removed: 25
 +                     try:
 +                         await self._update_graph_memory_async(entry)
 +                     except Exception as e:
-+                         self.logger.warning(f&quot;Error updating graph memory: {e}&quot;)
++                         self.logger.warning(f"Error updating graph memory: {e}")
 +                 
 +             except Exception as e:
-+                 self.logger.error(f&quot;Error in async entry processing: {str(e)}&quot;)
++                 self.logger.error(f"Error in async entry processing: {str(e)}")
       
       async def _update_graph_memory_async(self, entry: Dict[str, Any]) -&gt; None:
 ```
@@ -2194,7 +2194,7 @@ Lines added: 34, lines removed: 25
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 19, lines removed: 12
@@ -2202,38 +2202,38 @@ Lines added: 19, lines removed: 12
 ```diff
 @@ -600,16 +600,23 @@
       async def _update_graph_memory_async(self, entry: Dict[str, Any]) -&gt; None:
-          &quot;&quot;&quot;Update graph memory with entities and relationships from a conversation entry.&quot;&quot;&quot;
+          """Update graph memory with entities and relationships from a conversation entry."""
 -         try:
--             self.logger.debug(f&quot;Updating graph memory for {entry[&#39;role&#39;]} entry...&quot;)
+-             self.logger.debug(f"Updating graph memory for {entry['role']} entry...")
 -             
 -             # Use conversation-level processing with EntityResolver (now mandatory)
--             if hasattr(self.graph_manager, &#39;process_conversation_entry_with_resolver&#39;):
+-             if hasattr(self.graph_manager, 'process_conversation_entry_with_resolver'):
 -                 await self._update_graph_memory_conversation_level(entry)
 -             else:
 -                 # Fallback to segment-based processing for legacy compatibility
 -                 await self._update_graph_memory_segment_based(entry)
 -                 
 -         except Exception as e:
--             self.logger.error(f&quot;Error updating graph memory: {e}&quot;)
+-             self.logger.error(f"Error updating graph memory: {e}")
 +         # Import performance tracker
 +         from src.utils.performance_tracker import get_performance_tracker
 +         
 +         # Get performance tracker for this session
 +         performance_tracker = get_performance_tracker(self.memory_guid, self.logger)
 +         
-+         with performance_tracker.track_operation(&quot;async_graph_memory_update&quot;):
++         with performance_tracker.track_operation("async_graph_memory_update"):
 +             try:
-+                 self.logger.debug(f&quot;Updating graph memory for {entry[&#39;role&#39;]} entry...&quot;)
++                 self.logger.debug(f"Updating graph memory for {entry['role']} entry...")
 +                 
 +                 # Use conversation-level processing with EntityResolver (now mandatory)
-+                 if hasattr(self.graph_manager, &#39;process_conversation_entry_with_resolver&#39;):
++                 if hasattr(self.graph_manager, 'process_conversation_entry_with_resolver'):
 +                     await self._update_graph_memory_conversation_level(entry)
 +                 else:
 +                     # Fallback to segment-based processing for legacy compatibility
 +                     await self._update_graph_memory_segment_based(entry)
 +                     
 +             except Exception as e:
-+                 self.logger.error(f&quot;Error updating graph memory: {e}&quot;)
++                 self.logger.error(f"Error updating graph memory: {e}")
       
       async def _update_graph_memory_conversation_level(self, entry: Dict[str, Any]) -&gt; None:
 ```
@@ -2273,7 +2273,7 @@ Now let me add performance tracking to the OllamaService LLM calls:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/ai/llm_ollama.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/ai/llm_ollama.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -2281,9 +2281,9 @@ Lines added: 1, lines removed: 1
 ```diff
 @@ -68,5 +68,5 @@
       
-      def _generate_impl(self, prompt: str, options: Dict[str, Any], debug_generate_scope: str = &quot;&quot;) -&gt; str:
--         &quot;&quot;&quot;Generate a response using Ollama.
-+         &quot;&quot;&quot;Generate a response using Ollama with performance tracking.
+      def _generate_impl(self, prompt: str, options: Dict[str, Any], debug_generate_scope: str = "") -&gt; str:
+-         """Generate a response using Ollama.
++         """Generate a response using Ollama with performance tracking.
           
           Args:
 ```
@@ -2293,7 +2293,7 @@ Lines added: 3, lines removed: undefined
 
 ```diff
 @@ -84,4 +84,7 @@
-          &quot;&quot;&quot;
+          """
           import requests
 +         
 +         # Track overall LLM generation performance
@@ -2307,7 +2307,7 @@ Lines added: 42, lines removed: 1
 
 ```diff
 @@ -98,23 +101,64 @@
-                  self.logger.debug(f&quot;:[{debug_generate_scope}]:Sending request to Ollama API:\nURL: {url}\nData: {json.dumps(data, indent=2)}&quot;)
+                  self.logger.debug(f":[{debug_generate_scope}]:Sending request to Ollama API:\nURL: {url}\nData: {json.dumps(data, indent=2)}")
               
 -             # Make request
 +             # Make request with timing
@@ -2318,8 +2318,8 @@ Lines added: 42, lines removed: 1
               except requests.exceptions.RequestException as e:
 +                 duration = time.time() - start_time
 +                 if self.debug:
-+                     self.logger.debug(f&quot;:[{debug_generate_scope}]:TIMING - Request failed after {duration:.3f}s: {str(e)}&quot;)
-                  raise LLMServiceError(f&quot;Failed to make request to Ollama API: {str(e)}&quot;)
++                     self.logger.debug(f":[{debug_generate_scope}]:TIMING - Request failed after {duration:.3f}s: {str(e)}")
+                  raise LLMServiceError(f"Failed to make request to Ollama API: {str(e)}")
               
 +             request_duration = time.time() - request_start
 +             
@@ -2329,49 +2329,49 @@ Lines added: 42, lines removed: 1
               except json.JSONDecodeError as e:
 +                 duration = time.time() - start_time
 +                 if self.debug:
-+                     self.logger.debug(f&quot;:[{debug_generate_scope}]:TIMING - JSON parse failed after {duration:.3f}s: {str(e)}&quot;)
-                  raise LLMServiceError(f&quot;Failed to parse Ollama API response: {str(e)}&quot;)
++                     self.logger.debug(f":[{debug_generate_scope}]:TIMING - JSON parse failed after {duration:.3f}s: {str(e)}")
+                  raise LLMServiceError(f"Failed to parse Ollama API response: {str(e)}")
               
 +             # Extract and log timing metrics from Ollama response
 +             total_duration = time.time() - start_time
 +             ollama_metrics = {}
 +             
 +             if isinstance(result, dict):
-+                 # Extract Ollama&#39;s internal timing metrics (in nanoseconds, convert to seconds)
++                 # Extract Ollama's internal timing metrics (in nanoseconds, convert to seconds)
 +                 ollama_metrics = {
-+                     &quot;total_duration&quot;: result.get(&quot;total_duration&quot;, 0) / 1e9,
-+                     &quot;load_duration&quot;: result.get(&quot;load_duration&quot;, 0) / 1e9,
-+                     &quot;prompt_eval_duration&quot;: result.get(&quot;prompt_eval_duration&quot;, 0) / 1e9,
-+                     &quot;eval_duration&quot;: result.get(&quot;eval_duration&quot;, 0) / 1e9,
-+                     &quot;prompt_eval_count&quot;: result.get(&quot;prompt_eval_count&quot;, 0),
-+                     &quot;eval_count&quot;: result.get(&quot;eval_count&quot;, 0),
-+                     &quot;network_duration&quot;: request_duration
++                     "total_duration": result.get("total_duration", 0) / 1e9,
++                     "load_duration": result.get("load_duration", 0) / 1e9,
++                     "prompt_eval_duration": result.get("prompt_eval_duration", 0) / 1e9,
++                     "eval_duration": result.get("eval_duration", 0) / 1e9,
++                     "prompt_eval_count": result.get("prompt_eval_count", 0),
++                     "eval_count": result.get("eval_count", 0),
++                     "network_duration": request_duration
 +                 }
 +                 
 +                 # Calculate tokens per second
-+                 if ollama_metrics[&quot;eval_duration&quot;] &gt; 0 and ollama_metrics[&quot;eval_count&quot;] &gt; 0:
-+                     ollama_metrics[&quot;tokens_per_second&quot;] = ollama_metrics[&quot;eval_count&quot;] / ollama_metrics[&quot;eval_duration&quot;]
++                 if ollama_metrics["eval_duration"] &gt; 0 and ollama_metrics["eval_count"] &gt; 0:
++                     ollama_metrics["tokens_per_second"] = ollama_metrics["eval_count"] / ollama_metrics["eval_duration"]
 +                 else:
-+                     ollama_metrics[&quot;tokens_per_second&quot;] = 0
++                     ollama_metrics["tokens_per_second"] = 0
 +             
               if self.debug:
                   # Clean up context data before logging
                   debug_result = result.copy()
-                  if &#39;context&#39; in debug_result:
-                      del debug_result[&#39;context&#39;]
+                  if 'context' in debug_result:
+                      del debug_result['context']
 +                 
 +                 # Enhanced logging with performance metrics
-                  self.logger.debug(f&quot;:[{debug_generate_scope}]:Received response from Ollama API:\n{json.dumps(debug_result, indent=2)}&quot;)
-+                 self.logger.debug(f&quot;:[{debug_generate_scope}]:TIMING BREAKDOWN - &quot;
-+                                 f&quot;Total: {total_duration:.3f}s, &quot;
-+                                 f&quot;Ollama Total: {ollama_metrics.get(&#39;total_duration&#39;, 0):.3f}s, &quot;
-+                                 f&quot;Model Load: {ollama_metrics.get(&#39;load_duration&#39;, 0):.3f}s, &quot;
-+                                 f&quot;Prompt Eval: {ollama_metrics.get(&#39;prompt_eval_duration&#39;, 0):.3f}s ({ollama_metrics.get(&#39;prompt_eval_count&#39;, 0)} tokens), &quot;
-+                                 f&quot;Generation: {ollama_metrics.get(&#39;eval_duration&#39;, 0):.3f}s ({ollama_metrics.get(&#39;eval_count&#39;, 0)} tokens), &quot;
-+                                 f&quot;Network: {ollama_metrics.get(&#39;network_duration&#39;, 0):.3f}s, &quot;
-+                                 f&quot;Tokens/sec: {ollama_metrics.get(&#39;tokens_per_second&#39;, 0):.1f}&quot;)
+                  self.logger.debug(f":[{debug_generate_scope}]:Received response from Ollama API:\n{json.dumps(debug_result, indent=2)}")
++                 self.logger.debug(f":[{debug_generate_scope}]:TIMING BREAKDOWN - "
++                                 f"Total: {total_duration:.3f}s, "
++                                 f"Ollama Total: {ollama_metrics.get('total_duration', 0):.3f}s, "
++                                 f"Model Load: {ollama_metrics.get('load_duration', 0):.3f}s, "
++                                 f"Prompt Eval: {ollama_metrics.get('prompt_eval_duration', 0):.3f}s ({ollama_metrics.get('prompt_eval_count', 0)} tokens), "
++                                 f"Generation: {ollama_metrics.get('eval_duration', 0):.3f}s ({ollama_metrics.get('eval_count', 0)} tokens), "
++                                 f"Network: {ollama_metrics.get('network_duration', 0):.3f}s, "
++                                 f"Tokens/sec: {ollama_metrics.get('tokens_per_second', 0):.1f}")
               
-              if not isinstance(result, dict) or &#39;response&#39; not in result:
+              if not isinstance(result, dict) or 'response' not in result:
 ```
 
 **Chunk 4**
@@ -2383,10 +2383,10 @@ Lines added: 4, lines removed: undefined
           except Exception as e:
 +             duration = time.time() - start_time
 +             if self.debug:
-+                 self.logger.debug(f&quot;:[{debug_generate_scope}]:TIMING - Error after {duration:.3f}s: {str(e)}&quot;)
++                 self.logger.debug(f":[{debug_generate_scope}]:TIMING - Error after {duration:.3f}s: {str(e)}")
 +             
               if not isinstance(e, LLMServiceError):
-                  raise LLMServiceError(f&quot;Unexpected error in Ollama API call: {str(e)}&quot;)
+                  raise LLMServiceError(f"Unexpected error in Ollama API call: {str(e)}")
 ```
 
 </details>
@@ -2416,7 +2416,7 @@ Now let me create a performance report script and modify the agent_usage_example
 
 <tool-use data-tool-type="write" data-tool-name="write">
 
-<details><summary>Tool use: **code_edit** • Edit file: scripts/performance_report.py</summary>
+<details><summary>Tool use: **write** • Edit file: scripts/performance_report.py</summary>
 
 **Chunk 1**
 Lines added: 66, lines removed: 1
@@ -2425,11 +2425,11 @@ Lines added: 66, lines removed: 1
 @@ -1,1 +1,66 @@
 - 
 + #!/usr/bin/env python3
-+ &quot;&quot;&quot;
++ """
 + Performance Report Generator
 + 
 + Generates comprehensive performance reports for agent sessions.
-+ &quot;&quot;&quot;
++ """
 + 
 + import argparse
 + import sys
@@ -2446,22 +2446,22 @@ Lines added: 66, lines removed: 1
 + 
 + 
 + def main():
-+     &quot;&quot;&quot;Main function to generate performance reports&quot;&quot;&quot;
-+     parser = argparse.ArgumentParser(description=&quot;Generate performance reports for agent sessions&quot;)
-+     parser.add_argument(&#39;session_id&#39;, help=&#39;Session ID to analyze&#39;)
-+     parser.add_argument(&#39;--detailed&#39;, action=&#39;store_true&#39;, help=&#39;Show detailed performance breakdown&#39;)
-+     parser.add_argument(&#39;--save&#39;, action=&#39;store_true&#39;, help=&#39;Save performance summary to file&#39;)
++     """Main function to generate performance reports"""
++     parser = argparse.ArgumentParser(description="Generate performance reports for agent sessions")
++     parser.add_argument('session_id', help='Session ID to analyze')
++     parser.add_argument('--detailed', action='store_true', help='Show detailed performance breakdown')
++     parser.add_argument('--save', action='store_true', help='Save performance summary to file')
 +     
 +     args = parser.parse_args()
 +     
-+     print(f&quot;Generating performance report for session: {args.session_id}&quot;)
-+     print(&quot;=&quot; * 80)
++     print(f"Generating performance report for session: {args.session_id}")
++     print("=" * 80)
 +     
 +     # Check if performance data exists
-+     performance_file = os.path.join(&quot;logs&quot;, args.session_id, &quot;performance_data.jsonl&quot;)
++     performance_file = os.path.join("logs", args.session_id, "performance_data.jsonl")
 +     if not os.path.exists(performance_file):
-+         print(f&quot;No performance data found for session {args.session_id}&quot;)
-+         print(f&quot;Expected file: {performance_file}&quot;)
++         print(f"No performance data found for session {args.session_id}")
++         print(f"Expected file: {performance_file}")
 +         return 1
 +     
 +     try:
@@ -2471,24 +2471,24 @@ Lines added: 66, lines removed: 1
 +         
 +         # Print detailed analysis
 +         if args.detailed:
-+             print(&quot;\n&quot; + &quot;=&quot; * 80)
-+             print(&quot;DETAILED PERFORMANCE ANALYSIS&quot;)
-+             print(&quot;=&quot; * 80)
++             print("\n" + "=" * 80)
++             print("DETAILED PERFORMANCE ANALYSIS")
++             print("=" * 80)
 +             print_performance_analysis(args.session_id)
 +         
 +         # Save summary if requested
 +         if args.save:
 +             tracker.save_performance_summary()
-+             print(f&quot;\nPerformance summary saved to: logs/{args.session_id}/performance_summary.json&quot;)
++             print(f"\nPerformance summary saved to: logs/{args.session_id}/performance_summary.json")
 +             
 +     except Exception as e:
-+         print(f&quot;Error generating performance report: {e}&quot;)
++         print(f"Error generating performance report: {e}")
 +         return 1
 +     
 +     return 0
 + 
 + 
-+ if __name__ == &quot;__main__&quot;:
++ if __name__ == "__main__":
 +     sys.exit(main())
 ```
 
@@ -2499,7 +2499,7 @@ Lines added: 66, lines removed: 1
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: chmod +x scripts/performance_report.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: chmod +x scripts/performance_report.py</summary>
 
 ```bash
 chmod +x scripts/performance_report.py
@@ -2529,18 +2529,18 @@ Now let me modify the agent_usage_example.py to add performance reporting functi
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/agent_usage_example.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: examples/agent_usage_example.py</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: undefined
 
 ```diff
 @@ -155,4 +155,6 @@
-      print(&quot;type        - Show memory manager type&quot;)
-      print(&quot;list        - List available memory files&quot;)
-+     print(&quot;perf        - Show performance report for current session&quot;)
-+     print(&quot;perfdetail  - Show detailed performance analysis&quot;)
-      print(&quot;quit        - End session&quot;)
+      print("type        - Show memory manager type")
+      print("list        - List available memory files")
++     print("perf        - Show performance report for current session")
++     print("perfdetail  - Show detailed performance analysis")
+      print("quit        - End session")
   
 ```
 
@@ -2556,25 +2556,25 @@ Now let me add the performance report functions and integrate them into the inte
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/agent_usage_example.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: examples/agent_usage_example.py</summary>
 
 **Chunk 1**
 Lines added: 36, lines removed: undefined
 
 ```diff
 @@ -253,4 +253,40 @@
-          print(&quot;-&quot; * 50)
+          print("-" * 50)
   
 + def print_performance_report(session_guid):
-+     &quot;&quot;&quot;Print performance report for the current session&quot;&quot;&quot;
++     """Print performance report for the current session"""
 +     try:
 +         from src.utils.performance_tracker import get_performance_tracker
 +         
 +         # Check if performance data exists
-+         performance_file = os.path.join(&quot;logs&quot;, session_guid, &quot;performance_data.jsonl&quot;)
++         performance_file = os.path.join("logs", session_guid, "performance_data.jsonl")
 +         if not os.path.exists(performance_file):
-+             print(f&quot;\nNo performance data available yet for session {session_guid}&quot;)
-+             print(&quot;Performance tracking starts after the first message.&quot;)
++             print(f"\nNo performance data available yet for session {session_guid}")
++             print("Performance tracking starts after the first message.")
 +             return
 +         
 +         # Get performance tracker and print report
@@ -2582,27 +2582,27 @@ Lines added: 36, lines removed: undefined
 +         tracker.print_performance_report()
 +         
 +     except Exception as e:
-+         print(f&quot;Error generating performance report: {e}&quot;)
++         print(f"Error generating performance report: {e}")
 + 
 + def print_detailed_performance_analysis(session_guid):
-+     &quot;&quot;&quot;Print detailed performance analysis for the current session&quot;&quot;&quot;
++     """Print detailed performance analysis for the current session"""
 +     try:
 +         from src.utils.performance_analyzer import print_performance_analysis
 +         
 +         # Check if performance data exists
-+         performance_file = os.path.join(&quot;logs&quot;, session_guid, &quot;performance_data.jsonl&quot;)
++         performance_file = os.path.join("logs", session_guid, "performance_data.jsonl")
 +         if not os.path.exists(performance_file):
-+             print(f&quot;\nNo performance data available yet for session {session_guid}&quot;)
-+             print(&quot;Performance tracking starts after the first message.&quot;)
++             print(f"\nNo performance data available yet for session {session_guid}")
++             print("Performance tracking starts after the first message.")
 +             return
 +         
 +         print_performance_analysis(session_guid)
 +         
 +     except Exception as e:
-+         print(f&quot;Error generating detailed performance analysis: {e}&quot;)
++         print(f"Error generating detailed performance analysis: {e}")
 + 
   def get_memory_file_by_guid(guid, memory_type=None):
-      &quot;&quot;&quot;Get the full path to a memory file by its GUID and verify memory_type
+      """Get the full path to a memory file by its GUID and verify memory_type
 ```
 
 </details>
@@ -2625,7 +2625,7 @@ Now let me add the performance commands to the interactive session:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/agent_usage_example.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: examples/agent_usage_example.py</summary>
 
 **Chunk 1**
 Lines added: 6, lines removed: undefined
@@ -2634,14 +2634,14 @@ Lines added: 6, lines removed: undefined
 @@ -644,4 +644,10 @@
                   print_memory_files()
                   continue
-+             elif user_input == &#39;perf&#39;:
++             elif user_input == 'perf':
 +                 print_performance_report(session_guid)
 +                 continue
-+             elif user_input == &#39;perfdetail&#39;:
++             elif user_input == 'perfdetail':
 +                 print_detailed_performance_analysis(session_guid)
 +                 continue
               
-              print(f&quot;\nProcessing message...&quot;)
+              print(f"\nProcessing message...")
 ```
 
 </details>
@@ -2656,29 +2656,29 @@ Now let me add automatic performance reporting at the end of sessions:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/agent_usage_example.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: examples/agent_usage_example.py</summary>
 
 **Chunk 1**
 Lines added: 12, lines removed: undefined
 
 ```diff
 @@ -581,4 +581,16 @@
-              logger.debug(&quot;All operations completed.&quot;)
+              logger.debug("All operations completed.")
           
 +         # Show performance report after processing
-+         print(&quot;\n&quot; + &quot;=&quot;*60)
-+         print(&quot;SESSION PERFORMANCE REPORT&quot;)
-+         print(&quot;=&quot;*60)
++         print("\n" + "="*60)
++         print("SESSION PERFORMANCE REPORT")
++         print("="*60)
 +         try:
 +             from src.utils.performance_tracker import get_performance_tracker
 +             tracker = get_performance_tracker(_memory_manager.get_memory_guid())
 +             tracker.print_performance_report()
 +             tracker.save_performance_summary()
 +         except Exception as e:
-+             print(f&quot;Could not generate performance report: {e}&quot;)
++             print(f"Could not generate performance report: {e}")
 +         
       except Exception as e:
-          logger.error(f&quot;Error processing piped input: {str(e)}&quot;)
+          logger.error(f"Error processing piped input: {str(e)}")
 ```
 
 </details>
@@ -2693,7 +2693,7 @@ I need to fix that variable reference. Let me correct it:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/agent_usage_example.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: examples/agent_usage_example.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -2720,32 +2720,32 @@ Let me also add performance reporting at the end of interactive sessions:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/agent_usage_example.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: examples/agent_usage_example.py</summary>
 
 **Chunk 1**
 Lines added: 14, lines removed: 1
 
 ```diff
 @@ -680,5 +680,18 @@
-              logger.error(f&quot;\nError during interaction: {str(e)}&quot;)
+              logger.error(f"\nError during interaction: {str(e)}")
               continue
 - 
 +     
 +     # Show performance report at end of session
-+     print(&quot;\n&quot; + &quot;=&quot;*60)
-+     print(&quot;SESSION PERFORMANCE REPORT&quot;)
-+     print(&quot;=&quot;*60)
++     print("\n" + "="*60)
++     print("SESSION PERFORMANCE REPORT")
++     print("="*60)
 +     try:
 +         from src.utils.performance_tracker import get_performance_tracker
 +         tracker = get_performance_tracker(memory_manager.get_memory_guid())
 +         tracker.print_performance_report()
 +         tracker.save_performance_summary()
-+         print(f&quot;\nDetailed performance data saved to: logs/{memory_manager.get_memory_guid()}/&quot;)
++         print(f"\nDetailed performance data saved to: logs/{memory_manager.get_memory_guid()}/")
 +     except Exception as e:
-+         print(f&quot;Could not generate performance report: {e}&quot;)
++         print(f"Could not generate performance report: {e}")
 + 
   async def main():
-      &quot;&quot;&quot;Main function to run the agent example&quot;&quot;&quot;
+      """Main function to run the agent example"""
 ```
 
 </details>
@@ -2775,7 +2775,7 @@ Let me quickly add the last piece - performance tracking to graph memory operati
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 49, lines removed: 38
@@ -2783,94 +2783,94 @@ Lines added: 49, lines removed: 38
 ```diff
 @@ -622,42 +622,53 @@
       async def _update_graph_memory_conversation_level(self, entry: Dict[str, Any]) -&gt; None:
-          &quot;&quot;&quot;Update graph memory using conversation-level processing (for GraphManager with EntityResolver).&quot;&quot;&quot;
+          """Update graph memory using conversation-level processing (for GraphManager with EntityResolver)."""
 -         try:
 -             # Get full conversation text and digest
--             conversation_text = entry.get(&quot;content&quot;, &quot;&quot;)
--             digest = entry.get(&quot;digest&quot;, {})
--             digest_text = &quot;&quot;
+-             conversation_text = entry.get("content", "")
+-             digest = entry.get("digest", {})
+-             digest_text = ""
 -             
 -             # Build digest text from important segments
--             segments = digest.get(&quot;rated_segments&quot;, [])
+-             segments = digest.get("rated_segments", [])
 -             important_segments = [
 -                 seg for seg in segments 
--                 if seg.get(&quot;importance&quot;, 0) &gt;= DEFAULT_RAG_IMPORTANCE_THRESHOLD 
--                 and seg.get(&quot;memory_worthy&quot;, True)
--                 and seg.get(&quot;type&quot;) in [&quot;information&quot;, &quot;action&quot;]
+-                 if seg.get("importance", 0) &gt;= DEFAULT_RAG_IMPORTANCE_THRESHOLD 
+-                 and seg.get("memory_worthy", True)
+-                 and seg.get("type") in ["information", "action"]
 -             ]
 -             
 -             if important_segments:
--                 digest_text = &quot; &quot;.join([seg.get(&quot;text&quot;, &quot;&quot;) for seg in important_segments])
+-                 digest_text = " ".join([seg.get("text", "") for seg in important_segments])
 -             
 -             if not conversation_text and not digest_text:
--                 self.logger.debug(&quot;No conversation or digest text, skipping graph update&quot;)
+-                 self.logger.debug("No conversation or digest text, skipping graph update")
 -                 return
 -             
 -             # Process using GraphManager with EntityResolver
--             self.logger.debug(&quot;Processing conversation with GraphManager EntityResolver&quot;)
+-             self.logger.debug("Processing conversation with GraphManager EntityResolver")
 -             results = self.graph_manager.process_conversation_entry_with_resolver(
 -                 conversation_text=conversation_text,
 -                 digest_text=digest_text,
--                 conversation_guid=entry.get(&quot;guid&quot;)
+-                 conversation_guid=entry.get("guid")
 -             )
 -             
 -             # Log results
--             stats = results.get(&quot;stats&quot;, {})
--             self.logger.info(f&quot;Graph update completed - entities: {stats.get(&#39;entities_new&#39;, 0)} new, &quot;
--                            f&quot;{stats.get(&#39;entities_existing&#39;, 0)} existing, &quot;
--                            f&quot;relationships: {stats.get(&#39;relationships_extracted&#39;, 0)}&quot;)
+-             stats = results.get("stats", {})
+-             self.logger.info(f"Graph update completed - entities: {stats.get('entities_new', 0)} new, "
+-                            f"{stats.get('entities_existing', 0)} existing, "
+-                            f"relationships: {stats.get('relationships_extracted', 0)}")
 -             
 -         except Exception as e:
--             self.logger.error(f&quot;Error in conversation-level graph update: {e}&quot;)
+-             self.logger.error(f"Error in conversation-level graph update: {e}")
 +         # Import performance tracker
 +         from src.utils.performance_tracker import get_performance_tracker
 +         
 +         # Get performance tracker for this session
 +         performance_tracker = get_performance_tracker(self.memory_guid, self.logger)
 +         
-+         with performance_tracker.track_operation(&quot;graph_conversation_level_processing&quot;):
++         with performance_tracker.track_operation("graph_conversation_level_processing"):
 +             try:
 +                 # Get full conversation text and digest
-+                 with performance_tracker.track_operation(&quot;prepare_graph_input&quot;):
-+                     conversation_text = entry.get(&quot;content&quot;, &quot;&quot;)
-+                     digest = entry.get(&quot;digest&quot;, {})
-+                     digest_text = &quot;&quot;
++                 with performance_tracker.track_operation("prepare_graph_input"):
++                     conversation_text = entry.get("content", "")
++                     digest = entry.get("digest", {})
++                     digest_text = ""
 +                     
 +                     # Build digest text from important segments
-+                     segments = digest.get(&quot;rated_segments&quot;, [])
++                     segments = digest.get("rated_segments", [])
 +                     important_segments = [
 +                         seg for seg in segments 
-+                         if seg.get(&quot;importance&quot;, 0) &gt;= DEFAULT_RAG_IMPORTANCE_THRESHOLD 
-+                         and seg.get(&quot;memory_worthy&quot;, True)
-+                         and seg.get(&quot;type&quot;) in [&quot;information&quot;, &quot;action&quot;]
++                         if seg.get("importance", 0) &gt;= DEFAULT_RAG_IMPORTANCE_THRESHOLD 
++                         and seg.get("memory_worthy", True)
++                         and seg.get("type") in ["information", "action"]
 +                     ]
 +                     
 +                     if important_segments:
-+                         digest_text = &quot; &quot;.join([seg.get(&quot;text&quot;, &quot;&quot;) for seg in important_segments])
++                         digest_text = " ".join([seg.get("text", "") for seg in important_segments])
 +                     
 +                     if not conversation_text and not digest_text:
-+                         self.logger.debug(&quot;No conversation or digest text, skipping graph update&quot;)
++                         self.logger.debug("No conversation or digest text, skipping graph update")
 +                         return
 +                 
 +                 # Process using GraphManager with EntityResolver
-+                 with performance_tracker.track_operation(&quot;graph_entity_resolver&quot;, 
-+                                                         {&quot;conversation_length&quot;: len(conversation_text), 
-+                                                          &quot;digest_length&quot;: len(digest_text)}):
-+                     self.logger.debug(&quot;Processing conversation with GraphManager EntityResolver&quot;)
++                 with performance_tracker.track_operation("graph_entity_resolver", 
++                                                         {"conversation_length": len(conversation_text), 
++                                                          "digest_length": len(digest_text)}):
++                     self.logger.debug("Processing conversation with GraphManager EntityResolver")
 +                     results = self.graph_manager.process_conversation_entry_with_resolver(
 +                         conversation_text=conversation_text,
 +                         digest_text=digest_text,
-+                         conversation_guid=entry.get(&quot;guid&quot;)
++                         conversation_guid=entry.get("guid")
 +                     )
 +                 
 +                 # Log results
-+                 stats = results.get(&quot;stats&quot;, {})
-+                 self.logger.info(f&quot;Graph update completed - entities: {stats.get(&#39;entities_new&#39;, 0)} new, &quot;
-+                                f&quot;{stats.get(&#39;entities_existing&#39;, 0)} existing, &quot;
-+                                f&quot;relationships: {stats.get(&#39;relationships_extracted&#39;, 0)}&quot;)
++                 stats = results.get("stats", {})
++                 self.logger.info(f"Graph update completed - entities: {stats.get('entities_new', 0)} new, "
++                                f"{stats.get('entities_existing', 0)} existing, "
++                                f"relationships: {stats.get('relationships_extracted', 0)}")
 +                 
 +             except Exception as e:
-+                 self.logger.error(f&quot;Error in conversation-level graph update: {e}&quot;)
++                 self.logger.error(f"Error in conversation-level graph update: {e}")
       
       async def _update_graph_memory_segment_based(self, entry: Dict[str, Any]) -&gt; None:
 ```
@@ -2953,7 +2953,7 @@ Excellent! Now let me create a summary document of what's been implemented:
 
 <tool-use data-tool-type="write" data-tool-name="write">
 
-<details><summary>Tool use: **code_edit** • Edit file: PERFORMANCE_TRACKING_IMPLEMENTATION.md</summary>
+<details><summary>Tool use: **write** • Edit file: PERFORMANCE_TRACKING_IMPLEMENTATION.md</summary>
 
 **Chunk 1**
 Lines added: 173, lines removed: 1
@@ -2967,7 +2967,7 @@ Lines added: 173, lines removed: 1
 + 
 + Phase 1 of the performance tracking system has been successfully implemented. The system now provides comprehensive visibility into where time is being spent during agent operations, enabling data-driven optimization decisions.
 + 
-+ ## What&#39;s Been Implemented
++ ## What's Been Implemented
 + 
 + ### 1. Core Performance Tracking Infrastructure
 + 
@@ -3074,7 +3074,7 @@ Lines added: 173, lines removed: 1
 + 
 + ## Sample Output
 + 
-+ When you run the agent and send a message, you&#39;ll see performance logs like:
++ When you run the agent and send a message, you'll see performance logs like:
 + 
 + &#96;&#96;&#96;
 + PERF_START: memory_query_total (memory_query_total_1693834567123456)
@@ -3249,7 +3249,7 @@ Let me demonstrate by running it on your existing performance data:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: python scripts/performance_report.py perf_test</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: python scripts/performance_report.py perf_test</summary>
 
 ```bash
 python scripts/performance_report.py perf_test
@@ -3288,7 +3288,7 @@ I see the issue. The performance tracker is being created fresh each time, so it
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: python scripts/performance_report.py perf_test --detailed</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: python scripts/performance_report.py perf_test --detailed</summary>
 
 ```bash
 python scripts/performance_report.py perf_test --detailed
@@ -3350,21 +3350,21 @@ OPTIMIZATION RECOMMENDATIONS:
 --------------------------------------------------
 
 1. Optimize Graph Memory Processing (Priority: HIGH)
-   Graph operation &#39;async_graph_memory_update&#39; is taking 26.77s on average
+   Graph operation 'async_graph_memory_update' is taking 26.77s on average
    Estimated Improvement: 50-70% reduction in graph processing time
    Suggestions:
      • Enable graph memory fast mode to skip complex EntityResolver processing
      • Consider batching graph operations
 
 2. Optimize Graph Memory Processing (Priority: HIGH)
-   Graph operation &#39;graph_conversation_level_processing&#39; is taking 26.77s on average
+   Graph operation 'graph_conversation_level_processing' is taking 26.77s on average
    Estimated Improvement: 50-70% reduction in graph processing time
    Suggestions:
      • Enable graph memory fast mode to skip complex EntityResolver processing
      • Consider batching graph operations
 
 3. Optimize Graph Memory Processing (Priority: HIGH)
-   Graph operation &#39;graph_entity_resolver&#39; is taking 26.77s on average
+   Graph operation 'graph_entity_resolver' is taking 26.77s on average
    Estimated Improvement: 50-70% reduction in graph processing time
    Suggestions:
      • Enable graph memory fast mode to skip complex EntityResolver processing
@@ -3457,7 +3457,7 @@ Can you try `python scripts/performance_report.py perf_test` again, without the 
 _**Agent (model claude-4-sonnet, mode Agent)**_
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: python scripts/performance_report.py perf_test</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: python scripts/performance_report.py perf_test</summary>
 
 ```bash
 python scripts/performance_report.py perf_test
@@ -3502,7 +3502,7 @@ I need to add a method to load existing performance data from the file. Let me a
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/utils/performance_tracker.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/utils/performance_tracker.py</summary>
 
 **Chunk 1**
 Lines added: 3, lines removed: undefined
@@ -3515,7 +3515,7 @@ Lines added: 3, lines removed: undefined
 +         self._load_existing_performance_data()
 +         
       def _setup_performance_logging(self):
-          &quot;&quot;&quot;Setup performance data logging to file&quot;&quot;&quot;
+          """Setup performance data logging to file"""
 ```
 
 </details>
@@ -3530,7 +3530,7 @@ Now let me add the method to load existing performance data:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/utils/performance_tracker.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/utils/performance_tracker.py</summary>
 
 **Chunk 1**
 Lines added: 29, lines removed: undefined
@@ -3540,33 +3540,33 @@ Lines added: 29, lines removed: undefined
               self.performance_summary_file = None
       
 +     def _load_existing_performance_data(self):
-+         &quot;&quot;&quot;Load existing performance data from file if it exists&quot;&quot;&quot;
++         """Load existing performance data from file if it exists"""
 +         if not self.performance_file or not os.path.exists(self.performance_file):
 +             return
 +             
 +         try:
 +             with self._lock:
-+                 with open(self.performance_file, &#39;r&#39;) as f:
++                 with open(self.performance_file, 'r') as f:
 +                     for line in f:
 +                         if line.strip():
 +                             operation_data = json.loads(line)
 +                             operation_timing = OperationTiming(
-+                                 operation_name=operation_data.get(&quot;operation_name&quot;, &quot;&quot;),
-+                                 operation_id=operation_data.get(&quot;operation_id&quot;, &quot;&quot;),
-+                                 start_time=operation_data.get(&quot;start_time&quot;, 0),
-+                                 end_time=operation_data.get(&quot;end_time&quot;),
-+                                 duration_seconds=operation_data.get(&quot;duration_seconds&quot;),
-+                                 metadata=operation_data.get(&quot;metadata&quot;, {}),
-+                                 parent_operation_id=operation_data.get(&quot;parent_operation_id&quot;),
-+                                 session_id=operation_data.get(&quot;session_id&quot;),
-+                                 timestamp=operation_data.get(&quot;timestamp&quot;)
++                                 operation_name=operation_data.get("operation_name", ""),
++                                 operation_id=operation_data.get("operation_id", ""),
++                                 start_time=operation_data.get("start_time", 0),
++                                 end_time=operation_data.get("end_time"),
++                                 duration_seconds=operation_data.get("duration_seconds"),
++                                 metadata=operation_data.get("metadata", {}),
++                                 parent_operation_id=operation_data.get("parent_operation_id"),
++                                 session_id=operation_data.get("session_id"),
++                                 timestamp=operation_data.get("timestamp")
 +                             )
 +                             self._completed_operations.append(operation_timing)
 +                             
-+             self.logger.debug(f&quot;Loaded {len(self._completed_operations)} existing performance operations&quot;)
++             self.logger.debug(f"Loaded {len(self._completed_operations)} existing performance operations")
 +             
 +         except Exception as e:
-+             self.logger.warning(f&quot;Error loading existing performance data: {e}&quot;)
++             self.logger.warning(f"Error loading existing performance data: {e}")
 +     
       @contextmanager
       def track_operation(self, operation_name: str, metadata: Optional[Dict[str, Any]] = None):
@@ -3583,7 +3583,7 @@ Now let's test the fix:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: python scripts/performance_report.py perf_test</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: python scripts/performance_report.py perf_test</summary>
 
 ```bash
 python scripts/performance_report.py perf_test
@@ -3716,7 +3716,7 @@ Let me add graph memory fast mode parameters to the MemoryManager constructor:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: 1
@@ -3727,8 +3727,8 @@ Lines added: 2, lines removed: 1
                    max_recent_conversation_entries: int = 8, importance_threshold: int = DEFAULT_COMPRESSION_IMPORTANCE_THRESHOLD, 
 -                  enable_graph_memory: bool = True, logger=None):
 +                  enable_graph_memory: bool = True, enable_graph_memory_fast_mode: bool = False, 
-+                  graph_memory_processing_level: str = &quot;balanced&quot;, logger=None):
-          &quot;&quot;&quot;Initialize the MemoryManager with LLM service instances and domain configuration.
++                  graph_memory_processing_level: str = "balanced", logger=None):
+          """Initialize the MemoryManager with LLM service instances and domain configuration.
           
 ```
 
@@ -3740,7 +3740,7 @@ Lines added: 2, lines removed: 1
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: undefined
@@ -3750,9 +3750,9 @@ Lines added: 2, lines removed: undefined
               importance_threshold: Threshold for segment importance (1-5 scale) to keep during compression
               enable_graph_memory: Whether to enable graph memory functionality (default: True)
 +             enable_graph_memory_fast_mode: Use fast mode for graph processing (default: False)
-+             graph_memory_processing_level: Processing level - &quot;speed&quot;, &quot;balanced&quot;, &quot;comprehensive&quot; (default: &quot;balanced&quot;)
++             graph_memory_processing_level: Processing level - "speed", "balanced", "comprehensive" (default: "balanced")
               logger: Optional logger instance for this MemoryManager
-          &quot;&quot;&quot;
+          """
 ```
 
 </details>
@@ -3767,7 +3767,7 @@ Now let me add the fast mode configuration to the initialization:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: undefined
@@ -3794,26 +3794,26 @@ Now let me update the async graph memory update method to implement fast mode:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 10, lines removed: 6
 
 ```diff
 @@ -613,12 +613,16 @@
-          with performance_tracker.track_operation(&quot;async_graph_memory_update&quot;):
+          with performance_tracker.track_operation("async_graph_memory_update"):
               try:
--                 self.logger.debug(f&quot;Updating graph memory for {entry[&#39;role&#39;]} entry...&quot;)
-+                 self.logger.debug(f&quot;Updating graph memory for {entry[&#39;role&#39;]} entry (mode: {self.graph_memory_processing_level})...&quot;)
+-                 self.logger.debug(f"Updating graph memory for {entry['role']} entry...")
++                 self.logger.debug(f"Updating graph memory for {entry['role']} entry (mode: {self.graph_memory_processing_level})...")
                   
 -                 # Use conversation-level processing with EntityResolver (now mandatory)
--                 if hasattr(self.graph_manager, &#39;process_conversation_entry_with_resolver&#39;):
+-                 if hasattr(self.graph_manager, 'process_conversation_entry_with_resolver'):
 -                     await self._update_graph_memory_conversation_level(entry)
 +                 # Choose processing mode based on configuration
-+                 if self.graph_memory_processing_level == &quot;speed&quot; or self.enable_graph_memory_fast_mode:
++                 if self.graph_memory_processing_level == "speed" or self.enable_graph_memory_fast_mode:
 +                     # Fast mode: minimal graph processing
 +                     await self._update_graph_memory_fast_mode(entry)
-+                 elif self.graph_memory_processing_level == &quot;comprehensive&quot;:
++                 elif self.graph_memory_processing_level == "comprehensive":
 +                     # Full mode: complete EntityResolver processing
 +                     await self._update_graph_memory_comprehensive_mode(entry)
                   else:
@@ -3837,19 +3837,19 @@ Now let me implement the different processing modes. First, let me rename the ex
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: 2
 
 ```diff
 @@ -629,6 +629,6 @@
-                  self.logger.error(f&quot;Error updating graph memory: {e}&quot;)
+                  self.logger.error(f"Error updating graph memory: {e}")
       
 -     async def _update_graph_memory_conversation_level(self, entry: Dict[str, Any]) -&gt; None:
--         &quot;&quot;&quot;Update graph memory using conversation-level processing (for GraphManager with EntityResolver).&quot;&quot;&quot;
+-         """Update graph memory using conversation-level processing (for GraphManager with EntityResolver)."""
 +     async def _update_graph_memory_comprehensive_mode(self, entry: Dict[str, Any]) -&gt; None:
-+         &quot;&quot;&quot;Update graph memory using full EntityResolver processing (comprehensive mode).&quot;&quot;&quot;
++         """Update graph memory using full EntityResolver processing (comprehensive mode)."""
           # Import performance tracker
           from src.utils.performance_tracker import get_performance_tracker
 ```
@@ -3866,7 +3866,7 @@ Now let me add the fast mode and balanced mode implementations:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 113, lines removed: 1
@@ -3875,58 +3875,58 @@ Lines added: 113, lines removed: 1
 @@ -679,5 +679,117 @@
                   
               except Exception as e:
--                 self.logger.error(f&quot;Error in conversation-level graph update: {e}&quot;)
-+                 self.logger.error(f&quot;Error in comprehensive graph update: {e}&quot;)
+-                 self.logger.error(f"Error in conversation-level graph update: {e}")
++                 self.logger.error(f"Error in comprehensive graph update: {e}")
 +     
 +     async def _update_graph_memory_balanced_mode(self, entry: Dict[str, Any]) -&gt; None:
-+         &quot;&quot;&quot;Update graph memory using optimized EntityResolver processing (balanced mode).&quot;&quot;&quot;
++         """Update graph memory using optimized EntityResolver processing (balanced mode)."""
 +         # Import performance tracker
 +         from src.utils.performance_tracker import get_performance_tracker
 +         
 +         # Get performance tracker for this session
 +         performance_tracker = get_performance_tracker(self.memory_guid, self.logger)
 +         
-+         with performance_tracker.track_operation(&quot;graph_balanced_processing&quot;):
++         with performance_tracker.track_operation("graph_balanced_processing"):
 +             try:
 +                 # Get full conversation text and digest
-+                 with performance_tracker.track_operation(&quot;prepare_graph_input&quot;):
-+                     conversation_text = entry.get(&quot;content&quot;, &quot;&quot;)
-+                     digest = entry.get(&quot;digest&quot;, {})
-+                     digest_text = &quot;&quot;
++                 with performance_tracker.track_operation("prepare_graph_input"):
++                     conversation_text = entry.get("content", "")
++                     digest = entry.get("digest", {})
++                     digest_text = ""
 +                     
 +                     # Build digest text from important segments
-+                     segments = digest.get(&quot;rated_segments&quot;, [])
++                     segments = digest.get("rated_segments", [])
 +                     important_segments = [
 +                         seg for seg in segments 
-+                         if seg.get(&quot;importance&quot;, 0) &gt;= DEFAULT_RAG_IMPORTANCE_THRESHOLD 
-+                         and seg.get(&quot;memory_worthy&quot;, True)
-+                         and seg.get(&quot;type&quot;) in [&quot;information&quot;, &quot;action&quot;]
++                         if seg.get("importance", 0) &gt;= DEFAULT_RAG_IMPORTANCE_THRESHOLD 
++                         and seg.get("memory_worthy", True)
++                         and seg.get("type") in ["information", "action"]
 +                     ]
 +                     
 +                     if important_segments:
 +                         # Limit text length for faster processing
-+                         digest_text = &quot; &quot;.join([seg.get(&quot;text&quot;, &quot;&quot;) for seg in important_segments])[:500]
++                         digest_text = " ".join([seg.get("text", "") for seg in important_segments])[:500]
 +                     
 +                     if not conversation_text and not digest_text:
-+                         self.logger.debug(&quot;No conversation or digest text, skipping graph update&quot;)
++                         self.logger.debug("No conversation or digest text, skipping graph update")
 +                         return
 +                     
 +                     # Limit conversation text for balanced processing
 +                     if len(conversation_text) &gt; 300:
-+                         conversation_text = conversation_text[:300] + &quot;...&quot;
++                         conversation_text = conversation_text[:300] + "..."
 +                 
 +                 # Process using GraphManager with limited context for speed
-+                 with performance_tracker.track_operation(&quot;graph_entity_resolver_balanced&quot;, 
-+                                                         {&quot;conversation_length&quot;: len(conversation_text), 
-+                                                          &quot;digest_length&quot;: len(digest_text)}):
-+                     self.logger.debug(&quot;Processing conversation with GraphManager (balanced mode)&quot;)
++                 with performance_tracker.track_operation("graph_entity_resolver_balanced", 
++                                                         {"conversation_length": len(conversation_text), 
++                                                          "digest_length": len(digest_text)}):
++                     self.logger.debug("Processing conversation with GraphManager (balanced mode)")
 +                     
 +                     # Check if we have the resolver method
-+                     if hasattr(self.graph_manager, &#39;process_conversation_entry_with_resolver&#39;):
++                     if hasattr(self.graph_manager, 'process_conversation_entry_with_resolver'):
 +                         results = self.graph_manager.process_conversation_entry_with_resolver(
 +                             conversation_text=conversation_text,
 +                             digest_text=digest_text,
-+                             conversation_guid=entry.get(&quot;guid&quot;)
++                             conversation_guid=entry.get("guid")
 +                         )
 +                     else:
 +                         # Fallback to segment-based processing
@@ -3934,61 +3934,61 @@ Lines added: 113, lines removed: 1
 +                         return
 +                 
 +                 # Log results
-+                 stats = results.get(&quot;stats&quot;, {})
-+                 self.logger.info(f&quot;Graph balanced update completed - entities: {stats.get(&#39;entities_new&#39;, 0)} new, &quot;
-+                                f&quot;{stats.get(&#39;entities_existing&#39;, 0)} existing, &quot;
-+                                f&quot;relationships: {stats.get(&#39;relationships_extracted&#39;, 0)}&quot;)
++                 stats = results.get("stats", {})
++                 self.logger.info(f"Graph balanced update completed - entities: {stats.get('entities_new', 0)} new, "
++                                f"{stats.get('entities_existing', 0)} existing, "
++                                f"relationships: {stats.get('relationships_extracted', 0)}")
 +                 
 +             except Exception as e:
-+                 self.logger.error(f&quot;Error in balanced graph update: {e}&quot;)
++                 self.logger.error(f"Error in balanced graph update: {e}")
 +     
 +     async def _update_graph_memory_fast_mode(self, entry: Dict[str, Any]) -&gt; None:
-+         &quot;&quot;&quot;Update graph memory using minimal processing (fast mode).&quot;&quot;&quot;
++         """Update graph memory using minimal processing (fast mode)."""
 +         # Import performance tracker
 +         from src.utils.performance_tracker import get_performance_tracker
 +         
 +         # Get performance tracker for this session
 +         performance_tracker = get_performance_tracker(self.memory_guid, self.logger)
 +         
-+         with performance_tracker.track_operation(&quot;graph_fast_processing&quot;):
++         with performance_tracker.track_operation("graph_fast_processing"):
 +             try:
 +                 # Fast mode: Only process very important content and skip complex operations
-+                 conversation_text = entry.get(&quot;content&quot;, &quot;&quot;)
++                 conversation_text = entry.get("content", "")
 +                 
 +                 # Skip short or unimportant content
 +                 if len(conversation_text) &lt; 50:
-+                     self.logger.debug(&quot;Content too short for fast graph processing, skipping&quot;)
++                     self.logger.debug("Content too short for fast graph processing, skipping")
 +                     return
 +                 
 +                 # Only process first 100 characters for speed
 +                 conversation_text = conversation_text[:100]
 +                 
-+                 with performance_tracker.track_operation(&quot;graph_fast_basic_extraction&quot;):
-+                     self.logger.debug(&quot;Processing conversation with GraphManager (fast mode)&quot;)
++                 with performance_tracker.track_operation("graph_fast_basic_extraction"):
++                     self.logger.debug("Processing conversation with GraphManager (fast mode)")
 +                     
 +                     # In fast mode, we skip EntityResolver entirely and do basic processing
 +                     # Check if we have a simple extraction method
-+                     if hasattr(self.graph_manager, &#39;extract_entities_simple&#39;):
++                     if hasattr(self.graph_manager, 'extract_entities_simple'):
 +                         # Use a hypothetical simple extraction method
 +                         entities = self.graph_manager.extract_entities_simple(conversation_text)
 +                         
 +                         # Add entities directly without complex resolution
 +                         for entity in entities[:3]:  # Limit to 3 entities for speed
-+                             if entity.get(&quot;name&quot;):
++                             if entity.get("name"):
 +                                 self.graph_manager.add_or_update_node(
-+                                     name=entity.get(&quot;name&quot;, &quot;&quot;),
-+                                     node_type=entity.get(&quot;type&quot;, &quot;concept&quot;),
-+                                     description=entity.get(&quot;description&quot;, &quot;&quot;)[:100]  # Limit description
++                                     name=entity.get("name", ""),
++                                     node_type=entity.get("type", "concept"),
++                                     description=entity.get("description", "")[:100]  # Limit description
 +                                 )
 +                     else:
 +                         # Fallback: skip graph processing entirely in fast mode
-+                         self.logger.debug(&quot;Fast mode: skipping graph processing (no simple extraction available)&quot;)
++                         self.logger.debug("Fast mode: skipping graph processing (no simple extraction available)")
 +                         return
 +                 
-+                 self.logger.debug(&quot;Fast graph update completed&quot;)
++                 self.logger.debug("Fast graph update completed")
 +                 
 +             except Exception as e:
-+                 self.logger.error(f&quot;Error in fast graph update: {e}&quot;)
++                 self.logger.error(f"Error in fast graph update: {e}")
       
       async def _update_graph_memory_segment_based(self, entry: Dict[str, Any]) -&gt; None:
 ```
@@ -4005,7 +4005,7 @@ Now let me create performance profiles configuration:
 
 <tool-use data-tool-type="write" data-tool-name="write">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/utils/performance_profiles.py</summary>
+<details><summary>Tool use: **write** • Edit file: src/utils/performance_profiles.py</summary>
 
 **Chunk 1**
 Lines added: 140, lines removed: 1
@@ -4013,90 +4013,90 @@ Lines added: 140, lines removed: 1
 ```diff
 @@ -1,1 +1,140 @@
 - 
-+ &quot;&quot;&quot;
++ """
 + Performance Profiles Configuration
 + 
 + Provides predefined performance profiles for different use cases:
 + - Speed: Maximum performance, minimal features
 + - Balanced: Good performance with essential features
 + - Comprehensive: Full features, slower but complete processing
-+ &quot;&quot;&quot;
++ """
 + 
 + from typing import Dict, Any
 + 
 + # Performance profile configurations
 + PERFORMANCE_PROFILES = {
-+     &quot;speed&quot;: {
-+         &quot;description&quot;: &quot;Maximum speed, minimal features&quot;,
-+         &quot;enable_graph_memory&quot;: False,
-+         &quot;enable_graph_memory_fast_mode&quot;: True,
-+         &quot;graph_memory_processing_level&quot;: &quot;speed&quot;,
-+         &quot;rag_limit&quot;: 3,
-+         &quot;max_recent_conversation_entries&quot;: 2,
-+         &quot;enable_digest_generation&quot;: False,
-+         &quot;importance_threshold&quot;: 4,  # Only keep very important segments
-+         &quot;embeddings_batch_size&quot;: 1,
-+         &quot;async_processing&quot;: &quot;minimal&quot;
++     "speed": {
++         "description": "Maximum speed, minimal features",
++         "enable_graph_memory": False,
++         "enable_graph_memory_fast_mode": True,
++         "graph_memory_processing_level": "speed",
++         "rag_limit": 3,
++         "max_recent_conversation_entries": 2,
++         "enable_digest_generation": False,
++         "importance_threshold": 4,  # Only keep very important segments
++         "embeddings_batch_size": 1,
++         "async_processing": "minimal"
 +     },
-+     &quot;balanced&quot;: {
-+         &quot;description&quot;: &quot;Good performance with essential features&quot;,
-+         &quot;enable_graph_memory&quot;: True,
-+         &quot;enable_graph_memory_fast_mode&quot;: False,
-+         &quot;graph_memory_processing_level&quot;: &quot;balanced&quot;,
-+         &quot;rag_limit&quot;: 5,
-+         &quot;max_recent_conversation_entries&quot;: 4,
-+         &quot;enable_digest_generation&quot;: True,
-+         &quot;importance_threshold&quot;: 3,
-+         &quot;embeddings_batch_size&quot;: 3,
-+         &quot;async_processing&quot;: &quot;optimized&quot;
++     "balanced": {
++         "description": "Good performance with essential features",
++         "enable_graph_memory": True,
++         "enable_graph_memory_fast_mode": False,
++         "graph_memory_processing_level": "balanced",
++         "rag_limit": 5,
++         "max_recent_conversation_entries": 4,
++         "enable_digest_generation": True,
++         "importance_threshold": 3,
++         "embeddings_batch_size": 3,
++         "async_processing": "optimized"
 +     },
-+     &quot;comprehensive&quot;: {
-+         &quot;description&quot;: &quot;Full features, complete processing&quot;,
-+         &quot;enable_graph_memory&quot;: True,
-+         &quot;enable_graph_memory_fast_mode&quot;: False,
-+         &quot;graph_memory_processing_level&quot;: &quot;comprehensive&quot;,
-+         &quot;rag_limit&quot;: 10,
-+         &quot;max_recent_conversation_entries&quot;: 8,
-+         &quot;enable_digest_generation&quot;: True,
-+         &quot;importance_threshold&quot;: 2,  # Keep more segments
-+         &quot;embeddings_batch_size&quot;: 5,
-+         &quot;async_processing&quot;: &quot;full&quot;
++     "comprehensive": {
++         "description": "Full features, complete processing",
++         "enable_graph_memory": True,
++         "enable_graph_memory_fast_mode": False,
++         "graph_memory_processing_level": "comprehensive",
++         "rag_limit": 10,
++         "max_recent_conversation_entries": 8,
++         "enable_digest_generation": True,
++         "importance_threshold": 2,  # Keep more segments
++         "embeddings_batch_size": 5,
++         "async_processing": "full"
 +     }
 + }
 + 
 + def get_performance_profile(profile_name: str) -&gt; Dict[str, Any]:
-+     &quot;&quot;&quot;
++     """
 +     Get a performance profile configuration.
 +     
 +     Args:
-+         profile_name: Name of the profile (&quot;speed&quot;, &quot;balanced&quot;, &quot;comprehensive&quot;)
++         profile_name: Name of the profile ("speed", "balanced", "comprehensive")
 +         
 +     Returns:
 +         Dictionary containing the profile configuration
 +         
 +     Raises:
 +         ValueError: If profile_name is not recognized
-+     &quot;&quot;&quot;
++     """
 +     if profile_name not in PERFORMANCE_PROFILES:
-+         available_profiles = &quot;, &quot;.join(PERFORMANCE_PROFILES.keys())
-+         raise ValueError(f&quot;Unknown performance profile &#39;{profile_name}&#39;. Available profiles: {available_profiles}&quot;)
++         available_profiles = ", ".join(PERFORMANCE_PROFILES.keys())
++         raise ValueError(f"Unknown performance profile '{profile_name}'. Available profiles: {available_profiles}")
 +     
 +     return PERFORMANCE_PROFILES[profile_name].copy()
 + 
 + def list_performance_profiles() -&gt; Dict[str, str]:
-+     &quot;&quot;&quot;
++     """
 +     List all available performance profiles with descriptions.
 +     
 +     Returns:
 +         Dictionary mapping profile names to descriptions
-+     &quot;&quot;&quot;
++     """
 +     return {
-+         name: config[&quot;description&quot;] 
++         name: config["description"] 
 +         for name, config in PERFORMANCE_PROFILES.items()
 +     }
 + 
 + def apply_performance_profile(profile_name: str, base_config: Dict[str, Any]) -&gt; Dict[str, Any]:
-+     &quot;&quot;&quot;
++     """
 +     Apply a performance profile to a base configuration.
 +     
 +     Args:
@@ -4105,7 +4105,7 @@ Lines added: 140, lines removed: 1
 +         
 +     Returns:
 +         Updated configuration with profile settings applied
-+     &quot;&quot;&quot;
++     """
 +     profile = get_performance_profile(profile_name)
 +     
 +     # Create a copy of the base config
@@ -4117,7 +4117,7 @@ Lines added: 140, lines removed: 1
 +     return updated_config
 + 
 + def get_memory_manager_config(profile_name: str) -&gt; Dict[str, Any]:
-+     &quot;&quot;&quot;
++     """
 +     Get MemoryManager-specific configuration for a performance profile.
 +     
 +     Args:
@@ -4125,33 +4125,33 @@ Lines added: 140, lines removed: 1
 +         
 +     Returns:
 +         Dictionary containing MemoryManager configuration parameters
-+     &quot;&quot;&quot;
++     """
 +     profile = get_performance_profile(profile_name)
 +     
 +     return {
-+         &quot;enable_graph_memory&quot;: profile[&quot;enable_graph_memory&quot;],
-+         &quot;enable_graph_memory_fast_mode&quot;: profile[&quot;enable_graph_memory_fast_mode&quot;], 
-+         &quot;graph_memory_processing_level&quot;: profile[&quot;graph_memory_processing_level&quot;],
-+         &quot;max_recent_conversation_entries&quot;: profile[&quot;max_recent_conversation_entries&quot;],
-+         &quot;importance_threshold&quot;: profile[&quot;importance_threshold&quot;]
++         "enable_graph_memory": profile["enable_graph_memory"],
++         "enable_graph_memory_fast_mode": profile["enable_graph_memory_fast_mode"], 
++         "graph_memory_processing_level": profile["graph_memory_processing_level"],
++         "max_recent_conversation_entries": profile["max_recent_conversation_entries"],
++         "importance_threshold": profile["importance_threshold"]
 +     }
 + 
 + def print_performance_profiles():
-+     &quot;&quot;&quot;Print all available performance profiles with their settings.&quot;&quot;&quot;
-+     print(&quot;Available Performance Profiles:&quot;)
-+     print(&quot;=&quot; * 50)
++     """Print all available performance profiles with their settings."""
++     print("Available Performance Profiles:")
++     print("=" * 50)
 +     
 +     for name, config in PERFORMANCE_PROFILES.items():
-+         print(f&quot;\n{name.upper()}: {config[&#39;description&#39;]}&quot;)
-+         print(f&quot;  Graph Memory: {&#39;Enabled&#39; if config[&#39;enable_graph_memory&#39;] else &#39;Disabled&#39;}&quot;)
-+         if config[&#39;enable_graph_memory&#39;]:
-+             print(f&quot;  Graph Mode: {config[&#39;graph_memory_processing_level&#39;]}&quot;)
-+         print(f&quot;  RAG Limit: {config[&#39;rag_limit&#39;]}&quot;)
-+         print(f&quot;  Memory Entries: {config[&#39;max_recent_conversation_entries&#39;]}&quot;)
-+         print(f&quot;  Digest Generation: {&#39;Enabled&#39; if config[&#39;enable_digest_generation&#39;] else &#39;Disabled&#39;}&quot;)
-+         print(f&quot;  Importance Threshold: {config[&#39;importance_threshold&#39;]}&quot;)
++         print(f"\n{name.upper()}: {config['description']}")
++         print(f"  Graph Memory: {'Enabled' if config['enable_graph_memory'] else 'Disabled'}")
++         if config['enable_graph_memory']:
++             print(f"  Graph Mode: {config['graph_memory_processing_level']}")
++         print(f"  RAG Limit: {config['rag_limit']}")
++         print(f"  Memory Entries: {config['max_recent_conversation_entries']}")
++         print(f"  Digest Generation: {'Enabled' if config['enable_digest_generation'] else 'Disabled'}")
++         print(f"  Importance Threshold: {config['importance_threshold']}")
 + 
-+ if __name__ == &quot;__main__&quot;:
++ if __name__ == "__main__":
 +     print_performance_profiles()
 ```
 
@@ -4167,17 +4167,17 @@ Now let me update the agent_usage_example.py to support performance profiles:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/agent_usage_example.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: examples/agent_usage_example.py</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: undefined
 
 ```diff
 @@ -706,4 +706,6 @@
-      parser.add_argument(&#39;--config&#39;, type=str, choices=list(CONFIG_MAP.keys()), default=&#39;dnd&#39;,
-                         help=&#39;Select domain config: &#39; + &#39;, &#39;.join(CONFIG_MAP.keys()))
-+     parser.add_argument(&#39;--performance&#39;, type=str, choices=[&#39;speed&#39;, &#39;balanced&#39;, &#39;comprehensive&#39;], default=&#39;balanced&#39;,
-+                        help=&#39;Select performance profile: speed, balanced, comprehensive&#39;)
+      parser.add_argument('--config', type=str, choices=list(CONFIG_MAP.keys()), default='dnd',
+                         help='Select domain config: ' + ', '.join(CONFIG_MAP.keys()))
++     parser.add_argument('--performance', type=str, choices=['speed', 'balanced', 'comprehensive'], default='balanced',
++                        help='Select performance profile: speed, balanced, comprehensive')
       args = parser.parse_args()
   
 ```
@@ -4194,24 +4194,24 @@ Now let me update the memory manager initialization to use the performance profi
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/agent_usage_example.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: examples/agent_usage_example.py</summary>
 
 **Chunk 1**
 Lines added: 12, lines removed: 3
 
 ```diff
 @@ -478,14 +478,23 @@
-          memory_manager_logger.info(&quot;This should only appear in the log file&quot;)
+          memory_manager_logger.info("This should only appear in the log file")
           
 -         # Create memory manager instance based on type
 +         # Apply performance profile configuration
 +         from src.utils.performance_profiles import get_memory_manager_config
 +         perf_config = get_memory_manager_config(args.performance)
 +         
-+         print(f&quot;Using performance profile: {args.performance}&quot;)
-+         print(f&quot;Graph memory: {&#39;enabled&#39; if perf_config[&#39;enable_graph_memory&#39;] else &#39;disabled&#39;}&quot;)
-+         if perf_config[&#39;enable_graph_memory&#39;]:
-+             print(f&quot;Graph processing level: {perf_config[&#39;graph_memory_processing_level&#39;]}&quot;)
++         print(f"Using performance profile: {args.performance}")
++         print(f"Graph memory: {'enabled' if perf_config['enable_graph_memory'] else 'disabled'}")
++         if perf_config['enable_graph_memory']:
++             print(f"Graph processing level: {perf_config['graph_memory_processing_level']}")
 +         
 +         # Create memory manager instance based on type with performance configuration
           memory_manager = memory_manager_class(
@@ -4255,7 +4255,7 @@ Now let me implement async operation batching. Let me update the MemoryManager t
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 7, lines removed: undefined
@@ -4266,8 +4266,8 @@ Lines added: 7, lines removed: undefined
           self._pending_graph_updates = set()  # set of guids
 +         
 +         # Batch processing configuration
-+         self._enable_batch_processing = graph_memory_processing_level in [&quot;balanced&quot;, &quot;speed&quot;]
-+         self._batch_size = 3 if graph_memory_processing_level == &quot;speed&quot; else 2
++         self._enable_batch_processing = graph_memory_processing_level in ["balanced", "speed"]
++         self._batch_size = 3 if graph_memory_processing_level == "speed" else 2
 +         self._batch_timeout = 2.0  # seconds to wait before processing incomplete batch
 +         self._pending_batch = []
 +         self._batch_timer = None
@@ -4287,7 +4287,7 @@ Now let me update the async entry processing to use batching:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 12, lines removed: 5
@@ -4295,7 +4295,7 @@ Lines added: 12, lines removed: 5
 ```diff
 @@ -554,10 +554,17 @@
                   # Start background processing for entries
-                  with performance_tracker.track_operation(&quot;start_async_operations&quot;):
+                  with performance_tracker.track_operation("start_async_operations"):
 +                     entries_to_process = []
                       if user_entry:
 -                         # Start background processing for user entry
@@ -4308,7 +4308,7 @@ Lines added: 12, lines removed: 5
 +                     
 +                     if self._enable_batch_processing and len(entries_to_process) &gt; 1:
 +                         # Use batch processing for multiple entries
-+                         self.logger.debug(f&quot;Using batch processing for {len(entries_to_process)} entries&quot;)
++                         self.logger.debug(f"Using batch processing for {len(entries_to_process)} entries")
 +                         asyncio.create_task(self._process_entries_batch(entries_to_process))
 +                     else:
 +                         # Process entries individually
@@ -4330,46 +4330,46 @@ Now let me implement the batch processing method:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 62, lines removed: undefined
 
 ```diff
 @@ -617,4 +617,66 @@
-                  self.logger.error(f&quot;Error in async entry processing: {str(e)}&quot;)
+                  self.logger.error(f"Error in async entry processing: {str(e)}")
       
 +     async def _process_entries_batch(self, entries: List[Dict[str, Any]]) -&gt; None:
-+         &quot;&quot;&quot;Process multiple entries in an optimized batch.&quot;&quot;&quot;
++         """Process multiple entries in an optimized batch."""
 +         # Import performance tracker
 +         from src.utils.performance_tracker import get_performance_tracker
 +         
 +         # Get performance tracker for this session
 +         performance_tracker = get_performance_tracker(self.memory_guid, self.logger)
 +         
-+         with performance_tracker.track_operation(&quot;batch_entry_processing&quot;, {&quot;batch_size&quot;: len(entries)}):
++         with performance_tracker.track_operation("batch_entry_processing", {"batch_size": len(entries)}):
 +             try:
-+                 self.logger.debug(f&quot;Processing batch of {len(entries)} entries&quot;)
++                 self.logger.debug(f"Processing batch of {len(entries)} entries")
 +                 
 +                 # Phase 1: Batch digest generation for entries that need it
-+                 entries_needing_digests = [entry for entry in entries if &quot;digest&quot; not in entry]
++                 entries_needing_digests = [entry for entry in entries if "digest" not in entry]
 +                 if entries_needing_digests:
-+                     with performance_tracker.track_operation(&quot;batch_digest_generation&quot;):
++                     with performance_tracker.track_operation("batch_digest_generation"):
 +                         await self._batch_generate_digests(entries_needing_digests)
 +                 
 +                 # Phase 2: Batch embeddings update for all entries
-+                 with performance_tracker.track_operation(&quot;batch_embeddings_update&quot;):
++                 with performance_tracker.track_operation("batch_embeddings_update"):
 +                     self.embeddings_manager.add_new_embeddings(entries)
 +                 
-+                 # Phase 3: Process graph updates (can&#39;t easily batch these due to complexity)
++                 # Phase 3: Process graph updates (can't easily batch these due to complexity)
 +                 if self.enable_graph_memory and self.graph_manager:
-+                     with performance_tracker.track_operation(&quot;batch_graph_updates&quot;):
++                     with performance_tracker.track_operation("batch_graph_updates"):
 +                         # Process graph updates in parallel but separately
 +                         graph_tasks = []
 +                         for entry in entries:
-+                             if self.graph_memory_processing_level == &quot;speed&quot;:
++                             if self.graph_memory_processing_level == "speed":
 +                                 # In speed mode, only process every other entry for graph memory
-+                                 if hash(entry.get(&quot;guid&quot;, &quot;&quot;)) % 2 == 0:
++                                 if hash(entry.get("guid", "")) % 2 == 0:
 +                                     graph_tasks.append(self._update_graph_memory_async(entry))
 +                             else:
 +                                 graph_tasks.append(self._update_graph_memory_async(entry))
@@ -4378,31 +4378,31 @@ Lines added: 62, lines removed: undefined
 +                             # Run graph updates in parallel
 +                             await asyncio.gather(*graph_tasks, return_exceptions=True)
 +                 
-+                 self.logger.debug(f&quot;Batch processing completed for {len(entries)} entries&quot;)
++                 self.logger.debug(f"Batch processing completed for {len(entries)} entries")
 +                 
 +             except Exception as e:
-+                 self.logger.error(f&quot;Error in batch entry processing: {str(e)}&quot;)
++                 self.logger.error(f"Error in batch entry processing: {str(e)}")
 +     
 +     async def _batch_generate_digests(self, entries: List[Dict[str, Any]]) -&gt; None:
-+         &quot;&quot;&quot;Generate digests for multiple entries efficiently.&quot;&quot;&quot;
++         """Generate digests for multiple entries efficiently."""
 +         try:
-+             # Generate digests sequentially (can&#39;t easily parallelize due to LLM service limitations)
++             # Generate digests sequentially (can't easily parallelize due to LLM service limitations)
 +             for entry in entries:
-+                 self.logger.debug(f&quot;Generating digest for {entry[&#39;role&#39;]} entry in batch...&quot;)
-+                 entry[&quot;digest&quot;] = self.digest_generator.generate_digest(entry, self.memory)
++                 self.logger.debug(f"Generating digest for {entry['role']} entry in batch...")
++                 entry["digest"] = self.digest_generator.generate_digest(entry, self.memory)
 +                 
 +                 # Update conversation history file with the digest
-+                 if hasattr(self, &#39;_update_conversation_history_entry&#39;):
++                 if hasattr(self, '_update_conversation_history_entry'):
 +                     self._update_conversation_history_entry(entry)
 +             
 +             # Save memory once for all entries
-+             self.save_memory(&quot;batch_digest_generation&quot;)
++             self.save_memory("batch_digest_generation")
 +             
 +         except Exception as e:
-+             self.logger.error(f&quot;Error in batch digest generation: {str(e)}&quot;)
++             self.logger.error(f"Error in batch digest generation: {str(e)}")
 +     
       async def _update_graph_memory_async(self, entry: Dict[str, Any]) -&gt; None:
-          &quot;&quot;&quot;Update graph memory with entities and relationships from a conversation entry.&quot;&quot;&quot;
+          """Update graph memory with entities and relationships from a conversation entry."""
 ```
 
 </details>
@@ -4417,7 +4417,7 @@ Now let me implement basic caching for RAG operations:
 
 <tool-use data-tool-type="write" data-tool-name="write">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/cache_manager.py</summary>
+<details><summary>Tool use: **write** • Edit file: src/memory/cache_manager.py</summary>
 
 **Chunk 1**
 Lines added: 251, lines removed: 1
@@ -4425,12 +4425,12 @@ Lines added: 251, lines removed: 1
 ```diff
 @@ -1,1 +1,251 @@
 - 
-+ &quot;&quot;&quot;
++ """
 + Cache Manager for Memory Operations
 + 
 + Provides intelligent caching for expensive operations like RAG context generation
 + and graph context queries to improve performance.
-+ &quot;&quot;&quot;
++ """
 + 
 + import time
 + import hashlib
@@ -4440,7 +4440,7 @@ Lines added: 251, lines removed: 1
 + 
 + 
 + class CacheManager:
-+     &quot;&quot;&quot;
++     """
 +     Manage caching for expensive memory operations.
 +     
 +     Features:
@@ -4448,17 +4448,17 @@ Lines added: 251, lines removed: 1
 +     - Memory state-aware cache invalidation
 +     - Size-limited cache with LRU eviction
 +     - Operation-specific cache strategies
-+     &quot;&quot;&quot;
++     """
 +     
 +     def __init__(self, default_ttl: float = 300.0, max_cache_size: int = 100, logger: Optional[logging.Logger] = None):
-+         &quot;&quot;&quot;
++         """
 +         Initialize the cache manager.
 +         
 +         Args:
 +             default_ttl: Default time-to-live for cache entries in seconds
 +             max_cache_size: Maximum number of cache entries
 +             logger: Optional logger instance
-+         &quot;&quot;&quot;
++         """
 +         self.default_ttl = default_ttl
 +         self.max_cache_size = max_cache_size
 +         self.logger = logger or logging.getLogger(__name__)
@@ -4473,19 +4473,19 @@ Lines added: 251, lines removed: 1
 +         self._cache_misses = 0
 +         
 +     def _generate_cache_key(self, operation: str, **kwargs) -&gt; str:
-+         &quot;&quot;&quot;Generate a cache key based on operation and parameters.&quot;&quot;&quot;
++         """Generate a cache key based on operation and parameters."""
 +         # Create a hash of the operation and parameters
-+         key_data = {&quot;operation&quot;: operation, **kwargs}
++         key_data = {"operation": operation, **kwargs}
 +         key_str = json.dumps(key_data, sort_keys=True)
 +         return hashlib.md5(key_str.encode()).hexdigest()
 +     
 +     def _is_cache_valid(self, timestamp: float, ttl: Optional[float] = None) -&gt; bool:
-+         &quot;&quot;&quot;Check if a cache entry is still valid.&quot;&quot;&quot;
++         """Check if a cache entry is still valid."""
 +         ttl = ttl or self.default_ttl
 +         return (time.time() - timestamp) &lt; ttl
 +     
 +     def _cleanup_cache(self, cache: Dict[str, Tuple[Any, float, float]]):
-+         &quot;&quot;&quot;Remove expired entries and enforce size limits.&quot;&quot;&quot;
++         """Remove expired entries and enforce size limits."""
 +         current_time = time.time()
 +         
 +         # Remove expired entries
@@ -4505,7 +4505,7 @@ Lines added: 251, lines removed: 1
 +                 del cache[key]
 +     
 +     def get_rag_context(self, query: str, memory_state_hash: str, ttl: Optional[float] = None) -&gt; Optional[str]:
-+         &quot;&quot;&quot;
++         """
 +         Get cached RAG context if available and fresh.
 +         
 +         Args:
@@ -4515,8 +4515,8 @@ Lines added: 251, lines removed: 1
 +             
 +         Returns:
 +             Cached RAG context if available, None otherwise
-+         &quot;&quot;&quot;
-+         cache_key = self._generate_cache_key(&quot;rag_context&quot;, query=query, memory_state=memory_state_hash)
++         """
++         cache_key = self._generate_cache_key("rag_context", query=query, memory_state=memory_state_hash)
 +         
 +         if cache_key in self._rag_cache:
 +             result, timestamp, _ = self._rag_cache[cache_key]
@@ -4524,35 +4524,35 @@ Lines added: 251, lines removed: 1
 +                 # Update access time
 +                 self._rag_cache[cache_key] = (result, timestamp, time.time())
 +                 self._cache_hits += 1
-+                 self.logger.debug(f&quot;RAG cache hit for query: {query[:50]}...&quot;)
++                 self.logger.debug(f"RAG cache hit for query: {query[:50]}...")
 +                 return result
 +             else:
 +                 # Remove expired entry
 +                 del self._rag_cache[cache_key]
 +         
 +         self._cache_misses += 1
-+         self.logger.debug(f&quot;RAG cache miss for query: {query[:50]}...&quot;)
++         self.logger.debug(f"RAG cache miss for query: {query[:50]}...")
 +         return None
 +     
 +     def set_rag_context(self, query: str, memory_state_hash: str, result: str):
-+         &quot;&quot;&quot;
++         """
 +         Cache RAG context result.
 +         
 +         Args:
 +             query: The query text
 +             memory_state_hash: Hash of the current memory state
 +             result: The RAG context result to cache
-+         &quot;&quot;&quot;
-+         cache_key = self._generate_cache_key(&quot;rag_context&quot;, query=query, memory_state=memory_state_hash)
++         """
++         cache_key = self._generate_cache_key("rag_context", query=query, memory_state=memory_state_hash)
 +         current_time = time.time()
 +         
 +         self._rag_cache[cache_key] = (result, current_time, current_time)
 +         self._cleanup_cache(self._rag_cache)
 +         
-+         self.logger.debug(f&quot;Cached RAG context for query: {query[:50]}...&quot;)
++         self.logger.debug(f"Cached RAG context for query: {query[:50]}...")
 +     
 +     def get_graph_context(self, query: str, graph_state_hash: str, ttl: Optional[float] = None) -&gt; Optional[str]:
-+         &quot;&quot;&quot;
++         """
 +         Get cached graph context if available and fresh.
 +         
 +         Args:
@@ -4562,8 +4562,8 @@ Lines added: 251, lines removed: 1
 +             
 +         Returns:
 +             Cached graph context if available, None otherwise
-+         &quot;&quot;&quot;
-+         cache_key = self._generate_cache_key(&quot;graph_context&quot;, query=query, graph_state=graph_state_hash)
++         """
++         cache_key = self._generate_cache_key("graph_context", query=query, graph_state=graph_state_hash)
 +         
 +         if cache_key in self._graph_context_cache:
 +             result, timestamp, _ = self._graph_context_cache[cache_key]
@@ -4571,45 +4571,45 @@ Lines added: 251, lines removed: 1
 +                 # Update access time
 +                 self._graph_context_cache[cache_key] = (result, timestamp, time.time())
 +                 self._cache_hits += 1
-+                 self.logger.debug(f&quot;Graph context cache hit for query: {query[:50]}...&quot;)
++                 self.logger.debug(f"Graph context cache hit for query: {query[:50]}...")
 +                 return result
 +             else:
 +                 # Remove expired entry
 +                 del self._graph_context_cache[cache_key]
 +         
 +         self._cache_misses += 1
-+         self.logger.debug(f&quot;Graph context cache miss for query: {query[:50]}...&quot;)
++         self.logger.debug(f"Graph context cache miss for query: {query[:50]}...")
 +         return None
 +     
 +     def set_graph_context(self, query: str, graph_state_hash: str, result: str):
-+         &quot;&quot;&quot;
++         """
 +         Cache graph context result.
 +         
 +         Args:
 +             query: The query text
 +             graph_state_hash: Hash of the current graph state
 +             result: The graph context result to cache
-+         &quot;&quot;&quot;
-+         cache_key = self._generate_cache_key(&quot;graph_context&quot;, query=query, graph_state=graph_state_hash)
++         """
++         cache_key = self._generate_cache_key("graph_context", query=query, graph_state=graph_state_hash)
 +         current_time = time.time()
 +         
 +         self._graph_context_cache[cache_key] = (result, current_time, current_time)
 +         self._cleanup_cache(self._graph_context_cache)
 +         
-+         self.logger.debug(f&quot;Cached graph context for query: {query[:50]}...&quot;)
++         self.logger.debug(f"Cached graph context for query: {query[:50]}...")
 +     
 +     def invalidate_memory_caches(self):
-+         &quot;&quot;&quot;Invalidate all memory-related caches (call when memory changes significantly).&quot;&quot;&quot;
++         """Invalidate all memory-related caches (call when memory changes significantly)."""
 +         self._rag_cache.clear()
-+         self.logger.debug(&quot;Invalidated all RAG caches due to memory changes&quot;)
++         self.logger.debug("Invalidated all RAG caches due to memory changes")
 +     
 +     def invalidate_graph_caches(self):
-+         &quot;&quot;&quot;Invalidate all graph-related caches (call when graph changes significantly).&quot;&quot;&quot;
++         """Invalidate all graph-related caches (call when graph changes significantly)."""
 +         self._graph_context_cache.clear()
-+         self.logger.debug(&quot;Invalidated all graph context caches due to graph changes&quot;)
++         self.logger.debug("Invalidated all graph context caches due to graph changes")
 +     
 +     def get_memory_state_hash(self, memory: Dict[str, Any]) -&gt; str:
-+         &quot;&quot;&quot;
++         """
 +         Generate a hash of the current memory state for cache invalidation.
 +         
 +         Args:
@@ -4617,61 +4617,61 @@ Lines added: 251, lines removed: 1
 +             
 +         Returns:
 +             Hash string representing the memory state
-+         &quot;&quot;&quot;
++         """
 +         # Create a hash based on key memory components
 +         state_data = {
-+             &quot;conversation_count&quot;: len(memory.get(&quot;conversation_history&quot;, [])),
-+             &quot;context_count&quot;: len(memory.get(&quot;context&quot;, [])),
-+             &quot;last_updated&quot;: memory.get(&quot;metadata&quot;, {}).get(&quot;updated_at&quot;, &quot;&quot;)
++             "conversation_count": len(memory.get("conversation_history", [])),
++             "context_count": len(memory.get("context", [])),
++             "last_updated": memory.get("metadata", {}).get("updated_at", "")
 +         }
 +         
 +         state_str = json.dumps(state_data, sort_keys=True)
 +         return hashlib.md5(state_str.encode()).hexdigest()
 +     
 +     def get_cache_statistics(self) -&gt; Dict[str, Any]:
-+         &quot;&quot;&quot;
++         """
 +         Get cache performance statistics.
 +         
 +         Returns:
 +             Dictionary containing cache statistics
-+         &quot;&quot;&quot;
++         """
 +         total_requests = self._cache_hits + self._cache_misses
 +         hit_rate = (self._cache_hits / total_requests) if total_requests &gt; 0 else 0
 +         
 +         return {
-+             &quot;cache_hits&quot;: self._cache_hits,
-+             &quot;cache_misses&quot;: self._cache_misses,
-+             &quot;hit_rate&quot;: hit_rate,
-+             &quot;rag_cache_size&quot;: len(self._rag_cache),
-+             &quot;graph_cache_size&quot;: len(self._graph_context_cache),
-+             &quot;memory_cache_size&quot;: len(self._memory_state_cache)
++             "cache_hits": self._cache_hits,
++             "cache_misses": self._cache_misses,
++             "hit_rate": hit_rate,
++             "rag_cache_size": len(self._rag_cache),
++             "graph_cache_size": len(self._graph_context_cache),
++             "memory_cache_size": len(self._memory_state_cache)
 +         }
 +     
 +     def clear_all_caches(self):
-+         &quot;&quot;&quot;Clear all caches.&quot;&quot;&quot;
++         """Clear all caches."""
 +         self._rag_cache.clear()
 +         self._graph_context_cache.clear()
 +         self._memory_state_cache.clear()
-+         self.logger.debug(&quot;Cleared all caches&quot;)
++         self.logger.debug("Cleared all caches")
 +     
 +     def print_cache_statistics(self):
-+         &quot;&quot;&quot;Print cache statistics to console.&quot;&quot;&quot;
++         """Print cache statistics to console."""
 +         stats = self.get_cache_statistics()
-+         print(&quot;\nCache Statistics:&quot;)
-+         print(&quot;-&quot; * 30)
-+         print(f&quot;Cache Hits: {stats[&#39;cache_hits&#39;]}&quot;)
-+         print(f&quot;Cache Misses: {stats[&#39;cache_misses&#39;]}&quot;)
-+         print(f&quot;Hit Rate: {stats[&#39;hit_rate&#39;]:.2%}&quot;)
-+         print(f&quot;RAG Cache Size: {stats[&#39;rag_cache_size&#39;]}&quot;)
-+         print(f&quot;Graph Cache Size: {stats[&#39;graph_cache_size&#39;]}&quot;)
-+         print(f&quot;Memory Cache Size: {stats[&#39;memory_cache_size&#39;]}&quot;)
++         print("\nCache Statistics:")
++         print("-" * 30)
++         print(f"Cache Hits: {stats['cache_hits']}")
++         print(f"Cache Misses: {stats['cache_misses']}")
++         print(f"Hit Rate: {stats['hit_rate']:.2%}")
++         print(f"RAG Cache Size: {stats['rag_cache_size']}")
++         print(f"Graph Cache Size: {stats['graph_cache_size']}")
++         print(f"Memory Cache Size: {stats['memory_cache_size']}")
 + 
 + 
 + # Global cache manager instance
 + _global_cache_manager = None
 + 
 + def get_cache_manager(logger: Optional[logging.Logger] = None) -&gt; CacheManager:
-+     &quot;&quot;&quot;Get or create the global cache manager instance.&quot;&quot;&quot;
++     """Get or create the global cache manager instance."""
 +     global _global_cache_manager
 +     if _global_cache_manager is None:
 +         _global_cache_manager = CacheManager(logger=logger)
@@ -4690,20 +4690,20 @@ Now let me integrate caching into the MemoryManager:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 8, lines removed: undefined
 
 ```diff
 @@ -191,4 +191,12 @@
-          self.logger.debug(&quot;Initialized RAGManager with graph integration&quot;)
+          self.logger.debug("Initialized RAGManager with graph integration")
           
 +         # Initialize cache manager for performance optimization
-+         if graph_memory_processing_level in [&quot;speed&quot;, &quot;balanced&quot;]:
++         if graph_memory_processing_level in ["speed", "balanced"]:
 +             from src.memory.cache_manager import get_cache_manager
 +             self.cache_manager = get_cache_manager(logger)
-+             self.logger.debug(&quot;Initialized cache manager for performance optimization&quot;)
++             self.logger.debug("Initialized cache manager for performance optimization")
 +         else:
 +             self.cache_manager = None
 +         
@@ -4723,23 +4723,23 @@ Now let me integrate caching into the RAG and graph context generation:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 20, lines removed: 8
 
 ```diff
 @@ -494,14 +494,26 @@
-                      conversation_history_text = query_context.get(&quot;conversation_history&quot;, &quot;&quot;) or self._format_conversation_history_as_text()
+                      conversation_history_text = query_context.get("conversation_history", "") or self._format_conversation_history_as_text()
                   
 -                 # Get or generate RAG context
--                 rag_context = query_context.get(&quot;rag_context&quot;)
+-                 rag_context = query_context.get("rag_context")
 -                 if not rag_context:
--                     with performance_tracker.track_operation(&quot;rag_enhancement&quot;):
+-                     with performance_tracker.track_operation("rag_enhancement"):
 +                             # Get or generate RAG context with caching
-+             rag_context = query_context.get(&quot;rag_context&quot;)
++             rag_context = query_context.get("rag_context")
 +             if not rag_context:
-+                 with performance_tracker.track_operation(&quot;rag_enhancement&quot;):
++                 with performance_tracker.track_operation("rag_enhancement"):
 +                     # Try to get from cache first
 +                     if self.cache_manager:
 +                         memory_state_hash = self.cache_manager.get_memory_state_hash(self.memory)
@@ -4748,20 +4748,20 @@ Lines added: 20, lines removed: 8
 +                     if not rag_context:
 +                         # Generate RAG context
                           enhanced_context = self.rag_manager.enhance_memory_query(query_context)
-                          rag_context = enhanced_context.get(&quot;rag_context&quot;, &quot;&quot;)
+                          rag_context = enhanced_context.get("rag_context", "")
 -                         if rag_context:
--                             self.logger.debug(&quot;Using RAG-enhanced context for memory query (auto-generated)&quot;)
+-                             self.logger.debug("Using RAG-enhanced context for memory query (auto-generated)")
 -                 else:
--                     self.logger.debug(&quot;Using RAG-enhanced context for memory query (provided)&quot;)
+-                     self.logger.debug("Using RAG-enhanced context for memory query (provided)")
 +                         
 +                         # Cache the result
 +                         if rag_context and self.cache_manager:
 +                             self.cache_manager.set_rag_context(query, memory_state_hash, rag_context)
 +                     
 +                     if rag_context:
-+                         self.logger.debug(&quot;Using RAG-enhanced context for memory query (auto-generated)&quot;)
++                         self.logger.debug("Using RAG-enhanced context for memory query (auto-generated)")
 +             else:
-+                 self.logger.debug(&quot;Using RAG-enhanced context for memory query (provided)&quot;)
++                 self.logger.debug("Using RAG-enhanced context for memory query (provided)")
                   
                   # Get graph context if enabled
 ```
@@ -4778,21 +4778,21 @@ There seems to be a formatting issue. Let me fix that:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: 2
 
 ```diff
 @@ -494,6 +494,6 @@
-                      conversation_history_text = query_context.get(&quot;conversation_history&quot;, &quot;&quot;) or self._format_conversation_history_as_text()
+                      conversation_history_text = query_context.get("conversation_history", "") or self._format_conversation_history_as_text()
                   
 -                             # Get or generate RAG context with caching
--             rag_context = query_context.get(&quot;rag_context&quot;)
+-             rag_context = query_context.get("rag_context")
 +                 # Get or generate RAG context with caching
-+                 rag_context = query_context.get(&quot;rag_context&quot;)
++                 rag_context = query_context.get("rag_context")
               if not rag_context:
-                  with performance_tracker.track_operation(&quot;rag_enhancement&quot;):
+                  with performance_tracker.track_operation("rag_enhancement"):
 ```
 
 </details>
@@ -4807,7 +4807,7 @@ Let me fix the indentation:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -4815,10 +4815,10 @@ Lines added: 1, lines removed: 1
 ```diff
 @@ -496,5 +496,5 @@
                   # Get or generate RAG context with caching
-                  rag_context = query_context.get(&quot;rag_context&quot;)
+                  rag_context = query_context.get("rag_context")
 -             if not rag_context:
 +                 if not rag_context:
-                  with performance_tracker.track_operation(&quot;rag_enhancement&quot;):
+                  with performance_tracker.track_operation("rag_enhancement"):
                       # Try to get from cache first
 ```
 
@@ -4834,16 +4834,16 @@ Let me fix the indentation properly:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 19, lines removed: 19
 
 ```diff
 @@ -497,23 +497,23 @@
-                  rag_context = query_context.get(&quot;rag_context&quot;)
+                  rag_context = query_context.get("rag_context")
                   if not rag_context:
--                 with performance_tracker.track_operation(&quot;rag_enhancement&quot;):
+-                 with performance_tracker.track_operation("rag_enhancement"):
 -                     # Try to get from cache first
 -                     if self.cache_manager:
 -                         memory_state_hash = self.cache_manager.get_memory_state_hash(self.memory)
@@ -4852,17 +4852,17 @@ Lines added: 19, lines removed: 19
 -                     if not rag_context:
 -                         # Generate RAG context
 -                         enhanced_context = self.rag_manager.enhance_memory_query(query_context)
--                         rag_context = enhanced_context.get(&quot;rag_context&quot;, &quot;&quot;)
+-                         rag_context = enhanced_context.get("rag_context", "")
 -                         
 -                         # Cache the result
 -                         if rag_context and self.cache_manager:
 -                             self.cache_manager.set_rag_context(query, memory_state_hash, rag_context)
 -                     
 -                     if rag_context:
--                         self.logger.debug(&quot;Using RAG-enhanced context for memory query (auto-generated)&quot;)
+-                         self.logger.debug("Using RAG-enhanced context for memory query (auto-generated)")
 -             else:
--                 self.logger.debug(&quot;Using RAG-enhanced context for memory query (provided)&quot;)
-+                     with performance_tracker.track_operation(&quot;rag_enhancement&quot;):
+-                 self.logger.debug("Using RAG-enhanced context for memory query (provided)")
++                     with performance_tracker.track_operation("rag_enhancement"):
 +                         # Try to get from cache first
 +                         if self.cache_manager:
 +                             memory_state_hash = self.cache_manager.get_memory_state_hash(self.memory)
@@ -4871,16 +4871,16 @@ Lines added: 19, lines removed: 19
 +                         if not rag_context:
 +                             # Generate RAG context
 +                             enhanced_context = self.rag_manager.enhance_memory_query(query_context)
-+                             rag_context = enhanced_context.get(&quot;rag_context&quot;, &quot;&quot;)
++                             rag_context = enhanced_context.get("rag_context", "")
 +                             
 +                             # Cache the result
 +                             if rag_context and self.cache_manager:
 +                                 self.cache_manager.set_rag_context(query, memory_state_hash, rag_context)
 +                         
 +                         if rag_context:
-+                             self.logger.debug(&quot;Using RAG-enhanced context for memory query (auto-generated)&quot;)
++                             self.logger.debug("Using RAG-enhanced context for memory query (auto-generated)")
 +                 else:
-+                     self.logger.debug(&quot;Using RAG-enhanced context for memory query (provided)&quot;)
++                     self.logger.debug("Using RAG-enhanced context for memory query (provided)")
                   
                   # Get graph context if enabled
 ```
@@ -4897,26 +4897,26 @@ Now let me add caching to graph context as well:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 14, lines removed: 2
 
 ```diff
 @@ -517,10 +517,22 @@
-                      self.logger.debug(&quot;Using RAG-enhanced context for memory query (provided)&quot;)
+                      self.logger.debug("Using RAG-enhanced context for memory query (provided)")
                   
 -                 # Get graph context if enabled
 +                 # Get graph context if enabled with caching
-                  graph_context = &quot;&quot;
+                  graph_context = ""
                   if self.enable_graph_memory and self.graph_manager:
-                      with performance_tracker.track_operation(&quot;graph_context&quot;):
+                      with performance_tracker.track_operation("graph_context"):
                           try:
 -                             graph_context = self.get_graph_context(query)
 +                             # Try to get from cache first
 +                             if self.cache_manager:
 +                                 # For graph context, we use a simpler hash since graph changes less frequently
-+                                 graph_state_hash = f&quot;graph_{len(self.memory.get(&#39;conversation_history&#39;, []))}&quot;
++                                 graph_state_hash = f"graph_{len(self.memory.get('conversation_history', []))}"
 +                                 graph_context = self.cache_manager.get_graph_context(query, graph_state_hash)
 +                             
 +                             if not graph_context:
@@ -4927,7 +4927,7 @@ Lines added: 14, lines removed: 2
 +                                     self.cache_manager.set_graph_context(query, graph_state_hash, graph_context)
 +                             
                               if graph_context:
-                                  self.logger.debug(&quot;Added graph context to memory query&quot;)
+                                  self.logger.debug("Added graph context to memory query")
 ```
 
 </details>
@@ -4942,7 +4942,7 @@ Now let me test the implementation. Let me create a test script first:
 
 <tool-use data-tool-type="write" data-tool-name="write">
 
-<details><summary>Tool use: **code_edit** • Edit file: test_phase2_optimizations.py</summary>
+<details><summary>Tool use: **write** • Edit file: test_phase2_optimizations.py</summary>
 
 **Chunk 1**
 Lines added: 147, lines removed: 1
@@ -4951,7 +4951,7 @@ Lines added: 147, lines removed: 1
 @@ -1,1 +1,147 @@
 - 
 + #!/usr/bin/env python3
-+ &quot;&quot;&quot;
++ """
 + Test Phase 2 Performance Optimizations
 + 
 + Tests the performance improvements from:
@@ -4959,7 +4959,7 @@ Lines added: 147, lines removed: 1
 + 2. Performance profiles
 + 3. Async operation batching
 + 4. Caching for RAG and graph operations
-+ &quot;&quot;&quot;
++ """
 + 
 + import os
 + import subprocess
@@ -4967,12 +4967,12 @@ Lines added: 147, lines removed: 1
 + import sys
 + 
 + def run_test(test_name, command, description):
-+     &quot;&quot;&quot;Run a performance test and measure execution time.&quot;&quot;&quot;
-+     print(f&quot;\n{&#39;=&#39;*60}&quot;)
-+     print(f&quot;TEST: {test_name}&quot;)
-+     print(f&quot;Description: {description}&quot;)
-+     print(f&quot;Command: {command}&quot;)
-+     print(&#39;=&#39;*60)
++     """Run a performance test and measure execution time."""
++     print(f"\n{'='*60}")
++     print(f"TEST: {test_name}")
++     print(f"Description: {description}")
++     print(f"Command: {command}")
++     print('='*60)
 +     
 +     start_time = time.time()
 +     try:
@@ -4981,62 +4981,62 @@ Lines added: 147, lines removed: 1
 +         end_time = time.time()
 +         duration = end_time - start_time
 +         
-+         print(f&quot;✅ Test completed in {duration:.2f} seconds&quot;)
++         print(f"✅ Test completed in {duration:.2f} seconds")
 +         
 +         if result.returncode != 0:
-+             print(f&quot;❌ Test failed with return code {result.returncode}&quot;)
-+             print(&quot;STDERR:&quot;, result.stderr[-500:])  # Last 500 chars of error
++             print(f"❌ Test failed with return code {result.returncode}")
++             print("STDERR:", result.stderr[-500:])  # Last 500 chars of error
 +         else:
 +             # Look for performance report in output
 +             output = result.stdout
-+             if &quot;PERFORMANCE REPORT&quot; in output:
++             if "PERFORMANCE REPORT" in output:
 +                 # Extract performance section
-+                 start_idx = output.find(&quot;PERFORMANCE REPORT&quot;)
-+                 end_idx = output.find(&quot;================================================================================&quot;, start_idx + 1)
++                 start_idx = output.find("PERFORMANCE REPORT")
++                 end_idx = output.find("================================================================================", start_idx + 1)
 +                 if end_idx &gt; start_idx:
 +                     perf_section = output[start_idx:end_idx]
-+                     print(&quot;\nPerformance Summary:&quot;)
++                     print("\nPerformance Summary:")
 +                     print(perf_section)
 +         
 +         return duration, result.returncode == 0
 +         
 +     except subprocess.TimeoutExpired:
-+         print(f&quot;❌ Test timed out after 300 seconds&quot;)
++         print(f"❌ Test timed out after 300 seconds")
 +         return 300, False
 +     except Exception as e:
-+         print(f&quot;❌ Test failed with exception: {e}&quot;)
++         print(f"❌ Test failed with exception: {e}")
 +         return 0, False
 + 
 + def main():
-+     &quot;&quot;&quot;Run performance optimization tests.&quot;&quot;&quot;
-+     print(&quot;Phase 2 Performance Optimization Tests&quot;)
-+     print(&quot;=&quot;*60)
++     """Run performance optimization tests."""
++     print("Phase 2 Performance Optimization Tests")
++     print("="*60)
 +     
 +     # Set environment variables
 +     env = os.environ.copy()
 +     env.update({
-+         &quot;DEV_MODE&quot;: &quot;true&quot;,
-+         &quot;OLLAMA_BASE_URL&quot;: &quot;http://192.168.10.28:11434&quot;,
-+         &quot;OLLAMA_MODEL&quot;: &quot;gemma3&quot;,
-+         &quot;OLLAMA_EMBED_MODEL&quot;: &quot;mxbai-embed-large&quot;
++         "DEV_MODE": "true",
++         "OLLAMA_BASE_URL": "http://192.168.10.28:11434",
++         "OLLAMA_MODEL": "gemma3",
++         "OLLAMA_EMBED_MODEL": "mxbai-embed-large"
 +     })
 +     
 +     # Test commands with different performance profiles
 +     tests = [
 +         {
-+             &quot;name&quot;: &quot;Baseline (Original Balanced)&quot;,
-+             &quot;command&quot;: &#39;echo &quot;Tell me about Elena.&quot; | python examples/agent_usage_example.py --guid perf_baseline --config dnd --performance balanced&#39;,
-+             &quot;description&quot;: &quot;Standard balanced performance with optimizations&quot;
++             "name": "Baseline (Original Balanced)",
++             "command": 'echo "Tell me about Elena." | python examples/agent_usage_example.py --guid perf_baseline --config dnd --performance balanced',
++             "description": "Standard balanced performance with optimizations"
 +         },
 +         {
-+             &quot;name&quot;: &quot;Speed Profile Test&quot;,
-+             &quot;command&quot;: &#39;echo &quot;Tell me about Elena.&quot; | python examples/agent_usage_example.py --guid perf_speed --config dnd --performance speed&#39;,
-+             &quot;description&quot;: &quot;Maximum speed profile - minimal graph processing&quot;
++             "name": "Speed Profile Test",
++             "command": 'echo "Tell me about Elena." | python examples/agent_usage_example.py --guid perf_speed --config dnd --performance speed',
++             "description": "Maximum speed profile - minimal graph processing"
 +         },
 +         {
-+             &quot;name&quot;: &quot;Comprehensive Profile Test&quot;, 
-+             &quot;command&quot;: &#39;echo &quot;Tell me about Elena.&quot; | python examples/agent_usage_example.py --guid perf_comprehensive --config dnd --performance comprehensive&#39;,
-+             &quot;description&quot;: &quot;Full feature profile - complete processing&quot;
++             "name": "Comprehensive Profile Test", 
++             "command": 'echo "Tell me about Elena." | python examples/agent_usage_example.py --guid perf_comprehensive --config dnd --performance comprehensive',
++             "description": "Full feature profile - complete processing"
 +         }
 +     ]
 +     
@@ -5045,57 +5045,57 @@ Lines added: 147, lines removed: 1
 +     # Run tests
 +     for test in tests:
 +         # Update environment for subprocess
-+         full_command = f&quot;cd {os.getcwd()} &amp;&amp; {test[&#39;command&#39;]}&quot;
-+         duration, success = run_test(test[&quot;name&quot;], full_command, test[&quot;description&quot;])
-+         results[test[&quot;name&quot;]] = {&quot;duration&quot;: duration, &quot;success&quot;: success}
++         full_command = f"cd {os.getcwd()} &amp;&amp; {test['command']}"
++         duration, success = run_test(test["name"], full_command, test["description"])
++         results[test["name"]] = {"duration": duration, "success": success}
 +         
 +         if success:
 +             # Run performance report for this test
-+             guid = test[&quot;command&quot;].split(&quot;--guid &quot;)[1].split()[0]
-+             report_command = f&quot;python scripts/performance_report.py {guid}&quot;
-+             print(f&quot;\nRunning performance report: {report_command}&quot;)
++             guid = test["command"].split("--guid ")[1].split()[0]
++             report_command = f"python scripts/performance_report.py {guid}"
++             print(f"\nRunning performance report: {report_command}")
 +             try:
 +                 report_result = subprocess.run(report_command, shell=True, capture_output=True, text=True, timeout=30)
 +                 if report_result.returncode == 0:
 +                     print(report_result.stdout)
 +                 else:
-+                     print(&quot;Performance report failed:&quot;, report_result.stderr)
++                     print("Performance report failed:", report_result.stderr)
 +             except Exception as e:
-+                 print(f&quot;Performance report error: {e}&quot;)
++                 print(f"Performance report error: {e}")
 +         
 +         # Small delay between tests
 +         time.sleep(2)
 +     
 +     # Summary
-+     print(f&quot;\n{&#39;=&#39;*60}&quot;)
-+     print(&quot;TEST SUMMARY&quot;)
-+     print(&#39;=&#39;*60)
++     print(f"\n{'='*60}")
++     print("TEST SUMMARY")
++     print('='*60)
 +     
-+     baseline_time = results.get(&quot;Baseline (Original Balanced)&quot;, {}).get(&quot;duration&quot;, 0)
++     baseline_time = results.get("Baseline (Original Balanced)", {}).get("duration", 0)
 +     
 +     for test_name, result in results.items():
-+         status = &quot;✅ PASSED&quot; if result[&quot;success&quot;] else &quot;❌ FAILED&quot;
-+         duration = result[&quot;duration&quot;]
++         status = "✅ PASSED" if result["success"] else "❌ FAILED"
++         duration = result["duration"]
 +         
-+         if baseline_time &gt; 0 and test_name != &quot;Baseline (Original Balanced)&quot;:
++         if baseline_time &gt; 0 and test_name != "Baseline (Original Balanced)":
 +             improvement = ((baseline_time - duration) / baseline_time) * 100
-+             print(f&quot;{test_name:30} {status} {duration:6.1f}s ({improvement:+5.1f}%)&quot;)
++             print(f"{test_name:30} {status} {duration:6.1f}s ({improvement:+5.1f}%)")
 +         else:
-+             print(f&quot;{test_name:30} {status} {duration:6.1f}s&quot;)
++             print(f"{test_name:30} {status} {duration:6.1f}s")
 +     
-+     print(&quot;\nOptimization Analysis:&quot;)
-+     speed_time = results.get(&quot;Speed Profile Test&quot;, {}).get(&quot;duration&quot;, 0)
-+     comp_time = results.get(&quot;Comprehensive Profile Test&quot;, {}).get(&quot;duration&quot;, 0)
++     print("\nOptimization Analysis:")
++     speed_time = results.get("Speed Profile Test", {}).get("duration", 0)
++     comp_time = results.get("Comprehensive Profile Test", {}).get("duration", 0)
 +     
 +     if baseline_time &gt; 0 and speed_time &gt; 0:
 +         speed_improvement = ((baseline_time - speed_time) / baseline_time) * 100
-+         print(f&quot;Speed Profile Improvement: {speed_improvement:.1f}% faster than baseline&quot;)
++         print(f"Speed Profile Improvement: {speed_improvement:.1f}% faster than baseline")
 +     
 +     if baseline_time &gt; 0 and comp_time &gt; 0:
 +         comp_change = ((comp_time - baseline_time) / baseline_time) * 100
-+         print(f&quot;Comprehensive Profile Change: {comp_change:+.1f}% vs baseline&quot;)
++         print(f"Comprehensive Profile Change: {comp_change:+.1f}% vs baseline")
 + 
-+ if __name__ == &quot;__main__&quot;:
++ if __name__ == "__main__":
 +     main()
 ```
 
@@ -5106,7 +5106,7 @@ Lines added: 147, lines removed: 1
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: chmod +x test_phase2_optimizations.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: chmod +x test_phase2_optimizations.py</summary>
 
 ```bash
 chmod +x test_phase2_optimizations.py
@@ -5126,7 +5126,7 @@ Let me test if the implementation works by running a quick test with the speed p
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: echo "Tell me about Elena." | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/agent_usage_example.py --guid perf_speed_test --config dnd --performance speed</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: echo "Tell me about Elena." | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/agent_usage_example.py --guid perf_speed_test --config dnd --performance speed</summary>
 
 ```bash
 echo "Tell me about Elena." | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/agent_usage_example.py --guid perf_speed_test --config dnd --performance speed
@@ -5140,51 +5140,51 @@ echo "Tell me about Elena." | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28
 ================================================================================
 
 Using domain config: dnd
-Domain config: {&#39;domain_name&#39;: &#39;dnd_campaign&#39;, &#39;domain_specific_prompt_instructions&#39;: {&#39;query&#39;: &quot;You are a D
-M for a D&amp;D campaign. ANSWER PLAYER QUESTIONS DIRECTLY. For simple questions (like &#39;are there goblins nearby
-?&#39;), give specific answers based on the campaign state. For exploration questions (like &#39;what do I see?&#39;), p
-rovide vivid but concise descriptions. Avoid starting every response with &#39;Okay, let&#39;s investigate&#39; or simil
-ar repetitive phrases. Move the story forward with actionable information and clear choices.&quot;, &#39;update&#39;: &#39;Yo
+Domain config: {'domain_name': 'dnd_campaign', 'domain_specific_prompt_instructions': {'query': "You are a D
+M for a D&amp;D campaign. ANSWER PLAYER QUESTIONS DIRECTLY. For simple questions (like 'are there goblins nearby
+?'), give specific answers based on the campaign state. For exploration questions (like 'what do I see?'), p
+rovide vivid but concise descriptions. Avoid starting every response with 'Okay, let's investigate' or simil
+ar repetitive phrases. Move the story forward with actionable information and clear choices.", 'update': 'Yo
 u are analyzing the input from both the user and the agent and extracting and classifying the important info
-rmation into the conversation history data structure.&#39;}, &#39;initial_data&#39;: &quot;\nCampaign Setting: The Lost Valle
+rmation into the conversation history data structure.'}, 'initial_data': "\nCampaign Setting: The Lost Valle
 y\n\nWorld Details:\n- Hidden valley surrounded by impassable mountains\n- Ancient ruins scattered throughou
 t\n- Mysterious magical anomalies\n- Three main settlements: Haven (central), Riverwatch (east), Mountainkee
-p (west)\n\nKey NPCs:\n1. Elena\n   - Role: Mayor of Haven\n   - Motivation: Protect the valley&#39;s inhabitant
+p (west)\n\nKey NPCs:\n1. Elena\n   - Role: Mayor of Haven\n   - Motivation: Protect the valley's inhabitant
 s\n   - Current Quest: Investigate strange occurrences in Haven\n\n2. Theron\n   - Role: Master Scholar\n
 - Expertise: Ancient ruins and artifacts\n   - Current Research: Decoding ruin inscriptions\n\n3. Sara\n   -
- Role: Captain of Riverwatch\n   - Responsibility: Valley&#39;s defense\n   - Current Concern: Increased monster
+ Role: Captain of Riverwatch\n   - Responsibility: Valley's defense\n   - Current Concern: Increased monster
  activity\n\nCurrent Situations:\n1. Trade Routes\n   - Main road between settlements disrupted\n   - Mercha
 nts seeking protection\n   - Alternative routes needed\n\n2. Ancient Ruins\n   - New chambers discovered\n
  - Strange energy emanations\n   - Valuable artifacts found\n\n3. Magical Anomalies\n   - Random magical eff
-ects\n   - Affecting local wildlife\n   - Possible connection to ruins&quot;, &#39;topic_taxonomy&#39;: {&#39;world&#39;: [&#39;setti
-ng&#39;, &#39;geography&#39;, &#39;location&#39;, &#39;environment&#39;, &#39;terrain&#39;], &#39;characters&#39;: [&#39;npc&#39;, &#39;player&#39;, &#39;personality&#39;, &#39;mot
-ivation&#39;, &#39;background&#39;], &#39;narrative&#39;: [&#39;story&#39;, &#39;plot&#39;, &#39;quest&#39;, &#39;adventure&#39;, &#39;campaign&#39;], &#39;mechanics&#39;: [&#39;ru
-les&#39;, &#39;dice&#39;, &#39;combat&#39;, &#39;magic&#39;, &#39;spells&#39;], &#39;objects&#39;: [&#39;items&#39;, &#39;equipment&#39;, &#39;artifacts&#39;, &#39;treasure&#39;, &#39;inve
-ntory&#39;], &#39;history&#39;: [&#39;lore&#39;, &#39;ruins&#39;, &#39;archaeology&#39;, &#39;ancient&#39;, &#39;past&#39;], &#39;society&#39;: [&#39;politics&#39;, &#39;trade&#39;, &#39;s
-ettlements&#39;, &#39;culture&#39;, &#39;religion&#39;], &#39;threats&#39;: [&#39;monsters&#39;, &#39;enemies&#39;, &#39;dangers&#39;, &#39;conflict&#39;, &#39;war&#39;], &#39;expl
-oration&#39;: [&#39;discovery&#39;, &#39;investigation&#39;, &#39;research&#39;, &#39;mystery&#39;], &#39;events&#39;: [&#39;happenings&#39;, &#39;situations&#39;, &#39;inc
-idents&#39;, &#39;occurrences&#39;]}, &#39;topic_normalizations&#39;: {&#39;locations&#39;: &#39;location&#39;, &#39;geography&#39;: &#39;location&#39;, &#39;terrai
-n&#39;: &#39;environment&#39;, &#39;area&#39;: &#39;location&#39;, &#39;place&#39;: &#39;location&#39;, &#39;region&#39;: &#39;location&#39;, &#39;character&#39;: &#39;characters&#39;,
- &#39;key npc&#39;: &#39;npc&#39;, &#39;npcs&#39;: &#39;npc&#39;, &#39;people&#39;: &#39;characters&#39;, &#39;ruins&#39;: &#39;archaeology&#39;, &#39;ancient ruins&#39;: &#39;archaeol
-ogy&#39;, &#39;artifacts&#39;: &#39;archaeology&#39;, &#39;archaeological&#39;: &#39;archaeology&#39;, &#39;situation&#39;: &#39;events&#39;, &#39;situations&#39;: &#39;eve
-nts&#39;, &#39;happenings&#39;: &#39;events&#39;, &#39;occurrences&#39;: &#39;events&#39;, &#39;research&#39;: &#39;investigation&#39;, &#39;exploration&#39;: &#39;investig
-ation&#39;, &#39;discovery&#39;: &#39;investigation&#39;, &#39;magical&#39;: &#39;magic&#39;, &#39;anomalies&#39;: &#39;magic&#39;, &#39;magical anomalies&#39;: &#39;magic&#39;
-, &#39;setting&#39;: &#39;world&#39;, &#39;world&#39;: &#39;setting&#39;, &#39;lore&#39;: &#39;history&#39;, &#39;ancient&#39;: &#39;history&#39;, &#39;monsters&#39;: &#39;threats&#39;, &#39;e
-nemies&#39;: &#39;threats&#39;, &#39;monster activity&#39;: &#39;threats&#39;, &#39;defense&#39;: &#39;threats&#39;, &#39;trade routes&#39;: &#39;trade&#39;, &#39;settlemen
-ts&#39;: &#39;society&#39;, &#39;politics&#39;: &#39;society&#39;, &#39;value&#39;: &#39;objects&#39;, &#39;treasure&#39;: &#39;objects&#39;, &#39;skills&#39;: &#39;mechanics&#39;, &#39;ex
-pertise&#39;: &#39;mechanics&#39;, &#39;decryption&#39;: &#39;investigation&#39;, &#39;wildlife&#39;: &#39;environment&#39;}, &#39;graph_memory_config&#39;: {&#39;e
-nabled&#39;: True, &#39;entity_types&#39;: [&#39;character&#39;, &#39;location&#39;, &#39;object&#39;, &#39;event&#39;, &#39;concept&#39;, &#39;organization&#39;], &#39;rel
-ationship_types&#39;: [&#39;located_in&#39;, &#39;owns&#39;, &#39;member_of&#39;, &#39;allies_with&#39;, &#39;enemies_with&#39;, &#39;uses&#39;, &#39;created_by&#39;, &#39;
-leads_to&#39;, &#39;participates_in&#39;, &#39;related_to&#39;, &#39;mentions&#39;], &#39;entity_extraction_prompt&#39;: &#39;Extract entities from
+ects\n   - Affecting local wildlife\n   - Possible connection to ruins", 'topic_taxonomy': {'world': ['setti
+ng', 'geography', 'location', 'environment', 'terrain'], 'characters': ['npc', 'player', 'personality', 'mot
+ivation', 'background'], 'narrative': ['story', 'plot', 'quest', 'adventure', 'campaign'], 'mechanics': ['ru
+les', 'dice', 'combat', 'magic', 'spells'], 'objects': ['items', 'equipment', 'artifacts', 'treasure', 'inve
+ntory'], 'history': ['lore', 'ruins', 'archaeology', 'ancient', 'past'], 'society': ['politics', 'trade', 's
+ettlements', 'culture', 'religion'], 'threats': ['monsters', 'enemies', 'dangers', 'conflict', 'war'], 'expl
+oration': ['discovery', 'investigation', 'research', 'mystery'], 'events': ['happenings', 'situations', 'inc
+idents', 'occurrences']}, 'topic_normalizations': {'locations': 'location', 'geography': 'location', 'terrai
+n': 'environment', 'area': 'location', 'place': 'location', 'region': 'location', 'character': 'characters',
+ 'key npc': 'npc', 'npcs': 'npc', 'people': 'characters', 'ruins': 'archaeology', 'ancient ruins': 'archaeol
+ogy', 'artifacts': 'archaeology', 'archaeological': 'archaeology', 'situation': 'events', 'situations': 'eve
+nts', 'happenings': 'events', 'occurrences': 'events', 'research': 'investigation', 'exploration': 'investig
+ation', 'discovery': 'investigation', 'magical': 'magic', 'anomalies': 'magic', 'magical anomalies': 'magic'
+, 'setting': 'world', 'world': 'setting', 'lore': 'history', 'ancient': 'history', 'monsters': 'threats', 'e
+nemies': 'threats', 'monster activity': 'threats', 'defense': 'threats', 'trade routes': 'trade', 'settlemen
+ts': 'society', 'politics': 'society', 'value': 'objects', 'treasure': 'objects', 'skills': 'mechanics', 'ex
+pertise': 'mechanics', 'decryption': 'investigation', 'wildlife': 'environment'}, 'graph_memory_config': {'e
+nabled': True, 'entity_types': ['character', 'location', 'object', 'event', 'concept', 'organization'], 'rel
+ationship_types': ['located_in', 'owns', 'member_of', 'allies_with', 'enemies_with', 'uses', 'created_by', '
+leads_to', 'participates_in', 'related_to', 'mentions'], 'entity_extraction_prompt': 'Extract entities from
 this D&amp;D campaign text. Focus on characters, locations, objects, events, concepts, and organizations that ar
-e important to the campaign world and story.&#39;, &#39;relationship_extraction_prompt&#39;: &#39;Identify relationships bet
+e important to the campaign world and story.', 'relationship_extraction_prompt': 'Identify relationships bet
 ween entities in this D&amp;D campaign text. Look for spatial relationships (located_in), ownership (owns), soci
-al relationships (allies_with, enemies_with), and story connections.&#39;, &#39;similarity_threshold&#39;: 0.8}}
+al relationships (allies_with, enemies_with), and story connections.', 'similarity_threshold': 0.8}}
 
 Setting up services...
 Initializing session with guid: perf_speed_test
 Done initializing session
-Error initializing services: name &#39;args&#39; is not defined
+Error initializing services: name 'args' is not defined
 ```
 </details>
 </tool-use>
@@ -5209,7 +5209,7 @@ I need to update the setup_services function to accept the performance profile p
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/agent_usage_example.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: examples/agent_usage_example.py</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: 1
@@ -5218,14 +5218,14 @@ Lines added: 2, lines removed: 1
 @@ -387,10 +387,11 @@
       return session_guid, memory_file, memory_type
   
-- async def setup_services(domain_config, memory_guid=None, memory_type=&quot;standard&quot;):
-+ async def setup_services(domain_config, memory_guid=None, memory_type=&quot;standard&quot;, performance_profile=&quot;balanced&quot;):
-      &quot;&quot;&quot;Initialize the LLM service and memory manager
+- async def setup_services(domain_config, memory_guid=None, memory_type="standard"):
++ async def setup_services(domain_config, memory_guid=None, memory_type="standard", performance_profile="balanced"):
+      """Initialize the LLM service and memory manager
       
       Args:
           memory_guid: Optional GUID to identify which memory file to use
-          memory_type: Type of memory manager to use (&#39;standard&#39; or &#39;simple&#39;)
-+         performance_profile: Performance profile to use (&#39;speed&#39;, &#39;balanced&#39;, &#39;comprehensive&#39;)
+          memory_type: Type of memory manager to use ('standard' or 'simple')
++         performance_profile: Performance profile to use ('speed', 'balanced', 'comprehensive')
           
       Returns:
 ```
@@ -5238,7 +5238,7 @@ Lines added: 2, lines removed: 1
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/agent_usage_example.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: examples/agent_usage_example.py</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: 2
@@ -5250,10 +5250,10 @@ Lines added: 2, lines removed: 2
 -         perf_config = get_memory_manager_config(args.performance)
 +         perf_config = get_memory_manager_config(performance_profile)
           
--         print(f&quot;Using performance profile: {args.performance}&quot;)
-+         print(f&quot;Using performance profile: {performance_profile}&quot;)
-          print(f&quot;Graph memory: {&#39;enabled&#39; if perf_config[&#39;enable_graph_memory&#39;] else &#39;disabled&#39;}&quot;)
-          if perf_config[&#39;enable_graph_memory&#39;]:
+-         print(f"Using performance profile: {args.performance}")
++         print(f"Using performance profile: {performance_profile}")
+          print(f"Graph memory: {'enabled' if perf_config['enable_graph_memory'] else 'disabled'}")
+          if perf_config['enable_graph_memory']:
 ```
 
 </details>
@@ -5268,15 +5268,15 @@ Now I need to update the main function to pass the performance profile to setup_
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/agent_usage_example.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: examples/agent_usage_example.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
 
 ```diff
 @@ -736,5 +736,5 @@
-          print(f&quot;Using domain config: {args.config}&quot;)
-          print(f&quot;Domain config: {domain_config}&quot;)
+          print(f"Using domain config: {args.config}")
+          print(f"Domain config: {domain_config}")
 -         agent, memory_manager = await setup_services(domain_config, args.guid, args.type)
 +         agent, memory_manager = await setup_services(domain_config, args.guid, args.type, args.performance)
           
@@ -5344,7 +5344,7 @@ Now let me test the speed profile again:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: echo "Tell me about Elena." | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/agent_usage_example.py --guid perf_speed_test2 --config dnd --performance speed</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: echo "Tell me about Elena." | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/agent_usage_example.py --guid perf_speed_test2 --config dnd --performance speed</summary>
 
 ```bash
 echo "Tell me about Elena." | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/agent_usage_example.py --guid perf_speed_test2 --config dnd --performance speed
@@ -5358,46 +5358,46 @@ echo "Tell me about Elena." | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28
 ================================================================================
 
 Using domain config: dnd
-Domain config: {&#39;domain_name&#39;: &#39;dnd_campaign&#39;, &#39;domain_specific_prompt_instructions&#39;: {&#39;query&#39;: &quot;You are a D
-M for a D&amp;D campaign. ANSWER PLAYER QUESTIONS DIRECTLY. For simple questions (like &#39;are there goblins nearby
-?&#39;), give specific answers based on the campaign state. For exploration questions (like &#39;what do I see?&#39;), p
-rovide vivid but concise descriptions. Avoid starting every response with &#39;Okay, let&#39;s investigate&#39; or simil
-ar repetitive phrases. Move the story forward with actionable information and clear choices.&quot;, &#39;update&#39;: &#39;Yo
+Domain config: {'domain_name': 'dnd_campaign', 'domain_specific_prompt_instructions': {'query': "You are a D
+M for a D&amp;D campaign. ANSWER PLAYER QUESTIONS DIRECTLY. For simple questions (like 'are there goblins nearby
+?'), give specific answers based on the campaign state. For exploration questions (like 'what do I see?'), p
+rovide vivid but concise descriptions. Avoid starting every response with 'Okay, let's investigate' or simil
+ar repetitive phrases. Move the story forward with actionable information and clear choices.", 'update': 'Yo
 u are analyzing the input from both the user and the agent and extracting and classifying the important info
-rmation into the conversation history data structure.&#39;}, &#39;initial_data&#39;: &quot;\nCampaign Setting: The Lost Valle
+rmation into the conversation history data structure.'}, 'initial_data': "\nCampaign Setting: The Lost Valle
 y\n\nWorld Details:\n- Hidden valley surrounded by impassable mountains\n- Ancient ruins scattered throughou
 t\n- Mysterious magical anomalies\n- Three main settlements: Haven (central), Riverwatch (east), Mountainkee
-p (west)\n\nKey NPCs:\n1. Elena\n   - Role: Mayor of Haven\n   - Motivation: Protect the valley&#39;s inhabitant
+p (west)\n\nKey NPCs:\n1. Elena\n   - Role: Mayor of Haven\n   - Motivation: Protect the valley's inhabitant
 s\n   - Current Quest: Investigate strange occurrences in Haven\n\n2. Theron\n   - Role: Master Scholar\n
 - Expertise: Ancient ruins and artifacts\n   - Current Research: Decoding ruin inscriptions\n\n3. Sara\n   -
- Role: Captain of Riverwatch\n   - Responsibility: Valley&#39;s defense\n   - Current Concern: Increased monster
+ Role: Captain of Riverwatch\n   - Responsibility: Valley's defense\n   - Current Concern: Increased monster
  activity\n\nCurrent Situations:\n1. Trade Routes\n   - Main road between settlements disrupted\n   - Mercha
 nts seeking protection\n   - Alternative routes needed\n\n2. Ancient Ruins\n   - New chambers discovered\n
  - Strange energy emanations\n   - Valuable artifacts found\n\n3. Magical Anomalies\n   - Random magical eff
-ects\n   - Affecting local wildlife\n   - Possible connection to ruins&quot;, &#39;topic_taxonomy&#39;: {&#39;world&#39;: [&#39;setti
-ng&#39;, &#39;geography&#39;, &#39;location&#39;, &#39;environment&#39;, &#39;terrain&#39;], &#39;characters&#39;: [&#39;npc&#39;, &#39;player&#39;, &#39;personality&#39;, &#39;mot
-ivation&#39;, &#39;background&#39;], &#39;narrative&#39;: [&#39;story&#39;, &#39;plot&#39;, &#39;quest&#39;, &#39;adventure&#39;, &#39;campaign&#39;], &#39;mechanics&#39;: [&#39;ru
-les&#39;, &#39;dice&#39;, &#39;combat&#39;, &#39;magic&#39;, &#39;spells&#39;], &#39;objects&#39;: [&#39;items&#39;, &#39;equipment&#39;, &#39;artifacts&#39;, &#39;treasure&#39;, &#39;inve
-ntory&#39;], &#39;history&#39;: [&#39;lore&#39;, &#39;ruins&#39;, &#39;archaeology&#39;, &#39;ancient&#39;, &#39;past&#39;], &#39;society&#39;: [&#39;politics&#39;, &#39;trade&#39;, &#39;s
-ettlements&#39;, &#39;culture&#39;, &#39;religion&#39;], &#39;threats&#39;: [&#39;monsters&#39;, &#39;enemies&#39;, &#39;dangers&#39;, &#39;conflict&#39;, &#39;war&#39;], &#39;expl
-oration&#39;: [&#39;discovery&#39;, &#39;investigation&#39;, &#39;research&#39;, &#39;mystery&#39;], &#39;events&#39;: [&#39;happenings&#39;, &#39;situations&#39;, &#39;inc
-idents&#39;, &#39;occurrences&#39;]}, &#39;topic_normalizations&#39;: {&#39;locations&#39;: &#39;location&#39;, &#39;geography&#39;: &#39;location&#39;, &#39;terrai
-n&#39;: &#39;environment&#39;, &#39;area&#39;: &#39;location&#39;, &#39;place&#39;: &#39;location&#39;, &#39;region&#39;: &#39;location&#39;, &#39;character&#39;: &#39;characters&#39;,
- &#39;key npc&#39;: &#39;npc&#39;, &#39;npcs&#39;: &#39;npc&#39;, &#39;people&#39;: &#39;characters&#39;, &#39;ruins&#39;: &#39;archaeology&#39;, &#39;ancient ruins&#39;: &#39;archaeol
-ogy&#39;, &#39;artifacts&#39;: &#39;archaeology&#39;, &#39;archaeological&#39;: &#39;archaeology&#39;, &#39;situation&#39;: &#39;events&#39;, &#39;situations&#39;: &#39;eve
-nts&#39;, &#39;happenings&#39;: &#39;events&#39;, &#39;occurrences&#39;: &#39;events&#39;, &#39;research&#39;: &#39;investigation&#39;, &#39;exploration&#39;: &#39;investig
-ation&#39;, &#39;discovery&#39;: &#39;investigation&#39;, &#39;magical&#39;: &#39;magic&#39;, &#39;anomalies&#39;: &#39;magic&#39;, &#39;magical anomalies&#39;: &#39;magic&#39;
-, &#39;setting&#39;: &#39;world&#39;, &#39;world&#39;: &#39;setting&#39;, &#39;lore&#39;: &#39;history&#39;, &#39;ancient&#39;: &#39;history&#39;, &#39;monsters&#39;: &#39;threats&#39;, &#39;e
-nemies&#39;: &#39;threats&#39;, &#39;monster activity&#39;: &#39;threats&#39;, &#39;defense&#39;: &#39;threats&#39;, &#39;trade routes&#39;: &#39;trade&#39;, &#39;settlemen
-ts&#39;: &#39;society&#39;, &#39;politics&#39;: &#39;society&#39;, &#39;value&#39;: &#39;objects&#39;, &#39;treasure&#39;: &#39;objects&#39;, &#39;skills&#39;: &#39;mechanics&#39;, &#39;ex
-pertise&#39;: &#39;mechanics&#39;, &#39;decryption&#39;: &#39;investigation&#39;, &#39;wildlife&#39;: &#39;environment&#39;}, &#39;graph_memory_config&#39;: {&#39;e
-nabled&#39;: True, &#39;entity_types&#39;: [&#39;character&#39;, &#39;location&#39;, &#39;object&#39;, &#39;event&#39;, &#39;concept&#39;, &#39;organization&#39;], &#39;rel
-ationship_types&#39;: [&#39;located_in&#39;, &#39;owns&#39;, &#39;member_of&#39;, &#39;allies_with&#39;, &#39;enemies_with&#39;, &#39;uses&#39;, &#39;created_by&#39;, &#39;
-leads_to&#39;, &#39;participates_in&#39;, &#39;related_to&#39;, &#39;mentions&#39;], &#39;entity_extraction_prompt&#39;: &#39;Extract entities from
+ects\n   - Affecting local wildlife\n   - Possible connection to ruins", 'topic_taxonomy': {'world': ['setti
+ng', 'geography', 'location', 'environment', 'terrain'], 'characters': ['npc', 'player', 'personality', 'mot
+ivation', 'background'], 'narrative': ['story', 'plot', 'quest', 'adventure', 'campaign'], 'mechanics': ['ru
+les', 'dice', 'combat', 'magic', 'spells'], 'objects': ['items', 'equipment', 'artifacts', 'treasure', 'inve
+ntory'], 'history': ['lore', 'ruins', 'archaeology', 'ancient', 'past'], 'society': ['politics', 'trade', 's
+ettlements', 'culture', 'religion'], 'threats': ['monsters', 'enemies', 'dangers', 'conflict', 'war'], 'expl
+oration': ['discovery', 'investigation', 'research', 'mystery'], 'events': ['happenings', 'situations', 'inc
+idents', 'occurrences']}, 'topic_normalizations': {'locations': 'location', 'geography': 'location', 'terrai
+n': 'environment', 'area': 'location', 'place': 'location', 'region': 'location', 'character': 'characters',
+ 'key npc': 'npc', 'npcs': 'npc', 'people': 'characters', 'ruins': 'archaeology', 'ancient ruins': 'archaeol
+ogy', 'artifacts': 'archaeology', 'archaeological': 'archaeology', 'situation': 'events', 'situations': 'eve
+nts', 'happenings': 'events', 'occurrences': 'events', 'research': 'investigation', 'exploration': 'investig
+ation', 'discovery': 'investigation', 'magical': 'magic', 'anomalies': 'magic', 'magical anomalies': 'magic'
+, 'setting': 'world', 'world': 'setting', 'lore': 'history', 'ancient': 'history', 'monsters': 'threats', 'e
+nemies': 'threats', 'monster activity': 'threats', 'defense': 'threats', 'trade routes': 'trade', 'settlemen
+ts': 'society', 'politics': 'society', 'value': 'objects', 'treasure': 'objects', 'skills': 'mechanics', 'ex
+pertise': 'mechanics', 'decryption': 'investigation', 'wildlife': 'environment'}, 'graph_memory_config': {'e
+nabled': True, 'entity_types': ['character', 'location', 'object', 'event', 'concept', 'organization'], 'rel
+ationship_types': ['located_in', 'owns', 'member_of', 'allies_with', 'enemies_with', 'uses', 'created_by', '
+leads_to', 'participates_in', 'related_to', 'mentions'], 'entity_extraction_prompt': 'Extract entities from
 this D&amp;D campaign text. Focus on characters, locations, objects, events, concepts, and organizations that ar
-e important to the campaign world and story.&#39;, &#39;relationship_extraction_prompt&#39;: &#39;Identify relationships bet
+e important to the campaign world and story.', 'relationship_extraction_prompt': 'Identify relationships bet
 ween entities in this D&amp;D campaign text. Look for spatial relationships (located_in), ownership (owns), soci
-al relationships (allies_with, enemies_with), and story connections.&#39;, &#39;similarity_threshold&#39;: 0.8}}
+al relationships (allies_with, enemies_with), and story connections.', 'similarity_threshold': 0.8}}
 
 Setting up services...
 Initializing session with guid: perf_speed_test2
@@ -5418,11 +5418,11 @@ Memory File: agent_memories/standard/perf_speed_test2/agent_memory.json
 Metadata:
 ------------------------------
 {
-  &quot;created_at&quot;: &quot;2025-09-01T12:14:05.486409&quot;,
-  &quot;updated_at&quot;: &quot;2025-09-01T12:14:05.486409&quot;,
-  &quot;version&quot;: &quot;2.0.0&quot;,
-  &quot;domain&quot;: &quot;general&quot;,
-  &quot;saved_during&quot;: &quot;create_initial_memory&quot;
+  "created_at": "2025-09-01T12:14:05.486409",
+  "updated_at": "2025-09-01T12:14:05.486409",
+  "version": "2.0.0",
+  "domain": "general",
+  "saved_during": "create_initial_memory"
 }
 
 Conversation History: 1 messages
@@ -5437,7 +5437,7 @@ ep, located to the west.
 
 
 Key non-player characters include Elena, who serves as the Mayor of Haven and is driven by a desire to prote
-ct the valley&#39;s inhabitants.
+ct the valley's inhabitants.
 
 
 She is currently investigating strange occurrences within Haven.
@@ -5446,7 +5446,7 @@ Theron is a Master Scholar with expertise in ancient ruins and artifacts, and he
 oding inscriptions found within the ruins.
 
 
-Sara is the Captain of Riverwatch, responsible for the valley&#39;s defense, and she is concerned by a recent in
+Sara is the Captain of Riverwatch, responsible for the valley's defense, and she is concerned by a recent in
 crease in monster activity.
 
 
@@ -5462,7 +5462,7 @@ nomalies are linked to the ruins.
 
 Processing: Tell me about Elena.
 
-Agent: Elena serves as the Mayor of Haven and is driven by a desire to protect the valley&#39;s inhabitants. She
+Agent: Elena serves as the Mayor of Haven and is driven by a desire to protect the valley's inhabitants. She
  is currently investigating strange occurrences within Haven.
 
 
@@ -5531,7 +5531,7 @@ Now let me test the balanced profile to see the difference:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: echo "Tell me about Elena." | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/agent_usage_example.py --guid perf_balanced_test --config dnd --performance balanced</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: echo "Tell me about Elena." | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/agent_usage_example.py --guid perf_balanced_test --config dnd --performance balanced</summary>
 
 ```bash
 echo "Tell me about Elena." | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/agent_usage_example.py --guid perf_balanced_test --config dnd --performance balanced
@@ -5545,46 +5545,46 @@ echo "Tell me about Elena." | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28
 ================================================================================
 
 Using domain config: dnd
-Domain config: {&#39;domain_name&#39;: &#39;dnd_campaign&#39;, &#39;domain_specific_prompt_instructions&#39;: {&#39;query&#39;: &quot;You are a D
-M for a D&amp;D campaign. ANSWER PLAYER QUESTIONS DIRECTLY. For simple questions (like &#39;are there goblins nearby
-?&#39;), give specific answers based on the campaign state. For exploration questions (like &#39;what do I see?&#39;), p
-rovide vivid but concise descriptions. Avoid starting every response with &#39;Okay, let&#39;s investigate&#39; or simil
-ar repetitive phrases. Move the story forward with actionable information and clear choices.&quot;, &#39;update&#39;: &#39;Yo
+Domain config: {'domain_name': 'dnd_campaign', 'domain_specific_prompt_instructions': {'query': "You are a D
+M for a D&amp;D campaign. ANSWER PLAYER QUESTIONS DIRECTLY. For simple questions (like 'are there goblins nearby
+?'), give specific answers based on the campaign state. For exploration questions (like 'what do I see?'), p
+rovide vivid but concise descriptions. Avoid starting every response with 'Okay, let's investigate' or simil
+ar repetitive phrases. Move the story forward with actionable information and clear choices.", 'update': 'Yo
 u are analyzing the input from both the user and the agent and extracting and classifying the important info
-rmation into the conversation history data structure.&#39;}, &#39;initial_data&#39;: &quot;\nCampaign Setting: The Lost Valle
+rmation into the conversation history data structure.'}, 'initial_data': "\nCampaign Setting: The Lost Valle
 y\n\nWorld Details:\n- Hidden valley surrounded by impassable mountains\n- Ancient ruins scattered throughou
 t\n- Mysterious magical anomalies\n- Three main settlements: Haven (central), Riverwatch (east), Mountainkee
-p (west)\n\nKey NPCs:\n1. Elena\n   - Role: Mayor of Haven\n   - Motivation: Protect the valley&#39;s inhabitant
+p (west)\n\nKey NPCs:\n1. Elena\n   - Role: Mayor of Haven\n   - Motivation: Protect the valley's inhabitant
 s\n   - Current Quest: Investigate strange occurrences in Haven\n\n2. Theron\n   - Role: Master Scholar\n
 - Expertise: Ancient ruins and artifacts\n   - Current Research: Decoding ruin inscriptions\n\n3. Sara\n   -
- Role: Captain of Riverwatch\n   - Responsibility: Valley&#39;s defense\n   - Current Concern: Increased monster
+ Role: Captain of Riverwatch\n   - Responsibility: Valley's defense\n   - Current Concern: Increased monster
  activity\n\nCurrent Situations:\n1. Trade Routes\n   - Main road between settlements disrupted\n   - Mercha
 nts seeking protection\n   - Alternative routes needed\n\n2. Ancient Ruins\n   - New chambers discovered\n
  - Strange energy emanations\n   - Valuable artifacts found\n\n3. Magical Anomalies\n   - Random magical eff
-ects\n   - Affecting local wildlife\n   - Possible connection to ruins&quot;, &#39;topic_taxonomy&#39;: {&#39;world&#39;: [&#39;setti
-ng&#39;, &#39;geography&#39;, &#39;location&#39;, &#39;environment&#39;, &#39;terrain&#39;], &#39;characters&#39;: [&#39;npc&#39;, &#39;player&#39;, &#39;personality&#39;, &#39;mot
-ivation&#39;, &#39;background&#39;], &#39;narrative&#39;: [&#39;story&#39;, &#39;plot&#39;, &#39;quest&#39;, &#39;adventure&#39;, &#39;campaign&#39;], &#39;mechanics&#39;: [&#39;ru
-les&#39;, &#39;dice&#39;, &#39;combat&#39;, &#39;magic&#39;, &#39;spells&#39;], &#39;objects&#39;: [&#39;items&#39;, &#39;equipment&#39;, &#39;artifacts&#39;, &#39;treasure&#39;, &#39;inve
-ntory&#39;], &#39;history&#39;: [&#39;lore&#39;, &#39;ruins&#39;, &#39;archaeology&#39;, &#39;ancient&#39;, &#39;past&#39;], &#39;society&#39;: [&#39;politics&#39;, &#39;trade&#39;, &#39;s
-ettlements&#39;, &#39;culture&#39;, &#39;religion&#39;], &#39;threats&#39;: [&#39;monsters&#39;, &#39;enemies&#39;, &#39;dangers&#39;, &#39;conflict&#39;, &#39;war&#39;], &#39;expl
-oration&#39;: [&#39;discovery&#39;, &#39;investigation&#39;, &#39;research&#39;, &#39;mystery&#39;], &#39;events&#39;: [&#39;happenings&#39;, &#39;situations&#39;, &#39;inc
-idents&#39;, &#39;occurrences&#39;]}, &#39;topic_normalizations&#39;: {&#39;locations&#39;: &#39;location&#39;, &#39;geography&#39;: &#39;location&#39;, &#39;terrai
-n&#39;: &#39;environment&#39;, &#39;area&#39;: &#39;location&#39;, &#39;place&#39;: &#39;location&#39;, &#39;region&#39;: &#39;location&#39;, &#39;character&#39;: &#39;characters&#39;,
- &#39;key npc&#39;: &#39;npc&#39;, &#39;npcs&#39;: &#39;npc&#39;, &#39;people&#39;: &#39;characters&#39;, &#39;ruins&#39;: &#39;archaeology&#39;, &#39;ancient ruins&#39;: &#39;archaeol
-ogy&#39;, &#39;artifacts&#39;: &#39;archaeology&#39;, &#39;archaeological&#39;: &#39;archaeology&#39;, &#39;situation&#39;: &#39;events&#39;, &#39;situations&#39;: &#39;eve
-nts&#39;, &#39;happenings&#39;: &#39;events&#39;, &#39;occurrences&#39;: &#39;events&#39;, &#39;research&#39;: &#39;investigation&#39;, &#39;exploration&#39;: &#39;investig
-ation&#39;, &#39;discovery&#39;: &#39;investigation&#39;, &#39;magical&#39;: &#39;magic&#39;, &#39;anomalies&#39;: &#39;magic&#39;, &#39;magical anomalies&#39;: &#39;magic&#39;
-, &#39;setting&#39;: &#39;world&#39;, &#39;world&#39;: &#39;setting&#39;, &#39;lore&#39;: &#39;history&#39;, &#39;ancient&#39;: &#39;history&#39;, &#39;monsters&#39;: &#39;threats&#39;, &#39;e
-nemies&#39;: &#39;threats&#39;, &#39;monster activity&#39;: &#39;threats&#39;, &#39;defense&#39;: &#39;threats&#39;, &#39;trade routes&#39;: &#39;trade&#39;, &#39;settlemen
-ts&#39;: &#39;society&#39;, &#39;politics&#39;: &#39;society&#39;, &#39;value&#39;: &#39;objects&#39;, &#39;treasure&#39;: &#39;objects&#39;, &#39;skills&#39;: &#39;mechanics&#39;, &#39;ex
-pertise&#39;: &#39;mechanics&#39;, &#39;decryption&#39;: &#39;investigation&#39;, &#39;wildlife&#39;: &#39;environment&#39;}, &#39;graph_memory_config&#39;: {&#39;e
-nabled&#39;: True, &#39;entity_types&#39;: [&#39;character&#39;, &#39;location&#39;, &#39;object&#39;, &#39;event&#39;, &#39;concept&#39;, &#39;organization&#39;], &#39;rel
-ationship_types&#39;: [&#39;located_in&#39;, &#39;owns&#39;, &#39;member_of&#39;, &#39;allies_with&#39;, &#39;enemies_with&#39;, &#39;uses&#39;, &#39;created_by&#39;, &#39;
-leads_to&#39;, &#39;participates_in&#39;, &#39;related_to&#39;, &#39;mentions&#39;], &#39;entity_extraction_prompt&#39;: &#39;Extract entities from
+ects\n   - Affecting local wildlife\n   - Possible connection to ruins", 'topic_taxonomy': {'world': ['setti
+ng', 'geography', 'location', 'environment', 'terrain'], 'characters': ['npc', 'player', 'personality', 'mot
+ivation', 'background'], 'narrative': ['story', 'plot', 'quest', 'adventure', 'campaign'], 'mechanics': ['ru
+les', 'dice', 'combat', 'magic', 'spells'], 'objects': ['items', 'equipment', 'artifacts', 'treasure', 'inve
+ntory'], 'history': ['lore', 'ruins', 'archaeology', 'ancient', 'past'], 'society': ['politics', 'trade', 's
+ettlements', 'culture', 'religion'], 'threats': ['monsters', 'enemies', 'dangers', 'conflict', 'war'], 'expl
+oration': ['discovery', 'investigation', 'research', 'mystery'], 'events': ['happenings', 'situations', 'inc
+idents', 'occurrences']}, 'topic_normalizations': {'locations': 'location', 'geography': 'location', 'terrai
+n': 'environment', 'area': 'location', 'place': 'location', 'region': 'location', 'character': 'characters',
+ 'key npc': 'npc', 'npcs': 'npc', 'people': 'characters', 'ruins': 'archaeology', 'ancient ruins': 'archaeol
+ogy', 'artifacts': 'archaeology', 'archaeological': 'archaeology', 'situation': 'events', 'situations': 'eve
+nts', 'happenings': 'events', 'occurrences': 'events', 'research': 'investigation', 'exploration': 'investig
+ation', 'discovery': 'investigation', 'magical': 'magic', 'anomalies': 'magic', 'magical anomalies': 'magic'
+, 'setting': 'world', 'world': 'setting', 'lore': 'history', 'ancient': 'history', 'monsters': 'threats', 'e
+nemies': 'threats', 'monster activity': 'threats', 'defense': 'threats', 'trade routes': 'trade', 'settlemen
+ts': 'society', 'politics': 'society', 'value': 'objects', 'treasure': 'objects', 'skills': 'mechanics', 'ex
+pertise': 'mechanics', 'decryption': 'investigation', 'wildlife': 'environment'}, 'graph_memory_config': {'e
+nabled': True, 'entity_types': ['character', 'location', 'object', 'event', 'concept', 'organization'], 'rel
+ationship_types': ['located_in', 'owns', 'member_of', 'allies_with', 'enemies_with', 'uses', 'created_by', '
+leads_to', 'participates_in', 'related_to', 'mentions'], 'entity_extraction_prompt': 'Extract entities from
 this D&amp;D campaign text. Focus on characters, locations, objects, events, concepts, and organizations that ar
-e important to the campaign world and story.&#39;, &#39;relationship_extraction_prompt&#39;: &#39;Identify relationships bet
+e important to the campaign world and story.', 'relationship_extraction_prompt': 'Identify relationships bet
 ween entities in this D&amp;D campaign text. Look for spatial relationships (located_in), ownership (owns), soci
-al relationships (allies_with, enemies_with), and story connections.&#39;, &#39;similarity_threshold&#39;: 0.8}}
+al relationships (allies_with, enemies_with), and story connections.', 'similarity_threshold': 0.8}}
 
 Setting up services...
 Initializing session with guid: perf_balanced_test
@@ -5606,11 +5606,11 @@ Memory File: agent_memories/standard/perf_balanced_test/agent_memory.json
 Metadata:
 ------------------------------
 {
-  &quot;created_at&quot;: &quot;2025-09-01T12:15:55.864942&quot;,
-  &quot;updated_at&quot;: &quot;2025-09-01T12:15:55.864942&quot;,
-  &quot;version&quot;: &quot;2.0.0&quot;,
-  &quot;domain&quot;: &quot;general&quot;,
-  &quot;saved_during&quot;: &quot;create_initial_memory&quot;
+  "created_at": "2025-09-01T12:15:55.864942",
+  "updated_at": "2025-09-01T12:15:55.864942",
+  "version": "2.0.0",
+  "domain": "general",
+  "saved_during": "create_initial_memory"
 }
 
 Conversation History: 1 messages
@@ -5627,7 +5627,7 @@ ep, located to the west.
 
 
 Key non-player characters include Elena, who serves as the Mayor of Haven and whose motivation is to protect
- the valley&#39;s inhabitants.
+ the valley's inhabitants.
 
 
 She is currently investigating strange occurrences within Haven.
@@ -5636,7 +5636,7 @@ Theron is a Master Scholar, specializing in ancient ruins and artifacts, and is 
 g ruin inscriptions.
 
 
-Finally, Sara is the Captain of Riverwatch, responsible for the valley&#39;s defense, and she is currently conce
+Finally, Sara is the Captain of Riverwatch, responsible for the valley's defense, and she is currently conce
 rned about increased monster activity.
 
 
@@ -5653,7 +5653,7 @@ ins themselves.
 Processing: Tell me about Elena.
 
 Agent: Elena serves as the Mayor of Haven and is currently investigating strange occurrences within the sett
-lement. Her primary motivation is to protect the valley&#39;s inhabitants.
+lement. Her primary motivation is to protect the valley's inhabitants.
 
 
 ============================================================
@@ -5715,7 +5715,7 @@ Let me run the comprehensive profile to complete the comparison:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: echo "Tell me about Elena." | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/agent_usage_example.py --guid perf_comprehensive_test --config dnd --performance comprehensive</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: echo "Tell me about Elena." | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/agent_usage_example.py --guid perf_comprehensive_test --config dnd --performance comprehensive</summary>
 
 ```bash
 echo "Tell me about Elena." | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/agent_usage_example.py --guid perf_comprehensive_test --config dnd --performance comprehensive
@@ -5729,46 +5729,46 @@ echo "Tell me about Elena." | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28
 ================================================================================
 
 Using domain config: dnd
-Domain config: {&#39;domain_name&#39;: &#39;dnd_campaign&#39;, &#39;domain_specific_prompt_instructions&#39;: {&#39;query&#39;: &quot;You are a D
-M for a D&amp;D campaign. ANSWER PLAYER QUESTIONS DIRECTLY. For simple questions (like &#39;are there goblins nearby
-?&#39;), give specific answers based on the campaign state. For exploration questions (like &#39;what do I see?&#39;), p
-rovide vivid but concise descriptions. Avoid starting every response with &#39;Okay, let&#39;s investigate&#39; or simil
-ar repetitive phrases. Move the story forward with actionable information and clear choices.&quot;, &#39;update&#39;: &#39;Yo
+Domain config: {'domain_name': 'dnd_campaign', 'domain_specific_prompt_instructions': {'query': "You are a D
+M for a D&amp;D campaign. ANSWER PLAYER QUESTIONS DIRECTLY. For simple questions (like 'are there goblins nearby
+?'), give specific answers based on the campaign state. For exploration questions (like 'what do I see?'), p
+rovide vivid but concise descriptions. Avoid starting every response with 'Okay, let's investigate' or simil
+ar repetitive phrases. Move the story forward with actionable information and clear choices.", 'update': 'Yo
 u are analyzing the input from both the user and the agent and extracting and classifying the important info
-rmation into the conversation history data structure.&#39;}, &#39;initial_data&#39;: &quot;\nCampaign Setting: The Lost Valle
+rmation into the conversation history data structure.'}, 'initial_data': "\nCampaign Setting: The Lost Valle
 y\n\nWorld Details:\n- Hidden valley surrounded by impassable mountains\n- Ancient ruins scattered throughou
 t\n- Mysterious magical anomalies\n- Three main settlements: Haven (central), Riverwatch (east), Mountainkee
-p (west)\n\nKey NPCs:\n1. Elena\n   - Role: Mayor of Haven\n   - Motivation: Protect the valley&#39;s inhabitant
+p (west)\n\nKey NPCs:\n1. Elena\n   - Role: Mayor of Haven\n   - Motivation: Protect the valley's inhabitant
 s\n   - Current Quest: Investigate strange occurrences in Haven\n\n2. Theron\n   - Role: Master Scholar\n
 - Expertise: Ancient ruins and artifacts\n   - Current Research: Decoding ruin inscriptions\n\n3. Sara\n   -
- Role: Captain of Riverwatch\n   - Responsibility: Valley&#39;s defense\n   - Current Concern: Increased monster
+ Role: Captain of Riverwatch\n   - Responsibility: Valley's defense\n   - Current Concern: Increased monster
  activity\n\nCurrent Situations:\n1. Trade Routes\n   - Main road between settlements disrupted\n   - Mercha
 nts seeking protection\n   - Alternative routes needed\n\n2. Ancient Ruins\n   - New chambers discovered\n
  - Strange energy emanations\n   - Valuable artifacts found\n\n3. Magical Anomalies\n   - Random magical eff
-ects\n   - Affecting local wildlife\n   - Possible connection to ruins&quot;, &#39;topic_taxonomy&#39;: {&#39;world&#39;: [&#39;setti
-ng&#39;, &#39;geography&#39;, &#39;location&#39;, &#39;environment&#39;, &#39;terrain&#39;], &#39;characters&#39;: [&#39;npc&#39;, &#39;player&#39;, &#39;personality&#39;, &#39;mot
-ivation&#39;, &#39;background&#39;], &#39;narrative&#39;: [&#39;story&#39;, &#39;plot&#39;, &#39;quest&#39;, &#39;adventure&#39;, &#39;campaign&#39;], &#39;mechanics&#39;: [&#39;ru
-les&#39;, &#39;dice&#39;, &#39;combat&#39;, &#39;magic&#39;, &#39;spells&#39;], &#39;objects&#39;: [&#39;items&#39;, &#39;equipment&#39;, &#39;artifacts&#39;, &#39;treasure&#39;, &#39;inve
-ntory&#39;], &#39;history&#39;: [&#39;lore&#39;, &#39;ruins&#39;, &#39;archaeology&#39;, &#39;ancient&#39;, &#39;past&#39;], &#39;society&#39;: [&#39;politics&#39;, &#39;trade&#39;, &#39;s
-ettlements&#39;, &#39;culture&#39;, &#39;religion&#39;], &#39;threats&#39;: [&#39;monsters&#39;, &#39;enemies&#39;, &#39;dangers&#39;, &#39;conflict&#39;, &#39;war&#39;], &#39;expl
-oration&#39;: [&#39;discovery&#39;, &#39;investigation&#39;, &#39;research&#39;, &#39;mystery&#39;], &#39;events&#39;: [&#39;happenings&#39;, &#39;situations&#39;, &#39;inc
-idents&#39;, &#39;occurrences&#39;]}, &#39;topic_normalizations&#39;: {&#39;locations&#39;: &#39;location&#39;, &#39;geography&#39;: &#39;location&#39;, &#39;terrai
-n&#39;: &#39;environment&#39;, &#39;area&#39;: &#39;location&#39;, &#39;place&#39;: &#39;location&#39;, &#39;region&#39;: &#39;location&#39;, &#39;character&#39;: &#39;characters&#39;,
- &#39;key npc&#39;: &#39;npc&#39;, &#39;npcs&#39;: &#39;npc&#39;, &#39;people&#39;: &#39;characters&#39;, &#39;ruins&#39;: &#39;archaeology&#39;, &#39;ancient ruins&#39;: &#39;archaeol
-ogy&#39;, &#39;artifacts&#39;: &#39;archaeology&#39;, &#39;archaeological&#39;: &#39;archaeology&#39;, &#39;situation&#39;: &#39;events&#39;, &#39;situations&#39;: &#39;eve
-nts&#39;, &#39;happenings&#39;: &#39;events&#39;, &#39;occurrences&#39;: &#39;events&#39;, &#39;research&#39;: &#39;investigation&#39;, &#39;exploration&#39;: &#39;investig
-ation&#39;, &#39;discovery&#39;: &#39;investigation&#39;, &#39;magical&#39;: &#39;magic&#39;, &#39;anomalies&#39;: &#39;magic&#39;, &#39;magical anomalies&#39;: &#39;magic&#39;
-, &#39;setting&#39;: &#39;world&#39;, &#39;world&#39;: &#39;setting&#39;, &#39;lore&#39;: &#39;history&#39;, &#39;ancient&#39;: &#39;history&#39;, &#39;monsters&#39;: &#39;threats&#39;, &#39;e
-nemies&#39;: &#39;threats&#39;, &#39;monster activity&#39;: &#39;threats&#39;, &#39;defense&#39;: &#39;threats&#39;, &#39;trade routes&#39;: &#39;trade&#39;, &#39;settlemen
-ts&#39;: &#39;society&#39;, &#39;politics&#39;: &#39;society&#39;, &#39;value&#39;: &#39;objects&#39;, &#39;treasure&#39;: &#39;objects&#39;, &#39;skills&#39;: &#39;mechanics&#39;, &#39;ex
-pertise&#39;: &#39;mechanics&#39;, &#39;decryption&#39;: &#39;investigation&#39;, &#39;wildlife&#39;: &#39;environment&#39;}, &#39;graph_memory_config&#39;: {&#39;e
-nabled&#39;: True, &#39;entity_types&#39;: [&#39;character&#39;, &#39;location&#39;, &#39;object&#39;, &#39;event&#39;, &#39;concept&#39;, &#39;organization&#39;], &#39;rel
-ationship_types&#39;: [&#39;located_in&#39;, &#39;owns&#39;, &#39;member_of&#39;, &#39;allies_with&#39;, &#39;enemies_with&#39;, &#39;uses&#39;, &#39;created_by&#39;, &#39;
-leads_to&#39;, &#39;participates_in&#39;, &#39;related_to&#39;, &#39;mentions&#39;], &#39;entity_extraction_prompt&#39;: &#39;Extract entities from
+ects\n   - Affecting local wildlife\n   - Possible connection to ruins", 'topic_taxonomy': {'world': ['setti
+ng', 'geography', 'location', 'environment', 'terrain'], 'characters': ['npc', 'player', 'personality', 'mot
+ivation', 'background'], 'narrative': ['story', 'plot', 'quest', 'adventure', 'campaign'], 'mechanics': ['ru
+les', 'dice', 'combat', 'magic', 'spells'], 'objects': ['items', 'equipment', 'artifacts', 'treasure', 'inve
+ntory'], 'history': ['lore', 'ruins', 'archaeology', 'ancient', 'past'], 'society': ['politics', 'trade', 's
+ettlements', 'culture', 'religion'], 'threats': ['monsters', 'enemies', 'dangers', 'conflict', 'war'], 'expl
+oration': ['discovery', 'investigation', 'research', 'mystery'], 'events': ['happenings', 'situations', 'inc
+idents', 'occurrences']}, 'topic_normalizations': {'locations': 'location', 'geography': 'location', 'terrai
+n': 'environment', 'area': 'location', 'place': 'location', 'region': 'location', 'character': 'characters',
+ 'key npc': 'npc', 'npcs': 'npc', 'people': 'characters', 'ruins': 'archaeology', 'ancient ruins': 'archaeol
+ogy', 'artifacts': 'archaeology', 'archaeological': 'archaeology', 'situation': 'events', 'situations': 'eve
+nts', 'happenings': 'events', 'occurrences': 'events', 'research': 'investigation', 'exploration': 'investig
+ation', 'discovery': 'investigation', 'magical': 'magic', 'anomalies': 'magic', 'magical anomalies': 'magic'
+, 'setting': 'world', 'world': 'setting', 'lore': 'history', 'ancient': 'history', 'monsters': 'threats', 'e
+nemies': 'threats', 'monster activity': 'threats', 'defense': 'threats', 'trade routes': 'trade', 'settlemen
+ts': 'society', 'politics': 'society', 'value': 'objects', 'treasure': 'objects', 'skills': 'mechanics', 'ex
+pertise': 'mechanics', 'decryption': 'investigation', 'wildlife': 'environment'}, 'graph_memory_config': {'e
+nabled': True, 'entity_types': ['character', 'location', 'object', 'event', 'concept', 'organization'], 'rel
+ationship_types': ['located_in', 'owns', 'member_of', 'allies_with', 'enemies_with', 'uses', 'created_by', '
+leads_to', 'participates_in', 'related_to', 'mentions'], 'entity_extraction_prompt': 'Extract entities from
 this D&amp;D campaign text. Focus on characters, locations, objects, events, concepts, and organizations that ar
-e important to the campaign world and story.&#39;, &#39;relationship_extraction_prompt&#39;: &#39;Identify relationships bet
+e important to the campaign world and story.', 'relationship_extraction_prompt': 'Identify relationships bet
 ween entities in this D&amp;D campaign text. Look for spatial relationships (located_in), ownership (owns), soci
-al relationships (allies_with, enemies_with), and story connections.&#39;, &#39;similarity_threshold&#39;: 0.8}}
+al relationships (allies_with, enemies_with), and story connections.', 'similarity_threshold': 0.8}}
 
 Setting up services...
 Initializing session with guid: perf_comprehensive_test
@@ -5790,11 +5790,11 @@ Memory File: agent_memories/standard/perf_comprehensive_test/agent_memory.json
 Metadata:
 ------------------------------
 {
-  &quot;created_at&quot;: &quot;2025-09-01T12:19:20.776356&quot;,
-  &quot;updated_at&quot;: &quot;2025-09-01T12:19:20.776356&quot;,
-  &quot;version&quot;: &quot;2.0.0&quot;,
-  &quot;domain&quot;: &quot;general&quot;,
-  &quot;saved_during&quot;: &quot;create_initial_memory&quot;
+  "created_at": "2025-09-01T12:19:20.776356",
+  "updated_at": "2025-09-01T12:19:20.776356",
+  "version": "2.0.0",
+  "domain": "general",
+  "saved_during": "create_initial_memory"
 }
 
 Conversation History: 1 messages
@@ -5811,14 +5811,14 @@ ep, located to the west.
 
 
 Key non-player characters include Elena, who serves as the Mayor of Haven and is driven by a desire to prote
-ct the valley&#39;s inhabitants. She is currently investigating unusual occurrences within Haven.
+ct the valley's inhabitants. She is currently investigating unusual occurrences within Haven.
 
 
 Theron is a Master Scholar with expertise in ancient ruins and artifacts, and he is presently focused on dec
 oding inscriptions found within the ruins.
 
 
-Captain Sara of Riverwatch is responsible for the valley&#39;s defense and is particularly concerned about incre
+Captain Sara of Riverwatch is responsible for the valley's defense and is particularly concerned about incre
 ased monster activity.
 
 
@@ -5836,7 +5836,7 @@ o the ruins themselves.
 
 Processing: Tell me about Elena.
 
-Agent: Elena serves as the Mayor of Haven and is driven by a desire to protect the valley&#39;s inhabitants. She
+Agent: Elena serves as the Mayor of Haven and is driven by a desire to protect the valley's inhabitants. She
  is currently investigating unusual occurrences within Haven.
 
 
@@ -5964,7 +5964,7 @@ You're absolutely right to question this! Let me analyze the data more carefully
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: python scripts/performance_report.py perf_balanced_test --detailed</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: python scripts/performance_report.py perf_balanced_test --detailed</summary>
 
 ```bash
 python scripts/performance_report.py perf_balanced_test --detailed
@@ -6032,21 +6032,21 @@ OPTIMIZATION RECOMMENDATIONS:
 --------------------------------------------------
 
 1. Optimize High-Impact Operation: batch_entry_processing (Priority: HIGH)
-   Operation &#39;batch_entry_processing&#39; takes 40.0% of total time
+   Operation 'batch_entry_processing' takes 40.0% of total time
    Estimated Improvement: Significant impact due to high time percentage
    Suggestions:
      • Profile this operation in detail to identify sub-bottlenecks
      • Consider async processing if not user-facing
 
 2. Optimize LLM Operations (Priority: HIGH)
-   LLM operation &#39;batch_digest_generation&#39; is taking 16.59s on average
+   LLM operation 'batch_digest_generation' is taking 16.59s on average
    Estimated Improvement: 20-40% reduction in LLM processing time
    Suggestions:
      • Cache LLM responses for repeated queries
      • Reduce prompt length where possible
 
 3. Optimize LLM Operations (Priority: MEDIUM)
-   LLM operation &#39;llm_generation&#39; is taking 4.05s on average
+   LLM operation 'llm_generation' is taking 4.05s on average
    Estimated Improvement: 20-40% reduction in LLM processing time
    Suggestions:
      • Cache LLM responses for repeated queries
@@ -6070,7 +6070,7 @@ Interesting! The balanced profile shows there ARE background operations happenin
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: python scripts/performance_report.py perf_comprehensive_test --detailed</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: python scripts/performance_report.py perf_comprehensive_test --detailed</summary>
 
 ```bash
 python scripts/performance_report.py perf_comprehensive_test --detailed
@@ -6153,21 +6153,21 @@ OPTIMIZATION RECOMMENDATIONS:
 --------------------------------------------------
 
 1. Optimize Graph Memory Processing (Priority: HIGH)
-   Graph operation &#39;async_graph_memory_update&#39; is taking 29.62s on average
+   Graph operation 'async_graph_memory_update' is taking 29.62s on average
    Estimated Improvement: 50-70% reduction in graph processing time
    Suggestions:
      • Enable graph memory fast mode to skip complex EntityResolver processing
      • Consider batching graph operations
 
 2. Optimize Graph Memory Processing (Priority: HIGH)
-   Graph operation &#39;graph_conversation_level_processing&#39; is taking 29.62s on average
+   Graph operation 'graph_conversation_level_processing' is taking 29.62s on average
    Estimated Improvement: 50-70% reduction in graph processing time
    Suggestions:
      • Enable graph memory fast mode to skip complex EntityResolver processing
      • Consider batching graph operations
 
 3. Optimize Graph Memory Processing (Priority: HIGH)
-   Graph operation &#39;graph_entity_resolver&#39; is taking 29.62s on average
+   Graph operation 'graph_entity_resolver' is taking 29.62s on average
    Estimated Improvement: 50-70% reduction in graph processing time
    Suggestions:
      • Enable graph memory fast mode to skip complex EntityResolver processing
@@ -6290,17 +6290,17 @@ Great idea! Let's add verbose status messages to make the processing steps and t
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/agent_usage_example.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: examples/agent_usage_example.py</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: undefined
 
 ```diff
 @@ -718,4 +718,6 @@
-      parser.add_argument(&#39;--performance&#39;, type=str, choices=[&#39;speed&#39;, &#39;balanced&#39;, &#39;comprehensive&#39;], default=&#39;balanced&#39;,
-                         help=&#39;Select performance profile: speed, balanced, comprehensive&#39;)
-+     parser.add_argument(&#39;--verbose&#39;, &#39;-v&#39;, action=&#39;store_true&#39;,
-+                        help=&#39;Enable verbose status messages showing processing steps and timing&#39;)
+      parser.add_argument('--performance', type=str, choices=['speed', 'balanced', 'comprehensive'], default='balanced',
+                         help='Select performance profile: speed, balanced, comprehensive')
++     parser.add_argument('--verbose', '-v', action='store_true',
++                        help='Enable verbose status messages showing processing steps and timing')
       args = parser.parse_args()
   
 ```
@@ -6317,15 +6317,15 @@ Now let me pass the verbose flag through the setup process:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/agent_usage_example.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: examples/agent_usage_example.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
 
 ```diff
 @@ -738,5 +738,5 @@
-          print(f&quot;Using domain config: {args.config}&quot;)
-          print(f&quot;Domain config: {domain_config}&quot;)
+          print(f"Using domain config: {args.config}")
+          print(f"Domain config: {domain_config}")
 -         agent, memory_manager = await setup_services(domain_config, args.guid, args.type, args.performance)
 +         agent, memory_manager = await setup_services(domain_config, args.guid, args.type, args.performance, args.verbose)
           
@@ -6340,7 +6340,7 @@ Lines added: 1, lines removed: 1
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/agent_usage_example.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: examples/agent_usage_example.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -6349,9 +6349,9 @@ Lines added: 1, lines removed: 1
 @@ -387,5 +387,5 @@
       return session_guid, memory_file, memory_type
   
-- async def setup_services(domain_config, memory_guid=None, memory_type=&quot;standard&quot;, performance_profile=&quot;balanced&quot;):
-+ async def setup_services(domain_config, memory_guid=None, memory_type=&quot;standard&quot;, performance_profile=&quot;balanced&quot;, verbose=False):
-      &quot;&quot;&quot;Initialize the LLM service and memory manager
+- async def setup_services(domain_config, memory_guid=None, memory_type="standard", performance_profile="balanced"):
++ async def setup_services(domain_config, memory_guid=None, memory_type="standard", performance_profile="balanced", verbose=False):
+      """Initialize the LLM service and memory manager
       
 ```
 
@@ -6360,8 +6360,8 @@ Lines added: 1, lines removed: undefined
 
 ```diff
 @@ -394,4 +394,5 @@
-          memory_type: Type of memory manager to use (&#39;standard&#39; or &#39;simple&#39;)
-          performance_profile: Performance profile to use (&#39;speed&#39;, &#39;balanced&#39;, &#39;comprehensive&#39;)
+          memory_type: Type of memory manager to use ('standard' or 'simple')
+          performance_profile: Performance profile to use ('speed', 'balanced', 'comprehensive')
 +         verbose: Enable verbose status messages
           
       Returns:
@@ -6379,7 +6379,7 @@ Now let me create a verbose status handler and integrate it into the memory mana
 
 <tool-use data-tool-type="write" data-tool-name="write">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/utils/verbose_status.py</summary>
+<details><summary>Tool use: **write** • Edit file: src/utils/verbose_status.py</summary>
 
 **Chunk 1**
 Lines added: 208, lines removed: 1
@@ -6387,12 +6387,12 @@ Lines added: 208, lines removed: 1
 ```diff
 @@ -1,1 +1,208 @@
 - 
-+ &quot;&quot;&quot;
++ """
 + Verbose Status Handler
 + 
 + Provides timing and status messages for CLI and potentially WebSocket clients.
 + Shows users what operations are happening and how long they take.
-+ &quot;&quot;&quot;
++ """
 + 
 + import time
 + import threading
@@ -6401,7 +6401,7 @@ Lines added: 208, lines removed: 1
 + 
 + 
 + class VerboseStatusHandler:
-+     &quot;&quot;&quot;
++     """
 +     Handle verbose status messages with timing information.
 +     
 +     Features:
@@ -6409,102 +6409,102 @@ Lines added: 208, lines removed: 1
 +     - Thread-safe status updates
 +     - Configurable output handlers (CLI, WebSocket, etc.)
 +     - Hierarchical operation tracking
-+     &quot;&quot;&quot;
++     """
 +     
 +     def __init__(self, enabled: bool = True, output_handler: Optional[Callable[[str], None]] = None):
-+         &quot;&quot;&quot;
++         """
 +         Initialize the verbose status handler.
 +         
 +         Args:
 +             enabled: Whether verbose messages are enabled
 +             output_handler: Function to handle output messages (defaults to print)
-+         &quot;&quot;&quot;
++         """
 +         self.enabled = enabled
 +         self.output_handler = output_handler or print
 +         self._lock = threading.Lock()
 +         self._operation_stack = []
 +         
 +     def set_enabled(self, enabled: bool):
-+         &quot;&quot;&quot;Enable or disable verbose messages.&quot;&quot;&quot;
++         """Enable or disable verbose messages."""
 +         with self._lock:
 +             self.enabled = enabled
 +     
 +     def set_output_handler(self, handler: Callable[[str], None]):
-+         &quot;&quot;&quot;Set the output handler for messages.&quot;&quot;&quot;
++         """Set the output handler for messages."""
 +         with self._lock:
 +             self.output_handler = handler
 +     
 +     def status(self, message: str, level: int = 0):
-+         &quot;&quot;&quot;
++         """
 +         Send a status message.
 +         
 +         Args:
 +             message: The status message
 +             level: Indentation level for hierarchical display
-+         &quot;&quot;&quot;
++         """
 +         if not self.enabled:
 +             return
 +             
 +         with self._lock:
-+             indent = &quot;  &quot; * level
-+             formatted_message = f&quot;🔄 {indent}{message}&quot;
++             indent = "  " * level
++             formatted_message = f"🔄 {indent}{message}"
 +             self.output_handler(formatted_message)
 +     
 +     def success(self, message: str, duration: Optional[float] = None, level: int = 0):
-+         &quot;&quot;&quot;
++         """
 +         Send a success message with optional timing.
 +         
 +         Args:
 +             message: The success message
 +             duration: Optional duration in seconds
 +             level: Indentation level for hierarchical display
-+         &quot;&quot;&quot;
++         """
 +         if not self.enabled:
 +             return
 +             
 +         with self._lock:
-+             indent = &quot;  &quot; * level
++             indent = "  " * level
 +             if duration is not None:
-+                 formatted_message = f&quot;✅ {indent}{message} ({duration:.2f}s)&quot;
++                 formatted_message = f"✅ {indent}{message} ({duration:.2f}s)"
 +             else:
-+                 formatted_message = f&quot;✅ {indent}{message}&quot;
++                 formatted_message = f"✅ {indent}{message}"
 +             self.output_handler(formatted_message)
 +     
 +     def warning(self, message: str, level: int = 0):
-+         &quot;&quot;&quot;
++         """
 +         Send a warning message.
 +         
 +         Args:
 +             message: The warning message
 +             level: Indentation level for hierarchical display
-+         &quot;&quot;&quot;
++         """
 +         if not self.enabled:
 +             return
 +             
 +         with self._lock:
-+             indent = &quot;  &quot; * level
-+             formatted_message = f&quot;⚠️  {indent}{message}&quot;
++             indent = "  " * level
++             formatted_message = f"⚠️  {indent}{message}"
 +             self.output_handler(formatted_message)
 +     
 +     def error(self, message: str, level: int = 0):
-+         &quot;&quot;&quot;
++         """
 +         Send an error message.
 +         
 +         Args:
 +             message: The error message
 +             level: Indentation level for hierarchical display
-+         &quot;&quot;&quot;
++         """
 +         if not self.enabled:
 +             return
 +             
 +         with self._lock:
-+             indent = &quot;  &quot; * level
-+             formatted_message = f&quot;❌ {indent}{message}&quot;
++             indent = "  " * level
++             formatted_message = f"❌ {indent}{message}"
 +             self.output_handler(formatted_message)
 +     
 +     @contextmanager
 +     def operation(self, operation_name: str, level: int = 0, show_start: bool = True):
-+         &quot;&quot;&quot;
++         """
 +         Context manager for timed operations.
 +         
 +         Args:
@@ -6514,13 +6514,13 @@ Lines added: 208, lines removed: 1
 +             
 +         Yields:
 +             VerboseStatusHandler: Self for nested operations
-+         &quot;&quot;&quot;
++         """
 +         if not self.enabled:
 +             yield self
 +             return
 +         
 +         if show_start:
-+             self.status(f&quot;Starting {operation_name}...&quot;, level)
++             self.status(f"Starting {operation_name}...", level)
 +         
 +         start_time = time.time()
 +         
@@ -6533,18 +6533,18 @@ Lines added: 208, lines removed: 1
 +             yield self
 +         except Exception as e:
 +             duration = time.time() - start_time
-+             self.error(f&quot;Failed {operation_name}: {str(e)} ({duration:.2f}s)&quot;, level)
++             self.error(f"Failed {operation_name}: {str(e)} ({duration:.2f}s)", level)
 +             raise
 +         finally:
 +             duration = time.time() - start_time
-+             self.success(f&quot;Completed {operation_name}&quot;, duration, level)
++             self.success(f"Completed {operation_name}", duration, level)
 +             
 +             with self._lock:
 +                 if self._operation_stack and self._operation_stack[-1] == operation_name:
 +                     self._operation_stack.pop()
 +     
 +     def get_current_level(self) -&gt; int:
-+         &quot;&quot;&quot;Get the current nesting level for operations.&quot;&quot;&quot;
++         """Get the current nesting level for operations."""
 +         with self._lock:
 +             return len(self._operation_stack)
 + 
@@ -6553,7 +6553,7 @@ Lines added: 208, lines removed: 1
 + _global_verbose_handler = None
 + 
 + def get_verbose_handler(enabled: bool = True, output_handler: Optional[Callable[[str], None]] = None) -&gt; VerboseStatusHandler:
-+     &quot;&quot;&quot;Get or create the global verbose status handler.&quot;&quot;&quot;
++     """Get or create the global verbose status handler."""
 +     global _global_verbose_handler
 +     if _global_verbose_handler is None:
 +         _global_verbose_handler = VerboseStatusHandler(enabled, output_handler)
@@ -6564,34 +6564,34 @@ Lines added: 208, lines removed: 1
 +     return _global_verbose_handler
 + 
 + def set_verbose_enabled(enabled: bool):
-+     &quot;&quot;&quot;Enable or disable verbose messages globally.&quot;&quot;&quot;
++     """Enable or disable verbose messages globally."""
 +     handler = get_verbose_handler()
 +     handler.set_enabled(enabled)
 + 
 + # Convenience functions for common operations
 + def status(message: str, level: int = 0):
-+     &quot;&quot;&quot;Send a status message.&quot;&quot;&quot;
++     """Send a status message."""
 +     handler = get_verbose_handler()
 +     handler.status(message, level)
 + 
 + def success(message: str, duration: Optional[float] = None, level: int = 0):
-+     &quot;&quot;&quot;Send a success message.&quot;&quot;&quot;
++     """Send a success message."""
 +     handler = get_verbose_handler()
 +     handler.success(message, duration, level)
 + 
 + def warning(message: str, level: int = 0):
-+     &quot;&quot;&quot;Send a warning message.&quot;&quot;&quot;
++     """Send a warning message."""
 +     handler = get_verbose_handler()
 +     handler.warning(message, level)
 + 
 + def error(message: str, level: int = 0):
-+     &quot;&quot;&quot;Send an error message.&quot;&quot;&quot;
++     """Send an error message."""
 +     handler = get_verbose_handler()
 +     handler.error(message, level)
 + 
 + @contextmanager
 + def operation(operation_name: str, level: int = 0, show_start: bool = True):
-+     &quot;&quot;&quot;Context manager for timed operations.&quot;&quot;&quot;
++     """Context manager for timed operations."""
 +     handler = get_verbose_handler()
 +     with handler.operation(operation_name, level, show_start) as h:
 +         yield h
@@ -6609,7 +6609,7 @@ Now let me integrate verbose status messages into the memory manager:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -6618,9 +6618,9 @@ Lines added: 1, lines removed: 1
 @@ -71,5 +71,5 @@
                    max_recent_conversation_entries: int = 8, importance_threshold: int = DEFAULT_COMPRESSION_IMPORTANCE_THRESHOLD, 
                    enable_graph_memory: bool = True, enable_graph_memory_fast_mode: bool = False, 
--                  graph_memory_processing_level: str = &quot;balanced&quot;, logger=None):
-+                  graph_memory_processing_level: str = &quot;balanced&quot;, verbose: bool = False, logger=None):
-          &quot;&quot;&quot;Initialize the MemoryManager with LLM service instances and domain configuration.
+-                  graph_memory_processing_level: str = "balanced", logger=None):
++                  graph_memory_processing_level: str = "balanced", verbose: bool = False, logger=None):
+          """Initialize the MemoryManager with LLM service instances and domain configuration.
           
 ```
 
@@ -6632,7 +6632,7 @@ Lines added: 1, lines removed: 1
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: undefined
@@ -6640,10 +6640,10 @@ Lines added: 1, lines removed: undefined
 ```diff
 @@ -89,4 +89,5 @@
               enable_graph_memory_fast_mode: Use fast mode for graph processing (default: False)
-              graph_memory_processing_level: Processing level - &quot;speed&quot;, &quot;balanced&quot;, &quot;comprehensive&quot; (default: &quot;balanced&quot;)
+              graph_memory_processing_level: Processing level - "speed", "balanced", "comprehensive" (default: "balanced")
 +             verbose: Enable verbose status messages (default: False)
               logger: Optional logger instance for this MemoryManager
-          &quot;&quot;&quot;
+          """
 ```
 
 </details>
@@ -6654,7 +6654,7 @@ Lines added: 1, lines removed: undefined
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 8, lines removed: undefined
@@ -6687,21 +6687,21 @@ Now let me add verbose status messages to the main query_memory method:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 4, lines removed: undefined
 
 ```diff
 @@ -472,4 +472,8 @@
-                  self.logger.debug(&quot;Querying memory...&quot;)
+                  self.logger.debug("Querying memory...")
                   
 +                 # Verbose status
 +                 if self.verbose_handler:
-+                     self.verbose_handler.status(f&quot;Processing query: &#39;{query_context.get(&#39;query&#39;, &#39;&#39;)[:50]}...&#39;&quot;)
++                     self.verbose_handler.status(f"Processing query: '{query_context.get('query', '')[:50]}...'")
 +                 
                   # Extract query text
-                  query = query_context.get(&quot;query&quot;, &quot;&quot;)
+                  query = query_context.get("query", "")
 ```
 
 </details>
@@ -6716,7 +6716,7 @@ Let me add verbose messages to key operations in the query_memory method:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 5, lines removed: undefined
@@ -6724,16 +6724,16 @@ Lines added: 5, lines removed: undefined
 ```diff
 @@ -511,8 +511,13 @@
                   if not rag_context:
-                      with performance_tracker.track_operation(&quot;rag_enhancement&quot;):
+                      with performance_tracker.track_operation("rag_enhancement"):
 +                         if self.verbose_handler:
-+                             self.verbose_handler.status(&quot;Enhancing query with relevant context (RAG)...&quot;, 1)
++                             self.verbose_handler.status("Enhancing query with relevant context (RAG)...", 1)
 +                         
                           # Try to get from cache first
                           if self.cache_manager:
                               memory_state_hash = self.cache_manager.get_memory_state_hash(self.memory)
                               rag_context = self.cache_manager.get_rag_context(query, memory_state_hash)
 +                             if rag_context and self.verbose_handler:
-+                                 self.verbose_handler.success(&quot;Found cached RAG context&quot;, level=2)
++                                 self.verbose_handler.success("Found cached RAG context", level=2)
                           
                           if not rag_context:
 ```
@@ -6746,7 +6746,7 @@ Lines added: 2, lines removed: undefined
                               if rag_context and self.cache_manager:
                                   self.cache_manager.set_rag_context(query, memory_state_hash, rag_context)
 +                                 if self.verbose_handler:
-+                                     self.verbose_handler.success(&quot;Generated and cached RAG context&quot;, level=2)
++                                     self.verbose_handler.success("Generated and cached RAG context", level=2)
                           
                           if rag_context:
 ```
@@ -6759,25 +6759,25 @@ Lines added: 2, lines removed: undefined
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 5, lines removed: undefined
 
 ```diff
 @@ -542,9 +542,14 @@
-                      with performance_tracker.track_operation(&quot;graph_context&quot;):
+                      with performance_tracker.track_operation("graph_context"):
                           try:
 +                             if self.verbose_handler:
-+                                 self.verbose_handler.status(&quot;Retrieving graph context...&quot;, 1)
++                                 self.verbose_handler.status("Retrieving graph context...", 1)
 +                             
                               # Try to get from cache first
                               if self.cache_manager:
                                   # For graph context, we use a simpler hash since graph changes less frequently
-                                  graph_state_hash = f&quot;graph_{len(self.memory.get(&#39;conversation_history&#39;, []))}&quot;
+                                  graph_state_hash = f"graph_{len(self.memory.get('conversation_history', []))}"
                                   graph_context = self.cache_manager.get_graph_context(query, graph_state_hash)
 +                                 if graph_context and self.verbose_handler:
-+                                     self.verbose_handler.success(&quot;Found cached graph context&quot;, level=2)
++                                     self.verbose_handler.success("Found cached graph context", level=2)
                               
                               if not graph_context:
 ```
@@ -6790,15 +6790,15 @@ Lines added: 4, lines removed: undefined
                                   if graph_context and self.cache_manager:
                                       self.cache_manager.set_graph_context(query, graph_state_hash, graph_context)
 +                                     if self.verbose_handler:
-+                                         self.verbose_handler.success(&quot;Generated and cached graph context&quot;, level=2)
++                                         self.verbose_handler.success("Generated and cached graph context", level=2)
                               
                               if graph_context:
-                                  self.logger.debug(&quot;Added graph context to memory query&quot;)
+                                  self.logger.debug("Added graph context to memory query")
                           except Exception as e:
 +                             if self.verbose_handler:
-+                                 self.verbose_handler.warning(f&quot;Graph context failed: {str(e)}&quot;, 1)
-                              self.logger.warning(f&quot;Failed to get graph context: {e}&quot;)
-                              graph_context = &quot;&quot;
++                                 self.verbose_handler.warning(f"Graph context failed: {str(e)}", 1)
+                              self.logger.warning(f"Failed to get graph context: {e}")
+                              graph_context = ""
 ```
 
 </details>
@@ -6809,7 +6809,7 @@ Lines added: 4, lines removed: undefined
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 4, lines removed: undefined
@@ -6817,16 +6817,16 @@ Lines added: 4, lines removed: undefined
 ```diff
 @@ -591,9 +591,13 @@
                   # Get response from LLM
-                  self.logger.debug(&quot;Generating response using LLM...&quot;)
+                  self.logger.debug("Generating response using LLM...")
 +                 if self.verbose_handler:
-+                     self.verbose_handler.status(&quot;Generating response with LLM...&quot;, 1)
-                  with performance_tracker.track_operation(&quot;llm_generation&quot;, {&quot;prompt_length&quot;: len(prompt)}):
++                     self.verbose_handler.status("Generating response with LLM...", 1)
+                  with performance_tracker.track_operation("llm_generation", {"prompt_length": len(prompt)}):
                       llm_response = self.llm.generate(
                           prompt,
-                          options={&quot;temperature&quot;: 0.7}
+                          options={"temperature": 0.7}
                       )
 +                     if self.verbose_handler:
-+                         self.verbose_handler.success(f&quot;Generated response ({len(llm_response)} chars)&quot;, level=2)
++                         self.verbose_handler.success(f"Generated response ({len(llm_response)} chars)", level=2)
                   
                   # Create agent entry and add to history
 ```
@@ -6839,7 +6839,7 @@ Lines added: 4, lines removed: undefined
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 5, lines removed: undefined
@@ -6849,9 +6849,9 @@ Lines added: 5, lines removed: undefined
                       entries_to_process.append(agent_entry)
                       
 +                     if self.verbose_handler:
-+                         processing_mode = &quot;batch&quot; if self._enable_batch_processing and len(entries_to_process) &gt; 1 else &quot;individual&quot;
-+                         graph_mode = self.graph_memory_processing_level if self.enable_graph_memory else &quot;disabled&quot;
-+                         self.verbose_handler.status(f&quot;Starting background processing ({processing_mode}, graph: {graph_mode})...&quot;, 1)
++                         processing_mode = "batch" if self._enable_batch_processing and len(entries_to_process) &gt; 1 else "individual"
++                         graph_mode = self.graph_memory_processing_level if self.enable_graph_memory else "disabled"
++                         self.verbose_handler.status(f"Starting background processing ({processing_mode}, graph: {graph_mode})...", 1)
 +                     
                       if self._enable_batch_processing and len(entries_to_process) &gt; 1:
                           # Use batch processing for multiple entries
@@ -6869,7 +6869,7 @@ Now let me update the agent_usage_example.py to pass the verbose flag to the mem
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/agent_usage_example.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: examples/agent_usage_example.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: undefined
@@ -6894,7 +6894,7 @@ Now let me test the verbose mode:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: echo "Tell me about Elena." | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/agent_usage_example.py --guid verbose_test --config dnd --performance speed --verbose</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: echo "Tell me about Elena." | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/agent_usage_example.py --guid verbose_test --config dnd --performance speed --verbose</summary>
 
 ```bash
 echo "Tell me about Elena." | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/agent_usage_example.py --guid verbose_test --config dnd --performance speed --verbose
@@ -6908,46 +6908,46 @@ echo "Tell me about Elena." | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28
 ================================================================================
 
 Using domain config: dnd
-Domain config: {&#39;domain_name&#39;: &#39;dnd_campaign&#39;, &#39;domain_specific_prompt_instructions&#39;: {&#39;query&#39;: &quot;You are a D
-M for a D&amp;D campaign. ANSWER PLAYER QUESTIONS DIRECTLY. For simple questions (like &#39;are there goblins nearby
-?&#39;), give specific answers based on the campaign state. For exploration questions (like &#39;what do I see?&#39;), p
-rovide vivid but concise descriptions. Avoid starting every response with &#39;Okay, let&#39;s investigate&#39; or simil
-ar repetitive phrases. Move the story forward with actionable information and clear choices.&quot;, &#39;update&#39;: &#39;Yo
+Domain config: {'domain_name': 'dnd_campaign', 'domain_specific_prompt_instructions': {'query': "You are a D
+M for a D&amp;D campaign. ANSWER PLAYER QUESTIONS DIRECTLY. For simple questions (like 'are there goblins nearby
+?'), give specific answers based on the campaign state. For exploration questions (like 'what do I see?'), p
+rovide vivid but concise descriptions. Avoid starting every response with 'Okay, let's investigate' or simil
+ar repetitive phrases. Move the story forward with actionable information and clear choices.", 'update': 'Yo
 u are analyzing the input from both the user and the agent and extracting and classifying the important info
-rmation into the conversation history data structure.&#39;}, &#39;initial_data&#39;: &quot;\nCampaign Setting: The Lost Valle
+rmation into the conversation history data structure.'}, 'initial_data': "\nCampaign Setting: The Lost Valle
 y\n\nWorld Details:\n- Hidden valley surrounded by impassable mountains\n- Ancient ruins scattered throughou
 t\n- Mysterious magical anomalies\n- Three main settlements: Haven (central), Riverwatch (east), Mountainkee
-p (west)\n\nKey NPCs:\n1. Elena\n   - Role: Mayor of Haven\n   - Motivation: Protect the valley&#39;s inhabitant
+p (west)\n\nKey NPCs:\n1. Elena\n   - Role: Mayor of Haven\n   - Motivation: Protect the valley's inhabitant
 s\n   - Current Quest: Investigate strange occurrences in Haven\n\n2. Theron\n   - Role: Master Scholar\n
 - Expertise: Ancient ruins and artifacts\n   - Current Research: Decoding ruin inscriptions\n\n3. Sara\n   -
- Role: Captain of Riverwatch\n   - Responsibility: Valley&#39;s defense\n   - Current Concern: Increased monster
+ Role: Captain of Riverwatch\n   - Responsibility: Valley's defense\n   - Current Concern: Increased monster
  activity\n\nCurrent Situations:\n1. Trade Routes\n   - Main road between settlements disrupted\n   - Mercha
 nts seeking protection\n   - Alternative routes needed\n\n2. Ancient Ruins\n   - New chambers discovered\n
  - Strange energy emanations\n   - Valuable artifacts found\n\n3. Magical Anomalies\n   - Random magical eff
-ects\n   - Affecting local wildlife\n   - Possible connection to ruins&quot;, &#39;topic_taxonomy&#39;: {&#39;world&#39;: [&#39;setti
-ng&#39;, &#39;geography&#39;, &#39;location&#39;, &#39;environment&#39;, &#39;terrain&#39;], &#39;characters&#39;: [&#39;npc&#39;, &#39;player&#39;, &#39;personality&#39;, &#39;mot
-ivation&#39;, &#39;background&#39;], &#39;narrative&#39;: [&#39;story&#39;, &#39;plot&#39;, &#39;quest&#39;, &#39;adventure&#39;, &#39;campaign&#39;], &#39;mechanics&#39;: [&#39;ru
-les&#39;, &#39;dice&#39;, &#39;combat&#39;, &#39;magic&#39;, &#39;spells&#39;], &#39;objects&#39;: [&#39;items&#39;, &#39;equipment&#39;, &#39;artifacts&#39;, &#39;treasure&#39;, &#39;inve
-ntory&#39;], &#39;history&#39;: [&#39;lore&#39;, &#39;ruins&#39;, &#39;archaeology&#39;, &#39;ancient&#39;, &#39;past&#39;], &#39;society&#39;: [&#39;politics&#39;, &#39;trade&#39;, &#39;s
-ettlements&#39;, &#39;culture&#39;, &#39;religion&#39;], &#39;threats&#39;: [&#39;monsters&#39;, &#39;enemies&#39;, &#39;dangers&#39;, &#39;conflict&#39;, &#39;war&#39;], &#39;expl
-oration&#39;: [&#39;discovery&#39;, &#39;investigation&#39;, &#39;research&#39;, &#39;mystery&#39;], &#39;events&#39;: [&#39;happenings&#39;, &#39;situations&#39;, &#39;inc
-idents&#39;, &#39;occurrences&#39;]}, &#39;topic_normalizations&#39;: {&#39;locations&#39;: &#39;location&#39;, &#39;geography&#39;: &#39;location&#39;, &#39;terrai
-n&#39;: &#39;environment&#39;, &#39;area&#39;: &#39;location&#39;, &#39;place&#39;: &#39;location&#39;, &#39;region&#39;: &#39;location&#39;, &#39;character&#39;: &#39;characters&#39;,
- &#39;key npc&#39;: &#39;npc&#39;, &#39;npcs&#39;: &#39;npc&#39;, &#39;people&#39;: &#39;characters&#39;, &#39;ruins&#39;: &#39;archaeology&#39;, &#39;ancient ruins&#39;: &#39;archaeol
-ogy&#39;, &#39;artifacts&#39;: &#39;archaeology&#39;, &#39;archaeological&#39;: &#39;archaeology&#39;, &#39;situation&#39;: &#39;events&#39;, &#39;situations&#39;: &#39;eve
-nts&#39;, &#39;happenings&#39;: &#39;events&#39;, &#39;occurrences&#39;: &#39;events&#39;, &#39;research&#39;: &#39;investigation&#39;, &#39;exploration&#39;: &#39;investig
-ation&#39;, &#39;discovery&#39;: &#39;investigation&#39;, &#39;magical&#39;: &#39;magic&#39;, &#39;anomalies&#39;: &#39;magic&#39;, &#39;magical anomalies&#39;: &#39;magic&#39;
-, &#39;setting&#39;: &#39;world&#39;, &#39;world&#39;: &#39;setting&#39;, &#39;lore&#39;: &#39;history&#39;, &#39;ancient&#39;: &#39;history&#39;, &#39;monsters&#39;: &#39;threats&#39;, &#39;e
-nemies&#39;: &#39;threats&#39;, &#39;monster activity&#39;: &#39;threats&#39;, &#39;defense&#39;: &#39;threats&#39;, &#39;trade routes&#39;: &#39;trade&#39;, &#39;settlemen
-ts&#39;: &#39;society&#39;, &#39;politics&#39;: &#39;society&#39;, &#39;value&#39;: &#39;objects&#39;, &#39;treasure&#39;: &#39;objects&#39;, &#39;skills&#39;: &#39;mechanics&#39;, &#39;ex
-pertise&#39;: &#39;mechanics&#39;, &#39;decryption&#39;: &#39;investigation&#39;, &#39;wildlife&#39;: &#39;environment&#39;}, &#39;graph_memory_config&#39;: {&#39;e
-nabled&#39;: True, &#39;entity_types&#39;: [&#39;character&#39;, &#39;location&#39;, &#39;object&#39;, &#39;event&#39;, &#39;concept&#39;, &#39;organization&#39;], &#39;rel
-ationship_types&#39;: [&#39;located_in&#39;, &#39;owns&#39;, &#39;member_of&#39;, &#39;allies_with&#39;, &#39;enemies_with&#39;, &#39;uses&#39;, &#39;created_by&#39;, &#39;
-leads_to&#39;, &#39;participates_in&#39;, &#39;related_to&#39;, &#39;mentions&#39;], &#39;entity_extraction_prompt&#39;: &#39;Extract entities from
+ects\n   - Affecting local wildlife\n   - Possible connection to ruins", 'topic_taxonomy': {'world': ['setti
+ng', 'geography', 'location', 'environment', 'terrain'], 'characters': ['npc', 'player', 'personality', 'mot
+ivation', 'background'], 'narrative': ['story', 'plot', 'quest', 'adventure', 'campaign'], 'mechanics': ['ru
+les', 'dice', 'combat', 'magic', 'spells'], 'objects': ['items', 'equipment', 'artifacts', 'treasure', 'inve
+ntory'], 'history': ['lore', 'ruins', 'archaeology', 'ancient', 'past'], 'society': ['politics', 'trade', 's
+ettlements', 'culture', 'religion'], 'threats': ['monsters', 'enemies', 'dangers', 'conflict', 'war'], 'expl
+oration': ['discovery', 'investigation', 'research', 'mystery'], 'events': ['happenings', 'situations', 'inc
+idents', 'occurrences']}, 'topic_normalizations': {'locations': 'location', 'geography': 'location', 'terrai
+n': 'environment', 'area': 'location', 'place': 'location', 'region': 'location', 'character': 'characters',
+ 'key npc': 'npc', 'npcs': 'npc', 'people': 'characters', 'ruins': 'archaeology', 'ancient ruins': 'archaeol
+ogy', 'artifacts': 'archaeology', 'archaeological': 'archaeology', 'situation': 'events', 'situations': 'eve
+nts', 'happenings': 'events', 'occurrences': 'events', 'research': 'investigation', 'exploration': 'investig
+ation', 'discovery': 'investigation', 'magical': 'magic', 'anomalies': 'magic', 'magical anomalies': 'magic'
+, 'setting': 'world', 'world': 'setting', 'lore': 'history', 'ancient': 'history', 'monsters': 'threats', 'e
+nemies': 'threats', 'monster activity': 'threats', 'defense': 'threats', 'trade routes': 'trade', 'settlemen
+ts': 'society', 'politics': 'society', 'value': 'objects', 'treasure': 'objects', 'skills': 'mechanics', 'ex
+pertise': 'mechanics', 'decryption': 'investigation', 'wildlife': 'environment'}, 'graph_memory_config': {'e
+nabled': True, 'entity_types': ['character', 'location', 'object', 'event', 'concept', 'organization'], 'rel
+ationship_types': ['located_in', 'owns', 'member_of', 'allies_with', 'enemies_with', 'uses', 'created_by', '
+leads_to', 'participates_in', 'related_to', 'mentions'], 'entity_extraction_prompt': 'Extract entities from
 this D&amp;D campaign text. Focus on characters, locations, objects, events, concepts, and organizations that ar
-e important to the campaign world and story.&#39;, &#39;relationship_extraction_prompt&#39;: &#39;Identify relationships bet
+e important to the campaign world and story.', 'relationship_extraction_prompt': 'Identify relationships bet
 ween entities in this D&amp;D campaign text. Look for spatial relationships (located_in), ownership (owns), soci
-al relationships (allies_with, enemies_with), and story connections.&#39;, &#39;similarity_threshold&#39;: 0.8}}
+al relationships (allies_with, enemies_with), and story connections.', 'similarity_threshold': 0.8}}
 
 Setting up services...
 Initializing session with guid: verbose_test
@@ -6968,11 +6968,11 @@ Memory File: agent_memories/standard/verbose_test/agent_memory.json
 Metadata:
 ------------------------------
 {
-  &quot;created_at&quot;: &quot;2025-09-02T10:18:37.252687&quot;,
-  &quot;updated_at&quot;: &quot;2025-09-02T10:18:37.252687&quot;,
-  &quot;version&quot;: &quot;2.0.0&quot;,
-  &quot;domain&quot;: &quot;general&quot;,
-  &quot;saved_during&quot;: &quot;create_initial_memory&quot;
+  "created_at": "2025-09-02T10:18:37.252687",
+  "updated_at": "2025-09-02T10:18:37.252687",
+  "version": "2.0.0",
+  "domain": "general",
+  "saved_during": "create_initial_memory"
 }
 
 Conversation History: 1 messages
@@ -6989,14 +6989,14 @@ ep, located to the west.
 
 
 Key non-player characters include Elena, who serves as the Mayor of Haven and whose primary motivation is to
- protect the valley&#39;s inhabitants;
+ protect the valley's inhabitants;
 
 
 Theron, a Master Scholar with expertise in ancient ruins and artifacts, currently focused on decoding ruin i
 nscriptions;
 
 
-and Sara, the Captain of Riverwatch, responsible for the valley&#39;s defense and currently concerned by increas
+and Sara, the Captain of Riverwatch, responsible for the valley's defense and currently concerned by increas
 ed monster activity.
 
 
@@ -7008,19 +7008,19 @@ Consequently, alternative trade routes are needed. New chambers have been discov
 s, accompanied by strange energy emanations, and valuable artifacts have been found.
 
 
-Furthermore, random magical effects are occurring, impacting local wildlife, and there&#39;s a possible connecti
+Furthermore, random magical effects are occurring, impacting local wildlife, and there's a possible connecti
 on between these anomalies and the ruins.
 
 
 Processing: Tell me about Elena.
-🔄 Processing query: &#39;Tell me about Elena....&#39;
+🔄 Processing query: 'Tell me about Elena....'
 🔄   Enhancing query with relevant context (RAG)...
 ✅     Generated and cached RAG context
 🔄   Generating response with LLM...
 ✅     Generated response (221 chars)
 🔄   Starting background processing (batch, graph: disabled)...
 
-Agent: Elena serves as the Mayor of Haven and is primarily motivated by a desire to protect the valley&#39;s inh
+Agent: Elena serves as the Mayor of Haven and is primarily motivated by a desire to protect the valley's inh
 abitants. She is currently concerned with the disruption of trade routes and the increased monster activity
 in the area.
 
@@ -7075,7 +7075,7 @@ Let me test it with the balanced profile to see graph processing messages:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: echo "Tell me about Theron." | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/agent_usage_example.py --guid verbose_balanced_test --config dnd --performance balanced --verbose</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: echo "Tell me about Theron." | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/agent_usage_example.py --guid verbose_balanced_test --config dnd --performance balanced --verbose</summary>
 
 ```bash
 echo "Tell me about Theron." | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/agent_usage_example.py --guid verbose_balanced_test --config dnd --performance balanced --verbose
@@ -7089,58 +7089,58 @@ echo "Tell me about Theron." | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.2
 ================================================================================
 
 Using domain config: dnd
-Domain config: {&#39;domain_name&#39;: &#39;dnd_campaign&#39;, &#39;domain_specific_prompt_instructions&#39;
-: {&#39;query&#39;: &quot;You are a DM for a D&amp;D campaign. ANSWER PLAYER QUESTIONS DIRECTLY. For
-simple questions (like &#39;are there goblins nearby?&#39;), give specific answers based on
-the campaign state. For exploration questions (like &#39;what do I see?&#39;), provide vivid
- but concise descriptions. Avoid starting every response with &#39;Okay, let&#39;s investiga
-te&#39; or similar repetitive phrases. Move the story forward with actionable informatio
-n and clear choices.&quot;, &#39;update&#39;: &#39;You are analyzing the input from both the user and
+Domain config: {'domain_name': 'dnd_campaign', 'domain_specific_prompt_instructions'
+: {'query': "You are a DM for a D&amp;D campaign. ANSWER PLAYER QUESTIONS DIRECTLY. For
+simple questions (like 'are there goblins nearby?'), give specific answers based on
+the campaign state. For exploration questions (like 'what do I see?'), provide vivid
+ but concise descriptions. Avoid starting every response with 'Okay, let's investiga
+te' or similar repetitive phrases. Move the story forward with actionable informatio
+n and clear choices.", 'update': 'You are analyzing the input from both the user and
  the agent and extracting and classifying the important information into the convers
-ation history data structure.&#39;}, &#39;initial_data&#39;: &quot;\nCampaign Setting: The Lost Valle
+ation history data structure.'}, 'initial_data': "\nCampaign Setting: The Lost Valle
 y\n\nWorld Details:\n- Hidden valley surrounded by impassable mountains\n- Ancient r
 uins scattered throughout\n- Mysterious magical anomalies\n- Three main settlements:
  Haven (central), Riverwatch (east), Mountainkeep (west)\n\nKey NPCs:\n1. Elena\n
-- Role: Mayor of Haven\n   - Motivation: Protect the valley&#39;s inhabitants\n   - Curr
+- Role: Mayor of Haven\n   - Motivation: Protect the valley's inhabitants\n   - Curr
 ent Quest: Investigate strange occurrences in Haven\n\n2. Theron\n   - Role: Master
 Scholar\n   - Expertise: Ancient ruins and artifacts\n   - Current Research: Decodin
 g ruin inscriptions\n\n3. Sara\n   - Role: Captain of Riverwatch\n   - Responsibilit
-y: Valley&#39;s defense\n   - Current Concern: Increased monster activity\n\nCurrent Sit
+y: Valley's defense\n   - Current Concern: Increased monster activity\n\nCurrent Sit
 uations:\n1. Trade Routes\n   - Main road between settlements disrupted\n   - Mercha
 nts seeking protection\n   - Alternative routes needed\n\n2. Ancient Ruins\n   - New
  chambers discovered\n   - Strange energy emanations\n   - Valuable artifacts found\
 n\n3. Magical Anomalies\n   - Random magical effects\n   - Affecting local wildlife\
-n   - Possible connection to ruins&quot;, &#39;topic_taxonomy&#39;: {&#39;world&#39;: [&#39;setting&#39;, &#39;geogra
-phy&#39;, &#39;location&#39;, &#39;environment&#39;, &#39;terrain&#39;], &#39;characters&#39;: [&#39;npc&#39;, &#39;player&#39;, &#39;person
-ality&#39;, &#39;motivation&#39;, &#39;background&#39;], &#39;narrative&#39;: [&#39;story&#39;, &#39;plot&#39;, &#39;quest&#39;, &#39;advent
-ure&#39;, &#39;campaign&#39;], &#39;mechanics&#39;: [&#39;rules&#39;, &#39;dice&#39;, &#39;combat&#39;, &#39;magic&#39;, &#39;spells&#39;], &#39;obj
-ects&#39;: [&#39;items&#39;, &#39;equipment&#39;, &#39;artifacts&#39;, &#39;treasure&#39;, &#39;inventory&#39;], &#39;history&#39;: [&#39;lo
-re&#39;, &#39;ruins&#39;, &#39;archaeology&#39;, &#39;ancient&#39;, &#39;past&#39;], &#39;society&#39;: [&#39;politics&#39;, &#39;trade&#39;, &#39;s
-ettlements&#39;, &#39;culture&#39;, &#39;religion&#39;], &#39;threats&#39;: [&#39;monsters&#39;, &#39;enemies&#39;, &#39;dangers&#39;, &#39;
-conflict&#39;, &#39;war&#39;], &#39;exploration&#39;: [&#39;discovery&#39;, &#39;investigation&#39;, &#39;research&#39;, &#39;myster
-y&#39;], &#39;events&#39;: [&#39;happenings&#39;, &#39;situations&#39;, &#39;incidents&#39;, &#39;occurrences&#39;]}, &#39;topic_nor
-malizations&#39;: {&#39;locations&#39;: &#39;location&#39;, &#39;geography&#39;: &#39;location&#39;, &#39;terrain&#39;: &#39;environ
-ment&#39;, &#39;area&#39;: &#39;location&#39;, &#39;place&#39;: &#39;location&#39;, &#39;region&#39;: &#39;location&#39;, &#39;character&#39;: &#39;
-characters&#39;, &#39;key npc&#39;: &#39;npc&#39;, &#39;npcs&#39;: &#39;npc&#39;, &#39;people&#39;: &#39;characters&#39;, &#39;ruins&#39;: &#39;arch
-aeology&#39;, &#39;ancient ruins&#39;: &#39;archaeology&#39;, &#39;artifacts&#39;: &#39;archaeology&#39;, &#39;archaeologica
-l&#39;: &#39;archaeology&#39;, &#39;situation&#39;: &#39;events&#39;, &#39;situations&#39;: &#39;events&#39;, &#39;happenings&#39;: &#39;eve
-nts&#39;, &#39;occurrences&#39;: &#39;events&#39;, &#39;research&#39;: &#39;investigation&#39;, &#39;exploration&#39;: &#39;investig
-ation&#39;, &#39;discovery&#39;: &#39;investigation&#39;, &#39;magical&#39;: &#39;magic&#39;, &#39;anomalies&#39;: &#39;magic&#39;, &#39;mag
-ical anomalies&#39;: &#39;magic&#39;, &#39;setting&#39;: &#39;world&#39;, &#39;world&#39;: &#39;setting&#39;, &#39;lore&#39;: &#39;history&#39;,
- &#39;ancient&#39;: &#39;history&#39;, &#39;monsters&#39;: &#39;threats&#39;, &#39;enemies&#39;: &#39;threats&#39;, &#39;monster activit
-y&#39;: &#39;threats&#39;, &#39;defense&#39;: &#39;threats&#39;, &#39;trade routes&#39;: &#39;trade&#39;, &#39;settlements&#39;: &#39;societ
-y&#39;, &#39;politics&#39;: &#39;society&#39;, &#39;value&#39;: &#39;objects&#39;, &#39;treasure&#39;: &#39;objects&#39;, &#39;skills&#39;: &#39;mec
-hanics&#39;, &#39;expertise&#39;: &#39;mechanics&#39;, &#39;decryption&#39;: &#39;investigation&#39;, &#39;wildlife&#39;: &#39;envir
-onment&#39;}, &#39;graph_memory_config&#39;: {&#39;enabled&#39;: True, &#39;entity_types&#39;: [&#39;character&#39;, &#39;lo
-cation&#39;, &#39;object&#39;, &#39;event&#39;, &#39;concept&#39;, &#39;organization&#39;], &#39;relationship_types&#39;: [&#39;loca
-ted_in&#39;, &#39;owns&#39;, &#39;member_of&#39;, &#39;allies_with&#39;, &#39;enemies_with&#39;, &#39;uses&#39;, &#39;created_by&#39;, &#39;
-leads_to&#39;, &#39;participates_in&#39;, &#39;related_to&#39;, &#39;mentions&#39;], &#39;entity_extraction_prompt&#39;:
- &#39;Extract entities from this D&amp;D campaign text. Focus on characters, locations, obje
+n   - Possible connection to ruins", 'topic_taxonomy': {'world': ['setting', 'geogra
+phy', 'location', 'environment', 'terrain'], 'characters': ['npc', 'player', 'person
+ality', 'motivation', 'background'], 'narrative': ['story', 'plot', 'quest', 'advent
+ure', 'campaign'], 'mechanics': ['rules', 'dice', 'combat', 'magic', 'spells'], 'obj
+ects': ['items', 'equipment', 'artifacts', 'treasure', 'inventory'], 'history': ['lo
+re', 'ruins', 'archaeology', 'ancient', 'past'], 'society': ['politics', 'trade', 's
+ettlements', 'culture', 'religion'], 'threats': ['monsters', 'enemies', 'dangers', '
+conflict', 'war'], 'exploration': ['discovery', 'investigation', 'research', 'myster
+y'], 'events': ['happenings', 'situations', 'incidents', 'occurrences']}, 'topic_nor
+malizations': {'locations': 'location', 'geography': 'location', 'terrain': 'environ
+ment', 'area': 'location', 'place': 'location', 'region': 'location', 'character': '
+characters', 'key npc': 'npc', 'npcs': 'npc', 'people': 'characters', 'ruins': 'arch
+aeology', 'ancient ruins': 'archaeology', 'artifacts': 'archaeology', 'archaeologica
+l': 'archaeology', 'situation': 'events', 'situations': 'events', 'happenings': 'eve
+nts', 'occurrences': 'events', 'research': 'investigation', 'exploration': 'investig
+ation', 'discovery': 'investigation', 'magical': 'magic', 'anomalies': 'magic', 'mag
+ical anomalies': 'magic', 'setting': 'world', 'world': 'setting', 'lore': 'history',
+ 'ancient': 'history', 'monsters': 'threats', 'enemies': 'threats', 'monster activit
+y': 'threats', 'defense': 'threats', 'trade routes': 'trade', 'settlements': 'societ
+y', 'politics': 'society', 'value': 'objects', 'treasure': 'objects', 'skills': 'mec
+hanics', 'expertise': 'mechanics', 'decryption': 'investigation', 'wildlife': 'envir
+onment'}, 'graph_memory_config': {'enabled': True, 'entity_types': ['character', 'lo
+cation', 'object', 'event', 'concept', 'organization'], 'relationship_types': ['loca
+ted_in', 'owns', 'member_of', 'allies_with', 'enemies_with', 'uses', 'created_by', '
+leads_to', 'participates_in', 'related_to', 'mentions'], 'entity_extraction_prompt':
+ 'Extract entities from this D&amp;D campaign text. Focus on characters, locations, obje
 cts, events, concepts, and organizations that are important to the campaign world an
-d story.&#39;, &#39;relationship_extraction_prompt&#39;: &#39;Identify relationships between entitie
+d story.', 'relationship_extraction_prompt': 'Identify relationships between entitie
 s in this D&amp;D campaign text. Look for spatial relationships (located_in), ownership
-(owns), social relationships (allies_with, enemies_with), and story connections.&#39;, &#39;
-similarity_threshold&#39;: 0.8}}
+(owns), social relationships (allies_with, enemies_with), and story connections.', '
+similarity_threshold': 0.8}}
 
 Setting up services...
 Initializing session with guid: verbose_balanced_test
@@ -7162,11 +7162,11 @@ Memory File: agent_memories/standard/verbose_balanced_test/agent_memory.json
 Metadata:
 ------------------------------
 {
-  &quot;created_at&quot;: &quot;2025-09-02T10:19:48.926440&quot;,
-  &quot;updated_at&quot;: &quot;2025-09-02T10:19:48.926440&quot;,
-  &quot;version&quot;: &quot;2.0.0&quot;,
-  &quot;domain&quot;: &quot;general&quot;,
-  &quot;saved_during&quot;: &quot;create_initial_memory&quot;
+  "created_at": "2025-09-02T10:19:48.926440",
+  "updated_at": "2025-09-02T10:19:48.926440",
+  "version": "2.0.0",
+  "domain": "general",
+  "saved_during": "create_initial_memory"
 }
 
 Conversation History: 1 messages
@@ -7183,14 +7183,14 @@ the east; and Mountainkeep, located to the west.
 
 
 Key non-player characters include Elena, who serves as the Mayor of Haven and is mot
-ivated by a desire to protect the valley&#39;s inhabitants;
+ivated by a desire to protect the valley's inhabitants;
 
 
 Theron, a Master Scholar specializing in ancient ruins and artifacts, currently focu
 sed on decoding ruin inscriptions;
 
 
-and Sara, the Captain of Riverwatch, responsible for the valley&#39;s defense and curren
+and Sara, the Captain of Riverwatch, responsible for the valley's defense and curren
 tly concerned by increased monster activity.
 
 
@@ -7208,7 +7208,7 @@ hemselves.
 
 
 Processing: Tell me about Theron.
-🔄 Processing query: &#39;Tell me about Theron....&#39;
+🔄 Processing query: 'Tell me about Theron....'
 🔄   Enhancing query with relevant context (RAG)...
 ✅     Generated and cached RAG context
 🔄   Retrieving graph context...
@@ -7217,7 +7217,7 @@ Processing: Tell me about Theron.
 🔄   Starting background processing (batch, graph: balanced)...
 
 Agent: Theron is a Master Scholar specializing in ancient ruins and artifacts, curre
-ntly focused on decoding ruin inscriptions. He&#39;s recently been working within the an
+ntly focused on decoding ruin inscriptions. He's recently been working within the an
 cient ruins of the valley.
 
 
@@ -7323,23 +7323,23 @@ Excellent observation! Those are exactly the two places where users experience m
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/agent_usage_example.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: examples/agent_usage_example.py</summary>
 
 **Chunk 1**
 Lines added: 7, lines removed: undefined
 
 ```diff
 @@ -543,4 +543,11 @@
-      logger.debug(&quot;Creating new memory...&quot;)
-      print(&quot;Creating new memory...&quot;)
+      logger.debug("Creating new memory...")
+      print("Creating new memory...")
 +     
 +     if verbose:
 +         from src.utils.verbose_status import get_verbose_handler
 +         verbose_handler = get_verbose_handler(enabled=True)
-+         verbose_handler.status(&quot;Processing initial domain data...&quot;)
-+         verbose_handler.status(&quot;This may take a moment for complex domains...&quot;, 1)
++         verbose_handler.status("Processing initial domain data...")
++         verbose_handler.status("This may take a moment for complex domains...", 1)
 +     
-      success = await agent.learn(domain_config[&quot;initial_data&quot;])
+      success = await agent.learn(domain_config["initial_data"])
       if not success:
 ```
 
@@ -7355,7 +7355,7 @@ I need to pass the verbose flag to the initialize_memory function:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/agent_usage_example.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: examples/agent_usage_example.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -7366,8 +7366,8 @@ Lines added: 1, lines removed: 1
   
 - async def initialize_memory(agent, memory_manager, domain_config):
 + async def initialize_memory(agent, memory_manager, domain_config, verbose=False):
-      &quot;&quot;&quot;Set up initial memory state&quot;&quot;&quot;
-      logger.debug(&quot;\nInitializing memory...&quot;)
+      """Set up initial memory state"""
+      logger.debug("\nInitializing memory...")
 ```
 
 </details>
@@ -7378,7 +7378,7 @@ Lines added: 1, lines removed: 1
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/agent_usage_example.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: examples/agent_usage_example.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -7413,7 +7413,7 @@ Now let me add verbose logging to the Agent's learn method:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/agent/agent.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/agent/agent.py</summary>
 
 **Chunk 1**
 Lines added: 4, lines removed: 1
@@ -7425,10 +7425,10 @@ Lines added: 4, lines removed: 1
 - 
 +         
 +         # Get verbose handler if memory manager has one
-+         self.verbose_handler = getattr(memory_manager, &#39;verbose_handler&#39;, None)
++         self.verbose_handler = getattr(memory_manager, 'verbose_handler', None)
 + 
       def get_current_phase(self) -&gt; AgentPhase:
-          &quot;&quot;&quot;Get the current agent phase&quot;&quot;&quot;
+          """Get the current agent phase"""
 ```
 
 </details>
@@ -7476,7 +7476,7 @@ Output mode: content
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/agent/agent.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/agent/agent.py</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: undefined
@@ -7486,7 +7486,7 @@ Lines added: 2, lines removed: undefined
               # Create initial memory if needed
               if self.current_phase == AgentPhase.INITIALIZATION:
 +                 if self.verbose_handler:
-+                     self.verbose_handler.status(&quot;Converting domain data to prose format...&quot;, 1)
++                     self.verbose_handler.status("Converting domain data to prose format...", 1)
                   success = self.memory.create_initial_memory(information)
                   if success:
 ```
@@ -7503,25 +7503,25 @@ Now let me add verbose logging to the create_initial_memory method in the Memory
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 6, lines removed: undefined
 
 ```diff
 @@ -290,8 +290,14 @@
-              self.logger.debug(&quot;Creating initial memory structure...&quot;)
+              self.logger.debug("Creating initial memory structure...")
   
 +             if self.verbose_handler:
-+                 self.verbose_handler.status(&quot;Preprocessing domain data...&quot;, 2)
++                 self.verbose_handler.status("Preprocessing domain data...", 2)
 + 
               # Use DataPreprocessor to segment the input data
               data_preprocessor = DataPreprocessor(self.llm)
               preprocessed_prose, preprocessed_segments = data_preprocessor.preprocess_data(input_data)
-              self.logger.debug(f&quot;Preprocessed segments: {preprocessed_segments}&quot;)
+              self.logger.debug(f"Preprocessed segments: {preprocessed_segments}")
 +             
 +             if self.verbose_handler:
-+                 self.verbose_handler.success(f&quot;Preprocessed into {len(preprocessed_segments)} segments&quot;, level=2)
++                 self.verbose_handler.success(f"Preprocessed into {len(preprocessed_segments)} segments", level=2)
   
               # Create system entry for initial data
 ```
@@ -7534,7 +7534,7 @@ Lines added: 6, lines removed: undefined
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 4, lines removed: undefined
@@ -7542,13 +7542,13 @@ Lines added: 4, lines removed: undefined
 ```diff
 @@ -311,6 +311,10 @@
               # Generate digest for initial data using pre-segmented content
-              self.logger.debug(&quot;Generating digest for initial data with pre-segmented content...&quot;)
+              self.logger.debug("Generating digest for initial data with pre-segmented content...")
 +             if self.verbose_handler:
-+                 self.verbose_handler.status(&quot;Generating digest for domain data...&quot;, 2)
++                 self.verbose_handler.status("Generating digest for domain data...", 2)
               initial_digest = self.digest_generator.generate_digest(system_entry, segments=preprocessed_segments)
-              system_entry[&quot;digest&quot;] = initial_digest
+              system_entry["digest"] = initial_digest
 +             if self.verbose_handler:
-+                 self.verbose_handler.success(&quot;Generated digest with importance ratings&quot;, level=2)
++                 self.verbose_handler.success("Generated digest with importance ratings", level=2)
                           
               # Create static memory from digest
 ```
@@ -7561,7 +7561,7 @@ Lines added: 4, lines removed: undefined
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 8, lines removed: undefined
@@ -7571,21 +7571,21 @@ Lines added: 8, lines removed: undefined
               
               # Generate and save embeddings for the initial system entry
 +             if self.verbose_handler:
-+                 self.verbose_handler.status(&quot;Creating embeddings for semantic search...&quot;, 2)
++                 self.verbose_handler.status("Creating embeddings for semantic search...", 2)
               self.embeddings_manager.add_new_embeddings([system_entry])
 +             if self.verbose_handler:
-+                 self.verbose_handler.success(&quot;Embeddings created&quot;, level=2)
++                 self.verbose_handler.success("Embeddings created", level=2)
   
               # Process static memory with graph memory system if enabled
               if self.enable_graph_memory and self.graph_manager:
-                  self.logger.debug(&quot;Processing static memory for graph memory...&quot;)
+                  self.logger.debug("Processing static memory for graph memory...")
 +                 if self.verbose_handler:
-+                     self.verbose_handler.status(&quot;Building knowledge graph from domain data...&quot;, 2)
++                     self.verbose_handler.status("Building knowledge graph from domain data...", 2)
                   self._process_initial_graph_memory(system_entry)
 +                 if self.verbose_handler:
-+                     self.verbose_handler.success(&quot;Knowledge graph initialized&quot;, level=2)
++                     self.verbose_handler.success("Knowledge graph initialized", level=2)
   
-              self.logger.debug(&quot;Memory created and initialized with static knowledge&quot;)
+              self.logger.debug("Memory created and initialized with static knowledge")
 ```
 
 </details>
@@ -7602,14 +7602,14 @@ Now let me add verbose logging to the interactive session to show what's happeni
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/agent_usage_example.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: examples/agent_usage_example.py</summary>
 
 **Chunk 1**
 Lines added: 45, lines removed: 2
 
 ```diff
 @@ -686,6 +686,49 @@
-              print(f&quot;\nAgent: {response}&quot;)
+              print(f"\nAgent: {response}")
               
 -             # Add a small delay to allow background processing to start
 -             await asyncio.sleep(0.1)
@@ -7620,15 +7620,15 @@ Lines added: 45, lines removed: 2
 +                 if verbose_handler and verbose_handler.enabled:
 +                     pending = agent.memory.get_pending_operations()
 +                     operations = []
-+                     if pending.get(&quot;pending_digests&quot;, 0) &gt; 0:
-+                         operations.append(&quot;digest generation&quot;)
-+                     if pending.get(&quot;pending_embeddings&quot;, 0) &gt; 0:
-+                         operations.append(&quot;embeddings update&quot;)
-+                     if pending.get(&quot;pending_graph_updates&quot;, 0) &gt; 0:
-+                         operations.append(&quot;graph memory processing&quot;)
++                     if pending.get("pending_digests", 0) &gt; 0:
++                         operations.append("digest generation")
++                     if pending.get("pending_embeddings", 0) &gt; 0:
++                         operations.append("embeddings update")
++                     if pending.get("pending_graph_updates", 0) &gt; 0:
++                         operations.append("graph memory processing")
 +                     
 +                     if operations:
-+                         verbose_handler.status(f&quot;Background processing: {&#39;, &#39;.join(operations)}...&quot;)
++                         verbose_handler.status(f"Background processing: {', '.join(operations)}...")
 +                         
 +                         # Wait and show progress
 +                         start_time = time.time()
@@ -7642,19 +7642,19 @@ Lines added: 45, lines removed: 2
 +                                 elapsed = current_time - start_time
 +                                 remaining_ops = agent.memory.get_pending_operations()
 +                                 remaining = []
-+                                 if remaining_ops.get(&quot;pending_digests&quot;, 0) &gt; 0:
-+                                     remaining.append(&quot;digest&quot;)
-+                                 if remaining_ops.get(&quot;pending_embeddings&quot;, 0) &gt; 0:
-+                                     remaining.append(&quot;embeddings&quot;)
-+                                 if remaining_ops.get(&quot;pending_graph_updates&quot;, 0) &gt; 0:
-+                                     remaining.append(&quot;graph&quot;)
++                                 if remaining_ops.get("pending_digests", 0) &gt; 0:
++                                     remaining.append("digest")
++                                 if remaining_ops.get("pending_embeddings", 0) &gt; 0:
++                                     remaining.append("embeddings")
++                                 if remaining_ops.get("pending_graph_updates", 0) &gt; 0:
++                                     remaining.append("graph")
 +                                 
 +                                 if remaining:
-+                                     verbose_handler.status(f&quot;Still processing: {&#39;, &#39;.join(remaining)} ({elapsed:.1f}s elapsed)...&quot;)
++                                     verbose_handler.status(f"Still processing: {', '.join(remaining)} ({elapsed:.1f}s elapsed)...")
 +                                 last_status_time = current_time
 +                         
 +                         total_time = time.time() - start_time
-+                         verbose_handler.success(f&quot;Background processing completed&quot;, total_time)
++                         verbose_handler.success(f"Background processing completed", total_time)
 +             else:
 +                 # Add a small delay to allow background processing to start
 +                 await asyncio.sleep(0.1)
@@ -7674,7 +7674,7 @@ I need to import time:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/agent_usage_example.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: examples/agent_usage_example.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: undefined
@@ -7699,7 +7699,7 @@ Now let me test the enhanced verbose logging:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: echo "Tell me about Sara." | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/agent_usage_example.py --guid verbose_detailed_test --config dnd --performance balanced --verbose</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: echo "Tell me about Sara." | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/agent_usage_example.py --guid verbose_detailed_test --config dnd --performance balanced --verbose</summary>
 
 ```bash
 echo "Tell me about Sara." | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/agent_usage_example.py --guid verbose_detailed_test --config dnd --performance balanced --verbose
@@ -7713,58 +7713,58 @@ echo "Tell me about Sara." | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:
 ================================================================================
 
 Using domain config: dnd
-Domain config: {&#39;domain_name&#39;: &#39;dnd_campaign&#39;, &#39;domain_specific_prompt_instructions&#39;
-: {&#39;query&#39;: &quot;You are a DM for a D&amp;D campaign. ANSWER PLAYER QUESTIONS DIRECTLY. For
-simple questions (like &#39;are there goblins nearby?&#39;), give specific answers based on
-the campaign state. For exploration questions (like &#39;what do I see?&#39;), provide vivid
- but concise descriptions. Avoid starting every response with &#39;Okay, let&#39;s investiga
-te&#39; or similar repetitive phrases. Move the story forward with actionable informatio
-n and clear choices.&quot;, &#39;update&#39;: &#39;You are analyzing the input from both the user and
+Domain config: {'domain_name': 'dnd_campaign', 'domain_specific_prompt_instructions'
+: {'query': "You are a DM for a D&amp;D campaign. ANSWER PLAYER QUESTIONS DIRECTLY. For
+simple questions (like 'are there goblins nearby?'), give specific answers based on
+the campaign state. For exploration questions (like 'what do I see?'), provide vivid
+ but concise descriptions. Avoid starting every response with 'Okay, let's investiga
+te' or similar repetitive phrases. Move the story forward with actionable informatio
+n and clear choices.", 'update': 'You are analyzing the input from both the user and
  the agent and extracting and classifying the important information into the convers
-ation history data structure.&#39;}, &#39;initial_data&#39;: &quot;\nCampaign Setting: The Lost Valle
+ation history data structure.'}, 'initial_data': "\nCampaign Setting: The Lost Valle
 y\n\nWorld Details:\n- Hidden valley surrounded by impassable mountains\n- Ancient r
 uins scattered throughout\n- Mysterious magical anomalies\n- Three main settlements:
  Haven (central), Riverwatch (east), Mountainkeep (west)\n\nKey NPCs:\n1. Elena\n
-- Role: Mayor of Haven\n   - Motivation: Protect the valley&#39;s inhabitants\n   - Curr
+- Role: Mayor of Haven\n   - Motivation: Protect the valley's inhabitants\n   - Curr
 ent Quest: Investigate strange occurrences in Haven\n\n2. Theron\n   - Role: Master
 Scholar\n   - Expertise: Ancient ruins and artifacts\n   - Current Research: Decodin
 g ruin inscriptions\n\n3. Sara\n   - Role: Captain of Riverwatch\n   - Responsibilit
-y: Valley&#39;s defense\n   - Current Concern: Increased monster activity\n\nCurrent Sit
+y: Valley's defense\n   - Current Concern: Increased monster activity\n\nCurrent Sit
 uations:\n1. Trade Routes\n   - Main road between settlements disrupted\n   - Mercha
 nts seeking protection\n   - Alternative routes needed\n\n2. Ancient Ruins\n   - New
  chambers discovered\n   - Strange energy emanations\n   - Valuable artifacts found\
 n\n3. Magical Anomalies\n   - Random magical effects\n   - Affecting local wildlife\
-n   - Possible connection to ruins&quot;, &#39;topic_taxonomy&#39;: {&#39;world&#39;: [&#39;setting&#39;, &#39;geogra
-phy&#39;, &#39;location&#39;, &#39;environment&#39;, &#39;terrain&#39;], &#39;characters&#39;: [&#39;npc&#39;, &#39;player&#39;, &#39;person
-ality&#39;, &#39;motivation&#39;, &#39;background&#39;], &#39;narrative&#39;: [&#39;story&#39;, &#39;plot&#39;, &#39;quest&#39;, &#39;advent
-ure&#39;, &#39;campaign&#39;], &#39;mechanics&#39;: [&#39;rules&#39;, &#39;dice&#39;, &#39;combat&#39;, &#39;magic&#39;, &#39;spells&#39;], &#39;obj
-ects&#39;: [&#39;items&#39;, &#39;equipment&#39;, &#39;artifacts&#39;, &#39;treasure&#39;, &#39;inventory&#39;], &#39;history&#39;: [&#39;lo
-re&#39;, &#39;ruins&#39;, &#39;archaeology&#39;, &#39;ancient&#39;, &#39;past&#39;], &#39;society&#39;: [&#39;politics&#39;, &#39;trade&#39;, &#39;s
-ettlements&#39;, &#39;culture&#39;, &#39;religion&#39;], &#39;threats&#39;: [&#39;monsters&#39;, &#39;enemies&#39;, &#39;dangers&#39;, &#39;
-conflict&#39;, &#39;war&#39;], &#39;exploration&#39;: [&#39;discovery&#39;, &#39;investigation&#39;, &#39;research&#39;, &#39;myster
-y&#39;], &#39;events&#39;: [&#39;happenings&#39;, &#39;situations&#39;, &#39;incidents&#39;, &#39;occurrences&#39;]}, &#39;topic_nor
-malizations&#39;: {&#39;locations&#39;: &#39;location&#39;, &#39;geography&#39;: &#39;location&#39;, &#39;terrain&#39;: &#39;environ
-ment&#39;, &#39;area&#39;: &#39;location&#39;, &#39;place&#39;: &#39;location&#39;, &#39;region&#39;: &#39;location&#39;, &#39;character&#39;: &#39;
-characters&#39;, &#39;key npc&#39;: &#39;npc&#39;, &#39;npcs&#39;: &#39;npc&#39;, &#39;people&#39;: &#39;characters&#39;, &#39;ruins&#39;: &#39;arch
-aeology&#39;, &#39;ancient ruins&#39;: &#39;archaeology&#39;, &#39;artifacts&#39;: &#39;archaeology&#39;, &#39;archaeologica
-l&#39;: &#39;archaeology&#39;, &#39;situation&#39;: &#39;events&#39;, &#39;situations&#39;: &#39;events&#39;, &#39;happenings&#39;: &#39;eve
-nts&#39;, &#39;occurrences&#39;: &#39;events&#39;, &#39;research&#39;: &#39;investigation&#39;, &#39;exploration&#39;: &#39;investig
-ation&#39;, &#39;discovery&#39;: &#39;investigation&#39;, &#39;magical&#39;: &#39;magic&#39;, &#39;anomalies&#39;: &#39;magic&#39;, &#39;mag
-ical anomalies&#39;: &#39;magic&#39;, &#39;setting&#39;: &#39;world&#39;, &#39;world&#39;: &#39;setting&#39;, &#39;lore&#39;: &#39;history&#39;,
- &#39;ancient&#39;: &#39;history&#39;, &#39;monsters&#39;: &#39;threats&#39;, &#39;enemies&#39;: &#39;threats&#39;, &#39;monster activit
-y&#39;: &#39;threats&#39;, &#39;defense&#39;: &#39;threats&#39;, &#39;trade routes&#39;: &#39;trade&#39;, &#39;settlements&#39;: &#39;societ
-y&#39;, &#39;politics&#39;: &#39;society&#39;, &#39;value&#39;: &#39;objects&#39;, &#39;treasure&#39;: &#39;objects&#39;, &#39;skills&#39;: &#39;mec
-hanics&#39;, &#39;expertise&#39;: &#39;mechanics&#39;, &#39;decryption&#39;: &#39;investigation&#39;, &#39;wildlife&#39;: &#39;envir
-onment&#39;}, &#39;graph_memory_config&#39;: {&#39;enabled&#39;: True, &#39;entity_types&#39;: [&#39;character&#39;, &#39;lo
-cation&#39;, &#39;object&#39;, &#39;event&#39;, &#39;concept&#39;, &#39;organization&#39;], &#39;relationship_types&#39;: [&#39;loca
-ted_in&#39;, &#39;owns&#39;, &#39;member_of&#39;, &#39;allies_with&#39;, &#39;enemies_with&#39;, &#39;uses&#39;, &#39;created_by&#39;, &#39;
-leads_to&#39;, &#39;participates_in&#39;, &#39;related_to&#39;, &#39;mentions&#39;], &#39;entity_extraction_prompt&#39;:
- &#39;Extract entities from this D&amp;D campaign text. Focus on characters, locations, obje
+n   - Possible connection to ruins", 'topic_taxonomy': {'world': ['setting', 'geogra
+phy', 'location', 'environment', 'terrain'], 'characters': ['npc', 'player', 'person
+ality', 'motivation', 'background'], 'narrative': ['story', 'plot', 'quest', 'advent
+ure', 'campaign'], 'mechanics': ['rules', 'dice', 'combat', 'magic', 'spells'], 'obj
+ects': ['items', 'equipment', 'artifacts', 'treasure', 'inventory'], 'history': ['lo
+re', 'ruins', 'archaeology', 'ancient', 'past'], 'society': ['politics', 'trade', 's
+ettlements', 'culture', 'religion'], 'threats': ['monsters', 'enemies', 'dangers', '
+conflict', 'war'], 'exploration': ['discovery', 'investigation', 'research', 'myster
+y'], 'events': ['happenings', 'situations', 'incidents', 'occurrences']}, 'topic_nor
+malizations': {'locations': 'location', 'geography': 'location', 'terrain': 'environ
+ment', 'area': 'location', 'place': 'location', 'region': 'location', 'character': '
+characters', 'key npc': 'npc', 'npcs': 'npc', 'people': 'characters', 'ruins': 'arch
+aeology', 'ancient ruins': 'archaeology', 'artifacts': 'archaeology', 'archaeologica
+l': 'archaeology', 'situation': 'events', 'situations': 'events', 'happenings': 'eve
+nts', 'occurrences': 'events', 'research': 'investigation', 'exploration': 'investig
+ation', 'discovery': 'investigation', 'magical': 'magic', 'anomalies': 'magic', 'mag
+ical anomalies': 'magic', 'setting': 'world', 'world': 'setting', 'lore': 'history',
+ 'ancient': 'history', 'monsters': 'threats', 'enemies': 'threats', 'monster activit
+y': 'threats', 'defense': 'threats', 'trade routes': 'trade', 'settlements': 'societ
+y', 'politics': 'society', 'value': 'objects', 'treasure': 'objects', 'skills': 'mec
+hanics', 'expertise': 'mechanics', 'decryption': 'investigation', 'wildlife': 'envir
+onment'}, 'graph_memory_config': {'enabled': True, 'entity_types': ['character', 'lo
+cation', 'object', 'event', 'concept', 'organization'], 'relationship_types': ['loca
+ted_in', 'owns', 'member_of', 'allies_with', 'enemies_with', 'uses', 'created_by', '
+leads_to', 'participates_in', 'related_to', 'mentions'], 'entity_extraction_prompt':
+ 'Extract entities from this D&amp;D campaign text. Focus on characters, locations, obje
 cts, events, concepts, and organizations that are important to the campaign world an
-d story.&#39;, &#39;relationship_extraction_prompt&#39;: &#39;Identify relationships between entitie
+d story.', 'relationship_extraction_prompt': 'Identify relationships between entitie
 s in this D&amp;D campaign text. Look for spatial relationships (located_in), ownership
-(owns), social relationships (allies_with, enemies_with), and story connections.&#39;, &#39;
-similarity_threshold&#39;: 0.8}}
+(owns), social relationships (allies_with, enemies_with), and story connections.', '
+similarity_threshold': 0.8}}
 
 Setting up services...
 Initializing session with guid: verbose_detailed_test
@@ -7797,11 +7797,11 @@ Memory File: agent_memories/standard/verbose_detailed_test/agent_memory.json
 Metadata:
 ------------------------------
 {
-  &quot;created_at&quot;: &quot;2025-09-02T10:37:53.015894&quot;,
-  &quot;updated_at&quot;: &quot;2025-09-02T10:37:53.015894&quot;,
-  &quot;version&quot;: &quot;2.0.0&quot;,
-  &quot;domain&quot;: &quot;general&quot;,
-  &quot;saved_during&quot;: &quot;create_initial_memory&quot;
+  "created_at": "2025-09-02T10:37:53.015894",
+  "updated_at": "2025-09-02T10:37:53.015894",
+  "version": "2.0.0",
+  "domain": "general",
+  "saved_during": "create_initial_memory"
 }
 
 Conversation History: 1 messages
@@ -7820,7 +7820,7 @@ to the east; and Mountainkeep, located to the west.
 
 
 Key non-player characters include Elena, the Mayor of Haven, whose motivation is to
-protect the valley&#39;s inhabitants, and currently investigating strange occurrences in
+protect the valley's inhabitants, and currently investigating strange occurrences in
  Haven.
 
 
@@ -7828,7 +7828,7 @@ Theron is a Master Scholar with expertise in ancient ruins and artifacts, and he
 presently focused on decoding ruin inscriptions.
 
 
-Sara serves as the Captain of Riverwatch, responsible for the valley&#39;s defense, and
+Sara serves as the Captain of Riverwatch, responsible for the valley's defense, and
 she is currently concerned about increased monster activity.
 
 
@@ -7847,7 +7847,7 @@ s a possible connection to the ruins.
 
 
 Processing: Tell me about Sara.
-🔄 Processing query: &#39;Tell me about Sara....&#39;
+🔄 Processing query: 'Tell me about Sara....'
 🔄   Enhancing query with relevant context (RAG)...
 ✅     Generated and cached RAG context
 🔄   Retrieving graph context...
@@ -7855,7 +7855,7 @@ Processing: Tell me about Sara.
 ✅     Generated response (144 chars)
 🔄   Starting background processing (batch, graph: balanced)...
 
-Agent: Sara serves as the Captain of Riverwatch, responsible for the valley&#39;s defens
+Agent: Sara serves as the Captain of Riverwatch, responsible for the valley's defens
 e, and she is currently concerned about increased monster activity.
 
 
@@ -7933,7 +7933,7 @@ Let me test with a comprehensive profile to see the background processing messag
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: echo -e "Tell me about the ruins.\nWhat artifacts were found?" | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/agent_usage_example.py --guid verbose_comprehensive_test --config dnd --performance comprehensive --verbose</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: echo -e "Tell me about the ruins.\nWhat artifacts were found?" | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/agent_usage_example.py --guid verbose_comprehensive_test --config dnd --performance comprehensive --verbose</summary>
 
 ```bash
 echo -e "Tell me about the ruins.\nWhat artifacts were found?" | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/agent_usage_example.py --guid verbose_comprehensive_test --config dnd --performance comprehensive --verbose
@@ -7947,58 +7947,58 @@ echo -e "Tell me about the ruins.\nWhat artifacts were found?" | DEV_MODE=true O
 ================================================================================
 
 Using domain config: dnd
-Domain config: {&#39;domain_name&#39;: &#39;dnd_campaign&#39;, &#39;domain_specific_prompt_instructions&#39;
-: {&#39;query&#39;: &quot;You are a DM for a D&amp;D campaign. ANSWER PLAYER QUESTIONS DIRECTLY. For
-simple questions (like &#39;are there goblins nearby?&#39;), give specific answers based on
-the campaign state. For exploration questions (like &#39;what do I see?&#39;), provide vivid
- but concise descriptions. Avoid starting every response with &#39;Okay, let&#39;s investiga
-te&#39; or similar repetitive phrases. Move the story forward with actionable informatio
-n and clear choices.&quot;, &#39;update&#39;: &#39;You are analyzing the input from both the user and
+Domain config: {'domain_name': 'dnd_campaign', 'domain_specific_prompt_instructions'
+: {'query': "You are a DM for a D&amp;D campaign. ANSWER PLAYER QUESTIONS DIRECTLY. For
+simple questions (like 'are there goblins nearby?'), give specific answers based on
+the campaign state. For exploration questions (like 'what do I see?'), provide vivid
+ but concise descriptions. Avoid starting every response with 'Okay, let's investiga
+te' or similar repetitive phrases. Move the story forward with actionable informatio
+n and clear choices.", 'update': 'You are analyzing the input from both the user and
  the agent and extracting and classifying the important information into the convers
-ation history data structure.&#39;}, &#39;initial_data&#39;: &quot;\nCampaign Setting: The Lost Valle
+ation history data structure.'}, 'initial_data': "\nCampaign Setting: The Lost Valle
 y\n\nWorld Details:\n- Hidden valley surrounded by impassable mountains\n- Ancient r
 uins scattered throughout\n- Mysterious magical anomalies\n- Three main settlements:
  Haven (central), Riverwatch (east), Mountainkeep (west)\n\nKey NPCs:\n1. Elena\n
-- Role: Mayor of Haven\n   - Motivation: Protect the valley&#39;s inhabitants\n   - Curr
+- Role: Mayor of Haven\n   - Motivation: Protect the valley's inhabitants\n   - Curr
 ent Quest: Investigate strange occurrences in Haven\n\n2. Theron\n   - Role: Master
 Scholar\n   - Expertise: Ancient ruins and artifacts\n   - Current Research: Decodin
 g ruin inscriptions\n\n3. Sara\n   - Role: Captain of Riverwatch\n   - Responsibilit
-y: Valley&#39;s defense\n   - Current Concern: Increased monster activity\n\nCurrent Sit
+y: Valley's defense\n   - Current Concern: Increased monster activity\n\nCurrent Sit
 uations:\n1. Trade Routes\n   - Main road between settlements disrupted\n   - Mercha
 nts seeking protection\n   - Alternative routes needed\n\n2. Ancient Ruins\n   - New
  chambers discovered\n   - Strange energy emanations\n   - Valuable artifacts found\
 n\n3. Magical Anomalies\n   - Random magical effects\n   - Affecting local wildlife\
-n   - Possible connection to ruins&quot;, &#39;topic_taxonomy&#39;: {&#39;world&#39;: [&#39;setting&#39;, &#39;geogra
-phy&#39;, &#39;location&#39;, &#39;environment&#39;, &#39;terrain&#39;], &#39;characters&#39;: [&#39;npc&#39;, &#39;player&#39;, &#39;person
-ality&#39;, &#39;motivation&#39;, &#39;background&#39;], &#39;narrative&#39;: [&#39;story&#39;, &#39;plot&#39;, &#39;quest&#39;, &#39;advent
-ure&#39;, &#39;campaign&#39;], &#39;mechanics&#39;: [&#39;rules&#39;, &#39;dice&#39;, &#39;combat&#39;, &#39;magic&#39;, &#39;spells&#39;], &#39;obj
-ects&#39;: [&#39;items&#39;, &#39;equipment&#39;, &#39;artifacts&#39;, &#39;treasure&#39;, &#39;inventory&#39;], &#39;history&#39;: [&#39;lo
-re&#39;, &#39;ruins&#39;, &#39;archaeology&#39;, &#39;ancient&#39;, &#39;past&#39;], &#39;society&#39;: [&#39;politics&#39;, &#39;trade&#39;, &#39;s
-ettlements&#39;, &#39;culture&#39;, &#39;religion&#39;], &#39;threats&#39;: [&#39;monsters&#39;, &#39;enemies&#39;, &#39;dangers&#39;, &#39;
-conflict&#39;, &#39;war&#39;], &#39;exploration&#39;: [&#39;discovery&#39;, &#39;investigation&#39;, &#39;research&#39;, &#39;myster
-y&#39;], &#39;events&#39;: [&#39;happenings&#39;, &#39;situations&#39;, &#39;incidents&#39;, &#39;occurrences&#39;]}, &#39;topic_nor
-malizations&#39;: {&#39;locations&#39;: &#39;location&#39;, &#39;geography&#39;: &#39;location&#39;, &#39;terrain&#39;: &#39;environ
-ment&#39;, &#39;area&#39;: &#39;location&#39;, &#39;place&#39;: &#39;location&#39;, &#39;region&#39;: &#39;location&#39;, &#39;character&#39;: &#39;
-characters&#39;, &#39;key npc&#39;: &#39;npc&#39;, &#39;npcs&#39;: &#39;npc&#39;, &#39;people&#39;: &#39;characters&#39;, &#39;ruins&#39;: &#39;arch
-aeology&#39;, &#39;ancient ruins&#39;: &#39;archaeology&#39;, &#39;artifacts&#39;: &#39;archaeology&#39;, &#39;archaeologica
-l&#39;: &#39;archaeology&#39;, &#39;situation&#39;: &#39;events&#39;, &#39;situations&#39;: &#39;events&#39;, &#39;happenings&#39;: &#39;eve
-nts&#39;, &#39;occurrences&#39;: &#39;events&#39;, &#39;research&#39;: &#39;investigation&#39;, &#39;exploration&#39;: &#39;investig
-ation&#39;, &#39;discovery&#39;: &#39;investigation&#39;, &#39;magical&#39;: &#39;magic&#39;, &#39;anomalies&#39;: &#39;magic&#39;, &#39;mag
-ical anomalies&#39;: &#39;magic&#39;, &#39;setting&#39;: &#39;world&#39;, &#39;world&#39;: &#39;setting&#39;, &#39;lore&#39;: &#39;history&#39;,
- &#39;ancient&#39;: &#39;history&#39;, &#39;monsters&#39;: &#39;threats&#39;, &#39;enemies&#39;: &#39;threats&#39;, &#39;monster activit
-y&#39;: &#39;threats&#39;, &#39;defense&#39;: &#39;threats&#39;, &#39;trade routes&#39;: &#39;trade&#39;, &#39;settlements&#39;: &#39;societ
-y&#39;, &#39;politics&#39;: &#39;society&#39;, &#39;value&#39;: &#39;objects&#39;, &#39;treasure&#39;: &#39;objects&#39;, &#39;skills&#39;: &#39;mec
-hanics&#39;, &#39;expertise&#39;: &#39;mechanics&#39;, &#39;decryption&#39;: &#39;investigation&#39;, &#39;wildlife&#39;: &#39;envir
-onment&#39;}, &#39;graph_memory_config&#39;: {&#39;enabled&#39;: True, &#39;entity_types&#39;: [&#39;character&#39;, &#39;lo
-cation&#39;, &#39;object&#39;, &#39;event&#39;, &#39;concept&#39;, &#39;organization&#39;], &#39;relationship_types&#39;: [&#39;loca
-ted_in&#39;, &#39;owns&#39;, &#39;member_of&#39;, &#39;allies_with&#39;, &#39;enemies_with&#39;, &#39;uses&#39;, &#39;created_by&#39;, &#39;
-leads_to&#39;, &#39;participates_in&#39;, &#39;related_to&#39;, &#39;mentions&#39;], &#39;entity_extraction_prompt&#39;:
- &#39;Extract entities from this D&amp;D campaign text. Focus on characters, locations, obje
+n   - Possible connection to ruins", 'topic_taxonomy': {'world': ['setting', 'geogra
+phy', 'location', 'environment', 'terrain'], 'characters': ['npc', 'player', 'person
+ality', 'motivation', 'background'], 'narrative': ['story', 'plot', 'quest', 'advent
+ure', 'campaign'], 'mechanics': ['rules', 'dice', 'combat', 'magic', 'spells'], 'obj
+ects': ['items', 'equipment', 'artifacts', 'treasure', 'inventory'], 'history': ['lo
+re', 'ruins', 'archaeology', 'ancient', 'past'], 'society': ['politics', 'trade', 's
+ettlements', 'culture', 'religion'], 'threats': ['monsters', 'enemies', 'dangers', '
+conflict', 'war'], 'exploration': ['discovery', 'investigation', 'research', 'myster
+y'], 'events': ['happenings', 'situations', 'incidents', 'occurrences']}, 'topic_nor
+malizations': {'locations': 'location', 'geography': 'location', 'terrain': 'environ
+ment', 'area': 'location', 'place': 'location', 'region': 'location', 'character': '
+characters', 'key npc': 'npc', 'npcs': 'npc', 'people': 'characters', 'ruins': 'arch
+aeology', 'ancient ruins': 'archaeology', 'artifacts': 'archaeology', 'archaeologica
+l': 'archaeology', 'situation': 'events', 'situations': 'events', 'happenings': 'eve
+nts', 'occurrences': 'events', 'research': 'investigation', 'exploration': 'investig
+ation', 'discovery': 'investigation', 'magical': 'magic', 'anomalies': 'magic', 'mag
+ical anomalies': 'magic', 'setting': 'world', 'world': 'setting', 'lore': 'history',
+ 'ancient': 'history', 'monsters': 'threats', 'enemies': 'threats', 'monster activit
+y': 'threats', 'defense': 'threats', 'trade routes': 'trade', 'settlements': 'societ
+y', 'politics': 'society', 'value': 'objects', 'treasure': 'objects', 'skills': 'mec
+hanics', 'expertise': 'mechanics', 'decryption': 'investigation', 'wildlife': 'envir
+onment'}, 'graph_memory_config': {'enabled': True, 'entity_types': ['character', 'lo
+cation', 'object', 'event', 'concept', 'organization'], 'relationship_types': ['loca
+ted_in', 'owns', 'member_of', 'allies_with', 'enemies_with', 'uses', 'created_by', '
+leads_to', 'participates_in', 'related_to', 'mentions'], 'entity_extraction_prompt':
+ 'Extract entities from this D&amp;D campaign text. Focus on characters, locations, obje
 cts, events, concepts, and organizations that are important to the campaign world an
-d story.&#39;, &#39;relationship_extraction_prompt&#39;: &#39;Identify relationships between entitie
+d story.', 'relationship_extraction_prompt': 'Identify relationships between entitie
 s in this D&amp;D campaign text. Look for spatial relationships (located_in), ownership
-(owns), social relationships (allies_with, enemies_with), and story connections.&#39;, &#39;
-similarity_threshold&#39;: 0.8}}
+(owns), social relationships (allies_with, enemies_with), and story connections.', '
+similarity_threshold': 0.8}}
 
 Setting up services...
 Initializing session with guid: verbose_comprehensive_test
@@ -8031,11 +8031,11 @@ Memory File: agent_memories/standard/verbose_comprehensive_test/agent_memory.jso
 Metadata:
 ------------------------------
 {
-  &quot;created_at&quot;: &quot;2025-09-02T10:41:10.938225&quot;,
-  &quot;updated_at&quot;: &quot;2025-09-02T10:41:10.938225&quot;,
-  &quot;version&quot;: &quot;2.0.0&quot;,
-  &quot;domain&quot;: &quot;general&quot;,
-  &quot;saved_during&quot;: &quot;create_initial_memory&quot;
+  "created_at": "2025-09-02T10:41:10.938225",
+  "updated_at": "2025-09-02T10:41:10.938225",
+  "version": "2.0.0",
+  "domain": "general",
+  "saved_during": "create_initial_memory"
 }
 
 Conversation History: 1 messages
@@ -8054,7 +8054,7 @@ the east; and Mountainkeep, located to the west.
 
 
 Key non-player characters include Elena, the Mayor of Haven, whose primary motivatio
-n is to protect the valley&#39;s inhabitants, and currently investigating strange occurr
+n is to protect the valley's inhabitants, and currently investigating strange occurr
 ences in Haven.
 
 
@@ -8062,7 +8062,7 @@ Theron is a Master Scholar specializing in ancient ruins and artifacts, and he i
 esently focused on decoding ruin inscriptions.
 
 
-Sara serves as the Captain of Riverwatch and is responsible for the valley&#39;s defense
+Sara serves as the Captain of Riverwatch and is responsible for the valley's defense
 , and she is concerned about increased monster activity.
 
 
@@ -8080,8 +8080,8 @@ d there is a possible connection between these anomalies and the ruins.
 
 Processing: Tell me about the ruins.
 What artifacts were found?
-🔄 Processing query: &#39;Tell me about the ruins.
-What artifacts were found...&#39;
+🔄 Processing query: 'Tell me about the ruins.
+What artifacts were found...'
 🔄   Enhancing query with relevant context (RAG)...
 🔄   Retrieving graph context...
 🔄   Generating response with LLM...
@@ -8226,7 +8226,7 @@ First, let me enhance the VerboseStatusHandler to show elapsed times:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/utils/verbose_status.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/utils/verbose_status.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -8237,7 +8237,7 @@ Lines added: 1, lines removed: 1
       @contextmanager
 -     def operation(self, operation_name: str, level: int = 0, show_start: bool = True):
 +     def operation(self, operation_name: str, level: int = 0, show_start: bool = True, show_elapsed: bool = True):
-          &quot;&quot;&quot;
+          """
           Context manager for timed operations.
 ```
 
@@ -8261,12 +8261,12 @@ Lines added: 4, lines removed: 4
               return
           
 -         if show_start:
--             self.status(f&quot;Starting {operation_name}...&quot;, level)
+-             self.status(f"Starting {operation_name}...", level)
 -         
           start_time = time.time()
           
 +         if show_start:
-+             self.status(f&quot;{operation_name}...&quot;, level)
++             self.status(f"{operation_name}...", level)
 +         
           # Track operation stack for nested operations
           with self._lock:
@@ -8283,8 +8283,8 @@ Lines added: 10, lines removed: 2
 @@ -149,10 +150,18 @@
           finally:
               duration = time.time() - start_time
--             self.success(f&quot;Completed {operation_name}&quot;, duration, level)
-+             self.success(f&quot;{operation_name}&quot;, duration, level)
+-             self.success(f"Completed {operation_name}", duration, level)
++             self.success(f"{operation_name}", duration, level)
               
               with self._lock:
 -                 if self._operation_stack and self._operation_stack[-1] == operation_name:
@@ -8292,7 +8292,7 @@ Lines added: 10, lines removed: 2
                       self._operation_stack.pop()
       
 +     def get_operation_elapsed(self) -&gt; float:
-+         &quot;&quot;&quot;Get elapsed time for the current operation.&quot;&quot;&quot;
++         """Get elapsed time for the current operation."""
 +         with self._lock:
 +             if self._operation_stack:
 +                 _, start_time = self._operation_stack[-1]
@@ -8300,7 +8300,7 @@ Lines added: 10, lines removed: 2
 +             return 0.0
 +     
       def get_current_level(self) -&gt; int:
-          &quot;&quot;&quot;Get the current nesting level for operations.&quot;&quot;&quot;
+          """Get the current nesting level for operations."""
 ```
 
 </details>
@@ -8315,7 +8315,7 @@ Now let me update the convenience function too:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/utils/verbose_status.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/utils/verbose_status.py</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: 2
@@ -8326,7 +8326,7 @@ Lines added: 2, lines removed: 2
   @contextmanager
 - def operation(operation_name: str, level: int = 0, show_start: bool = True):
 + def operation(operation_name: str, level: int = 0, show_start: bool = True, show_elapsed: bool = True):
-      &quot;&quot;&quot;Context manager for timed operations.&quot;&quot;&quot;
+      """Context manager for timed operations."""
       handler = get_verbose_handler()
 -     with handler.operation(operation_name, level, show_start) as h:
 +     with handler.operation(operation_name, level, show_start, show_elapsed) as h:
@@ -8346,30 +8346,30 @@ Now let me update the memory manager to use the operation context manager with t
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 8, lines removed: 9
 
 ```diff
 @@ -290,14 +290,13 @@
-              self.logger.debug(&quot;Creating initial memory structure...&quot;)
+              self.logger.debug("Creating initial memory structure...")
   
 -             if self.verbose_handler:
--                 self.verbose_handler.status(&quot;Preprocessing domain data...&quot;, 2)
+-                 self.verbose_handler.status("Preprocessing domain data...", 2)
 - 
               # Use DataPreprocessor to segment the input data
 -             data_preprocessor = DataPreprocessor(self.llm)
 -             preprocessed_prose, preprocessed_segments = data_preprocessor.preprocess_data(input_data)
--             self.logger.debug(f&quot;Preprocessed segments: {preprocessed_segments}&quot;)
+-             self.logger.debug(f"Preprocessed segments: {preprocessed_segments}")
 -             
 -             if self.verbose_handler:
--                 self.verbose_handler.success(f&quot;Preprocessed into {len(preprocessed_segments)} segments&quot;, level=2)
+-                 self.verbose_handler.success(f"Preprocessed into {len(preprocessed_segments)} segments", level=2)
 +             if self.verbose_handler:
-+                 with self.verbose_handler.operation(&quot;Preprocessing domain data&quot;, level=2):
++                 with self.verbose_handler.operation("Preprocessing domain data", level=2):
 +                     data_preprocessor = DataPreprocessor(self.llm)
 +                     preprocessed_prose, preprocessed_segments = data_preprocessor.preprocess_data(input_data)
-+                     self.logger.debug(f&quot;Preprocessed segments: {preprocessed_segments}&quot;)
++                     self.logger.debug(f"Preprocessed segments: {preprocessed_segments}")
 +             else:
 +                 data_preprocessor = DataPreprocessor(self.llm)
 +                 preprocessed_prose, preprocessed_segments = data_preprocessor.preprocess_data(input_data)
@@ -8385,26 +8385,26 @@ Lines added: 8, lines removed: 9
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 6, lines removed: 5
 
 ```diff
 @@ -311,9 +311,10 @@
-              self.logger.debug(&quot;Generating digest for initial data with pre-segmented content...&quot;)
+              self.logger.debug("Generating digest for initial data with pre-segmented content...")
               if self.verbose_handler:
--                 self.verbose_handler.status(&quot;Generating digest for domain data...&quot;, 2)
+-                 self.verbose_handler.status("Generating digest for domain data...", 2)
 -             initial_digest = self.digest_generator.generate_digest(system_entry, segments=preprocessed_segments)
--             system_entry[&quot;digest&quot;] = initial_digest
+-             system_entry["digest"] = initial_digest
 -             if self.verbose_handler:
--                 self.verbose_handler.success(&quot;Generated digest with importance ratings&quot;, level=2)
-+                 with self.verbose_handler.operation(&quot;Generating digest for domain data&quot;, level=2):
+-                 self.verbose_handler.success("Generated digest with importance ratings", level=2)
++                 with self.verbose_handler.operation("Generating digest for domain data", level=2):
 +                     initial_digest = self.digest_generator.generate_digest(system_entry, segments=preprocessed_segments)
-+                     system_entry[&quot;digest&quot;] = initial_digest
++                     system_entry["digest"] = initial_digest
 +             else:
 +                 initial_digest = self.digest_generator.generate_digest(system_entry, segments=preprocessed_segments)
-+                 system_entry[&quot;digest&quot;] = initial_digest
++                 system_entry["digest"] = initial_digest
                           
               # Create static memory from digest
 ```
@@ -8417,7 +8417,7 @@ Lines added: 6, lines removed: 5
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 4, lines removed: 4
@@ -8426,11 +8426,11 @@ Lines added: 4, lines removed: 4
 @@ -345,8 +345,8 @@
               # Generate and save embeddings for the initial system entry
               if self.verbose_handler:
--                 self.verbose_handler.status(&quot;Creating embeddings for semantic search...&quot;, 2)
+-                 self.verbose_handler.status("Creating embeddings for semantic search...", 2)
 -             self.embeddings_manager.add_new_embeddings([system_entry])
 -             if self.verbose_handler:
--                 self.verbose_handler.success(&quot;Embeddings created&quot;, level=2)
-+                 with self.verbose_handler.operation(&quot;Creating embeddings for semantic search&quot;, level=2):
+-                 self.verbose_handler.success("Embeddings created", level=2)
++                 with self.verbose_handler.operation("Creating embeddings for semantic search", level=2):
 +                     self.embeddings_manager.add_new_embeddings([system_entry])
 +             else:
 +                 self.embeddings_manager.add_new_embeddings([system_entry])
@@ -8472,25 +8472,25 @@ Let me look at the specific graph processing method:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 4, lines removed: 4
 
 ```diff
 @@ -354,8 +354,8 @@
-                  self.logger.debug(&quot;Processing static memory for graph memory...&quot;)
+                  self.logger.debug("Processing static memory for graph memory...")
                   if self.verbose_handler:
--                     self.verbose_handler.status(&quot;Building knowledge graph from domain data...&quot;, 2)
+-                     self.verbose_handler.status("Building knowledge graph from domain data...", 2)
 -                 self._process_initial_graph_memory(system_entry)
 -                 if self.verbose_handler:
--                     self.verbose_handler.success(&quot;Knowledge graph initialized&quot;, level=2)
-+                     with self.verbose_handler.operation(&quot;Building knowledge graph from domain data&quot;, level=2):
+-                     self.verbose_handler.success("Knowledge graph initialized", level=2)
++                     with self.verbose_handler.operation("Building knowledge graph from domain data", level=2):
 +                         self._process_initial_graph_memory(system_entry)
 +                 else:
 +                     self._process_initial_graph_memory(system_entry)
   
-              self.logger.debug(&quot;Memory created and initialized with static knowledge&quot;)
+              self.logger.debug("Memory created and initialized with static knowledge")
 ```
 
 </details>
@@ -8505,20 +8505,20 @@ Now let me add detailed sub-steps to the `_process_initial_graph_memory` method:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 3, lines removed: undefined
 
 ```diff
 @@ -1056,4 +1056,7 @@
-              self.logger.debug(&quot;Processing initial system entry for graph memory...&quot;)
+              self.logger.debug("Processing initial system entry for graph memory...")
               
 +             if self.verbose_handler:
-+                 self.verbose_handler.status(&quot;Analyzing digest segments...&quot;, 3)
++                 self.verbose_handler.status("Analyzing digest segments...", 3)
 +             
               # Get segments from digest
-              digest = system_entry.get(&quot;digest&quot;, {})
+              digest = system_entry.get("digest", {})
 ```
 
 **Chunk 2**
@@ -8527,9 +8527,9 @@ Lines added: 2, lines removed: undefined
 ```diff
 @@ -1062,4 +1065,6 @@
               if not segments:
-                  self.logger.debug(&quot;No segments found in initial digest, skipping initial graph processing&quot;)
+                  self.logger.debug("No segments found in initial digest, skipping initial graph processing")
 +                 if self.verbose_handler:
-+                     self.verbose_handler.warning(&quot;No segments found in digest&quot;, 3)
++                     self.verbose_handler.warning("No segments found in digest", 3)
                   return
               
 ```
@@ -8540,14 +8540,14 @@ Lines added: 4, lines removed: undefined
 ```diff
 @@ -1074,7 +1079,11 @@
               if not important_segments:
-                  self.logger.debug(&quot;No important segments found in initial content, skipping graph processing&quot;)
+                  self.logger.debug("No important segments found in initial content, skipping graph processing")
 +                 if self.verbose_handler:
-+                     self.verbose_handler.warning(&quot;No important segments found&quot;, 3)
++                     self.verbose_handler.warning("No important segments found", 3)
                   return
               
-              self.logger.debug(f&quot;Processing {len(important_segments)} important segments for initial graph memory&quot;)
+              self.logger.debug(f"Processing {len(important_segments)} important segments for initial graph memory")
 +             if self.verbose_handler:
-+                 self.verbose_handler.success(f&quot;Found {len(important_segments)} important segments&quot;, level=3)
++                 self.verbose_handler.success(f"Found {len(important_segments)} important segments", level=3)
               
               # Use EntityResolver pathway for enhanced duplicate detection (now mandatory)
 ```
@@ -8560,20 +8560,20 @@ Lines added: 4, lines removed: undefined
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 3, lines removed: undefined
 
 ```diff
 @@ -1092,4 +1092,7 @@
-                  self.logger.debug(&quot;Using EntityResolver pathway for initial graph memory processing&quot;)
+                  self.logger.debug("Using EntityResolver pathway for initial graph memory processing")
                   
 +                 if self.verbose_handler:
-+                     self.verbose_handler.status(&quot;Preparing text for entity extraction...&quot;, 3)
++                     self.verbose_handler.status("Preparing text for entity extraction...", 3)
 +                 
                   # Construct conversation text from all important segments
-                  conversation_text = &quot;\n&quot;.join([
+                  conversation_text = "\n".join([
 ```
 
 **Chunk 2**
@@ -8581,11 +8581,11 @@ Lines added: 4, lines removed: undefined
 
 ```diff
 @@ -1101,4 +1104,8 @@
-                  digest_text = system_entry.get(&quot;content&quot;, &quot;&quot;)[:500]  # Limit for context
+                  digest_text = system_entry.get("content", "")[:500]  # Limit for context
                   
 +                 if self.verbose_handler:
-+                     self.verbose_handler.success(f&quot;Prepared {len(conversation_text)} chars for processing&quot;, level=3)
-+                     self.verbose_handler.status(&quot;Extracting entities and relationships...&quot;, 3)
++                     self.verbose_handler.success(f"Prepared {len(conversation_text)} chars for processing", level=3)
++                     self.verbose_handler.status("Extracting entities and relationships...", 3)
 +                 
                   # Process using EntityResolver pathway for consistent duplicate detection
                   try:
@@ -8596,25 +8596,25 @@ Lines added: 11, lines removed: undefined
 
 ```diff
 @@ -1116,10 +1123,21 @@
-                                      f&quot;created {len(results.get(&#39;relationships&#39;, []))} relationships&quot;)
+                                      f"created {len(results.get('relationships', []))} relationships")
                       
 +                     if self.verbose_handler:
-+                         new_entities = len(results.get(&#39;new_entities&#39;, []))
-+                         existing_entities = len(results.get(&#39;existing_entities&#39;, []))
-+                         relationships = len(results.get(&#39;relationships&#39;, []))
-+                         self.verbose_handler.success(f&quot;Extracted {new_entities} entities, {relationships} relationships&quot;, level=3)
++                         new_entities = len(results.get('new_entities', []))
++                         existing_entities = len(results.get('existing_entities', []))
++                         relationships = len(results.get('relationships', []))
++                         self.verbose_handler.success(f"Extracted {new_entities} entities, {relationships} relationships", level=3)
 +                     
                   except Exception as e:
-                      self.logger.error(f&quot;Error in EntityResolver initial processing: {e}&quot;)
+                      self.logger.error(f"Error in EntityResolver initial processing: {e}")
 +                     if self.verbose_handler:
-+                         self.verbose_handler.warning(f&quot;Entity extraction failed: {str(e)}&quot;, 3)
-+                         self.verbose_handler.status(&quot;Falling back to basic processing...&quot;, 3)
-                      self.logger.warning(&quot;Falling back to basic initial graph processing&quot;)
++                         self.verbose_handler.warning(f"Entity extraction failed: {str(e)}", 3)
++                         self.verbose_handler.status("Falling back to basic processing...", 3)
+                      self.logger.warning("Falling back to basic initial graph processing")
                       self._process_initial_graph_memory_basic(important_segments)
               else:
-                  self.logger.debug(&quot;EntityResolver not available, using basic initial graph processing&quot;)
+                  self.logger.debug("EntityResolver not available, using basic initial graph processing")
 +                 if self.verbose_handler:
-+                     self.verbose_handler.warning(&quot;EntityResolver not available, using basic processing&quot;, 3)
++                     self.verbose_handler.warning("EntityResolver not available, using basic processing", 3)
                   self._process_initial_graph_memory_basic(important_segments)
               
 ```
@@ -8630,7 +8630,7 @@ Now let me test the enhanced verbose logging with timing and sub-steps:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: echo "Tell me about the trade routes." | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/agent_usage_example.py --guid verbose_timing_test --config dnd --performance balanced --verbose</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: echo "Tell me about the trade routes." | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/agent_usage_example.py --guid verbose_timing_test --config dnd --performance balanced --verbose</summary>
 
 ```bash
 echo "Tell me about the trade routes." | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/agent_usage_example.py --guid verbose_timing_test --config dnd --performance balanced --verbose
@@ -8644,58 +8644,58 @@ echo "Tell me about the trade routes." | DEV_MODE=true OLLAMA_BASE_URL=http://19
 ================================================================================
 
 Using domain config: dnd
-Domain config: {&#39;domain_name&#39;: &#39;dnd_campaign&#39;, &#39;domain_specific_prompt_instructions&#39;
-: {&#39;query&#39;: &quot;You are a DM for a D&amp;D campaign. ANSWER PLAYER QUESTIONS DIRECTLY. For
-simple questions (like &#39;are there goblins nearby?&#39;), give specific answers based on
-the campaign state. For exploration questions (like &#39;what do I see?&#39;), provide vivid
- but concise descriptions. Avoid starting every response with &#39;Okay, let&#39;s investiga
-te&#39; or similar repetitive phrases. Move the story forward with actionable informatio
-n and clear choices.&quot;, &#39;update&#39;: &#39;You are analyzing the input from both the user and
+Domain config: {'domain_name': 'dnd_campaign', 'domain_specific_prompt_instructions'
+: {'query': "You are a DM for a D&amp;D campaign. ANSWER PLAYER QUESTIONS DIRECTLY. For
+simple questions (like 'are there goblins nearby?'), give specific answers based on
+the campaign state. For exploration questions (like 'what do I see?'), provide vivid
+ but concise descriptions. Avoid starting every response with 'Okay, let's investiga
+te' or similar repetitive phrases. Move the story forward with actionable informatio
+n and clear choices.", 'update': 'You are analyzing the input from both the user and
  the agent and extracting and classifying the important information into the convers
-ation history data structure.&#39;}, &#39;initial_data&#39;: &quot;\nCampaign Setting: The Lost Valle
+ation history data structure.'}, 'initial_data': "\nCampaign Setting: The Lost Valle
 y\n\nWorld Details:\n- Hidden valley surrounded by impassable mountains\n- Ancient r
 uins scattered throughout\n- Mysterious magical anomalies\n- Three main settlements:
  Haven (central), Riverwatch (east), Mountainkeep (west)\n\nKey NPCs:\n1. Elena\n
-- Role: Mayor of Haven\n   - Motivation: Protect the valley&#39;s inhabitants\n   - Curr
+- Role: Mayor of Haven\n   - Motivation: Protect the valley's inhabitants\n   - Curr
 ent Quest: Investigate strange occurrences in Haven\n\n2. Theron\n   - Role: Master
 Scholar\n   - Expertise: Ancient ruins and artifacts\n   - Current Research: Decodin
 g ruin inscriptions\n\n3. Sara\n   - Role: Captain of Riverwatch\n   - Responsibilit
-y: Valley&#39;s defense\n   - Current Concern: Increased monster activity\n\nCurrent Sit
+y: Valley's defense\n   - Current Concern: Increased monster activity\n\nCurrent Sit
 uations:\n1. Trade Routes\n   - Main road between settlements disrupted\n   - Mercha
 nts seeking protection\n   - Alternative routes needed\n\n2. Ancient Ruins\n   - New
  chambers discovered\n   - Strange energy emanations\n   - Valuable artifacts found\
 n\n3. Magical Anomalies\n   - Random magical effects\n   - Affecting local wildlife\
-n   - Possible connection to ruins&quot;, &#39;topic_taxonomy&#39;: {&#39;world&#39;: [&#39;setting&#39;, &#39;geogra
-phy&#39;, &#39;location&#39;, &#39;environment&#39;, &#39;terrain&#39;], &#39;characters&#39;: [&#39;npc&#39;, &#39;player&#39;, &#39;person
-ality&#39;, &#39;motivation&#39;, &#39;background&#39;], &#39;narrative&#39;: [&#39;story&#39;, &#39;plot&#39;, &#39;quest&#39;, &#39;advent
-ure&#39;, &#39;campaign&#39;], &#39;mechanics&#39;: [&#39;rules&#39;, &#39;dice&#39;, &#39;combat&#39;, &#39;magic&#39;, &#39;spells&#39;], &#39;obj
-ects&#39;: [&#39;items&#39;, &#39;equipment&#39;, &#39;artifacts&#39;, &#39;treasure&#39;, &#39;inventory&#39;], &#39;history&#39;: [&#39;lo
-re&#39;, &#39;ruins&#39;, &#39;archaeology&#39;, &#39;ancient&#39;, &#39;past&#39;], &#39;society&#39;: [&#39;politics&#39;, &#39;trade&#39;, &#39;s
-ettlements&#39;, &#39;culture&#39;, &#39;religion&#39;], &#39;threats&#39;: [&#39;monsters&#39;, &#39;enemies&#39;, &#39;dangers&#39;, &#39;
-conflict&#39;, &#39;war&#39;], &#39;exploration&#39;: [&#39;discovery&#39;, &#39;investigation&#39;, &#39;research&#39;, &#39;myster
-y&#39;], &#39;events&#39;: [&#39;happenings&#39;, &#39;situations&#39;, &#39;incidents&#39;, &#39;occurrences&#39;]}, &#39;topic_nor
-malizations&#39;: {&#39;locations&#39;: &#39;location&#39;, &#39;geography&#39;: &#39;location&#39;, &#39;terrain&#39;: &#39;environ
-ment&#39;, &#39;area&#39;: &#39;location&#39;, &#39;place&#39;: &#39;location&#39;, &#39;region&#39;: &#39;location&#39;, &#39;character&#39;: &#39;
-characters&#39;, &#39;key npc&#39;: &#39;npc&#39;, &#39;npcs&#39;: &#39;npc&#39;, &#39;people&#39;: &#39;characters&#39;, &#39;ruins&#39;: &#39;arch
-aeology&#39;, &#39;ancient ruins&#39;: &#39;archaeology&#39;, &#39;artifacts&#39;: &#39;archaeology&#39;, &#39;archaeologica
-l&#39;: &#39;archaeology&#39;, &#39;situation&#39;: &#39;events&#39;, &#39;situations&#39;: &#39;events&#39;, &#39;happenings&#39;: &#39;eve
-nts&#39;, &#39;occurrences&#39;: &#39;events&#39;, &#39;research&#39;: &#39;investigation&#39;, &#39;exploration&#39;: &#39;investig
-ation&#39;, &#39;discovery&#39;: &#39;investigation&#39;, &#39;magical&#39;: &#39;magic&#39;, &#39;anomalies&#39;: &#39;magic&#39;, &#39;mag
-ical anomalies&#39;: &#39;magic&#39;, &#39;setting&#39;: &#39;world&#39;, &#39;world&#39;: &#39;setting&#39;, &#39;lore&#39;: &#39;history&#39;,
- &#39;ancient&#39;: &#39;history&#39;, &#39;monsters&#39;: &#39;threats&#39;, &#39;enemies&#39;: &#39;threats&#39;, &#39;monster activit
-y&#39;: &#39;threats&#39;, &#39;defense&#39;: &#39;threats&#39;, &#39;trade routes&#39;: &#39;trade&#39;, &#39;settlements&#39;: &#39;societ
-y&#39;, &#39;politics&#39;: &#39;society&#39;, &#39;value&#39;: &#39;objects&#39;, &#39;treasure&#39;: &#39;objects&#39;, &#39;skills&#39;: &#39;mec
-hanics&#39;, &#39;expertise&#39;: &#39;mechanics&#39;, &#39;decryption&#39;: &#39;investigation&#39;, &#39;wildlife&#39;: &#39;envir
-onment&#39;}, &#39;graph_memory_config&#39;: {&#39;enabled&#39;: True, &#39;entity_types&#39;: [&#39;character&#39;, &#39;lo
-cation&#39;, &#39;object&#39;, &#39;event&#39;, &#39;concept&#39;, &#39;organization&#39;], &#39;relationship_types&#39;: [&#39;loca
-ted_in&#39;, &#39;owns&#39;, &#39;member_of&#39;, &#39;allies_with&#39;, &#39;enemies_with&#39;, &#39;uses&#39;, &#39;created_by&#39;, &#39;
-leads_to&#39;, &#39;participates_in&#39;, &#39;related_to&#39;, &#39;mentions&#39;], &#39;entity_extraction_prompt&#39;:
- &#39;Extract entities from this D&amp;D campaign text. Focus on characters, locations, obje
+n   - Possible connection to ruins", 'topic_taxonomy': {'world': ['setting', 'geogra
+phy', 'location', 'environment', 'terrain'], 'characters': ['npc', 'player', 'person
+ality', 'motivation', 'background'], 'narrative': ['story', 'plot', 'quest', 'advent
+ure', 'campaign'], 'mechanics': ['rules', 'dice', 'combat', 'magic', 'spells'], 'obj
+ects': ['items', 'equipment', 'artifacts', 'treasure', 'inventory'], 'history': ['lo
+re', 'ruins', 'archaeology', 'ancient', 'past'], 'society': ['politics', 'trade', 's
+ettlements', 'culture', 'religion'], 'threats': ['monsters', 'enemies', 'dangers', '
+conflict', 'war'], 'exploration': ['discovery', 'investigation', 'research', 'myster
+y'], 'events': ['happenings', 'situations', 'incidents', 'occurrences']}, 'topic_nor
+malizations': {'locations': 'location', 'geography': 'location', 'terrain': 'environ
+ment', 'area': 'location', 'place': 'location', 'region': 'location', 'character': '
+characters', 'key npc': 'npc', 'npcs': 'npc', 'people': 'characters', 'ruins': 'arch
+aeology', 'ancient ruins': 'archaeology', 'artifacts': 'archaeology', 'archaeologica
+l': 'archaeology', 'situation': 'events', 'situations': 'events', 'happenings': 'eve
+nts', 'occurrences': 'events', 'research': 'investigation', 'exploration': 'investig
+ation', 'discovery': 'investigation', 'magical': 'magic', 'anomalies': 'magic', 'mag
+ical anomalies': 'magic', 'setting': 'world', 'world': 'setting', 'lore': 'history',
+ 'ancient': 'history', 'monsters': 'threats', 'enemies': 'threats', 'monster activit
+y': 'threats', 'defense': 'threats', 'trade routes': 'trade', 'settlements': 'societ
+y', 'politics': 'society', 'value': 'objects', 'treasure': 'objects', 'skills': 'mec
+hanics', 'expertise': 'mechanics', 'decryption': 'investigation', 'wildlife': 'envir
+onment'}, 'graph_memory_config': {'enabled': True, 'entity_types': ['character', 'lo
+cation', 'object', 'event', 'concept', 'organization'], 'relationship_types': ['loca
+ted_in', 'owns', 'member_of', 'allies_with', 'enemies_with', 'uses', 'created_by', '
+leads_to', 'participates_in', 'related_to', 'mentions'], 'entity_extraction_prompt':
+ 'Extract entities from this D&amp;D campaign text. Focus on characters, locations, obje
 cts, events, concepts, and organizations that are important to the campaign world an
-d story.&#39;, &#39;relationship_extraction_prompt&#39;: &#39;Identify relationships between entitie
+d story.', 'relationship_extraction_prompt': 'Identify relationships between entitie
 s in this D&amp;D campaign text. Look for spatial relationships (located_in), ownership
-(owns), social relationships (allies_with, enemies_with), and story connections.&#39;, &#39;
-similarity_threshold&#39;: 0.8}}
+(owns), social relationships (allies_with, enemies_with), and story connections.', '
+similarity_threshold': 0.8}}
 
 Setting up services...
 Initializing session with guid: verbose_timing_test
@@ -8734,11 +8734,11 @@ Memory File: agent_memories/standard/verbose_timing_test/agent_memory.json
 Metadata:
 ------------------------------
 {
-  &quot;created_at&quot;: &quot;2025-09-02T10:55:16.672601&quot;,
-  &quot;updated_at&quot;: &quot;2025-09-02T10:55:16.672601&quot;,
-  &quot;version&quot;: &quot;2.0.0&quot;,
-  &quot;domain&quot;: &quot;general&quot;,
-  &quot;saved_during&quot;: &quot;create_initial_memory&quot;
+  "created_at": "2025-09-02T10:55:16.672601",
+  "updated_at": "2025-09-02T10:55:16.672601",
+  "version": "2.0.0",
+  "domain": "general",
+  "saved_during": "create_initial_memory"
 }
 
 Conversation History: 1 messages
@@ -8754,7 +8754,7 @@ the east; and Mountainkeep, located to the west.
 
 
 Key non-player characters include Elena, the Mayor of Haven, whose motivation is to
-protect the valley&#39;s inhabitants and who is currently investigating strange occurren
+protect the valley's inhabitants and who is currently investigating strange occurren
 ces in Haven.
 
 
@@ -8762,7 +8762,7 @@ Theron serves as a Master Scholar with expertise in ancient ruins and artifacts,
  he is presently focused on decoding ruin inscriptions.
 
 
-Finally, Sara is the Captain of Riverwatch, responsible for the valley&#39;s defense, an
+Finally, Sara is the Captain of Riverwatch, responsible for the valley's defense, an
 d she is concerned about increased monster activity.
 
 
@@ -8780,7 +8780,7 @@ Furthermore, random magical effects are occurring, impacting the local wildlife,
 
 
 Processing: Tell me about the trade routes.
-🔄 Processing query: &#39;Tell me about the trade routes....&#39;
+🔄 Processing query: 'Tell me about the trade routes....'
 🔄   Enhancing query with relevant context (RAG)...
 ✅     Generated and cached RAG context
 🔄   Retrieving graph context...
@@ -8993,7 +8993,7 @@ Perfect! Now I can see the main stages. Let me add verbose logging to the GraphM
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/graph_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/graph_memory/graph_manager.py</summary>
 
 **Chunk 1**
 Lines added: 15, lines removed: undefined
@@ -9003,28 +9003,28 @@ Lines added: 15, lines removed: undefined
               }
               
 +             # Get verbose handler if available from memory manager
-+             verbose_handler = getattr(self, &#39;verbose_handler&#39;, None)
++             verbose_handler = getattr(self, 'verbose_handler', None)
 +             if not verbose_handler:
 +                 # Try to get it from the memory manager if it was passed
-+                 if hasattr(self, &#39;_memory_manager&#39;) and hasattr(self._memory_manager, &#39;verbose_handler&#39;):
++                 if hasattr(self, '_memory_manager') and hasattr(self._memory_manager, 'verbose_handler'):
 +                     verbose_handler = self._memory_manager.verbose_handler
 +             
               # Stage 1: Extract entities using alternative approach
-              self.logger.debug(&quot;Stage 1: Extracting entities from conversation with EntityExtractor&quot;)
+              self.logger.debug("Stage 1: Extracting entities from conversation with EntityExtractor")
 +             if verbose_handler:
-+                 verbose_handler.status(&quot;Stage 1: Extracting candidate entities...&quot;, 4)
++                 verbose_handler.status("Stage 1: Extracting candidate entities...", 4)
 +             
               raw_entities = self.entity_extractor.extract_entities_from_conversation(
                   conversation_text, digest_text)
               
               if not raw_entities:
-                  self.logger.info(&quot;No entities extracted from conversation&quot;)
+                  self.logger.info("No entities extracted from conversation")
 +                 if verbose_handler:
-+                     verbose_handler.warning(&quot;No entities found in conversation&quot;, 4)
++                     verbose_handler.warning("No entities found in conversation", 4)
                   return results
               
 +             if verbose_handler:
-+                 verbose_handler.success(f&quot;Found {len(raw_entities)} candidate entities&quot;, level=4)
++                 verbose_handler.success(f"Found {len(raw_entities)} candidate entities", level=4)
 +             
               # All entities from EntityExtractor are now candidates for EntityResolver
               # EntityExtractor no longer does any matching - only extraction
@@ -9038,7 +9038,7 @@ Lines added: 15, lines removed: undefined
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/graph_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/graph_memory/graph_manager.py</summary>
 
 **Chunk 1**
 Lines added: 3, lines removed: undefined
@@ -9046,9 +9046,9 @@ Lines added: 3, lines removed: undefined
 ```diff
 @@ -433,4 +433,7 @@
                   # Stage 2: Convert to EntityResolver candidates
-                  self.logger.debug(f&quot;Stage 2: Converting {len(raw_entities)} entities to resolver candidates&quot;)
+                  self.logger.debug(f"Stage 2: Converting {len(raw_entities)} entities to resolver candidates")
 +                 if verbose_handler:
-+                     verbose_handler.status(&quot;Stage 2: Converting to resolver candidates...&quot;, 4)
++                     verbose_handler.status("Stage 2: Converting to resolver candidates...", 4)
 +                 
                   candidates = []
                   for i, entity in enumerate(raw_entities):
@@ -9062,12 +9062,12 @@ Lines added: 9, lines removed: undefined
                       candidates.append(candidate)
                   
 +                 if verbose_handler:
-+                     verbose_handler.success(f&quot;Prepared {len(candidates)} candidates for resolution&quot;, level=4)
++                     verbose_handler.success(f"Prepared {len(candidates)} candidates for resolution", level=4)
 +                 
                   # Stage 3: Resolve candidates using EntityResolver
-                  self.logger.debug(f&quot;Stage 3: Resolving {len(candidates)} candidates with EntityResolver&quot;)
+                  self.logger.debug(f"Stage 3: Resolving {len(candidates)} candidates with EntityResolver")
 +                 if verbose_handler:
-+                     verbose_handler.status(&quot;Stage 3: Resolving entities (this may take time)...&quot;, 4)
++                     verbose_handler.status("Stage 3: Resolving entities (this may take time)...", 4)
 +                 
                   resolutions = self.entity_resolver.resolve_candidates(
                       candidates, 
@@ -9075,7 +9075,7 @@ Lines added: 9, lines removed: undefined
                   )
                   
 +                 if verbose_handler:
-+                     verbose_handler.success(f&quot;Resolved {len(resolutions)} entities&quot;, level=4)
++                     verbose_handler.success(f"Resolved {len(resolutions)} entities", level=4)
 +                 
                   # Stage 4: Process resolutions and update graph
                   processed_entities = []
@@ -9093,7 +9093,7 @@ Now I need to pass the verbose handler to the GraphManager. Let me update the Me
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 3, lines removed: undefined
@@ -9105,8 +9105,8 @@ Lines added: 3, lines removed: undefined
 +                 # Pass verbose handler to graph manager for detailed logging
 +                 if self.verbose_handler:
 +                     self.graph_manager.verbose_handler = self.verbose_handler
-                  self.logger.debug(f&quot;Initialized GraphManager with storage: {graph_storage_path}&quot;)
-                  graph_logger.debug(f&quot;Graph memory logger initialized for memory: {memory_base}&quot;)
+                  self.logger.debug(f"Initialized GraphManager with storage: {graph_storage_path}")
+                  graph_logger.debug(f"Graph memory logger initialized for memory: {memory_base}")
 ```
 
 </details>
@@ -9137,7 +9137,7 @@ Let me read the file to see the exact content:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/entity_resolver.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/graph_memory/entity_resolver.py</summary>
 
 **Chunk 1**
 Lines added: 15, lines removed: 2
@@ -9148,23 +9148,23 @@ Lines added: 15, lines removed: 2
           threshold = confidence_threshold if confidence_threshold is not None else self.confidence_threshold
 +         
 +         # Get verbose handler if available
-+         verbose_handler = getattr(self, &#39;verbose_handler&#39;, None)
++         verbose_handler = getattr(self, 'verbose_handler', None)
           
           if process_individually:
 -             return self._resolve_individually(candidates, threshold)
 +             if verbose_handler:
-+                 verbose_handler.status(f&quot;Processing {len(candidates)} entities individually...&quot;, 5)
++                 verbose_handler.status(f"Processing {len(candidates)} entities individually...", 5)
 +             result = self._resolve_individually(candidates, threshold)
 +             if verbose_handler:
-+                 verbose_handler.success(f&quot;Individual processing completed&quot;, level=5)
++                 verbose_handler.success(f"Individual processing completed", level=5)
 +             return result
           else:
 -             return self._resolve_batch(candidates, threshold)
 +             if verbose_handler:
-+                 verbose_handler.status(f&quot;Processing {len(candidates)} entities in batch...&quot;, 5)
++                 verbose_handler.status(f"Processing {len(candidates)} entities in batch...", 5)
 +             result = self._resolve_batch(candidates, threshold)
 +             if verbose_handler:
-+                 verbose_handler.success(f&quot;Batch processing completed&quot;, level=5)
++                 verbose_handler.success(f"Batch processing completed", level=5)
 +             return result
       
       def _resolve_individually(self, candidates: List[Dict[str, Any]], 
@@ -9182,17 +9182,17 @@ Now I need to pass the verbose handler to the EntityResolver. Let me update the 
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/graph_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/graph_memory/graph_manager.py</summary>
 
 **Chunk 1**
 Lines added: 4, lines removed: undefined
 
 ```diff
 @@ -455,4 +455,8 @@
-                      verbose_handler.status(&quot;Stage 3: Resolving entities (this may take time)...&quot;, 4)
+                      verbose_handler.status("Stage 3: Resolving entities (this may take time)...", 4)
                   
 +                 # Pass verbose handler to entity resolver for detailed logging
-+                 if verbose_handler and hasattr(self.entity_resolver, &#39;verbose_handler&#39;):
++                 if verbose_handler and hasattr(self.entity_resolver, 'verbose_handler'):
 +                     self.entity_resolver.verbose_handler = verbose_handler
 +                 
                   resolutions = self.entity_resolver.resolve_candidates(
@@ -9219,7 +9219,7 @@ Let me add more detailed logging to the individual processing method which is li
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/entity_resolver.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/graph_memory/entity_resolver.py</summary>
 
 **Chunk 1**
 Lines added: 10, lines removed: 1
@@ -9229,19 +9229,19 @@ Lines added: 10, lines removed: 1
           resolved_context = []  # Track resolved entities for subsequent candidates
           
 -         for candidate in candidates:
-+         verbose_handler = getattr(self, &#39;verbose_handler&#39;, None)
++         verbose_handler = getattr(self, 'verbose_handler', None)
 +         
 +         for i, candidate in enumerate(candidates):
               try:
 +                 if verbose_handler:
-+                     candidate_name = candidate.get(&#39;name&#39;, &#39;unnamed&#39;)
-+                     verbose_handler.status(f&quot;Resolving entity {i+1}/{len(candidates)}: {candidate_name}&quot;, 6)
++                     candidate_name = candidate.get('name', 'unnamed')
++                     verbose_handler.status(f"Resolving entity {i+1}/{len(candidates)}: {candidate_name}", 6)
 +                 
                   # Get RAG candidates for this specific entity
                   rag_candidates = self._get_rag_candidates_for_entity(candidate)
                   
 +                 if verbose_handler and rag_candidates:
-+                     verbose_handler.status(f&quot;Found {len(rag_candidates)} similar entities&quot;, 7)
++                     verbose_handler.status(f"Found {len(rag_candidates)} similar entities", 7)
 +                 
                   # Combine with previously resolved entities in this session
                   existing_context = rag_candidates + resolved_context
@@ -9267,7 +9267,7 @@ Now let me add logging to the single candidate resolution method:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/entity_resolver.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/graph_memory/entity_resolver.py</summary>
 
 **Chunk 1**
 Lines added: 11, lines removed: undefined
@@ -9277,18 +9277,18 @@ Lines added: 11, lines removed: undefined
                   
                   # Resolve single candidate
 +                 if verbose_handler:
-+                     verbose_handler.status(&quot;Calling LLM for entity resolution...&quot;, 7)
++                     verbose_handler.status("Calling LLM for entity resolution...", 7)
 +                 
                   resolution = self._resolve_single_candidate(candidate, existing_context, confidence_threshold)
                   resolutions.append(resolution)
                   
 +                 if verbose_handler:
-+                     confidence = resolution.get(&#39;confidence&#39;, 0.0)
-+                     resolved_to = resolution.get(&#39;resolved_node_id&#39;, &#39;unknown&#39;)
-+                     if resolved_to == &quot;&lt;NEW&gt;&quot;:
-+                         verbose_handler.success(f&quot;Will create new entity (confidence: {confidence:.2f})&quot;, level=7)
++                     confidence = resolution.get('confidence', 0.0)
++                     resolved_to = resolution.get('resolved_node_id', 'unknown')
++                     if resolved_to == "&lt;NEW&gt;":
++                         verbose_handler.success(f"Will create new entity (confidence: {confidence:.2f})", level=7)
 +                     else:
-+                         verbose_handler.success(f&quot;Matched to existing: {resolved_to} (confidence: {confidence:.2f})&quot;, level=7)
++                         verbose_handler.success(f"Matched to existing: {resolved_to} (confidence: {confidence:.2f})", level=7)
 +                 
                   # Add to resolved context if it was matched to existing entity
                   # Validate that the resolved node actually exists in graph storage
@@ -9305,7 +9305,7 @@ Now let me test the enhanced verbose logging with detailed entity resolution sub
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: echo "Tell me about Elena." | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/agent_usage_example.py --guid verbose_entity_test --config dnd --performance balanced --verbose</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: echo "Tell me about Elena." | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/agent_usage_example.py --guid verbose_entity_test --config dnd --performance balanced --verbose</summary>
 
 ```bash
 echo "Tell me about Elena." | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/agent_usage_example.py --guid verbose_entity_test --config dnd --performance balanced --verbose
@@ -9319,58 +9319,58 @@ echo "Tell me about Elena." | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28
 ================================================================================
 
 Using domain config: dnd
-Domain config: {&#39;domain_name&#39;: &#39;dnd_campaign&#39;, &#39;domain_specific_prompt_instructions&#39;
-: {&#39;query&#39;: &quot;You are a DM for a D&amp;D campaign. ANSWER PLAYER QUESTIONS DIRECTLY. For
-simple questions (like &#39;are there goblins nearby?&#39;), give specific answers based on
-the campaign state. For exploration questions (like &#39;what do I see?&#39;), provide vivid
- but concise descriptions. Avoid starting every response with &#39;Okay, let&#39;s investiga
-te&#39; or similar repetitive phrases. Move the story forward with actionable informatio
-n and clear choices.&quot;, &#39;update&#39;: &#39;You are analyzing the input from both the user and
+Domain config: {'domain_name': 'dnd_campaign', 'domain_specific_prompt_instructions'
+: {'query': "You are a DM for a D&amp;D campaign. ANSWER PLAYER QUESTIONS DIRECTLY. For
+simple questions (like 'are there goblins nearby?'), give specific answers based on
+the campaign state. For exploration questions (like 'what do I see?'), provide vivid
+ but concise descriptions. Avoid starting every response with 'Okay, let's investiga
+te' or similar repetitive phrases. Move the story forward with actionable informatio
+n and clear choices.", 'update': 'You are analyzing the input from both the user and
  the agent and extracting and classifying the important information into the convers
-ation history data structure.&#39;}, &#39;initial_data&#39;: &quot;\nCampaign Setting: The Lost Valle
+ation history data structure.'}, 'initial_data': "\nCampaign Setting: The Lost Valle
 y\n\nWorld Details:\n- Hidden valley surrounded by impassable mountains\n- Ancient r
 uins scattered throughout\n- Mysterious magical anomalies\n- Three main settlements:
  Haven (central), Riverwatch (east), Mountainkeep (west)\n\nKey NPCs:\n1. Elena\n
-- Role: Mayor of Haven\n   - Motivation: Protect the valley&#39;s inhabitants\n   - Curr
+- Role: Mayor of Haven\n   - Motivation: Protect the valley's inhabitants\n   - Curr
 ent Quest: Investigate strange occurrences in Haven\n\n2. Theron\n   - Role: Master
 Scholar\n   - Expertise: Ancient ruins and artifacts\n   - Current Research: Decodin
 g ruin inscriptions\n\n3. Sara\n   - Role: Captain of Riverwatch\n   - Responsibilit
-y: Valley&#39;s defense\n   - Current Concern: Increased monster activity\n\nCurrent Sit
+y: Valley's defense\n   - Current Concern: Increased monster activity\n\nCurrent Sit
 uations:\n1. Trade Routes\n   - Main road between settlements disrupted\n   - Mercha
 nts seeking protection\n   - Alternative routes needed\n\n2. Ancient Ruins\n   - New
  chambers discovered\n   - Strange energy emanations\n   - Valuable artifacts found\
 n\n3. Magical Anomalies\n   - Random magical effects\n   - Affecting local wildlife\
-n   - Possible connection to ruins&quot;, &#39;topic_taxonomy&#39;: {&#39;world&#39;: [&#39;setting&#39;, &#39;geogra
-phy&#39;, &#39;location&#39;, &#39;environment&#39;, &#39;terrain&#39;], &#39;characters&#39;: [&#39;npc&#39;, &#39;player&#39;, &#39;person
-ality&#39;, &#39;motivation&#39;, &#39;background&#39;], &#39;narrative&#39;: [&#39;story&#39;, &#39;plot&#39;, &#39;quest&#39;, &#39;advent
-ure&#39;, &#39;campaign&#39;], &#39;mechanics&#39;: [&#39;rules&#39;, &#39;dice&#39;, &#39;combat&#39;, &#39;magic&#39;, &#39;spells&#39;], &#39;obj
-ects&#39;: [&#39;items&#39;, &#39;equipment&#39;, &#39;artifacts&#39;, &#39;treasure&#39;, &#39;inventory&#39;], &#39;history&#39;: [&#39;lo
-re&#39;, &#39;ruins&#39;, &#39;archaeology&#39;, &#39;ancient&#39;, &#39;past&#39;], &#39;society&#39;: [&#39;politics&#39;, &#39;trade&#39;, &#39;s
-ettlements&#39;, &#39;culture&#39;, &#39;religion&#39;], &#39;threats&#39;: [&#39;monsters&#39;, &#39;enemies&#39;, &#39;dangers&#39;, &#39;
-conflict&#39;, &#39;war&#39;], &#39;exploration&#39;: [&#39;discovery&#39;, &#39;investigation&#39;, &#39;research&#39;, &#39;myster
-y&#39;], &#39;events&#39;: [&#39;happenings&#39;, &#39;situations&#39;, &#39;incidents&#39;, &#39;occurrences&#39;]}, &#39;topic_nor
-malizations&#39;: {&#39;locations&#39;: &#39;location&#39;, &#39;geography&#39;: &#39;location&#39;, &#39;terrain&#39;: &#39;environ
-ment&#39;, &#39;area&#39;: &#39;location&#39;, &#39;place&#39;: &#39;location&#39;, &#39;region&#39;: &#39;location&#39;, &#39;character&#39;: &#39;
-characters&#39;, &#39;key npc&#39;: &#39;npc&#39;, &#39;npcs&#39;: &#39;npc&#39;, &#39;people&#39;: &#39;characters&#39;, &#39;ruins&#39;: &#39;arch
-aeology&#39;, &#39;ancient ruins&#39;: &#39;archaeology&#39;, &#39;artifacts&#39;: &#39;archaeology&#39;, &#39;archaeologica
-l&#39;: &#39;archaeology&#39;, &#39;situation&#39;: &#39;events&#39;, &#39;situations&#39;: &#39;events&#39;, &#39;happenings&#39;: &#39;eve
-nts&#39;, &#39;occurrences&#39;: &#39;events&#39;, &#39;research&#39;: &#39;investigation&#39;, &#39;exploration&#39;: &#39;investig
-ation&#39;, &#39;discovery&#39;: &#39;investigation&#39;, &#39;magical&#39;: &#39;magic&#39;, &#39;anomalies&#39;: &#39;magic&#39;, &#39;mag
-ical anomalies&#39;: &#39;magic&#39;, &#39;setting&#39;: &#39;world&#39;, &#39;world&#39;: &#39;setting&#39;, &#39;lore&#39;: &#39;history&#39;,
- &#39;ancient&#39;: &#39;history&#39;, &#39;monsters&#39;: &#39;threats&#39;, &#39;enemies&#39;: &#39;threats&#39;, &#39;monster activit
-y&#39;: &#39;threats&#39;, &#39;defense&#39;: &#39;threats&#39;, &#39;trade routes&#39;: &#39;trade&#39;, &#39;settlements&#39;: &#39;societ
-y&#39;, &#39;politics&#39;: &#39;society&#39;, &#39;value&#39;: &#39;objects&#39;, &#39;treasure&#39;: &#39;objects&#39;, &#39;skills&#39;: &#39;mec
-hanics&#39;, &#39;expertise&#39;: &#39;mechanics&#39;, &#39;decryption&#39;: &#39;investigation&#39;, &#39;wildlife&#39;: &#39;envir
-onment&#39;}, &#39;graph_memory_config&#39;: {&#39;enabled&#39;: True, &#39;entity_types&#39;: [&#39;character&#39;, &#39;lo
-cation&#39;, &#39;object&#39;, &#39;event&#39;, &#39;concept&#39;, &#39;organization&#39;], &#39;relationship_types&#39;: [&#39;loca
-ted_in&#39;, &#39;owns&#39;, &#39;member_of&#39;, &#39;allies_with&#39;, &#39;enemies_with&#39;, &#39;uses&#39;, &#39;created_by&#39;, &#39;
-leads_to&#39;, &#39;participates_in&#39;, &#39;related_to&#39;, &#39;mentions&#39;], &#39;entity_extraction_prompt&#39;:
- &#39;Extract entities from this D&amp;D campaign text. Focus on characters, locations, obje
+n   - Possible connection to ruins", 'topic_taxonomy': {'world': ['setting', 'geogra
+phy', 'location', 'environment', 'terrain'], 'characters': ['npc', 'player', 'person
+ality', 'motivation', 'background'], 'narrative': ['story', 'plot', 'quest', 'advent
+ure', 'campaign'], 'mechanics': ['rules', 'dice', 'combat', 'magic', 'spells'], 'obj
+ects': ['items', 'equipment', 'artifacts', 'treasure', 'inventory'], 'history': ['lo
+re', 'ruins', 'archaeology', 'ancient', 'past'], 'society': ['politics', 'trade', 's
+ettlements', 'culture', 'religion'], 'threats': ['monsters', 'enemies', 'dangers', '
+conflict', 'war'], 'exploration': ['discovery', 'investigation', 'research', 'myster
+y'], 'events': ['happenings', 'situations', 'incidents', 'occurrences']}, 'topic_nor
+malizations': {'locations': 'location', 'geography': 'location', 'terrain': 'environ
+ment', 'area': 'location', 'place': 'location', 'region': 'location', 'character': '
+characters', 'key npc': 'npc', 'npcs': 'npc', 'people': 'characters', 'ruins': 'arch
+aeology', 'ancient ruins': 'archaeology', 'artifacts': 'archaeology', 'archaeologica
+l': 'archaeology', 'situation': 'events', 'situations': 'events', 'happenings': 'eve
+nts', 'occurrences': 'events', 'research': 'investigation', 'exploration': 'investig
+ation', 'discovery': 'investigation', 'magical': 'magic', 'anomalies': 'magic', 'mag
+ical anomalies': 'magic', 'setting': 'world', 'world': 'setting', 'lore': 'history',
+ 'ancient': 'history', 'monsters': 'threats', 'enemies': 'threats', 'monster activit
+y': 'threats', 'defense': 'threats', 'trade routes': 'trade', 'settlements': 'societ
+y', 'politics': 'society', 'value': 'objects', 'treasure': 'objects', 'skills': 'mec
+hanics', 'expertise': 'mechanics', 'decryption': 'investigation', 'wildlife': 'envir
+onment'}, 'graph_memory_config': {'enabled': True, 'entity_types': ['character', 'lo
+cation', 'object', 'event', 'concept', 'organization'], 'relationship_types': ['loca
+ted_in', 'owns', 'member_of', 'allies_with', 'enemies_with', 'uses', 'created_by', '
+leads_to', 'participates_in', 'related_to', 'mentions'], 'entity_extraction_prompt':
+ 'Extract entities from this D&amp;D campaign text. Focus on characters, locations, obje
 cts, events, concepts, and organizations that are important to the campaign world an
-d story.&#39;, &#39;relationship_extraction_prompt&#39;: &#39;Identify relationships between entitie
+d story.', 'relationship_extraction_prompt': 'Identify relationships between entitie
 s in this D&amp;D campaign text. Look for spatial relationships (located_in), ownership
-(owns), social relationships (allies_with, enemies_with), and story connections.&#39;, &#39;
-similarity_threshold&#39;: 0.8}}
+(owns), social relationships (allies_with, enemies_with), and story connections.', '
+similarity_threshold': 0.8}}
 
 Setting up services...
 Initializing session with guid: verbose_entity_test
@@ -9401,11 +9401,11 @@ Memory File: agent_memories/standard/verbose_entity_test/agent_memory.json
 Metadata:
 ------------------------------
 {
-  &quot;created_at&quot;: &quot;2025-09-02T11:02:23.411527&quot;,
-  &quot;updated_at&quot;: &quot;2025-09-02T11:02:23.411527&quot;,
-  &quot;version&quot;: &quot;2.0.0&quot;,
-  &quot;domain&quot;: &quot;general&quot;,
-  &quot;saved_during&quot;: &quot;create_initial_memory&quot;
+  "created_at": "2025-09-02T11:02:23.411527",
+  "updated_at": "2025-09-02T11:02:23.411527",
+  "version": "2.0.0",
+  "domain": "general",
+  "saved_during": "create_initial_memory"
 }
 
 Conversation History: 1 messages
@@ -9424,7 +9424,7 @@ east; and Mountainkeep, found to the west.
 
 
 Key non-player characters include Elena, who serves as the Mayor of Haven and is dri
-ven by a desire to protect the valley&#39;s inhabitants. She is currently investigating
+ven by a desire to protect the valley's inhabitants. She is currently investigating
 strange occurrences within Haven.
 
 
@@ -9432,7 +9432,7 @@ Theron is a Master Scholar with expertise in ancient ruins and artifacts, and he
 presently focused on decoding the inscriptions found within the ruins.
 
 
-Finally, Sara is the Captain of Riverwatch, responsible for the valley&#39;s defense, an
+Finally, Sara is the Captain of Riverwatch, responsible for the valley's defense, an
 d she is concerned by an increase in monster activity.
 
 
@@ -9449,7 +9449,7 @@ n between them and the ruins.
 
 
 Processing: Tell me about Elena.
-🔄 Processing query: &#39;Tell me about Elena....&#39;
+🔄 Processing query: 'Tell me about Elena....'
 🔄   Enhancing query with relevant context (RAG)...
 ✅     Generated and cached RAG context
 🔄   Generating response with LLM...
@@ -9457,7 +9457,7 @@ Processing: Tell me about Elena.
 🔄   Starting background processing (batch, graph: disabled)...
 
 Agent: Elena serves as the Mayor of Haven and is driven by a desire to protect the v
-alley&#39;s inhabitants. She is currently investigating strange occurrences within Haven
+alley's inhabitants. She is currently investigating strange occurrences within Haven
 .
 
 
@@ -9502,7 +9502,7 @@ Interesting! I notice that the graph memory processing was skipped during initia
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: echo "Tell me about Elena." | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/agent_usage_example.py --guid verbose_entity_comprehensive --config dnd --performance comprehensive --verbose</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: echo "Tell me about Elena." | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/agent_usage_example.py --guid verbose_entity_comprehensive --config dnd --performance comprehensive --verbose</summary>
 
 ```bash
 echo "Tell me about Elena." | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/agent_usage_example.py --guid verbose_entity_comprehensive --config dnd --performance comprehensive --verbose
@@ -9516,58 +9516,58 @@ echo "Tell me about Elena." | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28
 ================================================================================
 
 Using domain config: dnd
-Domain config: {&#39;domain_name&#39;: &#39;dnd_campaign&#39;, &#39;domain_specific_prompt_instructions&#39;
-: {&#39;query&#39;: &quot;You are a DM for a D&amp;D campaign. ANSWER PLAYER QUESTIONS DIRECTLY. For
-simple questions (like &#39;are there goblins nearby?&#39;), give specific answers based on
-the campaign state. For exploration questions (like &#39;what do I see?&#39;), provide vivid
- but concise descriptions. Avoid starting every response with &#39;Okay, let&#39;s investiga
-te&#39; or similar repetitive phrases. Move the story forward with actionable informatio
-n and clear choices.&quot;, &#39;update&#39;: &#39;You are analyzing the input from both the user and
+Domain config: {'domain_name': 'dnd_campaign', 'domain_specific_prompt_instructions'
+: {'query': "You are a DM for a D&amp;D campaign. ANSWER PLAYER QUESTIONS DIRECTLY. For
+simple questions (like 'are there goblins nearby?'), give specific answers based on
+the campaign state. For exploration questions (like 'what do I see?'), provide vivid
+ but concise descriptions. Avoid starting every response with 'Okay, let's investiga
+te' or similar repetitive phrases. Move the story forward with actionable informatio
+n and clear choices.", 'update': 'You are analyzing the input from both the user and
  the agent and extracting and classifying the important information into the convers
-ation history data structure.&#39;}, &#39;initial_data&#39;: &quot;\nCampaign Setting: The Lost Valle
+ation history data structure.'}, 'initial_data': "\nCampaign Setting: The Lost Valle
 y\n\nWorld Details:\n- Hidden valley surrounded by impassable mountains\n- Ancient r
 uins scattered throughout\n- Mysterious magical anomalies\n- Three main settlements:
  Haven (central), Riverwatch (east), Mountainkeep (west)\n\nKey NPCs:\n1. Elena\n
-- Role: Mayor of Haven\n   - Motivation: Protect the valley&#39;s inhabitants\n   - Curr
+- Role: Mayor of Haven\n   - Motivation: Protect the valley's inhabitants\n   - Curr
 ent Quest: Investigate strange occurrences in Haven\n\n2. Theron\n   - Role: Master
 Scholar\n   - Expertise: Ancient ruins and artifacts\n   - Current Research: Decodin
 g ruin inscriptions\n\n3. Sara\n   - Role: Captain of Riverwatch\n   - Responsibilit
-y: Valley&#39;s defense\n   - Current Concern: Increased monster activity\n\nCurrent Sit
+y: Valley's defense\n   - Current Concern: Increased monster activity\n\nCurrent Sit
 uations:\n1. Trade Routes\n   - Main road between settlements disrupted\n   - Mercha
 nts seeking protection\n   - Alternative routes needed\n\n2. Ancient Ruins\n   - New
  chambers discovered\n   - Strange energy emanations\n   - Valuable artifacts found\
 n\n3. Magical Anomalies\n   - Random magical effects\n   - Affecting local wildlife\
-n   - Possible connection to ruins&quot;, &#39;topic_taxonomy&#39;: {&#39;world&#39;: [&#39;setting&#39;, &#39;geogra
-phy&#39;, &#39;location&#39;, &#39;environment&#39;, &#39;terrain&#39;], &#39;characters&#39;: [&#39;npc&#39;, &#39;player&#39;, &#39;person
-ality&#39;, &#39;motivation&#39;, &#39;background&#39;], &#39;narrative&#39;: [&#39;story&#39;, &#39;plot&#39;, &#39;quest&#39;, &#39;advent
-ure&#39;, &#39;campaign&#39;], &#39;mechanics&#39;: [&#39;rules&#39;, &#39;dice&#39;, &#39;combat&#39;, &#39;magic&#39;, &#39;spells&#39;], &#39;obj
-ects&#39;: [&#39;items&#39;, &#39;equipment&#39;, &#39;artifacts&#39;, &#39;treasure&#39;, &#39;inventory&#39;], &#39;history&#39;: [&#39;lo
-re&#39;, &#39;ruins&#39;, &#39;archaeology&#39;, &#39;ancient&#39;, &#39;past&#39;], &#39;society&#39;: [&#39;politics&#39;, &#39;trade&#39;, &#39;s
-ettlements&#39;, &#39;culture&#39;, &#39;religion&#39;], &#39;threats&#39;: [&#39;monsters&#39;, &#39;enemies&#39;, &#39;dangers&#39;, &#39;
-conflict&#39;, &#39;war&#39;], &#39;exploration&#39;: [&#39;discovery&#39;, &#39;investigation&#39;, &#39;research&#39;, &#39;myster
-y&#39;], &#39;events&#39;: [&#39;happenings&#39;, &#39;situations&#39;, &#39;incidents&#39;, &#39;occurrences&#39;]}, &#39;topic_nor
-malizations&#39;: {&#39;locations&#39;: &#39;location&#39;, &#39;geography&#39;: &#39;location&#39;, &#39;terrain&#39;: &#39;environ
-ment&#39;, &#39;area&#39;: &#39;location&#39;, &#39;place&#39;: &#39;location&#39;, &#39;region&#39;: &#39;location&#39;, &#39;character&#39;: &#39;
-characters&#39;, &#39;key npc&#39;: &#39;npc&#39;, &#39;npcs&#39;: &#39;npc&#39;, &#39;people&#39;: &#39;characters&#39;, &#39;ruins&#39;: &#39;arch
-aeology&#39;, &#39;ancient ruins&#39;: &#39;archaeology&#39;, &#39;artifacts&#39;: &#39;archaeology&#39;, &#39;archaeologica
-l&#39;: &#39;archaeology&#39;, &#39;situation&#39;: &#39;events&#39;, &#39;situations&#39;: &#39;events&#39;, &#39;happenings&#39;: &#39;eve
-nts&#39;, &#39;occurrences&#39;: &#39;events&#39;, &#39;research&#39;: &#39;investigation&#39;, &#39;exploration&#39;: &#39;investig
-ation&#39;, &#39;discovery&#39;: &#39;investigation&#39;, &#39;magical&#39;: &#39;magic&#39;, &#39;anomalies&#39;: &#39;magic&#39;, &#39;mag
-ical anomalies&#39;: &#39;magic&#39;, &#39;setting&#39;: &#39;world&#39;, &#39;world&#39;: &#39;setting&#39;, &#39;lore&#39;: &#39;history&#39;,
- &#39;ancient&#39;: &#39;history&#39;, &#39;monsters&#39;: &#39;threats&#39;, &#39;enemies&#39;: &#39;threats&#39;, &#39;monster activit
-y&#39;: &#39;threats&#39;, &#39;defense&#39;: &#39;threats&#39;, &#39;trade routes&#39;: &#39;trade&#39;, &#39;settlements&#39;: &#39;societ
-y&#39;, &#39;politics&#39;: &#39;society&#39;, &#39;value&#39;: &#39;objects&#39;, &#39;treasure&#39;: &#39;objects&#39;, &#39;skills&#39;: &#39;mec
-hanics&#39;, &#39;expertise&#39;: &#39;mechanics&#39;, &#39;decryption&#39;: &#39;investigation&#39;, &#39;wildlife&#39;: &#39;envir
-onment&#39;}, &#39;graph_memory_config&#39;: {&#39;enabled&#39;: True, &#39;entity_types&#39;: [&#39;character&#39;, &#39;lo
-cation&#39;, &#39;object&#39;, &#39;event&#39;, &#39;concept&#39;, &#39;organization&#39;], &#39;relationship_types&#39;: [&#39;loca
-ted_in&#39;, &#39;owns&#39;, &#39;member_of&#39;, &#39;allies_with&#39;, &#39;enemies_with&#39;, &#39;uses&#39;, &#39;created_by&#39;, &#39;
-leads_to&#39;, &#39;participates_in&#39;, &#39;related_to&#39;, &#39;mentions&#39;], &#39;entity_extraction_prompt&#39;:
- &#39;Extract entities from this D&amp;D campaign text. Focus on characters, locations, obje
+n   - Possible connection to ruins", 'topic_taxonomy': {'world': ['setting', 'geogra
+phy', 'location', 'environment', 'terrain'], 'characters': ['npc', 'player', 'person
+ality', 'motivation', 'background'], 'narrative': ['story', 'plot', 'quest', 'advent
+ure', 'campaign'], 'mechanics': ['rules', 'dice', 'combat', 'magic', 'spells'], 'obj
+ects': ['items', 'equipment', 'artifacts', 'treasure', 'inventory'], 'history': ['lo
+re', 'ruins', 'archaeology', 'ancient', 'past'], 'society': ['politics', 'trade', 's
+ettlements', 'culture', 'religion'], 'threats': ['monsters', 'enemies', 'dangers', '
+conflict', 'war'], 'exploration': ['discovery', 'investigation', 'research', 'myster
+y'], 'events': ['happenings', 'situations', 'incidents', 'occurrences']}, 'topic_nor
+malizations': {'locations': 'location', 'geography': 'location', 'terrain': 'environ
+ment', 'area': 'location', 'place': 'location', 'region': 'location', 'character': '
+characters', 'key npc': 'npc', 'npcs': 'npc', 'people': 'characters', 'ruins': 'arch
+aeology', 'ancient ruins': 'archaeology', 'artifacts': 'archaeology', 'archaeologica
+l': 'archaeology', 'situation': 'events', 'situations': 'events', 'happenings': 'eve
+nts', 'occurrences': 'events', 'research': 'investigation', 'exploration': 'investig
+ation', 'discovery': 'investigation', 'magical': 'magic', 'anomalies': 'magic', 'mag
+ical anomalies': 'magic', 'setting': 'world', 'world': 'setting', 'lore': 'history',
+ 'ancient': 'history', 'monsters': 'threats', 'enemies': 'threats', 'monster activit
+y': 'threats', 'defense': 'threats', 'trade routes': 'trade', 'settlements': 'societ
+y', 'politics': 'society', 'value': 'objects', 'treasure': 'objects', 'skills': 'mec
+hanics', 'expertise': 'mechanics', 'decryption': 'investigation', 'wildlife': 'envir
+onment'}, 'graph_memory_config': {'enabled': True, 'entity_types': ['character', 'lo
+cation', 'object', 'event', 'concept', 'organization'], 'relationship_types': ['loca
+ted_in', 'owns', 'member_of', 'allies_with', 'enemies_with', 'uses', 'created_by', '
+leads_to', 'participates_in', 'related_to', 'mentions'], 'entity_extraction_prompt':
+ 'Extract entities from this D&amp;D campaign text. Focus on characters, locations, obje
 cts, events, concepts, and organizations that are important to the campaign world an
-d story.&#39;, &#39;relationship_extraction_prompt&#39;: &#39;Identify relationships between entitie
+d story.', 'relationship_extraction_prompt': 'Identify relationships between entitie
 s in this D&amp;D campaign text. Look for spatial relationships (located_in), ownership
-(owns), social relationships (allies_with, enemies_with), and story connections.&#39;, &#39;
-similarity_threshold&#39;: 0.8}}
+(owns), social relationships (allies_with, enemies_with), and story connections.', '
+similarity_threshold': 0.8}}
 
 Setting up services...
 Initializing session with guid: verbose_entity_comprehensive
@@ -9598,11 +9598,11 @@ Memory File: agent_memories/standard/verbose_entity_comprehensive/agent_memory.j
 Metadata:
 ------------------------------
 {
-  &quot;created_at&quot;: &quot;2025-09-02T11:03:27.308315&quot;,
-  &quot;updated_at&quot;: &quot;2025-09-02T11:03:27.308315&quot;,
-  &quot;version&quot;: &quot;2.0.0&quot;,
-  &quot;domain&quot;: &quot;general&quot;,
-  &quot;saved_during&quot;: &quot;create_initial_memory&quot;
+  "created_at": "2025-09-02T11:03:27.308315",
+  "updated_at": "2025-09-02T11:03:27.308315",
+  "version": "2.0.0",
+  "domain": "general",
+  "saved_during": "create_initial_memory"
 }
 
 Conversation History: 1 messages
@@ -9618,9 +9618,9 @@ to the east; and Mountainkeep, located to the west.
 
 
 Key non-player characters include Elena, who serves as the Mayor of Haven and is dri
-ven by a desire to protect the valley&#39;s inhabitants; Theron, a Master Scholar specia
+ven by a desire to protect the valley's inhabitants; Theron, a Master Scholar specia
 lizing in ancient ruins and artifacts, currently focused on decoding ruin inscriptio
-ns; and Sara, the Captain of Riverwatch, responsible for the valley&#39;s defense and cu
+ns; and Sara, the Captain of Riverwatch, responsible for the valley's defense and cu
 rrently concerned by increased monster activity.
 
 
@@ -9633,14 +9633,14 @@ possible connection to the ruins themselves.
 
 
 Processing: Tell me about Elena.
-🔄 Processing query: &#39;Tell me about Elena....&#39;
+🔄 Processing query: 'Tell me about Elena....'
 🔄   Enhancing query with relevant context (RAG)...
 🔄   Generating response with LLM...
 ✅     Generated response (213 chars)
 🔄   Starting background processing (individual, graph: disabled)...
 
 Agent: Elena serves as the Mayor of Haven and is driven by a desire to protect the v
-alley&#39;s inhabitants. She&#39;s particularly concerned about the disrupted trade routes a
+alley's inhabitants. She's particularly concerned about the disrupted trade routes a
 nd the increased monster activity around Riverwatch.
 
 
@@ -9697,7 +9697,7 @@ The profiles look correct. Let me check why graph memory processing isn't happen
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: ls -la agent_memories/standard/verbose_entity_comprehensive/</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: ls -la agent_memories/standard/verbose_entity_comprehensive/</summary>
 
 ```bash
 ls -la agent_memories/standard/verbose_entity_comprehensive/
@@ -9737,7 +9737,7 @@ I see the issue! The memory already exists, so the graph processing is being ski
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: echo "Tell me about Elena." | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/agent_usage_example.py --guid verbose_detailed_graph_test --config dnd --performance comprehensive --verbose</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: echo "Tell me about Elena." | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/agent_usage_example.py --guid verbose_detailed_graph_test --config dnd --performance comprehensive --verbose</summary>
 
 ```bash
 echo "Tell me about Elena." | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/agent_usage_example.py --guid verbose_detailed_graph_test --config dnd --performance comprehensive --verbose
@@ -9751,58 +9751,58 @@ echo "Tell me about Elena." | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28
 ================================================================================
 
 Using domain config: dnd
-Domain config: {&#39;domain_name&#39;: &#39;dnd_campaign&#39;, &#39;domain_specific_prompt_instructions&#39;
-: {&#39;query&#39;: &quot;You are a DM for a D&amp;D campaign. ANSWER PLAYER QUESTIONS DIRECTLY. For
-simple questions (like &#39;are there goblins nearby?&#39;), give specific answers based on
-the campaign state. For exploration questions (like &#39;what do I see?&#39;), provide vivid
- but concise descriptions. Avoid starting every response with &#39;Okay, let&#39;s investiga
-te&#39; or similar repetitive phrases. Move the story forward with actionable informatio
-n and clear choices.&quot;, &#39;update&#39;: &#39;You are analyzing the input from both the user and
+Domain config: {'domain_name': 'dnd_campaign', 'domain_specific_prompt_instructions'
+: {'query': "You are a DM for a D&amp;D campaign. ANSWER PLAYER QUESTIONS DIRECTLY. For
+simple questions (like 'are there goblins nearby?'), give specific answers based on
+the campaign state. For exploration questions (like 'what do I see?'), provide vivid
+ but concise descriptions. Avoid starting every response with 'Okay, let's investiga
+te' or similar repetitive phrases. Move the story forward with actionable informatio
+n and clear choices.", 'update': 'You are analyzing the input from both the user and
  the agent and extracting and classifying the important information into the convers
-ation history data structure.&#39;}, &#39;initial_data&#39;: &quot;\nCampaign Setting: The Lost Valle
+ation history data structure.'}, 'initial_data': "\nCampaign Setting: The Lost Valle
 y\n\nWorld Details:\n- Hidden valley surrounded by impassable mountains\n- Ancient r
 uins scattered throughout\n- Mysterious magical anomalies\n- Three main settlements:
  Haven (central), Riverwatch (east), Mountainkeep (west)\n\nKey NPCs:\n1. Elena\n
-- Role: Mayor of Haven\n   - Motivation: Protect the valley&#39;s inhabitants\n   - Curr
+- Role: Mayor of Haven\n   - Motivation: Protect the valley's inhabitants\n   - Curr
 ent Quest: Investigate strange occurrences in Haven\n\n2. Theron\n   - Role: Master
 Scholar\n   - Expertise: Ancient ruins and artifacts\n   - Current Research: Decodin
 g ruin inscriptions\n\n3. Sara\n   - Role: Captain of Riverwatch\n   - Responsibilit
-y: Valley&#39;s defense\n   - Current Concern: Increased monster activity\n\nCurrent Sit
+y: Valley's defense\n   - Current Concern: Increased monster activity\n\nCurrent Sit
 uations:\n1. Trade Routes\n   - Main road between settlements disrupted\n   - Mercha
 nts seeking protection\n   - Alternative routes needed\n\n2. Ancient Ruins\n   - New
  chambers discovered\n   - Strange energy emanations\n   - Valuable artifacts found\
 n\n3. Magical Anomalies\n   - Random magical effects\n   - Affecting local wildlife\
-n   - Possible connection to ruins&quot;, &#39;topic_taxonomy&#39;: {&#39;world&#39;: [&#39;setting&#39;, &#39;geogra
-phy&#39;, &#39;location&#39;, &#39;environment&#39;, &#39;terrain&#39;], &#39;characters&#39;: [&#39;npc&#39;, &#39;player&#39;, &#39;person
-ality&#39;, &#39;motivation&#39;, &#39;background&#39;], &#39;narrative&#39;: [&#39;story&#39;, &#39;plot&#39;, &#39;quest&#39;, &#39;advent
-ure&#39;, &#39;campaign&#39;], &#39;mechanics&#39;: [&#39;rules&#39;, &#39;dice&#39;, &#39;combat&#39;, &#39;magic&#39;, &#39;spells&#39;], &#39;obj
-ects&#39;: [&#39;items&#39;, &#39;equipment&#39;, &#39;artifacts&#39;, &#39;treasure&#39;, &#39;inventory&#39;], &#39;history&#39;: [&#39;lo
-re&#39;, &#39;ruins&#39;, &#39;archaeology&#39;, &#39;ancient&#39;, &#39;past&#39;], &#39;society&#39;: [&#39;politics&#39;, &#39;trade&#39;, &#39;s
-ettlements&#39;, &#39;culture&#39;, &#39;religion&#39;], &#39;threats&#39;: [&#39;monsters&#39;, &#39;enemies&#39;, &#39;dangers&#39;, &#39;
-conflict&#39;, &#39;war&#39;], &#39;exploration&#39;: [&#39;discovery&#39;, &#39;investigation&#39;, &#39;research&#39;, &#39;myster
-y&#39;], &#39;events&#39;: [&#39;happenings&#39;, &#39;situations&#39;, &#39;incidents&#39;, &#39;occurrences&#39;]}, &#39;topic_nor
-malizations&#39;: {&#39;locations&#39;: &#39;location&#39;, &#39;geography&#39;: &#39;location&#39;, &#39;terrain&#39;: &#39;environ
-ment&#39;, &#39;area&#39;: &#39;location&#39;, &#39;place&#39;: &#39;location&#39;, &#39;region&#39;: &#39;location&#39;, &#39;character&#39;: &#39;
-characters&#39;, &#39;key npc&#39;: &#39;npc&#39;, &#39;npcs&#39;: &#39;npc&#39;, &#39;people&#39;: &#39;characters&#39;, &#39;ruins&#39;: &#39;arch
-aeology&#39;, &#39;ancient ruins&#39;: &#39;archaeology&#39;, &#39;artifacts&#39;: &#39;archaeology&#39;, &#39;archaeologica
-l&#39;: &#39;archaeology&#39;, &#39;situation&#39;: &#39;events&#39;, &#39;situations&#39;: &#39;events&#39;, &#39;happenings&#39;: &#39;eve
-nts&#39;, &#39;occurrences&#39;: &#39;events&#39;, &#39;research&#39;: &#39;investigation&#39;, &#39;exploration&#39;: &#39;investig
-ation&#39;, &#39;discovery&#39;: &#39;investigation&#39;, &#39;magical&#39;: &#39;magic&#39;, &#39;anomalies&#39;: &#39;magic&#39;, &#39;mag
-ical anomalies&#39;: &#39;magic&#39;, &#39;setting&#39;: &#39;world&#39;, &#39;world&#39;: &#39;setting&#39;, &#39;lore&#39;: &#39;history&#39;,
- &#39;ancient&#39;: &#39;history&#39;, &#39;monsters&#39;: &#39;threats&#39;, &#39;enemies&#39;: &#39;threats&#39;, &#39;monster activit
-y&#39;: &#39;threats&#39;, &#39;defense&#39;: &#39;threats&#39;, &#39;trade routes&#39;: &#39;trade&#39;, &#39;settlements&#39;: &#39;societ
-y&#39;, &#39;politics&#39;: &#39;society&#39;, &#39;value&#39;: &#39;objects&#39;, &#39;treasure&#39;: &#39;objects&#39;, &#39;skills&#39;: &#39;mec
-hanics&#39;, &#39;expertise&#39;: &#39;mechanics&#39;, &#39;decryption&#39;: &#39;investigation&#39;, &#39;wildlife&#39;: &#39;envir
-onment&#39;}, &#39;graph_memory_config&#39;: {&#39;enabled&#39;: True, &#39;entity_types&#39;: [&#39;character&#39;, &#39;lo
-cation&#39;, &#39;object&#39;, &#39;event&#39;, &#39;concept&#39;, &#39;organization&#39;], &#39;relationship_types&#39;: [&#39;loca
-ted_in&#39;, &#39;owns&#39;, &#39;member_of&#39;, &#39;allies_with&#39;, &#39;enemies_with&#39;, &#39;uses&#39;, &#39;created_by&#39;, &#39;
-leads_to&#39;, &#39;participates_in&#39;, &#39;related_to&#39;, &#39;mentions&#39;], &#39;entity_extraction_prompt&#39;:
- &#39;Extract entities from this D&amp;D campaign text. Focus on characters, locations, obje
+n   - Possible connection to ruins", 'topic_taxonomy': {'world': ['setting', 'geogra
+phy', 'location', 'environment', 'terrain'], 'characters': ['npc', 'player', 'person
+ality', 'motivation', 'background'], 'narrative': ['story', 'plot', 'quest', 'advent
+ure', 'campaign'], 'mechanics': ['rules', 'dice', 'combat', 'magic', 'spells'], 'obj
+ects': ['items', 'equipment', 'artifacts', 'treasure', 'inventory'], 'history': ['lo
+re', 'ruins', 'archaeology', 'ancient', 'past'], 'society': ['politics', 'trade', 's
+ettlements', 'culture', 'religion'], 'threats': ['monsters', 'enemies', 'dangers', '
+conflict', 'war'], 'exploration': ['discovery', 'investigation', 'research', 'myster
+y'], 'events': ['happenings', 'situations', 'incidents', 'occurrences']}, 'topic_nor
+malizations': {'locations': 'location', 'geography': 'location', 'terrain': 'environ
+ment', 'area': 'location', 'place': 'location', 'region': 'location', 'character': '
+characters', 'key npc': 'npc', 'npcs': 'npc', 'people': 'characters', 'ruins': 'arch
+aeology', 'ancient ruins': 'archaeology', 'artifacts': 'archaeology', 'archaeologica
+l': 'archaeology', 'situation': 'events', 'situations': 'events', 'happenings': 'eve
+nts', 'occurrences': 'events', 'research': 'investigation', 'exploration': 'investig
+ation', 'discovery': 'investigation', 'magical': 'magic', 'anomalies': 'magic', 'mag
+ical anomalies': 'magic', 'setting': 'world', 'world': 'setting', 'lore': 'history',
+ 'ancient': 'history', 'monsters': 'threats', 'enemies': 'threats', 'monster activit
+y': 'threats', 'defense': 'threats', 'trade routes': 'trade', 'settlements': 'societ
+y', 'politics': 'society', 'value': 'objects', 'treasure': 'objects', 'skills': 'mec
+hanics', 'expertise': 'mechanics', 'decryption': 'investigation', 'wildlife': 'envir
+onment'}, 'graph_memory_config': {'enabled': True, 'entity_types': ['character', 'lo
+cation', 'object', 'event', 'concept', 'organization'], 'relationship_types': ['loca
+ted_in', 'owns', 'member_of', 'allies_with', 'enemies_with', 'uses', 'created_by', '
+leads_to', 'participates_in', 'related_to', 'mentions'], 'entity_extraction_prompt':
+ 'Extract entities from this D&amp;D campaign text. Focus on characters, locations, obje
 cts, events, concepts, and organizations that are important to the campaign world an
-d story.&#39;, &#39;relationship_extraction_prompt&#39;: &#39;Identify relationships between entitie
+d story.', 'relationship_extraction_prompt': 'Identify relationships between entitie
 s in this D&amp;D campaign text. Look for spatial relationships (located_in), ownership
-(owns), social relationships (allies_with, enemies_with), and story connections.&#39;, &#39;
-similarity_threshold&#39;: 0.8}}
+(owns), social relationships (allies_with, enemies_with), and story connections.', '
+similarity_threshold': 0.8}}
 
 Setting up services...
 Initializing session with guid: verbose_detailed_graph_test
@@ -9833,11 +9833,11 @@ Memory File: agent_memories/standard/verbose_detailed_graph_test/agent_memory.js
 Metadata:
 ------------------------------
 {
-  &quot;created_at&quot;: &quot;2025-09-02T11:04:44.425509&quot;,
-  &quot;updated_at&quot;: &quot;2025-09-02T11:04:44.425509&quot;,
-  &quot;version&quot;: &quot;2.0.0&quot;,
-  &quot;domain&quot;: &quot;general&quot;,
-  &quot;saved_during&quot;: &quot;create_initial_memory&quot;
+  "created_at": "2025-09-02T11:04:44.425509",
+  "updated_at": "2025-09-02T11:04:44.425509",
+  "version": "2.0.0",
+  "domain": "general",
+  "saved_during": "create_initial_memory"
 }
 
 Conversation History: 1 messages
@@ -9853,9 +9853,9 @@ the east; and Mountainkeep, located to the west.
 
 
 Key non-player characters include Elena, who serves as the Mayor of Haven and whose
-primary motivation is to protect the valley&#39;s inhabitants; Theron, a Master Scholar
+primary motivation is to protect the valley's inhabitants; Theron, a Master Scholar
 specializing in ancient ruins and artifacts, currently focused on decoding ruin insc
-riptions; and Sara, the Captain of Riverwatch, responsible for the valley&#39;s defense
+riptions; and Sara, the Captain of Riverwatch, responsible for the valley's defense
 and currently concerned about increased monster activity.
 
 
@@ -9868,14 +9868,14 @@ here is a possible connection between them and the ruins.
 
 
 Processing: Tell me about Elena.
-🔄 Processing query: &#39;Tell me about Elena....&#39;
+🔄 Processing query: 'Tell me about Elena....'
 🔄   Enhancing query with relevant context (RAG)...
 🔄   Generating response with LLM...
 ✅     Generated response (205 chars)
 🔄   Starting background processing (individual, graph: disabled)...
 
 Agent: Elena serves as the Mayor of Haven and is primarily motivated by a desire to
-protect the valley&#39;s inhabitants. She&#39;s currently concerned about the disrupted trad
+protect the valley's inhabitants. She's currently concerned about the disrupted trad
 e routes and the increased monster activity.
 
 
@@ -9938,7 +9938,7 @@ Let me check if there might be an issue with the digest segments. Let me look at
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: tail -n 50 logs/verbose_detailed_graph_test/memory_manager.log</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: tail -n 50 logs/verbose_detailed_graph_test/memory_manager.log</summary>
 
 ```bash
 tail -n 50 logs/verbose_detailed_graph_test/memory_manager.log
@@ -9946,11 +9946,11 @@ tail -n 50 logs/verbose_detailed_graph_test/memory_manager.log
 
 ```
 
-Added result 2: score=0.3602, text=&#39;The Lost Valley is a campaign setting characteri
-ze...&#39;
+Added result 2: score=0.3602, text='The Lost Valley is a campaign setting characteri
+ze...'
 
-Added result 3: score=0.3330, text=&#39;There are three main settlements: Haven, located
- c...&#39;
+Added result 3: score=0.3330, text='There are three main settlements: Haven, located
+ c...'
 
 Returning 4 processed results
 Generated context with 4 items
@@ -9966,7 +9966,7 @@ PERF_START:   add_agent_entry (add_agent_entry_39299764)
 Backup created: agent_memories/standard/verbose_detailed_graph_test/agent_memory_bak
 _20250902_110449.json
 
-Memory saved after &#39;add_agent_entry&#39; operation
+Memory saved after 'add_agent_entry' operation
 PERF_END:   add_agent_entry (add_agent_entry_39299764) - 0.002s
 PERF_START:   start_async_operations (start_async_operations_39301691)
 PERF_END:   start_async_operations (start_async_operations_39301691) - 0.000s
@@ -9983,7 +9983,7 @@ Updated conversation history entry 1d9f96c8-d51f-4059-be10-5463727a4ce6 with dig
 Backup created: agent_memories/standard/verbose_detailed_graph_test/agent_memory_bak
 _20250902_110456.json
 
-Memory saved after &#39;async_digest_generation&#39; operation
+Memory saved after 'async_digest_generation' operation
 PERF_END:   async_digest_generation (async_digest_generation_39303524) - 6.793s
 PERF_START:   async_embeddings_update (async_embeddings_update_46096366)
 Updating embeddings for user entry...
@@ -9999,14 +9999,14 @@ Updated conversation history entry 027acc16-009d-411e-a4cf-751a62db24ca with dig
 Backup created: agent_memories/standard/verbose_detailed_graph_test/agent_memory_bak
 _20250902_110507.json
 
-Memory saved after &#39;async_digest_generation&#39; operation
+Memory saved after 'async_digest_generation' operation
 PERF_END:   async_digest_generation (async_digest_generation_46097127) - 11.217s
 PERF_START:   async_embeddings_update (async_embeddings_update_57315115)
 Updating embeddings for agent entry...
-Added embedding for text: &#39;Elena serves as the Mayor of H...&#39; with GUID: 027acc16-00
+Added embedding for text: 'Elena serves as the Mayor of H...' with GUID: 027acc16-00
 9d-411e-a4cf-751a62db24ca
 
-Added embedding for text: &#39;She&#39;s currently concerned abou...&#39; with GUID: 027acc16-00
+Added embedding for text: 'She's currently concerned abou...' with GUID: 027acc16-00
 9d-411e-a4cf-751a62db24ca
 
 Incremental embedding update: 2 new embeddings added.
@@ -10023,7 +10023,7 @@ I can see from the logs that graph memory processing is indeed being skipped. Le
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: grep -A 20 -B 5 "graph memory" logs/verbose_detailed_graph_test/memory_manager.log</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: grep -A 20 -B 5 "graph memory" logs/verbose_detailed_graph_test/memory_manager.log</summary>
 
 ```bash
 grep -A 20 -B 5 "graph memory" logs/verbose_detailed_graph_test/memory_manager.log
@@ -10043,8 +10043,8 @@ beddings.jsonl
 Created graph memory logger: graph_memory.verbose_detailed_graph_test -&gt; ./logs/verb
 ose_detailed_graph_test/graph_manager.log
 
-Failed to initialize GraphManager: &#39;MemoryManager&#39; object has no attribute &#39;verbose_
-handler&#39;. Graph memory disabled.
+Failed to initialize GraphManager: 'MemoryManager' object has no attribute 'verbose_
+handler'. Graph memory disabled.
 
 Initialized RAGManager with graph integration
 Memory configuration: max_recent_conversation_entries=8, importance_threshold=2, gra
@@ -10054,37 +10054,37 @@ ph_memory=True
 graph_test/agent_memory.json, current self.memory={}
 
 Creating initial memory structure...
-Preprocessed segments: [&#39;The Lost Valley is a campaign setting characterized by a hi
+Preprocessed segments: ['The Lost Valley is a campaign setting characterized by a hi
 dden valley, completely encircled by impassable mountains. Scattered throughout the
 valley are ancient ruins, and the area is riddled with mysterious magical anomalies.
-&#39;, &#39;There are three main settlements: Haven, located centrally; Riverwatch, situated
- to the east; and Mountainkeep, located to the west.&#39;, &quot;Key non-player characters in
+', 'There are three main settlements: Haven, located centrally; Riverwatch, situated
+ to the east; and Mountainkeep, located to the west.', "Key non-player characters in
 clude Elena, who serves as the Mayor of Haven and whose primary motivation is to pro
-tect the valley&#39;s inhabitants; Theron, a Master Scholar specializing in ancient ruin
+tect the valley's inhabitants; Theron, a Master Scholar specializing in ancient ruin
 s and artifacts, currently focused on decoding ruin inscriptions; and Sara, the Capt
-ain of Riverwatch, responsible for the valley&#39;s defense and currently concerned abou
-t increased monster activity.&quot;, &#39;Currently, several situations are unfolding. The pr
+ain of Riverwatch, responsible for the valley's defense and currently concerned abou
+t increased monster activity.", 'Currently, several situations are unfolding. The pr
 imary trade route between the settlements has been disrupted, and merchants are seek
 ing protection.  Efforts are underway to establish alternative routes.  Furthermore,
  new chambers have been discovered within the ancient ruins, accompanied by strange
 energy emanations and the discovery of valuable artifacts. These anomalies are also
 affecting the local wildlife, and there is a possible connection between them and th
-e ruins.&#39;]
+e ruins.']
 
 Generating digest for initial data with pre-segmented content...
 Generated 4 segments
 Filtered out 0 non-memory-worthy segments, kept 4 segments
-Memory saved after &#39;create_initial_memory&#39; operation
-Added embedding for text: &#39;The Lost Valley is a campaign ...&#39; with GUID: f02fb1c4-f8
+Memory saved after 'create_initial_memory' operation
+Added embedding for text: 'The Lost Valley is a campaign ...' with GUID: f02fb1c4-f8
 39-4b31-a106-ee75299d8e21
 
-Added embedding for text: &#39;There are three main settlemen...&#39; with GUID: f02fb1c4-f8
+Added embedding for text: 'There are three main settlemen...' with GUID: f02fb1c4-f8
 39-4b31-a106-ee75299d8e21
 
-Added embedding for text: &#39;Key non-player characters incl...&#39; with GUID: f02fb1c4-f8
+Added embedding for text: 'Key non-player characters incl...' with GUID: f02fb1c4-f8
 39-4b31-a106-ee75299d8e21
 
-Added embedding for text: &#39;Currently, several situations ...&#39; with GUID: f02fb1c4-f8
+Added embedding for text: 'Currently, several situations ...' with GUID: f02fb1c4-f8
 39-4b31-a106-ee75299d8e21
 
 Incremental embedding update: 4 new embeddings added.
@@ -10111,14 +10111,14 @@ The verbose_handler is being set AFTER the GraphManager is initialized. Let me f
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 8, lines removed: undefined
 
 ```diff
 @@ -195,4 +195,12 @@
-          self.logger.debug(&quot;Initialized RAGManager with graph integration&quot;)
+          self.logger.debug("Initialized RAGManager with graph integration")
           
 +         # Initialize verbose status handler FIRST (before GraphManager)
 +         self.verbose = verbose
@@ -10129,7 +10129,7 @@ Lines added: 8, lines removed: undefined
 +             self.verbose_handler = None
 +         
           # Initialize cache manager for performance optimization
-          if graph_memory_processing_level in [&quot;speed&quot;, &quot;balanced&quot;]:
+          if graph_memory_processing_level in ["speed", "balanced"]:
 ```
 
 **Chunk 2**
@@ -10163,7 +10163,7 @@ Wait, that's not right - the GraphManager is initialized BEFORE the RAGManager. 
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 9, lines removed: undefined
@@ -10197,14 +10197,14 @@ Now let me remove the duplicate verbose handler initialization:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 7
 
 ```diff
 @@ -204,11 +204,5 @@
-          self.logger.debug(&quot;Initialized RAGManager with graph integration&quot;)
+          self.logger.debug("Initialized RAGManager with graph integration")
           
 -         # Initialize verbose status handler FIRST (before GraphManager)
 -         self.verbose = verbose
@@ -10229,7 +10229,7 @@ Now let me test with a fresh GUID to see the detailed graph memory processing:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: echo "Tell me about Elena." | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/agent_usage_example.py --guid verbose_graph_working_test --config dnd --performance comprehensive --verbose</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: echo "Tell me about Elena." | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/agent_usage_example.py --guid verbose_graph_working_test --config dnd --performance comprehensive --verbose</summary>
 
 ```bash
 echo "Tell me about Elena." | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/agent_usage_example.py --guid verbose_graph_working_test --config dnd --performance comprehensive --verbose
@@ -10243,58 +10243,58 @@ echo "Tell me about Elena." | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28
 ================================================================================
 
 Using domain config: dnd
-Domain config: {&#39;domain_name&#39;: &#39;dnd_campaign&#39;, &#39;domain_specific_prompt_instructions&#39;
-: {&#39;query&#39;: &quot;You are a DM for a D&amp;D campaign. ANSWER PLAYER QUESTIONS DIRECTLY. For
-simple questions (like &#39;are there goblins nearby?&#39;), give specific answers based on
-the campaign state. For exploration questions (like &#39;what do I see?&#39;), provide vivid
- but concise descriptions. Avoid starting every response with &#39;Okay, let&#39;s investiga
-te&#39; or similar repetitive phrases. Move the story forward with actionable informatio
-n and clear choices.&quot;, &#39;update&#39;: &#39;You are analyzing the input from both the user and
+Domain config: {'domain_name': 'dnd_campaign', 'domain_specific_prompt_instructions'
+: {'query': "You are a DM for a D&amp;D campaign. ANSWER PLAYER QUESTIONS DIRECTLY. For
+simple questions (like 'are there goblins nearby?'), give specific answers based on
+the campaign state. For exploration questions (like 'what do I see?'), provide vivid
+ but concise descriptions. Avoid starting every response with 'Okay, let's investiga
+te' or similar repetitive phrases. Move the story forward with actionable informatio
+n and clear choices.", 'update': 'You are analyzing the input from both the user and
  the agent and extracting and classifying the important information into the convers
-ation history data structure.&#39;}, &#39;initial_data&#39;: &quot;\nCampaign Setting: The Lost Valle
+ation history data structure.'}, 'initial_data': "\nCampaign Setting: The Lost Valle
 y\n\nWorld Details:\n- Hidden valley surrounded by impassable mountains\n- Ancient r
 uins scattered throughout\n- Mysterious magical anomalies\n- Three main settlements:
  Haven (central), Riverwatch (east), Mountainkeep (west)\n\nKey NPCs:\n1. Elena\n
-- Role: Mayor of Haven\n   - Motivation: Protect the valley&#39;s inhabitants\n   - Curr
+- Role: Mayor of Haven\n   - Motivation: Protect the valley's inhabitants\n   - Curr
 ent Quest: Investigate strange occurrences in Haven\n\n2. Theron\n   - Role: Master
 Scholar\n   - Expertise: Ancient ruins and artifacts\n   - Current Research: Decodin
 g ruin inscriptions\n\n3. Sara\n   - Role: Captain of Riverwatch\n   - Responsibilit
-y: Valley&#39;s defense\n   - Current Concern: Increased monster activity\n\nCurrent Sit
+y: Valley's defense\n   - Current Concern: Increased monster activity\n\nCurrent Sit
 uations:\n1. Trade Routes\n   - Main road between settlements disrupted\n   - Mercha
 nts seeking protection\n   - Alternative routes needed\n\n2. Ancient Ruins\n   - New
  chambers discovered\n   - Strange energy emanations\n   - Valuable artifacts found\
 n\n3. Magical Anomalies\n   - Random magical effects\n   - Affecting local wildlife\
-n   - Possible connection to ruins&quot;, &#39;topic_taxonomy&#39;: {&#39;world&#39;: [&#39;setting&#39;, &#39;geogra
-phy&#39;, &#39;location&#39;, &#39;environment&#39;, &#39;terrain&#39;], &#39;characters&#39;: [&#39;npc&#39;, &#39;player&#39;, &#39;person
-ality&#39;, &#39;motivation&#39;, &#39;background&#39;], &#39;narrative&#39;: [&#39;story&#39;, &#39;plot&#39;, &#39;quest&#39;, &#39;advent
-ure&#39;, &#39;campaign&#39;], &#39;mechanics&#39;: [&#39;rules&#39;, &#39;dice&#39;, &#39;combat&#39;, &#39;magic&#39;, &#39;spells&#39;], &#39;obj
-ects&#39;: [&#39;items&#39;, &#39;equipment&#39;, &#39;artifacts&#39;, &#39;treasure&#39;, &#39;inventory&#39;], &#39;history&#39;: [&#39;lo
-re&#39;, &#39;ruins&#39;, &#39;archaeology&#39;, &#39;ancient&#39;, &#39;past&#39;], &#39;society&#39;: [&#39;politics&#39;, &#39;trade&#39;, &#39;s
-ettlements&#39;, &#39;culture&#39;, &#39;religion&#39;], &#39;threats&#39;: [&#39;monsters&#39;, &#39;enemies&#39;, &#39;dangers&#39;, &#39;
-conflict&#39;, &#39;war&#39;], &#39;exploration&#39;: [&#39;discovery&#39;, &#39;investigation&#39;, &#39;research&#39;, &#39;myster
-y&#39;], &#39;events&#39;: [&#39;happenings&#39;, &#39;situations&#39;, &#39;incidents&#39;, &#39;occurrences&#39;]}, &#39;topic_nor
-malizations&#39;: {&#39;locations&#39;: &#39;location&#39;, &#39;geography&#39;: &#39;location&#39;, &#39;terrain&#39;: &#39;environ
-ment&#39;, &#39;area&#39;: &#39;location&#39;, &#39;place&#39;: &#39;location&#39;, &#39;region&#39;: &#39;location&#39;, &#39;character&#39;: &#39;
-characters&#39;, &#39;key npc&#39;: &#39;npc&#39;, &#39;npcs&#39;: &#39;npc&#39;, &#39;people&#39;: &#39;characters&#39;, &#39;ruins&#39;: &#39;arch
-aeology&#39;, &#39;ancient ruins&#39;: &#39;archaeology&#39;, &#39;artifacts&#39;: &#39;archaeology&#39;, &#39;archaeologica
-l&#39;: &#39;archaeology&#39;, &#39;situation&#39;: &#39;events&#39;, &#39;situations&#39;: &#39;events&#39;, &#39;happenings&#39;: &#39;eve
-nts&#39;, &#39;occurrences&#39;: &#39;events&#39;, &#39;research&#39;: &#39;investigation&#39;, &#39;exploration&#39;: &#39;investig
-ation&#39;, &#39;discovery&#39;: &#39;investigation&#39;, &#39;magical&#39;: &#39;magic&#39;, &#39;anomalies&#39;: &#39;magic&#39;, &#39;mag
-ical anomalies&#39;: &#39;magic&#39;, &#39;setting&#39;: &#39;world&#39;, &#39;world&#39;: &#39;setting&#39;, &#39;lore&#39;: &#39;history&#39;,
- &#39;ancient&#39;: &#39;history&#39;, &#39;monsters&#39;: &#39;threats&#39;, &#39;enemies&#39;: &#39;threats&#39;, &#39;monster activit
-y&#39;: &#39;threats&#39;, &#39;defense&#39;: &#39;threats&#39;, &#39;trade routes&#39;: &#39;trade&#39;, &#39;settlements&#39;: &#39;societ
-y&#39;, &#39;politics&#39;: &#39;society&#39;, &#39;value&#39;: &#39;objects&#39;, &#39;treasure&#39;: &#39;objects&#39;, &#39;skills&#39;: &#39;mec
-hanics&#39;, &#39;expertise&#39;: &#39;mechanics&#39;, &#39;decryption&#39;: &#39;investigation&#39;, &#39;wildlife&#39;: &#39;envir
-onment&#39;}, &#39;graph_memory_config&#39;: {&#39;enabled&#39;: True, &#39;entity_types&#39;: [&#39;character&#39;, &#39;lo
-cation&#39;, &#39;object&#39;, &#39;event&#39;, &#39;concept&#39;, &#39;organization&#39;], &#39;relationship_types&#39;: [&#39;loca
-ted_in&#39;, &#39;owns&#39;, &#39;member_of&#39;, &#39;allies_with&#39;, &#39;enemies_with&#39;, &#39;uses&#39;, &#39;created_by&#39;, &#39;
-leads_to&#39;, &#39;participates_in&#39;, &#39;related_to&#39;, &#39;mentions&#39;], &#39;entity_extraction_prompt&#39;:
- &#39;Extract entities from this D&amp;D campaign text. Focus on characters, locations, obje
+n   - Possible connection to ruins", 'topic_taxonomy': {'world': ['setting', 'geogra
+phy', 'location', 'environment', 'terrain'], 'characters': ['npc', 'player', 'person
+ality', 'motivation', 'background'], 'narrative': ['story', 'plot', 'quest', 'advent
+ure', 'campaign'], 'mechanics': ['rules', 'dice', 'combat', 'magic', 'spells'], 'obj
+ects': ['items', 'equipment', 'artifacts', 'treasure', 'inventory'], 'history': ['lo
+re', 'ruins', 'archaeology', 'ancient', 'past'], 'society': ['politics', 'trade', 's
+ettlements', 'culture', 'religion'], 'threats': ['monsters', 'enemies', 'dangers', '
+conflict', 'war'], 'exploration': ['discovery', 'investigation', 'research', 'myster
+y'], 'events': ['happenings', 'situations', 'incidents', 'occurrences']}, 'topic_nor
+malizations': {'locations': 'location', 'geography': 'location', 'terrain': 'environ
+ment', 'area': 'location', 'place': 'location', 'region': 'location', 'character': '
+characters', 'key npc': 'npc', 'npcs': 'npc', 'people': 'characters', 'ruins': 'arch
+aeology', 'ancient ruins': 'archaeology', 'artifacts': 'archaeology', 'archaeologica
+l': 'archaeology', 'situation': 'events', 'situations': 'events', 'happenings': 'eve
+nts', 'occurrences': 'events', 'research': 'investigation', 'exploration': 'investig
+ation', 'discovery': 'investigation', 'magical': 'magic', 'anomalies': 'magic', 'mag
+ical anomalies': 'magic', 'setting': 'world', 'world': 'setting', 'lore': 'history',
+ 'ancient': 'history', 'monsters': 'threats', 'enemies': 'threats', 'monster activit
+y': 'threats', 'defense': 'threats', 'trade routes': 'trade', 'settlements': 'societ
+y', 'politics': 'society', 'value': 'objects', 'treasure': 'objects', 'skills': 'mec
+hanics', 'expertise': 'mechanics', 'decryption': 'investigation', 'wildlife': 'envir
+onment'}, 'graph_memory_config': {'enabled': True, 'entity_types': ['character', 'lo
+cation', 'object', 'event', 'concept', 'organization'], 'relationship_types': ['loca
+ted_in', 'owns', 'member_of', 'allies_with', 'enemies_with', 'uses', 'created_by', '
+leads_to', 'participates_in', 'related_to', 'mentions'], 'entity_extraction_prompt':
+ 'Extract entities from this D&amp;D campaign text. Focus on characters, locations, obje
 cts, events, concepts, and organizations that are important to the campaign world an
-d story.&#39;, &#39;relationship_extraction_prompt&#39;: &#39;Identify relationships between entitie
+d story.', 'relationship_extraction_prompt': 'Identify relationships between entitie
 s in this D&amp;D campaign text. Look for spatial relationships (located_in), ownership
-(owns), social relationships (allies_with, enemies_with), and story connections.&#39;, &#39;
-similarity_threshold&#39;: 0.8}}
+(owns), social relationships (allies_with, enemies_with), and story connections.', '
+similarity_threshold': 0.8}}
 
 Setting up services...
 Initializing session with guid: verbose_graph_working_test
@@ -10339,11 +10339,11 @@ Memory File: agent_memories/standard/verbose_graph_working_test/agent_memory.jso
 Metadata:
 ------------------------------
 {
-  &quot;created_at&quot;: &quot;2025-09-02T11:06:43.752455&quot;,
-  &quot;updated_at&quot;: &quot;2025-09-02T11:06:43.752455&quot;,
-  &quot;version&quot;: &quot;2.0.0&quot;,
-  &quot;domain&quot;: &quot;general&quot;,
-  &quot;saved_during&quot;: &quot;create_initial_memory&quot;
+  "created_at": "2025-09-02T11:06:43.752455",
+  "updated_at": "2025-09-02T11:06:43.752455",
+  "version": "2.0.0",
+  "domain": "general",
+  "saved_during": "create_initial_memory"
 }
 
 Conversation History: 1 messages
@@ -10357,12 +10357,12 @@ Scattered throughout the valley are ancient ruins, and the area is plagued by my
 ious magical anomalies.
 
 
-There are three main settlements: Haven, located at the valley&#39;s center; Riverwatch,
+There are three main settlements: Haven, located at the valley's center; Riverwatch,
  situated to the east; and Mountainkeep, located to the west.
 
 
 Key non-player characters include Elena, who serves as the Mayor of Haven and is dri
-ven by a desire to protect the valley&#39;s inhabitants. She is currently investigating
+ven by a desire to protect the valley's inhabitants. She is currently investigating
 strange occurrences within Haven.
 
 
@@ -10370,7 +10370,7 @@ Theron is a Master Scholar with expertise in ancient ruins and artifacts, and he
 presently focused on decoding inscriptions found within the ruins.
 
 
-Sara is the Captain of Riverwatch, responsible for the valley&#39;s defense, and she is
+Sara is the Captain of Riverwatch, responsible for the valley's defense, and she is
 concerned by a recent increase in monster activity.
 
 
@@ -10387,7 +10387,7 @@ entially linked to the ruins themselves.
 
 
 Processing: Tell me about Elena.
-🔄 Processing query: &#39;Tell me about Elena....&#39;
+🔄 Processing query: 'Tell me about Elena....'
 🔄   Enhancing query with relevant context (RAG)...
 🔄   Retrieving graph context...
 🔄   Generating response with LLM...
@@ -10395,7 +10395,7 @@ Processing: Tell me about Elena.
 🔄   Starting background processing (individual, graph: comprehensive)...
 
 Agent: Elena serves as the Mayor of Haven and is currently investigating strange occ
-urrences within the town. She&#39;s driven by a desire to protect the valley&#39;s inhabitan
+urrences within the town. She's driven by a desire to protect the valley's inhabitan
 ts.
 
 
@@ -10568,7 +10568,7 @@ The individual entity processing logging is there, but it's not showing up. Let 
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/graph_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/graph_memory/graph_manager.py</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: 1
@@ -10577,10 +10577,10 @@ Lines added: 2, lines removed: 1
 @@ -456,6 +456,7 @@
                   
                   # Pass verbose handler to entity resolver for detailed logging
--                 if verbose_handler and hasattr(self.entity_resolver, &#39;verbose_handler&#39;):
+-                 if verbose_handler and hasattr(self.entity_resolver, 'verbose_handler'):
 +                 if verbose_handler:
                       self.entity_resolver.verbose_handler = verbose_handler
-+                     self.logger.debug(f&quot;Passed verbose handler to EntityResolver: {verbose_handler is not None}&quot;)
++                     self.logger.debug(f"Passed verbose handler to EntityResolver: {verbose_handler is not None}")
                   
                   resolutions = self.entity_resolver.resolve_candidates(
 ```
@@ -10597,7 +10597,7 @@ Let me also add some timing context managers to the entity resolution to show ti
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/entity_resolver.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/graph_memory/entity_resolver.py</summary>
 
 **Chunk 1**
 Lines added: 36, lines removed: 26
@@ -10607,62 +10607,62 @@ Lines added: 36, lines removed: 26
           for i, candidate in enumerate(candidates):
               try:
 -                 if verbose_handler:
--                     candidate_name = candidate.get(&#39;name&#39;, &#39;unnamed&#39;)
--                     verbose_handler.status(f&quot;Resolving entity {i+1}/{len(candidates)}: {candidate_name}&quot;, 6)
-+                 candidate_name = candidate.get(&#39;name&#39;, &#39;unnamed&#39;)
+-                     candidate_name = candidate.get('name', 'unnamed')
+-                     verbose_handler.status(f"Resolving entity {i+1}/{len(candidates)}: {candidate_name}", 6)
++                 candidate_name = candidate.get('name', 'unnamed')
                   
 -                 # Get RAG candidates for this specific entity
 -                 rag_candidates = self._get_rag_candidates_for_entity(candidate)
 -                 
 -                 if verbose_handler and rag_candidates:
--                     verbose_handler.status(f&quot;Found {len(rag_candidates)} similar entities&quot;, 7)
+-                     verbose_handler.status(f"Found {len(rag_candidates)} similar entities", 7)
 -                 
 -                 # Combine with previously resolved entities in this session
 -                 existing_context = rag_candidates + resolved_context
 -                 
 -                 # Resolve single candidate
 -                 if verbose_handler:
--                     verbose_handler.status(&quot;Calling LLM for entity resolution...&quot;, 7)
+-                     verbose_handler.status("Calling LLM for entity resolution...", 7)
 -                 
 -                 resolution = self._resolve_single_candidate(candidate, existing_context, confidence_threshold)
 -                 resolutions.append(resolution)
 -                 
 -                 if verbose_handler:
--                     confidence = resolution.get(&#39;confidence&#39;, 0.0)
--                     resolved_to = resolution.get(&#39;resolved_node_id&#39;, &#39;unknown&#39;)
--                     if resolved_to == &quot;&lt;NEW&gt;&quot;:
--                         verbose_handler.success(f&quot;Will create new entity (confidence: {confidence:.2f})&quot;, level=7)
+-                     confidence = resolution.get('confidence', 0.0)
+-                     resolved_to = resolution.get('resolved_node_id', 'unknown')
+-                     if resolved_to == "&lt;NEW&gt;":
+-                         verbose_handler.success(f"Will create new entity (confidence: {confidence:.2f})", level=7)
 -                     else:
--                         verbose_handler.success(f&quot;Matched to existing: {resolved_to} (confidence: {confidence:.2f})&quot;, level=7)
+-                         verbose_handler.success(f"Matched to existing: {resolved_to} (confidence: {confidence:.2f})", level=7)
 +                 if verbose_handler:
-+                     with verbose_handler.operation(f&quot;Resolving entity {i+1}/{len(candidates)}: {candidate_name}&quot;, level=6):
++                     with verbose_handler.operation(f"Resolving entity {i+1}/{len(candidates)}: {candidate_name}", level=6):
 +                         # Get RAG candidates for this specific entity
 +                         if verbose_handler:
-+                             verbose_handler.status(&quot;Searching for similar entities...&quot;, 7)
++                             verbose_handler.status("Searching for similar entities...", 7)
 +                         rag_candidates = self._get_rag_candidates_for_entity(candidate)
 +                         
 +                         if verbose_handler and rag_candidates:
-+                             verbose_handler.success(f&quot;Found {len(rag_candidates)} similar entities&quot;, level=7)
++                             verbose_handler.success(f"Found {len(rag_candidates)} similar entities", level=7)
 +                         elif verbose_handler:
-+                             verbose_handler.success(&quot;No similar entities found&quot;, level=7)
++                             verbose_handler.success("No similar entities found", level=7)
 +                         
 +                         # Combine with previously resolved entities in this session
 +                         existing_context = rag_candidates + resolved_context
 +                         
 +                         # Resolve single candidate
 +                         if verbose_handler:
-+                             verbose_handler.status(&quot;Calling LLM for entity resolution...&quot;, 7)
++                             verbose_handler.status("Calling LLM for entity resolution...", 7)
 +                         
 +                         resolution = self._resolve_single_candidate(candidate, existing_context, confidence_threshold)
 +                         resolutions.append(resolution)
 +                         
 +                         if verbose_handler:
-+                             confidence = resolution.get(&#39;confidence&#39;, 0.0)
-+                             resolved_to = resolution.get(&#39;resolved_node_id&#39;, &#39;unknown&#39;)
-+                             if resolved_to == &quot;&lt;NEW&gt;&quot;:
-+                                 verbose_handler.success(f&quot;Will create new entity (confidence: {confidence:.2f})&quot;, level=7)
++                             confidence = resolution.get('confidence', 0.0)
++                             resolved_to = resolution.get('resolved_node_id', 'unknown')
++                             if resolved_to == "&lt;NEW&gt;":
++                                 verbose_handler.success(f"Will create new entity (confidence: {confidence:.2f})", level=7)
 +                             else:
-+                                 verbose_handler.success(f&quot;Matched to existing: {resolved_to} (confidence: {confidence:.2f})&quot;, level=7)
++                                 verbose_handler.success(f"Matched to existing: {resolved_to} (confidence: {confidence:.2f})", level=7)
 +                 else:
 +                     # Non-verbose path
 +                     rag_candidates = self._get_rag_candidates_for_entity(candidate)
@@ -10684,7 +10684,7 @@ Now let me test this with a fresh GUID to see the detailed individual entity pro
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: echo "Tell me about Elena." | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/agent_usage_example.py --guid verbose_individual_entities --config dnd --performance comprehensive --verbose</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: echo "Tell me about Elena." | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/agent_usage_example.py --guid verbose_individual_entities --config dnd --performance comprehensive --verbose</summary>
 
 ```bash
 echo "Tell me about Elena." | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/agent_usage_example.py --guid verbose_individual_entities --config dnd --performance comprehensive --verbose
@@ -10698,58 +10698,58 @@ echo "Tell me about Elena." | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28
 ================================================================================
 
 Using domain config: dnd
-Domain config: {&#39;domain_name&#39;: &#39;dnd_campaign&#39;, &#39;domain_specific_prompt_instructions&#39;
-: {&#39;query&#39;: &quot;You are a DM for a D&amp;D campaign. ANSWER PLAYER QUESTIONS DIRECTLY. For
-simple questions (like &#39;are there goblins nearby?&#39;), give specific answers based on
-the campaign state. For exploration questions (like &#39;what do I see?&#39;), provide vivid
- but concise descriptions. Avoid starting every response with &#39;Okay, let&#39;s investiga
-te&#39; or similar repetitive phrases. Move the story forward with actionable informatio
-n and clear choices.&quot;, &#39;update&#39;: &#39;You are analyzing the input from both the user and
+Domain config: {'domain_name': 'dnd_campaign', 'domain_specific_prompt_instructions'
+: {'query': "You are a DM for a D&amp;D campaign. ANSWER PLAYER QUESTIONS DIRECTLY. For
+simple questions (like 'are there goblins nearby?'), give specific answers based on
+the campaign state. For exploration questions (like 'what do I see?'), provide vivid
+ but concise descriptions. Avoid starting every response with 'Okay, let's investiga
+te' or similar repetitive phrases. Move the story forward with actionable informatio
+n and clear choices.", 'update': 'You are analyzing the input from both the user and
  the agent and extracting and classifying the important information into the convers
-ation history data structure.&#39;}, &#39;initial_data&#39;: &quot;\nCampaign Setting: The Lost Valle
+ation history data structure.'}, 'initial_data': "\nCampaign Setting: The Lost Valle
 y\n\nWorld Details:\n- Hidden valley surrounded by impassable mountains\n- Ancient r
 uins scattered throughout\n- Mysterious magical anomalies\n- Three main settlements:
  Haven (central), Riverwatch (east), Mountainkeep (west)\n\nKey NPCs:\n1. Elena\n
-- Role: Mayor of Haven\n   - Motivation: Protect the valley&#39;s inhabitants\n   - Curr
+- Role: Mayor of Haven\n   - Motivation: Protect the valley's inhabitants\n   - Curr
 ent Quest: Investigate strange occurrences in Haven\n\n2. Theron\n   - Role: Master
 Scholar\n   - Expertise: Ancient ruins and artifacts\n   - Current Research: Decodin
 g ruin inscriptions\n\n3. Sara\n   - Role: Captain of Riverwatch\n   - Responsibilit
-y: Valley&#39;s defense\n   - Current Concern: Increased monster activity\n\nCurrent Sit
+y: Valley's defense\n   - Current Concern: Increased monster activity\n\nCurrent Sit
 uations:\n1. Trade Routes\n   - Main road between settlements disrupted\n   - Mercha
 nts seeking protection\n   - Alternative routes needed\n\n2. Ancient Ruins\n   - New
  chambers discovered\n   - Strange energy emanations\n   - Valuable artifacts found\
 n\n3. Magical Anomalies\n   - Random magical effects\n   - Affecting local wildlife\
-n   - Possible connection to ruins&quot;, &#39;topic_taxonomy&#39;: {&#39;world&#39;: [&#39;setting&#39;, &#39;geogra
-phy&#39;, &#39;location&#39;, &#39;environment&#39;, &#39;terrain&#39;], &#39;characters&#39;: [&#39;npc&#39;, &#39;player&#39;, &#39;person
-ality&#39;, &#39;motivation&#39;, &#39;background&#39;], &#39;narrative&#39;: [&#39;story&#39;, &#39;plot&#39;, &#39;quest&#39;, &#39;advent
-ure&#39;, &#39;campaign&#39;], &#39;mechanics&#39;: [&#39;rules&#39;, &#39;dice&#39;, &#39;combat&#39;, &#39;magic&#39;, &#39;spells&#39;], &#39;obj
-ects&#39;: [&#39;items&#39;, &#39;equipment&#39;, &#39;artifacts&#39;, &#39;treasure&#39;, &#39;inventory&#39;], &#39;history&#39;: [&#39;lo
-re&#39;, &#39;ruins&#39;, &#39;archaeology&#39;, &#39;ancient&#39;, &#39;past&#39;], &#39;society&#39;: [&#39;politics&#39;, &#39;trade&#39;, &#39;s
-ettlements&#39;, &#39;culture&#39;, &#39;religion&#39;], &#39;threats&#39;: [&#39;monsters&#39;, &#39;enemies&#39;, &#39;dangers&#39;, &#39;
-conflict&#39;, &#39;war&#39;], &#39;exploration&#39;: [&#39;discovery&#39;, &#39;investigation&#39;, &#39;research&#39;, &#39;myster
-y&#39;], &#39;events&#39;: [&#39;happenings&#39;, &#39;situations&#39;, &#39;incidents&#39;, &#39;occurrences&#39;]}, &#39;topic_nor
-malizations&#39;: {&#39;locations&#39;: &#39;location&#39;, &#39;geography&#39;: &#39;location&#39;, &#39;terrain&#39;: &#39;environ
-ment&#39;, &#39;area&#39;: &#39;location&#39;, &#39;place&#39;: &#39;location&#39;, &#39;region&#39;: &#39;location&#39;, &#39;character&#39;: &#39;
-characters&#39;, &#39;key npc&#39;: &#39;npc&#39;, &#39;npcs&#39;: &#39;npc&#39;, &#39;people&#39;: &#39;characters&#39;, &#39;ruins&#39;: &#39;arch
-aeology&#39;, &#39;ancient ruins&#39;: &#39;archaeology&#39;, &#39;artifacts&#39;: &#39;archaeology&#39;, &#39;archaeologica
-l&#39;: &#39;archaeology&#39;, &#39;situation&#39;: &#39;events&#39;, &#39;situations&#39;: &#39;events&#39;, &#39;happenings&#39;: &#39;eve
-nts&#39;, &#39;occurrences&#39;: &#39;events&#39;, &#39;research&#39;: &#39;investigation&#39;, &#39;exploration&#39;: &#39;investig
-ation&#39;, &#39;discovery&#39;: &#39;investigation&#39;, &#39;magical&#39;: &#39;magic&#39;, &#39;anomalies&#39;: &#39;magic&#39;, &#39;mag
-ical anomalies&#39;: &#39;magic&#39;, &#39;setting&#39;: &#39;world&#39;, &#39;world&#39;: &#39;setting&#39;, &#39;lore&#39;: &#39;history&#39;,
- &#39;ancient&#39;: &#39;history&#39;, &#39;monsters&#39;: &#39;threats&#39;, &#39;enemies&#39;: &#39;threats&#39;, &#39;monster activit
-y&#39;: &#39;threats&#39;, &#39;defense&#39;: &#39;threats&#39;, &#39;trade routes&#39;: &#39;trade&#39;, &#39;settlements&#39;: &#39;societ
-y&#39;, &#39;politics&#39;: &#39;society&#39;, &#39;value&#39;: &#39;objects&#39;, &#39;treasure&#39;: &#39;objects&#39;, &#39;skills&#39;: &#39;mec
-hanics&#39;, &#39;expertise&#39;: &#39;mechanics&#39;, &#39;decryption&#39;: &#39;investigation&#39;, &#39;wildlife&#39;: &#39;envir
-onment&#39;}, &#39;graph_memory_config&#39;: {&#39;enabled&#39;: True, &#39;entity_types&#39;: [&#39;character&#39;, &#39;lo
-cation&#39;, &#39;object&#39;, &#39;event&#39;, &#39;concept&#39;, &#39;organization&#39;], &#39;relationship_types&#39;: [&#39;loca
-ted_in&#39;, &#39;owns&#39;, &#39;member_of&#39;, &#39;allies_with&#39;, &#39;enemies_with&#39;, &#39;uses&#39;, &#39;created_by&#39;, &#39;
-leads_to&#39;, &#39;participates_in&#39;, &#39;related_to&#39;, &#39;mentions&#39;], &#39;entity_extraction_prompt&#39;:
- &#39;Extract entities from this D&amp;D campaign text. Focus on characters, locations, obje
+n   - Possible connection to ruins", 'topic_taxonomy': {'world': ['setting', 'geogra
+phy', 'location', 'environment', 'terrain'], 'characters': ['npc', 'player', 'person
+ality', 'motivation', 'background'], 'narrative': ['story', 'plot', 'quest', 'advent
+ure', 'campaign'], 'mechanics': ['rules', 'dice', 'combat', 'magic', 'spells'], 'obj
+ects': ['items', 'equipment', 'artifacts', 'treasure', 'inventory'], 'history': ['lo
+re', 'ruins', 'archaeology', 'ancient', 'past'], 'society': ['politics', 'trade', 's
+ettlements', 'culture', 'religion'], 'threats': ['monsters', 'enemies', 'dangers', '
+conflict', 'war'], 'exploration': ['discovery', 'investigation', 'research', 'myster
+y'], 'events': ['happenings', 'situations', 'incidents', 'occurrences']}, 'topic_nor
+malizations': {'locations': 'location', 'geography': 'location', 'terrain': 'environ
+ment', 'area': 'location', 'place': 'location', 'region': 'location', 'character': '
+characters', 'key npc': 'npc', 'npcs': 'npc', 'people': 'characters', 'ruins': 'arch
+aeology', 'ancient ruins': 'archaeology', 'artifacts': 'archaeology', 'archaeologica
+l': 'archaeology', 'situation': 'events', 'situations': 'events', 'happenings': 'eve
+nts', 'occurrences': 'events', 'research': 'investigation', 'exploration': 'investig
+ation', 'discovery': 'investigation', 'magical': 'magic', 'anomalies': 'magic', 'mag
+ical anomalies': 'magic', 'setting': 'world', 'world': 'setting', 'lore': 'history',
+ 'ancient': 'history', 'monsters': 'threats', 'enemies': 'threats', 'monster activit
+y': 'threats', 'defense': 'threats', 'trade routes': 'trade', 'settlements': 'societ
+y', 'politics': 'society', 'value': 'objects', 'treasure': 'objects', 'skills': 'mec
+hanics', 'expertise': 'mechanics', 'decryption': 'investigation', 'wildlife': 'envir
+onment'}, 'graph_memory_config': {'enabled': True, 'entity_types': ['character', 'lo
+cation', 'object', 'event', 'concept', 'organization'], 'relationship_types': ['loca
+ted_in', 'owns', 'member_of', 'allies_with', 'enemies_with', 'uses', 'created_by', '
+leads_to', 'participates_in', 'related_to', 'mentions'], 'entity_extraction_prompt':
+ 'Extract entities from this D&amp;D campaign text. Focus on characters, locations, obje
 cts, events, concepts, and organizations that are important to the campaign world an
-d story.&#39;, &#39;relationship_extraction_prompt&#39;: &#39;Identify relationships between entitie
+d story.', 'relationship_extraction_prompt': 'Identify relationships between entitie
 s in this D&amp;D campaign text. Look for spatial relationships (located_in), ownership
-(owns), social relationships (allies_with, enemies_with), and story connections.&#39;, &#39;
-similarity_threshold&#39;: 0.8}}
+(owns), social relationships (allies_with, enemies_with), and story connections.', '
+similarity_threshold': 0.8}}
 
 Setting up services...
 Initializing session with guid: verbose_individual_entities
@@ -10856,11 +10856,11 @@ Memory File: agent_memories/standard/verbose_individual_entities/agent_memory.js
 Metadata:
 ------------------------------
 {
-  &quot;created_at&quot;: &quot;2025-09-02T11:12:41.081392&quot;,
-  &quot;updated_at&quot;: &quot;2025-09-02T11:12:41.081392&quot;,
-  &quot;version&quot;: &quot;2.0.0&quot;,
-  &quot;domain&quot;: &quot;general&quot;,
-  &quot;saved_during&quot;: &quot;create_initial_memory&quot;
+  "created_at": "2025-09-02T11:12:41.081392",
+  "updated_at": "2025-09-02T11:12:41.081392",
+  "version": "2.0.0",
+  "domain": "general",
+  "saved_during": "create_initial_memory"
 }
 
 Conversation History: 1 messages
@@ -10879,7 +10879,7 @@ to the east; and Mountainkeep, located to the west.
 
 
 Key non-player characters include Elena, the Mayor of Haven, whose motivation is to
-protect the valley&#39;s inhabitants and who is currently investigating strange occurren
+protect the valley's inhabitants and who is currently investigating strange occurren
 ces within Haven.
 
 
@@ -10887,7 +10887,7 @@ Theron is a Master Scholar with expertise in ancient ruins and artifacts, curren
 focused on decoding ruin inscriptions.
 
 
-Finally, Sara serves as Captain of Riverwatch, responsible for the valley&#39;s defense,
+Finally, Sara serves as Captain of Riverwatch, responsible for the valley's defense,
  and she is particularly concerned by recent increases in monster activity.
 
 
@@ -10906,14 +10906,14 @@ These anomalies are affecting the local wildlife, and there is a possible connec
 
 
 Processing: Tell me about Elena.
-🔄 Processing query: &#39;Tell me about Elena....&#39;
+🔄 Processing query: 'Tell me about Elena....'
 🔄   Enhancing query with relevant context (RAG)...
 🔄   Retrieving graph context...
 🔄   Generating response with LLM...
 ✅     Generated response (149 chars)
 🔄   Starting background processing (individual, graph: comprehensive)...
 
-Agent: Elena is the Mayor of Haven, driven by a desire to protect the valley&#39;s inhab
+Agent: Elena is the Mayor of Haven, driven by a desire to protect the valley's inhab
 itants. She is currently investigating strange occurrences within Haven.
 
 
@@ -11157,7 +11157,7 @@ Good, the imports are already there. Now let me add WebSocket support to the Ver
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/utils/verbose_status.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/utils/verbose_status.py</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: undefined
@@ -11202,18 +11202,18 @@ Let me read more of the file to see the exact format:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/utils/verbose_status.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/utils/verbose_status.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
 
 ```diff
 @@ -25,5 +25,5 @@
-      &quot;&quot;&quot;
+      """
       
 -     def __init__(self, enabled: bool = True, output_handler: Optional[Callable[[str], None]] = None):
 +     def __init__(self, enabled: bool = True, output_handler: Optional[Callable[[str], None]] = None, websocket_callback: Optional[Callable[[Dict[str, Any]], None]] = None):
-          &quot;&quot;&quot;
+          """
           Initialize the verbose status handler.
 ```
 
@@ -11225,7 +11225,7 @@ Lines added: 2, lines removed: undefined
               enabled: Whether verbose messages are enabled
               output_handler: Function to handle output messages (defaults to print)
 +             websocket_callback: Optional callback for WebSocket message streaming
-          &quot;&quot;&quot;
+          """
           self.enabled = enabled
 +         self.websocket_callback = websocket_callback
           self.output_handler = output_handler or print
@@ -11244,7 +11244,7 @@ Now let me add a method to send WebSocket messages and modify the status methods
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/utils/verbose_status.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/utils/verbose_status.py</summary>
 
 **Chunk 1**
 Lines added: 20, lines removed: undefined
@@ -11254,27 +11254,27 @@ Lines added: 20, lines removed: undefined
               self.enabled = enabled
       
 +     def _send_websocket_message(self, message_type: str, message: str, level: int = 0, duration: Optional[float] = None):
-+         &quot;&quot;&quot;Send a message to WebSocket clients if callback is configured.&quot;&quot;&quot;
++         """Send a message to WebSocket clients if callback is configured."""
 +         if self.websocket_callback:
 +             try:
 +                 websocket_data = {
-+                     &quot;type&quot;: &quot;verbose_status&quot;,
-+                     &quot;data&quot;: {
-+                         &quot;message_type&quot;: message_type,  # &quot;status&quot;, &quot;success&quot;, &quot;warning&quot;, &quot;error&quot;
-+                         &quot;message&quot;: message,
-+                         &quot;level&quot;: level,
-+                         &quot;duration&quot;: duration,
-+                         &quot;timestamp&quot;: datetime.now().isoformat(),
-+                         &quot;operation_stack&quot;: [op[0] for op in self._operation_stack] if self._operation_stack else []
++                     "type": "verbose_status",
++                     "data": {
++                         "message_type": message_type,  # "status", "success", "warning", "error"
++                         "message": message,
++                         "level": level,
++                         "duration": duration,
++                         "timestamp": datetime.now().isoformat(),
++                         "operation_stack": [op[0] for op in self._operation_stack] if self._operation_stack else []
 +                     }
 +                 }
 +                 self.websocket_callback(websocket_data)
 +             except Exception as e:
-+                 # Don&#39;t let WebSocket errors break the verbose handler
-+                 print(f&quot;Error sending WebSocket message: {e}&quot;)
++                 # Don't let WebSocket errors break the verbose handler
++                 print(f"Error sending WebSocket message: {e}")
 +     
       def set_output_handler(self, handler: Callable[[str], None]):
-          &quot;&quot;&quot;Set the output handler for messages.&quot;&quot;&quot;
+          """Set the output handler for messages."""
 ```
 
 </details>
@@ -11331,16 +11331,16 @@ Output mode: content
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/utils/verbose_status.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/utils/verbose_status.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: undefined
 
 ```diff
 @@ -85,4 +85,5 @@
-              formatted_message = f&quot;🔄 {indent}{message}&quot;
+              formatted_message = f"🔄 {indent}{message}"
               self.output_handler(formatted_message)
-+             self._send_websocket_message(&quot;status&quot;, message, level)
++             self._send_websocket_message("status", message, level)
       
       def success(self, message: str, duration: Optional[float] = None, level: int = 0):
 ```
@@ -11377,16 +11377,16 @@ The model provided an ambiguous search string to replace.
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/utils/verbose_status.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/utils/verbose_status.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: undefined
 
 ```diff
 @@ -106,4 +106,5 @@
-                  formatted_message = f&quot;✅ {indent}{message}&quot;
+                  formatted_message = f"✅ {indent}{message}"
               self.output_handler(formatted_message)
-+             self._send_websocket_message(&quot;success&quot;, message, level, duration)
++             self._send_websocket_message("success", message, level, duration)
       
       def warning(self, message: str, level: int = 0):
 ```
@@ -11411,16 +11411,16 @@ Now let me update the warning and error methods too:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/utils/verbose_status.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/utils/verbose_status.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: undefined
 
 ```diff
 @@ -123,4 +123,5 @@
-              formatted_message = f&quot;⚠️  {indent}{message}&quot;
+              formatted_message = f"⚠️  {indent}{message}"
               self.output_handler(formatted_message)
-+             self._send_websocket_message(&quot;warning&quot;, message, level)
++             self._send_websocket_message("warning", message, level)
       
       def error(self, message: str, level: int = 0):
 ```
@@ -11441,16 +11441,16 @@ Lines added: 1, lines removed: undefined
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/utils/verbose_status.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/utils/verbose_status.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: undefined
 
 ```diff
 @@ -140,4 +140,5 @@
-              formatted_message = f&quot;❌ {indent}{message}&quot;
+              formatted_message = f"❌ {indent}{message}"
               self.output_handler(formatted_message)
-+             self._send_websocket_message(&quot;error&quot;, message, level)
++             self._send_websocket_message("error", message, level)
       
       @contextmanager
 ```
@@ -11467,7 +11467,7 @@ Now let me create a WebSocket integration module for the API:
 
 <tool-use data-tool-type="write" data-tool-name="write">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/api/websocket/verbose_streamer.py</summary>
+<details><summary>Tool use: **write** • Edit file: src/api/websocket/verbose_streamer.py</summary>
 
 **Chunk 1**
 Lines added: 140, lines removed: 1
@@ -11475,12 +11475,12 @@ Lines added: 140, lines removed: 1
 ```diff
 @@ -1,1 +1,140 @@
 - 
-+ &quot;&quot;&quot;
++ """
 + WebSocket Verbose Status Streamer
 + 
 + Integrates the VerboseStatusHandler with WebSocket connections to stream
 + real-time status updates to web clients during agent processing.
-+ &quot;&quot;&quot;
++ """
 + 
 + import asyncio
 + import json
@@ -11495,32 +11495,32 @@ Lines added: 140, lines removed: 1
 + 
 + 
 + class WebSocketVerboseStreamer:
-+     &quot;&quot;&quot;Streams verbose status messages to WebSocket clients.&quot;&quot;&quot;
++     """Streams verbose status messages to WebSocket clients."""
 +     
 +     def __init__(self):
 +         self.subscriptions = {}  # {session_id: {connection_id: bool}}
 +         
 +     def subscribe_to_verbose_status(self, session_id: str, connection_id: str):
-+         &quot;&quot;&quot;Subscribe a WebSocket connection to verbose status updates.&quot;&quot;&quot;
++         """Subscribe a WebSocket connection to verbose status updates."""
 +         if session_id not in self.subscriptions:
 +             self.subscriptions[session_id] = {}
 +         self.subscriptions[session_id][connection_id] = True
-+         logger.debug(f&quot;Subscribed {connection_id} to verbose status for session {session_id}&quot;)
++         logger.debug(f"Subscribed {connection_id} to verbose status for session {session_id}")
 +     
 +     def unsubscribe_from_verbose_status(self, session_id: str, connection_id: str):
-+         &quot;&quot;&quot;Unsubscribe a WebSocket connection from verbose status updates.&quot;&quot;&quot;
++         """Unsubscribe a WebSocket connection from verbose status updates."""
 +         if session_id in self.subscriptions:
 +             self.subscriptions[session_id].pop(connection_id, None)
 +             if not self.subscriptions[session_id]:
 +                 del self.subscriptions[session_id]
-+         logger.debug(f&quot;Unsubscribed {connection_id} from verbose status for session {session_id}&quot;)
++         logger.debug(f"Unsubscribed {connection_id} from verbose status for session {session_id}")
 +     
 +     def cleanup_connection(self, session_id: str, connection_id: str):
-+         &quot;&quot;&quot;Clean up subscriptions for a disconnected connection.&quot;&quot;&quot;
++         """Clean up subscriptions for a disconnected connection."""
 +         self.unsubscribe_from_verbose_status(session_id, connection_id)
 +     
 +     async def stream_verbose_message(self, session_id: str, message_data: Dict[str, Any]):
-+         &quot;&quot;&quot;Stream a verbose status message to subscribed WebSocket connections.&quot;&quot;&quot;
++         """Stream a verbose status message to subscribed WebSocket connections."""
 +         if session_id not in self.subscriptions:
 +             return
 +         
@@ -11529,13 +11529,13 @@ Lines added: 140, lines removed: 1
 +         
 +         # Create WebSocket message
 +         websocket_message = {
-+             &quot;type&quot;: &quot;verbose_status&quot;,
-+             &quot;data&quot;: message_data
++             "type": "verbose_status",
++             "data": message_data
 +         }
 +         
 +         # Broadcast to subscribed connections in this session
 +         await manager.broadcast_to_session(websocket_message, session_id)
-+         logger.debug(f&quot;Streamed verbose message to {len(self.subscriptions[session_id])} connections in session {session_id}&quot;)
++         logger.debug(f"Streamed verbose message to {len(self.subscriptions[session_id])} connections in session {session_id}")
 + 
 + 
 + # Global verbose streamer instance
@@ -11543,7 +11543,7 @@ Lines added: 140, lines removed: 1
 + 
 + 
 + def create_websocket_verbose_handler(session_id: str, enabled: bool = True) -&gt; VerboseStatusHandler:
-+     &quot;&quot;&quot;
++     """
 +     Create a VerboseStatusHandler that streams to WebSocket clients.
 +     
 +     Args:
@@ -11552,26 +11552,26 @@ Lines added: 140, lines removed: 1
 +         
 +     Returns:
 +         VerboseStatusHandler configured for WebSocket streaming
-+     &quot;&quot;&quot;
++     """
 +     def websocket_callback(message_data: Dict[str, Any]):
-+         &quot;&quot;&quot;Callback to send verbose messages to WebSocket clients.&quot;&quot;&quot;
++         """Callback to send verbose messages to WebSocket clients."""
 +         try:
 +             # Add session context
-+             message_data[&quot;data&quot;][&quot;session_id&quot;] = session_id
++             message_data["data"]["session_id"] = session_id
 +             
 +             # Stream to WebSocket clients (non-blocking)
 +             try:
 +                 loop = asyncio.get_event_loop()
 +                 if loop.is_running():
-+                     asyncio.create_task(verbose_streamer.stream_verbose_message(session_id, message_data[&quot;data&quot;]))
++                     asyncio.create_task(verbose_streamer.stream_verbose_message(session_id, message_data["data"]))
 +                 else:
-+                     asyncio.ensure_future(verbose_streamer.stream_verbose_message(session_id, message_data[&quot;data&quot;]))
++                     asyncio.ensure_future(verbose_streamer.stream_verbose_message(session_id, message_data["data"]))
 +             except RuntimeError:
 +                 # No event loop available, skip WebSocket streaming
 +                 pass
 +                 
 +         except Exception as e:
-+             logger.error(f&quot;Error in WebSocket verbose callback: {e}&quot;)
++             logger.error(f"Error in WebSocket verbose callback: {e}")
 +     
 +     return VerboseStatusHandler(
 +         enabled=enabled,
@@ -11581,36 +11581,36 @@ Lines added: 140, lines removed: 1
 + 
 + 
 + def get_websocket_verbose_handler(session_id: str, enabled: bool = True) -&gt; VerboseStatusHandler:
-+     &quot;&quot;&quot;
++     """
 +     Get or create a WebSocket-enabled verbose handler for a session.
 +     
 +     This function integrates with the existing get_verbose_handler system
 +     but adds WebSocket streaming capabilities.
-+     &quot;&quot;&quot;
++     """
 +     # Get the existing handler
 +     handler = get_verbose_handler(enabled)
 +     
 +     # Add WebSocket capability if not already present
-+     if not hasattr(handler, &#39;websocket_callback&#39;) or handler.websocket_callback is None:
++     if not hasattr(handler, 'websocket_callback') or handler.websocket_callback is None:
 +         def websocket_callback(message_data: Dict[str, Any]):
-+             &quot;&quot;&quot;Callback to send verbose messages to WebSocket clients.&quot;&quot;&quot;
++             """Callback to send verbose messages to WebSocket clients."""
 +             try:
 +                 # Add session context
-+                 message_data[&quot;data&quot;][&quot;session_id&quot;] = session_id
++                 message_data["data"]["session_id"] = session_id
 +                 
 +                 # Stream to WebSocket clients (non-blocking)
 +                 try:
 +                     loop = asyncio.get_event_loop()
 +                     if loop.is_running():
-+                         asyncio.create_task(verbose_streamer.stream_verbose_message(session_id, message_data[&quot;data&quot;]))
++                         asyncio.create_task(verbose_streamer.stream_verbose_message(session_id, message_data["data"]))
 +                     else:
-+                         asyncio.ensure_future(verbose_streamer.stream_verbose_message(session_id, message_data[&quot;data&quot;]))
++                         asyncio.ensure_future(verbose_streamer.stream_verbose_message(session_id, message_data["data"]))
 +                 except RuntimeError:
 +                     # No event loop available, skip WebSocket streaming
 +                     pass
 +                     
 +             except Exception as e:
-+                 logger.error(f&quot;Error in WebSocket verbose callback: {e}&quot;)
++                 logger.error(f"Error in WebSocket verbose callback: {e}")
 +         
 +         handler.websocket_callback = websocket_callback
 +     
@@ -11629,7 +11629,7 @@ Now let me add WebSocket message handlers for verbose status subscriptions:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/api/websocket/handlers.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/api/websocket/handlers.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: undefined
@@ -11651,17 +11651,17 @@ Lines added: 1, lines removed: undefined
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/api/websocket/handlers.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/api/websocket/handlers.py</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: undefined
 
 ```diff
 @@ -35,4 +35,6 @@
-              &quot;unsubscribe_logs&quot;: self.handle_unsubscribe_logs,
-              &quot;get_log_sources&quot;: self.handle_get_log_sources,
-+             &quot;subscribe_verbose&quot;: self.handle_subscribe_verbose,
-+             &quot;unsubscribe_verbose&quot;: self.handle_unsubscribe_verbose,
+              "unsubscribe_logs": self.handle_unsubscribe_logs,
+              "get_log_sources": self.handle_get_log_sources,
++             "subscribe_verbose": self.handle_subscribe_verbose,
++             "unsubscribe_verbose": self.handle_unsubscribe_verbose,
           }
       
 ```
@@ -11690,65 +11690,65 @@ Now let me add the verbose subscription handlers before the send_error method:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/api/websocket/handlers.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/api/websocket/handlers.py</summary>
 
 **Chunk 1**
 Lines added: 48, lines removed: undefined
 
 ```diff
 @@ -418,4 +418,52 @@
-              await self.send_error(websocket, f&quot;Log sources error: {str(e)}&quot;)
+              await self.send_error(websocket, f"Log sources error: {str(e)}")
       
 +     async def handle_subscribe_verbose(self, websocket: WebSocket, session_id: str, data: Dict[str, Any], session_manager):
-+         &quot;&quot;&quot;Handle verbose status subscription requests.&quot;&quot;&quot;
++         """Handle verbose status subscription requests."""
 +         try:
 +             connection_id = manager.get_connection_id(websocket)
 +             if not connection_id:
-+                 await self.send_error(websocket, &quot;Connection not found&quot;)
++                 await self.send_error(websocket, "Connection not found")
 +                 return
 +             
 +             # Subscribe to verbose status updates
 +             verbose_streamer.subscribe_to_verbose_status(session_id, connection_id)
 +             
 +             await manager.send_personal_message({
-+                 &quot;type&quot;: &quot;verbose_subscribed&quot;,
-+                 &quot;data&quot;: {
-+                     &quot;session_id&quot;: session_id,
-+                     &quot;connection_id&quot;: connection_id,
-+                     &quot;timestamp&quot;: datetime.now().isoformat()
++                 "type": "verbose_subscribed",
++                 "data": {
++                     "session_id": session_id,
++                     "connection_id": connection_id,
++                     "timestamp": datetime.now().isoformat()
 +                 }
 +             }, websocket)
 +             
 +         except Exception as e:
-+             logger.error(f&quot;Error subscribing to verbose status: {e}&quot;)
-+             await self.send_error(websocket, f&quot;Verbose subscription error: {str(e)}&quot;)
++             logger.error(f"Error subscribing to verbose status: {e}")
++             await self.send_error(websocket, f"Verbose subscription error: {str(e)}")
 +     
 +     async def handle_unsubscribe_verbose(self, websocket: WebSocket, session_id: str, data: Dict[str, Any], session_manager):
-+         &quot;&quot;&quot;Handle verbose status unsubscription requests.&quot;&quot;&quot;
++         """Handle verbose status unsubscription requests."""
 +         try:
 +             connection_id = manager.get_connection_id(websocket)
 +             if not connection_id:
-+                 await self.send_error(websocket, &quot;Connection not found&quot;)
++                 await self.send_error(websocket, "Connection not found")
 +                 return
 +             
 +             # Unsubscribe from verbose status updates
 +             verbose_streamer.unsubscribe_from_verbose_status(session_id, connection_id)
 +             
 +             await manager.send_personal_message({
-+                 &quot;type&quot;: &quot;verbose_unsubscribed&quot;,
-+                 &quot;data&quot;: {
-+                     &quot;session_id&quot;: session_id,
-+                     &quot;connection_id&quot;: connection_id,
-+                     &quot;timestamp&quot;: datetime.now().isoformat()
++                 "type": "verbose_unsubscribed",
++                 "data": {
++                     "session_id": session_id,
++                     "connection_id": connection_id,
++                     "timestamp": datetime.now().isoformat()
 +                 }
 +             }, websocket)
 +             
 +         except Exception as e:
-+             logger.error(f&quot;Error unsubscribing from verbose status: {e}&quot;)
-+             await self.send_error(websocket, f&quot;Verbose unsubscription error: {str(e)}&quot;)
++             logger.error(f"Error unsubscribing from verbose status: {e}")
++             await self.send_error(websocket, f"Verbose unsubscription error: {str(e)}")
 +     
       async def send_error(self, websocket: WebSocket, error_message: str):
-          &quot;&quot;&quot;Send error message to WebSocket client.&quot;&quot;&quot;
+          """Send error message to WebSocket client."""
 ```
 
 </details>
@@ -11797,17 +11797,17 @@ Perfect! Now I can see where to add WebSocket verbose support. Let me update the
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/api/services/session_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/api/services/session_manager.py</summary>
 
 **Chunk 1**
 Lines added: 3, lines removed: undefined
 
 ```diff
 @@ -215,4 +215,7 @@
-                          f.write(f&quot;{datetime.now()}: {debug_info}\n&quot;)
+                          f.write(f"{datetime.now()}: {debug_info}\n")
                       
 +                     # Check if verbose mode should be enabled (from environment or config)
-+                     verbose_enabled = os.environ.get(&quot;VERBOSE&quot;, &quot;false&quot;).lower() in [&quot;true&quot;, &quot;1&quot;, &quot;yes&quot;]
++                     verbose_enabled = os.environ.get("VERBOSE", "false").lower() in ["true", "1", "yes"]
 +                     
                       self._memory_manager = MemoryManager(
                           memory_guid=self.session_id,
@@ -11825,7 +11825,7 @@ Lines added: 17, lines removed: undefined
                       )
                       
 +                     # Configure WebSocket verbose streaming if enabled
-+                     if verbose_enabled and hasattr(self._memory_manager, &#39;verbose_handler&#39;):
++                     if verbose_enabled and hasattr(self._memory_manager, 'verbose_handler'):
 +                         try:
 +                             from ..websocket.verbose_streamer import get_websocket_verbose_handler
 +                             # Replace the default verbose handler with WebSocket-enabled one
@@ -11834,14 +11834,14 @@ Lines added: 17, lines removed: undefined
 +                                 enabled=True
 +                             )
 +                             # Also pass it to the graph manager if it exists
-+                             if hasattr(self._memory_manager, &#39;graph_manager&#39;) and self._memory_manager.graph_manager:
++                             if hasattr(self._memory_manager, 'graph_manager') and self._memory_manager.graph_manager:
 +                                 self._memory_manager.graph_manager.verbose_handler = self._memory_manager.verbose_handler
-+                             logger.info(f&quot;Configured WebSocket verbose streaming for session {self.session_id}&quot;)
++                             logger.info(f"Configured WebSocket verbose streaming for session {self.session_id}")
 +                         except Exception as e:
-+                             logger.warning(f&quot;Could not configure WebSocket verbose streaming: {e}&quot;)
++                             logger.warning(f"Could not configure WebSocket verbose streaming: {e}")
 +                     
                       # Set up agent logging
-                      agent_logger = logging.getLogger(f&quot;agent.session_{self.session_id}&quot;)
+                      agent_logger = logging.getLogger(f"agent.session_{self.session_id}")
 ```
 
 </details>
@@ -11856,7 +11856,7 @@ Now let me create a documentation file explaining how to use WebSocket verbose s
 
 <tool-use data-tool-type="write" data-tool-name="write">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/api/README-websocket-verbose-streaming.md</summary>
+<details><summary>Tool use: **write** • Edit file: src/api/README-websocket-verbose-streaming.md</summary>
 
 **Chunk 1**
 Lines added: 255, lines removed: 1
@@ -11900,19 +11900,19 @@ Lines added: 255, lines removed: 1
 + 
 + &#96;&#96;&#96;json
 + {
-+   &quot;type&quot;: &quot;subscribe_verbose&quot;,
-+   &quot;data&quot;: {}
++   "type": "subscribe_verbose",
++   "data": {}
 + }
 + &#96;&#96;&#96;
 + 
 + Response:
 + &#96;&#96;&#96;json
 + {
-+   &quot;type&quot;: &quot;verbose_subscribed&quot;,
-+   &quot;data&quot;: {
-+     &quot;session_id&quot;: &quot;session-uuid&quot;,
-+     &quot;connection_id&quot;: &quot;connection-uuid&quot;,
-+     &quot;timestamp&quot;: &quot;2025-09-02T10:30:00.000Z&quot;
++   "type": "verbose_subscribed",
++   "data": {
++     "session_id": "session-uuid",
++     "connection_id": "connection-uuid",
++     "timestamp": "2025-09-02T10:30:00.000Z"
 +   }
 + }
 + &#96;&#96;&#96;
@@ -11923,53 +11923,53 @@ Lines added: 255, lines removed: 1
 + 
 + &#96;&#96;&#96;json
 + {
-+   &quot;type&quot;: &quot;unsubscribe_verbose&quot;,
-+   &quot;data&quot;: {}
++   "type": "unsubscribe_verbose",
++   "data": {}
 + }
 + &#96;&#96;&#96;
 + 
 + Response:
 + &#96;&#96;&#96;json
 + {
-+   &quot;type&quot;: &quot;verbose_unsubscribed&quot;,
-+   &quot;data&quot;: {
-+     &quot;session_id&quot;: &quot;session-uuid&quot;,
-+     &quot;connection_id&quot;: &quot;connection-uuid&quot;,
-+     &quot;timestamp&quot;: &quot;2025-09-02T10:30:00.000Z&quot;
++   "type": "verbose_unsubscribed",
++   "data": {
++     "session_id": "session-uuid",
++     "connection_id": "connection-uuid",
++     "timestamp": "2025-09-02T10:30:00.000Z"
 +   }
 + }
 + &#96;&#96;&#96;
 + 
 + ### 3. Receive Verbose Status Messages
 + 
-+ Once subscribed, you&#39;ll receive real-time verbose status messages:
++ Once subscribed, you'll receive real-time verbose status messages:
 + 
 + &#96;&#96;&#96;json
 + {
-+   &quot;type&quot;: &quot;verbose_status&quot;,
-+   &quot;data&quot;: {
-+     &quot;message_type&quot;: &quot;status&quot;,
-+     &quot;message&quot;: &quot;Preprocessing domain data...&quot;,
-+     &quot;level&quot;: 2,
-+     &quot;duration&quot;: null,
-+     &quot;timestamp&quot;: &quot;2025-09-02T10:30:00.000Z&quot;,
-+     &quot;session_id&quot;: &quot;session-uuid&quot;,
-+     &quot;operation_stack&quot;: [&quot;Processing initial domain data&quot;, &quot;Converting domain data to prose format&quot;]
++   "type": "verbose_status",
++   "data": {
++     "message_type": "status",
++     "message": "Preprocessing domain data...",
++     "level": 2,
++     "duration": null,
++     "timestamp": "2025-09-02T10:30:00.000Z",
++     "session_id": "session-uuid",
++     "operation_stack": ["Processing initial domain data", "Converting domain data to prose format"]
 +   }
 + }
 + &#96;&#96;&#96;
 + 
 + &#96;&#96;&#96;json
 + {
-+   &quot;type&quot;: &quot;verbose_status&quot;,
-+   &quot;data&quot;: {
-+     &quot;message_type&quot;: &quot;success&quot;,
-+     &quot;message&quot;: &quot;Preprocessing domain data&quot;,
-+     &quot;level&quot;: 2,
-+     &quot;duration&quot;: 16.90,
-+     &quot;timestamp&quot;: &quot;2025-09-02T10:30:16.900Z&quot;,
-+     &quot;session_id&quot;: &quot;session-uuid&quot;,
-+     &quot;operation_stack&quot;: [&quot;Processing initial domain data&quot;]
++   "type": "verbose_status",
++   "data": {
++     "message_type": "success",
++     "message": "Preprocessing domain data",
++     "level": 2,
++     "duration": 16.90,
++     "timestamp": "2025-09-02T10:30:16.900Z",
++     "session_id": "session-uuid",
++     "operation_stack": ["Processing initial domain data"]
 +   }
 + }
 + &#96;&#96;&#96;
@@ -11987,25 +11987,25 @@ Lines added: 255, lines removed: 1
 + 
 + The &#96;level&#96; field indicates the nesting depth of operations:
 + 
-+ - **Level 0**: Top-level operations (e.g., &quot;Processing query&quot;)
-+ - **Level 1**: Main sub-operations (e.g., &quot;Enhancing query with RAG&quot;, &quot;Generating response&quot;)
-+ - **Level 2**: Detailed sub-operations (e.g., &quot;Preprocessing domain data&quot;, &quot;Building knowledge graph&quot;)
-+ - **Level 3**: Graph processing stages (e.g., &quot;Analyzing digest segments&quot;, &quot;Extracting entities&quot;)
-+ - **Level 4**: Entity processing stages (e.g., &quot;Stage 1: Extracting candidates&quot;)
-+ - **Level 5**: Individual processing (e.g., &quot;Processing 10 entities individually&quot;)
-+ - **Level 6**: Per-entity operations (e.g., &quot;Resolving entity 1/10: Elena&quot;)
-+ - **Level 7**: Entity sub-steps (e.g., &quot;Searching for similar entities&quot;, &quot;Calling LLM&quot;)
++ - **Level 0**: Top-level operations (e.g., "Processing query")
++ - **Level 1**: Main sub-operations (e.g., "Enhancing query with RAG", "Generating response")
++ - **Level 2**: Detailed sub-operations (e.g., "Preprocessing domain data", "Building knowledge graph")
++ - **Level 3**: Graph processing stages (e.g., "Analyzing digest segments", "Extracting entities")
++ - **Level 4**: Entity processing stages (e.g., "Stage 1: Extracting candidates")
++ - **Level 5**: Individual processing (e.g., "Processing 10 entities individually")
++ - **Level 6**: Per-entity operations (e.g., "Resolving entity 1/10: Elena")
++ - **Level 7**: Entity sub-steps (e.g., "Searching for similar entities", "Calling LLM")
 + 
 + ## Example Usage in JavaScript
 + 
 + &#96;&#96;&#96;javascript
 + // Connect to WebSocket
-+ const ws = new WebSocket(&#39;ws://localhost:8000/ws/sessions/your-session-id&#39;);
++ const ws = new WebSocket('ws://localhost:8000/ws/sessions/your-session-id');
 + 
 + // Subscribe to verbose status updates
 + ws.onopen = () =&gt; {
 +     ws.send(JSON.stringify({
-+         type: &#39;subscribe_verbose&#39;,
++         type: 'subscribe_verbose',
 +         data: {}
 +     }));
 + };
@@ -12014,26 +12014,26 @@ Lines added: 255, lines removed: 1
 + ws.onmessage = (event) =&gt; {
 +     const message = JSON.parse(event.data);
 +     
-+     if (message.type === &#39;verbose_status&#39;) {
++     if (message.type === 'verbose_status') {
 +         const { message_type, message: text, level, duration, timestamp } = message.data;
 +         
 +         // Create indentation based on level
-+         const indent = &#39;  &#39;.repeat(level);
++         const indent = '  '.repeat(level);
 +         
 +         // Format message with appropriate emoji and timing
 +         let formattedMessage;
 +         switch (message_type) {
-+             case &#39;status&#39;:
++             case 'status':
 +                 formattedMessage = &#96;🔄 ${indent}${text}&#96;;
 +                 break;
-+             case &#39;success&#39;:
-+                 const timing = duration ? &#96; (${duration.toFixed(2)}s)&#96; : &#39;&#39;;
++             case 'success':
++                 const timing = duration ? &#96; (${duration.toFixed(2)}s)&#96; : '';
 +                 formattedMessage = &#96;✅ ${indent}${text}${timing}&#96;;
 +                 break;
-+             case &#39;warning&#39;:
++             case 'warning':
 +                 formattedMessage = &#96;⚠️ ${indent}${text}&#96;;
 +                 break;
-+             case &#39;error&#39;:
++             case 'error':
 +                 formattedMessage = &#96;❌ ${indent}${text}&#96;;
 +                 break;
 +         }
@@ -12041,14 +12041,14 @@ Lines added: 255, lines removed: 1
 +         // Display in your UI
 +         console.log(formattedMessage);
 +         // Or append to a status display area
-+         document.getElementById(&#39;status-log&#39;).innerHTML += formattedMessage + &#39;&lt;br&gt;&#39;;
++         document.getElementById('status-log').innerHTML += formattedMessage + '&lt;br&gt;';
 +     }
 + };
 + &#96;&#96;&#96;
 + 
 + ## Example Verbose Status Flow
 + 
-+ Here&#39;s what a typical verbose status flow looks like during initial memory creation:
++ Here's what a typical verbose status flow looks like during initial memory creation:
 + 
 + &#96;&#96;&#96;
 + 🔄 Processing initial domain data...
@@ -12111,12 +12111,12 @@ Lines added: 255, lines removed: 1
 + 
 + ## Benefits
 + 
-+ 1. **Complete Transparency**: Users see exactly what&#39;s happening during long operations
++ 1. **Complete Transparency**: Users see exactly what's happening during long operations
 + 2. **Performance Insights**: Timing information helps identify bottlenecks
-+ 3. **Real-time Feedback**: No more wondering &quot;is it stuck or just slow?&quot;
++ 3. **Real-time Feedback**: No more wondering "is it stuck or just slow?"
 + 4. **Hierarchical Detail**: Multiple levels of detail from high-level operations to individual entity processing
 + 5. **WebSocket Efficiency**: Real-time updates without polling
-+ 6. **Backward Compatible**: Works alongside existing logging and doesn&#39;t break CLI usage
++ 6. **Backward Compatible**: Works alongside existing logging and doesn't break CLI usage
 + 
 + The verbose status streaming provides the same detailed visibility that was added to the CLI, but now available to web clients in real-time!
 ```
@@ -12274,7 +12274,7 @@ Let me examine the web UI structure and implement these fixes.
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed directory undefined • **0** results</summary>
+            <summary>Tool use: **list_dir** • Listed directory, 0 results</summary>
         
 No results found
 </details>
@@ -12370,7 +12370,7 @@ Perfect! Now I understand the issues and can implement the fixes. Let me create 
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: agent-web-ui/src/types/api.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: agent-web-ui/src/types/api.ts</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -12379,8 +12379,8 @@ Lines added: 1, lines removed: 1
 @@ -144,5 +144,5 @@
   // WebSocket Types
   export interface WebSocketMessage {
--   type: &#39;query&#39; | &#39;heartbeat&#39; | &#39;get_status&#39; | &#39;get_memory&#39; | &#39;search_memory&#39; | &#39;get_graph&#39; | &#39;ping&#39; | &#39;get_log_sources&#39; | &#39;subscribe_logs&#39; | &#39;unsubscribe_logs&#39;
-+   type: &#39;query&#39; | &#39;heartbeat&#39; | &#39;get_status&#39; | &#39;get_memory&#39; | &#39;search_memory&#39; | &#39;get_graph&#39; | &#39;ping&#39; | &#39;get_log_sources&#39; | &#39;subscribe_logs&#39; | &#39;unsubscribe_logs&#39; | &#39;subscribe_verbose&#39; | &#39;unsubscribe_verbose&#39;
+-   type: 'query' | 'heartbeat' | 'get_status' | 'get_memory' | 'search_memory' | 'get_graph' | 'ping' | 'get_log_sources' | 'subscribe_logs' | 'unsubscribe_logs'
++   type: 'query' | 'heartbeat' | 'get_status' | 'get_memory' | 'search_memory' | 'get_graph' | 'ping' | 'get_log_sources' | 'subscribe_logs' | 'unsubscribe_logs' | 'subscribe_verbose' | 'unsubscribe_verbose'
     data: any
   }
 ```
@@ -12393,7 +12393,7 @@ Lines added: 1, lines removed: 1
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: agent-web-ui/src/types/api.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: agent-web-ui/src/types/api.ts</summary>
 
 **Chunk 1**
 Lines added: 25, lines removed: undefined
@@ -12405,7 +12405,7 @@ Lines added: 25, lines removed: undefined
 + 
 + // Verbose Status Types
 + export interface VerboseStatusMessage {
-+   message_type: &#39;status&#39; | &#39;success&#39; | &#39;warning&#39; | &#39;error&#39;
++   message_type: 'status' | 'success' | 'warning' | 'error'
 +   message: string
 +   level: number
 +   duration?: number
@@ -12415,12 +12415,12 @@ Lines added: 25, lines removed: undefined
 + }
 + 
 + export interface VerboseStatusResponse {
-+   type: &#39;verbose_status&#39;
++   type: 'verbose_status'
 +   data: VerboseStatusMessage
 + }
 + 
 + export interface VerboseSubscriptionResponse {
-+   type: &#39;verbose_subscribed&#39; | &#39;verbose_unsubscribed&#39;
++   type: 'verbose_subscribed' | 'verbose_unsubscribed'
 +   data: {
 +     session_id: string
 +     connection_id: string
@@ -12458,20 +12458,20 @@ Lines added: 25, lines removed: undefined
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: agent-web-ui/src/services/websocket.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: agent-web-ui/src/services/websocket.ts</summary>
 
 **Chunk 1**
 Lines added: 4, lines removed: 1
 
 ```diff
 @@ -36,5 +36,8 @@
-        &#39;logs_subscribed&#39;,
-        &#39;logs_unsubscribed&#39;,
--       &#39;log_stream&#39;
-+       &#39;log_stream&#39;,
-+       &#39;verbose_status&#39;,
-+       &#39;verbose_subscribed&#39;,
-+       &#39;verbose_unsubscribed&#39;
+        'logs_subscribed',
+        'logs_unsubscribed',
+-       'log_stream'
++       'log_stream',
++       'verbose_status',
++       'verbose_subscribed',
++       'verbose_unsubscribed'
       ]
       
 ```
@@ -12484,7 +12484,7 @@ Lines added: 4, lines removed: 1
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: agent-web-ui/src/services/websocket.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: agent-web-ui/src/services/websocket.ts</summary>
 
 **Chunk 1**
 Lines added: 15, lines removed: undefined
@@ -12497,14 +12497,14 @@ Lines added: 15, lines removed: undefined
 +   // Verbose status streaming methods
 +   subscribeToVerboseStatus() {
 +     return this.sendMessage({
-+       type: &#39;subscribe_verbose&#39;,
++       type: 'subscribe_verbose',
 +       data: {}
 +     })
 +   }
 + 
 +   unsubscribeFromVerboseStatus() {
 +     return this.sendMessage({
-+       type: &#39;unsubscribe_verbose&#39;,
++       type: 'unsubscribe_verbose',
 +       data: {}
 +     })
 +   }
@@ -12539,7 +12539,7 @@ Lines added: 15, lines removed: undefined
 
 <tool-use data-tool-type="write" data-tool-name="write">
 
-<details><summary>Tool use: **code_edit** • Edit file: agent-web-ui/src/components/ui/VerboseStatusDisplay.tsx</summary>
+<details><summary>Tool use: **write** • Edit file: agent-web-ui/src/components/ui/VerboseStatusDisplay.tsx</summary>
 
 **Chunk 1**
 Lines added: 142, lines removed: 1
@@ -12547,8 +12547,8 @@ Lines added: 142, lines removed: 1
 ```diff
 @@ -1,1 +1,142 @@
 - 
-+ import React, { useEffect, useRef } from &#39;react&#39;
-+ import type { VerboseStatusMessage } from &#39;../../types/api&#39;
++ import React, { useEffect, useRef } from 'react'
++ import type { VerboseStatusMessage } from '../../types/api'
 + 
 + interface VerboseStatusDisplayProps {
 +   messages: VerboseStatusMessage[]
@@ -12562,55 +12562,55 @@ Lines added: 142, lines removed: 1
 +   messages,
 +   isVisible,
 +   onToggle,
-+   maxHeight = &#39;max-h-64&#39;,
-+   className = &#39;&#39;
++   maxHeight = 'max-h-64',
++   className = ''
 + }) =&gt; {
 +   const messagesEndRef = useRef&lt;HTMLDivElement&gt;(null)
 + 
 +   // Auto-scroll to bottom when new messages arrive
 +   useEffect(() =&gt; {
 +     if (isVisible) {
-+       messagesEndRef.current?.scrollIntoView({ behavior: &#39;smooth&#39; })
++       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
 +     }
 +   }, [messages, isVisible])
 + 
 +   const getStatusIcon = (messageType: string) =&gt; {
 +     switch (messageType) {
-+       case &#39;status&#39;:
-+         return &#39;🔄&#39;
-+       case &#39;success&#39;:
-+         return &#39;✅&#39;
-+       case &#39;warning&#39;:
-+         return &#39;⚠️&#39;
-+       case &#39;error&#39;:
-+         return &#39;❌&#39;
++       case 'status':
++         return '🔄'
++       case 'success':
++         return '✅'
++       case 'warning':
++         return '⚠️'
++       case 'error':
++         return '❌'
 +       default:
-+         return &#39;📝&#39;
++         return '📝'
 +     }
 +   }
 + 
 +   const getStatusColor = (messageType: string) =&gt; {
 +     switch (messageType) {
-+       case &#39;status&#39;:
-+         return &#39;text-blue-600&#39;
-+       case &#39;success&#39;:
-+         return &#39;text-green-600&#39;
-+       case &#39;warning&#39;:
-+         return &#39;text-amber-600&#39;
-+       case &#39;error&#39;:
-+         return &#39;text-red-600&#39;
++       case 'status':
++         return 'text-blue-600'
++       case 'success':
++         return 'text-green-600'
++       case 'warning':
++         return 'text-amber-600'
++       case 'error':
++         return 'text-red-600'
 +       default:
-+         return &#39;text-gray-600&#39;
++         return 'text-gray-600'
 +     }
 +   }
 + 
 +   const formatDuration = (duration?: number) =&gt; {
-+     if (duration === undefined || duration === null) return &#39;&#39;
++     if (duration === undefined || duration === null) return ''
 +     return &#96; (${duration.toFixed(2)}s)&#96;
 +   }
 + 
 +   const formatMessage = (msg: VerboseStatusMessage) =&gt; {
-+     const indent = &#39;  &#39;.repeat(msg.level)
++     const indent = '  '.repeat(msg.level)
 +     const icon = getStatusIcon(msg.message_type)
 +     const duration = formatDuration(msg.duration)
 +     return &#96;${icon} ${indent}${msg.message}${duration}&#96;
@@ -12620,18 +12620,18 @@ Lines added: 142, lines removed: 1
 +     return (
 +       &lt;div className={&#96;bg-white/90 backdrop-blur-sm rounded-xl shadow-lg border border-gray-200/50 ${className}&#96;}&gt;
 +         &lt;div 
-+           className=&quot;flex items-center justify-between p-3 cursor-pointer hover:bg-gray-50/50 transition-colors&quot;
++           className="flex items-center justify-between p-3 cursor-pointer hover:bg-gray-50/50 transition-colors"
 +           onClick={onToggle}
 +         &gt;
-+           &lt;div className=&quot;flex items-center space-x-2&quot;&gt;
-+             &lt;span className=&quot;text-sm font-medium text-gray-700&quot;&gt;Processing Status&lt;/span&gt;
++           &lt;div className="flex items-center space-x-2"&gt;
++             &lt;span className="text-sm font-medium text-gray-700"&gt;Processing Status&lt;/span&gt;
 +             {messages.length &gt; 0 &amp;&amp; (
-+               &lt;span className=&quot;bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full&quot;&gt;
++               &lt;span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full"&gt;
 +                 {messages.length}
 +               &lt;/span&gt;
 +             )}
 +           &lt;/div&gt;
-+           &lt;div className=&quot;text-gray-400 text-sm&quot;&gt;
++           &lt;div className="text-gray-400 text-sm"&gt;
 +             Click to expand ▼
 +           &lt;/div&gt;
 +         &lt;/div&gt;
@@ -12642,40 +12642,40 @@ Lines added: 142, lines removed: 1
 +   return (
 +     &lt;div className={&#96;bg-white/90 backdrop-blur-sm rounded-xl shadow-lg border border-gray-200/50 ${className}&#96;}&gt;
 +       &lt;div 
-+         className=&quot;flex items-center justify-between p-3 border-b border-gray-200/50 cursor-pointer hover:bg-gray-50/50 transition-colors&quot;
++         className="flex items-center justify-between p-3 border-b border-gray-200/50 cursor-pointer hover:bg-gray-50/50 transition-colors"
 +         onClick={onToggle}
 +       &gt;
-+         &lt;div className=&quot;flex items-center space-x-2&quot;&gt;
-+           &lt;span className=&quot;text-sm font-medium text-gray-700&quot;&gt;Processing Status&lt;/span&gt;
++         &lt;div className="flex items-center space-x-2"&gt;
++           &lt;span className="text-sm font-medium text-gray-700"&gt;Processing Status&lt;/span&gt;
 +           {messages.length &gt; 0 &amp;&amp; (
-+             &lt;span className=&quot;bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full&quot;&gt;
++             &lt;span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full"&gt;
 +               {messages.length}
 +             &lt;/span&gt;
 +           )}
 +         &lt;/div&gt;
-+         &lt;div className=&quot;text-gray-400 text-sm&quot;&gt;
++         &lt;div className="text-gray-400 text-sm"&gt;
 +           Click to collapse ▲
 +         &lt;/div&gt;
 +       &lt;/div&gt;
 +       
 +       &lt;div className={&#96;${maxHeight} overflow-y-auto&#96;}&gt;
 +         {messages.length === 0 ? (
-+           &lt;div className=&quot;p-4 text-center text-gray-500 text-sm&quot;&gt;
-+             &lt;div className=&quot;w-12 h-12 mx-auto mb-3 bg-gray-100 rounded-full flex items-center justify-center&quot;&gt;
-+               &lt;span className=&quot;text-xl&quot;&gt;⏱️&lt;/span&gt;
++           &lt;div className="p-4 text-center text-gray-500 text-sm"&gt;
++             &lt;div className="w-12 h-12 mx-auto mb-3 bg-gray-100 rounded-full flex items-center justify-center"&gt;
++               &lt;span className="text-xl"&gt;⏱️&lt;/span&gt;
 +             &lt;/div&gt;
 +             &lt;div&gt;No processing status messages yet&lt;/div&gt;
-+             &lt;div className=&quot;text-xs text-gray-400 mt-1&quot;&gt;
++             &lt;div className="text-xs text-gray-400 mt-1"&gt;
 +               Status updates will appear here during operations
 +             &lt;/div&gt;
 +           &lt;/div&gt;
 +         ) : (
-+           &lt;div className=&quot;p-3 space-y-1&quot;&gt;
++           &lt;div className="p-3 space-y-1"&gt;
 +             {messages.map((msg, index) =&gt; (
 +               &lt;div
 +                 key={index}
 +                 className={&#96;font-mono text-xs leading-relaxed ${getStatusColor(msg.message_type)}&#96;}
-+                 style={{ whiteSpace: &#39;pre-wrap&#39; }}
++                 style={{ whiteSpace: 'pre-wrap' }}
 +               &gt;
 +                 {formatMessage(msg)}
 +               &lt;/div&gt;
@@ -12718,7 +12718,7 @@ Lines added: 142, lines removed: 1
 
 <tool-use data-tool-type="write" data-tool-name="write">
 
-<details><summary>Tool use: **code_edit** • Edit file: agent-web-ui/src/stores/verboseStore.ts</summary>
+<details><summary>Tool use: **write** • Edit file: agent-web-ui/src/stores/verboseStore.ts</summary>
 
 **Chunk 1**
 Lines added: 115, lines removed: 1
@@ -12726,10 +12726,10 @@ Lines added: 115, lines removed: 1
 ```diff
 @@ -1,1 +1,115 @@
 - 
-+ import { create } from &#39;zustand&#39;
-+ import { devtools } from &#39;zustand/middleware&#39;
-+ import wsService from &#39;../services/websocket&#39;
-+ import type { VerboseStatusMessage, WebSocketResponse } from &#39;../types/api&#39;
++ import { create } from 'zustand'
++ import { devtools } from 'zustand/middleware'
++ import wsService from '../services/websocket'
++ import type { VerboseStatusMessage, WebSocketResponse } from '../types/api'
 + 
 + interface VerboseStore {
 +   // State
@@ -12770,35 +12770,35 @@ Lines added: 115, lines removed: 1
 +       subscribeToVerboseStatus: async () =&gt; {
 +         try {
 +           if (!wsService.isConnected) {
-+             console.warn(&#39;Cannot subscribe to verbose status: WebSocket not connected&#39;)
++             console.warn('Cannot subscribe to verbose status: WebSocket not connected')
 +             return
 +           }
 + 
 +           // Set up event handler for verbose status messages
-+           wsService.on(&#39;verbose_status&#39;, (response: WebSocketResponse) =&gt; {
++           wsService.on('verbose_status', (response: WebSocketResponse) =&gt; {
 +             const message: VerboseStatusMessage = response.data
 +             get().addMessage(message)
 +           })
 + 
 +           // Set up subscription confirmation handler
-+           wsService.on(&#39;verbose_subscribed&#39;, (response: WebSocketResponse) =&gt; {
-+             console.log(&#39;Successfully subscribed to verbose status:&#39;, response.data)
++           wsService.on('verbose_subscribed', (response: WebSocketResponse) =&gt; {
++             console.log('Successfully subscribed to verbose status:', response.data)
 +             set({ isSubscribed: true })
 +           })
 + 
 +           // Set up unsubscription confirmation handler
-+           wsService.on(&#39;verbose_unsubscribed&#39;, (response: WebSocketResponse) =&gt; {
-+             console.log(&#39;Successfully unsubscribed from verbose status:&#39;, response.data)
++           wsService.on('verbose_unsubscribed', (response: WebSocketResponse) =&gt; {
++             console.log('Successfully unsubscribed from verbose status:', response.data)
 +             set({ isSubscribed: false })
 +           })
 + 
 +           // Send subscription request
 +           const success = wsService.subscribeToVerboseStatus()
 +           if (!success) {
-+             console.error(&#39;Failed to send verbose status subscription request&#39;)
++             console.error('Failed to send verbose status subscription request')
 +           }
 +         } catch (error) {
-+           console.error(&#39;Error subscribing to verbose status:&#39;, error)
++           console.error('Error subscribing to verbose status:', error)
 +         }
 +       },
 + 
@@ -12809,7 +12809,7 @@ Lines added: 115, lines removed: 1
 +           }
 +           set({ isSubscribed: false })
 +         } catch (error) {
-+           console.error(&#39;Error unsubscribing from verbose status:&#39;, error)
++           console.error('Error unsubscribing from verbose status:', error)
 +         }
 +       },
 + 
@@ -12837,7 +12837,7 @@ Lines added: 115, lines removed: 1
 +       }
 +     }),
 +     {
-+       name: &#39;verbose-store&#39;
++       name: 'verbose-store'
 +     }
 +   )
 + )
@@ -12855,22 +12855,22 @@ Lines added: 115, lines removed: 1
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: agent-web-ui/src/features/chat/ChatInterface.tsx</summary>
+<details><summary>Tool use: **search_replace** • Edit file: agent-web-ui/src/features/chat/ChatInterface.tsx</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: undefined
 
 ```diff
 @@ -2,9 +2,11 @@
-  import { useSessionStore } from &#39;../../stores/sessionStore&#39;
-  import { useChatStore } from &#39;../../stores/chatStore&#39;
-+ import { useVerboseStore } from &#39;../../stores/verboseStore&#39;
-  import MessageList from &#39;./MessageList&#39;
-  import MessageInput from &#39;./MessageInput&#39;
-  import TypingIndicator from &#39;./TypingIndicator&#39;
-  import ChatHeader from &#39;./ChatHeader&#39;
-  import LogPanel from &#39;../monitoring/LogPanel&#39;
-+ import VerboseStatusDisplay from &#39;../../components/ui/VerboseStatusDisplay&#39;
+  import { useSessionStore } from '../../stores/sessionStore'
+  import { useChatStore } from '../../stores/chatStore'
++ import { useVerboseStore } from '../../stores/verboseStore'
+  import MessageList from './MessageList'
+  import MessageInput from './MessageInput'
+  import TypingIndicator from './TypingIndicator'
+  import ChatHeader from './ChatHeader'
+  import LogPanel from '../monitoring/LogPanel'
++ import VerboseStatusDisplay from '../../components/ui/VerboseStatusDisplay'
   
   const ChatInterface: React.FC = () =&gt; {
 ```
@@ -12883,7 +12883,7 @@ Lines added: 2, lines removed: undefined
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: agent-web-ui/src/features/chat/ChatInterface.tsx</summary>
+<details><summary>Tool use: **search_replace** • Edit file: agent-web-ui/src/features/chat/ChatInterface.tsx</summary>
 
 **Chunk 1**
 Lines added: 9, lines removed: undefined
@@ -12913,7 +12913,7 @@ Lines added: 9, lines removed: undefined
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: agent-web-ui/src/features/chat/ChatInterface.tsx</summary>
+<details><summary>Tool use: **search_replace** • Edit file: agent-web-ui/src/features/chat/ChatInterface.tsx</summary>
 
 **Chunk 1**
 Lines added: 13, lines removed: 1
@@ -12949,7 +12949,7 @@ Lines added: 13, lines removed: 1
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: agent-web-ui/src/features/chat/ChatInterface.tsx</summary>
+<details><summary>Tool use: **search_replace** • Edit file: agent-web-ui/src/features/chat/ChatInterface.tsx</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: undefined
@@ -12976,7 +12976,7 @@ Now let me add the VerboseStatusDisplay to the UI:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: agent-web-ui/src/features/chat/ChatInterface.tsx</summary>
+<details><summary>Tool use: **search_replace** • Edit file: agent-web-ui/src/features/chat/ChatInterface.tsx</summary>
 
 **Chunk 1**
 Lines added: 9, lines removed: undefined
@@ -12991,8 +12991,8 @@ Lines added: 9, lines removed: undefined
 +         messages={verboseMessages}
 +         isVisible={verboseVisible}
 +         onToggle={() =&gt; setVerboseVisible(!verboseVisible)}
-+         className=&quot;flex-shrink-0&quot;
-+         maxHeight=&quot;max-h-48&quot;
++         className="flex-shrink-0"
++         maxHeight="max-h-48"
 +       /&gt;
   
         {/* Log Panel */}
@@ -13025,7 +13025,7 @@ Lines added: 9, lines removed: undefined
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: agent-web-ui/src/services/websocket.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: agent-web-ui/src/services/websocket.ts</summary>
 
 **Chunk 1**
 Lines added: 4, lines removed: 2
@@ -13053,7 +13053,7 @@ Lines added: 4, lines removed: 2
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: agent-web-ui/src/services/websocket.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: agent-web-ui/src/services/websocket.ts</summary>
 
 **Chunk 1**
 Lines added: 17, lines removed: 1
@@ -13070,16 +13070,16 @@ Lines added: 17, lines removed: 1
 +         // Set connection timeout
 +         connectionTimer = setTimeout(() =&gt; {
 +           if (this.socket &amp;&amp; this.socket.readyState !== WebSocket.OPEN) {
-+             console.warn(&#39;WebSocket connection timeout&#39;)
++             console.warn('WebSocket connection timeout')
 +             this.socket.close()
 +             this.isConnecting = false
-+             reject(new Error(&#39;Connection timeout&#39;))
++             reject(new Error('Connection timeout'))
 +           }
 +         }, this.connectionTimeout)
   
           this.socket.onopen = () =&gt; {
--           console.log(&#39;WebSocket connected&#39;)
-+           console.log(&#39;WebSocket connected to session:&#39;, sessionId)
+-           console.log('WebSocket connected')
++           console.log('WebSocket connected to session:', sessionId)
             this.isConnecting = false
             this.reconnectAttempts = 0
 +           if (connectionTimer) {
@@ -13104,13 +13104,13 @@ Lines added: 12, lines removed: 2
 +             connectionTimer = null
 +           }
 +           
-+           // Only attempt reconnection if it wasn&#39;t a normal close and we haven&#39;t exceeded max attempts
++           // Only attempt reconnection if it wasn't a normal close and we haven't exceeded max attempts
 +           if (event.code !== 1000 &amp;&amp; event.code !== 1001 &amp;&amp; this.reconnectAttempts &lt; this.maxReconnectAttempts) {
 +             const delay = this.reconnectDelay * Math.min(this.reconnectAttempts + 1, 5) // Exponential backoff, max 10s
 +             console.log(&#96;Scheduling reconnection attempt ${this.reconnectAttempts + 1} in ${delay}ms&#96;)
 +             setTimeout(() =&gt; this.reconnect(), delay)
 +           } else if (this.reconnectAttempts &gt;= this.maxReconnectAttempts) {
-+             console.error(&#39;Max reconnection attempts reached, giving up&#39;)
++             console.error('Max reconnection attempts reached, giving up')
             }
           }
 ```
@@ -13120,7 +13120,7 @@ Lines added: 8, lines removed: undefined
 
 ```diff
 @@ -94,8 +120,16 @@
-            console.error(&#39;WebSocket error:&#39;, error)
+            console.error('WebSocket error:', error)
             this.isConnecting = false
 +           if (connectionTimer) {
 +             clearTimeout(connectionTimer)
@@ -13146,7 +13146,7 @@ Lines added: 8, lines removed: undefined
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: agent-web-ui/src/services/websocket.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: agent-web-ui/src/services/websocket.ts</summary>
 
 **Chunk 1**
 Lines added: 4, lines removed: 2
@@ -13155,10 +13155,10 @@ Lines added: 4, lines removed: 2
 @@ -155,6 +155,8 @@
     private startHeartbeat() {
       this.heartbeatInterval = setInterval(() =&gt; {
--       this.sendMessage({ type: &#39;heartbeat&#39;, data: {} })
+-       this.sendMessage({ type: 'heartbeat', data: {} })
 -     }, 30000) // 30 seconds
 +       if (this.socket &amp;&amp; this.socket.readyState === WebSocket.OPEN) {
-+         this.sendMessage({ type: &#39;heartbeat&#39;, data: { timestamp: Date.now() } })
++         this.sendMessage({ type: 'heartbeat', data: { timestamp: Date.now() } })
 +       }
 +     }, this.heartbeatTimeout / 2) // Send heartbeat every 30 seconds
     }
@@ -13192,22 +13192,22 @@ Lines added: 4, lines removed: 2
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: agent-web-ui/src/stores/chatStore.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: agent-web-ui/src/stores/chatStore.ts</summary>
 
 **Chunk 1**
 Lines added: 7, lines removed: 1
 
 ```diff
 @@ -73,5 +73,11 @@
-            wsService.on(&#39;error&#39;, (response: WebSocketResponse) =&gt; {
+            wsService.on('error', (response: WebSocketResponse) =&gt; {
               get().setTyping(false)
--             get().setError(response.data.message || &#39;An error occurred&#39;)
-+             get().setError(response.data.message || response.data.error || &#39;An error occurred&#39;)
+-             get().setError(response.data.message || 'An error occurred')
++             get().setError(response.data.message || response.data.error || 'An error occurred')
 +           })
 + 
 +           // Handle connection state changes
-+           wsService.on(&#39;connection_established&#39;, (response: WebSocketResponse) =&gt; {
-+             console.log(&#39;WebSocket connection established:&#39;, response.data)
++           wsService.on('connection_established', (response: WebSocketResponse) =&gt; {
++             console.log('WebSocket connection established:', response.data)
 +             set({ isConnected: true, error: null })
             })
   
@@ -13225,7 +13225,7 @@ Now let me add a timeout handler for long operations:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: agent-web-ui/src/stores/chatStore.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: agent-web-ui/src/stores/chatStore.ts</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: undefined
@@ -13260,7 +13260,7 @@ Lines added: 1, lines removed: undefined
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: agent-web-ui/src/stores/chatStore.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: agent-web-ui/src/stores/chatStore.ts</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: undefined
@@ -13283,18 +13283,18 @@ Lines added: 2, lines removed: undefined
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: agent-web-ui/src/stores/chatStore.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: agent-web-ui/src/stores/chatStore.ts</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: undefined
 
 ```diff
 @@ -60,4 +60,5 @@
-            wsService.on(&#39;query_response&#39;, (response: WebSocketResponse) =&gt; {
+            wsService.on('query_response', (response: WebSocketResponse) =&gt; {
               get().setTyping(false)
 +             get().setLongOperation(false)
               get().addMessage({
-                type: &#39;agent&#39;,
+                type: 'agent',
 ```
 
 </details>
@@ -13305,14 +13305,14 @@ Lines added: 1, lines removed: undefined
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: agent-web-ui/src/stores/chatStore.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: agent-web-ui/src/stores/chatStore.ts</summary>
 
 **Chunk 1**
 Lines added: 7, lines removed: undefined
 
 ```diff
 @@ -71,8 +71,15 @@
-            wsService.on(&#39;typing_start&#39;, () =&gt; {
+            wsService.on('typing_start', () =&gt; {
               get().setTyping(true)
 +             // If typing continues for more than 10 seconds, consider it a long operation
 +             setTimeout(() =&gt; {
@@ -13322,7 +13322,7 @@ Lines added: 7, lines removed: undefined
 +             }, 10000)
             })
   
-            wsService.on(&#39;typing_end&#39;, () =&gt; {
+            wsService.on('typing_end', () =&gt; {
               get().setTyping(false)
 +             get().setLongOperation(false)
             })
@@ -13337,7 +13337,7 @@ Lines added: 7, lines removed: undefined
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: agent-web-ui/src/stores/chatStore.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: agent-web-ui/src/stores/chatStore.ts</summary>
 
 **Chunk 1**
 Lines added: 7, lines removed: 2
@@ -13367,7 +13367,7 @@ Lines added: 7, lines removed: 2
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: agent-web-ui/src/stores/chatStore.ts</summary>
+<details><summary>Tool use: **search_replace** • Edit file: agent-web-ui/src/stores/chatStore.ts</summary>
 
 **Chunk 1**
 Lines added: 4, lines removed: undefined
@@ -13404,16 +13404,16 @@ Now let me update the TypingIndicator to show better feedback for long operation
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: agent-web-ui/src/features/chat/TypingIndicator.tsx</summary>
+<details><summary>Tool use: **search_replace** • Edit file: agent-web-ui/src/features/chat/TypingIndicator.tsx</summary>
 
 **Chunk 1**
 Lines added: 46, lines removed: 6
 
 ```diff
 @@ -1,16 +1,56 @@
-- import React from &#39;react&#39;
-+ import React, { useState, useEffect } from &#39;react&#39;
-+ import { useChatStore } from &#39;../../stores/chatStore&#39;
+- import React from 'react'
++ import React, { useState, useEffect } from 'react'
++ import { useChatStore } from '../../stores/chatStore'
   
   const TypingIndicator: React.FC = () =&gt; {
 +   const { isLongOperation, operationStartTime } = useChatStore()
@@ -13436,38 +13436,38 @@ Lines added: 46, lines removed: 6
 +     if (isLongOperation) {
 +       return elapsed &gt; 0 
 +         ? &#96;Processing complex operation... (${elapsed}s)&#96;
-+         : &#39;Processing complex operation...&#39;
++         : 'Processing complex operation...'
 +     }
-+     return &#39;Agent is typing&#39;
++     return 'Agent is typing'
 +   }
 + 
 +   const getHelpText = () =&gt; {
 +     if (isLongOperation) {
-+       return &#39;This may take a while for complex operations like initial memory creation or entity resolution&#39;
++       return 'This may take a while for complex operations like initial memory creation or entity resolution'
 +     }
 +     return null
 +   }
 + 
     return (
-      &lt;div className=&quot;flex justify-start&quot;&gt;
--       &lt;div className=&quot;bg-gray-100 rounded-lg px-4 py-2 max-w-3xl&quot;&gt;
-+       &lt;div className={&#96;rounded-lg px-4 py-2 max-w-3xl ${isLongOperation ? &#39;bg-blue-50 border border-blue-200&#39; : &#39;bg-gray-100&#39;}&#96;}&gt;
-          &lt;div className=&quot;flex items-center space-x-1&quot;&gt;
--           &lt;span className=&quot;text-gray-500 text-sm&quot;&gt;Agent is typing&lt;/span&gt;
-+           &lt;span className={&#96;text-sm ${isLongOperation ? &#39;text-blue-700&#39; : &#39;text-gray-500&#39;}&#96;}&gt;
+      &lt;div className="flex justify-start"&gt;
+-       &lt;div className="bg-gray-100 rounded-lg px-4 py-2 max-w-3xl"&gt;
++       &lt;div className={&#96;rounded-lg px-4 py-2 max-w-3xl ${isLongOperation ? 'bg-blue-50 border border-blue-200' : 'bg-gray-100'}&#96;}&gt;
+          &lt;div className="flex items-center space-x-1"&gt;
+-           &lt;span className="text-gray-500 text-sm"&gt;Agent is typing&lt;/span&gt;
++           &lt;span className={&#96;text-sm ${isLongOperation ? 'text-blue-700' : 'text-gray-500'}&#96;}&gt;
 +             {getMessage()}
 +           &lt;/span&gt;
-            &lt;div className=&quot;flex space-x-1&quot;&gt;
--             &lt;div className=&quot;w-1 h-1 bg-gray-400 rounded-full animate-bounce&quot;&gt;&lt;/div&gt;
--             &lt;div className=&quot;w-1 h-1 bg-gray-400 rounded-full animate-bounce&quot; style={{ animationDelay: &#39;0.1s&#39; }}&gt;&lt;/div&gt;
--             &lt;div className=&quot;w-1 h-1 bg-gray-400 rounded-full animate-bounce&quot; style={{ animationDelay: &#39;0.2s&#39; }}&gt;&lt;/div&gt;
-+             &lt;div className={&#96;w-1 h-1 rounded-full animate-bounce ${isLongOperation ? &#39;bg-blue-400&#39; : &#39;bg-gray-400&#39;}&#96;}&gt;&lt;/div&gt;
-+             &lt;div className={&#96;w-1 h-1 rounded-full animate-bounce ${isLongOperation ? &#39;bg-blue-400&#39; : &#39;bg-gray-400&#39;}&#96;} style={{ animationDelay: &#39;0.1s&#39; }}&gt;&lt;/div&gt;
-+             &lt;div className={&#96;w-1 h-1 rounded-full animate-bounce ${isLongOperation ? &#39;bg-blue-400&#39; : &#39;bg-gray-400&#39;}&#96;} style={{ animationDelay: &#39;0.2s&#39; }}&gt;&lt;/div&gt;
+            &lt;div className="flex space-x-1"&gt;
+-             &lt;div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce"&gt;&lt;/div&gt;
+-             &lt;div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}&gt;&lt;/div&gt;
+-             &lt;div className="w-1 h-1 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}&gt;&lt;/div&gt;
++             &lt;div className={&#96;w-1 h-1 rounded-full animate-bounce ${isLongOperation ? 'bg-blue-400' : 'bg-gray-400'}&#96;}&gt;&lt;/div&gt;
++             &lt;div className={&#96;w-1 h-1 rounded-full animate-bounce ${isLongOperation ? 'bg-blue-400' : 'bg-gray-400'}&#96;} style={{ animationDelay: '0.1s' }}&gt;&lt;/div&gt;
++             &lt;div className={&#96;w-1 h-1 rounded-full animate-bounce ${isLongOperation ? 'bg-blue-400' : 'bg-gray-400'}&#96;} style={{ animationDelay: '0.2s' }}&gt;&lt;/div&gt;
             &lt;/div&gt;
           &lt;/div&gt;
 +         {getHelpText() &amp;&amp; (
-+           &lt;div className=&quot;text-xs text-blue-600 mt-1 leading-relaxed&quot;&gt;
++           &lt;div className="text-xs text-blue-600 mt-1 leading-relaxed"&gt;
 +             {getHelpText()}
 +           &lt;/div&gt;
 +         )}
@@ -13502,7 +13502,7 @@ Now let me create a comprehensive documentation file for the web UI improvements
 
 <tool-use data-tool-type="write" data-tool-name="write">
 
-<details><summary>Tool use: **code_edit** • Edit file: agent-web-ui/README-timeout-and-verbose-improvements.md</summary>
+<details><summary>Tool use: **write** • Edit file: agent-web-ui/README-timeout-and-verbose-improvements.md</summary>
 
 **Chunk 1**
 Lines added: 229, lines removed: 1
@@ -13555,15 +13555,15 @@ Lines added: 229, lines removed: 1
 + **Message Format**:
 + &#96;&#96;&#96;json
 + {
-+   &quot;type&quot;: &quot;verbose_status&quot;,
-+   &quot;data&quot;: {
-+     &quot;message_type&quot;: &quot;status|success|warning|error&quot;,
-+     &quot;message&quot;: &quot;Processing entity 1/10: Elena&quot;,
-+     &quot;level&quot;: 6,
-+     &quot;duration&quot;: 5.34,
-+     &quot;timestamp&quot;: &quot;2025-09-02T11:15:00.000Z&quot;,
-+     &quot;session_id&quot;: &quot;uuid&quot;,
-+     &quot;operation_stack&quot;: [&quot;Building knowledge graph&quot;, &quot;Stage 3: Resolving entities&quot;]
++   "type": "verbose_status",
++   "data": {
++     "message_type": "status|success|warning|error",
++     "message": "Processing entity 1/10: Elena",
++     "level": 6,
++     "duration": 5.34,
++     "timestamp": "2025-09-02T11:15:00.000Z",
++     "session_id": "uuid",
++     "operation_stack": ["Building knowledge graph", "Stage 3: Resolving entities"]
 +   }
 + }
 + &#96;&#96;&#96;
@@ -13594,9 +13594,9 @@ Lines added: 229, lines removed: 1
 + - **Helpful context**: Explains what long operations are (memory creation, entity resolution)
 + 
 + **Example Messages**:
-+ - Normal: &quot;Agent is typing&quot;
-+ - Long operation: &quot;Processing complex operation... (45s)&quot;
-+ - Help text: &quot;This may take a while for complex operations like initial memory creation or entity resolution&quot;
++ - Normal: "Agent is typing"
++ - Long operation: "Processing complex operation... (45s)"
++ - Help text: "This may take a while for complex operations like initial memory creation or entity resolution"
 + 
 + ### 5. Enhanced Chat Store
 + 
@@ -13620,7 +13620,7 @@ Lines added: 229, lines removed: 1
 + - ❌ Poor feedback during complex operations
 + 
 + ### After These Changes
-+ - ✅ **Complete transparency**: Users see exactly what&#39;s happening
++ - ✅ **Complete transparency**: Users see exactly what's happening
 + - ✅ **No more timeouts**: Robust connection handling for long operations
 + - ✅ **Real-time feedback**: Live updates during processing
 + - ✅ **Hierarchical detail**: From high-level operations down to individual entity processing
@@ -13728,7 +13728,7 @@ Lines added: 229, lines removed: 1
 + 1. **Performance Analysis**: See exactly which operations take the most time
 + 2. **Progress Tracking**: Monitor long-running operations in real-time  
 + 3. **Error Diagnosis**: Clear error messages with context
-+ 4. **System Understanding**: Visibility into the agent&#39;s internal processes
++ 4. **System Understanding**: Visibility into the agent's internal processes
 + 5. **User Confidence**: Users know the system is working, not stuck
 + 
 + ## Compatibility
@@ -13896,7 +13896,7 @@ I see the issue! There's a duplicate `export default` statement in the `TypingIn
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: agent-web-ui/src/features/chat/TypingIndicator.tsx</summary>
+<details><summary>Tool use: **search_replace** • Edit file: agent-web-ui/src/features/chat/TypingIndicator.tsx</summary>
 
 **Chunk 1**
 Lines added: undefined, lines removed: 1
@@ -13960,7 +13960,7 @@ I can see the issue! The `ConnectionManager` doesn't have a `get_connection_id` 
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/api/websocket/manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/api/websocket/manager.py</summary>
 
 **Chunk 1**
 Lines added: 7, lines removed: undefined
@@ -13970,14 +13970,14 @@ Lines added: 7, lines removed: undefined
           return sum(len(connections) for connections in self.active_connections.values())
       
 +     def get_connection_id(self, websocket: WebSocket) -&gt; Optional[str]:
-+         &quot;&quot;&quot;Get connection ID for a specific WebSocket connection.&quot;&quot;&quot;
++         """Get connection ID for a specific WebSocket connection."""
 +         for connection_id, metadata in self.connection_metadata.items():
-+             if metadata[&quot;websocket&quot;] == websocket:
++             if metadata["websocket"] == websocket:
 +                 return connection_id
 +         return None
 +     
       def update_heartbeat(self, connection_id: str):
-          &quot;&quot;&quot;Update heartbeat timestamp for a connection.&quot;&quot;&quot;
+          """Update heartbeat timestamp for a connection."""
 ```
 
 </details>
@@ -13992,21 +13992,21 @@ Perfect! I've added the missing `get_connection_id` method to the `ConnectionMan
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/api/websocket/manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/api/websocket/manager.py</summary>
 
 **Chunk 1**
 Lines added: 7, lines removed: undefined
 
 ```diff
 @@ -90,4 +90,11 @@
-                  logger.warning(f&quot;Error cleaning up log subscriptions: {e}&quot;)
+                  logger.warning(f"Error cleaning up log subscriptions: {e}")
               
 +             # Clean up verbose subscriptions
 +             try:
 +                 from .verbose_streamer import verbose_streamer
 +                 verbose_streamer.cleanup_connection(session_id, connection_id)
 +             except Exception as e:
-+                 logger.warning(f&quot;Error cleaning up verbose subscriptions: {e}&quot;)
++                 logger.warning(f"Error cleaning up verbose subscriptions: {e}")
 +             
               del self.connection_metadata[connection_id]
               if connection_id in self.heartbeats:
@@ -14150,7 +14150,7 @@ Now I can see the problem! The MemoryManager initialization on line 220-230 is n
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/api/services/session_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/api/services/session_manager.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: undefined
@@ -14159,7 +14159,7 @@ Lines added: 1, lines removed: undefined
 @@ -227,4 +227,5 @@
                           embeddings_llm_service=embeddings_llm_service,
                           verbose=verbose_enabled,  # Enable verbose logging for WebSocket streaming
-+                         enable_graph_memory=self.config.enable_graph,  # Respect user&#39;s graph memory setting
++                         enable_graph_memory=self.config.enable_graph,  # Respect user's graph memory setting
                           logger=memory_manager_logger
                       )
 ```
@@ -14393,7 +14393,7 @@ Model provided invalid arguments to terminal tool.
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: ps aux | grep python | grep -v grep</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: ps aux | grep python | grep -v grep</summary>
 
 ```bash
 ps aux | grep python | grep -v grep
@@ -14472,7 +14472,7 @@ I see a potential issue! In the `_periodic_cleanup` method, when there's an exce
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/api/services/session_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/api/services/session_manager.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: undefined
@@ -14480,7 +14480,7 @@ Lines added: 1, lines removed: undefined
 ```diff
 @@ -382,4 +382,5 @@
               except Exception as e:
-                  logger.error(f&quot;Error in periodic cleanup: {e}&quot;)
+                  logger.error(f"Error in periodic cleanup: {e}")
 +                 await asyncio.sleep(30)  # Wait 30 seconds before retrying after error
                   
       async def create_session(self, config: SessionConfig, user_id: Optional[str] = None) -&gt; str:
@@ -14498,7 +14498,7 @@ Now let me also fix the potential issue with starting the cleanup task too early
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/api/services/session_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/api/services/session_manager.py</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: 2
@@ -14528,7 +14528,7 @@ Now let me modify the `_start_cleanup_task` method to be safer and add a method 
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/api/services/session_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/api/services/session_manager.py</summary>
 
 **Chunk 1**
 Lines added: 14, lines removed: 1
@@ -14536,7 +14536,7 @@ Lines added: 14, lines removed: 1
 ```diff
 @@ -365,10 +365,23 @@
       def _start_cleanup_task(self):
-          &quot;&quot;&quot;Start background task for session cleanup&quot;&quot;&quot;
+          """Start background task for session cleanup"""
 +         if self._cleanup_started:
 +             return
 +             
@@ -14546,15 +14546,15 @@ Lines added: 14, lines removed: 1
 +             if loop.is_running():
 +                 self._cleanup_task = asyncio.create_task(self._periodic_cleanup())
 +                 self._cleanup_started = True
-+                 logger.info(&quot;Started session cleanup task&quot;)
++                 logger.info("Started session cleanup task")
 +             else:
-+                 logger.warning(&quot;Event loop not running, cleanup task will start later&quot;)
++                 logger.warning("Event loop not running, cleanup task will start later")
           except RuntimeError:
               # No event loop running, cleanup will be manual
-              logger.warning(&quot;No event loop available for automatic session cleanup&quot;)
+              logger.warning("No event loop available for automatic session cleanup")
 +     
 +     def _ensure_cleanup_task_started(self):
-+         &quot;&quot;&quot;Ensure cleanup task is started when event loop is available&quot;&quot;&quot;
++         """Ensure cleanup task is started when event loop is available"""
 +         if not self._cleanup_started:
 +             self._start_cleanup_task()
               
@@ -14573,7 +14573,7 @@ Now let me add the cleanup task start to the create_session method:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/api/services/session_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/api/services/session_manager.py</summary>
 
 **Chunk 1**
 Lines added: 3, lines removed: undefined
@@ -14581,7 +14581,7 @@ Lines added: 3, lines removed: undefined
 ```diff
 @@ -399,4 +399,7 @@
       async def create_session(self, config: SessionConfig, user_id: Optional[str] = None) -&gt; str:
-          &quot;&quot;&quot;Create a new agent session&quot;&quot;&quot;
+          """Create a new agent session"""
 +         
 +         # Ensure cleanup task is running
 +         self._ensure_cleanup_task_started()
@@ -14601,7 +14601,7 @@ Now let me also improve the `wait_for_pending_operations` method to add a timeou
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 16, lines removed: 3
@@ -14611,23 +14611,23 @@ Lines added: 16, lines removed: 3
           return bool(self._pending_digests or self._pending_embeddings or self._pending_graph_updates)
       
 -     async def wait_for_pending_operations(self) -&gt; None:
--         &quot;&quot;&quot;Wait for all pending async operations to complete.&quot;&quot;&quot;
+-         """Wait for all pending async operations to complete."""
 +     async def wait_for_pending_operations(self, timeout: float = 60.0) -&gt; None:
-+         &quot;&quot;&quot;Wait for all pending async operations to complete.
++         """Wait for all pending async operations to complete.
 +         
 +         Args:
 +             timeout: Maximum time to wait in seconds (default: 60)
-+         &quot;&quot;&quot;
++         """
 +         start_time = asyncio.get_event_loop().time()
 +         
           while self._pending_digests or self._pending_embeddings or self._pending_graph_updates:
 -             await asyncio.sleep(0.1)  # Small delay to prevent busy waiting
 +             current_time = asyncio.get_event_loop().time()
 +             if current_time - start_time &gt; timeout:
-+                 self.logger.warning(f&quot;Timeout waiting for pending operations after {timeout}s. &quot;
-+                                   f&quot;Remaining: digests={len(self._pending_digests)}, &quot;
-+                                   f&quot;embeddings={len(self._pending_embeddings)}, &quot;
-+                                   f&quot;graph_updates={len(self._pending_graph_updates)}&quot;)
++                 self.logger.warning(f"Timeout waiting for pending operations after {timeout}s. "
++                                   f"Remaining: digests={len(self._pending_digests)}, "
++                                   f"embeddings={len(self._pending_embeddings)}, "
++                                   f"graph_updates={len(self._pending_graph_updates)}")
 +                 break
 +             await asyncio.sleep(0.2)  # Slightly longer delay to reduce CPU usage
   
@@ -14732,7 +14732,7 @@ I'll add a comprehensive section documenting all the completed optimizations to 
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: README-phase-6-status-week-3-optimization.md</summary>
+<details><summary>Tool use: **search_replace** • Edit file: README-phase-6-status-week-3-optimization.md</summary>
 
 **Chunk 1**
 Lines added: 207, lines removed: undefined
@@ -14783,19 +14783,19 @@ Lines added: 207, lines removed: undefined
 + - **✅ Implemented**: Configurable performance profiles in &#96;src/utils/performance_profiles.py&#96;
 +   &#96;&#96;&#96;python
 +   PERFORMANCE_PROFILES = {
-+       &quot;speed&quot;: {
-+           &quot;enable_graph_memory&quot;: False,
-+           &quot;rag_limit&quot;: 3,
-+           &quot;max_recent_conversation_entries&quot;: 2
++       "speed": {
++           "enable_graph_memory": False,
++           "rag_limit": 3,
++           "max_recent_conversation_entries": 2
 +       },
-+       &quot;balanced&quot;: {
-+           &quot;enable_graph_memory&quot;: True,
-+           &quot;enable_graph_memory_fast_mode&quot;: True,
-+           &quot;graph_memory_processing_level&quot;: &quot;balanced&quot;
++       "balanced": {
++           "enable_graph_memory": True,
++           "enable_graph_memory_fast_mode": True,
++           "graph_memory_processing_level": "balanced"
 +       },
-+       &quot;comprehensive&quot;: {
-+           &quot;enable_graph_memory&quot;: True,
-+           &quot;graph_memory_processing_level&quot;: &quot;comprehensive&quot;
++       "comprehensive": {
++           "enable_graph_memory": True,
++           "graph_memory_processing_level": "comprehensive"
 +       }
 +   }
 +   &#96;&#96;&#96;
@@ -14820,7 +14820,7 @@ Lines added: 207, lines removed: undefined
 +   - Configurable cache TTL and size limits
 +   - Memory state hashing for cache invalidation
 + 
-+ **Result**: 97% improvement in user response time for &quot;speed&quot; profile, significant background processing optimizations
++ **Result**: 97% improvement in user response time for "speed" profile, significant background processing optimizations
 + 
 + ### Phase 3: Verbose Status and User Experience - COMPLETED ✅
 + 
@@ -14927,9 +14927,9 @@ Lines added: 207, lines removed: undefined
 + 
 + &#96;&#96;&#96;bash
 + # Test different performance profiles
-+ echo &quot;Tell me about Elena.&quot; | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/agent_usage_example.py --guid test_speed --config dnd --performance speed --verbose
++ echo "Tell me about Elena." | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/agent_usage_example.py --guid test_speed --config dnd --performance speed --verbose
 + 
-+ echo &quot;Tell me about Elena.&quot; | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/agent_usage_example.py --guid test_balanced --config dnd --performance balanced --verbose
++ echo "Tell me about Elena." | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.10.28:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/agent_usage_example.py --guid test_balanced --config dnd --performance balanced --verbose
 + 
 + # Generate performance reports
 + python scripts/performance_report.py test_speed --detailed

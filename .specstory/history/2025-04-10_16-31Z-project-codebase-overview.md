@@ -19,7 +19,7 @@ I'll help you understand the project by examining the codebase. Let me start by 
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed current directory • **54** results</summary>
+            <summary>Tool use: **list_dir** • Listed current directory, 54 results</summary>
         
 | Name |
 |-------|
@@ -105,7 +105,7 @@ Let me check the source code structure to understand the implementation details.
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed directory src • **5** results</summary>
+            <summary>Tool use: **list_dir** • Listed directory src, 5 results</summary>
         
 | Name |
 |-------|
@@ -522,7 +522,7 @@ Let me help you fix this issue. First, I'll check the current state of the query
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed directory src/memory/templates • **4** results</summary>
+            <summary>Tool use: **list_dir** • Listed directory src/memory/templates, 4 results</summary>
         
 | Name |
 |-------|
@@ -682,7 +682,7 @@ I'll edit the query memory prompt template to include the memory state.
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/templates/query_memory.prompt</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/templates/query_memory.prompt</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: 1
@@ -1105,28 +1105,28 @@ I'll implement these improvements in two steps:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/templates/query_memory.prompt</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/templates/query_memory.prompt</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: 6
 
 ```diff
 @@ -24,15 +24,11 @@
-      &quot;digest&quot;: {{
-          &quot;topic&quot;: &quot;Brief topic description&quot;,
--         &quot;key_points&quot;: [
--             &quot;Important point 1&quot;,
--             &quot;Important point 2&quot;
+      "digest": {{
+          "topic": "Brief topic description",
+-         "key_points": [
+-             "Important point 1",
+-             "Important point 2"
 -         ],
--         &quot;context&quot;: &quot;Brief context of the interaction&quot;,
-          &quot;importance&quot;: &quot;high|medium|low&quot;,
-          &quot;new_facts&quot;: [
+-         "context": "Brief context of the interaction",
+          "importance": "high|medium|low",
+          "new_facts": [
               {{
-                  &quot;key&quot;: &quot;fact_key&quot;,
-                  &quot;value&quot;: &quot;fact_value&quot;,
--                 &quot;context&quot;: &quot;fact_context&quot;
-+                 &quot;context&quot;: &quot;fact_context&quot;,
-+                 &quot;source&quot;: &quot;user|assistant|inferred&quot;
+                  "key": "fact_key",
+                  "value": "fact_value",
+-                 "context": "fact_context"
++                 "context": "fact_context",
++                 "source": "user|assistant|inferred"
               }}
           ],
 ```
@@ -1136,11 +1136,11 @@ Lines added: 2, lines removed: 1
 
 ```diff
 @@ -42,5 +38,6 @@
-                  &quot;predicate&quot;: &quot;RELATION_TYPE&quot;,
-                  &quot;object&quot;: &quot;other_entity_id&quot;,
--                 &quot;context&quot;: &quot;relationship_context&quot;
-+                 &quot;context&quot;: &quot;relationship_context&quot;,
-+                 &quot;source&quot;: &quot;user|assistant|inferred&quot;
+                  "predicate": "RELATION_TYPE",
+                  "object": "other_entity_id",
+-                 "context": "relationship_context"
++                 "context": "relationship_context",
++                 "source": "user|assistant|inferred"
               }}
           ]
 ```
@@ -1159,7 +1159,7 @@ Lines added: 2, lines removed: 1
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/templates/update_memory.prompt</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/templates/update_memory.prompt</summary>
 
 **Chunk 1**
 Lines added: 12, lines removed: 10
@@ -1183,8 +1183,8 @@ Lines added: 12, lines removed: 10
 - 7. DO NOT remove any existing information
 - 8. Return ONLY the updated working_memory section as a valid JSON object
 + 1. Analyze the conversation history, paying special attention to the digest information in assistant responses
-+ 2. Use the structured &quot;new_facts&quot; and &quot;new_relationships&quot; from digests to update working memory
-+ 3. Consider the &quot;importance&quot; level when deciding what information to retain
++ 2. Use the structured "new_facts" and "new_relationships" from digests to update working memory
++ 3. Consider the "importance" level when deciding what information to retain
 + 4. Add any new entities to working_memory.structured_data.entities
 + 5. Add new facts to working_memory.knowledge_graph.simple_facts
 + 6. Add new relationships to working_memory.knowledge_graph.relationships
@@ -1201,11 +1201,11 @@ Lines added: 2, lines removed: 1
 
 ```diff
 @@ -23,5 +25,6 @@
-              &quot;key&quot;: &quot;fact_key&quot;,
-              &quot;value&quot;: &quot;fact_value&quot;,
--             &quot;context&quot;: &quot;fact_context&quot;
-+             &quot;context&quot;: &quot;fact_context&quot;,
-+             &quot;source&quot;: &quot;user|assistant|inferred&quot;
+              "key": "fact_key",
+              "value": "fact_value",
+-             "context": "fact_context"
++             "context": "fact_context",
++             "source": "user|assistant|inferred"
           }}
       ],
 ```
@@ -1215,11 +1215,11 @@ Lines added: 2, lines removed: 1
 
 ```diff
 @@ -31,5 +34,6 @@
-              &quot;predicate&quot;: &quot;RELATION_TYPE&quot;,
-              &quot;object&quot;: &quot;other_entity_id&quot;,
--             &quot;context&quot;: &quot;relationship_context&quot;
-+             &quot;context&quot;: &quot;relationship_context&quot;,
-+             &quot;source&quot;: &quot;user|assistant|inferred&quot;
+              "predicate": "RELATION_TYPE",
+              "object": "other_entity_id",
+-             "context": "relationship_context"
++             "context": "relationship_context",
++             "source": "user|assistant|inferred"
           }}
       ]
 ```
@@ -1229,11 +1229,11 @@ Lines added: 2, lines removed: 1
 
 ```diff
 @@ -57,5 +61,6 @@
-                      &quot;key&quot;: &quot;fact_key&quot;,
-                      &quot;value&quot;: &quot;fact_value&quot;,
--                     &quot;context&quot;: &quot;fact_context&quot;
-+                     &quot;context&quot;: &quot;fact_context&quot;,
-+                     &quot;source&quot;: &quot;user|assistant|inferred&quot;
+                      "key": "fact_key",
+                      "value": "fact_value",
+-                     "context": "fact_context"
++                     "context": "fact_context",
++                     "source": "user|assistant|inferred"
                   }}
               ],
 ```
@@ -1243,11 +1243,11 @@ Lines added: 2, lines removed: 1
 
 ```diff
 @@ -65,5 +70,6 @@
-                      &quot;predicate&quot;: &quot;RELATION_TYPE&quot;,
-                      &quot;object&quot;: &quot;other_entity_id&quot;,
--                     &quot;context&quot;: &quot;relationship_context&quot;
-+                     &quot;context&quot;: &quot;relationship_context&quot;,
-+                     &quot;source&quot;: &quot;user|assistant|inferred&quot;
+                      "predicate": "RELATION_TYPE",
+                      "object": "other_entity_id",
+-                     "context": "relationship_context"
++                     "context": "relationship_context",
++                     "source": "user|assistant|inferred"
                   }}
               ]
 ```
@@ -1342,22 +1342,22 @@ Let me update the `query_memory` method in `MemoryManager` to include the digest
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: 1
 
 ```diff
 @@ -285,8 +285,9 @@
-                  return {&quot;response&quot;: &quot;Error: Invalid response structure from LLM&quot;}
+                  return {"response": "Error: Invalid response structure from LLM"}
   
 -             # Add assistant response to history
 +             # Add assistant response to history with digest information
-              self.memory[&quot;conversation_history&quot;].append({
-                  &quot;role&quot;: &quot;assistant&quot;,
-                  &quot;content&quot;: result[&quot;response&quot;],
-+                 &quot;digest&quot;: result.get(&quot;digest&quot;, {}),  # Store the digest information
-                  &quot;timestamp&quot;: datetime.now().isoformat()
+              self.memory["conversation_history"].append({
+                  "role": "assistant",
+                  "content": result["response"],
++                 "digest": result.get("digest", {}),  # Store the digest information
+                  "timestamp": datetime.now().isoformat()
               })
 ```
 
@@ -1376,7 +1376,7 @@ Now we also need to update the `_perform_update_memory` method to properly use t
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 29, lines removed: 43
@@ -1384,17 +1384,17 @@ Lines added: 29, lines removed: 43
 ```diff
 @@ -332,58 +332,44 @@
       def _perform_update_memory(self, messages_to_process: list) -&gt; bool:
-          &quot;&quot;&quot;Internal method to perform update memory on a set of messages.&quot;&quot;&quot;
+          """Internal method to perform update memory on a set of messages."""
 -         if not messages_to_process:
--             print(&quot;No messages to update with&quot;)
+-             print("No messages to update with")
 -             return False
 -             
--         print(f&quot;\nUpdating memory with {len(messages_to_process)} messages...&quot;)
+-         print(f"\nUpdating memory with {len(messages_to_process)} messages...")
 -         
 -         try:
 -             # Prepare updating memory prompt
 +         try:
-+             print(&quot;\nProcessing messages for memory update...&quot;)
++             print("\nProcessing messages for memory update...")
 +             
 +             # Format conversation history for the template
 +             conversation_history = []
@@ -1402,74 +1402,74 @@ Lines added: 29, lines removed: 43
 +                 if isinstance(msg, dict):
 +                     # Include digest information if available
 +                     history_entry = {
-+                         &quot;role&quot;: msg.get(&quot;role&quot;, &quot;&quot;),
-+                         &quot;content&quot;: msg.get(&quot;content&quot;, &quot;&quot;),
-+                         &quot;timestamp&quot;: msg.get(&quot;timestamp&quot;, &quot;&quot;)
++                         "role": msg.get("role", ""),
++                         "content": msg.get("content", ""),
++                         "timestamp": msg.get("timestamp", "")
 +                     }
-+                     if &quot;digest&quot; in msg:
-+                         history_entry[&quot;digest&quot;] = msg[&quot;digest&quot;]
++                     if "digest" in msg:
++                         history_entry["digest"] = msg["digest"]
 +                     conversation_history.append(history_entry)
 +             
 +             # Generate prompt for memory update
-              prompt = self.templates[&quot;update&quot;].format(
+              prompt = self.templates["update"].format(
                   memory_state=json.dumps(self.memory, indent=2),
 -                 messages_to_process=json.dumps(messages_to_process, indent=2)
 +                 conversation_history=json.dumps(conversation_history, indent=2)
               )
               
 -             # Print the prompt to debug format placeholders
--             print(f&quot;DEBUG - UPDATE PROMPT (first 200 chars):\n{prompt[:200]}...&quot;)
--             print(f&quot;DEBUG - UPDATE PROMPT (last 200 chars):\n{prompt[-200:]}...&quot;)
+-             print(f"DEBUG - UPDATE PROMPT (first 200 chars):\n{prompt[:200]}...")
+-             print(f"DEBUG - UPDATE PROMPT (last 200 chars):\n{prompt[-200:]}...")
 -             
--             print(&quot;Generating updated memory using LLM...&quot;)
+-             print("Generating updated memory using LLM...")
 -             llm_response = self.llm.generate(prompt)
 +             # Get response from LLM
-+             print(&quot;Generating memory update using LLM...&quot;)
++             print("Generating memory update using LLM...")
 +             response = self.llm.generate(prompt)
               
 -             # Print the response to debug
--             print(f&quot;DEBUG - UPDATE RESPONSE (first 200 chars):\n{llm_response[:200]}...&quot;)
+-             print(f"DEBUG - UPDATE RESPONSE (first 200 chars):\n{llm_response[:200]}...")
 -             
 -             try:
 -                 # First try direct JSON parsing
 -                 updated_memory = json.loads(llm_response)
 -             except json.JSONDecodeError:
--                 print(&quot;Failed to parse direct JSON, attempting to extract JSON structure...&quot;)
+-                 print("Failed to parse direct JSON, attempting to extract JSON structure...")
 -                 # Try to find JSON structure in the response
 -                 import re
--                 json_match = re.search(r&#39;\{[\s\S]*\}&#39;, llm_response)
+-                 json_match = re.search(r'\{[\s\S]*\}', llm_response)
 -                 if not json_match:
--                     print(&quot;Could not find JSON structure in LLM response&quot;)
+-                     print("Could not find JSON structure in LLM response")
 -                     return False
 -                     
 -                 try:
 -                     # Clean up and parse the extracted JSON
 -                     json_str = json_match.group(0)
 -                     # Remove any markdown code block markers
--                     json_str = re.sub(r&#39;&#96;&#96;&#96;json\s*|\s*&#96;&#96;&#96;&#39;, &#39;&#39;, json_str)
+-                     json_str = re.sub(r'&#96;&#96;&#96;json\s*|\s*&#96;&#96;&#96;', '', json_str)
 -                     updated_memory = json.loads(json_str)
--                     print(&quot;Successfully extracted and parsed JSON structure&quot;)
+-                     print("Successfully extracted and parsed JSON structure")
 +             try:
 +                 result = json.loads(response)
               except json.JSONDecodeError as e:
--                     print(f&quot;Error parsing extracted JSON structure: {str(e)}&quot;)
-+                 print(f&quot;Error parsing LLM response: {str(e)}&quot;)
+-                     print(f"Error parsing extracted JSON structure: {str(e)}")
++                 print(f"Error parsing LLM response: {str(e)}")
                   return False
   
 -             # Validate the updated memory structure
--             if &quot;working_memory&quot; not in updated_memory:
--                 print(&quot;Missing working_memory in update memory response&quot;)
-+             if not isinstance(result, dict) or &quot;working_memory&quot; not in result:
-+                 print(&quot;Invalid response structure - must have &#39;working_memory&#39; property&quot;)
+-             if "working_memory" not in updated_memory:
+-                 print("Missing working_memory in update memory response")
++             if not isinstance(result, dict) or "working_memory" not in result:
++                 print("Invalid response structure - must have 'working_memory' property")
                   return False
   
--             working_memory = updated_memory[&quot;working_memory&quot;]
+-             working_memory = updated_memory["working_memory"]
 +             # Extract and validate working memory
-+             working_memory = result[&quot;working_memory&quot;]
++             working_memory = result["working_memory"]
               
 -             # Validate working_memory structure
               if not isinstance(working_memory, dict):
-                  print(&quot;working_memory must be a dictionary&quot;)
+                  print("working_memory must be a dictionary")
 ```
 
 **Chunk 2**
@@ -1481,24 +1481,24 @@ Lines added: 16, lines removed: 1
   
 -             # Validate knowledge_graph structure
 +             # Validate structured_data
-+             structured_data = working_memory[&quot;structured_data&quot;]
++             structured_data = working_memory["structured_data"]
 +             if not isinstance(structured_data, dict):
-+                 print(&quot;structured_data must be a dictionary&quot;)
++                 print("structured_data must be a dictionary")
 +                 return False
 + 
-+             if &quot;entities&quot; not in structured_data:
-+                 print(&quot;structured_data must contain entities&quot;)
++             if "entities" not in structured_data:
++                 print("structured_data must contain entities")
 +                 return False
 + 
-+             if not isinstance(structured_data[&quot;entities&quot;], list):
-+                 print(&quot;entities must be a list&quot;)
++             if not isinstance(structured_data["entities"], list):
++                 print("entities must be a list")
 +                 return False
 + 
 +             # Validate knowledge_graph
-              knowledge_graph = working_memory[&quot;knowledge_graph&quot;]
+              knowledge_graph = working_memory["knowledge_graph"]
 +             
               if not isinstance(knowledge_graph, dict):
-                  print(&quot;knowledge_graph must be a dictionary&quot;)
+                  print("knowledge_graph must be a dictionary")
 ```
 
 **Chunk 3**
@@ -1506,12 +1506,12 @@ Lines added: 1, lines removed: 1
 
 ```diff
 @@ -413,5 +414,5 @@
-                      print(&quot;Each fact must be a dictionary&quot;)
+                      print("Each fact must be a dictionary")
                       return False
--                 required_fields = [&quot;key&quot;, &quot;value&quot;, &quot;context&quot;]
-+                 required_fields = [&quot;key&quot;, &quot;value&quot;, &quot;context&quot;, &quot;source&quot;]
+-                 required_fields = ["key", "value", "context"]
++                 required_fields = ["key", "value", "context", "source"]
                   if not all(field in fact for field in required_fields):
-                      print(f&quot;Fact missing required fields: {required_fields}&quot;)
+                      print(f"Fact missing required fields: {required_fields}")
 ```
 
 **Chunk 4**
@@ -1519,12 +1519,12 @@ Lines added: 1, lines removed: 1
 
 ```diff
 @@ -423,5 +424,5 @@
-                      print(&quot;Each relationship must be a dictionary&quot;)
+                      print("Each relationship must be a dictionary")
                       return False
--                 required_fields = [&quot;subject&quot;, &quot;predicate&quot;, &quot;object&quot;, &quot;context&quot;]
-+                 required_fields = [&quot;subject&quot;, &quot;predicate&quot;, &quot;object&quot;, &quot;context&quot;, &quot;source&quot;]
+-                 required_fields = ["subject", "predicate", "object", "context"]
++                 required_fields = ["subject", "predicate", "object", "context", "source"]
                   if not all(field in relationship for field in required_fields):
-                      print(f&quot;Relationship missing required fields: {required_fields}&quot;)
+                      print(f"Relationship missing required fields: {required_fields}")
 ```
 
 **Chunk 5**
@@ -1532,21 +1532,21 @@ Lines added: 2, lines removed: 5
 
 ```diff
 @@ -431,15 +432,12 @@
-              self.memory[&quot;working_memory&quot;] = working_memory
-              self.memory[&quot;metadata&quot;][&quot;last_updated&quot;] = datetime.now().isoformat()
+              self.memory["working_memory"] = working_memory
+              self.memory["metadata"]["last_updated"] = datetime.now().isoformat()
 -             
 -             # Clear conversation history after successful update
--             self.memory[&quot;conversation_history&quot;] = []
+-             self.memory["conversation_history"] = []
               
               # Save the updated memory
               self.save_memory()
--             print(&quot;Memory updated and saved successfully&quot;)
+-             print("Memory updated and saved successfully")
 +             
               return True
               
           except Exception as e:
--             print(f&quot;Error during update memory: {str(e)}&quot;)
-+             print(f&quot;Error in _perform_update_memory: {str(e)}&quot;)
+-             print(f"Error during update memory: {str(e)}")
++             print(f"Error in _perform_update_memory: {str(e)}")
               return False
   
 ```
@@ -1599,7 +1599,7 @@ Ah yes, good catch! We need to update the `update_memory` method to use the conv
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 3, lines removed: 2
@@ -1607,11 +1607,11 @@ Lines added: 3, lines removed: 2
 ```diff
 @@ -323,6 +323,7 @@
   
-              print(&quot;\nProcessing update memory operation...&quot;)
--             messages_to_process = context.get(&quot;messages&quot;, [])
+              print("\nProcessing update memory operation...")
+-             messages_to_process = context.get("messages", [])
 -             return self._perform_update_memory(messages_to_process)
 +             # Use conversation_history instead of messages
-+             conversation_history = self.memory.get(&quot;conversation_history&quot;, [])
++             conversation_history = self.memory.get("conversation_history", [])
 +             return self._perform_update_memory(conversation_history)
               
           except Exception as e:
@@ -1651,7 +1651,7 @@ Yes, I see the issue in `agent.py`. The `learn` and `reflect` methods are still 
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/agent/agent.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/agent/agent.py</summary>
 
 **Chunk 1**
 Lines added: 10, lines removed: 8
@@ -1662,22 +1662,22 @@ Lines added: 10, lines removed: 8
               
 -             # Update existing memory with new information
 -             context = {
--                 &quot;operation&quot;: &quot;update&quot;,
--                 &quot;messages&quot;: [{
--                     &quot;role&quot;: &quot;system&quot;,
--                     &quot;content&quot;: information,
--                     &quot;timestamp&quot;: datetime.now().isoformat()
+-                 "operation": "update",
+-                 "messages": [{
+-                     "role": "system",
+-                     "content": information,
+-                     "timestamp": datetime.now().isoformat()
 -                 }]
 +             # Add the new information to conversation history
-+             self.memory.memory[&quot;conversation_history&quot;].append({
-+                 &quot;role&quot;: &quot;system&quot;,
-+                 &quot;content&quot;: information,
-+                 &quot;timestamp&quot;: datetime.now().isoformat()
++             self.memory.memory["conversation_history"].append({
++                 "role": "system",
++                 "content": information,
++                 "timestamp": datetime.now().isoformat()
 +             })
 +             
 +             # Update memory using the conversation history
 +             context = {
-+                 &quot;operation&quot;: &quot;update&quot;
++                 "operation": "update"
               }
               
 ```
@@ -1687,28 +1687,28 @@ Lines added: 9, lines removed: 10
 
 ```diff
 @@ -108,15 +110,14 @@
-              print(f&quot;\nReflecting on recent interactions (Current phase: {self.current_phase})&quot;)
+              print(f"\nReflecting on recent interactions (Current phase: {self.current_phase})")
               
 -             # Get recent conversation history
 -             conversation_history = self.get_conversation_history()
 -             
 -             # Create reflection context
 +             # Add reflection trigger to conversation history
-+             self.memory.memory[&quot;conversation_history&quot;].append({
-+                 &quot;role&quot;: &quot;system&quot;,
-+                 &quot;content&quot;: &quot;Reflection triggered&quot;,
-+                 &quot;timestamp&quot;: datetime.now().isoformat()
++             self.memory.memory["conversation_history"].append({
++                 "role": "system",
++                 "content": "Reflection triggered",
++                 "timestamp": datetime.now().isoformat()
 +             })
 +             
 +             # Update memory using the conversation history
               context = {
--                 &quot;operation&quot;: &quot;update&quot;,
--                 &quot;messages&quot;: conversation_history + [{
--                     &quot;role&quot;: &quot;system&quot;,
--                     &quot;content&quot;: &quot;Reflection triggered&quot;,
--                     &quot;timestamp&quot;: datetime.now().isoformat()
+-                 "operation": "update",
+-                 "messages": conversation_history + [{
+-                     "role": "system",
+-                     "content": "Reflection triggered",
+-                     "timestamp": datetime.now().isoformat()
 -                 }]
-+                 &quot;operation&quot;: &quot;update&quot;
++                 "operation": "update"
               }
               
 ```
@@ -1759,7 +1759,7 @@ Let me fix this by updating the `learn` and `reflect` methods to use the memory 
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/agent/agent.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/agent/agent.py</summary>
 
 **Chunk 1**
 Lines added: 11, lines removed: 9
@@ -1769,17 +1769,17 @@ Lines added: 11, lines removed: 9
                   return success
               
 -             # Add the new information to conversation history
--             self.memory.memory[&quot;conversation_history&quot;].append({
--                 &quot;role&quot;: &quot;system&quot;,
--                 &quot;content&quot;: information,
--                 &quot;timestamp&quot;: datetime.now().isoformat()
+-             self.memory.memory["conversation_history"].append({
+-                 "role": "system",
+-                 "content": information,
+-                 "timestamp": datetime.now().isoformat()
 -             })
 -             
 -             # Update memory using the conversation history
 +             # Add the new information to conversation history via query_memory
               context = {
-+                 &quot;user_message&quot;: information,
-+                 &quot;role&quot;: &quot;system&quot;  # Indicate this is a system message
++                 "user_message": information,
++                 "role": "system"  # Indicate this is a system message
 +             }
 +             
 +             # This will add the message to conversation history
@@ -1787,13 +1787,13 @@ Lines added: 11, lines removed: 9
 +             
 +             # Now update memory with the new information
 +             update_context = {
-                  &quot;operation&quot;: &quot;update&quot;
+                  "operation": "update"
               }
               
 -             success = self.memory.update_memory(json.dumps(context))
 +             success = self.memory.update_memory(json.dumps(update_context))
               if success:
-                  print(&quot;Successfully learned new information&quot;)
+                  print("Successfully learned new information")
 ```
 
 **Chunk 2**
@@ -1801,20 +1801,20 @@ Lines added: 11, lines removed: 9
 
 ```diff
 @@ -110,17 +112,19 @@
-              print(f&quot;\nReflecting on recent interactions (Current phase: {self.current_phase})&quot;)
+              print(f"\nReflecting on recent interactions (Current phase: {self.current_phase})")
               
 -             # Add reflection trigger to conversation history
--             self.memory.memory[&quot;conversation_history&quot;].append({
--                 &quot;role&quot;: &quot;system&quot;,
--                 &quot;content&quot;: &quot;Reflection triggered&quot;,
--                 &quot;timestamp&quot;: datetime.now().isoformat()
+-             self.memory.memory["conversation_history"].append({
+-                 "role": "system",
+-                 "content": "Reflection triggered",
+-                 "timestamp": datetime.now().isoformat()
 -             })
 -             
 -             # Update memory using the conversation history
 +             # Add reflection trigger to conversation history via query_memory
               context = {
-+                 &quot;user_message&quot;: &quot;Reflection triggered&quot;,
-+                 &quot;role&quot;: &quot;system&quot;  # Indicate this is a system message
++                 "user_message": "Reflection triggered",
++                 "role": "system"  # Indicate this is a system message
 +             }
 +             
 +             # This will add the message to conversation history
@@ -1822,13 +1822,13 @@ Lines added: 11, lines removed: 9
 +             
 +             # Update memory with the reflection
 +             update_context = {
-                  &quot;operation&quot;: &quot;update&quot;
+                  "operation": "update"
               }
               
 -             success = self.memory.update_memory(json.dumps(context))
 +             success = self.memory.update_memory(json.dumps(update_context))
               if not success:
-                  print(&quot;Failed to complete reflection&quot;)
+                  print("Failed to complete reflection")
 ```
 
 </details>
@@ -1977,7 +1977,7 @@ Based on the code review, I see that we need to make several improvements to the
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/agent/agent.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/agent/agent.py</summary>
 
 **Chunk 1**
 Lines added: 4, lines removed: undefined
@@ -1985,7 +1985,7 @@ Lines added: 4, lines removed: undefined
 ```diff
 @@ -64,4 +64,8 @@
       async def learn(self, information: str) -&gt; bool:
-          &quot;&quot;&quot;Learn new information and update memory.
+          """Learn new information and update memory.
 +         
 +         This method handles two types of learning:
 +         1. Initial learning during INITIALIZATION phase
@@ -2000,7 +2000,7 @@ Lines added: 13, lines removed: 13
 ```diff
 @@ -79,28 +83,28 @@
                   if success:
-                      print(&quot;Initial memory created&quot;)
+                      print("Initial memory created")
 -                     self.current_phase = AgentPhase.INTERACTION
 +                     self.current_phase = AgentPhase.LEARNING
                   return success
@@ -2010,8 +2010,8 @@ Lines added: 13, lines removed: 13
 +             if self.current_phase in [AgentPhase.LEARNING, AgentPhase.INTERACTION]:
 +                 # Add the new information to conversation history
                   context = {
--                 &quot;user_message&quot;: information,
--                 &quot;role&quot;: &quot;system&quot;  # Indicate this is a system message
+-                 "user_message": information,
+-                 "role": "system"  # Indicate this is a system message
 -             }
 -             
 -             # This will add the message to conversation history
@@ -2019,27 +2019,27 @@ Lines added: 13, lines removed: 13
 -             
 -             # Now update memory with the new information
 -             update_context = {
--                 &quot;operation&quot;: &quot;update&quot;
-+                     &quot;operation&quot;: &quot;update&quot;,
-+                     &quot;learning_content&quot;: information
+-                 "operation": "update"
++                     "operation": "update",
++                     "learning_content": information
                   }
                   
 -             success = self.memory.update_memory(json.dumps(update_context))
 +                 success = self.memory.update_memory(json.dumps(context))
                   if success:
-                      print(&quot;Successfully learned new information&quot;)
+                      print("Successfully learned new information")
 +                     # Transition to INTERACTION phase if we were in LEARNING
 +                     if self.current_phase == AgentPhase.LEARNING:
 +                         self.current_phase = AgentPhase.INTERACTION
                   else:
-                      print(&quot;Failed to learn new information&quot;)
+                      print("Failed to learn new information")
                   return success
               
-+             print(f&quot;Unexpected phase for learning: {self.current_phase}&quot;)
++             print(f"Unexpected phase for learning: {self.current_phase}")
 +             return False
 +             
           except Exception as e:
-              print(f&quot;Error learning information: {str(e)}&quot;)
+              print(f"Error learning information: {str(e)}")
 ```
 
 </details>
@@ -2252,7 +2252,7 @@ This pattern is inefficient and adds unnecessary complexity. Let me propose chan
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/base_memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/base_memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: 2
@@ -2263,7 +2263,7 @@ Lines added: 2, lines removed: 2
       @abstractmethod
 -     def query_memory(self, query_context: str) -&gt; dict:
 +     def query_memory(self, query_context: Dict[str, Any]) -&gt; dict:
-          &quot;&quot;&quot;Query memory with the given context.
+          """Query memory with the given context.
           
           Args:
 -             query_context: Context for the memory query
@@ -2281,7 +2281,7 @@ Lines added: 2, lines removed: 2
       @abstractmethod
 -     def update_memory(self, update_context: str) -&gt; bool:
 +     def update_memory(self, update_context: Dict[str, Any]) -&gt; bool:
-          &quot;&quot;&quot;Update memory with new information.
+          """Update memory with new information.
           
           Args:
 -             update_context: Context containing update information
@@ -2305,7 +2305,7 @@ Lines added: 2, lines removed: 2
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 4, lines removed: 9
@@ -2316,22 +2316,22 @@ Lines added: 4, lines removed: 9
   
 -     def query_memory(self, query_context: str) -&gt; dict:
 +     def query_memory(self, query_context: Dict[str, Any]) -&gt; dict:
-          &quot;&quot;&quot;Query memory with the given context.&quot;&quot;&quot;
--         print(&quot;\nProcessing memory query...&quot;)
+          """Query memory with the given context."""
+-         print("\nProcessing memory query...")
 -         
 -         try:
 -             context = json.loads(query_context)
--             user_message = context.get(&quot;user_message&quot;, &quot;&quot;)
+-             user_message = context.get("user_message", "")
 -             
--             if &quot;conversation_history&quot; not in self.memory:
--                 self.memory[&quot;conversation_history&quot;] = []
+-             if "conversation_history" not in self.memory:
+-                 self.memory["conversation_history"] = []
 +         try:
-+             print(&quot;\nQuerying memory...&quot;)
++             print("\nQuerying memory...")
               
               # Add user message to history
-+             user_message = query_context.get(&quot;user_message&quot;, &quot;&quot;)
++             user_message = query_context.get("user_message", "")
               if user_message:
-                  self.memory[&quot;conversation_history&quot;].append({
+                  self.memory["conversation_history"].append({
 ```
 
 **Chunk 2**
@@ -2339,19 +2339,19 @@ Lines added: 5, lines removed: 9
 
 ```diff
 @@ -259,18 +254,14 @@
-                      &quot;timestamp&quot;: datetime.now().isoformat()
+                      "timestamp": datetime.now().isoformat()
                   })
--                 print(f&quot;Added user message to history: {user_message}&quot;)
+-                 print(f"Added user message to history: {user_message}")
 - 
 -             # Generate response using LLM
--             print(&quot;Generating response using LLM...&quot;)
-+                 print(&quot;Added user message to history&quot;)
+-             print("Generating response using LLM...")
++                 print("Added user message to history")
   
 -             # Extract original data for the template
--             original_data = self.memory.get(&quot;original_data&quot;, &quot;&quot;)
+-             original_data = self.memory.get("original_data", "")
 -             
 +             # Generate prompt for memory query
-              prompt = self.templates[&quot;query&quot;].format(
+              prompt = self.templates["query"].format(
                   memory_state=json.dumps(self.memory, indent=2),
 -                 query=user_message,
 -                 original_data=original_data
@@ -2359,7 +2359,7 @@ Lines added: 5, lines removed: 9
               )
               
 +             # Get response from LLM
-+             print(&quot;Generating response using LLM...&quot;)
++             print("Generating response using LLM...")
               response = self.llm.generate(prompt)
               
 ```
@@ -2370,11 +2370,11 @@ Lines added: 1, lines removed: 1
 ```diff
 @@ -279,5 +270,5 @@
               except json.JSONDecodeError as e:
-                  print(f&quot;Error parsing LLM response: {str(e)}&quot;)
--                 return {&quot;response&quot;: &quot;Error processing query&quot;}
-+                 return {&quot;response&quot;: &quot;Error: Invalid response from LLM&quot;}
+                  print(f"Error parsing LLM response: {str(e)}")
+-                 return {"response": "Error processing query"}
++                 return {"response": "Error: Invalid response from LLM"}
   
-              if not isinstance(result, dict) or &quot;response&quot; not in result:
+              if not isinstance(result, dict) or "response" not in result:
 ```
 
 **Chunk 4**
@@ -2382,11 +2382,11 @@ Lines added: 2, lines removed: 2
 
 ```diff
 @@ -303,10 +294,10 @@
-              return {&quot;response&quot;: f&quot;Error processing query: {str(e)}&quot;}
+              return {"response": f"Error processing query: {str(e)}"}
   
 -     def update_memory(self, update_context: str) -&gt; bool:
 +     def update_memory(self, update_context: Dict[str, Any]) -&gt; bool:
-          &quot;&quot;&quot;Update memory with new information using LLM.
+          """Update memory with new information using LLM.
           Only used for updating memory operations to minimize LLM calls.
           
           Args:
@@ -2402,13 +2402,13 @@ Lines added: 1, lines removed: 2
 ```diff
 @@ -315,8 +306,7 @@
           try:
-              print(&quot;\nUpdating memory...&quot;)
+              print("\nUpdating memory...")
 -             context = json.loads(update_context)
               
               # Only handle updating memory operations
--             if context.get(&quot;operation&quot;) != &quot;update&quot;:
-+             if update_context.get(&quot;operation&quot;) != &quot;update&quot;:
-                  print(&quot;update_memory should only be used for updating memory operations&quot;)
+-             if context.get("operation") != "update":
++             if update_context.get("operation") != "update":
+                  print("update_memory should only be used for updating memory operations")
                   return False
 ```
 
@@ -2427,7 +2427,7 @@ Lines added: 1, lines removed: 2
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/simple_memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/simple_memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 4, lines removed: 5
@@ -2438,7 +2438,7 @@ Lines added: 4, lines removed: 5
   
 -     def query_memory(self, query_context: str) -&gt; dict:
 +     def query_memory(self, query_context: Dict[str, Any]) -&gt; dict:
-          &quot;&quot;&quot;Process query using LLM to generate response.
+          """Process query using LLM to generate response.
           
           Args:
 -             query_context: JSON string containing query context with user_message
@@ -2446,13 +2446,13 @@ Lines added: 4, lines removed: 5
               
           Returns:
               dict: Response from LLM
-          &quot;&quot;&quot;
+          """
           try:
 -             # Parse the query context
 -             context = json.loads(query_context)
--             user_message = context.get(&quot;user_message&quot;, &quot;&quot;)
+-             user_message = context.get("user_message", "")
 +             # Get user message from context
-+             user_message = query_context.get(&quot;user_message&quot;, &quot;&quot;)
++             user_message = query_context.get("user_message", "")
               
               # Add user message to history
 ```
@@ -2466,7 +2466,7 @@ Lines added: 1, lines removed: 1
   
 -     def update_memory(self, update_context: str) -&gt; bool:
 +     def update_memory(self, update_context: Dict[str, Any]) -&gt; bool:
-          &quot;&quot;&quot;Update memory with new information.
+          """Update memory with new information.
           
 ```
 
@@ -2482,15 +2482,15 @@ Lines added: 2, lines removed: 5
               
           Returns:
               bool: True if memory was updated successfully
-          &quot;&quot;&quot;
+          """
           try:
 -             # Parse the update context
 -             context = json.loads(update_context)
 -             
               # Only handle update operations
--             if context.get(&quot;operation&quot;) != &quot;update&quot;:
-+             if update_context.get(&quot;operation&quot;) != &quot;update&quot;:
-                  print(&quot;update_memory should only be used for update operations&quot;)
+-             if context.get("operation") != "update":
++             if update_context.get("operation") != "update":
+                  print("update_memory should only be used for update operations")
                   return False
 ```
 
@@ -2545,7 +2545,7 @@ Let me fix these issues:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/agent/agent.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/agent/agent.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -2557,7 +2557,7 @@ Lines added: 1, lines removed: 1
 -                 success = self.memory.update_memory(json.dumps(context))
 +                 success = self.memory.update_memory(context)
                   if success:
-                      print(&quot;Successfully learned new information&quot;)
+                      print("Successfully learned new information")
 ```
 
 **Chunk 2**
@@ -2565,13 +2565,13 @@ Lines added: 2, lines removed: 11
 
 ```diff
 @@ -116,19 +116,10 @@
-              print(f&quot;\nReflecting on recent interactions (Current phase: {self.current_phase})&quot;)
+              print(f"\nReflecting on recent interactions (Current phase: {self.current_phase})")
               
 -             # Add reflection trigger to conversation history via query_memory
 +             # Add reflection trigger to conversation history
               context = {
--                 &quot;user_message&quot;: &quot;Reflection triggered&quot;,
--                 &quot;role&quot;: &quot;system&quot;  # Indicate this is a system message
+-                 "user_message": "Reflection triggered",
+-                 "role": "system"  # Indicate this is a system message
 -             }
 -             
 -             # This will add the message to conversation history
@@ -2579,13 +2579,13 @@ Lines added: 2, lines removed: 11
 -             
 -             # Update memory with the reflection
 -             update_context = {
-                  &quot;operation&quot;: &quot;update&quot;
+                  "operation": "update"
               }
               
 -             success = self.memory.update_memory(json.dumps(update_context))
 +             success = self.memory.update_memory(context)
               if not success:
-                  print(&quot;Failed to complete reflection&quot;)
+                  print("Failed to complete reflection")
 ```
 
 </details>
@@ -2596,7 +2596,7 @@ Lines added: 2, lines removed: 11
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/agent_usage_example.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: examples/agent_usage_example.py</summary>
 
 **Chunk 1**
 Lines added: 22, lines removed: undefined
@@ -2606,29 +2606,29 @@ Lines added: 22, lines removed: undefined
               continue
   
 + async def demonstrate_memory_updates(memory_manager):
-+     &quot;&quot;&quot;Demonstrate updating memory with new information&quot;&quot;&quot;
-+     print_section_header(&quot;Memory Update Demo&quot;)
++     """Demonstrate updating memory with new information"""
++     print_section_header("Memory Update Demo")
 +     
 +     # Example new information
 +     new_info = {
-+         &quot;project_update&quot;: &quot;The project should eventually have a FastAPI API so it can be used as a REST service&quot;
++         "project_update": "The project should eventually have a FastAPI API so it can be used as a REST service"
 +     }
 +     
-+     print(&quot;\nAdding new information:&quot;)
++     print("\nAdding new information:")
 +     print(json.dumps(new_info, indent=2))
 +     
 +     success = memory_manager.update_memory({
-+         &quot;operation&quot;: &quot;update&quot;,
-+         &quot;learning_content&quot;: new_info
++         "operation": "update",
++         "learning_content": new_info
 +     })
 +     if success:
-+         print(&quot;\nMemory updated successfully!&quot;)
-+         print_memory_state(memory_manager, &quot;Memory State After Update&quot;)
++         print("\nMemory updated successfully!")
++         print_memory_state(memory_manager, "Memory State After Update")
 +     else:
-+         print(&quot;\nFailed to update memory&quot;)
++         print("\nFailed to update memory")
 + 
   async def main():
-      &quot;&quot;&quot;Main function to run the agent example&quot;&quot;&quot;
+      """Main function to run the agent example"""
 ```
 
 **Chunk 2**
@@ -2642,7 +2642,7 @@ Lines added: 3, lines removed: undefined
 +         await demonstrate_memory_updates(memory_manager)
 +         
       except Exception as e:
-          print(f&quot;\nError during example: {str(e)}&quot;)
+          print(f"\nError during example: {str(e)}")
 ```
 
 </details>
@@ -2740,7 +2740,7 @@ I see the issue. In the `process_message` method of the `Agent` class, we're sti
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/agent/agent.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/agent/agent.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -2751,7 +2751,7 @@ Lines added: 1, lines removed: 1
               # Query memory for response
 -             result = self.memory.query_memory(json.dumps(context))
 +             result = self.memory.query_memory(context)
-              response = result.get(&quot;response&quot;, &quot;Error processing message&quot;)
+              response = result.get("response", "Error processing message")
               
 ```
 
@@ -2784,7 +2784,7 @@ I'll help you run the script. First, let me check which script we should run:
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed directory examples • **7** results</summary>
+            <summary>Tool use: **list_dir** • Listed directory examples, 7 results</summary>
         
 | Name |
 |-------|
@@ -2808,7 +2808,7 @@ Let's run the main agent usage example:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: python examples/agent_usage_example.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: python examples/agent_usage_example.py</summary>
 
 ```bash
 python examples/agent_usage_example.py
@@ -2853,17 +2853,17 @@ e in JSON protocol mode and only respond in strict, parsable JSON including the
 response to this interaction
 . If there is anything in the response that is not parsable JSON, the interactio
 n will fail....             DEBUG - LLM RESPONSE (first 200 chars):
-Here&#39;s the initial memory structure for the Lost Valley campaign:
+Here's the initial memory structure for the Lost Valley campaign:
 
 &#96;&#96;&#96;
 {
-    &quot;static_memory&quot;: {
-        &quot;structured_data&quot;: {
-            &quot;world&quot;: {
-                &quot;name&quot;: &quot;The Lost Valley&quot;,
+    "static_memory": {
+        "structured_data": {
+            "world": {
+                "name": "The Lost Valley",
          ...
 Failed to parse direct JSON, attempting to extract JSON structure...
-Error parsing extracted JSON structure: Expecting &#39;,&#39; delimiter: line 18 column
+Error parsing extracted JSON structure: Expecting ',' delimiter: line 18 column
 29 (char 634)
 Failed to initialize campaign!
 
@@ -2883,7 +2883,7 @@ I see the issue. The LLM is returning a response that includes markdown code blo
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 5, lines removed: 9
@@ -2891,25 +2891,25 @@ Lines added: 5, lines removed: 9
 ```diff
 @@ -148,17 +148,13 @@
                   import re
-                  print(&quot;Failed to parse direct JSON, attempting to extract JSON structure...&quot;)
--                 json_match = re.search(r&#39;\{[\s\S]*\}&#39;, llm_response)
+                  print("Failed to parse direct JSON, attempting to extract JSON structure...")
+-                 json_match = re.search(r'\{[\s\S]*\}', llm_response)
 -                 if json_match:
 -                     try:
 -                         json_str = json_match.group(0)
 -                         # Remove any markdown code block markers
--                         json_str = re.sub(r&#39;&#96;&#96;&#96;json\s*|\s*&#96;&#96;&#96;&#39;, &#39;&#39;, json_str)
+-                         json_str = re.sub(r'&#96;&#96;&#96;json\s*|\s*&#96;&#96;&#96;', '', json_str)
 +                 # Remove markdown code block markers and any text before/after the JSON
-+                 json_str = re.sub(r&#39;&#96;&#96;&#96;json\s*|\s*&#96;&#96;&#96;&#39;, &#39;&#39;, llm_response)
-+                 json_str = re.sub(r&#39;^.*?\{&#39;, &#39;{&#39;, json_str, flags=re.DOTALL)
-+                 json_str = re.sub(r&#39;\}.*?$&#39;, &#39;}&#39;, json_str, flags=re.DOTALL)
++                 json_str = re.sub(r'&#96;&#96;&#96;json\s*|\s*&#96;&#96;&#96;', '', llm_response)
++                 json_str = re.sub(r'^.*?\{', '{', json_str, flags=re.DOTALL)
++                 json_str = re.sub(r'\}.*?$', '}', json_str, flags=re.DOTALL)
 +                 try:
                       memory_data = json.loads(json_str)
-                      print(&quot;Successfully extracted and fixed JSON structure&quot;)
+                      print("Successfully extracted and fixed JSON structure")
                   except json.JSONDecodeError as e:
-                      print(f&quot;Error parsing extracted JSON structure: {str(e)}&quot;)
+                      print(f"Error parsing extracted JSON structure: {str(e)}")
 -                         return False
 -                 else:
--                     print(&quot;Could not find JSON structure in LLM response&quot;)
+-                     print("Could not find JSON structure in LLM response")
                       return False
               
 ```
@@ -2934,7 +2934,7 @@ Let's try running the script again:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: python examples/agent_usage_example.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: python examples/agent_usage_example.py</summary>
 
 ```bash
 python examples/agent_usage_example.py
@@ -2981,13 +2981,13 @@ DEBUG - LLM RESPONSE (first 200 chars):
 Here is the initial memory structure for the domain:
 
 {
-    &quot;static_memory&quot;: {
-        &quot;structured_data&quot;: {
-            &quot;world_details&quot;: {
-                &quot;location&quot;: &quot;The Lost Valley&quot;,
+    "static_memory": {
+        "structured_data": {
+            "world_details": {
+                "location": "The Lost Valley",
               ...
 Failed to parse direct JSON, attempting to extract JSON structure...
-Error parsing extracted JSON structure: Expecting &#39;,&#39; delimiter: line 8 column 67 (char 311)
+Error parsing extracted JSON structure: Expecting ',' delimiter: line 8 column 67 (char 311)
 Failed to initialize campaign!
 
 Example completed.
@@ -3017,7 +3017,7 @@ Let me update the template to be even more explicit about requiring strict JSON:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/templates/create_memory.prompt</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/templates/create_memory.prompt</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -3055,7 +3055,7 @@ I've updated the template to be more explicit about requiring strict JSON and no
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: python examples/agent_usage_example.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: python examples/agent_usage_example.py</summary>
 
 ```bash
 python examples/agent_usage_example.py
@@ -3090,7 +3090,7 @@ Learning new information (Current phase: AgentPhase.INITIALIZATION)
 
 Creating initial memory structure...
 Generating memory structure using LLM...
-Error creating memory structure: &#39; and end with &#39;
+Error creating memory structure: ' and end with '
 Failed to initialize campaign!
 
 Example completed.
@@ -3119,7 +3119,7 @@ I see the issue. Let me update the domain configuration to be more explicit abou
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/domain_configs.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: examples/domain_configs.py</summary>
 
 **Chunk 1**
 Lines added: 39, lines removed: 2
@@ -3127,10 +3127,10 @@ Lines added: 39, lines removed: 2
 ```diff
 @@ -45,8 +45,45 @@
   DND_CONFIG = {
-      &quot;domain_specific_prompt_instructions&quot;: {
--         &quot;create_memory&quot;: &quot;You are creating a memory for a D&amp;D campaign. You are given a all of the information needed to run the campaign. Please organize the data in a rich and concose way. Keep in mind that the memory data structure you are creating will be included in subsequent prompts as context. The memory will be used to inform the agent&#39;s behavior and decision-making.&quot;,
--         &quot;query&quot;: &quot;You are analyzing conversational interactions between the player and the agent and returning an apppriate response. Please also include structured data that captures the important data in the conversation.&quot;,
-+         &quot;create_memory&quot;: &quot;&quot;&quot;You are creating a memory structure for a D&amp;D campaign. The memory will be used to inform the agent&#39;s behavior and decision-making.
+      "domain_specific_prompt_instructions": {
+-         "create_memory": "You are creating a memory for a D&amp;D campaign. You are given a all of the information needed to run the campaign. Please organize the data in a rich and concose way. Keep in mind that the memory data structure you are creating will be included in subsequent prompts as context. The memory will be used to inform the agent's behavior and decision-making.",
+-         "query": "You are analyzing conversational interactions between the player and the agent and returning an apppriate response. Please also include structured data that captures the important data in the conversation.",
++         "create_memory": """You are creating a memory structure for a D&amp;D campaign. The memory will be used to inform the agent's behavior and decision-making.
 + 
 + IMPORTANT: Return ONLY a valid JSON object. Your response must start with { and end with }. Do not include any explanatory text.
 + 
@@ -3141,37 +3141,37 @@ Lines added: 39, lines removed: 2
 +   - current_situations (active quests, events)
 + - knowledge_graph should contain:
 +   - facts about the world, NPCs, and situations
-+   - relationships between locations, characters, and events&quot;&quot;&quot;,
-+         &quot;query&quot;: &quot;You are analyzing conversational interactions between the player and the agent and returning an appropriate response. Please also include structured data that captures the important data in the conversation.&quot;,
-          &quot;update&quot;: &quot;You are analyzing the conversation history and updating the memory to incorporate the important information learned during the session.&quot;
++   - relationships between locations, characters, and events""",
++         "query": "You are analyzing conversational interactions between the player and the agent and returning an appropriate response. Please also include structured data that captures the important data in the conversation.",
+          "update": "You are analyzing the conversation history and updating the memory to incorporate the important information learned during the session."
       },
-+     &quot;domain_specific_schema_suggestions&quot;: {
-+         &quot;structured_data&quot;: {
-+             &quot;world_details&quot;: {
-+                 &quot;locations&quot;: [],
-+                 &quot;features&quot;: [],
-+                 &quot;magical_properties&quot;: []
++     "domain_specific_schema_suggestions": {
++         "structured_data": {
++             "world_details": {
++                 "locations": [],
++                 "features": [],
++                 "magical_properties": []
 +             },
-+             &quot;npcs&quot;: [
++             "npcs": [
 +                 {
-+                     &quot;name&quot;: &quot;npc_name&quot;,
-+                     &quot;role&quot;: &quot;npc_role&quot;,
-+                     &quot;location&quot;: &quot;current_location&quot;,
-+                     &quot;status&quot;: &quot;current_status&quot;
++                     "name": "npc_name",
++                     "role": "npc_role",
++                     "location": "current_location",
++                     "status": "current_status"
 +                 }
 +             ],
-+             &quot;current_situations&quot;: [
++             "current_situations": [
 +                 {
-+                     &quot;name&quot;: &quot;situation_name&quot;,
-+                     &quot;type&quot;: &quot;quest|event|condition&quot;,
-+                     &quot;status&quot;: &quot;active|resolved|failed&quot;,
-+                     &quot;location&quot;: &quot;location_name&quot;,
-+                     &quot;involved_npcs&quot;: []
++                     "name": "situation_name",
++                     "type": "quest|event|condition",
++                     "status": "active|resolved|failed",
++                     "location": "location_name",
++                     "involved_npcs": []
 +                 }
 +             ]
 +         }
 +     },
-      &quot;initial_data&quot;: dnd_initial_data
+      "initial_data": dnd_initial_data
   }
 ```
 
@@ -3192,7 +3192,7 @@ Let's try running the script again:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: python examples/agent_usage_example.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: python examples/agent_usage_example.py</summary>
 
 ```bash
 python examples/agent_usage_example.py
@@ -3227,7 +3227,7 @@ Learning new information (Current phase: AgentPhase.INITIALIZATION)
 
 Creating initial memory structure...
 Generating memory structure using LLM...
-Error creating memory structure: &#39; and end with &#39;
+Error creating memory structure: ' and end with '
 Failed to initialize campaign!
 
 Example completed.
@@ -3244,7 +3244,7 @@ We're still getting the same error. Let me check the error handling in the `crea
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: undefined
@@ -3252,8 +3252,8 @@ Lines added: 1, lines removed: undefined
 ```diff
 @@ -142,4 +142,5 @@
               # Print the response to debug
-              print(f&quot;DEBUG - LLM RESPONSE (first 200 chars):\n{llm_response[:200]}...&quot;)
-+             print(f&quot;DEBUG - LLM RESPONSE (last 200 chars):\n{llm_response[-200:]}...&quot;)
+              print(f"DEBUG - LLM RESPONSE (first 200 chars):\n{llm_response[:200]}...")
++             print(f"DEBUG - LLM RESPONSE (last 200 chars):\n{llm_response[-200:]}...")
               
               try:
 ```
@@ -3264,8 +3264,8 @@ Lines added: 1, lines removed: undefined
 ```diff
 @@ -157,4 +158,5 @@
                   except json.JSONDecodeError as e:
-                      print(f&quot;Error parsing extracted JSON structure: {str(e)}&quot;)
-+                     print(f&quot;Attempted to parse:\n{json_str}&quot;)
+                      print(f"Error parsing extracted JSON structure: {str(e)}")
++                     print(f"Attempted to parse:\n{json_str}")
                       return False
               
 ```
@@ -3276,8 +3276,8 @@ Lines added: 1, lines removed: undefined
 ```diff
 @@ -235,4 +237,5 @@
           except Exception as e:
-              print(f&quot;Error creating memory structure: {str(e)}&quot;)
-+             print(f&quot;Full error: {repr(e)}&quot;)
+              print(f"Error creating memory structure: {str(e)}")
++             print(f"Full error: {repr(e)}")
               return False
   
 ```
@@ -3298,7 +3298,7 @@ Let's try running the script again:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: python examples/agent_usage_example.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: python examples/agent_usage_example.py</summary>
 
 ```bash
 python examples/agent_usage_example.py
@@ -3333,8 +3333,8 @@ Learning new information (Current phase: AgentPhase.INITIALIZATION)
 
 Creating initial memory structure...
 Generating memory structure using LLM...
-Error creating memory structure: &#39; and end with &#39;
-Full error: KeyError(&#39; and end with &#39;)
+Error creating memory structure: ' and end with '
+Full error: KeyError(' and end with ')
 Failed to initialize campaign!
 
 Example completed.

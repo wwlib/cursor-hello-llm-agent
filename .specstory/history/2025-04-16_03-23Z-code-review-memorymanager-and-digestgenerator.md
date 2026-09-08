@@ -226,7 +226,7 @@ Let's implement this approach. I'll sketch out how to modify the system to keep 
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/digest_generator.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/digest_generator.py</summary>
 
 **Chunk 1**
 Lines added: 3, lines removed: 3
@@ -236,13 +236,13 @@ Lines added: 3, lines removed: 3
       The DigestGenerator implements a two-step process:
       1. Segment the conversation content into meaningful chunks
 -     2. Extract structured data (facts and relationships) from segments
-+     2. Rate each segment&#39;s importance and assign topics
++     2. Rate each segment's importance and assign topics
       
 -     This allows for more precise information extraction and better traceability
 -     between digests and the conversation entries they were derived from.
 +     This allows for memory compression while maintaining text in a format 
 +     natural for LLMs to process.
-      &quot;&quot;&quot;
+      """
       
 ```
 
@@ -252,9 +252,9 @@ Lines added: 1, lines removed: 1
 ```diff
 @@ -33,5 +33,5 @@
           template_files = {
-              &quot;segment&quot;: &quot;segment_conversation.prompt&quot;,
--             &quot;extract&quot;: &quot;extract_digest.prompt&quot;
-+             &quot;rate&quot;: &quot;rate_segments.prompt&quot;
+              "segment": "segment_conversation.prompt",
+-             "extract": "extract_digest.prompt"
++             "rate": "rate_segments.prompt"
           }
           
 ```
@@ -266,8 +266,8 @@ Lines added: 1, lines removed: 1
 @@ -48,5 +48,5 @@
       
       def generate_digest(self, conversation_entry: Dict[str, Any], memory_state: Optional[Dict[str, Any]] = None) -&gt; Dict[str, Any]:
--         &quot;&quot;&quot;Generate a structured digest from a conversation entry using a two-step process.
-+         &quot;&quot;&quot;Generate a digest from a conversation entry by segmenting and rating importance.
+-         """Generate a structured digest from a conversation entry using a two-step process.
++         """Generate a digest from a conversation entry by segmenting and rating importance.
           
           Args:
 ```
@@ -281,14 +281,14 @@ Lines added: 2, lines removed: 2
           Returns:
 -             dict: A digest containing segmented content and extracted information
 +             dict: A digest containing rated and topically organized text segments
-          &quot;&quot;&quot;
+          """
           try:
-              entry_guid = conversation_entry.get(&quot;guid&quot;)
+              entry_guid = conversation_entry.get("guid")
               if not entry_guid:
                   # Generate a GUID if not present
--                 entry_guid = &quot;na&quot;
+-                 entry_guid = "na"
 +                 entry_guid = str(uuid.uuid4())
-                  conversation_entry[&quot;guid&quot;] = entry_guid
+                  conversation_entry["guid"] = entry_guid
               
 ```
 
@@ -301,10 +301,10 @@ Lines added: 5, lines removed: 7
               segments = self._segment_content(content)
 - 
 +             
-              print(f&quot;\n\ngenerate_digest: Segments:&quot;)
+              print(f"\n\ngenerate_digest: Segments:")
               for segment in segments:
                   print(segment)
-              print(f&quot;\n\n&quot;)
+              print(f"\n\n")
               
 -             # Step 2: Extract structured information from segments
 -             extracted_info = self._extract_information(segments, memory_state)
@@ -313,14 +313,14 @@ Lines added: 5, lines removed: 7
               
               # Combine into final digest
               digest = {
-                  &quot;conversation_history_entry_guid&quot;: entry_guid,
-                  &quot;role&quot;: conversation_entry.get(&quot;role&quot;, &quot;unknown&quot;),
--                 &quot;segments&quot;: segments,
--                 &quot;context&quot;: extracted_info.get(&quot;context&quot;, &quot;&quot;),
--                 &quot;new_facts&quot;: extracted_info.get(&quot;new_facts&quot;, []),
--                 &quot;new_relationships&quot;: extracted_info.get(&quot;new_relationships&quot;, [])
-+                 &quot;rated_segments&quot;: rated_segments,
-+                 &quot;timestamp&quot;: datetime.now().isoformat()
+                  "conversation_history_entry_guid": entry_guid,
+                  "role": conversation_entry.get("role", "unknown"),
+-                 "segments": segments,
+-                 "context": extracted_info.get("context", ""),
+-                 "new_facts": extracted_info.get("new_facts", []),
+-                 "new_relationships": extracted_info.get("new_relationships", [])
++                 "rated_segments": rated_segments,
++                 "timestamp": datetime.now().isoformat()
               }
               
 ```
@@ -333,9 +333,9 @@ Lines added: 2, lines removed: 2
               return [content]  # Fall back to using the entire content as a single segment
       
 -     def _extract_information(self, segments: List[str], memory_state: Optional[Dict[str, Any]] = None) -&gt; Dict[str, Any]:
--         &quot;&quot;&quot;Extract structured information from segments using LLM.
+-         """Extract structured information from segments using LLM.
 +     def _rate_segments(self, segments: List[str], memory_state: Optional[Dict[str, Any]] = None) -&gt; List[Dict[str, Any]]:
-+         &quot;&quot;&quot;Rate segments for importance and assign topics using LLM.
++         """Rate segments for importance and assign topics using LLM.
           
           Args:
 ```
@@ -349,13 +349,13 @@ Lines added: 52, lines removed: 34
           Returns:
 -             dict: Structured information extract from segments
 +             list: List of rated segments with importance and topics
-          &quot;&quot;&quot;
+          """
           try:
               # Format the prompt with the segments and memory state
 -             memory_state_json = json.dumps({}) if memory_state is None else json.dumps(memory_state, indent=2)
--             prompt = self.templates[&quot;extract&quot;].format(
-+             memory_context = &quot;&quot; if memory_state is None else json.dumps(memory_state.get(&quot;context&quot;, &quot;&quot;), indent=2)
-+             prompt = self.templates[&quot;rate&quot;].format(
+-             prompt = self.templates["extract"].format(
++             memory_context = "" if memory_state is None else json.dumps(memory_state.get("context", ""), indent=2)
++             prompt = self.templates["rate"].format(
                   segments=json.dumps(segments),
 -                 memory_state=memory_state_json
 +                 memory_context=memory_context
@@ -371,75 +371,75 @@ Lines added: 52, lines removed: 34
 +                 rated_segments = json.loads(llm_response)
                   # Validate the structure
 -                 if not isinstance(extracted_info, dict):
--                     print(&quot;Extraction failed: Response is not a dictionary&quot;)
+-                     print("Extraction failed: Response is not a dictionary")
 -                     return self._create_empty_extracted_info()
 +                 if not isinstance(rated_segments, list):
-+                     print(&quot;Rating failed: Response is not a list&quot;)
++                     print("Rating failed: Response is not a list")
 +                     return self._create_default_rated_segments(segments)
                   
 -                 # Ensure required fields exist
--                 if &quot;new_facts&quot; not in extracted_info:
--                     extracted_info[&quot;new_facts&quot;] = []
--                 if &quot;new_relationships&quot; not in extracted_info:
--                     extracted_info[&quot;new_relationships&quot;] = []
--                 if &quot;context&quot; not in extracted_info:
--                     extracted_info[&quot;context&quot;] = &quot;&quot;
+-                 if "new_facts" not in extracted_info:
+-                     extracted_info["new_facts"] = []
+-                 if "new_relationships" not in extracted_info:
+-                     extracted_info["new_relationships"] = []
+-                 if "context" not in extracted_info:
+-                     extracted_info["context"] = ""
 -                 
 -                 return extracted_info
 +                 # Validate each rated segment
 +                 for i, segment in enumerate(rated_segments):
 +                     if not isinstance(segment, dict):
-+                         print(f&quot;Segment {i} is not a dictionary, using default&quot;)
++                         print(f"Segment {i} is not a dictionary, using default")
 +                         rated_segments[i] = {
-+                             &quot;text&quot;: segments[i] if i &lt; len(segments) else &quot;&quot;,
-+                             &quot;importance&quot;: 3,
-+                             &quot;topics&quot;: []
++                             "text": segments[i] if i &lt; len(segments) else "",
++                             "importance": 3,
++                             "topics": []
 +                         }
-+                     elif &quot;text&quot; not in segment:
-+                         print(f&quot;Segment {i} missing text, using original&quot;)
-+                         segment[&quot;text&quot;] = segments[i] if i &lt; len(segments) else &quot;&quot;
-+                     elif &quot;importance&quot; not in segment:
-+                         print(f&quot;Segment {i} missing importance, using default&quot;)
-+                         segment[&quot;importance&quot;] = 3
-+                     elif &quot;topics&quot; not in segment:
-+                         print(f&quot;Segment {i} missing topics, using empty list&quot;)
-+                         segment[&quot;topics&quot;] = []
++                     elif "text" not in segment:
++                         print(f"Segment {i} missing text, using original")
++                         segment["text"] = segments[i] if i &lt; len(segments) else ""
++                     elif "importance" not in segment:
++                         print(f"Segment {i} missing importance, using default")
++                         segment["importance"] = 3
++                     elif "topics" not in segment:
++                         print(f"Segment {i} missing topics, using empty list")
++                         segment["topics"] = []
 +                 
 +                 return rated_segments
               except json.JSONDecodeError:
-                  # Try to extract JSON if it&#39;s embedded in markdown or other text
--                 json_match = re.search(r&#39;\{[\s\S]*\}&#39;, llm_response)
-+                 json_match = re.search(r&#39;\[[\s\S]*\]&#39;, llm_response)
+                  # Try to extract JSON if it's embedded in markdown or other text
+-                 json_match = re.search(r'\{[\s\S]*\}', llm_response)
++                 json_match = re.search(r'\[[\s\S]*\]', llm_response)
                   if json_match:
                       try:
                           json_str = json_match.group(0)
                           # Remove any markdown code block markers
-                          json_str = re.sub(r&#39;&#96;&#96;&#96;json\s*|\s*&#96;&#96;&#96;&#39;, &#39;&#39;, json_str)
+                          json_str = re.sub(r'&#96;&#96;&#96;json\s*|\s*&#96;&#96;&#96;', '', json_str)
 -                         extracted_info = json.loads(json_str)
 +                         rated_segments = json.loads(json_str)
                           
 -                         # Ensure required fields exist
--                         if &quot;new_facts&quot; not in extracted_info:
--                             extracted_info[&quot;new_facts&quot;] = []
--                         if &quot;new_relationships&quot; not in extracted_info:
--                             extracted_info[&quot;new_relationships&quot;] = []
--                         if &quot;context&quot; not in extracted_info:
--                             extracted_info[&quot;context&quot;] = &quot;&quot;
+-                         if "new_facts" not in extracted_info:
+-                             extracted_info["new_facts"] = []
+-                         if "new_relationships" not in extracted_info:
+-                             extracted_info["new_relationships"] = []
+-                         if "context" not in extracted_info:
+-                             extracted_info["context"] = ""
 -                         
 -                         return extracted_info
 +                         # Do basic validation
 +                         if not isinstance(rated_segments, list):
-+                             print(&quot;Extracted rating is not a list&quot;)
++                             print("Extracted rating is not a list")
 +                             return self._create_default_rated_segments(segments)
 +                         
 +                         # Validate each segment has required fields
 +                         for i, segment in enumerate(rated_segments):
-+                             if not isinstance(segment, dict) or &quot;text&quot; not in segment:
-+                                 print(f&quot;Segment {i} invalid, using default&quot;)
++                             if not isinstance(segment, dict) or "text" not in segment:
++                                 print(f"Segment {i} invalid, using default")
 +                                 rated_segments[i] = {
-+                                     &quot;text&quot;: segments[i] if i &lt; len(segments) else &quot;&quot;,
-+                                     &quot;importance&quot;: 3,
-+                                     &quot;topics&quot;: []
++                                     "text": segments[i] if i &lt; len(segments) else "",
++                                     "importance": 3,
++                                     "topics": []
 +                                 }
 +                         
 +                         return rated_segments
@@ -447,16 +447,16 @@ Lines added: 52, lines removed: 34
                           pass
                   
 -                 # Fall back to empty response
--                 print(&quot;Failed to parse extracted information&quot;)
+-                 print("Failed to parse extracted information")
 -                 return self._create_empty_extracted_info()
 +                 # Fall back to default rating
-+                 print(&quot;Failed to parse rated segments, using defaults&quot;)
++                 print("Failed to parse rated segments, using defaults")
 +                 return self._create_default_rated_segments(segments)
                   
           except Exception as e:
--             print(f&quot;Error in information extraction: {str(e)}&quot;)
+-             print(f"Error in information extraction: {str(e)}")
 -             return self._create_empty_extracted_info()
-+             print(f&quot;Error in segment rating: {str(e)}&quot;)
++             print(f"Error in segment rating: {str(e)}")
 +             return self._create_default_rated_segments(segments)
       
       def _create_empty_digest(self, entry_guid: str, role: str) -&gt; Dict[str, Any]:
@@ -467,30 +467,30 @@ Lines added: 12, lines removed: 11
 
 ```diff
 @@ -211,15 +227,16 @@
-              &quot;conversation_history_entry_guid&quot;: entry_guid,
-              &quot;role&quot;: role,
--             &quot;segments&quot;: [],
--             &quot;context&quot;: &quot;&quot;,
--             &quot;new_facts&quot;: [],
--             &quot;new_relationships&quot;: []
-+             &quot;rated_segments&quot;: [],
-+             &quot;timestamp&quot;: datetime.now().isoformat()
+              "conversation_history_entry_guid": entry_guid,
+              "role": role,
+-             "segments": [],
+-             "context": "",
+-             "new_facts": [],
+-             "new_relationships": []
++             "rated_segments": [],
++             "timestamp": datetime.now().isoformat()
           }
       
 -     def _create_empty_extracted_info(self) -&gt; Dict[str, Any]:
--         &quot;&quot;&quot;Create an empty extracted information structure.&quot;&quot;&quot;
+-         """Create an empty extracted information structure."""
 -         return {
--             &quot;context&quot;: &quot;&quot;,
--             &quot;new_facts&quot;: [],
--             &quot;new_relationships&quot;: []
+-             "context": "",
+-             "new_facts": [],
+-             "new_relationships": []
 -         } 
 +     def _create_default_rated_segments(self, segments: List[str]) -&gt; List[Dict[str, Any]]:
-+         &quot;&quot;&quot;Create default rated segments with medium importance.&quot;&quot;&quot;
++         """Create default rated segments with medium importance."""
 +         return [
 +             {
-+                 &quot;text&quot;: segment,
-+                 &quot;importance&quot;: 3,  # Medium importance by default
-+                 &quot;topics&quot;: []
++                 "text": segment,
++                 "importance": 3,  # Medium importance by default
++                 "topics": []
 +             }
 +             for segment in segments
 +         ] 
@@ -508,7 +508,7 @@ Now let's create the template for rating segments:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/templates/rate_segments.prompt</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/templates/rate_segments.prompt</summary>
 
 **Chunk 1**
 Lines added: 26, lines removed: 1
@@ -533,12 +533,12 @@ Lines added: 26, lines removed: 1
 + Segments to rate:
 + {segments}
 + 
-+ Provide your response as a JSON array of objects with &quot;text&quot;, &quot;importance&quot;, and &quot;topics&quot; fields:
++ Provide your response as a JSON array of objects with "text", "importance", and "topics" fields:
 + [
 +   {{
-+     &quot;text&quot;: &quot;original segment text&quot;,
-+     &quot;importance&quot;: number from 1-5,
-+     &quot;topics&quot;: [&quot;topic1&quot;, &quot;topic2&quot;]
++     "text": "original segment text",
++     "importance": number from 1-5,
++     "topics": ["topic1", "topic2"]
 +   }},
 +   ...
 + ] 
@@ -556,7 +556,7 @@ Now let's update the `MemoryManager` to use these rated segments:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 9, lines removed: 11
@@ -582,14 +582,14 @@ Lines added: 9, lines removed: 11
   3. Memory Organization
      - static_memory: Contains foundational, unchanging information about the domain
 -    - working_memory: Contains dynamic information learned during interactions
--    - Both sections&#39; internal structure is flexible and domain-dependent
+-    - Both sections' internal structure is flexible and domain-dependent
 +    - conversation_history: Contains full conversation with important segments rated
 +    - context: Contains compressed important information organized by topic
      
   4. Memory Update Process
 -    - Periodically analyzes conversation history to update working_memory
 -    - Uses domain-specific guidance to determine what information to extract
--    - Updates working_memory structure based on the domain&#39;s needs
+-    - Updates working_memory structure based on the domain's needs
 +    - Periodically compresses conversation history to retain only important segments
 +    - Organizes important information by topics for better retrieval
 +    - Balances completeness with efficiency
@@ -619,11 +619,11 @@ Lines added: 2, lines removed: 1
 
 ```diff
 @@ -137,5 +141,6 @@
-              &quot;create&quot;: &quot;create_memory.prompt&quot;,
-              &quot;query&quot;: &quot;query_memory.prompt&quot;,
--             &quot;update&quot;: &quot;update_memory.prompt&quot;
-+             &quot;update&quot;: &quot;update_memory.prompt&quot;,
-+             &quot;compress&quot;: &quot;compress_memory.prompt&quot;
+              "create": "create_memory.prompt",
+              "query": "query_memory.prompt",
+-             "update": "update_memory.prompt"
++             "update": "update_memory.prompt",
++             "compress": "compress_memory.prompt"
           }
           
 ```
@@ -633,17 +633,17 @@ Lines added: 3, lines removed: 3
 
 ```diff
 @@ -154,9 +159,9 @@
-          &quot;&quot;&quot;Use LLM to structure initial input data into memory format.
+          """Use LLM to structure initial input data into memory format.
           
 -         The LLM is free to choose the internal structure of static_memory and working_memory
 -         based on what makes sense for the domain. We only validate the top-level structure.
 +         The LLM is free to choose the internal structure of static_memory
 +         based on what makes sense for the domain.
-          &quot;&quot;&quot;
+          """
           # Check if we have valid existing memory
--         if self.memory and all(key in self.memory for key in [&quot;original_data&quot;, &quot;static_memory&quot;, &quot;working_memory&quot;, &quot;metadata&quot;, &quot;conversation_history&quot;]):
-+         if self.memory and all(key in self.memory for key in [&quot;original_data&quot;, &quot;static_memory&quot;, &quot;context&quot;, &quot;conversation_history&quot;]):
-              print(&quot;Valid memory structure already exists, skipping initialization&quot;)
+-         if self.memory and all(key in self.memory for key in ["original_data", "static_memory", "working_memory", "metadata", "conversation_history"]):
++         if self.memory and all(key in self.memory for key in ["original_data", "static_memory", "context", "conversation_history"]):
+              print("Valid memory structure already exists, skipping initialization")
               # Ensure GUID exists even for pre-existing memories
 ```
 
@@ -652,51 +652,51 @@ Lines added: 1, lines removed: 44
 
 ```diff
 @@ -218,48 +223,5 @@
-              if &quot;static_memory&quot; not in memory_data:
-                  print(&quot;Missing static_memory in LLM response&quot;)
+              if "static_memory" not in memory_data:
+                  print("Missing static_memory in LLM response")
 -                 return False
 -             
--             static_memory = memory_data[&quot;static_memory&quot;]
+-             static_memory = memory_data["static_memory"]
 -             if not isinstance(static_memory, dict):
--                 print(&quot;static_memory must be a dictionary&quot;)
+-                 print("static_memory must be a dictionary")
 -                 return False
 -             
--             if &quot;structured_data&quot; not in static_memory or &quot;knowledge_graph&quot; not in static_memory:
--                 print(&quot;static_memory must contain structured_data and knowledge_graph&quot;)
+-             if "structured_data" not in static_memory or "knowledge_graph" not in static_memory:
+-                 print("static_memory must contain structured_data and knowledge_graph")
 -                 return False
 -             
--             if not isinstance(static_memory[&quot;structured_data&quot;], dict) or not isinstance(static_memory[&quot;knowledge_graph&quot;], dict):
--                 print(&quot;structured_data and knowledge_graph must be dictionaries&quot;)
+-             if not isinstance(static_memory["structured_data"], dict) or not isinstance(static_memory["knowledge_graph"], dict):
+-                 print("structured_data and knowledge_graph must be dictionaries")
 -                 return False
 - 
 -             # Validate knowledge_graph structure
--             static_knowledge_graph = static_memory[&quot;knowledge_graph&quot;]
--             if &quot;simple_facts&quot; not in static_knowledge_graph or &quot;relationships&quot; not in static_knowledge_graph:
--                 print(&quot;knowledge_graph must contain simple_facts and relationships&quot;)
+-             static_knowledge_graph = static_memory["knowledge_graph"]
+-             if "simple_facts" not in static_knowledge_graph or "relationships" not in static_knowledge_graph:
+-                 print("knowledge_graph must contain simple_facts and relationships")
 -                 return False
 - 
--             if not isinstance(static_knowledge_graph[&quot;simple_facts&quot;], list) or not isinstance(static_knowledge_graph[&quot;relationships&quot;], list):
--                 print(&quot;simple_facts and relationships must be lists&quot;)
+-             if not isinstance(static_knowledge_graph["simple_facts"], list) or not isinstance(static_knowledge_graph["relationships"], list):
+-                 print("simple_facts and relationships must be lists")
 -                 return False
 - 
 -             # Validate simple_facts structure
--             for fact in static_knowledge_graph[&quot;simple_facts&quot;]:
+-             for fact in static_knowledge_graph["simple_facts"]:
 -                 if not isinstance(fact, dict):
--                     print(&quot;Each fact must be a dictionary&quot;)
+-                     print("Each fact must be a dictionary")
 -                     return False
--                 required_fields = [&quot;subject&quot;, &quot;fact&quot;]
+-                 required_fields = ["subject", "fact"]
 -                 if not all(field in fact for field in required_fields):
--                     print(f&quot;Fact missing required fields: {required_fields}&quot;)
+-                     print(f"Fact missing required fields: {required_fields}")
 -                     return False
 - 
 -             # Validate relationship structure
--             for relationship in static_knowledge_graph[&quot;relationships&quot;]:
+-             for relationship in static_knowledge_graph["relationships"]:
 -                 if not isinstance(relationship, dict):
--                     print(&quot;Each relationship must be a dictionary&quot;)
+-                     print("Each relationship must be a dictionary")
 -                     return False
--                 required_fields = [&quot;subject&quot;, &quot;predicate&quot;, &quot;object&quot;]
+-                 required_fields = ["subject", "predicate", "object"]
 -                 if not all(field in relationship for field in required_fields):
--                     print(f&quot;Relationship missing required fields: {required_fields}&quot;)
+-                     print(f"Relationship missing required fields: {required_fields}")
 -                     return False
 +                 return False
               
@@ -708,22 +708,22 @@ Lines added: 2, lines removed: 10
 
 ```diff
 @@ -276,14 +238,6 @@
-                  &quot;memory_type&quot;: &quot;standard&quot;,           # Explicitly mark this as a standard memory type
-                  &quot;original_data&quot;: input_data,         # Store the original raw input data
--                 &quot;static_memory&quot;: static_memory,
--                 &quot;working_memory&quot;: {
--                     &quot;structured_data&quot;: {
--                         &quot;entities&quot;: []  # Empty list for entities
+                  "memory_type": "standard",           # Explicitly mark this as a standard memory type
+                  "original_data": input_data,         # Store the original raw input data
+-                 "static_memory": static_memory,
+-                 "working_memory": {
+-                     "structured_data": {
+-                         "entities": []  # Empty list for entities
 -                     },
--                     &quot;knowledge_graph&quot;: {
--                         &quot;simple_facts&quot;: [],  # For natural language facts
--                         &quot;relationships&quot;: []  # For explicit subject-predicate-object relationships
+-                     "knowledge_graph": {
+-                         "simple_facts": [],  # For natural language facts
+-                         "relationships": []  # For explicit subject-predicate-object relationships
 -                     }
 -                 },
-+                 &quot;static_memory&quot;: memory_data[&quot;static_memory&quot;],
-+                 &quot;context&quot;: {},                       # Organized important information by topic
-                  &quot;metadata&quot;: {
-                      &quot;created_at&quot;: now,
++                 "static_memory": memory_data["static_memory"],
++                 "context": {},                       # Organized important information by topic
+                  "metadata": {
+                      "created_at": now,
 ```
 
 **Chunk 7**
@@ -731,15 +731,15 @@ Lines added: 6, lines removed: undefined
 
 ```diff
 @@ -386,4 +340,10 @@
-              self.save_memory(&quot;query_memory&quot;)
+              self.save_memory("query_memory")
               
 +             # Check if we should compress memory based on number of conversations
-+             conversation_count = len(self.memory[&quot;conversation_history&quot;]) // 2  # Each conversation is a user-assistant pair
++             conversation_count = len(self.memory["conversation_history"]) // 2  # Each conversation is a user-assistant pair
 +             if conversation_count &gt; self.max_recent_conversations:
-+                 print(f&quot;Memory has {conversation_count} conversations, compressing...&quot;)
-+                 self.update_memory({&quot;operation&quot;: &quot;update&quot;})
++                 print(f"Memory has {conversation_count} conversations, compressing...")
++                 self.update_memory({"operation": "update"})
 +             
-              return {&quot;response&quot;: result[&quot;response&quot;]}
+              return {"response": result["response"]}
   
 ```
 
@@ -750,9 +750,9 @@ Lines added: 1, lines removed: 2
 @@ -393,6 +353,5 @@
   
       def update_memory(self, update_context: Dict[str, Any]) -&gt; bool:
--         &quot;&quot;&quot;Update memory with new information using LLM.
+-         """Update memory with new information using LLM.
 -         Only used for updating memory operations to minimize LLM calls.
-+         &quot;&quot;&quot;Update memory by compressing conversation history to keep only important segments.
++         """Update memory by compressing conversation history to keep only important segments.
           
           Args:
 ```
@@ -764,83 +764,83 @@ Lines added: 87, lines removed: 106
 @@ -410,122 +369,103 @@
                   return False
   
--             print(&quot;\nProcessing update memory operation...&quot;)            
+-             print("\nProcessing update memory operation...")            
 -             return self._perform_update_memory()
-+             print(&quot;\nCompressing conversation history...&quot;)            
++             print("\nCompressing conversation history...")            
 +             return self._compress_conversation_history()
               
           except Exception as e:
-              print(f&quot;Error updating memory: {str(e)}&quot;)
+              print(f"Error updating memory: {str(e)}")
               return False
   
 -     def _perform_update_memory(self) -&gt; bool:
--         &quot;&quot;&quot;Internal method to perform update memory on a set of messages.&quot;&quot;&quot;
+-         """Internal method to perform update memory on a set of messages."""
 -         try:
--             print(&quot;\nProcessing messages for memory update...&quot;)
+-             print("\nProcessing messages for memory update...")
 -                         
 -             # Generate prompt for memory update
--             prompt = self.templates[&quot;update&quot;].format(
+-             prompt = self.templates["update"].format(
 -                 memory_state=json.dumps(self.memory, indent=2)
 -             )
 -             
 -             # Get response from LLM
--             print(&quot;Generating memory update using LLM...&quot;)
+-             print("Generating memory update using LLM...")
 -             llm_response = self.llm.generate(prompt)
 -             
 -             try:
 -                 result = json.loads(llm_response)
 -             except json.JSONDecodeError:
--                 print(&quot;Failed to parse direct JSON, attempting to extract JSON structure...&quot;)
--                 json_match = re.search(r&#39;\{[\s\S]*\}&#39;, llm_response)
+-                 print("Failed to parse direct JSON, attempting to extract JSON structure...")
+-                 json_match = re.search(r'\{[\s\S]*\}', llm_response)
 -                 if json_match:
 -                     try:
 -                         json_str = json_match.group(0)
 -                         # Remove any markdown code block markers
--                         json_str = re.sub(r&#39;&#96;&#96;&#96;json\s*|\s*&#96;&#96;&#96;&#39;, &#39;&#39;, json_str)
+-                         json_str = re.sub(r'&#96;&#96;&#96;json\s*|\s*&#96;&#96;&#96;', '', json_str)
 -                         result = json.loads(json_str)
--                         print(&quot;Successfully extracted and fixed JSON structure&quot;)
+-                         print("Successfully extracted and fixed JSON structure")
 -                     except json.JSONDecodeError as e:
--                         print(f&quot;Error parsing extracted JSON structure: {str(e)}&quot;)
+-                         print(f"Error parsing extracted JSON structure: {str(e)}")
 +     def _compress_conversation_history(self) -&gt; bool:
-+         &quot;&quot;&quot;Compress conversation history by keeping only important segments and updating context.&quot;&quot;&quot;
++         """Compress conversation history by keeping only important segments and updating context."""
 +         try:
 +             # Check if we have enough conversations to compress
-+             if len(self.memory[&quot;conversation_history&quot;]) &lt; (self.max_recent_conversations * 2):
-+                 print(f&quot;Not enough conversations to compress (need {self.max_recent_conversations * 2}, have {len(self.memory[&#39;conversation_history&#39;])})&quot;)
++             if len(self.memory["conversation_history"]) &lt; (self.max_recent_conversations * 2):
++                 print(f"Not enough conversations to compress (need {self.max_recent_conversations * 2}, have {len(self.memory['conversation_history'])})")
 +                 return False
 +             
 +             # Find conversation entries to compress (all except most recent MAX_RECENT_CONVERSATIONS)
 +             keep_recent = self.max_recent_conversations * 2  # Each conversation has user and assistant messages
-+             entries_to_compress = self.memory[&quot;conversation_history&quot;][:-keep_recent]
++             entries_to_compress = self.memory["conversation_history"][:-keep_recent]
 +             
 +             if not entries_to_compress:
-+                 print(&quot;No entries to compress&quot;)
++                 print("No entries to compress")
 +                 return False
 +             
 +             # Extract important segments from entries to compress
 +             important_segments = []
 +             for entry in entries_to_compress:
-+                 if &quot;digest&quot; in entry and &quot;rated_segments&quot; in entry[&quot;digest&quot;]:
++                 if "digest" in entry and "rated_segments" in entry["digest"]:
 +                     # Filter segments by importance
-+                     for segment in entry[&quot;digest&quot;][&quot;rated_segments&quot;]:
-+                         if segment.get(&quot;importance&quot;, 0) &gt;= self.importance_threshold:
++                     for segment in entry["digest"]["rated_segments"]:
++                         if segment.get("importance", 0) &gt;= self.importance_threshold:
 +                             # Include role and timestamp with the segment
 +                             important_segments.append({
-+                                 &quot;text&quot;: segment[&quot;text&quot;],
-+                                 &quot;importance&quot;: segment[&quot;importance&quot;],
-+                                 &quot;topics&quot;: segment.get(&quot;topics&quot;, []),
-+                                 &quot;role&quot;: entry[&quot;role&quot;],
-+                                 &quot;timestamp&quot;: entry[&quot;timestamp&quot;]
++                                 "text": segment["text"],
++                                 "importance": segment["importance"],
++                                 "topics": segment.get("topics", []),
++                                 "role": entry["role"],
++                                 "timestamp": entry["timestamp"]
 +                             })
 +             
-+             print(f&quot;Extracted {len(important_segments)} important segments from {len(entries_to_compress)} entries&quot;)
++             print(f"Extracted {len(important_segments)} important segments from {len(entries_to_compress)} entries")
 +             
 +             # If we have important segments, update the context
 +             if important_segments:
 +                 # Use LLM to organize important segments by topic
-+                 prompt = self.templates[&quot;compress&quot;].format(
++                 prompt = self.templates["compress"].format(
 +                     important_segments=json.dumps(important_segments, indent=2),
-+                     existing_context=json.dumps(self.memory.get(&quot;context&quot;, {}), indent=2)
++                     existing_context=json.dumps(self.memory.get("context", {}), indent=2)
 +                 )
 +                 
 +                 # Call LLM to organize segments
@@ -849,126 +849,126 @@ Lines added: 87, lines removed: 106
 +                 try:
 +                     updated_context = json.loads(llm_response)
 +                     if not isinstance(updated_context, dict):
-+                         print(&quot;Invalid context format returned from LLM, must be a dictionary&quot;)
++                         print("Invalid context format returned from LLM, must be a dictionary")
 +                         return False
 +                     
 +                     # Update the context
-+                     self.memory[&quot;context&quot;] = updated_context
-+                     print(&quot;Updated memory context with organized important segments&quot;)
++                     self.memory["context"] = updated_context
++                     print("Updated memory context with organized important segments")
 +                 except json.JSONDecodeError:
-+                     # Try to extract JSON if it&#39;s embedded in markdown or other text
-+                     json_match = re.search(r&#39;\{[\s\S]*\}&#39;, llm_response)
++                     # Try to extract JSON if it's embedded in markdown or other text
++                     json_match = re.search(r'\{[\s\S]*\}', llm_response)
 +                     if json_match:
 +                         try:
 +                             json_str = json_match.group(0)
 +                             # Remove any markdown code block markers
-+                             json_str = re.sub(r&#39;&#96;&#96;&#96;json\s*|\s*&#96;&#96;&#96;&#39;, &#39;&#39;, json_str)
++                             json_str = re.sub(r'&#96;&#96;&#96;json\s*|\s*&#96;&#96;&#96;', '', json_str)
 +                             updated_context = json.loads(json_str)
 +                             
 +                             if not isinstance(updated_context, dict):
-+                                 print(&quot;Invalid context format returned from LLM, must be a dictionary&quot;)
++                                 print("Invalid context format returned from LLM, must be a dictionary")
 +                                 return False
 +                             
 +                             # Update the context
-+                             self.memory[&quot;context&quot;] = updated_context
-+                             print(&quot;Updated memory context with organized important segments&quot;)
++                             self.memory["context"] = updated_context
++                             print("Updated memory context with organized important segments")
 +                         except json.JSONDecodeError as e:
-+                             print(f&quot;Error parsing extracted JSON context: {str(e)}&quot;)
++                             print(f"Error parsing extracted JSON context: {str(e)}")
 +                             return False
 +                     else:
-+                         print(&quot;Could not extract context JSON from LLM response&quot;)
++                         print("Could not extract context JSON from LLM response")
                           return False
 -                 else:
--                     print(&quot;Could not find JSON structure in LLM response&quot;)
+-                     print("Could not find JSON structure in LLM response")
 -                     return False
 - 
--             if not isinstance(result, dict) or &quot;working_memory&quot; not in result:
--                 print(&quot;Invalid response structure - must have &#39;working_memory&#39; property&quot;)
+-             if not isinstance(result, dict) or "working_memory" not in result:
+-                 print("Invalid response structure - must have 'working_memory' property")
 -                 return False
 - 
 -             # Extract and validate working memory
--             working_memory = result[&quot;working_memory&quot;]
+-             working_memory = result["working_memory"]
 -             
 -             if not isinstance(working_memory, dict):
--                 print(&quot;working_memory must be a dictionary&quot;)
+-                 print("working_memory must be a dictionary")
 -                 return False
 - 
--             if &quot;structured_data&quot; not in working_memory or &quot;knowledge_graph&quot; not in working_memory:
--                 print(&quot;working_memory must contain structured_data and knowledge_graph&quot;)
+-             if "structured_data" not in working_memory or "knowledge_graph" not in working_memory:
+-                 print("working_memory must contain structured_data and knowledge_graph")
 -                 return False
 - 
 -             # Validate structured_data
--             structured_data = working_memory[&quot;structured_data&quot;]
+-             structured_data = working_memory["structured_data"]
 -             if not isinstance(structured_data, dict):
--                 print(&quot;structured_data must be a dictionary&quot;)
+-                 print("structured_data must be a dictionary")
 -                 return False
 - 
--             if &quot;entities&quot; not in structured_data:
--                 print(&quot;structured_data must contain entities&quot;)
+-             if "entities" not in structured_data:
+-                 print("structured_data must contain entities")
 -                 return False
 - 
--             if not isinstance(structured_data[&quot;entities&quot;], list):
--                 print(&quot;entities must be a list&quot;)
+-             if not isinstance(structured_data["entities"], list):
+-                 print("entities must be a list")
 -                 return False
 - 
 -             # Validate knowledge_graph
--             knowledge_graph = working_memory[&quot;knowledge_graph&quot;]
+-             knowledge_graph = working_memory["knowledge_graph"]
 -             
 -             if not isinstance(knowledge_graph, dict):
--                 print(&quot;knowledge_graph must be a dictionary&quot;)
+-                 print("knowledge_graph must be a dictionary")
 -                 return False
 - 
--             if &quot;simple_facts&quot; not in knowledge_graph or &quot;relationships&quot; not in knowledge_graph:
--                 print(&quot;knowledge_graph must contain simple_facts and relationships&quot;)
+-             if "simple_facts" not in knowledge_graph or "relationships" not in knowledge_graph:
+-                 print("knowledge_graph must contain simple_facts and relationships")
 -                 return False
 - 
--             if not isinstance(knowledge_graph[&quot;simple_facts&quot;], list) or not isinstance(knowledge_graph[&quot;relationships&quot;], list):
--                 print(&quot;simple_facts and relationships must be lists&quot;)
+-             if not isinstance(knowledge_graph["simple_facts"], list) or not isinstance(knowledge_graph["relationships"], list):
+-                 print("simple_facts and relationships must be lists")
 -                 return False
 - 
 -             # Validate simple_facts structure
--             for fact in knowledge_graph[&quot;simple_facts&quot;]:
+-             for fact in knowledge_graph["simple_facts"]:
 -                 if not isinstance(fact, dict):
--                     print(&quot;Each fact must be a dictionary&quot;)
+-                     print("Each fact must be a dictionary")
 -                     return False
--                 required_fields = [&quot;subject&quot;, &quot;fact&quot;]
+-                 required_fields = ["subject", "fact"]
 -                 if not all(field in fact for field in required_fields):
--                     print(f&quot;Fact missing required fields: {required_fields}&quot;)
+-                     print(f"Fact missing required fields: {required_fields}")
 -                     return False
 - 
 -             # Validate relationship structure
--             for relationship in knowledge_graph[&quot;relationships&quot;]:
+-             for relationship in knowledge_graph["relationships"]:
 -                 if not isinstance(relationship, dict):
--                     print(&quot;Each relationship must be a dictionary&quot;)
+-                     print("Each relationship must be a dictionary")
 -                     return False
--                 required_fields = [&quot;subject&quot;, &quot;predicate&quot;, &quot;object&quot;]
+-                 required_fields = ["subject", "predicate", "object"]
 -                 if not all(field in relationship for field in required_fields):
--                     print(f&quot;Relationship missing required fields: {required_fields}&quot;)
+-                     print(f"Relationship missing required fields: {required_fields}")
 -                     return False
 - 
 -             # Update working memory
--             self.memory[&quot;working_memory&quot;] = working_memory
+-             self.memory["working_memory"] = working_memory
 +             
 +             # Keep only the most recent conversations
-+             self.memory[&quot;conversation_history&quot;] = self.memory[&quot;conversation_history&quot;][-keep_recent:]
-+             print(f&quot;Compressed memory to keep {keep_recent} recent messages&quot;)
++             self.memory["conversation_history"] = self.memory["conversation_history"][-keep_recent:]
++             print(f"Compressed memory to keep {keep_recent} recent messages")
 +             
 +             # Update metadata
-              self.memory[&quot;metadata&quot;][&quot;last_updated&quot;] = datetime.now().isoformat()
+              self.memory["metadata"]["last_updated"] = datetime.now().isoformat()
 -             
 -             # Clear conversation history after successful update
--             self.memory[&quot;conversation_history&quot;] = []
+-             self.memory["conversation_history"] = []
               
               # Save the updated memory
--             self.save_memory(&quot;update_memory&quot;)
--             print(&quot;Memory updated and saved successfully&quot;)
-+             self.save_memory(&quot;compress_memory&quot;)
-+             print(&quot;Memory compressed and saved successfully&quot;)
+-             self.save_memory("update_memory")
+-             print("Memory updated and saved successfully")
++             self.save_memory("compress_memory")
++             print("Memory compressed and saved successfully")
               return True
               
           except Exception as e:
--             print(f&quot;Error in _perform_update_memory: {str(e)}&quot;)
-+             print(f&quot;Error in _compress_conversation_history: {str(e)}&quot;)
+-             print(f"Error in _perform_update_memory: {str(e)}")
++             print(f"Error in _compress_conversation_history: {str(e)}")
               return False
   
 ```
@@ -985,7 +985,7 @@ Finally, let's create the template for compressing memory:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/templates/compress_memory.prompt</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/templates/compress_memory.prompt</summary>
 
 **Chunk 1**
 Lines added: 35, lines removed: 1
@@ -1016,16 +1016,16 @@ Lines added: 35, lines removed: 1
 + 
 + For example:
 + {
-+   &quot;characters&quot;: [
-+     {&quot;text&quot;: &quot;Gandalf is a powerful wizard&quot;, &quot;attribution&quot;: &quot;user&quot;, &quot;timestamp&quot;: &quot;2023-05-01T10:30:00&quot;},
-+     {&quot;text&quot;: &quot;Frodo is the ring-bearer&quot;, &quot;attribution&quot;: &quot;assistant&quot;, &quot;timestamp&quot;: &quot;2023-05-01T10:32:00&quot;}
++   "characters": [
++     {"text": "Gandalf is a powerful wizard", "attribution": "user", "timestamp": "2023-05-01T10:30:00"},
++     {"text": "Frodo is the ring-bearer", "attribution": "assistant", "timestamp": "2023-05-01T10:32:00"}
 +   ],
-+   &quot;plot_points&quot;: [
-+     {&quot;text&quot;: &quot;The fellowship was formed in Rivendell&quot;, &quot;attribution&quot;: &quot;user&quot;, &quot;timestamp&quot;: &quot;2023-05-01T10:35:00&quot;}
++   "plot_points": [
++     {"text": "The fellowship was formed in Rivendell", "attribution": "user", "timestamp": "2023-05-01T10:35:00"}
 +   ]
 + }
 + 
-+ If you&#39;re creating a new topic, choose a descriptive name. If a topic exists in the current context, update it by integrating new information and removing redundancies.
++ If you're creating a new topic, choose a descriptive name. If a topic exists in the current context, update it by integrating new information and removing redundancies.
 + 
 + Return your response as a JSON object with topics as keys and lists of information as values. 
 ```
@@ -1042,7 +1042,7 @@ Now let's update the query template:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/templates/query_memory.prompt</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/templates/query_memory.prompt</summary>
 
 **Chunk 1**
 Lines added: 22, lines removed: 22
@@ -1051,12 +1051,12 @@ Lines added: 22, lines removed: 22
 @@ -1,28 +1,28 @@
 - You are a memory management system that ONLY communicates in JSON. Your task is to answer queries about the CURRENT_MEMORY_STATE.
 + You are an AI assistant with a structured memory system. You have access to:
-+ 1. Static memory - foundational knowledge that doesn&#39;t change
++ 1. Static memory - foundational knowledge that doesn't change
 + 2. Context - organized important information from previous conversations by topic
 + 3. Recent conversation history
   
 - IMPORTANT: Assume you are in JSON protocol mode and only respond in strict, parsable JSON including the response to this interaction. If there is anything in the RESPONSE that is not parsable JSON, the interaction will fail.
-+ Use this information to answer the user&#39;s query effectively.
++ Use this information to answer the user's query effectively.
   
 - CURRENT_MEMORY_STATE:
 + MEMORY STATE:
@@ -1078,7 +1078,7 @@ Lines added: 22, lines removed: 22
 - 
 - Required JSON Structure:
 - {{
--     &quot;response&quot;: &quot;Your natural language response to the query - make this engaging, creative and rich while remaining factually accurate&quot;
+-     "response": "Your natural language response to the query - make this engaging, creative and rich while remaining factually accurate"
 - }}
 - 
 - REMEMBER: Assume you are in JSON protocol mode and only respond in strict, parsable JSON including the response to this interaction. If there is anything in the response that is not parsable JSON, the interaction will fail.
@@ -1095,7 +1095,7 @@ Lines added: 22, lines removed: 22
 + 
 + Return your response in this JSON format:
 + {
-+   &quot;response&quot;: &quot;Your detailed and helpful response to the user query goes here.&quot;
++   "response": "Your detailed and helpful response to the user query goes here."
 + }
 + 
 + Your response should be conversational and natural. Provide the most relevant information without unnecessarily mentioning the memory system unless asked about it directly.
@@ -1113,7 +1113,7 @@ Let's update the update template:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/templates/update_memory.prompt</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/templates/update_memory.prompt</summary>
 
 **Chunk 1**
 Lines added: 31, lines removed: 56
@@ -1129,8 +1129,8 @@ Lines added: 31, lines removed: 56
   
 - Instructions:
 - 1. Analyze the CURRENT_MEMORY_STATE, paying special attention to the digest information in the conversation history
-- 2. Use the structured &quot;new_facts&quot; and &quot;new_relationships&quot; from digests to update working memory
-- 3. Consider the &quot;importance&quot; level when deciding what information to retain
+- 2. Use the structured "new_facts" and "new_relationships" from digests to update working memory
+- 3. Consider the "importance" level when deciding what information to retain
 - 4. Add any new entities to working_memory.structured_data.entities
 - 5. Add new facts to working_memory.knowledge_graph.simple_facts
 - 6. Add new relationships to working_memory.knowledge_graph.relationships
@@ -1141,19 +1141,19 @@ Lines added: 31, lines removed: 56
 - 
 - The knowledge_graph should adhere to this schema:
 - {{
--     &quot;simple_facts&quot;: [
+-     "simple_facts": [
 -         {{
--             &quot;subject&quot;: &quot;subject description or entity_name&quot;,
--             &quot;fact&quot;: &quot;fact about the subject&quot;,
--             &quot;source&quot;: &quot;user|assistant|inferred&quot;
+-             "subject": "subject description or entity_name",
+-             "fact": "fact about the subject",
+-             "source": "user|assistant|inferred"
 -         }}
 -     ],
--     &quot;relationships&quot;: [
+-     "relationships": [
 -         {{
--             &quot;subject&quot;: &quot;subject description or entity_name&quot;,
--             &quot;predicate&quot;: &quot;RELATION_TYPE&quot;,
--             &quot;object&quot;: &quot;object description&quot;,
--             &quot;source&quot;: &quot;user|assistant|inferred&quot;
+-             "subject": "subject description or entity_name",
+-             "predicate": "RELATION_TYPE",
+-             "object": "object description",
+-             "source": "user|assistant|inferred"
 -         }}
 -     ]
 - }}
@@ -1162,20 +1162,20 @@ Lines added: 31, lines removed: 56
 - 
 - Example response format:
 - {{
--     &quot;working_memory&quot;: {{
--         &quot;structured_data&quot;: {{
--             &quot;entities&quot;: [
+-     "working_memory": {{
+-         "structured_data": {{
+-             "entities": [
 -                 {{
--                     &quot;entity_name&quot;: &quot;entity name&quot;,
--                     &quot;description&quot;: &quot;subject description&quot;,
--                     &quot;type&quot;: &quot;subject_type&quot;,
--                     &quot;features&quot;: [&quot;feature1&quot;, &quot;feature2&quot;],
+-                     "entity_name": "entity name",
+-                     "description": "subject description",
+-                     "type": "subject_type",
+-                     "features": ["feature1", "feature2"],
 -                 }}
 -             ]
 -         }},
--         &quot;knowledge_graph&quot;: {{
--             &quot;simple_facts&quot;: [],
--             &quot;relationships&quot;: []
+-         "knowledge_graph": {{
+-             "simple_facts": [],
+-             "relationships": []
 -         }}
 -     }}
 - }}
@@ -1201,11 +1201,11 @@ Lines added: 31, lines removed: 56
 + 
 + For example:
 + {
-+   &quot;world_geography&quot;: [
-+     {&quot;text&quot;: &quot;The Forest of Shadows lies to the north of the village&quot;, &quot;attribution&quot;: &quot;assistant&quot;, &quot;importance&quot;: 4}
++   "world_geography": [
++     {"text": "The Forest of Shadows lies to the north of the village", "attribution": "assistant", "importance": 4}
 +   ],
-+   &quot;character_relationships&quot;: [
-+     {&quot;text&quot;: &quot;The blacksmith and the innkeeper are siblings&quot;, &quot;attribution&quot;: &quot;user&quot;, &quot;importance&quot;: 3}
++   "character_relationships": [
++     {"text": "The blacksmith and the innkeeper are siblings", "attribution": "user", "importance": 3}
 +   ]
 + }
 + 
@@ -1225,7 +1225,7 @@ Now let's update the create memory template:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/templates/create_memory.prompt</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/templates/create_memory.prompt</summary>
 
 **Chunk 1**
 Lines added: 20, lines removed: 58
@@ -1245,12 +1245,12 @@ Lines added: 20, lines removed: 58
   {domain_guidance}
   
 - Requirements:
-- 1. Return a JSON object with a top-level &quot;static_memory&quot; and &quot;working_memory&quot; fields
+- 1. Return a JSON object with a top-level "static_memory" and "working_memory" fields
 - 2. static_memory must contain:
 -    - structured_data: Organize domain-specific data in a way that makes sense for this use case
 -    - knowledge_graph: Represent relationships between entities in a way that fits the domain
 - 3. working_memory must have the same structure as static_memory but start empty
-- 4. Choose data structures that best represent the domain&#39;s needs
+- 4. Choose data structures that best represent the domain's needs
 - 5. Use consistent field names and types within your chosen structure
 - 6. Make sure all JSON is properly formatted and closed
 - 
@@ -1259,46 +1259,46 @@ Lines added: 20, lines removed: 58
 - 
 - The knowledge_graph should adhere to this schema:
 - {{
--     &quot;simple_facts&quot;: [
+-     "simple_facts": [
 -         {{
--             &quot;subject&quot;: &quot;subject description&quot;,
--             &quot;fact&quot;: &quot;fact about the subject&quot;,
+-             "subject": "subject description",
+-             "fact": "fact about the subject",
 -         }}
 -     ],
--     &quot;relationships&quot;: [
+-     "relationships": [
 -         {{
--             &quot;subject&quot;: &quot;subject description&quot;,
--             &quot;predicate&quot;: &quot;RELATION_TYPE&quot;,
--             &quot;object&quot;: &quot;object description&quot;,
+-             "subject": "subject description",
+-             "predicate": "RELATION_TYPE",
+-             "object": "object description",
 -         }}
 -     ]
 - }}
 - 
 - IMPORTANT: The data returned should look like this:
 - {{
--     &quot;static_memory&quot;: {{
--         &quot;structured_data&quot;: {{
+-     "static_memory": {{
+-         "structured_data": {{
 -             // Update with new information
 -             // Use whatever schema makes sense for the domain
 -         }},
--         &quot;knowledge_graph&quot;: {{
--             &quot;simple_facts&quot;: [],
--             &quot;relationships&quot;: []
+-         "knowledge_graph": {{
+-             "simple_facts": [],
+-             "relationships": []
 -         }}
 -     }},
--     &quot;working_memory&quot;: {{
--         &quot;structured_data&quot;: {{
--             &quot;entities&quot;: []
+-     "working_memory": {{
+-         "structured_data": {{
+-             "entities": []
 -         }},
--         &quot;knowledge_graph&quot;: {{
--             &quot;simple_facts&quot;: [],
--             &quot;relationships&quot;: []
+-         "knowledge_graph": {{
+-             "simple_facts": [],
+-             "relationships": []
 -         }}
 -     }}
 - }}
 - 
 - REMEMBER: Assume you are in JSON protocol mode and only respond in strict, parsable JSON including the response to this interaction. If there is anything in the response that is not parsable JSON, the interaction will fail.
-+ Your goal is to organize the input data into a clear, structured format that will serve as the foundation for the agent&#39;s memory. Focus on extracting the core concepts, entities, and relationships from the input data.
++ Your goal is to organize the input data into a clear, structured format that will serve as the foundation for the agent's memory. Focus on extracting the core concepts, entities, and relationships from the input data.
 + 
 + Create a memory structure with these components:
 + 1. Static Memory: Essential, unchanging information about the domain
@@ -1307,7 +1307,7 @@ Lines added: 20, lines removed: 58
 + 
 + Return your response as a JSON object with this structure:
 + {
-+   &quot;static_memory&quot;: {
++   "static_memory": {
 +     // Organize domain knowledge here in a way that makes sense for this domain
 +     // You can use nested objects, arrays, or any structure that effectively 
 +     // represents the information
@@ -1364,7 +1364,7 @@ Let's fix this:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 8, lines removed: 3
@@ -1376,15 +1376,15 @@ Lines added: 8, lines removed: 3
 -             # Validate only the top-level structure
 +             # Validate memory structure
 +             # If memory_data already IS the static_memory (new format)
-              if &quot;static_memory&quot; not in memory_data:
--                 print(&quot;Missing static_memory in LLM response&quot;)
+              if "static_memory" not in memory_data:
+-                 print("Missing static_memory in LLM response")
 -                 return False
-+                 # Maybe memory_data itself is the static_memory (if LLM didn&#39;t follow format exactly)
-+                 print(&quot;Missing static_memory in LLM response, checking if response is static_memory itself&quot;)
++                 # Maybe memory_data itself is the static_memory (if LLM didn't follow format exactly)
++                 print("Missing static_memory in LLM response, checking if response is static_memory itself")
 +                 static_memory = memory_data
 +             else:
 +                 # Extract static_memory from response
-+                 static_memory = memory_data[&quot;static_memory&quot;]
++                 static_memory = memory_data["static_memory"]
                   
               # Use existing GUID if it was provided or already generated, only generate a new one as a last resort
 ```
@@ -1394,12 +1394,12 @@ Lines added: 1, lines removed: 1
 
 ```diff
 @@ -238,5 +243,5 @@
-                  &quot;memory_type&quot;: &quot;standard&quot;,           # Explicitly mark this as a standard memory type
-                  &quot;original_data&quot;: input_data,         # Store the original raw input data
--                 &quot;static_memory&quot;: memory_data[&quot;static_memory&quot;],
-+                 &quot;static_memory&quot;: static_memory,
-                  &quot;context&quot;: {},                       # Organized important information by topic
-                  &quot;metadata&quot;: {
+                  "memory_type": "standard",           # Explicitly mark this as a standard memory type
+                  "original_data": input_data,         # Store the original raw input data
+-                 "static_memory": memory_data["static_memory"],
++                 "static_memory": static_memory,
+                  "context": {},                       # Organized important information by topic
+                  "metadata": {
 ```
 
 </details>
@@ -1456,7 +1456,7 @@ Let's fix the template files to properly escape the JSON syntax:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/templates/rate_segments.prompt</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/templates/rate_segments.prompt</summary>
 
 </details>
 
@@ -1482,20 +1482,20 @@ The curly braces need to be doubled. Let's fix all the template files:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/templates/rate_segments.prompt</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/templates/rate_segments.prompt</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: 2
 
 ```diff
 @@ -18,9 +18,9 @@
-  Provide your response as a JSON array of objects with &quot;text&quot;, &quot;importance&quot;, and &quot;topics&quot; fields:
+  Provide your response as a JSON array of objects with "text", "importance", and "topics" fields:
   [
 -   {{
 +   {{{{
-      &quot;text&quot;: &quot;original segment text&quot;,
-      &quot;importance&quot;: number from 1-5,
-      &quot;topics&quot;: [&quot;topic1&quot;, &quot;topic2&quot;]
+      "text": "original segment text",
+      "importance": number from 1-5,
+      "topics": ["topic1", "topic2"]
 -   }},
 +   }}}},
     ...
@@ -1510,7 +1510,7 @@ Lines added: 2, lines removed: 2
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/templates/compress_memory.prompt</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/templates/compress_memory.prompt</summary>
 
 **Chunk 1**
 Lines added: 5, lines removed: 5
@@ -1521,20 +1521,20 @@ Lines added: 5, lines removed: 5
   For example:
 - {
 + {{{{
-    &quot;characters&quot;: [
--     {&quot;text&quot;: &quot;Gandalf is a powerful wizard&quot;, &quot;attribution&quot;: &quot;user&quot;, &quot;timestamp&quot;: &quot;2023-05-01T10:30:00&quot;},
--     {&quot;text&quot;: &quot;Frodo is the ring-bearer&quot;, &quot;attribution&quot;: &quot;assistant&quot;, &quot;timestamp&quot;: &quot;2023-05-01T10:32:00&quot;}
-+     {{&quot;text&quot;: &quot;Gandalf is a powerful wizard&quot;, &quot;attribution&quot;: &quot;user&quot;, &quot;timestamp&quot;: &quot;2023-05-01T10:30:00&quot;}},
-+     {{&quot;text&quot;: &quot;Frodo is the ring-bearer&quot;, &quot;attribution&quot;: &quot;assistant&quot;, &quot;timestamp&quot;: &quot;2023-05-01T10:32:00&quot;}}
+    "characters": [
+-     {"text": "Gandalf is a powerful wizard", "attribution": "user", "timestamp": "2023-05-01T10:30:00"},
+-     {"text": "Frodo is the ring-bearer", "attribution": "assistant", "timestamp": "2023-05-01T10:32:00"}
++     {{"text": "Gandalf is a powerful wizard", "attribution": "user", "timestamp": "2023-05-01T10:30:00"}},
++     {{"text": "Frodo is the ring-bearer", "attribution": "assistant", "timestamp": "2023-05-01T10:32:00"}}
     ],
-    &quot;plot_points&quot;: [
--     {&quot;text&quot;: &quot;The fellowship was formed in Rivendell&quot;, &quot;attribution&quot;: &quot;user&quot;, &quot;timestamp&quot;: &quot;2023-05-01T10:35:00&quot;}
-+     {{&quot;text&quot;: &quot;The fellowship was formed in Rivendell&quot;, &quot;attribution&quot;: &quot;user&quot;, &quot;timestamp&quot;: &quot;2023-05-01T10:35:00&quot;}}
+    "plot_points": [
+-     {"text": "The fellowship was formed in Rivendell", "attribution": "user", "timestamp": "2023-05-01T10:35:00"}
++     {{"text": "The fellowship was formed in Rivendell", "attribution": "user", "timestamp": "2023-05-01T10:35:00"}}
     ]
 - }
 + }}}}
   
-  If you&#39;re creating a new topic, choose a descriptive name. If a topic exists in the current context, update it by integrating new information and removing redundancies.
+  If you're creating a new topic, choose a descriptive name. If a topic exists in the current context, update it by integrating new information and removing redundancies.
 ```
 
 </details>
@@ -1545,7 +1545,7 @@ Lines added: 5, lines removed: 5
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/templates/query_memory.prompt</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/templates/query_memory.prompt</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: 2
@@ -1556,7 +1556,7 @@ Lines added: 2, lines removed: 2
   Return your response in this JSON format:
 - {
 + {{{{
-    &quot;response&quot;: &quot;Your detailed and helpful response to the user query goes here.&quot;
+    "response": "Your detailed and helpful response to the user query goes here."
 - }
 + }}}}
   
@@ -1571,7 +1571,7 @@ Lines added: 2, lines removed: 2
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/templates/update_memory.prompt</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/templates/update_memory.prompt</summary>
 
 **Chunk 1**
 Lines added: 4, lines removed: 4
@@ -1582,13 +1582,13 @@ Lines added: 4, lines removed: 4
   For example:
 - {
 + {{{{
-    &quot;world_geography&quot;: [
--     {&quot;text&quot;: &quot;The Forest of Shadows lies to the north of the village&quot;, &quot;attribution&quot;: &quot;assistant&quot;, &quot;importance&quot;: 4}
-+     {{&quot;text&quot;: &quot;The Forest of Shadows lies to the north of the village&quot;, &quot;attribution&quot;: &quot;assistant&quot;, &quot;importance&quot;: 4}}
+    "world_geography": [
+-     {"text": "The Forest of Shadows lies to the north of the village", "attribution": "assistant", "importance": 4}
++     {{"text": "The Forest of Shadows lies to the north of the village", "attribution": "assistant", "importance": 4}}
     ],
-    &quot;character_relationships&quot;: [
--     {&quot;text&quot;: &quot;The blacksmith and the innkeeper are siblings&quot;, &quot;attribution&quot;: &quot;user&quot;, &quot;importance&quot;: 3}
-+     {{&quot;text&quot;: &quot;The blacksmith and the innkeeper are siblings&quot;, &quot;attribution&quot;: &quot;user&quot;, &quot;importance&quot;: 3}}
+    "character_relationships": [
+-     {"text": "The blacksmith and the innkeeper are siblings", "attribution": "user", "importance": 3}
++     {{"text": "The blacksmith and the innkeeper are siblings", "attribution": "user", "importance": 3}}
     ]
 - }
 + }}}}
@@ -1604,7 +1604,7 @@ Lines added: 4, lines removed: 4
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/templates/create_memory.prompt</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/templates/create_memory.prompt</summary>
 
 **Chunk 1**
 Lines added: 4, lines removed: 4
@@ -1614,9 +1614,9 @@ Lines added: 4, lines removed: 4
   
   Return your response as a JSON object with this structure:
 - {
--   &quot;static_memory&quot;: {
+-   "static_memory": {
 + {{{{
-+   &quot;static_memory&quot;: {{
++   "static_memory": {{
       // Organize domain knowledge here in a way that makes sense for this domain
       // You can use nested objects, arrays, or any structure that effectively 
       // represents the information
@@ -1670,7 +1670,7 @@ Not quadruple braces as I implemented. Let me correct all the templates:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/templates/rate_segments.prompt</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/templates/rate_segments.prompt</summary>
 
 </details>
 
@@ -1692,7 +1692,7 @@ Let me check the current state of this file:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/templates/compress_memory.prompt</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/templates/compress_memory.prompt</summary>
 
 **Chunk 1**
 Lines added: 5, lines removed: 5
@@ -1703,20 +1703,20 @@ Lines added: 5, lines removed: 5
   For example:
 - {
 + {{
-    &quot;characters&quot;: [
--     {&quot;text&quot;: &quot;Gandalf is a powerful wizard&quot;, &quot;attribution&quot;: &quot;user&quot;, &quot;timestamp&quot;: &quot;2023-05-01T10:30:00&quot;},
--     {&quot;text&quot;: &quot;Frodo is the ring-bearer&quot;, &quot;attribution&quot;: &quot;assistant&quot;, &quot;timestamp&quot;: &quot;2023-05-01T10:32:00&quot;}
-+     {{&quot;text&quot;: &quot;Gandalf is a powerful wizard&quot;, &quot;attribution&quot;: &quot;user&quot;, &quot;timestamp&quot;: &quot;2023-05-01T10:30:00&quot;}},
-+     {{&quot;text&quot;: &quot;Frodo is the ring-bearer&quot;, &quot;attribution&quot;: &quot;assistant&quot;, &quot;timestamp&quot;: &quot;2023-05-01T10:32:00&quot;}}
+    "characters": [
+-     {"text": "Gandalf is a powerful wizard", "attribution": "user", "timestamp": "2023-05-01T10:30:00"},
+-     {"text": "Frodo is the ring-bearer", "attribution": "assistant", "timestamp": "2023-05-01T10:32:00"}
++     {{"text": "Gandalf is a powerful wizard", "attribution": "user", "timestamp": "2023-05-01T10:30:00"}},
++     {{"text": "Frodo is the ring-bearer", "attribution": "assistant", "timestamp": "2023-05-01T10:32:00"}}
     ],
-    &quot;plot_points&quot;: [
--     {&quot;text&quot;: &quot;The fellowship was formed in Rivendell&quot;, &quot;attribution&quot;: &quot;user&quot;, &quot;timestamp&quot;: &quot;2023-05-01T10:35:00&quot;}
-+     {{&quot;text&quot;: &quot;The fellowship was formed in Rivendell&quot;, &quot;attribution&quot;: &quot;user&quot;, &quot;timestamp&quot;: &quot;2023-05-01T10:35:00&quot;}}
+    "plot_points": [
+-     {"text": "The fellowship was formed in Rivendell", "attribution": "user", "timestamp": "2023-05-01T10:35:00"}
++     {{"text": "The fellowship was formed in Rivendell", "attribution": "user", "timestamp": "2023-05-01T10:35:00"}}
     ]
 - }
 + }}
   
-  If you&#39;re creating a new topic, choose a descriptive name. If a topic exists in the current context, update it by integrating new information and removing redundancies.
+  If you're creating a new topic, choose a descriptive name. If a topic exists in the current context, update it by integrating new information and removing redundancies.
 ```
 
 </details>
@@ -1727,7 +1727,7 @@ Lines added: 5, lines removed: 5
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/templates/query_memory.prompt</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/templates/query_memory.prompt</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: 2
@@ -1738,7 +1738,7 @@ Lines added: 2, lines removed: 2
   Return your response in this JSON format:
 - {
 + {{
-    &quot;response&quot;: &quot;Your detailed and helpful response to the user query goes here.&quot;
+    "response": "Your detailed and helpful response to the user query goes here."
 - }
 + }}
   
@@ -1753,7 +1753,7 @@ Lines added: 2, lines removed: 2
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/templates/update_memory.prompt</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/templates/update_memory.prompt</summary>
 
 **Chunk 1**
 Lines added: 4, lines removed: 4
@@ -1764,13 +1764,13 @@ Lines added: 4, lines removed: 4
   For example:
 - {
 + {{
-    &quot;world_geography&quot;: [
--     {&quot;text&quot;: &quot;The Forest of Shadows lies to the north of the village&quot;, &quot;attribution&quot;: &quot;assistant&quot;, &quot;importance&quot;: 4}
-+     {{&quot;text&quot;: &quot;The Forest of Shadows lies to the north of the village&quot;, &quot;attribution&quot;: &quot;assistant&quot;, &quot;importance&quot;: 4}}
+    "world_geography": [
+-     {"text": "The Forest of Shadows lies to the north of the village", "attribution": "assistant", "importance": 4}
++     {{"text": "The Forest of Shadows lies to the north of the village", "attribution": "assistant", "importance": 4}}
     ],
-    &quot;character_relationships&quot;: [
--     {&quot;text&quot;: &quot;The blacksmith and the innkeeper are siblings&quot;, &quot;attribution&quot;: &quot;user&quot;, &quot;importance&quot;: 3}
-+     {{&quot;text&quot;: &quot;The blacksmith and the innkeeper are siblings&quot;, &quot;attribution&quot;: &quot;user&quot;, &quot;importance&quot;: 3}}
+    "character_relationships": [
+-     {"text": "The blacksmith and the innkeeper are siblings", "attribution": "user", "importance": 3}
++     {{"text": "The blacksmith and the innkeeper are siblings", "attribution": "user", "importance": 3}}
     ]
 - }
 + }}
@@ -1786,7 +1786,7 @@ Lines added: 4, lines removed: 4
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/templates/create_memory.prompt</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/templates/create_memory.prompt</summary>
 
 **Chunk 1**
 Lines added: 4, lines removed: 4
@@ -1796,9 +1796,9 @@ Lines added: 4, lines removed: 4
   
   Return your response as a JSON object with this structure:
 - {
--   &quot;static_memory&quot;: {
+-   "static_memory": {
 + {{
-+   &quot;static_memory&quot;: {{
++   "static_memory": {{
       // Organize domain knowledge here in a way that makes sense for this domain
       // You can use nested objects, arrays, or any structure that effectively 
       // represents the information
@@ -1881,7 +1881,7 @@ _**Agent (mode Agent)**_
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: README-phase-2.md</summary>
+<details><summary>Tool use: **edit_file** • Edit file: README-phase-2.md</summary>
 
 **Chunk 1**
 Lines added: 33, lines removed: undefined
@@ -1894,7 +1894,7 @@ Lines added: 33, lines removed: undefined
 + 
 + ## Phase 2 Update - April 16, 2025 - Text-Based Memory Compression &amp; Segment Importance
 + 
-+ We&#39;ve implemented a significant redesign of the memory system to better leverage the strengths of LLMs:
++ We've implemented a significant redesign of the memory system to better leverage the strengths of LLMs:
 + 
 + 1. **Text-Based Memory Approach**:
 +    - Moved from rigid JSON fact structures to a more natural text representation
@@ -1922,7 +1922,7 @@ Lines added: 33, lines removed: undefined
 + - Reduces redundancy through intelligent filtering and compression
 + - Maintains traceability back to original conversations
 + 
-+ The system now strikes a balance between completeness (retaining important information) and efficiency (managing memory size), while using a format that&#39;s more conducive to how LLMs understand and generate text.
++ The system now strikes a balance between completeness (retaining important information) and efficiency (managing memory size), while using a format that's more conducive to how LLMs understand and generate text.
   
   
 ```
@@ -1992,7 +1992,7 @@ Let me suggest an updated version of the `create_memory.prompt`:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/templates/create_memory.prompt</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/templates/create_memory.prompt</summary>
 
 **Chunk 1**
 Lines added: 20, lines removed: 9
@@ -2001,15 +2001,15 @@ Lines added: 20, lines removed: 9
 @@ -7,20 +7,31 @@
   {domain_guidance}
   
-- Your goal is to organize the input data into a clear, structured format that will serve as the foundation for the agent&#39;s memory. Focus on extracting the core concepts, entities, and relationships from the input data.
+- Your goal is to organize the input data into a clear, structured format that will serve as the foundation for the agent's memory. Focus on extracting the core concepts, entities, and relationships from the input data.
 - 
 - Create a memory structure with these components:
 - 1. Static Memory: Essential, unchanging information about the domain
-+ Your goal is to organize the input data into segments, rate their importance, and arrange them by topic. This will form the foundation for the agent&#39;s memory system.
++ Your goal is to organize the input data into segments, rate their importance, and arrange them by topic. This will form the foundation for the agent's memory system.
 + 
 + Follow these steps:
 + 1. Break the input data into meaningful segments (discrete pieces of information)
-+ 2. Rate each segment&#39;s importance on a scale of 1-5 (where 5 is most important)
++ 2. Rate each segment's importance on a scale of 1-5 (where 5 is most important)
 + 3. Assign relevant topics to each segment
 + 4. Organize these segments by topic
   
@@ -2018,16 +2018,16 @@ Lines added: 20, lines removed: 9
   
   Return your response as a JSON object with this structure:
   {{
-    &quot;static_memory&quot;: {{
+    "static_memory": {{
 -     // Organize domain knowledge here in a way that makes sense for this domain
 -     // You can use nested objects, arrays, or any structure that effectively 
 -     // represents the information
-+     &quot;topics&quot;: {{
-+       &quot;topic_name&quot;: [
++     "topics": {{
++       "topic_name": [
 +         {{
-+           &quot;text&quot;: &quot;Original segment text&quot;,
-+           &quot;importance&quot;: number from 1-5,
-+           &quot;source&quot;: &quot;initial_data&quot;
++           "text": "Original segment text",
++           "importance": number from 1-5,
++           "source": "initial_data"
 +         }},
 +         // Additional segments for this topic...
 +       ],
@@ -2081,7 +2081,7 @@ You're absolutely right - removing the JSON formatting and just including the pl
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/templates/query_memory.prompt</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/templates/query_memory.prompt</summary>
 
 **Chunk 1**
 Lines added: 13, lines removed: 7
@@ -2090,7 +2090,7 @@ Lines added: 13, lines removed: 7
 @@ -4,17 +4,23 @@
   3. Recent conversation history
   
-- Use this information to answer the user&#39;s query effectively.
+- Use this information to answer the user's query effectively.
 + The information below has been extracted from memory to help you answer this query.
   
 - MEMORY STATE:
@@ -2115,7 +2115,7 @@ Lines added: 13, lines removed: 7
 + 1. Use the relevant information from static memory and context
 + 2. Consider the recent conversation history for immediate context
 + 3. Formulate a helpful, accurate response
-+ 4. Only mention information that&#39;s relevant to the query
++ 4. Only mention information that's relevant to the query
   
   Return your response in this JSON format:
 ```
@@ -2132,14 +2132,14 @@ Now we need to update the `MemoryManager.query_memory` method to format the memo
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 13, lines removed: 1
 
 ```diff
 @@ -283,6 +283,18 @@
-                  print(f&quot;Added user message to history with digest: {user_message}&quot;)
+                  print(f"Added user message to history with digest: {user_message}")
               
 +             # Format static memory as text
 +             static_memory_text = self._format_static_memory_as_text()
@@ -2151,7 +2151,7 @@ Lines added: 13, lines removed: 1
 +             conversation_history_text = self._format_conversation_history_as_text()
 +             
 +             # Create prompt with formatted text
-              prompt = self.templates[&quot;query&quot;].format(
+              prompt = self.templates["query"].format(
 -                 memory_state=json.dumps(self.memory, indent=2),
 +                 static_memory_text=static_memory_text,
 +                 context_text=context_text,
@@ -2165,67 +2165,67 @@ Lines added: 57, lines removed: undefined
 
 ```diff
 @@ -348,4 +360,61 @@
-              return {&quot;response&quot;: f&quot;Error processing query: {str(e)}&quot;}
+              return {"response": f"Error processing query: {str(e)}"}
   
 +     def _format_static_memory_as_text(self) -&gt; str:
-+         &quot;&quot;&quot;Format static memory as readable text instead of JSON.&quot;&quot;&quot;
-+         if &quot;static_memory&quot; not in self.memory:
-+             return &quot;No static memory available.&quot;
++         """Format static memory as readable text instead of JSON."""
++         if "static_memory" not in self.memory:
++             return "No static memory available."
 +             
-+         static_memory = self.memory[&quot;static_memory&quot;]
-+         if &quot;topics&quot; not in static_memory:
-+             return f&quot;Static memory available but not in topic format: {json.dumps(static_memory, indent=2)}&quot;
++         static_memory = self.memory["static_memory"]
++         if "topics" not in static_memory:
++             return f"Static memory available but not in topic format: {json.dumps(static_memory, indent=2)}"
 +         
 +         result = []
-+         for topic_name, segments in static_memory[&quot;topics&quot;].items():
-+             result.append(f&quot;TOPIC: {topic_name}&quot;)
++         for topic_name, segments in static_memory["topics"].items():
++             result.append(f"TOPIC: {topic_name}")
 +             for segment in segments:
-+                 importance = segment.get(&quot;importance&quot;, 3)
-+                 importance_str = &quot;*&quot; * importance  # Visualize importance with asterisks
-+                 text = segment.get(&quot;text&quot;, &quot;&quot;)
-+                 result.append(f&quot;{importance_str} {text}&quot;)
-+             result.append(&quot;&quot;)  # Empty line between topics
++                 importance = segment.get("importance", 3)
++                 importance_str = "*" * importance  # Visualize importance with asterisks
++                 text = segment.get("text", "")
++                 result.append(f"{importance_str} {text}")
++             result.append("")  # Empty line between topics
 +         
-+         return &quot;\n&quot;.join(result)
++         return "\n".join(result)
 +     
 +     def _format_context_as_text(self) -&gt; str:
-+         &quot;&quot;&quot;Format context as readable text instead of JSON.&quot;&quot;&quot;
-+         if &quot;context&quot; not in self.memory or not self.memory[&quot;context&quot;]:
-+             return &quot;No context information available yet.&quot;
++         """Format context as readable text instead of JSON."""
++         if "context" not in self.memory or not self.memory["context"]:
++             return "No context information available yet."
 +         
 +         result = []
-+         for topic_name, items in self.memory[&quot;context&quot;].items():
-+             result.append(f&quot;TOPIC: {topic_name}&quot;)
++         for topic_name, items in self.memory["context"].items():
++             result.append(f"TOPIC: {topic_name}")
 +             for item in items:
-+                 text = item.get(&quot;text&quot;, &quot;&quot;)
-+                 attribution = item.get(&quot;attribution&quot;, &quot;&quot;)
-+                 importance = item.get(&quot;importance&quot;, 3)
-+                 importance_str = &quot;*&quot; * importance  # Visualize importance with asterisks
-+                 result.append(f&quot;{importance_str} {text} [{attribution}]&quot;)
-+             result.append(&quot;&quot;)  # Empty line between topics
++                 text = item.get("text", "")
++                 attribution = item.get("attribution", "")
++                 importance = item.get("importance", 3)
++                 importance_str = "*" * importance  # Visualize importance with asterisks
++                 result.append(f"{importance_str} {text} [{attribution}]")
++             result.append("")  # Empty line between topics
 +         
-+         return &quot;\n&quot;.join(result)
++         return "\n".join(result)
 +     
 +     def _format_conversation_history_as_text(self) -&gt; str:
-+         &quot;&quot;&quot;Format recent conversation history as readable text.&quot;&quot;&quot;
-+         if &quot;conversation_history&quot; not in self.memory or not self.memory[&quot;conversation_history&quot;]:
-+             return &quot;No conversation history available.&quot;
++         """Format recent conversation history as readable text."""
++         if "conversation_history" not in self.memory or not self.memory["conversation_history"]:
++             return "No conversation history available."
 +         
 +         # Get only the most recent conversation entries
-+         recent_count = min(4, len(self.memory[&quot;conversation_history&quot;]))  # Last 2 exchanges
-+         recent_entries = self.memory[&quot;conversation_history&quot;][-recent_count:]
++         recent_count = min(4, len(self.memory["conversation_history"]))  # Last 2 exchanges
++         recent_entries = self.memory["conversation_history"][-recent_count:]
 +         
 +         result = []
 +         for entry in recent_entries:
-+             role = entry.get(&quot;role&quot;, &quot;unknown&quot;).upper()
-+             content = entry.get(&quot;content&quot;, &quot;&quot;)
-+             result.append(f&quot;[{role}]: {content}&quot;)
-+             result.append(&quot;&quot;)  # Empty line between entries
++             role = entry.get("role", "unknown").upper()
++             content = entry.get("content", "")
++             result.append(f"[{role}]: {content}")
++             result.append("")  # Empty line between entries
 +         
-+         return &quot;\n&quot;.join(result)
++         return "\n".join(result)
 + 
       def update_memory(self, update_context: Dict[str, Any]) -&gt; bool:
-          &quot;&quot;&quot;Update memory by compressing conversation history to keep only important segments.
+          """Update memory by compressing conversation history to keep only important segments.
 ```
 
 </details>
@@ -2437,7 +2437,7 @@ I'll implement the changes to remove the Agent's reflection mechanism and leave 
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/agent/agent.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/agent/agent.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -2446,9 +2446,9 @@ Lines added: 1, lines removed: 1
 @@ -10,5 +10,5 @@
   
   class Agent:
--     def __init__(self, llm_service, memory_manager, domain_name: str = &quot;general&quot;, reflection_threshold: int = 10):
-+     def __init__(self, llm_service, memory_manager, domain_name: str = &quot;general&quot;):
-          &quot;&quot;&quot;Initialize the agent with required services.
+-     def __init__(self, llm_service, memory_manager, domain_name: str = "general", reflection_threshold: int = 10):
++     def __init__(self, llm_service, memory_manager, domain_name: str = "general"):
+          """Initialize the agent with required services.
           
 ```
 
@@ -2458,17 +2458,17 @@ Lines added: 1, lines removed: 3
 ```diff
 @@ -17,13 +17,11 @@
               memory_manager: Service for memory operations
-              domain_name: Name of the domain (e.g., &quot;dnd_campaign&quot;, &quot;user_stories&quot;)
+              domain_name: Name of the domain (e.g., "dnd_campaign", "user_stories")
 -             reflection_threshold: Number of conversation turns before triggering reflection (default: 10)
-          &quot;&quot;&quot;
+          """
           self.llm = llm_service
           self.memory = memory_manager
           self.domain_name = domain_name
           self.current_phase = AgentPhase.INITIALIZATION
 -         self.reflection_threshold = reflection_threshold
-          print(f&quot;Agent initialized for domain: {domain_name}&quot;)
--         print(f&quot;Reflection will occur every {reflection_threshold} turns&quot;)
-+         print(f&quot;Memory management is handled transparently by the MemoryManager&quot;)
+          print(f"Agent initialized for domain: {domain_name}")
+-         print(f"Reflection will occur every {reflection_threshold} turns")
++         print(f"Memory management is handled transparently by the MemoryManager")
   
       def get_current_phase(self) -&gt; AgentPhase:
 ```
@@ -2480,11 +2480,11 @@ Lines added: 4, lines removed: 1
 @@ -37,5 +35,8 @@
   
       async def process_message(self, message: str) -&gt; str:
--         &quot;&quot;&quot;Process a user message and return a response.&quot;&quot;&quot;
-+         &quot;&quot;&quot;Process a user message and return a response.
+-         """Process a user message and return a response."""
++         """Process a user message and return a response.
 +         
 +         Memory management (compression, etc.) is automatically handled by the MemoryManager.
-+         &quot;&quot;&quot;
++         """
           try:
               # Create query context
 ```
@@ -2511,25 +2511,25 @@ Lines added: undefined, lines removed: 17
 
 ```diff
 @@ -109,20 +106,3 @@
-              print(f&quot;Error learning information: {str(e)}&quot;)
+              print(f"Error learning information: {str(e)}")
               return False
 - 
 -     async def reflect(self) -&gt; None:
--         &quot;&quot;&quot;Reflect on recent interactions and update memory accordingly.&quot;&quot;&quot;
+-         """Reflect on recent interactions and update memory accordingly."""
 -         try:
--             print(f&quot;\nReflecting on recent interactions (Current phase: {self.current_phase})&quot;)
+-             print(f"\nReflecting on recent interactions (Current phase: {self.current_phase})")
 -             
 -             # Add reflection trigger to conversation history
 -             context = {
--                 &quot;operation&quot;: &quot;update&quot;
+-                 "operation": "update"
 -             }
 -             
 -             success = self.memory.update_memory(context)
 -             if not success:
--                 print(&quot;Failed to complete reflection&quot;)
+-                 print("Failed to complete reflection")
 -             
 -         except Exception as e:
--             print(f&quot;Error during reflection: {str(e)}&quot;)
+-             print(f"Error during reflection: {str(e)}")
   
 ```
 
@@ -2545,7 +2545,7 @@ Now let's update the agent_usage_example.py to reflect these changes:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/agent_usage_example.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: examples/agent_usage_example.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -2554,9 +2554,9 @@ Lines added: 1, lines removed: 1
 @@ -367,5 +367,5 @@
           )
           
--         agent = Agent(llm_service, memory_manager, domain_name=&quot;dnd_campaign&quot;, reflection_threshold=4)
-+         agent = Agent(llm_service, memory_manager, domain_name=&quot;dnd_campaign&quot;)
-          print(&quot;Services initialized successfully&quot;)
+-         agent = Agent(llm_service, memory_manager, domain_name="dnd_campaign", reflection_threshold=4)
++         agent = Agent(llm_service, memory_manager, domain_name="dnd_campaign")
+          print("Services initialized successfully")
           return agent, memory_manager
 ```
 
@@ -2572,18 +2572,18 @@ Let's also update the interactive session function to remove the reflect command
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/agent_usage_example.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: examples/agent_usage_example.py</summary>
 
 **Chunk 1**
 Lines added: undefined, lines removed: 1
 
 ```diff
 @@ -133,5 +133,4 @@
-      print(&quot;conversation- View full conversation history&quot;)
-      print(&quot;history     - View recent session history&quot;)
--     print(&quot;reflect     - Trigger memory reflection&quot;)
-      print(&quot;guid        - Show the current memory GUID&quot;)
-      print(&quot;type        - Show memory manager type&quot;)
+      print("conversation- View full conversation history")
+      print("history     - View recent session history")
+-     print("reflect     - Trigger memory reflection")
+      print("guid        - Show the current memory GUID")
+      print("type        - Show memory manager type")
 ```
 
 **Chunk 2**
@@ -2593,14 +2593,14 @@ Lines added: undefined, lines removed: 6
 @@ -444,10 +443,4 @@
                   print_recent_history(agent)
                   continue
--             elif user_input == &#39;reflect&#39;:
--                 print(&quot;\nTriggering memory reflection...&quot;)
+-             elif user_input == 'reflect':
+-                 print("\nTriggering memory reflection...")
 -                 await agent.reflect()
--                 print(&quot;Reflection completed&quot;)
--                 print_memory_state(memory_manager, &quot;Memory After Reflection&quot;)
+-                 print("Reflection completed")
+-                 print_memory_state(memory_manager, "Memory After Reflection")
 -                 continue
-              elif user_input == &#39;guid&#39;:
-                  print(f&quot;\nCurrent memory GUID: {memory_manager.get_memory_guid()}&quot;)
+              elif user_input == 'guid':
+                  print(f"\nCurrent memory GUID: {memory_manager.get_memory_guid()}")
 ```
 
 </details>
@@ -2645,7 +2645,7 @@ Here's a Phase 2 update about the recent changes:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: README-phase-2.md</summary>
+<details><summary>Tool use: **edit_file** • Edit file: README-phase-2.md</summary>
 
 **Chunk 1**
 Lines added: 33, lines removed: undefined
@@ -2653,15 +2653,15 @@ Lines added: 33, lines removed: undefined
 ```diff
 @@ -151,4 +151,37 @@
   
-  The system now strikes a balance between completeness (retaining important information) and efficiency (managing memory size), while using a format that&#39;s more conducive to how LLMs understand and generate text.
+  The system now strikes a balance between completeness (retaining important information) and efficiency (managing memory size), while using a format that's more conducive to how LLMs understand and generate text.
 + 
 + 
 + ## Phase 2 Update - April 18, 2025 - Improved Separation of Concerns
 + 
-+ We&#39;ve implemented a cleaner architectural separation between the Agent and MemoryManager components:
++ We've implemented a cleaner architectural separation between the Agent and MemoryManager components:
 + 
 + 1. **Complete Memory Management Encapsulation**:
-+    - Removed Agent&#39;s reflection mechanism completely
++    - Removed Agent's reflection mechanism completely
 +    - All memory operations now handled exclusively by the MemoryManager
 +    - Memory compression occurs automatically and transparently
 + 
@@ -2681,7 +2681,7 @@ Lines added: 33, lines removed: undefined
 +    - Simpler, more focused implementation with less redundancy
 + 
 + This separation of concerns creates a more maintainable and modular system:
-+ - The Agent doesn&#39;t need to know implementation details of memory management
++ - The Agent doesn't need to know implementation details of memory management
 + - The MemoryManager can evolve independently without affecting Agent behavior
 + - New memory optimization strategies can be implemented without Agent changes
 + - Lower token usage in prompts allows for more efficient processing

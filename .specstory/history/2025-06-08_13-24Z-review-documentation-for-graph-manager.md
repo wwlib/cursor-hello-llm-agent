@@ -137,7 +137,7 @@ This is the closest equivalent to JSDoc for Python. Here's how you'd document th
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/graph_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/graph_memory/graph_manager.py</summary>
 
 I'll add comprehensive Google-style docstrings to the GraphManager class and its key methods to demonstrate best practices for Python documentation.
 
@@ -163,15 +163,15 @@ Lines added: 33, lines removed: undefined
 +     graph_manager = GraphManager(
 +         llm_service=llm_service,
 +         embeddings_manager=embeddings_manager,
-+         storage_path=&quot;graph_data&quot;,
++         storage_path="graph_data",
 +         domain_config=domain_config
 +     )
 +     
 +     # Add entities with automatic deduplication
 +     node, is_new = graph_manager.add_or_update_node(
-+         name=&quot;Eldara&quot;,
-+         node_type=&quot;character&quot;, 
-+         description=&quot;A fire wizard who runs a magic shop&quot;
++         name="Eldara",
++         node_type="character", 
++         description="A fire wizard who runs a magic shop"
 +     )
 +     &#96;&#96;&#96;
 + 
@@ -181,7 +181,7 @@ Lines added: 33, lines removed: undefined
 +     similarity_threshold (float): Threshold for entity similarity matching (default: 0.8).
 +     nodes (Dict[str, GraphNode]): In-memory cache of graph nodes.
 +     edges (List[GraphEdge]): In-memory cache of graph edges.
-  &quot;&quot;&quot;
+  """
   
 ```
 
@@ -192,8 +192,8 @@ Lines added: 41, lines removed: 1
 @@ -17,8 +50,48 @@
   
   class GraphNode:
--     &quot;&quot;&quot;Represents a node in the knowledge graph.&quot;&quot;&quot;
-+     &quot;&quot;&quot;Represents a node in the knowledge graph.
+-     """Represents a node in the knowledge graph."""
++     """Represents a node in the knowledge graph.
 +     
 +     A GraphNode stores entity information including its name, type, description,
 +     semantic embedding, aliases, and metadata. Nodes support automatic similarity
@@ -214,20 +214,20 @@ Lines added: 41, lines removed: 1
 +     Example:
 +         &#96;&#96;&#96;python
 +         node = GraphNode(
-+             node_id=&quot;character_001&quot;,
-+             node_type=&quot;character&quot;,
-+             name=&quot;Eldara&quot;,
-+             description=&quot;A fire wizard who runs a magic shop in Riverwatch&quot;,
++             node_id="character_001",
++             node_type="character",
++             name="Eldara",
++             description="A fire wizard who runs a magic shop in Riverwatch",
 +             embedding=[0.1, 0.2, ...],
-+             profession=&quot;wizard&quot;,
-+             magic_type=&quot;fire&quot;
++             profession="wizard",
++             magic_type="fire"
 +         )
 +         &#96;&#96;&#96;
-+     &quot;&quot;&quot;
++     """
       
       def __init__(self, node_id: str, node_type: str, name: str, description: str, 
                    embedding: Optional[List[float]] = None, **attributes):
-+         &quot;&quot;&quot;Initialize a new graph node.
++         """Initialize a new graph node.
 +         
 +         Args:
 +             node_id: Unique identifier for the node.
@@ -236,7 +236,7 @@ Lines added: 41, lines removed: 1
 +             description: Detailed description for semantic embedding.
 +             embedding: Optional semantic embedding vector.
 +             **attributes: Additional custom attributes for the entity.
-+         &quot;&quot;&quot;
++         """
           self.id = node_id
           self.type = node_type
 ```
@@ -255,7 +255,7 @@ Lines added: 7, lines removed: undefined
 +         Note:
 +             Embeddings are excluded by default to keep JSON files manageable.
 +             Use include_embedding=True only for in-memory operations.
-          &quot;&quot;&quot;
+          """
           result = {
 ```
 
@@ -265,9 +265,9 @@ Lines added: 11, lines removed: 1
 ```diff
 @@ -64,5 +144,15 @@
       @classmethod
-      def from_dict(cls, data: Dict[str, Any]) -&gt; &#39;GraphNode&#39;:
--         &quot;&quot;&quot;Create node from dictionary representation.&quot;&quot;&quot;
-+         &quot;&quot;&quot;Create node from dictionary representation.
+      def from_dict(cls, data: Dict[str, Any]) -&gt; 'GraphNode':
+-         """Create node from dictionary representation."""
++         """Create node from dictionary representation.
 +         
 +         Args:
 +             data: Dictionary containing node data from JSON storage.
@@ -277,7 +277,7 @@ Lines added: 11, lines removed: 1
 +             
 +         Raises:
 +             KeyError: If required fields are missing from data.
-+         &quot;&quot;&quot;
++         """
           attributes = data.copy()
           # Remove standard fields from attributes
 ```
@@ -289,8 +289,8 @@ Lines added: 36, lines removed: 1
 @@ -81,8 +171,43 @@
   
   class GraphEdge:
--     &quot;&quot;&quot;Represents an edge in the knowledge graph.&quot;&quot;&quot;
-+     &quot;&quot;&quot;Represents an edge (relationship) in the knowledge graph.
+-     """Represents an edge in the knowledge graph."""
++     """Represents an edge (relationship) in the knowledge graph.
 +     
 +     A GraphEdge connects two entities with a typed relationship, including
 +     confidence scoring and evidence from the source text.
@@ -308,19 +308,19 @@ Lines added: 36, lines removed: 1
 +     Example:
 +         &#96;&#96;&#96;python
 +         edge = GraphEdge(
-+             from_node_id=&quot;character_001&quot;,
-+             to_node_id=&quot;location_002&quot;, 
-+             relationship=&quot;located_in&quot;,
++             from_node_id="character_001",
++             to_node_id="location_002", 
++             relationship="located_in",
 +             weight=0.9,
-+             evidence=&quot;Eldara runs her magic shop in Riverwatch&quot;,
++             evidence="Eldara runs her magic shop in Riverwatch",
 +             confidence=0.9
 +         )
 +         &#96;&#96;&#96;
-+     &quot;&quot;&quot;
++     """
       
       def __init__(self, from_node_id: str, to_node_id: str, relationship: str,
                    weight: float = 1.0, **attributes):
-+         &quot;&quot;&quot;Initialize a new graph edge.
++         """Initialize a new graph edge.
 +         
 +         Args:
 +             from_node_id: Identifier of the source node.
@@ -328,7 +328,7 @@ Lines added: 36, lines removed: 1
 +             relationship: Type of relationship between nodes.
 +             weight: Strength of the relationship (0.0 to 1.0).
 +             **attributes: Additional metadata like evidence, confidence, etc.
-+         &quot;&quot;&quot;
++         """
           self.id = str(uuid.uuid4())
           self.from_node_id = from_node_id
 ```
@@ -340,9 +340,9 @@ Lines added: 60, lines removed: 11
 @@ -127,22 +252,71 @@
   
   class GraphManager:
--     &quot;&quot;&quot;
+-     """
 -     Main graph management system with RAG-based entity resolution.
-+     &quot;&quot;&quot;Main graph management system with RAG-based entity resolution.
++     """Main graph management system with RAG-based entity resolution.
 +     
 +     GraphManager orchestrates the entire graph memory pipeline including entity
 +     extraction, duplicate prevention through semantic similarity matching, 
@@ -369,7 +369,7 @@ Lines added: 60, lines removed: 11
 +         graph_manager = GraphManager(
 +             llm_service=gemma_service,
 +             embeddings_manager=embeddings_mgr,
-+             storage_path=&quot;campaign_graph&quot;,
++             storage_path="campaign_graph",
 +             domain_config=dnd_config,
 +             similarity_threshold=0.8
 +         )
@@ -378,19 +378,19 @@ Lines added: 60, lines removed: 11
 +         entities = graph_manager.extract_entities_from_segments(segments)
 +         for entity in entities:
 +             node, is_new = graph_manager.add_or_update_node(
-+                 name=entity[&quot;name&quot;],
-+                 node_type=entity[&quot;type&quot;],
-+                 description=entity[&quot;description&quot;]
++                 name=entity["name"],
++                 node_type=entity["type"],
++                 description=entity["description"]
 +             )
 +         &#96;&#96;&#96;
-      &quot;&quot;&quot;
+      """
       
       def __init__(self, storage_path: str, embeddings_manager=None, 
                    similarity_threshold: float = 0.8, logger=None,
                    llm_service=None, embeddings_llm_service=None, domain_config=None):
--         &quot;&quot;&quot;
+-         """
 -         Initialize graph manager.
-+         &quot;&quot;&quot;Initialize graph manager with required services.
++         """Initialize graph manager with required services.
           
           Args:
 -             storage_path: Path for graph storage
@@ -418,7 +418,7 @@ Lines added: 60, lines removed: 11
 +             Both llm_service and domain_config are required for automatic entity
 +             and relationship extraction. Without them, only manual node/edge
 +             operations will be available.
-          &quot;&quot;&quot;
+          """
           self.storage = GraphStorage(storage_path)
 ```
 
@@ -429,9 +429,9 @@ Lines added: 37, lines removed: 7
 @@ -198,15 +372,45 @@
       def add_or_update_node(self, name: str, node_type: str, description: str,
                             **attributes) -&gt; Tuple[GraphNode, bool]:
--         &quot;&quot;&quot;
+-         """
 -         Add a new node or update existing one using semantic similarity matching.
-+         &quot;&quot;&quot;Add a new node or update existing one using semantic similarity matching.
++         """Add a new node or update existing one using semantic similarity matching.
 +         
 +         This method implements the core duplicate prevention logic:
 +         1. Generates semantic embedding for the entity description
@@ -461,23 +461,23 @@ Lines added: 37, lines removed: 7
 +             &#96;&#96;&#96;python
 +             # Add new entity (or update if similar one exists)
 +             node, is_new = graph_manager.add_or_update_node(
-+                 name=&quot;Eldara&quot;,
-+                 node_type=&quot;character&quot;,
-+                 description=&quot;A fire wizard who runs a magic shop in Riverwatch&quot;,
-+                 profession=&quot;wizard&quot;,
-+                 magic_type=&quot;fire&quot;
++                 name="Eldara",
++                 node_type="character",
++                 description="A fire wizard who runs a magic shop in Riverwatch",
++                 profession="wizard",
++                 magic_type="fire"
 +             )
 +             
 +             if is_new:
-+                 print(f&quot;Created new entity: {node.name}&quot;)
++                 print(f"Created new entity: {node.name}")
 +             else:
-+                 print(f&quot;Updated existing entity: {node.name} (mentions: {node.mention_count})&quot;)
++                 print(f"Updated existing entity: {node.name} (mentions: {node.mention_count})")
 +             &#96;&#96;&#96;
 +             
 +         Note:
 +             Semantic similarity matching requires embeddings_manager to be configured.
 +             Without it, only exact name matching will prevent duplicates.
-          &quot;&quot;&quot;
+          """
           # Generate embedding for the description and save to embeddings manager
 ```
 
@@ -488,9 +488,9 @@ Lines added: 22, lines removed: 7
 @@ -272,15 +476,30 @@
       def _find_similar_node(self, name: str, description: str, node_type: str, 
                             embedding: Optional[List[float]]) -&gt; Optional[GraphNode]:
--         &quot;&quot;&quot;
+-         """
 -         Find similar existing node using name matching first, then semantic similarity.
-+         &quot;&quot;&quot;Find similar existing node using multi-stage matching approach.
++         """Find similar existing node using multi-stage matching approach.
 +         
 +         Implements the optimized duplicate prevention pipeline:
 +         
@@ -521,7 +521,7 @@ Lines added: 22, lines removed: 7
 +         Note:
 +             This is the core optimization that prevents duplicate entities.
 +             Testing shows 100% duplicate prevention with proper threshold tuning.
-          &quot;&quot;&quot;
+          """
           # First: Check for exact name matches of the same type
 ```
 
@@ -531,10 +531,10 @@ Lines added: 30, lines removed: 3
 ```diff
 @@ -565,11 +784,38 @@
       def query_for_context(self, query: str, max_results: int = 5) -&gt; List[Dict[str, Any]]:
-          &quot;&quot;&quot;Query the graph for context relevant to a query using semantic search.
+          """Query the graph for context relevant to a query using semantic search.
 +         
 +         Provides context retrieval for LLM prompt enhancement by finding entities
-+         and their relationships that are semantically relevant to the user&#39;s query.
++         and their relationships that are semantically relevant to the user's query.
 +         
 +         The method uses a two-stage approach:
 +         1. Semantic similarity search using embeddings (if available)
@@ -558,18 +558,18 @@ Lines added: 30, lines removed: 3
 +         Example:
 +             &#96;&#96;&#96;python
 +             # Find context for user query
-+             context = graph_manager.query_for_context(&quot;magic shops&quot;)
++             context = graph_manager.query_for_context("magic shops")
 +             
 +             for result in context:
-+                 print(f&quot;{result[&#39;name&#39;]}: {result[&#39;description&#39;]}&quot;)
-+                 for conn in result[&#39;connections&#39;]:
-+                     print(f&quot;  -&gt; {conn[&#39;relationship&#39;]} {conn[&#39;target&#39;]}&quot;)
++                 print(f"{result['name']}: {result['description']}")
++                 for conn in result['connections']:
++                     print(f"  -&gt; {conn['relationship']} {conn['target']}")
 +             &#96;&#96;&#96;
 +             
 +         Note:
 +             Results are sorted by relevance score (highest first).
 +             Semantic search requires embeddings_manager configuration.
-          &quot;&quot;&quot;
+          """
           try:
 ```
 
@@ -587,7 +587,7 @@ Now let me show you the complete documentation ecosystem for Python:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: docs_setup_example.md</summary>
+<details><summary>Tool use: **edit_file** • Edit file: docs_setup_example.md</summary>
 
 I'll create a comprehensive guide showing different Python documentation approaches and tools, similar to JSDoc for JavaScript.
 
@@ -615,18 +615,18 @@ Lines added: 444, lines removed: 1
 + # Configuration file for the Sphinx documentation builder
 + import os
 + import sys
-+ sys.path.insert(0, os.path.abspath(&#39;../src&#39;))
++ sys.path.insert(0, os.path.abspath('../src'))
 + 
-+ project = &#39;LLM Agent Framework&#39;
-+ copyright = &#39;2024, Your Name&#39;
-+ author = &#39;Your Name&#39;
++ project = 'LLM Agent Framework'
++ copyright = '2024, Your Name'
++ author = 'Your Name'
 + 
 + extensions = [
-+     &#39;sphinx.ext.autodoc&#39;,       # Auto-generate docs from docstrings
-+     &#39;sphinx.ext.viewcode&#39;,      # Add source code links
-+     &#39;sphinx.ext.napoleon&#39;,     # Support Google/NumPy style docstrings
-+     &#39;sphinx.ext.intersphinx&#39;,  # Link to other documentation
-+     &#39;sphinx.ext.githubpages&#39;,  # GitHub Pages support
++     'sphinx.ext.autodoc',       # Auto-generate docs from docstrings
++     'sphinx.ext.viewcode',      # Add source code links
++     'sphinx.ext.napoleon',     # Support Google/NumPy style docstrings
++     'sphinx.ext.intersphinx',  # Link to other documentation
++     'sphinx.ext.githubpages',  # GitHub Pages support
 + ]
 + 
 + # Napoleon settings for Google-style docstrings
@@ -635,16 +635,16 @@ Lines added: 444, lines removed: 1
 + napoleon_include_init_with_doc = False
 + napoleon_include_private_with_doc = False
 + 
-+ html_theme = &#39;sphinx_rtd_theme&#39;
-+ html_static_path = [&#39;_static&#39;]
++ html_theme = 'sphinx_rtd_theme'
++ html_static_path = ['_static']
 + 
 + # Auto-generate API documentation
 + autodoc_default_options = {
-+     &#39;members&#39;: True,
-+     &#39;member-order&#39;: &#39;bysource&#39;,
-+     &#39;special-members&#39;: &#39;__init__&#39;,
-+     &#39;undoc-members&#39;: True,
-+     &#39;exclude-members&#39;: &#39;__weakref__&#39;
++     'members': True,
++     'member-order': 'bysource',
++     'special-members': '__init__',
++     'undoc-members': True,
++     'exclude-members': '__weakref__'
 + }
 + &#96;&#96;&#96;
 + 
@@ -762,27 +762,27 @@ Lines added: 444, lines removed: 1
 + from typing import List, Optional
 + 
 + class GraphNodeModel(BaseModel):
-+     &quot;&quot;&quot;Graph node representation for API serialization.
++     """Graph node representation for API serialization.
 +     
 +     This model defines the structure for graph nodes when serialized
 +     to JSON for API responses or storage.
-+     &quot;&quot;&quot;
-+     id: str = Field(..., description=&quot;Unique node identifier&quot;)
-+     type: str = Field(..., description=&quot;Entity type (character, location, etc.)&quot;)
-+     name: str = Field(..., description=&quot;Primary entity name&quot;)
-+     description: str = Field(..., description=&quot;Detailed entity description&quot;)
-+     aliases: List[str] = Field(default_factory=list, description=&quot;Alternative names&quot;)
-+     mention_count: int = Field(default=1, description=&quot;Number of mentions&quot;)
++     """
++     id: str = Field(..., description="Unique node identifier")
++     type: str = Field(..., description="Entity type (character, location, etc.)")
++     name: str = Field(..., description="Primary entity name")
++     description: str = Field(..., description="Detailed entity description")
++     aliases: List[str] = Field(default_factory=list, description="Alternative names")
++     mention_count: int = Field(default=1, description="Number of mentions")
 +     
 +     class Config:
 +         schema_extra = {
-+             &quot;example&quot;: {
-+                 &quot;id&quot;: &quot;character_001&quot;,
-+                 &quot;type&quot;: &quot;character&quot;, 
-+                 &quot;name&quot;: &quot;Eldara&quot;,
-+                 &quot;description&quot;: &quot;A fire wizard who runs a magic shop&quot;,
-+                 &quot;aliases&quot;: [&quot;the wizard&quot;, &quot;fire mage&quot;],
-+                 &quot;mention_count&quot;: 3
++             "example": {
++                 "id": "character_001",
++                 "type": "character", 
++                 "name": "Eldara",
++                 "description": "A fire wizard who runs a magic shop",
++                 "aliases": ["the wizard", "fire mage"],
++                 "mention_count": 3
 +             }
 +         }
 + &#96;&#96;&#96;
@@ -793,7 +793,7 @@ Lines added: 444, lines removed: 1
 + 
 + &#96;&#96;&#96;python
 + class GraphManager:
-+     &quot;&quot;&quot;Main graph management system with RAG-based entity resolution.
++     """Main graph management system with RAG-based entity resolution.
 +     
 +     Longer description of the class purpose, architecture, and key features.
 +     Can include multiple paragraphs and detailed explanations.
@@ -807,11 +807,11 @@ Lines added: 444, lines removed: 1
 +         Basic usage example:
 +         
 +         &#96;&#96;&#96;python
-+         manager = GraphManager(&quot;./graph_data&quot;)
++         manager = GraphManager("./graph_data")
 +         node, is_new = manager.add_or_update_node(
-+             name=&quot;Eldara&quot;,
-+             node_type=&quot;character&quot;,
-+             description=&quot;A fire wizard&quot;
++             name="Eldara",
++             node_type="character",
++             description="A fire wizard"
 +         )
 +         &#96;&#96;&#96;
 +         
@@ -820,7 +820,7 @@ Lines added: 444, lines removed: 1
 +         
 +     Warning:
 +         Storage path must be writable.
-+     &quot;&quot;&quot;
++     """
 + &#96;&#96;&#96;
 + 
 + ### Method Documentation
@@ -828,7 +828,7 @@ Lines added: 444, lines removed: 1
 + &#96;&#96;&#96;python
 + def add_or_update_node(self, name: str, node_type: str, description: str,
 +                       **attributes) -&gt; Tuple[GraphNode, bool]:
-+     &quot;&quot;&quot;Add a new node or update existing one using semantic similarity.
++     """Add a new node or update existing one using semantic similarity.
 +     
 +     This method implements the core duplicate prevention logic by searching
 +     for similar existing entities and either updating them or creating new ones.
@@ -853,30 +853,30 @@ Lines added: 444, lines removed: 1
 +         &#96;&#96;&#96;python
 +         # Add new character entity
 +         node, is_new = manager.add_or_update_node(
-+             name=&quot;Eldara&quot;,
-+             node_type=&quot;character&quot;, 
-+             description=&quot;A fire wizard who runs a magic shop&quot;,
-+             profession=&quot;wizard&quot;,
-+             magic_type=&quot;fire&quot;
++             name="Eldara",
++             node_type="character", 
++             description="A fire wizard who runs a magic shop",
++             profession="wizard",
++             magic_type="fire"
 +         )
 +         
 +         if is_new:
-+             print(f&quot;Created: {node.name}&quot;)
++             print(f"Created: {node.name}")
 +         else:
-+             print(f&quot;Updated: {node.name} (mentions: {node.mention_count})&quot;)
++             print(f"Updated: {node.name} (mentions: {node.mention_count})")
 +         &#96;&#96;&#96;
 +         
 +     Note:
 +         Semantic similarity requires embeddings_manager configuration.
 +         Without it, only exact name matching prevents duplicates.
-+     &quot;&quot;&quot;
++     """
 + &#96;&#96;&#96;
 + 
 + ### Function Documentation
 + 
 + &#96;&#96;&#96;python
 + def cosine_similarity(vec1: List[float], vec2: List[float]) -&gt; float:
-+     &quot;&quot;&quot;Calculate cosine similarity between two vectors.
++     """Calculate cosine similarity between two vectors.
 +     
 +     Computes the cosine of the angle between two non-zero vectors,
 +     which measures their directional similarity regardless of magnitude.
@@ -901,7 +901,7 @@ Lines added: 444, lines removed: 1
 +         v2 = [0.0, 1.0, 0.0] 
 +         similarity = cosine_similarity(v1, v2)  # Returns 0.0
 +         &#96;&#96;&#96;
-+     &quot;&quot;&quot;
++     """
 + &#96;&#96;&#96;
 + 
 + ## 6. Project Documentation Structure
@@ -969,7 +969,7 @@ Lines added: 444, lines removed: 1
 +         
 +     - name: Deploy to GitHub Pages
 +       uses: peaceiris/actions-gh-pages@v3
-+       if: github.ref == &#39;refs/heads/main&#39;
++       if: github.ref == 'refs/heads/main'
 +       with:
 +         github_token: ${{ secrets.GITHUB_TOKEN }}
 +         publish_dir: docs/_build/html
@@ -978,7 +978,7 @@ Lines added: 444, lines removed: 1
 + ## 8. Documentation Comments vs Docstrings
 + 
 + &#96;&#96;&#96;python
-+ # Wrong: Regular comments don&#39;t generate documentation
++ # Wrong: Regular comments don't generate documentation
 + class GraphNode:
 +     # This represents a graph node
 +     # It has various attributes
@@ -989,17 +989,17 @@ Lines added: 444, lines removed: 1
 + 
 + # Correct: Docstrings are accessible to documentation tools
 + class GraphNode:
-+     &quot;&quot;&quot;Represents a node in the knowledge graph.
++     """Represents a node in the knowledge graph.
 +     
 +     GraphNode stores entity information and supports similarity matching.
-+     &quot;&quot;&quot;
++     """
 +     
 +     def __init__(self, node_id: str):
-+         &quot;&quot;&quot;Initialize a new graph node.
++         """Initialize a new graph node.
 +         
 +         Args:
 +             node_id: Unique identifier for the node.
-+         &quot;&quot;&quot;
++         """
 +         pass
 + &#96;&#96;&#96;
 + 
@@ -1011,13 +1011,13 @@ Lines added: 444, lines removed: 1
 + 
 + @dataclass
 + class GraphStats:
-+     &quot;&quot;&quot;Statistics about the graph state.
++     """Statistics about the graph state.
 +     
 +     Attributes:
 +         node_count: Total number of nodes.
 +         edge_count: Total number of edges.
 +         node_types: Count of each node type.
-+     &quot;&quot;&quot;
++     """
 +     node_count: int
 +     edge_count: int
 +     node_types: Dict[str, int]
@@ -1027,7 +1027,7 @@ Lines added: 444, lines removed: 1
 +     max_results: int = 5,
 +     include_embeddings: bool = False
 + ) -&gt; List[Dict[str, Union[str, float, List[str]]]]:
-+     &quot;&quot;&quot;Query the graph with type hints for clear API.&quot;&quot;&quot;
++     """Query the graph with type hints for clear API."""
 +     pass
 + &#96;&#96;&#96;
 + 
@@ -1061,7 +1061,7 @@ Model provided invalid arguments to terminal tool.
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: setup_docs.sh</summary>
+<details><summary>Tool use: **edit_file** • Edit file: setup_docs.sh</summary>
 
 Create a shell script to quickly set up documentation for the project.
 
@@ -1075,40 +1075,40 @@ Lines added: 73, lines removed: 1
 + 
 + # Quick Documentation Setup Script for LLM Agent Framework
 + 
-+ echo &quot;Setting up documentation for LLM Agent Framework...&quot;
++ echo "Setting up documentation for LLM Agent Framework..."
 + 
 + # 1. Install required packages
-+ echo &quot;Installing Sphinx and dependencies...&quot;
++ echo "Installing Sphinx and dependencies..."
 + pip install sphinx sphinx-autobuild sphinx-rtd-theme
 + 
 + # 2. Create docs directory and initialize Sphinx
-+ echo &quot;Initializing Sphinx documentation...&quot;
++ echo "Initializing Sphinx documentation..."
 + mkdir -p docs
 + cd docs
 + 
 + # Initialize with basic configuration
 + sphinx-quickstart --quiet \
-+   --project=&#39;LLM Agent Framework&#39; \
-+   --author=&#39;Your Name&#39; \
-+   --release=&#39;1.0&#39; \
-+   --language=&#39;en&#39; \
++   --project='LLM Agent Framework' \
++   --author='Your Name' \
++   --release='1.0' \
++   --language='en' \
 +   --makefile \
 +   --no-batchfile .
 + 
 + # 3. Update conf.py for better configuration
-+ cat &gt;&gt; conf.py &lt;&lt; &#39;EOF&#39;
++ cat &gt;&gt; conf.py &lt;&lt; 'EOF'
 + 
 + # Additional configuration for automatic documentation
 + import os
 + import sys
-+ sys.path.insert(0, os.path.abspath(&#39;../src&#39;))
++ sys.path.insert(0, os.path.abspath('../src'))
 + 
 + extensions.extend([
-+     &#39;sphinx.ext.autodoc&#39;,
-+     &#39;sphinx.ext.viewcode&#39;, 
-+     &#39;sphinx.ext.napoleon&#39;,
-+     &#39;sphinx.ext.intersphinx&#39;,
-+     &#39;sphinx.ext.githubpages&#39;,
++     'sphinx.ext.autodoc',
++     'sphinx.ext.viewcode', 
++     'sphinx.ext.napoleon',
++     'sphinx.ext.intersphinx',
++     'sphinx.ext.githubpages',
 + ])
 + 
 + # Napoleon settings for Google-style docstrings
@@ -1118,32 +1118,32 @@ Lines added: 73, lines removed: 1
 + 
 + # Auto-documentation settings
 + autodoc_default_options = {
-+     &#39;members&#39;: True,
-+     &#39;member-order&#39;: &#39;bysource&#39;,
-+     &#39;special-members&#39;: &#39;__init__&#39;,
-+     &#39;undoc-members&#39;: True,
-+     &#39;exclude-members&#39;: &#39;__weakref__&#39;
++     'members': True,
++     'member-order': 'bysource',
++     'special-members': '__init__',
++     'undoc-members': True,
++     'exclude-members': '__weakref__'
 + }
 + 
-+ html_theme = &#39;sphinx_rtd_theme&#39;
++ html_theme = 'sphinx_rtd_theme'
 + EOF
 + 
 + # 4. Generate API documentation from source code
-+ echo &quot;Generating API documentation...&quot;
++ echo "Generating API documentation..."
 + sphinx-apidoc -o . ../src/
 + 
 + # 5. Build the documentation
-+ echo &quot;Building HTML documentation...&quot;
++ echo "Building HTML documentation..."
 + make html
 + 
-+ echo &quot;Documentation setup complete!&quot;
-+ echo &quot;To view documentation:&quot;
-+ echo &quot;  cd docs&quot;
-+ echo &quot;  python -m http.server 8000 --directory _build/html&quot;
-+ echo &quot;  Then open http://localhost:8000 in your browser&quot;
++ echo "Documentation setup complete!"
++ echo "To view documentation:"
++ echo "  cd docs"
++ echo "  python -m http.server 8000 --directory _build/html"
++ echo "  Then open http://localhost:8000 in your browser"
 + 
-+ echo &quot;To rebuild documentation after changes:&quot;
-+ echo &quot;  cd docs &amp;&amp; make html&quot; 
++ echo "To rebuild documentation after changes:"
++ echo "  cd docs &amp;&amp; make html" 
 ```
 
 </details>
@@ -1202,7 +1202,7 @@ I'll add comprehensive Google-style docstrings to the `EntityExtractor` class an
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/entity_extractor.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/graph_memory/entity_extractor.py</summary>
 
 I'll add comprehensive Google-style docstrings to the EntityExtractor class and all its methods to provide complete API documentation.
 
@@ -1234,12 +1234,12 @@ Lines added: 35, lines removed: undefined
 +     
 +     # Extract entities from text
 +     entities = extractor.extract_entities(
-+         &quot;Eldara the fire wizard runs a magic shop in Riverwatch&quot;
++         "Eldara the fire wizard runs a magic shop in Riverwatch"
 +     )
 +     
 +     # Result: [
-+     #   {&quot;name&quot;: &quot;Eldara&quot;, &quot;type&quot;: &quot;character&quot;, &quot;description&quot;: &quot;...&quot;},
-+     #   {&quot;name&quot;: &quot;Riverwatch&quot;, &quot;type&quot;: &quot;location&quot;, &quot;description&quot;: &quot;...&quot;}
++     #   {"name": "Eldara", "type": "character", "description": "..."},
++     #   {"name": "Riverwatch", "type": "location", "description": "..."}
 +     # ]
 +     &#96;&#96;&#96;
 + 
@@ -1248,7 +1248,7 @@ Lines added: 35, lines removed: undefined
 +     domain_config (Dict[str, Any]): Domain-specific configuration.
 +     entity_types (Dict[str, str]): Mapping of entity types to descriptions.
 +     logger: Logger instance for debugging and monitoring.
-  &quot;&quot;&quot;
+  """
   
 ```
 
@@ -1259,8 +1259,8 @@ Lines added: 67, lines removed: 6
 @@ -12,14 +47,75 @@
   
   class EntityExtractor:
--     &quot;&quot;&quot;Extracts entities from conversation segments using LLM.&quot;&quot;&quot;
-+     &quot;&quot;&quot;Extracts entities from conversation segments using LLM.
+-     """Extracts entities from conversation segments using LLM."""
++     """Extracts entities from conversation segments using LLM.
 +     
 +     EntityExtractor provides LLM-driven identification of domain-specific entities
 +     from unstructured conversation text. It supports configurable entity types,
@@ -1282,20 +1282,20 @@ Lines added: 67, lines removed: 6
 +         extractor = EntityExtractor(
 +             llm_service=gemma_service,
 +             domain_config={
-+                 &#39;domain_name&#39;: &#39;dnd_campaign&#39;,
-+                 &#39;entity_types&#39;: [&#39;character&#39;, &#39;location&#39;, &#39;object&#39;]
++                 'domain_name': 'dnd_campaign',
++                 'entity_types': ['character', 'location', 'object']
 +             }
 +         )
 +         
 +         # Extract entities from conversation segment
 +         entities = extractor.extract_entities(
-+             &quot;The party meets Eldara at her magic shop in Riverwatch&quot;
++             "The party meets Eldara at her magic shop in Riverwatch"
 +         )
 +         
 +         # Process multiple segments
 +         segments = [
-+             {&quot;text&quot;: &quot;...&quot;, &quot;importance&quot;: 4, &quot;type&quot;: &quot;information&quot;},
-+             {&quot;text&quot;: &quot;...&quot;, &quot;importance&quot;: 3, &quot;type&quot;: &quot;action&quot;}
++             {"text": "...", "importance": 4, "type": "information"},
++             {"text": "...", "importance": 3, "type": "action"}
 +         ]
 +         all_entities = extractor.extract_entities_from_segments(segments)
 +         &#96;&#96;&#96;
@@ -1303,12 +1303,12 @@ Lines added: 67, lines removed: 6
 +     Note:
 +         Requires a configured LLM service for entity extraction.
 +         Domain configuration determines available entity types.
-+     &quot;&quot;&quot;
++     """
       
       def __init__(self, llm_service, domain_config: Optional[Dict[str, Any]] = None, logger=None):
--         &quot;&quot;&quot;
+-         """
 -         Initialize entity extractor.
-+         &quot;&quot;&quot;Initialize entity extractor with LLM service and domain configuration.
++         """Initialize entity extractor with LLM service and domain configuration.
           
           Args:
 -             llm_service: LLM service for entity extraction
@@ -1317,7 +1317,7 @@ Lines added: 67, lines removed: 6
 +             llm_service: LLM service instance for entity extraction.
 +                         Must support text generation with structured prompts.
 +             domain_config: Domain-specific configuration dictionary.
-+                           Should contain &#39;domain_name&#39; and optionally custom entity types.
++                           Should contain 'domain_name' and optionally custom entity types.
 +                           If None, uses general-purpose entity types.
 +             logger: Logger instance for debugging and monitoring.
 +                    If None, creates a default logger.
@@ -1326,8 +1326,8 @@ Lines added: 67, lines removed: 6
 +             &#96;&#96;&#96;python
 +             # D&amp;D campaign configuration
 +             dnd_config = {
-+                 &#39;domain_name&#39;: &#39;dnd_campaign&#39;,
-+                 &#39;entity_types&#39;: [&#39;character&#39;, &#39;location&#39;, &#39;object&#39;, &#39;event&#39;]
++                 'domain_name': 'dnd_campaign',
++                 'entity_types': ['character', 'location', 'object', 'event']
 +             }
 +             
 +             extractor = EntityExtractor(
@@ -1336,7 +1336,7 @@ Lines added: 67, lines removed: 6
 +                 logger=custom_logger
 +             )
 +             &#96;&#96;&#96;
-          &quot;&quot;&quot;
+          """
           self.llm_service = llm_service
 ```
 
@@ -1347,8 +1347,8 @@ Lines added: 27, lines removed: 1
 @@ -31,5 +127,31 @@
       
       def _get_entity_types(self) -&gt; Dict[str, str]:
--         &quot;&quot;&quot;Get entity types based on domain configuration.&quot;&quot;&quot;
-+         &quot;&quot;&quot;Get entity types based on domain configuration.
+-         """Get entity types based on domain configuration."""
++         """Get entity types based on domain configuration.
 +         
 +         Determines the appropriate entity types and their descriptions
 +         based on the configured domain. Supports predefined domains
@@ -1362,20 +1362,20 @@ Lines added: 27, lines removed: 1
 +             For D&amp;D domain:
 +             &#96;&#96;&#96;python
 +             {
-+                 &#39;character&#39;: &#39;People, NPCs, players, creatures, or any named individuals&#39;,
-+                 &#39;location&#39;: &#39;Places, regions, buildings, rooms, or geographical features&#39;,
-+                 &#39;object&#39;: &#39;Items, artifacts, weapons, tools, books, or physical things&#39;,
-+                 &#39;concept&#39;: &#39;Spells, abilities, rules, abstract ideas, or game mechanics&#39;,
-+                 &#39;event&#39;: &#39;Actions, occurrences, battles, meetings, or significant happenings&#39;,
-+                 &#39;organization&#39;: &#39;Groups, guilds, factions, or structured entities&#39;
++                 'character': 'People, NPCs, players, creatures, or any named individuals',
++                 'location': 'Places, regions, buildings, rooms, or geographical features',
++                 'object': 'Items, artifacts, weapons, tools, books, or physical things',
++                 'concept': 'Spells, abilities, rules, abstract ideas, or game mechanics',
++                 'event': 'Actions, occurrences, battles, meetings, or significant happenings',
++                 'organization': 'Groups, guilds, factions, or structured entities'
 +             }
 +             &#96;&#96;&#96;
 +             
 +         Note:
-+             Domain is determined by checking if keywords (&#39;dnd&#39;, &#39;lab&#39;) 
++             Domain is determined by checking if keywords ('dnd', 'lab') 
 +             appear in the domain_name configuration value.
-+         &quot;&quot;&quot;
-          domain_name = self.domain_config.get(&#39;domain_name&#39;, &#39;general&#39;)
++         """
+          domain_name = self.domain_config.get('domain_name', 'general')
           
 ```
 
@@ -1386,9 +1386,9 @@ Lines added: 47, lines removed: 6
 @@ -62,13 +184,54 @@
       
       def extract_entities(self, text: str, context: Optional[str] = None) -&gt; List[Dict[str, Any]]:
--         &quot;&quot;&quot;
+-         """
 -         Extract entities from text using LLM.
-+         &quot;&quot;&quot;Extract entities from text using LLM with domain-specific prompting.
++         """Extract entities from text using LLM with domain-specific prompting.
 +         
 +         Analyzes the provided text to identify entities of types defined
 +         in the domain configuration. Uses structured LLM prompting to
@@ -1415,26 +1415,26 @@ Lines added: 47, lines removed: 6
 +             &#96;&#96;&#96;python
 +             # Basic extraction
 +             entities = extractor.extract_entities(
-+                 &quot;Eldara the fire wizard runs a magic shop in Riverwatch&quot;
++                 "Eldara the fire wizard runs a magic shop in Riverwatch"
 +             )
 +             
 +             # With context for better accuracy
 +             entities = extractor.extract_entities(
-+                 &quot;She sells potions and scrolls&quot;,
-+                 context=&quot;Previous: Eldara the fire wizard runs a magic shop&quot;
++                 "She sells potions and scrolls",
++                 context="Previous: Eldara the fire wizard runs a magic shop"
 +             )
 +             
 +             # Typical result:
 +             # [
 +             #     {
-+             #         &quot;name&quot;: &quot;Eldara&quot;,
-+             #         &quot;type&quot;: &quot;character&quot;, 
-+             #         &quot;description&quot;: &quot;A fire wizard who runs a magic shop&quot;
++             #         "name": "Eldara",
++             #         "type": "character", 
++             #         "description": "A fire wizard who runs a magic shop"
 +             #     },
 +             #     {
-+             #         &quot;name&quot;: &quot;Riverwatch&quot;,
-+             #         &quot;type&quot;: &quot;location&quot;,
-+             #         &quot;description&quot;: &quot;A town where Eldara&#39;s magic shop is located&quot;
++             #         "name": "Riverwatch",
++             #         "type": "location",
++             #         "description": "A town where Eldara's magic shop is located"
 +             #     }
 +             # ]
 +             &#96;&#96;&#96;
@@ -1442,7 +1442,7 @@ Lines added: 47, lines removed: 6
 +         Note:
 +             Returns empty list if text is empty or LLM extraction fails.
 +             All returned entities are validated against domain entity types.
-          &quot;&quot;&quot;
+          """
           if not text.strip():
 ```
 
@@ -1453,8 +1453,8 @@ Lines added: 19, lines removed: 1
 @@ -89,5 +252,23 @@
       
       def _build_extraction_prompt(self, text: str, context: Optional[str] = None) -&gt; str:
--         &quot;&quot;&quot;Build prompt for entity extraction.&quot;&quot;&quot;
-+         &quot;&quot;&quot;Build structured prompt for LLM entity extraction.
+-         """Build prompt for entity extraction."""
++         """Build structured prompt for LLM entity extraction.
 +         
 +         Creates a detailed prompt that instructs the LLM to extract entities
 +         according to the domain-specific entity types. Includes examples
@@ -1472,9 +1472,9 @@ Lines added: 19, lines removed: 1
 +         Note:
 +             Prompt format is optimized for structured JSON output.
 +             Entity type descriptions are dynamically inserted from domain config.
-+         &quot;&quot;&quot;
-          entity_types_desc = &quot;\\n&quot;.join([
-              f&quot;- {etype}: {desc}&quot; for etype, desc in self.entity_types.items()
++         """
+          entity_types_desc = "\\n".join([
+              f"- {etype}: {desc}" for etype, desc in self.entity_types.items()
 ```
 
 **Chunk 6**
@@ -1484,10 +1484,10 @@ Lines added: 35, lines removed: 1
 @@ -128,5 +309,39 @@
       
       def _parse_extraction_response(self, response: str) -&gt; List[Dict[str, Any]]:
--         &quot;&quot;&quot;Parse LLM response to extract entity list.&quot;&quot;&quot;
-+         &quot;&quot;&quot;Parse LLM response to extract entity list from JSON.
+-         """Parse LLM response to extract entity list."""
++         """Parse LLM response to extract entity list from JSON.
 +         
-+         Processes the LLM&#39;s text response to extract structured entity data.
++         Processes the LLM's text response to extract structured entity data.
 +         Handles various response formats and validates entity structure.
 +         
 +         Args:
@@ -1503,23 +1503,23 @@ Lines added: 35, lines removed: 1
 +             &#96;&#96;&#96;
 +             Here are the entities I found:
 +             [
-+                 {&quot;type&quot;: &quot;character&quot;, &quot;name&quot;: &quot;Eldara&quot;, &quot;description&quot;: &quot;...&quot;},
-+                 {&quot;type&quot;: &quot;location&quot;, &quot;name&quot;: &quot;Riverwatch&quot;, &quot;description&quot;: &quot;...&quot;}
++                 {"type": "character", "name": "Eldara", "description": "..."},
++                 {"type": "location", "name": "Riverwatch", "description": "..."}
 +             ]
 +             &#96;&#96;&#96;
 +             
 +             Output:
 +             &#96;&#96;&#96;python
 +             [
-+                 {&quot;type&quot;: &quot;character&quot;, &quot;name&quot;: &quot;Eldara&quot;, &quot;description&quot;: &quot;...&quot;},
-+                 {&quot;type&quot;: &quot;location&quot;, &quot;name&quot;: &quot;Riverwatch&quot;, &quot;description&quot;: &quot;...&quot;}
++                 {"type": "character", "name": "Eldara", "description": "..."},
++                 {"type": "location", "name": "Riverwatch", "description": "..."}
 +             ]
 +             &#96;&#96;&#96;
 +             
 +         Note:
 +             Uses regex to find JSON arrays in free-form text responses.
 +             Gracefully handles JSON parsing errors and malformed responses.
-+         &quot;&quot;&quot;
++         """
           try:
               # Clean up response - look for JSON array
 ```
@@ -1531,8 +1531,8 @@ Lines added: 40, lines removed: 1
 @@ -159,5 +374,44 @@
       
       def _validate_entity(self, entity: Dict[str, Any]) -&gt; bool:
--         &quot;&quot;&quot;Validate extracted entity structure.&quot;&quot;&quot;
-+         &quot;&quot;&quot;Validate extracted entity structure and content.
+-         """Validate extracted entity structure."""
++         """Validate extracted entity structure and content.
 +         
 +         Ensures that extracted entities meet minimum requirements
 +         for inclusion in the knowledge graph. Validates required
@@ -1540,39 +1540,39 @@ Lines added: 40, lines removed: 1
 +         
 +         Args:
 +             entity: Entity dictionary to validate.
-+                    Expected to have &#39;type&#39;, &#39;name&#39;, and &#39;description&#39; fields.
++                    Expected to have 'type', 'name', and 'description' fields.
 +                    
 +         Returns:
 +             True if entity is valid and should be included, False otherwise.
 +             
 +         Validation Rules:
-+             - Required fields: &#39;type&#39;, &#39;name&#39;, &#39;description&#39; must be present and non-empty
-+             - Type validation: &#39;type&#39; must match domain-configured entity types
-+             - Content validation: &#39;name&#39; and &#39;description&#39; must be strings of reasonable length
++             - Required fields: 'type', 'name', 'description' must be present and non-empty
++             - Type validation: 'type' must match domain-configured entity types
++             - Content validation: 'name' and 'description' must be strings of reasonable length
 +             - Minimum length: name &gt;= 1 character, description &gt;= 5 characters
 +             
 +         Example:
 +             &#96;&#96;&#96;python
 +             # Valid entity
 +             valid = {
-+                 &quot;type&quot;: &quot;character&quot;,
-+                 &quot;name&quot;: &quot;Eldara&quot;, 
-+                 &quot;description&quot;: &quot;A fire wizard who runs a magic shop&quot;
++                 "type": "character",
++                 "name": "Eldara", 
++                 "description": "A fire wizard who runs a magic shop"
 +             }
 +             assert extractor._validate_entity(valid) == True
 +             
 +             # Invalid entity (missing description)
 +             invalid = {
-+                 &quot;type&quot;: &quot;character&quot;,
-+                 &quot;name&quot;: &quot;Eldara&quot;
++                 "type": "character",
++                 "name": "Eldara"
 +             }
 +             assert extractor._validate_entity(invalid) == False
 +             &#96;&#96;&#96;
 +             
 +         Note:
 +             Invalid entities are logged with warning level for debugging.
-+         &quot;&quot;&quot;
-          required_fields = [&#39;type&#39;, &#39;name&#39;, &#39;description&#39;]
++         """
+          required_fields = ['type', 'name', 'description']
           
 ```
 
@@ -1583,9 +1583,9 @@ Lines added: 50, lines removed: 5
 @@ -181,12 +435,57 @@
       
       def extract_entities_from_segments(self, segments: List[Dict[str, Any]]) -&gt; List[Dict[str, Any]]:
--         &quot;&quot;&quot;
+-         """
 -         Extract entities from conversation segments.
-+         &quot;&quot;&quot;Extract entities from multiple conversation segments with filtering.
++         """Extract entities from multiple conversation segments with filtering.
 +         
 +         Processes a list of conversation segments to extract entities,
 +         applying importance and type filtering to focus on meaningful content.
@@ -1598,7 +1598,7 @@ Lines added: 50, lines removed: 5
 +                      Each segment should contain:
 +                      - text (str): Segment content
 +                      - importance (int): Importance score (1-5)
-+                      - type (str): Segment type (&#39;information&#39;, &#39;action&#39;, etc.)
++                      - type (str): Segment type ('information', 'action', etc.)
 +                      - segment_id (str, optional): Unique identifier
 +                      - topics (List[str], optional): Associated topics
 +                      
@@ -1614,23 +1614,23 @@ Lines added: 50, lines removed: 5
 +             
 +         Filtering Criteria:
 +             - importance &gt;= 3: Only process moderately to highly important content
-+             - type in [&#39;information&#39;, &#39;action&#39;]: Skip queries and commands
++             - type in ['information', 'action']: Skip queries and commands
 +             - text must be non-empty: Skip segments without content
 +             
 +         Example:
 +             &#96;&#96;&#96;python
 +             segments = [
 +                 {
-+                     &quot;text&quot;: &quot;Eldara runs a magic shop in Riverwatch&quot;,
-+                     &quot;importance&quot;: 4,
-+                     &quot;type&quot;: &quot;information&quot;,
-+                     &quot;segment_id&quot;: &quot;seg_001&quot;,
-+                     &quot;topics&quot;: [&quot;characters&quot;, &quot;locations&quot;]
++                     "text": "Eldara runs a magic shop in Riverwatch",
++                     "importance": 4,
++                     "type": "information",
++                     "segment_id": "seg_001",
++                     "topics": ["characters", "locations"]
 +                 },
 +                 {
-+                     &quot;text&quot;: &quot;What time is it?&quot;,
-+                     &quot;importance&quot;: 1,
-+                     &quot;type&quot;: &quot;query&quot;  # Will be skipped
++                     "text": "What time is it?",
++                     "importance": 1,
++                     "type": "query"  # Will be skipped
 +                 }
 +             ]
 +             
@@ -1641,7 +1641,7 @@ Lines added: 50, lines removed: 5
 +         Note:
 +             Segment filtering reduces processing load and improves entity quality
 +             by focusing on meaningful, informational content.
-          &quot;&quot;&quot;
+          """
           all_entities = []
 ```
 
@@ -1652,14 +1652,14 @@ Lines added: 35, lines removed: 1
 @@ -217,5 +516,39 @@
       
       def group_entities_by_type(self, entities: List[Dict[str, Any]]) -&gt; Dict[str, List[Dict[str, Any]]]:
--         &quot;&quot;&quot;Group entities by their type.&quot;&quot;&quot;
-+         &quot;&quot;&quot;Group entities by their type for organized processing.
+-         """Group entities by their type."""
++         """Group entities by their type for organized processing.
 +         
 +         Organizes a list of entities into a dictionary grouped by entity type.
 +         Useful for type-specific processing or analysis.
 +         
 +         Args:
-+             entities: List of entity dictionaries with &#39;type&#39; field.
++             entities: List of entity dictionaries with 'type' field.
 +             
 +         Returns:
 +             Dictionary mapping entity types to lists of entities of that type.
@@ -1667,27 +1667,27 @@ Lines added: 35, lines removed: 1
 +         Example:
 +             &#96;&#96;&#96;python
 +             entities = [
-+                 {&quot;name&quot;: &quot;Eldara&quot;, &quot;type&quot;: &quot;character&quot;, &quot;description&quot;: &quot;...&quot;},
-+                 {&quot;name&quot;: &quot;Gareth&quot;, &quot;type&quot;: &quot;character&quot;, &quot;description&quot;: &quot;...&quot;},
-+                 {&quot;name&quot;: &quot;Riverwatch&quot;, &quot;type&quot;: &quot;location&quot;, &quot;description&quot;: &quot;...&quot;}
++                 {"name": "Eldara", "type": "character", "description": "..."},
++                 {"name": "Gareth", "type": "character", "description": "..."},
++                 {"name": "Riverwatch", "type": "location", "description": "..."}
 +             ]
 +             
 +             grouped = extractor.group_entities_by_type(entities)
 +             # Result:
 +             # {
-+             #     &quot;character&quot;: [
-+             #         {&quot;name&quot;: &quot;Eldara&quot;, &quot;type&quot;: &quot;character&quot;, ...},
-+             #         {&quot;name&quot;: &quot;Gareth&quot;, &quot;type&quot;: &quot;character&quot;, ...}
++             #     "character": [
++             #         {"name": "Eldara", "type": "character", ...},
++             #         {"name": "Gareth", "type": "character", ...}
 +             #     ],
-+             #     &quot;location&quot;: [
-+             #         {&quot;name&quot;: &quot;Riverwatch&quot;, &quot;type&quot;: &quot;location&quot;, ...}
++             #     "location": [
++             #         {"name": "Riverwatch", "type": "location", ...}
 +             #     ]
 +             # }
 +             &#96;&#96;&#96;
 +             
 +         Note:
-+             Entities with missing or invalid &#39;type&#39; field are grouped under &#39;unknown&#39;.
-+         &quot;&quot;&quot;
++             Entities with missing or invalid 'type' field are grouped under 'unknown'.
++         """
           grouped = {}
           
 ```
@@ -1699,10 +1699,10 @@ Lines added: 34, lines removed: 3
 @@ -229,7 +562,38 @@
       
       def deduplicate_entities(self, entities: List[Dict[str, Any]]) -&gt; List[Dict[str, Any]]:
--         &quot;&quot;&quot;
+-         """
 -         Simple deduplication of entities by name (case-insensitive).
 -         More sophisticated deduplication happens in GraphManager.
-+         &quot;&quot;&quot;Simple deduplication of entities by name and type.
++         """Simple deduplication of entities by name and type.
 +         
 +         Removes basic duplicates from a list of entities using case-insensitive
 +         name matching within the same entity type. This provides simple
@@ -1710,7 +1710,7 @@ Lines added: 34, lines removed: 3
 +         
 +         Args:
 +             entities: List of entity dictionaries to deduplicate.
-+                      Each entity should have &#39;name&#39; and &#39;type&#39; fields.
++                      Each entity should have 'name' and 'type' fields.
 +                      
 +         Returns:
 +             List of unique entities with duplicates removed.
@@ -1719,24 +1719,24 @@ Lines added: 34, lines removed: 3
 +         Example:
 +             &#96;&#96;&#96;python
 +             entities = [
-+                 {&quot;name&quot;: &quot;Eldara&quot;, &quot;type&quot;: &quot;character&quot;, &quot;description&quot;: &quot;Fire wizard&quot;},
-+                 {&quot;name&quot;: &quot;ELDARA&quot;, &quot;type&quot;: &quot;character&quot;, &quot;description&quot;: &quot;Magic shop owner&quot;},
-+                 {&quot;name&quot;: &quot;Riverwatch&quot;, &quot;type&quot;: &quot;location&quot;, &quot;description&quot;: &quot;Eastern town&quot;}
++                 {"name": "Eldara", "type": "character", "description": "Fire wizard"},
++                 {"name": "ELDARA", "type": "character", "description": "Magic shop owner"},
++                 {"name": "Riverwatch", "type": "location", "description": "Eastern town"}
 +             ]
 +             
 +             unique = extractor.deduplicate_entities(entities)
-+             # Result: Only first &quot;Eldara&quot; and &quot;Riverwatch&quot; are kept
++             # Result: Only first "Eldara" and "Riverwatch" are kept
 +             # [
-+             #     {&quot;name&quot;: &quot;Eldara&quot;, &quot;type&quot;: &quot;character&quot;, &quot;description&quot;: &quot;Fire wizard&quot;},
-+             #     {&quot;name&quot;: &quot;Riverwatch&quot;, &quot;type&quot;: &quot;location&quot;, &quot;description&quot;: &quot;Eastern town&quot;}
++             #     {"name": "Eldara", "type": "character", "description": "Fire wizard"},
++             #     {"name": "Riverwatch", "type": "location", "description": "Eastern town"}
 +             # ]
 +             &#96;&#96;&#96;
 +             
 +         Note:
 +             This is basic deduplication. More sophisticated semantic similarity
 +             matching happens in GraphManager._find_similar_node().
-+             Case-insensitive matching treats &quot;Eldara&quot; and &quot;ELDARA&quot; as duplicates.
-          &quot;&quot;&quot;
++             Case-insensitive matching treats "Eldara" and "ELDARA" as duplicates.
+          """
           seen_names = set()
 ```
 
@@ -1859,7 +1859,7 @@ Now I can see the issue! The classes are indeed re-exported in the `__init__.py`
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/graph_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/graph_memory/graph_manager.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -1882,7 +1882,7 @@ Lines added: 1, lines removed: 1
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/graph_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/graph_memory/graph_manager.py</summary>
 
 **Chunk 1**
 Lines added: 3, lines removed: 3
@@ -1917,7 +1917,7 @@ Now let me create a Sphinx configuration file that properly handles these cross-
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: docs/conf.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: docs/conf.py</summary>
 
 I'll create a comprehensive Sphinx configuration file that properly handles cross-references and eliminates the duplicate target warnings.
 
@@ -1941,19 +1941,19 @@ Lines added: 47, lines removed: 28
 + #
 + import os
 + import sys
-+ sys.path.insert(0, os.path.abspath(&#39;../src&#39;))
++ sys.path.insert(0, os.path.abspath('../src'))
   
   # -- Project information -----------------------------------------------------
 - # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
   
-  project = &#39;LLM Agent Framework&#39;
-- copyright = &#39;2025, Your Name&#39;
-+ copyright = &#39;2024, Your Name&#39;
-  author = &#39;Your Name&#39;
-- release = &#39;1.0&#39;
+  project = 'LLM Agent Framework'
+- copyright = '2025, Your Name'
++ copyright = '2024, Your Name'
+  author = 'Your Name'
+- release = '1.0'
 + 
 + # The full version, including alpha/beta/rc tags
-+ release = &#39;1.0.0&#39;
++ release = '1.0.0'
   
   # -- General configuration ---------------------------------------------------
 - # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -1962,45 +1962,45 @@ Lines added: 47, lines removed: 28
 - 
 + 
 + # Add any Sphinx extension module names here, as strings. They can be
-+ # extensions coming with Sphinx (named &#39;sphinx.ext.*&#39;) or your custom
++ # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 + # ones.
 + extensions = [
-+     &#39;sphinx.ext.autodoc&#39;,      # Auto-generate docs from docstrings
-+     &#39;sphinx.ext.viewcode&#39;,     # Add source code links  
-+     &#39;sphinx.ext.napoleon&#39;,     # Support Google/NumPy style docstrings
-+     &#39;sphinx.ext.intersphinx&#39;,  # Link to other documentation
-+     &#39;sphinx.ext.githubpages&#39;,  # GitHub Pages support
-+     &#39;sphinx.ext.autosummary&#39;,  # Generate summary tables
-+     &#39;sphinx.ext.todo&#39;,         # Support for todo items
++     'sphinx.ext.autodoc',      # Auto-generate docs from docstrings
++     'sphinx.ext.viewcode',     # Add source code links  
++     'sphinx.ext.napoleon',     # Support Google/NumPy style docstrings
++     'sphinx.ext.intersphinx',  # Link to other documentation
++     'sphinx.ext.githubpages',  # GitHub Pages support
++     'sphinx.ext.autosummary',  # Generate summary tables
++     'sphinx.ext.todo',         # Support for todo items
 + ]
 + 
 + # Add any paths that contain templates here, relative to this directory.
-  templates_path = [&#39;_templates&#39;]
+  templates_path = ['_templates']
 + 
 + # List of patterns, relative to source directory, that match files and
 + # directories to ignore when looking for source files.
 + # This pattern also affects html_static_path and html_extra_path.
-  exclude_patterns = [&#39;_build&#39;, &#39;Thumbs.db&#39;, &#39;.DS_Store&#39;]
+  exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
   
-- language = &#39;en&#39;
+- language = 'en'
 - 
 - # -- Options for HTML output -------------------------------------------------
 - # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 - 
-- html_theme = &#39;alabaster&#39;
-- html_static_path = [&#39;_static&#39;]
+- html_theme = 'alabaster'
+- html_static_path = ['_static']
 - 
 - # Additional configuration for automatic documentation
 - import os
 - import sys
-- sys.path.insert(0, os.path.abspath(&#39;../src&#39;))
+- sys.path.insert(0, os.path.abspath('../src'))
 - 
 - extensions.extend([
--     &#39;sphinx.ext.autodoc&#39;,
--     &#39;sphinx.ext.viewcode&#39;, 
--     &#39;sphinx.ext.napoleon&#39;,
--     &#39;sphinx.ext.intersphinx&#39;,
--     &#39;sphinx.ext.githubpages&#39;,
+-     'sphinx.ext.autodoc',
+-     'sphinx.ext.viewcode', 
+-     'sphinx.ext.napoleon',
+-     'sphinx.ext.intersphinx',
+-     'sphinx.ext.githubpages',
 - ])
 + # -- Extension configuration -------------------------------------------------
   
@@ -2028,17 +2028,17 @@ Lines added: 128, lines removed: 1
 
 ```diff
 @@ -52,7 +71,134 @@
-      &#39;special-members&#39;: &#39;__init__&#39;,
-      &#39;undoc-members&#39;: True,
--     &#39;exclude-members&#39;: &#39;__weakref__&#39;
-+     &#39;exclude-members&#39;: &#39;__weakref__&#39;,
-+     &#39;show-inheritance&#39;: True,
+      'special-members': '__init__',
+      'undoc-members': True,
+-     'exclude-members': '__weakref__'
++     'exclude-members': '__weakref__',
++     'show-inheritance': True,
   }
   
 + # Autodoc configuration
 + autodoc_mock_imports = []
-+ autodoc_typehints = &#39;description&#39;
-+ autodoc_typehints_description_target = &#39;documented&#39;
++ autodoc_typehints = 'description'
++ autodoc_typehints_description_target = 'documented'
 + 
 + # Autosummary settings
 + autosummary_generate = True
@@ -2049,19 +2049,19 @@ Lines added: 128, lines removed: 1
 + # Configure cross-reference resolution to avoid duplicate warnings
 + nitpicky = False
 + nitpick_ignore = [
-+     (&#39;py:class&#39;, &#39;EmbeddingsManager&#39;),
-+     (&#39;py:class&#39;, &#39;Optional&#39;),
-+     (&#39;py:class&#39;, &#39;List&#39;),
-+     (&#39;py:class&#39;, &#39;Dict&#39;),
-+     (&#39;py:class&#39;, &#39;Tuple&#39;),
-+     (&#39;py:class&#39;, &#39;Any&#39;),
++     ('py:class', 'EmbeddingsManager'),
++     ('py:class', 'Optional'),
++     ('py:class', 'List'),
++     ('py:class', 'Dict'),
++     ('py:class', 'Tuple'),
++     ('py:class', 'Any'),
 + ]
 + 
 + # Intersphinx mapping
 + intersphinx_mapping = {
-+     &#39;python&#39;: (&#39;https://docs.python.org/3/&#39;, None),
-+     &#39;numpy&#39;: (&#39;https://numpy.org/doc/stable/&#39;, None),
-+     &#39;pandas&#39;: (&#39;https://pandas.pydata.org/pandas-docs/stable/&#39;, None),
++     'python': ('https://docs.python.org/3/', None),
++     'numpy': ('https://numpy.org/doc/stable/', None),
++     'pandas': ('https://pandas.pydata.org/pandas-docs/stable/', None),
 + }
 + 
 + # -- Options for HTML output -------------------------------------------------
@@ -2069,31 +2069,31 @@ Lines added: 128, lines removed: 1
 + # The theme to use for HTML and HTML Help pages.  See the documentation for
 + # a list of builtin themes.
 + #
-  html_theme = &#39;sphinx_rtd_theme&#39;
+  html_theme = 'sphinx_rtd_theme'
 + 
 + # Theme options are theme-specific and customize the look and feel of a theme
 + # further.  See the documentation for a list of options available for each theme.
 + html_theme_options = {
-+     &#39;canonical_url&#39;: &#39;&#39;,
-+     &#39;analytics_id&#39;: &#39;&#39;,
-+     &#39;logo_only&#39;: False,
-+     &#39;display_version&#39;: True,
-+     &#39;prev_next_buttons_location&#39;: &#39;bottom&#39;,
-+     &#39;style_external_links&#39;: False,
-+     &#39;vcs_pageview_mode&#39;: &#39;&#39;,
-+     &#39;style_nav_header_background&#39;: &#39;#2980B9&#39;,
++     'canonical_url': '',
++     'analytics_id': '',
++     'logo_only': False,
++     'display_version': True,
++     'prev_next_buttons_location': 'bottom',
++     'style_external_links': False,
++     'vcs_pageview_mode': '',
++     'style_nav_header_background': '#2980B9',
 +     # Toc options
-+     &#39;collapse_navigation&#39;: True,
-+     &#39;sticky_navigation&#39;: True,
-+     &#39;navigation_depth&#39;: 4,
-+     &#39;includehidden&#39;: True,
-+     &#39;titles_only&#39;: False
++     'collapse_navigation': True,
++     'sticky_navigation': True,
++     'navigation_depth': 4,
++     'includehidden': True,
++     'titles_only': False
 + }
 + 
 + # Add any paths that contain custom static files (such as style sheets) here,
 + # relative to this directory. They are copied after the builtin static files,
-+ # so a file named &quot;default.css&quot; will overwrite the builtin &quot;default.css&quot;.
-+ html_static_path = [&#39;_static&#39;]
++ # so a file named "default.css" will overwrite the builtin "default.css".
++ html_static_path = ['_static']
 + 
 + # Custom sidebar templates, must be a dictionary that maps document names
 + # to template names.
@@ -2102,29 +2102,29 @@ Lines added: 128, lines removed: 1
 + # -- Options for LaTeX output ------------------------------------------------
 + 
 + latex_elements = {
-+     # The paper size (&#39;letterpaper&#39; or &#39;a4paper&#39;).
++     # The paper size ('letterpaper' or 'a4paper').
 +     #
-+     # &#39;papersize&#39;: &#39;letterpaper&#39;,
++     # 'papersize': 'letterpaper',
 + 
-+     # The font size (&#39;10pt&#39;, &#39;11pt&#39; or &#39;12pt&#39;).
++     # The font size ('10pt', '11pt' or '12pt').
 +     #
-+     # &#39;pointsize&#39;: &#39;10pt&#39;,
++     # 'pointsize': '10pt',
 + 
 +     # Additional stuff for the LaTeX preamble.
 +     #
-+     # &#39;preamble&#39;: &#39;&#39;,
++     # 'preamble': '',
 + 
 +     # Latex figure (float) alignment
 +     #
-+     # &#39;figure_align&#39;: &#39;htbp&#39;,
++     # 'figure_align': 'htbp',
 + }
 + 
 + # Grouping the document tree into LaTeX files. List of tuples
 + # (source start file, target name, title,
 + #  author, documentclass [howto, manual, or own class]).
 + latex_documents = [
-+     (&#39;index&#39;, &#39;LLMAgentFramework.tex&#39;, &#39;LLM Agent Framework Documentation&#39;,
-+      &#39;Your Name&#39;, &#39;manual&#39;),
++     ('index', 'LLMAgentFramework.tex', 'LLM Agent Framework Documentation',
++      'Your Name', 'manual'),
 + ]
 + 
 + # -- Options for manual page output ------------------------------------------
@@ -2132,7 +2132,7 @@ Lines added: 128, lines removed: 1
 + # One entry per manual page. List of tuples
 + # (source start file, name, description, authors, manual section).
 + man_pages = [
-+     (&#39;index&#39;, &#39;llmagentframework&#39;, &#39;LLM Agent Framework Documentation&#39;,
++     ('index', 'llmagentframework', 'LLM Agent Framework Documentation',
 +      [author], 1)
 + ]
 + 
@@ -2142,9 +2142,9 @@ Lines added: 128, lines removed: 1
 + # (source start file, target name, title, author,
 + #  dir menu entry, description, category)
 + texinfo_documents = [
-+     (&#39;index&#39;, &#39;LLMAgentFramework&#39;, &#39;LLM Agent Framework Documentation&#39;,
-+      author, &#39;LLMAgentFramework&#39;, &#39;One line description of project.&#39;,
-+      &#39;Miscellaneous&#39;),
++     ('index', 'LLMAgentFramework', 'LLM Agent Framework Documentation',
++      author, 'LLMAgentFramework', 'One line description of project.',
++      'Miscellaneous'),
 + ]
 + 
 + # -- Options for Epub output -------------------------------------------------
@@ -2156,7 +2156,7 @@ Lines added: 128, lines removed: 1
 + epub_copyright = copyright
 + 
 + # A list of files that should not be packed into the epub file.
-+ epub_exclude_files = [&#39;search.html&#39;]
++ epub_exclude_files = ['search.html']
 + 
 + # -- Options for todo extension ----------------------------------------------
 + 
@@ -2177,7 +2177,7 @@ Now let me create a more targeted approach to eliminate the warnings by configur
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: docs/index.rst</summary>
+<details><summary>Tool use: **edit_file** • Edit file: docs/index.rst</summary>
 
 I'll create a comprehensive index.rst file that properly structures the documentation and avoids cross-reference conflicts.
 
@@ -2190,7 +2190,7 @@ Lines added: 69, lines removed: 6
   
 - LLM Agent Framework documentation
 - =================================
-+ Welcome to LLM Agent Framework&#39;s documentation!
++ Welcome to LLM Agent Framework's documentation!
 + ================================================
   
 - Add your content using &#96;&#96;reStructuredText&#96;&#96; syntax. See the
@@ -2229,14 +2229,14 @@ Lines added: 69, lines removed: 6
 +    from src.memory.embeddings_manager import EmbeddingsManager
 + 
 +    # Initialize services
-+    llm_service = OllamaService({&quot;base_url&quot;: &quot;http://localhost:11434&quot;, &quot;model&quot;: &quot;gemma3&quot;})
-+    embeddings_manager = EmbeddingsManager(&quot;embeddings.jsonl&quot;, llm_service)
++    llm_service = OllamaService({"base_url": "http://localhost:11434", "model": "gemma3"})
++    embeddings_manager = EmbeddingsManager("embeddings.jsonl", llm_service)
 + 
 +    # Create graph manager
 +    graph_manager = GraphManager(
 +        llm_service=llm_service,
 +        embeddings_manager=embeddings_manager,
-+        storage_path=&quot;graph_data&quot;,
++        storage_path="graph_data",
 +        domain_config=domain_config
 +    )
 + 
@@ -2280,7 +2280,7 @@ Lines added: 69, lines removed: 6
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: docs/api/index.rst</summary>
+<details><summary>Tool use: **edit_file** • Edit file: docs/api/index.rst</summary>
 
 I'll create an API documentation index that properly organizes the modules to avoid cross-reference conflicts.
 
@@ -2361,7 +2361,7 @@ Finally, let me update the setup script to use the proper documentation structur
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: setup_docs.sh</summary>
+<details><summary>Tool use: **search_replace** • Edit file: setup_docs.sh</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -2369,7 +2369,7 @@ Lines added: 1, lines removed: 1
 ```diff
 @@ -58,5 +58,5 @@
   # 4. Generate API documentation from source code
-  echo &quot;Generating API documentation...&quot;
+  echo "Generating API documentation..."
 - sphinx-apidoc -o . ../src/
 + sphinx-apidoc -o api ../src/ --separate --no-toc
   
@@ -2388,24 +2388,24 @@ Now let me create a specific solution for the cross-reference warnings by updati
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: docs/conf.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: docs/conf.py</summary>
 
 **Chunk 1**
 Lines added: 11, lines removed: 1
 
 ```diff
 @@ -95,5 +95,15 @@
-      (&#39;py:class&#39;, &#39;Tuple&#39;),
-      (&#39;py:class&#39;, &#39;Any&#39;),
+      ('py:class', 'Tuple'),
+      ('py:class', 'Any'),
 - ]
 +     # Ignore duplicate class warnings - these are re-exported in __init__.py
-+     (&#39;py:class&#39;, &#39;src.memory.graph_memory.GraphStorage&#39;),
-+     (&#39;py:class&#39;, &#39;src.memory.graph_memory.EntityExtractor&#39;),
-+     (&#39;py:class&#39;, &#39;src.memory.graph_memory.RelationshipExtractor&#39;),
++     ('py:class', 'src.memory.graph_memory.GraphStorage'),
++     ('py:class', 'src.memory.graph_memory.EntityExtractor'),
++     ('py:class', 'src.memory.graph_memory.RelationshipExtractor'),
 + ]
 + 
 + # Suppress duplicate object description warnings
-+ suppress_warnings = [&#39;autosummary.import_cycle&#39;]
++ suppress_warnings = ['autosummary.import_cycle']
 + 
 + # Configure autodoc to prefer specific module paths over package imports
 + autodoc_preserve_defaults = True
@@ -2514,7 +2514,7 @@ Let me fix these:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/entity_extractor.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/graph_memory/entity_extractor.py</summary>
 
 I'll fix the docstring formatting issues by correcting indentation, code block formatting, and removing problematic markup that's causing Sphinx warnings.
 
@@ -2538,7 +2538,7 @@ Lines added: undefined, lines removed: 1
 
 ```diff
 @@ -31,5 +30,4 @@
-          #   {&quot;name&quot;: &quot;Riverwatch&quot;, &quot;type&quot;: &quot;location&quot;, &quot;description&quot;: &quot;...&quot;}
+          #   {"name": "Riverwatch", "type": "location", "description": "..."}
           # ]
 -     &#96;&#96;&#96;
   
@@ -2595,7 +2595,7 @@ Lines added: undefined, lines removed: 1
                   logger=custom_logger
               )
 -             &#96;&#96;&#96;
-          &quot;&quot;&quot;
+          """
           self.llm_service = llm_service
 ```
 
@@ -2611,7 +2611,7 @@ Lines added: 2, lines removed: 2
 +             For D&amp;D domain::
 + 
                   {
-                      &#39;character&#39;: &#39;People, NPCs, players, creatures, or any named individuals&#39;,
+                      'character': 'People, NPCs, players, creatures, or any named individuals',
 ```
 
 **Chunk 8**
@@ -2619,7 +2619,7 @@ Lines added: undefined, lines removed: 1
 
 ```diff
 @@ -148,5 +144,4 @@
-                      &#39;organization&#39;: &#39;Groups, guilds, factions, or structured entities&#39;
+                      'organization': 'Groups, guilds, factions, or structured entities'
                   }
 -             &#96;&#96;&#96;
               
@@ -2672,8 +2672,8 @@ Lines added: 4, lines removed: 6
 + 
                   Here are the entities I found:
                   [
-                      {&quot;type&quot;: &quot;character&quot;, &quot;name&quot;: &quot;Eldara&quot;, &quot;description&quot;: &quot;...&quot;},
-                      {&quot;type&quot;: &quot;location&quot;, &quot;name&quot;: &quot;Riverwatch&quot;, &quot;description&quot;: &quot;...&quot;}
+                      {"type": "character", "name": "Eldara", "description": "..."},
+                      {"type": "location", "name": "Riverwatch", "description": "..."}
                   ]
 -             &#96;&#96;&#96;
               
@@ -2682,8 +2682,8 @@ Lines added: 4, lines removed: 6
 +             Output::
 + 
                   [
-                      {&quot;type&quot;: &quot;character&quot;, &quot;name&quot;: &quot;Eldara&quot;, &quot;description&quot;: &quot;...&quot;},
-                      {&quot;type&quot;: &quot;location&quot;, &quot;name&quot;: &quot;Riverwatch&quot;, &quot;description&quot;: &quot;...&quot;}
+                      {"type": "character", "name": "Eldara", "description": "..."},
+                      {"type": "location", "name": "Riverwatch", "description": "..."}
                   ]
 -             &#96;&#96;&#96;
               
@@ -2780,7 +2780,7 @@ Lines added: 2, lines removed: 2
 +         Example::
 + 
               entities = [
-                  {&quot;name&quot;: &quot;Eldara&quot;, &quot;type&quot;: &quot;character&quot;, &quot;description&quot;: &quot;...&quot;},
+                  {"name": "Eldara", "type": "character", "description": "..."},
 ```
 
 **Chunk 19**
@@ -2807,7 +2807,7 @@ Lines added: 2, lines removed: 2
 +         Example::
 + 
               entities = [
-                  {&quot;name&quot;: &quot;Eldara&quot;, &quot;type&quot;: &quot;character&quot;, &quot;description&quot;: &quot;Fire wizard&quot;},
+                  {"name": "Eldara", "type": "character", "description": "Fire wizard"},
 ```
 
 **Chunk 21**
@@ -2815,7 +2815,7 @@ Lines added: undefined, lines removed: 1
 
 ```diff
 @@ -590,5 +582,4 @@
-              #     {&quot;name&quot;: &quot;Riverwatch&quot;, &quot;type&quot;: &quot;location&quot;, &quot;description&quot;: &quot;Eastern town&quot;}
+              #     {"name": "Riverwatch", "type": "location", "description": "Eastern town"}
               # ]
 -             &#96;&#96;&#96;
               
@@ -2834,7 +2834,7 @@ Now let me fix the duplicate documentation issues by updating the Sphinx configu
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: docs/conf.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: docs/conf.py</summary>
 
 I'll update the Sphinx configuration to properly handle duplicate documentation and fix the warnings by excluding auto-generated files and configuring the autodoc properly.
 
@@ -2845,30 +2845,30 @@ Lines added: 7, lines removed: 18
 @@ -30,22 +30,11 @@
   # ones.
   extensions = [
--     &#39;sphinx.ext.autodoc&#39;,      # Auto-generate docs from docstrings
--     &#39;sphinx.ext.viewcode&#39;,     # Add source code links  
--     &#39;sphinx.ext.napoleon&#39;,     # Support Google/NumPy style docstrings
--     &#39;sphinx.ext.intersphinx&#39;,  # Link to other documentation
--     &#39;sphinx.ext.githubpages&#39;,  # GitHub Pages support
--     &#39;sphinx.ext.autosummary&#39;,  # Generate summary tables
--     &#39;sphinx.ext.todo&#39;,         # Support for todo items
+-     'sphinx.ext.autodoc',      # Auto-generate docs from docstrings
+-     'sphinx.ext.viewcode',     # Add source code links  
+-     'sphinx.ext.napoleon',     # Support Google/NumPy style docstrings
+-     'sphinx.ext.intersphinx',  # Link to other documentation
+-     'sphinx.ext.githubpages',  # GitHub Pages support
+-     'sphinx.ext.autosummary',  # Generate summary tables
+-     'sphinx.ext.todo',         # Support for todo items
 - ]
 - 
 - # Add any paths that contain templates here, relative to this directory.
-- templates_path = [&#39;_templates&#39;]
+- templates_path = ['_templates']
 - 
 - # List of patterns, relative to source directory, that match files and
 - # directories to ignore when looking for source files.
 - # This pattern also affects html_static_path and html_extra_path.
-- exclude_patterns = [&#39;_build&#39;, &#39;Thumbs.db&#39;, &#39;.DS_Store&#39;]
+- exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 - 
 - # -- Extension configuration -------------------------------------------------
-+     &#39;sphinx.ext.autodoc&#39;,       # Auto-generate docs from docstrings
-+     &#39;sphinx.ext.viewcode&#39;,      # Add source code links
-+     &#39;sphinx.ext.napoleon&#39;,      # Support Google/NumPy style docstrings
-+     &#39;sphinx.ext.intersphinx&#39;,   # Link to other documentation
-+     &#39;sphinx.ext.autosummary&#39;,   # Generate summary tables
-+     &#39;sphinx.ext.githubpages&#39;,   # Publish to GitHub Pages
++     'sphinx.ext.autodoc',       # Auto-generate docs from docstrings
++     'sphinx.ext.viewcode',      # Add source code links
++     'sphinx.ext.napoleon',      # Support Google/NumPy style docstrings
++     'sphinx.ext.intersphinx',   # Link to other documentation
++     'sphinx.ext.autosummary',   # Generate summary tables
++     'sphinx.ext.githubpages',   # Publish to GitHub Pages
 + ]
   
   # Napoleon settings for Google-style docstrings
@@ -2884,22 +2884,22 @@ Lines added: 16, lines removed: 52
 - # Auto-documentation settings
 + # Autodoc settings
   autodoc_default_options = {
-      &#39;members&#39;: True,
--     &#39;member-order&#39;: &#39;bysource&#39;,
-+     &#39;undoc-members&#39;: False,
-+     &#39;show-inheritance&#39;: True,
-      &#39;special-members&#39;: &#39;__init__&#39;,
--     &#39;undoc-members&#39;: True,
--     &#39;exclude-members&#39;: &#39;__weakref__&#39;,
--     &#39;show-inheritance&#39;: True,
-+     &#39;exclude-members&#39;: &#39;__weakref__&#39;
+      'members': True,
+-     'member-order': 'bysource',
++     'undoc-members': False,
++     'show-inheritance': True,
+      'special-members': '__init__',
+-     'undoc-members': True,
+-     'exclude-members': '__weakref__',
+-     'show-inheritance': True,
++     'exclude-members': '__weakref__'
   }
   
 - # Autodoc configuration
 - autodoc_mock_imports = []
-- autodoc_typehints = &#39;description&#39;
-- autodoc_typehints_description_target = &#39;documented&#39;
-+ # Don&#39;t show full module paths
+- autodoc_typehints = 'description'
+- autodoc_typehints_description_target = 'documented'
++ # Don't show full module paths
 + add_module_names = False
   
   # Autosummary settings
@@ -2911,37 +2911,37 @@ Lines added: 16, lines removed: 52
 - # Configure cross-reference resolution to avoid duplicate warnings
 - nitpicky = False
 - nitpick_ignore = [
--     (&#39;py:class&#39;, &#39;EmbeddingsManager&#39;),
--     (&#39;py:class&#39;, &#39;Optional&#39;),
--     (&#39;py:class&#39;, &#39;List&#39;),
--     (&#39;py:class&#39;, &#39;Dict&#39;),
--     (&#39;py:class&#39;, &#39;Tuple&#39;),
--     (&#39;py:class&#39;, &#39;Any&#39;),
+-     ('py:class', 'EmbeddingsManager'),
+-     ('py:class', 'Optional'),
+-     ('py:class', 'List'),
+-     ('py:class', 'Dict'),
+-     ('py:class', 'Tuple'),
+-     ('py:class', 'Any'),
 -     # Ignore duplicate class warnings - these are re-exported in __init__.py
--     (&#39;py:class&#39;, &#39;src.memory.graph_memory.GraphStorage&#39;),
--     (&#39;py:class&#39;, &#39;src.memory.graph_memory.EntityExtractor&#39;),
--     (&#39;py:class&#39;, &#39;src.memory.graph_memory.RelationshipExtractor&#39;),
+-     ('py:class', 'src.memory.graph_memory.GraphStorage'),
+-     ('py:class', 'src.memory.graph_memory.EntityExtractor'),
+-     ('py:class', 'src.memory.graph_memory.RelationshipExtractor'),
 - ]
 - 
 - # Suppress duplicate object description warnings
-- suppress_warnings = [&#39;autosummary.import_cycle&#39;]
+- suppress_warnings = ['autosummary.import_cycle']
 - 
 - # Configure autodoc to prefer specific module paths over package imports
 - autodoc_preserve_defaults = True
 - 
 - # Intersphinx mapping
 - intersphinx_mapping = {
--     &#39;python&#39;: (&#39;https://docs.python.org/3/&#39;, None),
--     &#39;numpy&#39;: (&#39;https://numpy.org/doc/stable/&#39;, None),
--     &#39;pandas&#39;: (&#39;https://pandas.pydata.org/pandas-docs/stable/&#39;, None),
+-     'python': ('https://docs.python.org/3/', None),
+-     'numpy': ('https://numpy.org/doc/stable/', None),
+-     'pandas': ('https://pandas.pydata.org/pandas-docs/stable/', None),
 - }
 + # Add any paths that contain templates here, relative to this directory.
-+ templates_path = [&#39;_templates&#39;]
++ templates_path = ['_templates']
 + 
 + # List of patterns, relative to source directory, that match files and
 + # directories to ignore when looking for source files.
 + # This pattern also affects html_static_path and html_extra_path.
-+ exclude_patterns = [&#39;_build&#39;, &#39;Thumbs.db&#39;, &#39;.DS_Store&#39;, &#39;modules.rst&#39;]
++ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', 'modules.rst']
   
   # -- Options for HTML output -------------------------------------------------
   
@@ -2949,25 +2949,25 @@ Lines added: 16, lines removed: 52
 - # a list of builtin themes.
 - #
 + # The theme to use for HTML and HTML Help pages.
-  html_theme = &#39;sphinx_rtd_theme&#39;
+  html_theme = 'sphinx_rtd_theme'
   
   # Theme options are theme-specific and customize the look and feel of a theme
 - # further.  See the documentation for a list of options available for each theme.
 + # further.
   html_theme_options = {
--     &#39;canonical_url&#39;: &#39;&#39;,
--     &#39;analytics_id&#39;: &#39;&#39;,
--     &#39;logo_only&#39;: False,
--     &#39;display_version&#39;: True,
--     &#39;prev_next_buttons_location&#39;: &#39;bottom&#39;,
--     &#39;style_external_links&#39;: False,
--     &#39;vcs_pageview_mode&#39;: &#39;&#39;,
--     &#39;style_nav_header_background&#39;: &#39;#2980B9&#39;,
+-     'canonical_url': '',
+-     'analytics_id': '',
+-     'logo_only': False,
+-     'display_version': True,
+-     'prev_next_buttons_location': 'bottom',
+-     'style_external_links': False,
+-     'vcs_pageview_mode': '',
+-     'style_nav_header_background': '#2980B9',
 -     # Toc options
--     &#39;collapse_navigation&#39;: True,
-+     &#39;collapse_navigation&#39;: False,
-      &#39;sticky_navigation&#39;: True,
-      &#39;navigation_depth&#39;: 4,
+-     'collapse_navigation': True,
++     'collapse_navigation': False,
+      'sticky_navigation': True,
+      'navigation_depth': 4,
 ```
 
 **Chunk 3**
@@ -2975,7 +2975,7 @@ Lines added: 42, lines removed: 65
 
 ```diff
 @@ -145,70 +98,47 @@
-  html_static_path = [&#39;_static&#39;]
+  html_static_path = ['_static']
   
 - # Custom sidebar templates, must be a dictionary that maps document names
 - # to template names.
@@ -2984,49 +2984,49 @@ Lines added: 42, lines removed: 65
 - # -- Options for LaTeX output ------------------------------------------------
 - 
 - latex_elements = {
--     # The paper size (&#39;letterpaper&#39; or &#39;a4paper&#39;).
+-     # The paper size ('letterpaper' or 'a4paper').
 -     #
--     # &#39;papersize&#39;: &#39;letterpaper&#39;,
+-     # 'papersize': 'letterpaper',
 - 
--     # The font size (&#39;10pt&#39;, &#39;11pt&#39; or &#39;12pt&#39;).
+-     # The font size ('10pt', '11pt' or '12pt').
 -     #
--     # &#39;pointsize&#39;: &#39;10pt&#39;,
+-     # 'pointsize': '10pt',
 - 
 -     # Additional stuff for the LaTeX preamble.
 -     #
--     # &#39;preamble&#39;: &#39;&#39;,
+-     # 'preamble': '',
 - 
 -     # Latex figure (float) alignment
 -     #
--     # &#39;figure_align&#39;: &#39;htbp&#39;,
+-     # 'figure_align': 'htbp',
 - }
 - 
 - # Grouping the document tree into LaTeX files. List of tuples
 - # (source start file, target name, title,
 - #  author, documentclass [howto, manual, or own class]).
 - latex_documents = [
--     (&#39;index&#39;, &#39;LLMAgentFramework.tex&#39;, &#39;LLM Agent Framework Documentation&#39;,
--      &#39;Your Name&#39;, &#39;manual&#39;),
-+ # Create _static directory if it doesn&#39;t exist
-+ os.makedirs(&#39;_static&#39;, exist_ok=True)
+-     ('index', 'LLMAgentFramework.tex', 'LLM Agent Framework Documentation',
+-      'Your Name', 'manual'),
++ # Create _static directory if it doesn't exist
++ os.makedirs('_static', exist_ok=True)
 + 
 + # -- Cross-reference configuration -------------------------------------------
 + 
 + # Configure cross-reference resolution to avoid duplicate warnings
 + nitpicky = False
 + nitpick_ignore = [
-+     (&#39;py:class&#39;, &#39;EmbeddingsManager&#39;),
-+     (&#39;py:class&#39;, &#39;Optional&#39;),
-+     (&#39;py:class&#39;, &#39;List&#39;),
-+     (&#39;py:class&#39;, &#39;Dict&#39;),
-+     (&#39;py:class&#39;, &#39;Tuple&#39;),
-+     (&#39;py:class&#39;, &#39;Any&#39;),
++     ('py:class', 'EmbeddingsManager'),
++     ('py:class', 'Optional'),
++     ('py:class', 'List'),
++     ('py:class', 'Dict'),
++     ('py:class', 'Tuple'),
++     ('py:class', 'Any'),
 + ]
 + 
 + # Suppress duplicate object description warnings
 + suppress_warnings = [
-+     &#39;autosummary.import_cycle&#39;,
-+     &#39;autodoc.import_object&#39;
++     'autosummary.import_cycle',
++     'autodoc.import_object'
   ]
   
 - # -- Options for manual page output ------------------------------------------
@@ -3034,7 +3034,7 @@ Lines added: 42, lines removed: 65
 - # One entry per manual page. List of tuples
 - # (source start file, name, description, authors, manual section).
 - man_pages = [
--     (&#39;index&#39;, &#39;llmagentframework&#39;, &#39;LLM Agent Framework Documentation&#39;,
+-     ('index', 'llmagentframework', 'LLM Agent Framework Documentation',
 -      [author], 1)
 - ]
 - 
@@ -3044,9 +3044,9 @@ Lines added: 42, lines removed: 65
 - # (source start file, target name, title, author,
 - #  dir menu entry, description, category)
 - texinfo_documents = [
--     (&#39;index&#39;, &#39;LLMAgentFramework&#39;, &#39;LLM Agent Framework Documentation&#39;,
--      author, &#39;LLMAgentFramework&#39;, &#39;One line description of project.&#39;,
--      &#39;Miscellaneous&#39;),
+-     ('index', 'LLMAgentFramework', 'LLM Agent Framework Documentation',
+-      author, 'LLMAgentFramework', 'One line description of project.',
+-      'Miscellaneous'),
 - ]
 - 
 - # -- Options for Epub output -------------------------------------------------
@@ -3058,7 +3058,7 @@ Lines added: 42, lines removed: 65
 - epub_copyright = copyright
 - 
 - # A list of files that should not be packed into the epub file.
-- epub_exclude_files = [&#39;search.html&#39;]
+- epub_exclude_files = ['search.html']
 - 
 - # -- Options for todo extension ----------------------------------------------
 - 
@@ -3066,26 +3066,26 @@ Lines added: 42, lines removed: 65
 - todo_include_todos = True
 + # Intersphinx mapping to external documentation
 + intersphinx_mapping = {
-+     &#39;python&#39;: (&#39;https://docs.python.org/3&#39;, None),
-+     &#39;numpy&#39;: (&#39;https://numpy.org/doc/stable/&#39;, None),
++     'python': ('https://docs.python.org/3', None),
++     'numpy': ('https://numpy.org/doc/stable/', None),
 + }
 + 
 + # -- Custom configuration ----------------------------------------------------
 + 
 + # Source code encoding
-+ source_suffix = &#39;.rst&#39;
++ source_suffix = '.rst'
 + 
 + # Master document
-+ master_doc = &#39;index&#39;
++ master_doc = 'index'
 + 
 + # Language
-+ language = &#39;en&#39;
++ language = 'en'
 + 
 + # Pygments style for syntax highlighting
-+ pygments_style = &#39;sphinx&#39;
++ pygments_style = 'sphinx'
 + 
 + # Output file base name for HTML help builder
-+ htmlhelp_basename = &#39;LLMAgentFrameworkdoc&#39;
++ htmlhelp_basename = 'LLMAgentFrameworkdoc'
   
 ```
 
@@ -3101,7 +3101,7 @@ Now let me replace the problematic API documentation structure to avoid duplicat
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: docs/api/index.rst</summary>
+<details><summary>Tool use: **edit_file** • Edit file: docs/api/index.rst</summary>
 
 I'll replace the API documentation to avoid duplicate object descriptions and use a cleaner structure that won't conflict with autogenerated content.
 
@@ -3180,7 +3180,7 @@ Now let me create the missing documentation files to resolve the toctree warning
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: docs/overview.rst</summary>
+<details><summary>Tool use: **edit_file** • Edit file: docs/overview.rst</summary>
 
 I'll create the overview documentation file that was referenced in the toctree but missing.
 
@@ -3246,18 +3246,18 @@ Lines added: 86, lines removed: 1
 +     # Create memory manager
 +     memory_manager = MemoryManager(
 +         llm_service=llm_service,
-+         storage_path=&quot;./memory_data&quot;,
++         storage_path="./memory_data",
 +         domain_config=your_domain_config
 +     )
 +     
 +     # Add conversation entry
 +     memory_manager.add_conversation_entry(
-+         content=&quot;The wizard Eldara runs a magic shop in Riverwatch&quot;,
-+         role=&quot;user&quot;
++         content="The wizard Eldara runs a magic shop in Riverwatch",
++         role="user"
 +     )
 +     
 +     # Query for context
-+     context = memory_manager.get_relevant_context(&quot;Tell me about magic shops&quot;)
++     context = memory_manager.get_relevant_context("Tell me about magic shops")
 + 
 + Use Cases
 + =========
@@ -3286,7 +3286,7 @@ Lines added: 86, lines removed: 1
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: docs/examples.rst</summary>
+<details><summary>Tool use: **edit_file** • Edit file: docs/examples.rst</summary>
 
 I'll create the examples documentation file that was referenced in the toctree.
 
@@ -3315,22 +3315,22 @@ Lines added: 258, lines removed: 1
 +     # Create memory manager
 +     memory_manager = MemoryManager(
 +         llm_service=llm_service,
-+         storage_path=&quot;./conversation_memory&quot;
++         storage_path="./conversation_memory"
 +     )
 +     
 +     # Add conversation entries
 +     memory_manager.add_conversation_entry(
-+         content=&quot;I&#39;m planning a camping trip to Yellowstone next month&quot;,
-+         role=&quot;user&quot;
++         content="I'm planning a camping trip to Yellowstone next month",
++         role="user"
 +     )
 +     
 +     memory_manager.add_conversation_entry(
-+         content=&quot;That sounds exciting! Here are some tips for camping in Yellowstone...&quot;,
-+         role=&quot;assistant&quot;
++         content="That sounds exciting! Here are some tips for camping in Yellowstone...",
++         role="assistant"
 +     )
 +     
 +     # Retrieve relevant context
-+     context = memory_manager.get_relevant_context(&quot;camping gear&quot;)
++     context = memory_manager.get_relevant_context("camping gear")
 +     print(context)
 + 
 + D&amp;D Campaign Tracking
@@ -3344,19 +3344,19 @@ Lines added: 258, lines removed: 1
 +     # Initialize with D&amp;D domain configuration
 +     memory_manager = MemoryManager(
 +         llm_service=llm_service,
-+         storage_path=&quot;./dnd_campaign&quot;,
++         storage_path="./dnd_campaign",
 +         domain_config=dnd_config,
 +         enable_graph_memory=True
 +     )
 +     
 +     # Add campaign events
 +     memory_manager.add_conversation_entry(
-+         content=&quot;&quot;&quot;
++         content="""
 +         The party arrives in the bustling market town of Riverwatch. 
-+         Eldara, a fire wizard, runs the local magic shop called &#39;Arcane Embers&#39;. 
++         Eldara, a fire wizard, runs the local magic shop called 'Arcane Embers'. 
 +         She offers to sell them healing potions and enchanted scrolls.
-+         &quot;&quot;&quot;,
-+         role=&quot;assistant&quot;
++         """,
++         role="assistant"
 +     )
 +     
 +     # The system automatically extracts:
@@ -3377,20 +3377,20 @@ Lines added: 258, lines removed: 1
 +     )
 +     
 +     entities = extractor.extract_entities(
-+         &quot;Sir Gareth the paladin wields the legendary sword Lightbringer&quot;
++         "Sir Gareth the paladin wields the legendary sword Lightbringer"
 +     )
 +     
 +     # Returns:
 +     # [
 +     #     {
-+     #         &quot;name&quot;: &quot;Sir Gareth&quot;,
-+     #         &quot;type&quot;: &quot;character&quot;,
-+     #         &quot;description&quot;: &quot;A paladin who wields the legendary sword Lightbringer&quot;
++     #         "name": "Sir Gareth",
++     #         "type": "character",
++     #         "description": "A paladin who wields the legendary sword Lightbringer"
 +     #     },
 +     #     {
-+     #         &quot;name&quot;: &quot;Lightbringer&quot;, 
-+     #         &quot;type&quot;: &quot;object&quot;,
-+     #         &quot;description&quot;: &quot;A legendary sword wielded by Sir Gareth the paladin&quot;
++     #         "name": "Lightbringer", 
++     #         "type": "object",
++     #         "description": "A legendary sword wielded by Sir Gareth the paladin"
 +     #     }
 +     # ]
 + 
@@ -3404,13 +3404,13 @@ Lines added: 258, lines removed: 1
 +     queries = GraphQueries(graph_manager)
 +     
 +     # Find all information about a character
-+     character_info = queries.find_entity_context(&quot;Eldara&quot;)
++     character_info = queries.find_entity_context("Eldara")
 +     
 +     # Find path between entities
-+     path = queries.find_path_between_entities(&quot;Sir Gareth&quot;, &quot;Lightbringer&quot;)
++     path = queries.find_path_between_entities("Sir Gareth", "Lightbringer")
 +     
 +     # Get recent entities
-+     recent = queries.get_recent_entities(limit=5, entity_type=&quot;character&quot;)
++     recent = queries.get_recent_entities(limit=5, entity_type="character")
 + 
 + Custom Domain Configuration
 + ===========================
@@ -3418,29 +3418,29 @@ Lines added: 258, lines removed: 1
 + Creating a custom domain for laboratory work::
 + 
 +     lab_config = {
-+         &quot;domain_name&quot;: &quot;laboratory_research&quot;,
-+         &quot;entity_types&quot;: {
-+             &quot;equipment&quot;: &quot;Laboratory instruments, devices, and apparatus&quot;,
-+             &quot;material&quot;: &quot;Chemical compounds, biological samples, reagents&quot;,
-+             &quot;procedure&quot;: &quot;Experimental methods, protocols, techniques&quot;,
-+             &quot;result&quot;: &quot;Measurements, observations, data points&quot;,
-+             &quot;person&quot;: &quot;Researchers, collaborators, lab personnel&quot;,
-+             &quot;concept&quot;: &quot;Scientific theories, principles, hypotheses&quot;
++         "domain_name": "laboratory_research",
++         "entity_types": {
++             "equipment": "Laboratory instruments, devices, and apparatus",
++             "material": "Chemical compounds, biological samples, reagents",
++             "procedure": "Experimental methods, protocols, techniques",
++             "result": "Measurements, observations, data points",
++             "person": "Researchers, collaborators, lab personnel",
++             "concept": "Scientific theories, principles, hypotheses"
 +         },
-+         &quot;relationship_types&quot;: {
-+             &quot;uses&quot;: &quot;Equipment or material used in procedure&quot;,
-+             &quot;produces&quot;: &quot;Procedure or equipment produces result&quot;,
-+             &quot;located_in&quot;: &quot;Equipment or material located in lab space&quot;,
-+             &quot;collaborates_with&quot;: &quot;People working together&quot;,
-+             &quot;measures&quot;: &quot;Equipment measures specific parameters&quot;,
-+             &quot;contains&quot;: &quot;Material contains specific compounds&quot;
++         "relationship_types": {
++             "uses": "Equipment or material used in procedure",
++             "produces": "Procedure or equipment produces result",
++             "located_in": "Equipment or material located in lab space",
++             "collaborates_with": "People working together",
++             "measures": "Equipment measures specific parameters",
++             "contains": "Material contains specific compounds"
 +         }
 +     }
 +     
 +     # Use with memory manager
 +     memory_manager = MemoryManager(
 +         llm_service=llm_service,
-+         storage_path=&quot;./lab_research&quot;,
++         storage_path="./lab_research",
 +         domain_config=lab_config,
 +         enable_graph_memory=True
 +     )
@@ -3453,7 +3453,7 @@ Lines added: 258, lines removed: 1
 +     from src.memory.graph_memory.graph_manager import GraphManager
 +     
 +     graph_manager = GraphManager(
-+         storage_path=&quot;./advanced_graph&quot;,
++         storage_path="./advanced_graph",
 +         embeddings_manager=embeddings_manager,
 +         llm_service=llm_service,
 +         domain_config=dnd_config
@@ -3461,24 +3461,24 @@ Lines added: 258, lines removed: 1
 +     
 +     # Add nodes manually
 +     node, is_new = graph_manager.add_or_update_node(
-+         name=&quot;Dragon&#39;s Lair&quot;,
-+         node_type=&quot;location&quot;,
-+         description=&quot;Ancient cave system inhabited by a red dragon&quot;,
-+         danger_level=&quot;extreme&quot;,
-+         discovered_by=&quot;The Brave Company&quot;
++         name="Dragon's Lair",
++         node_type="location",
++         description="Ancient cave system inhabited by a red dragon",
++         danger_level="extreme",
++         discovered_by="The Brave Company"
 +     )
 +     
 +     # Add relationships
 +     graph_manager.add_edge(
-+         from_node=&quot;Ancient Red Dragon&quot;,
-+         to_node=&quot;Dragon&#39;s Lair&quot;, 
-+         relationship_type=&quot;located_in&quot;,
++         from_node="Ancient Red Dragon",
++         to_node="Dragon's Lair", 
++         relationship_type="located_in",
 +         weight=1.0,
-+         evidence=&quot;The dragon lives deep within the cave system&quot;
++         evidence="The dragon lives deep within the cave system"
 +     )
 +     
 +     # Query for context
-+     context = graph_manager.query_for_context(&quot;dangerous locations&quot;)
++     context = graph_manager.query_for_context("dangerous locations")
 + 
 + Embeddings and Similarity
 + =========================
@@ -3488,18 +3488,18 @@ Lines added: 258, lines removed: 1
 +     from src.memory.embeddings_manager import EmbeddingsManager
 +     
 +     embeddings_manager = EmbeddingsManager(
-+         storage_path=&quot;./embeddings&quot;,
-+         model_name=&quot;sentence-transformers/all-MiniLM-L6-v2&quot;
++         storage_path="./embeddings",
++         model_name="sentence-transformers/all-MiniLM-L6-v2"
 +     )
 +     
 +     # Generate embeddings
 +     embedding = embeddings_manager.generate_embedding(
-+         &quot;A magical sword with fire enchantments&quot;
++         "A magical sword with fire enchantments"
 +     )
 +     
 +     # Find similar content
 +     similar_items = embeddings_manager.find_similar(
-+         query=&quot;enchanted weapon&quot;,
++         query="enchanted weapon",
 +         top_k=5,
 +         min_similarity=0.7
 +     )
@@ -3518,12 +3518,12 @@ Lines added: 258, lines removed: 1
 +     logging.basicConfig(level=logging.INFO)
 +     
 +     # Initialize services
-+     llm_service = GemmaService(model=&quot;gemma2:2b&quot;)
++     llm_service = GemmaService(model="gemma2:2b")
 +     
 +     # Create comprehensive memory system
 +     memory_manager = MemoryManager(
 +         llm_service=llm_service,
-+         storage_path=&quot;./complete_system&quot;,
++         storage_path="./complete_system",
 +         domain_config=dnd_config,
 +         enable_graph_memory=True,
 +         max_memory_entries=1000,
@@ -3532,16 +3532,16 @@ Lines added: 258, lines removed: 1
 +     
 +     # Simulate a conversation
 +     conversation = [
-+         &quot;Tell me about the town of Riverwatch&quot;,
-+         &quot;Riverwatch is a peaceful trading town...&quot;,
-+         &quot;Who are the important people there?&quot;,
-+         &quot;Eldara the fire wizard runs the magic shop...&quot;,
-+         &quot;What about the surrounding area?&quot;,
-+         &quot;To the north lies the Whispering Woods...&quot;
++         "Tell me about the town of Riverwatch",
++         "Riverwatch is a peaceful trading town...",
++         "Who are the important people there?",
++         "Eldara the fire wizard runs the magic shop...",
++         "What about the surrounding area?",
++         "To the north lies the Whispering Woods..."
 +     ]
 +     
 +     for i, message in enumerate(conversation):
-+         role = &quot;user&quot; if i % 2 == 0 else &quot;assistant&quot;
++         role = "user" if i % 2 == 0 else "assistant"
 +         memory_manager.add_conversation_entry(
 +             content=message,
 +             role=role
@@ -3549,10 +3549,10 @@ Lines added: 258, lines removed: 1
 +     
 +     # Generate comprehensive response using all memory
 +     context = memory_manager.get_comprehensive_context(
-+         query=&quot;Tell me everything about Riverwatch and its surroundings&quot;
++         query="Tell me everything about Riverwatch and its surroundings"
 +     )
 +     
-+     print(&quot;Context from memory:&quot;)
++     print("Context from memory:")
 +     print(context) 
 ```
 
@@ -3564,7 +3564,7 @@ Lines added: 258, lines removed: 1
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: docs/contributing.rst</summary>
+<details><summary>Tool use: **edit_file** • Edit file: docs/contributing.rst</summary>
 
 I'll create the contributing documentation file that was referenced in the toctree.
 
@@ -3642,7 +3642,7 @@ Lines added: 333, lines removed: 1
 + Example docstring format::
 + 
 +     def extract_entities(self, text: str, context: Optional[str] = None) -&gt; List[Dict[str, Any]]:
-+         &quot;&quot;&quot;Extract entities from text using LLM.
++         """Extract entities from text using LLM.
 +         
 +         Args:
 +             text: Text content to analyze for entities.
@@ -3653,9 +3653,9 @@ Lines added: 333, lines removed: 1
 +             
 +         Example::
 +         
-+             entities = extractor.extract_entities(&quot;Eldara runs a magic shop&quot;)
-+             # [{&quot;name&quot;: &quot;Eldara&quot;, &quot;type&quot;: &quot;character&quot;, &quot;description&quot;: &quot;...&quot;}]
-+         &quot;&quot;&quot;
++             entities = extractor.extract_entities("Eldara runs a magic shop")
++             # [{"name": "Eldara", "type": "character", "description": "..."}]
++         """
 + 
 + Testing
 + =======
@@ -3704,24 +3704,24 @@ Lines added: 333, lines removed: 1
 + Unit test example::
 + 
 +     def test_entity_extraction():
-+         &quot;&quot;&quot;Test basic entity extraction functionality.&quot;&quot;&quot;
++         """Test basic entity extraction functionality."""
 +         extractor = EntityExtractor(
 +             llm_service=MockLLMService(),
 +             domain_config=dnd_config
 +         )
 +         
 +         entities = extractor.extract_entities(
-+             &quot;Eldara the wizard runs a shop in Riverwatch&quot;
++             "Eldara the wizard runs a shop in Riverwatch"
 +         )
 +         
 +         assert len(entities) == 2
-+         assert entities[0][&quot;name&quot;] == &quot;Eldara&quot;
-+         assert entities[0][&quot;type&quot;] == &quot;character&quot;
++         assert entities[0]["name"] == "Eldara"
++         assert entities[0]["type"] == "character"
 + 
 + Integration test example::
 + 
 +     def test_graph_memory_workflow():
-+         &quot;&quot;&quot;Test complete graph memory workflow.&quot;&quot;&quot;
++         """Test complete graph memory workflow."""
 +         memory_manager = MemoryManager(
 +             llm_service=MockLLMService(),
 +             storage_path=tmp_path,
@@ -3731,13 +3731,13 @@ Lines added: 333, lines removed: 1
 +         
 +         # Add conversation
 +         memory_manager.add_conversation_entry(
-+             content=&quot;Eldara runs a magic shop&quot;,
-+             role=&quot;assistant&quot;
++             content="Eldara runs a magic shop",
++             role="assistant"
 +         )
 +         
 +         # Verify entities were extracted
 +         stats = memory_manager.graph_manager.get_graph_stats()
-+         assert stats[&quot;total_nodes&quot;] &gt; 0
++         assert stats["total_nodes"] &gt; 0
 + 
 + Pull Request Process
 + ====================
@@ -3755,7 +3755,7 @@ Lines added: 333, lines removed: 1
 + 3. **Commit your changes**::
 + 
 +     git add .
-+     git commit -m &quot;Add feature: description of changes&quot;
++     git commit -m "Add feature: description of changes"
 + 
 + 4. **Push to your fork**::
 + 
@@ -3796,7 +3796,7 @@ Lines added: 333, lines removed: 1
 + Areas for Contribution
 + ======================
 + 
-+ We&#39;re looking for help in these areas:
++ We're looking for help in these areas:
 + 
 + Core Features
 + -------------
@@ -3862,7 +3862,7 @@ Lines added: 333, lines removed: 1
 + - **Issues**: For bug reports and feature requests
 + - **Documentation**: Check docs first for common questions
 + 
-+ We appreciate all contributions, whether they&#39;re bug fixes, new features, documentation improvements, or just questions that help us improve the project!
++ We appreciate all contributions, whether they're bug fixes, new features, documentation improvements, or just questions that help us improve the project!
 + 
 + Development Tips
 + ================
@@ -3874,7 +3874,7 @@ Lines added: 333, lines removed: 1
 + 
 +     import logging
 +     logger = logging.getLogger(__name__)
-+     logger.debug(&quot;Processing entity: %s&quot;, entity_name)
++     logger.debug("Processing entity: %s", entity_name)
 + 
 + - Enable debug logging in tests::
 + 
@@ -3920,7 +3920,7 @@ Now let me test the documentation generation to see if the warnings are resolved
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: cd docs && make clean && make html</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: cd docs && make clean && make html</summary>
 
 ```bash
 cd docs && make clean && make html
@@ -3974,7 +3974,7 @@ The `graph_manager.py` file still has formatting issues:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/graph_memory/graph_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/graph_memory/graph_manager.py</summary>
 
 I'll fix the docstring formatting issues in graph_manager.py by correcting the inline literals, indentation, and code block formatting that are causing Sphinx warnings.
 
@@ -3999,7 +3999,7 @@ Lines added: undefined, lines removed: 1
 
 ```diff
 @@ -28,5 +26,4 @@
-          description=&quot;A fire wizard who runs a magic shop&quot;
+          description="A fire wizard who runs a magic shop"
       )
 -     &#96;&#96;&#96;
   
@@ -4018,7 +4018,7 @@ Lines added: 2, lines removed: 2
 +     Example::
 + 
           node = GraphNode(
-              node_id=&quot;character_001&quot;,
+              node_id="character_001",
 ```
 
 **Chunk 4**
@@ -4026,10 +4026,10 @@ Lines added: undefined, lines removed: 1
 
 ```diff
 @@ -79,5 +76,4 @@
-              magic_type=&quot;fire&quot;
+              magic_type="fire"
           )
 -         &#96;&#96;&#96;
-      &quot;&quot;&quot;
+      """
       
 ```
 
@@ -4045,7 +4045,7 @@ Lines added: 2, lines removed: 2
 +     Example::
 + 
           edge = GraphEdge(
-              from_node_id=&quot;character_001&quot;,
+              from_node_id="character_001",
 ```
 
 **Chunk 6**
@@ -4056,7 +4056,7 @@ Lines added: undefined, lines removed: 1
               confidence=0.9
           )
 -         &#96;&#96;&#96;
-      &quot;&quot;&quot;
+      """
       
 ```
 
@@ -4092,10 +4092,10 @@ Lines added: undefined, lines removed: 1
 
 ```diff
 @@ -292,5 +288,4 @@
-                  description=entity[&quot;description&quot;]
+                  description=entity["description"]
               )
 -         &#96;&#96;&#96;
-      &quot;&quot;&quot;
+      """
       
 ```
 
@@ -4136,7 +4136,7 @@ Lines added: undefined, lines removed: 1
 ```diff
 @@ -408,5 +405,4 @@
               else:
-                  print(f&quot;Updated existing entity: {node.name} (mentions: {node.mention_count})&quot;)
+                  print(f"Updated existing entity: {node.name} (mentions: {node.mention_count})")
 -             &#96;&#96;&#96;
               
           Note:
@@ -4178,7 +4178,7 @@ Lines added: 2, lines removed: 2
 +         Example::
 + 
               # Find context for user query
-              context = graph_manager.query_for_context(&quot;magic shops&quot;)
+              context = graph_manager.query_for_context("magic shops")
 ```
 
 **Chunk 16**
@@ -4186,8 +4186,8 @@ Lines added: undefined, lines removed: 1
 
 ```diff
 @@ -813,5 +811,4 @@
-                  for conn in result[&#39;connections&#39;]:
-                      print(f&quot;  -&gt; {conn[&#39;relationship&#39;]} {conn[&#39;target&#39;]}&quot;)
+                  for conn in result['connections']:
+                      print(f"  -&gt; {conn['relationship']} {conn['target']}")
 -             &#96;&#96;&#96;
               
           Note:
@@ -4205,7 +4205,7 @@ Lines added: undefined, lines removed: 1
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: docs/contributing.rst</summary>
+<details><summary>Tool use: **edit_file** • Edit file: docs/contributing.rst</summary>
 
 I'll fix the title underline length issues in the contributing.rst file by making the underlines match the exact length of their titles.
 
@@ -4233,7 +4233,7 @@ I can see the issue is around line 281. Let me check the exact character count:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: docs/contributing.rst</summary>
+<details><summary>Tool use: **search_replace** • Edit file: docs/contributing.rst</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -4256,7 +4256,7 @@ Lines added: 1, lines removed: 1
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: docs/examples.rst</summary>
+<details><summary>Tool use: **edit_file** • Edit file: docs/examples.rst</summary>
 
 I'll fix the title underline length issues in the examples.rst file.
 
@@ -4281,7 +4281,7 @@ Lines added: 1, lines removed: 1
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: docs/examples.rst</summary>
+<details><summary>Tool use: **search_replace** • Edit file: docs/examples.rst</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -4307,7 +4307,7 @@ Now let's run a quick test to see if we've reduced the warnings significantly:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: cd docs && make clean && make html 2>&1 | grep -E "(WARNING|ERROR)" | wc -l</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: cd docs && make clean && make html 2>&1 | grep -E "(WARNING|ERROR)" | wc -l</summary>
 
 ```bash
 cd docs && make clean && make html 2>&1 | grep -E "(WARNING|ERROR)" | wc -l
@@ -4315,9 +4315,9 @@ cd docs && make clean && make html 2>&1 | grep -E "(WARNING|ERROR)" | wc -l
 
 ```
 (.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent % cd docs &amp;&amp; make clean &amp;&amp; make html 2&gt;&amp;1 | grep
- -E &quot;(WARNING|ERROR)&quot; | wc -l     cd docs &amp;&amp; make clean &amp;&amp; make html 2&gt;&amp;1 | grep -E &quot;(WARNING|ERROR)&quot; | wc -
+ -E "(WARNING|ERROR)" | wc -l     cd docs &amp;&amp; make clean &amp;&amp; make html 2&gt;&amp;1 | grep -E "(WARNING|ERROR)" | wc -
 l
-Removing everything under &#39;_build&#39;...
+Removing everything under '_build'...
       29
 (.venv) (base) andrewrapo@MacBookPro docs %
 ```
@@ -4355,7 +4355,7 @@ Let me see what the remaining warnings and errors are:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: make clean && make html</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: make clean && make html</summary>
 
 ```bash
 make clean && make html
@@ -4363,13 +4363,13 @@ make clean && make html
 
 ```
 (.venv) (base) andrewrapo@MacBookPro docs % make clean &amp;&amp; make html
-Removing everything under &#39;_build&#39;...
+Removing everything under '_build'...
 Running Sphinx v7.4.7
 loading translations [en]... done
 making output directory... done
-Converting &#96;source_suffix = &#39;.rst&#39;&#96; to &#96;source_suffix = {&#39;.rst&#39;: &#39;restructuredtext&#39;}&#96;.
-loading intersphinx inventory &#39;python&#39; from https://docs.python.org/3/objects.inv...
-loading intersphinx inventory &#39;numpy&#39; from https://numpy.org/doc/stable/objects.inv...
+Converting &#96;source_suffix = '.rst'&#96; to &#96;source_suffix = {'.rst': 'restructuredtext'}&#96;.
+loading intersphinx inventory 'python' from https://docs.python.org/3/objects.inv...
+loading intersphinx inventory 'numpy' from https://numpy.org/doc/stable/objects.inv...
 [autosummary] generating autosummary for: api/index.rst, contributing.rst, examples.rst, index.rst, overview
 .rst, src.ai.rst, src.memory.graph_memory.rst, src.memory.rst, src.rst
 building [mo]: targets for 0 po files that are out of date
@@ -4439,7 +4439,7 @@ _manager:103: ERROR: Unexpected indentation.
 looking for now-outdated files... none found
 pickling environment... done
 checking consistency... /Users/andrewrapo/github/cursor/cursor-hello-llm-agent/docs/src.rst: WARNING: docume
-nt isn&#39;t included in any toctree
+nt isn't included in any toctree
 done
 preparing documents... done
 copying assets... 
@@ -4516,7 +4516,7 @@ Let me start by fixing the embeddings_manager.py file:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/embeddings_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/embeddings_manager.py</summary>
 
 **Chunk 1**
 Lines added: 38, lines removed: 38
@@ -4602,7 +4602,7 @@ Lines added: 38, lines removed: 38
 +              * importance threshold
 +              * specific topics
 +            - Return both similarity scores and full entry data
-      &quot;&quot;&quot;
+      """
       
 ```
 
@@ -4618,14 +4618,14 @@ Now let me fix the memory_manager.py file:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 21, lines removed: 19
 
 ```diff
 @@ -1,24 +1,26 @@
-  &quot;&quot;&quot;Memory Manager for Agent System
+  """Memory Manager for Agent System
   
 - Design Principles:
 - 1. Flexible Memory Design
@@ -4684,7 +4684,7 @@ Now let me fix the RAG manager file with multiple issues:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/rag_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/rag_manager.py</summary>
 
 **Chunk 1**
 Lines added: 96, lines removed: 95
@@ -4792,12 +4792,12 @@ Lines added: 96, lines removed: 95
   
 - 1. MemoryManager Integration
 -    - Hook into memory update process
--    - Index new content as it&#39;s added
+-    - Index new content as it's added
 -    - Maintain consistency with memory compression
 -    - Support memory reconstruction from indices
 +     1. MemoryManager Integration
 +        - Hook into memory update process
-+        - Index new content as it&#39;s added
++        - Index new content as it's added
 +        - Maintain consistency with memory compression
 +        - Support memory reconstruction from indices
   
@@ -4812,11 +4812,11 @@ Lines added: 96, lines removed: 95
   
 - 3. Conversation History Integration
 -    - Index new conversation entries
--    - Support temporal queries (e.g., &quot;what did we discuss last week?&quot;)
+-    - Support temporal queries (e.g., "what did we discuss last week?")
 -    - Enable finding related conversations
 +     3. Conversation History Integration
 +        - Index new conversation entries
-+        - Support temporal queries (e.g., &quot;what did we discuss last week?&quot;)
++        - Support temporal queries (e.g., "what did we discuss last week?")
 +        - Enable finding related conversations
   
 - 4. Domain-Specific Customization
@@ -4847,21 +4847,21 @@ Lines added: 96, lines removed: 95
   
 - # Query with RAG enhancement
 - response = rag_manager.query(
--     query=&quot;What did we discuss about the mountain troll?&quot;,
+-     query="What did we discuss about the mountain troll?",
 -     context={
--         &quot;importance_threshold&quot;: 3,
--         &quot;max_results&quot;: 5,
--         &quot;include_static_memory&quot;: True
+-         "importance_threshold": 3,
+-         "max_results": 5,
+-         "include_static_memory": True
 -     }
 - )
 - &#96;&#96;&#96;
 +     # Query with RAG enhancement
 +     response = rag_manager.query(
-+         query=&quot;What did we discuss about the mountain troll?&quot;,
++         query="What did we discuss about the mountain troll?",
 +         context={
-+             &quot;importance_threshold&quot;: 3,
-+             &quot;max_results&quot;: 5,
-+             &quot;include_static_memory&quot;: True
++             "importance_threshold": 3,
++             "max_results": 5,
++             "include_static_memory": True
 +         }
 +     )
 + 
@@ -4880,11 +4880,11 @@ Lines added: 96, lines removed: 95
 - 2. Active Learning
 -    - Track which retrieved content was useful
 -    - Improve retrieval based on feedback
--    - Adapt to user&#39;s information needs
+-    - Adapt to user's information needs
 +     2. Active Learning
 +        - Track which retrieved content was useful
 +        - Improve retrieval based on feedback
-+        - Adapt to user&#39;s information needs
++        - Adapt to user's information needs
   
 - 3. Temporal Reasoning
 -    - Track how information evolves over time
@@ -4903,7 +4903,7 @@ Lines added: 96, lines removed: 95
 +        - Identify patterns across conversations
 +        - Build topic hierarchies
 +        - Support meta-level queries about conversation history
-  &quot;&quot;&quot;
+  """
   
 ```
 
@@ -4927,7 +4927,7 @@ Now let me fix the remaining file issues. Let me check the other files with issu
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/base_memory_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/base_memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 10, lines removed: 9
@@ -4956,7 +4956,7 @@ Lines added: 10, lines removed: 9
 +        - All memory managers share the same public interface
 +        - Implementation details can vary while maintaining consistent API
 +        - Makes memory managers interchangeable in the agent system
-  &quot;&quot;&quot;
+  """
   
 ```
 
@@ -4980,7 +4980,7 @@ Now let me fix the content_segmenter.py file:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/content_segmenter.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/content_segmenter.py</summary>
 
 **Chunk 1**
 Lines added: 14, lines removed: 13
@@ -5018,7 +5018,7 @@ Lines added: 14, lines removed: 13
 +        - Graceful degradation when segmentation fails
 +        - Fallback to simpler segmentation methods
 +        - Comprehensive validation of results
-  &quot;&quot;&quot;
+  """
   
 ```
 
@@ -5042,7 +5042,7 @@ Now let me fix the memory_compressor.py file:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_compressor.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/memory/memory_compressor.py</summary>
 
 **Chunk 1**
 Lines added: 14, lines removed: 13
@@ -5080,7 +5080,7 @@ Lines added: 14, lines removed: 13
 +        - Uses LLM with temperature=0 for deterministic results
 +        - Properly handles Unicode and special characters
 +        - Maintains traceability with source GUIDs
-  &quot;&quot;&quot;
+  """
   
 ```
 
@@ -5095,7 +5095,7 @@ Now let me run the build again to see if we've fixed the issues:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: make clean && make html</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: make clean && make html</summary>
 
 ```bash
 make clean && make html
@@ -5103,13 +5103,13 @@ make clean && make html
 
 ```
 (.venv) (base) andrewrapo@MacBookPro docs % make clean &amp;&amp; make html
-Removing everything under &#39;_build&#39;...
+Removing everything under '_build'...
 Running Sphinx v7.4.7
 loading translations [en]... done
 making output directory... done
-Converting &#96;source_suffix = &#39;.rst&#39;&#96; to &#96;source_suffix = {&#39;.rst&#39;: &#39;restructuredtext&#39;}&#96;.
-loading intersphinx inventory &#39;python&#39; from https://docs.python.org/3/objects.inv...
-loading intersphinx inventory &#39;numpy&#39; from https://numpy.org/doc/stable/objects.inv...
+Converting &#96;source_suffix = '.rst'&#96; to &#96;source_suffix = {'.rst': 'restructuredtext'}&#96;.
+loading intersphinx inventory 'python' from https://docs.python.org/3/objects.inv...
+loading intersphinx inventory 'numpy' from https://numpy.org/doc/stable/objects.inv...
 [autosummary] generating autosummary for: api/index.rst, contributing.rst, examples.rst, index.rst, overview
 .rst, src.ai.rst, src.memory.graph_memory.rst, src.memory.rst, src.rst
 building [mo]: targets for 0 po files that are out of date
@@ -5120,7 +5120,7 @@ reading sources... [100%] src.memory.graph_memory
 looking for now-outdated files... none found
 pickling environment... done
 checking consistency... /Users/andrewrapo/github/cursor/cursor-hello-llm-agent/docs/src.rst: WARNING: docume
-nt isn&#39;t included in any toctree
+nt isn't included in any toctree
 done
 preparing documents... done
 copying assets... 
@@ -5202,7 +5202,7 @@ Now let's run one final build to confirm we have a clean documentation build:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: make clean && make html</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: make clean && make html</summary>
 
 ```bash
 make clean && make html
@@ -5210,13 +5210,13 @@ make clean && make html
 
 ```
 (.venv) (base) andrewrapo@MacBookPro docs % make clean &amp;&amp; make html
-Removing everything under &#39;_build&#39;...
+Removing everything under '_build'...
 Running Sphinx v7.4.7
 loading translations [en]... done
 making output directory... done
-Converting &#96;source_suffix = &#39;.rst&#39;&#96; to &#96;source_suffix = {&#39;.rst&#39;: &#39;restructuredtext&#39;}&#96;.
-loading intersphinx inventory &#39;python&#39; from https://docs.python.org/3/objects.inv...
-loading intersphinx inventory &#39;numpy&#39; from https://numpy.org/doc/stable/objects.inv...
+Converting &#96;source_suffix = '.rst'&#96; to &#96;source_suffix = {'.rst': 'restructuredtext'}&#96;.
+loading intersphinx inventory 'python' from https://docs.python.org/3/objects.inv...
+loading intersphinx inventory 'numpy' from https://numpy.org/doc/stable/objects.inv...
 [autosummary] generating autosummary for: api/index.rst, contributing.rst, examples.rst, index.rst, overview
 .rst, src.ai.rst, src.memory.graph_memory.rst, src.memory.rst
 building [mo]: targets for 0 po files that are out of date
@@ -5227,8 +5227,8 @@ reading sources... [100%] src.memory.graph_memory
 looking for now-outdated files... none found
 pickling environment... done
 checking consistency... /Users/andrewrapo/github/cursor/cursor-hello-llm-agent/docs/src.ai.rst: WARNING: doc
-ument isn&#39;t included in any toctree
-/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/docs/src.memory.rst: WARNING: document isn&#39;t included
+ument isn't included in any toctree
+/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/docs/src.memory.rst: WARNING: document isn't included
  in any toctree
 done
 preparing documents... done
@@ -5258,7 +5258,7 @@ Now we have 2 remaining warnings about `src.ai.rst` and `src.memory.rst` not bei
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed directory docs • **16** results</summary>
+            <summary>Tool use: **list_dir** • Listed directory docs, 16 results</summary>
         
 | Name |
 |-------|
@@ -5326,7 +5326,7 @@ Now let's run one final build:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: make clean && make html</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: make clean && make html</summary>
 
 ```bash
 make clean && make html
@@ -5334,13 +5334,13 @@ make clean && make html
 
 ```
 (.venv) (base) andrewrapo@MacBookPro docs % make clean &amp;&amp; make html
-Removing everything under &#39;_build&#39;...
+Removing everything under '_build'...
 Running Sphinx v7.4.7
 loading translations [en]... done
 making output directory... done
-Converting &#96;source_suffix = &#39;.rst&#39;&#96; to &#96;source_suffix = {&#39;.rst&#39;: &#39;restructuredtext&#39;}&#96;.
-loading intersphinx inventory &#39;python&#39; from https://docs.python.org/3/objects.inv...
-loading intersphinx inventory &#39;numpy&#39; from https://numpy.org/doc/stable/objects.inv...
+Converting &#96;source_suffix = '.rst'&#96; to &#96;source_suffix = {'.rst': 'restructuredtext'}&#96;.
+loading intersphinx inventory 'python' from https://docs.python.org/3/objects.inv...
+loading intersphinx inventory 'numpy' from https://numpy.org/doc/stable/objects.inv...
 [autosummary] generating autosummary for: api/index.rst, contributing.rst, examples.rst, index.rst, overview
 .rst, src.memory.graph_memory.rst
 building [mo]: targets for 0 po files that are out of date
@@ -5351,7 +5351,7 @@ reading sources... [100%] src.memory.graph_memory
 looking for now-outdated files... none found
 pickling environment... done
 checking consistency... /Users/andrewrapo/github/cursor/cursor-hello-llm-agent/docs/src.memory.graph_memory.
-rst: WARNING: document isn&#39;t included in any toctree
+rst: WARNING: document isn't included in any toctree
 done
 preparing documents... done
 copying assets... 
@@ -5420,7 +5420,7 @@ Now let's run the final build:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: make clean && make html</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: make clean && make html</summary>
 
 ```bash
 make clean && make html
@@ -5428,13 +5428,13 @@ make clean && make html
 
 ```
 (.venv) (base) andrewrapo@MacBookPro docs % make clean &amp;&amp; make html
-Removing everything under &#39;_build&#39;...
+Removing everything under '_build'...
 Running Sphinx v7.4.7
 loading translations [en]... done
 making output directory... done
-Converting &#96;source_suffix = &#39;.rst&#39;&#96; to &#96;source_suffix = {&#39;.rst&#39;: &#39;restructuredtext&#39;}&#96;.
-loading intersphinx inventory &#39;python&#39; from https://docs.python.org/3/objects.inv...
-loading intersphinx inventory &#39;numpy&#39; from https://numpy.org/doc/stable/objects.inv...
+Converting &#96;source_suffix = '.rst'&#96; to &#96;source_suffix = {'.rst': 'restructuredtext'}&#96;.
+loading intersphinx inventory 'python' from https://docs.python.org/3/objects.inv...
+loading intersphinx inventory 'numpy' from https://numpy.org/doc/stable/objects.inv...
 [autosummary] generating autosummary for: api/index.rst, contributing.rst, examples.rst, index.rst, overview
 .rst
 building [mo]: targets for 0 po files that are out of date
@@ -5554,7 +5554,7 @@ Could not find file '../.gitignore' in the workspace.
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: cd .. && ls -la</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: cd .. && ls -la</summary>
 
 ```bash
 cd .. && ls -la
@@ -5648,7 +5648,7 @@ Let me add the appropriate documentation exclusions to your `.gitignore`:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: .gitignore</summary>
+<details><summary>Tool use: **search_replace** • Edit file: .gitignore</summary>
 
 **Chunk 1**
 Lines added: 6, lines removed: undefined
@@ -5759,7 +5759,7 @@ Great question! File organization is crucial for maintainability. Let me check w
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed directory docs • **12** results</summary>
+            <summary>Tool use: **list_dir** • Listed directory docs, 12 results</summary>
         
 | Name |
 |-------|
@@ -5825,7 +5825,7 @@ Let me implement the recommended approach (moving both to `docs/`):
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: mv setup_docs.sh docs/setup.sh</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: mv setup_docs.sh docs/setup.sh</summary>
 
 ```bash
 mv setup_docs.sh docs/setup.sh
@@ -5836,7 +5836,7 @@ mv setup_docs.sh docs/setup.sh
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: mv docs_setup_example.md docs/SETUP.md</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: mv docs_setup_example.md docs/SETUP.md</summary>
 
 ```bash
 mv docs_setup_example.md docs/SETUP.md
@@ -5852,7 +5852,7 @@ mv docs_setup_example.md docs/SETUP.md
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: mv setup_docs.sh docs/setup.sh</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: mv setup_docs.sh docs/setup.sh</summary>
 
 ```bash
 mv setup_docs.sh docs/setup.sh
@@ -5950,7 +5950,7 @@ Perfect! Let me move the `setup_docs.sh` script to the docs directory as recomme
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: mv setup_docs.sh docs/setup.sh</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: mv setup_docs.sh docs/setup.sh</summary>
 
 ```bash
 mv setup_docs.sh docs/setup.sh
@@ -5971,7 +5971,7 @@ Great! Now let me verify the new organization and update the script if needed:
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed directory docs • **14** results</summary>
+            <summary>Tool use: **list_dir** • Listed directory docs, 14 results</summary>
         
 | Name |
 |-------|
@@ -6013,7 +6013,7 @@ I need to update the script since it's now running from within the `docs/` direc
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: docs/setup.sh</summary>
+<details><summary>Tool use: **search_replace** • Edit file: docs/setup.sh</summary>
 
 **Chunk 1**
 Lines added: 18, lines removed: 4
@@ -6024,30 +6024,30 @@ Lines added: 18, lines removed: 4
   # Quick Documentation Setup Script for LLM Agent Framework
 + # Run this script from the docs/ directory: ./setup.sh
   
-  echo &quot;Setting up documentation for LLM Agent Framework...&quot;
+  echo "Setting up documentation for LLM Agent Framework..."
 + 
-+ # Check if we&#39;re in the docs directory
-+ if [[ ! -f &quot;conf.py&quot; ]] &amp;&amp; [[ ! -f &quot;Makefile&quot; ]]; then
-+     echo &quot;Note: This script should be run from the docs/ directory&quot;
-+     echo &quot;Current directory: $(pwd)&quot;
++ # Check if we're in the docs directory
++ if [[ ! -f "conf.py" ]] &amp;&amp; [[ ! -f "Makefile" ]]; then
++     echo "Note: This script should be run from the docs/ directory"
++     echo "Current directory: $(pwd)"
 + fi
   
   # 1. Install required packages
-  echo &quot;Installing Sphinx and dependencies...&quot;
+  echo "Installing Sphinx and dependencies..."
   pip install sphinx sphinx-autobuild sphinx-rtd-theme
   
 - # 2. Create docs directory and initialize Sphinx
-- echo &quot;Initializing Sphinx documentation...&quot;
+- echo "Initializing Sphinx documentation..."
 - mkdir -p docs
 - cd docs
 + # 2. Initialize Sphinx if not already done
-+ if [[ ! -f &quot;conf.py&quot; ]]; then
-+     echo &quot;Initializing Sphinx documentation...&quot;
++ if [[ ! -f "conf.py" ]]; then
++     echo "Initializing Sphinx documentation..."
 +     sphinx-quickstart --quiet \
-+       --project=&#39;LLM Agent Framework&#39; \
-+       --author=&#39;Your Name&#39; \
-+       --release=&#39;1.0&#39; \
-+       --language=&#39;en&#39; \
++       --project='LLM Agent Framework' \
++       --author='Your Name' \
++       --release='1.0' \
++       --language='en' \
 +       --makefile \
 +       --no-batchfile .
 + fi
@@ -6063,7 +6063,7 @@ Lines added: 18, lines removed: 4
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: docs/setup.sh</summary>
+<details><summary>Tool use: **search_replace** • Edit file: docs/setup.sh</summary>
 
 </details>
 
@@ -6073,22 +6073,22 @@ Lines added: 18, lines removed: 4
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: docs/setup.sh</summary>
+<details><summary>Tool use: **search_replace** • Edit file: docs/setup.sh</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 2
 
 ```diff
 @@ -80,8 +80,7 @@
-  echo &quot;Documentation setup complete!&quot;
-  echo &quot;To view documentation:&quot;
-- echo &quot;  cd docs&quot;
-  echo &quot;  python -m http.server 8000 --directory _build/html&quot;
-  echo &quot;  Then open http://localhost:8000 in your browser&quot;
+  echo "Documentation setup complete!"
+  echo "To view documentation:"
+- echo "  cd docs"
+  echo "  python -m http.server 8000 --directory _build/html"
+  echo "  Then open http://localhost:8000 in your browser"
   
-  echo &quot;To rebuild documentation after changes:&quot;
-- echo &quot;  cd docs &amp;&amp; make html&quot; 
-+ echo &quot;  make html&quot; 
+  echo "To rebuild documentation after changes:"
+- echo "  cd docs &amp;&amp; make html" 
++ echo "  make html" 
 ```
 
 </details>
@@ -6103,7 +6103,7 @@ Now let me also remove one redundant section and clean up the script:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: docs/setup.sh</summary>
+<details><summary>Tool use: **search_replace** • Edit file: docs/setup.sh</summary>
 
 **Chunk 1**
 Lines added: undefined, lines removed: 9
@@ -6114,15 +6114,15 @@ Lines added: undefined, lines removed: 9
   
 - # Initialize with basic configuration
 - sphinx-quickstart --quiet \
--   --project=&#39;LLM Agent Framework&#39; \
--   --author=&#39;Your Name&#39; \
--   --release=&#39;1.0&#39; \
--   --language=&#39;en&#39; \
+-   --project='LLM Agent Framework' \
+-   --author='Your Name' \
+-   --release='1.0' \
+-   --language='en' \
 -   --makefile \
 -   --no-batchfile .
 - 
   # 3. Update conf.py for better configuration
-  cat &gt;&gt; conf.py &lt;&lt; &#39;EOF&#39;
+  cat &gt;&gt; conf.py &lt;&lt; 'EOF'
 ```
 
 </details>

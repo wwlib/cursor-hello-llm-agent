@@ -22,7 +22,7 @@ I'll run that command to test the connection to the LLM.
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: python examples/call_ollama.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: python examples/call_ollama.py</summary>
 
 ```bash
 python examples/call_ollama.py
@@ -31,11 +31,11 @@ python examples/call_ollama.py
 ```
 Testing Ollama API...
 Sending request to Ollama...
-Error calling Ollama: HTTPConnectionPool(host=&#39;192.168.1.173&#39;, port=11434): Max
+Error calling Ollama: HTTPConnectionPool(host='192.168.1.173', port=11434): Max
 retries exceeded with url: /
-api/generate (Caused by NewConnectionError(&#39;&lt;urllib3.connection.HTTPConnection o
+api/generate (Caused by NewConnectionError('&lt;urllib3.connection.HTTPConnection o
 bject at 0x7fed7747d8b0&gt;: Failed to establish a new connection: [Errno 65] No ro
-ute to host&#39;))                                          Failed to get response f
+ute to host'))                                          Failed to get response f
 rom Ollama
 
 ```
@@ -90,7 +90,7 @@ I apologize for the confusion. It seems the command is being rejected. Let's fir
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed directory examples • **6** results</summary>
+            <summary>Tool use: **list_dir** • Listed directory examples, 6 results</summary>
         
 | Name |
 |-------|
@@ -140,7 +140,7 @@ If Ollama is working at `http://192.168.1.173:11434/api/generate`, let's revert 
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/call_ollama.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: examples/call_ollama.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -149,8 +149,8 @@ Lines added: 1, lines removed: 1
 @@ -89,5 +89,5 @@
       # First check if Ollama is running
       try:
--         health_check = requests.get(&quot;http://localhost:11434/api/tags&quot;)
-+         health_check = requests.get(&quot;http://192.168.1.173:11434/api/tags&quot;)
+-         health_check = requests.get("http://localhost:11434/api/tags")
++         health_check = requests.get("http://192.168.1.173:11434/api/tags")
           health_check.raise_for_status()
       except requests.exceptions.RequestException:
 ```
@@ -166,7 +166,7 @@ Now let's run the script again:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: python examples/call_ollama.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: python examples/call_ollama.py</summary>
 
 ```bash
 python examples/call_ollama.py
@@ -180,62 +180,62 @@ Here is my response:
 
 &#96;&#96;&#96;
 {
-  &quot;memory_update&quot;: {
-    &quot;world&quot;: {
-      &quot;shape&quot;: &quot;flat&quot;,
-      &quot;continents&quot;: [
-        {&quot;name&quot;: &quot;single continent&quot;}
+  "memory_update": {
+    "world": {
+      "shape": "flat",
+      "continents": [
+        {"name": "single continent"}
       ],
-      &quot;oceans&quot;: [
-        {&quot;name&quot;: &quot;single ocean&quot;}
+      "oceans": [
+        {"name": "single ocean"}
       ],
-      &quot;mountain_ranges&quot;: [
-        {&quot;name&quot;: &quot;single mountain range&quot;}
+      "mountain_ranges": [
+        {"name": "single mountain range"}
       ]
     },
-    &quot;inhabitants&quot;: {
-      &quot;species&quot;: [&quot;humanoid&quot;]
+    "inhabitants": {
+      "species": ["humanoid"]
     },
-    &quot;rulers&quot;: {
-      &quot;monarch&quot;: {&quot;type&quot;: &quot;benevolent&quot;}
+    "rulers": {
+      "monarch": {"type": "benevolent"}
     },
-    &quot;conflicts&quot;: {
-      &quot;monster_attacks&quot;: [
+    "conflicts": {
+      "monster_attacks": [
         {
-          &quot;location&quot;: &quot;village&quot;,
-          &quot;monster&quot;: &quot;Mountain Troll&quot;,
-          &quot;source&quot;: &quot;North&quot;
+          "location": "village",
+          "monster": "Mountain Troll",
+          "source": "North"
         }
       ]
     },
-    &quot;quests&quot;: {
-      &quot;main_quest&quot;: {
-        &quot;goal&quot;: &quot;kill Mountain Troll&quot;,
-        &quot;reward&quot;: 1000,
-        &quot;objective&quot;: {&quot;name&quot;: &quot;deliver head to village&quot;}
+    "quests": {
+      "main_quest": {
+        "goal": "kill Mountain Troll",
+        "reward": 1000,
+        "objective": {"name": "deliver head to village"}
       }
     }
   },
-  &quot;relationships&quot;: [
-    {&quot;type&quot;: &quot;attacks&quot;, &quot;node1&quot;: &quot;village&quot;, &quot;node2&quot;: &quot;Mountain Troll&quot;},
-    {&quot;type&quot;: &quot;originates_from&quot;, &quot;node1&quot;: &quot;North&quot;, &quot;node2&quot;: &quot;Mountain Troll&quot;}
+  "relationships": [
+    {"type": "attacks", "node1": "village", "node2": "Mountain Troll"},
+    {"type": "originates_from", "node1": "North", "node2": "Mountain Troll"}
   ],
-  &quot;memory_updates&quot;: [
+  "memory_updates": [
     {
-      &quot;category&quot;: &quot;world&quot;,
-      &quot;property&quot;: &quot;conflicts&quot;,
-      &quot;value&quot;: [&quot;monster_attacks&quot;]
+      "category": "world",
+      "property": "conflicts",
+      "value": ["monster_attacks"]
     },
     {
-      &quot;category&quot;: &quot;quests&quot;,
-      &quot;property&quot;: &quot;main_quest&quot;,
-      &quot;value&quot;: {&quot;goal&quot;, &quot;reward&quot;, &quot;objective&quot;}
+      "category": "quests",
+      "property": "main_quest",
+      "value": {"goal", "reward", "objective"}
     }
   ]
 }
 &#96;&#96;&#96;
 
-Let me know if you&#39;d like me to clarify anything!
+Let me know if you'd like me to clarify anything!
 
 
 Full response received successfully!
@@ -244,62 +244,62 @@ Here is my response:
 
 &#96;&#96;&#96;
 {
-  &quot;memory_update&quot;: {
-    &quot;world&quot;: {
-      &quot;shape&quot;: &quot;flat&quot;,
-      &quot;continents&quot;: [
-        {&quot;name&quot;: &quot;single continent&quot;}
+  "memory_update": {
+    "world": {
+      "shape": "flat",
+      "continents": [
+        {"name": "single continent"}
       ],
-      &quot;oceans&quot;: [
-        {&quot;name&quot;: &quot;single ocean&quot;}
+      "oceans": [
+        {"name": "single ocean"}
       ],
-      &quot;mountain_ranges&quot;: [
-        {&quot;name&quot;: &quot;single mountain range&quot;}
+      "mountain_ranges": [
+        {"name": "single mountain range"}
       ]
     },
-    &quot;inhabitants&quot;: {
-      &quot;species&quot;: [&quot;humanoid&quot;]
+    "inhabitants": {
+      "species": ["humanoid"]
     },
-    &quot;rulers&quot;: {
-      &quot;monarch&quot;: {&quot;type&quot;: &quot;benevolent&quot;}
+    "rulers": {
+      "monarch": {"type": "benevolent"}
     },
-    &quot;conflicts&quot;: {
-      &quot;monster_attacks&quot;: [
+    "conflicts": {
+      "monster_attacks": [
         {
-          &quot;location&quot;: &quot;village&quot;,
-          &quot;monster&quot;: &quot;Mountain Troll&quot;,
-          &quot;source&quot;: &quot;North&quot;
+          "location": "village",
+          "monster": "Mountain Troll",
+          "source": "North"
         }
       ]
     },
-    &quot;quests&quot;: {
-      &quot;main_quest&quot;: {
-        &quot;goal&quot;: &quot;kill Mountain Troll&quot;,
-        &quot;reward&quot;: 1000,
-        &quot;objective&quot;: {&quot;name&quot;: &quot;deliver head to village&quot;}
+    "quests": {
+      "main_quest": {
+        "goal": "kill Mountain Troll",
+        "reward": 1000,
+        "objective": {"name": "deliver head to village"}
       }
     }
   },
-  &quot;relationships&quot;: [
-    {&quot;type&quot;: &quot;attacks&quot;, &quot;node1&quot;: &quot;village&quot;, &quot;node2&quot;: &quot;Mountain Troll&quot;},
-    {&quot;type&quot;: &quot;originates_from&quot;, &quot;node1&quot;: &quot;North&quot;, &quot;node2&quot;: &quot;Mountain Troll&quot;}
+  "relationships": [
+    {"type": "attacks", "node1": "village", "node2": "Mountain Troll"},
+    {"type": "originates_from", "node1": "North", "node2": "Mountain Troll"}
   ],
-  &quot;memory_updates&quot;: [
+  "memory_updates": [
     {
-      &quot;category&quot;: &quot;world&quot;,
-      &quot;property&quot;: &quot;conflicts&quot;,
-      &quot;value&quot;: [&quot;monster_attacks&quot;]
+      "category": "world",
+      "property": "conflicts",
+      "value": ["monster_attacks"]
     },
     {
-      &quot;category&quot;: &quot;quests&quot;,
-      &quot;property&quot;: &quot;main_quest&quot;,
-      &quot;value&quot;: {&quot;goal&quot;, &quot;reward&quot;, &quot;objective&quot;}
+      "category": "quests",
+      "property": "main_quest",
+      "value": {"goal", "reward", "objective"}
     }
   ]
 }
 &#96;&#96;&#96;
 
-Let me know if you&#39;d like me to clarify anything!
+Let me know if you'd like me to clarify anything!
 (base) andrewrapo@Andrews-MacBook-Pro-16b cursor-hello-llm-agent %
 ```
 </details>
@@ -344,16 +344,16 @@ Let's check if requests is installed and if there are any other issues that migh
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: python -c "import requests; print('requests is installed')"</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: python -c "import requests; print('requests is installed')"</summary>
 
 ```bash
 python -c "import requests; print('requests is installed')"
 ```
 
 ```
-(base) andrewrapo@Andrews-MacBook-Pro-16b cursor-hello-llm-agent % python -c &quot;import requests; print(&#39;reques
-ts is installed&#39;)&quot;                                                 python -c &quot;import requests; print(&#39;reques
-ts is installed&#39;)&quot;
+(base) andrewrapo@Andrews-MacBook-Pro-16b cursor-hello-llm-agent % python -c "import requests; print('reques
+ts is installed')"                                                 python -c "import requests; print('reques
+ts is installed')"
 requests is installed
 (base) andrewrapo@Andrews-MacBook-Pro-16b cursor-hello-llm-agent %
 ```
@@ -367,7 +367,7 @@ The requests library is indeed installed. Let's check the call_ollama.py script 
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: python examples/call_ollama.py 2>&1</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: python examples/call_ollama.py 2>&1</summary>
 
 ```bash
 python examples/call_ollama.py 2>&1
@@ -378,47 +378,47 @@ python examples/call_ollama.py 2>&1
 Testing Ollama API...
 Sending request to Ollama...
 {
-  &quot;newMemory&quot;: {
-    &quot;worlds&quot;: [
+  "newMemory": {
+    "worlds": [
       {
-        &quot;name&quot;: &quot;Simple Flat World&quot;,
-        &quot;features&quot;: [&quot;single continent&quot;, &quot;single ocean&quot;, &quot;single mountain range&quot;],
-        &quot;inhabitants&quot;: [&quot;humanoid creatures&quot;]
+        "name": "Simple Flat World",
+        "features": ["single continent", "single ocean", "single mountain range"],
+        "inhabitants": ["humanoid creatures"]
       }
     ],
-    &quot;monarchs&quot;: [
+    "monarchs": [
       {
-        &quot;name&quot;: &quot;Benevolent Monarch&quot;,
-        &quot;role&quot;: &quot;ruler&quot;
+        "name": "Benevolent Monarch",
+        "role": "ruler"
       }
     ],
-    &quot;villages&quot;: [
+    "villages": [
       {
-        &quot;name&quot;: &quot;Nearby Village&quot;,
-        &quot;location&quot;: &quot;single continent&quot;,
-        &quot;issues&quot;: [&quot;monster attack&quot;],
-        &quot;rewards&quot;: [1000, &quot;gold coins&quot;, &quot;head of Mountain Troll&quot;]
+        "name": "Nearby Village",
+        "location": "single continent",
+        "issues": ["monster attack"],
+        "rewards": [1000, "gold coins", "head of Mountain Troll"]
       }
     ],
-    &quot;monsters&quot;: [
+    "monsters": [
       {
-        &quot;name&quot;: &quot;Mountain Troll&quot;,
-        &quot;habitat&quot;: &quot;mountain cave system&quot;,
-        &quot;location&quot;: &quot;North&quot;
+        "name": "Mountain Troll",
+        "habitat": "mountain cave system",
+        "location": "North"
       }
     ]
   },
-  &quot;relationships&quot;: [
-    {&quot;worlds:Simple Flat World&quot; : &quot;has feature&quot; , &quot;single mountain range&quot;},
-    {&quot;monarchs:Benevolent Monarch&quot; : &quot;rules&quot; , &quot;worlds:Simple Flat World&quot;},
-    {&quot;villages:Nearby Village&quot; : &quot;is affected by&quot; , &quot;monsters:Mountain Troll&quot;},
-    {&quot;villages:Nearby Village&quot; : &quot;offers reward&quot; , &quot;rewards:1000 gold coins head of Mountain Troll&quot;},
-    {&quot;monsters:Mountain Troll&quot; : &quot;habitates in&quot; , &quot;mountain cave system&quot;}
+  "relationships": [
+    {"worlds:Simple Flat World" : "has feature" , "single mountain range"},
+    {"monarchs:Benevolent Monarch" : "rules" , "worlds:Simple Flat World"},
+    {"villages:Nearby Village" : "is affected by" , "monsters:Mountain Troll"},
+    {"villages:Nearby Village" : "offers reward" , "rewards:1000 gold coins head of Mountain Troll"},
+    {"monsters:Mountain Troll" : "habitates in" , "mountain cave system"}
   ],
-  &quot;memoryUpdates&quot;: [
-    {&quot;update&quot; : &quot;add world feature: single mountain range&quot;, &quot;priority&quot;: 1},
-    {&quot;update&quot; : &quot;add monarch role: benevolent&quot;, &quot;priority&quot;: 2},
-    {&quot;update&quot; : &quot;add village reward: 1000 gold coins head of Mountain Troll&quot;, &quot;priority&quot;: 3}
+  "memoryUpdates": [
+    {"update" : "add world feature: single mountain range", "priority": 1},
+    {"update" : "add monarch role: benevolent", "priority": 2},
+    {"update" : "add village reward: 1000 gold coins head of Mountain Troll", "priority": 3}
   ]
 }
 
@@ -426,47 +426,47 @@ Sending request to Ollama...
 Full response received successfully!
 ----------------------------------------
 {
-  &quot;newMemory&quot;: {
-    &quot;worlds&quot;: [
+  "newMemory": {
+    "worlds": [
       {
-        &quot;name&quot;: &quot;Simple Flat World&quot;,
-        &quot;features&quot;: [&quot;single continent&quot;, &quot;single ocean&quot;, &quot;single mountain range&quot;],
-        &quot;inhabitants&quot;: [&quot;humanoid creatures&quot;]
+        "name": "Simple Flat World",
+        "features": ["single continent", "single ocean", "single mountain range"],
+        "inhabitants": ["humanoid creatures"]
       }
     ],
-    &quot;monarchs&quot;: [
+    "monarchs": [
       {
-        &quot;name&quot;: &quot;Benevolent Monarch&quot;,
-        &quot;role&quot;: &quot;ruler&quot;
+        "name": "Benevolent Monarch",
+        "role": "ruler"
       }
     ],
-    &quot;villages&quot;: [
+    "villages": [
       {
-        &quot;name&quot;: &quot;Nearby Village&quot;,
-        &quot;location&quot;: &quot;single continent&quot;,
-        &quot;issues&quot;: [&quot;monster attack&quot;],
-        &quot;rewards&quot;: [1000, &quot;gold coins&quot;, &quot;head of Mountain Troll&quot;]
+        "name": "Nearby Village",
+        "location": "single continent",
+        "issues": ["monster attack"],
+        "rewards": [1000, "gold coins", "head of Mountain Troll"]
       }
     ],
-    &quot;monsters&quot;: [
+    "monsters": [
       {
-        &quot;name&quot;: &quot;Mountain Troll&quot;,
-        &quot;habitat&quot;: &quot;mountain cave system&quot;,
-        &quot;location&quot;: &quot;North&quot;
+        "name": "Mountain Troll",
+        "habitat": "mountain cave system",
+        "location": "North"
       }
     ]
   },
-  &quot;relationships&quot;: [
-    {&quot;worlds:Simple Flat World&quot; : &quot;has feature&quot; , &quot;single mountain range&quot;},
-    {&quot;monarchs:Benevolent Monarch&quot; : &quot;rules&quot; , &quot;worlds:Simple Flat World&quot;},
-    {&quot;villages:Nearby Village&quot; : &quot;is affected by&quot; , &quot;monsters:Mountain Troll&quot;},
-    {&quot;villages:Nearby Village&quot; : &quot;offers reward&quot; , &quot;rewards:1000 gold coins head of Mountain Troll&quot;},
-    {&quot;monsters:Mountain Troll&quot; : &quot;habitates in&quot; , &quot;mountain cave system&quot;}
+  "relationships": [
+    {"worlds:Simple Flat World" : "has feature" , "single mountain range"},
+    {"monarchs:Benevolent Monarch" : "rules" , "worlds:Simple Flat World"},
+    {"villages:Nearby Village" : "is affected by" , "monsters:Mountain Troll"},
+    {"villages:Nearby Village" : "offers reward" , "rewards:1000 gold coins head of Mountain Troll"},
+    {"monsters:Mountain Troll" : "habitates in" , "mountain cave system"}
   ],
-  &quot;memoryUpdates&quot;: [
-    {&quot;update&quot; : &quot;add world feature: single mountain range&quot;, &quot;priority&quot;: 1},
-    {&quot;update&quot; : &quot;add monarch role: benevolent&quot;, &quot;priority&quot;: 2},
-    {&quot;update&quot; : &quot;add village reward: 1000 gold coins head of Mountain Troll&quot;, &quot;priority&quot;: 3}
+  "memoryUpdates": [
+    {"update" : "add world feature: single mountain range", "priority": 1},
+    {"update" : "add monarch role: benevolent", "priority": 2},
+    {"update" : "add village reward: 1000 gold coins head of Mountain Troll", "priority": 3}
   ]
 }
 (base) andrewrapo@Andrews-MacBook-Pro-16b cursor-hello-llm-agent %
@@ -504,7 +504,7 @@ Let's install the requests module in your virtual environment:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: source .venv/bin/activate && pip install requests</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: source .venv/bin/activate && pip install requests</summary>
 
 ```bash
 source .venv/bin/activate && pip install requests
@@ -588,7 +588,7 @@ Yes, you can get Cursor to use the same virtual environment. Here's how to do it
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: source .venv/bin/activate</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: source .venv/bin/activate</summary>
 
 ```bash
 source .venv/bin/activate

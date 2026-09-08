@@ -73,7 +73,7 @@ Looking at both files, I can see that `agent_usage_example.py` has a well-struct
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/api/services/session_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/api/services/session_manager.py</summary>
 
 I'll update the SessionManager to use the same directory structure and logging setup as agent_usage_example.py, adding helper methods and modifying the initialize_agent method.
 
@@ -102,9 +102,9 @@ Lines added: 5, lines removed: undefined
   logger = logging.getLogger(__name__)
 + 
 + # Constants for directory structure (matching agent_usage_example.py)
-+ BASE_MEMORY_DIR = &quot;agent_memories&quot;
-+ MEMORY_FILE_PREFIX = &quot;agent_memory&quot;
-+ BASE_LOGS_DIR = &quot;logs&quot;
++ BASE_MEMORY_DIR = "agent_memories"
++ MEMORY_FILE_PREFIX = "agent_memory"
++ BASE_LOGS_DIR = "logs"
   
   class AgentSession:
 ```
@@ -116,25 +116,25 @@ Lines added: 102, lines removed: 8
 @@ -43,34 +50,128 @@
           return (datetime.now() - self.last_activity).total_seconds() &gt; timeout_seconds
           
-+     def get_memory_dir(self, memory_type: str = &quot;standard&quot;) -&gt; str:
-+         &quot;&quot;&quot;Get the directory path for a specific memory manager type&quot;&quot;&quot;
++     def get_memory_dir(self, memory_type: str = "standard") -&gt; str:
++         """Get the directory path for a specific memory manager type"""
 +         dir_path = os.path.join(BASE_MEMORY_DIR, memory_type)
 +         os.makedirs(dir_path, exist_ok=True)
 +         return dir_path
 + 
-+     def get_memory_filename(self, memory_type: str = &quot;standard&quot;) -&gt; str:
-+         &quot;&quot;&quot;Generate a memory filename based on memory manager type and session GUID&quot;&quot;&quot;
-+         # Create memory directory for this type if it doesn&#39;t exist
++     def get_memory_filename(self, memory_type: str = "standard") -&gt; str:
++         """Generate a memory filename based on memory manager type and session GUID"""
++         # Create memory directory for this type if it doesn't exist
 +         memory_dir = self.get_memory_dir(memory_type)
 +         
-+         # Create GUID directory if it doesn&#39;t exist
++         # Create GUID directory if it doesn't exist
 +         guid_dir = os.path.join(memory_dir, self.session_id)
 +         os.makedirs(guid_dir, exist_ok=True)
-+         file_path = os.path.join(guid_dir, f&quot;{MEMORY_FILE_PREFIX}.json&quot;)
++         file_path = os.path.join(guid_dir, f"{MEMORY_FILE_PREFIX}.json")
 +         return file_path
 + 
 +     def setup_session_logging(self) -&gt; Dict[str, str]:
-+         &quot;&quot;&quot;Set up logging directories and files for this session&quot;&quot;&quot;
++         """Set up logging directories and files for this session"""
 +         # Create logs directory structure
 +         logs_dir = BASE_LOGS_DIR
 +         os.makedirs(logs_dir, exist_ok=True)
@@ -145,17 +145,17 @@ Lines added: 102, lines removed: 8
 +         
 +         # Define log file paths
 +         log_files = {
-+             &#39;ollama_general&#39;: os.path.join(guid_logs_dir, &quot;ollama_general.log&quot;),
-+             &#39;ollama_digest&#39;: os.path.join(guid_logs_dir, &quot;ollama_digest.log&quot;),
-+             &#39;ollama_embed&#39;: os.path.join(guid_logs_dir, &quot;ollama_embed.log&quot;),
-+             &#39;memory_manager&#39;: os.path.join(guid_logs_dir, &quot;memory_manager.log&quot;),
-+             &#39;agent&#39;: os.path.join(guid_logs_dir, &quot;agent.log&quot;)
++             'ollama_general': os.path.join(guid_logs_dir, "ollama_general.log"),
++             'ollama_digest': os.path.join(guid_logs_dir, "ollama_digest.log"),
++             'ollama_embed': os.path.join(guid_logs_dir, "ollama_embed.log"),
++             'memory_manager': os.path.join(guid_logs_dir, "memory_manager.log"),
++             'agent': os.path.join(guid_logs_dir, "agent.log")
 +         }
 +         
 +         return log_files
 +         
       async def initialize_agent(self):
-          &quot;&quot;&quot;Initialize the agent for this session&quot;&quot;&quot;
+          """Initialize the agent for this session"""
           with self._lock:
               if self._agent is None:
                   try:
@@ -163,7 +163,7 @@ Lines added: 102, lines removed: 8
 +                     log_files = self.setup_session_logging()
 +                     
 +                     # Get memory file path using the same structure as agent_usage_example
-+                     memory_type = &quot;standard&quot;  # Default to standard for now
++                     memory_type = "standard"  # Default to standard for now
 +                     memory_file = self.get_memory_filename(memory_type)
 +                     
                       # Create LLM service for this session
@@ -173,45 +173,45 @@ Lines added: 102, lines removed: 8
 +                     
 +                     # Create separate OllamaService instances for different purposes (like agent_usage_example)
 +                     general_llm_service = OllamaService({
-                          &#39;base_url&#39;: os.getenv(&quot;OLLAMA_BASE_URL&quot;, &quot;http://localhost:11434&quot;),
-                          &#39;model&#39;: self.config.llm_model or os.getenv(&quot;OLLAMA_MODEL&quot;, &quot;llama2&quot;),
-                          &#39;temperature&#39;: 0.7,
--                         &#39;debug&#39;: os.getenv(&quot;DEV_MODE&quot;, &quot;false&quot;).lower() == &quot;true&quot;
-+                         &#39;stream&#39;: False,
-+                         &#39;debug&#39;: os.getenv(&quot;DEV_MODE&quot;, &quot;false&quot;).lower() == &quot;true&quot;,
-+                         &#39;debug_file&#39;: log_files[&#39;ollama_general&#39;],
-+                         &#39;debug_scope&#39;: f&quot;session_{self.session_id}_general&quot;,
-+                         &#39;console_output&#39;: False
+                          'base_url': os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
+                          'model': self.config.llm_model or os.getenv("OLLAMA_MODEL", "llama2"),
+                          'temperature': 0.7,
+-                         'debug': os.getenv("DEV_MODE", "false").lower() == "true"
++                         'stream': False,
++                         'debug': os.getenv("DEV_MODE", "false").lower() == "true",
++                         'debug_file': log_files['ollama_general'],
++                         'debug_scope': f"session_{self.session_id}_general",
++                         'console_output': False
                       })
                       
 -                     # Create memory manager with session-specific GUID and LLM service
 -                     # Use AsyncMemoryManager for better conversation tracking and persistence
 +                     # Digest generation service
 +                     digest_llm_service = OllamaService({
-+                         &#39;base_url&#39;: os.getenv(&quot;OLLAMA_BASE_URL&quot;, &quot;http://localhost:11434&quot;),
-+                         &#39;model&#39;: self.config.llm_model or os.getenv(&quot;OLLAMA_MODEL&quot;, &quot;llama2&quot;),
-+                         &#39;temperature&#39;: 0,
-+                         &#39;stream&#39;: False,
-+                         &#39;debug&#39;: os.getenv(&quot;DEV_MODE&quot;, &quot;false&quot;).lower() == &quot;true&quot;,
-+                         &#39;debug_file&#39;: log_files[&#39;ollama_digest&#39;],
-+                         &#39;debug_scope&#39;: f&quot;session_{self.session_id}_digest&quot;,
-+                         &#39;console_output&#39;: False
++                         'base_url': os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
++                         'model': self.config.llm_model or os.getenv("OLLAMA_MODEL", "llama2"),
++                         'temperature': 0,
++                         'stream': False,
++                         'debug': os.getenv("DEV_MODE", "false").lower() == "true",
++                         'debug_file': log_files['ollama_digest'],
++                         'debug_scope': f"session_{self.session_id}_digest",
++                         'console_output': False
 +                     })
 +                     
 +                     # Embeddings service
 +                     embeddings_llm_service = OllamaService({
-+                         &#39;base_url&#39;: os.getenv(&quot;OLLAMA_BASE_URL&quot;, &quot;http://localhost:11434&quot;),
-+                         &#39;model&#39;: os.getenv(&quot;OLLAMA_EMBED_MODEL&quot;, &quot;mxbai-embed-large&quot;),
-+                         &#39;debug&#39;: False,
-+                         &#39;debug_file&#39;: log_files[&#39;ollama_embed&#39;]
++                         'base_url': os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
++                         'model': os.getenv("OLLAMA_EMBED_MODEL", "mxbai-embed-large"),
++                         'debug': False,
++                         'debug_file': log_files['ollama_embed']
 +                     })
 +                     
 +                     # Set up memory manager logging
-+                     memory_manager_logger = logging.getLogger(f&quot;memory_manager.session_{self.session_id}&quot;)
++                     memory_manager_logger = logging.getLogger(f"memory_manager.session_{self.session_id}")
 +                     memory_manager_logger.setLevel(logging.DEBUG)
-+                     memory_manager_log_handler = logging.FileHandler(log_files[&#39;memory_manager&#39;])
++                     memory_manager_log_handler = logging.FileHandler(log_files['memory_manager'])
 +                     memory_manager_log_handler.setLevel(logging.DEBUG)
-+                     formatter = logging.Formatter(&#39;%(asctime)s %(levelname)s:%(name)s:%(message)s&#39;)
++                     formatter = logging.Formatter('%(asctime)s %(levelname)s:%(name)s:%(message)s')
 +                     memory_manager_log_handler.setFormatter(formatter)
 +                     memory_manager_logger.addHandler(memory_manager_log_handler)
 +                     
@@ -229,9 +229,9 @@ Lines added: 102, lines removed: 8
 +                     )
 +                     
 +                     # Set up agent logging
-+                     agent_logger = logging.getLogger(f&quot;agent.session_{self.session_id}&quot;)
++                     agent_logger = logging.getLogger(f"agent.session_{self.session_id}")
 +                     agent_logger.setLevel(logging.DEBUG)
-+                     agent_handler = logging.FileHandler(log_files[&#39;agent&#39;])
++                     agent_handler = logging.FileHandler(log_files['agent'])
 +                     agent_handler.setFormatter(formatter)
 +                     agent_logger.addHandler(agent_handler)
                       
@@ -245,9 +245,9 @@ Lines added: 102, lines removed: 8
 +                         logger=agent_logger
                       )
                       
-                      logger.info(f&quot;Initialized agent for session {self.session_id}&quot;)
-+                     logger.info(f&quot;Memory file: {memory_file}&quot;)
-+                     logger.info(f&quot;Log files: {log_files}&quot;)
+                      logger.info(f"Initialized agent for session {self.session_id}")
++                     logger.info(f"Memory file: {memory_file}")
++                     logger.info(f"Log files: {log_files}")
                       
                   except Exception as e:
 ```
@@ -263,7 +263,7 @@ Now let's test the updated SessionManager to make sure it works properly with th
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: cd /Users/andrewrapo/github/cursor/cursor-hello-llm-agent && python scripts/api/test_session_manager.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: cd /Users/andrewrapo/github/cursor/cursor-hello-llm-agent && python scripts/api/test_session_manager.py</summary>
 
 ```bash
 cd /Users/andrewrapo/github/cursor/cursor-hello-llm-agent && python scripts/api/test_session_manager.py
@@ -282,21 +282,21 @@ Test User Prefix: session_test_user
 ============================================================
 ✅ PASS: Config 1: Session created: e3c5e79b-bb51-4c21-a115-ea679ed2750f
    Data: {
-  &quot;session_id&quot;: &quot;e3c5e79b-bb51-4c21-a115-ea679ed2750f&quot;,
-  &quot;status&quot;: &quot;success&quot;,
-  &quot;message&quot;: &quot;Session created successfully&quot;
+  "session_id": "e3c5e79b-bb51-4c21-a115-ea679ed2750f",
+  "status": "success",
+  "message": "Session created successfully"
 }...
 ✅ PASS: Config 2: Session created: 6d55265e-83c9-4db1-b4aa-75640c53d585
    Data: {
-  &quot;session_id&quot;: &quot;6d55265e-83c9-4db1-b4aa-75640c53d585&quot;,
-  &quot;status&quot;: &quot;success&quot;,
-  &quot;message&quot;: &quot;Session created successfully&quot;
+  "session_id": "6d55265e-83c9-4db1-b4aa-75640c53d585",
+  "status": "success",
+  "message": "Session created successfully"
 }...
 ✅ PASS: Config 3: Session created: 357b6ec5-51ce-4b25-8bb0-ebfc7ea8ffaf
    Data: {
-  &quot;session_id&quot;: &quot;357b6ec5-51ce-4b25-8bb0-ebfc7ea8ffaf&quot;,
-  &quot;status&quot;: &quot;success&quot;,
-  &quot;message&quot;: &quot;Session created successfully&quot;
+  "session_id": "357b6ec5-51ce-4b25-8bb0-ebfc7ea8ffaf",
+  "status": "success",
+  "message": "Session created successfully"
 }...
 
 ============================================================
@@ -304,40 +304,40 @@ Test User Prefix: session_test_user
 ============================================================
 ✅ PASS: Session e3c5e79b... properly initialized
    Data: {
-  &quot;session_id&quot;: &quot;e3c5e79b-bb51-4c21-a115-ea679ed2750f&quot;,
-  &quot;agent_initialized&quot;: true,
-  &quot;memory_manager_initialized&quot;: true,
-  &quot;session_status&quot;: &quot;active&quot;,
-  &quot;last_activity&quot;: &quot;2025-06-22T08:18:11.571929&quot;,
-  &quot;config&quot;: {
-    &quot;domain&quot;: &quot;dnd&quot;,
-    &quot;enable_graph&quot;: true,
-    &quot;max_memory_size&quot;: 1000
+  "session_id": "e3c5e79b-bb51-4c21-a115-ea679ed2750f",
+  "agent_initialized": true,
+  "memory_manager_initialized": true,
+  "session_status": "active",
+  "last_activity": "2025-06-22T08:18:11.571929",
+  "config": {
+    "domain": "dnd",
+    "enable_graph": true,
+    "max_memory_size": 1000
   }
 }...
 ✅ PASS: Session 6d55265e... properly initialized
    Data: {
-  &quot;session_id&quot;: &quot;6d55265e-83c9-4db1-b4aa-75640c53d585&quot;,
-  &quot;agent_initialized&quot;: true,
-  &quot;memory_manager_initialized&quot;: true,
-  &quot;session_status&quot;: &quot;active&quot;,
-  &quot;last_activity&quot;: &quot;2025-06-22T08:18:11.578397&quot;,
-  &quot;config&quot;: {
-    &quot;domain&quot;: &quot;general&quot;,
-    &quot;enable_graph&quot;: false,
-    &quot;max_memory_size&quot;: 500
+  "session_id": "6d55265e-83c9-4db1-b4aa-75640c53d585",
+  "agent_initialized": true,
+  "memory_manager_initialized": true,
+  "session_status": "active",
+  "last_activity": "2025-06-22T08:18:11.578397",
+  "config": {
+    "domain": "general",
+    "enable_graph": false,
+    "max_memory_size": 500
   }...
 ✅ PASS: Session 357b6ec5... properly initialized
    Data: {
-  &quot;session_id&quot;: &quot;357b6ec5-51ce-4b25-8bb0-ebfc7ea8ffaf&quot;,
-  &quot;agent_initialized&quot;: true,
-  &quot;memory_manager_initialized&quot;: true,
-  &quot;session_status&quot;: &quot;active&quot;,
-  &quot;last_activity&quot;: &quot;2025-06-22T08:18:11.624901&quot;,
-  &quot;config&quot;: {
-    &quot;domain&quot;: &quot;dnd&quot;,
-    &quot;enable_graph&quot;: true,
-    &quot;max_memory_size&quot;: 1000
+  "session_id": "357b6ec5-51ce-4b25-8bb0-ebfc7ea8ffaf",
+  "agent_initialized": true,
+  "memory_manager_initialized": true,
+  "session_status": "active",
+  "last_activity": "2025-06-22T08:18:11.624901",
+  "config": {
+    "domain": "dnd",
+    "enable_graph": true,
+    "max_memory_size": 1000
   }
 }...
 
@@ -346,9 +346,9 @@ Test User Prefix: session_test_user
 ============================================================
 ✅ PASS: Created 5/5 concurrent sessions in 0.20s
    Data: {
-  &quot;created_sessions&quot;: 5,
-  &quot;active_sessions&quot;: 5,
-  &quot;creation_time&quot;: &quot;0.20s&quot;
+  "created_sessions": 5,
+  "active_sessions": 5,
+  "creation_time": "0.20s"
 }...
 
 ============================================================
@@ -356,12 +356,12 @@ Test User Prefix: session_test_user
 ============================================================
 ✅ PASS: Session persistence verified
    Data: {
-  &quot;conversations_count&quot;: 2,
-  &quot;memory_stats&quot;: {
-    &quot;session_id&quot;: &quot;e3c5e79b-bb51-4c21-a115-ea679ed2750f&quot;,
-    &quot;conversations_count&quot;: 2,
-    &quot;has_graph_memory&quot;: false,
-    &quot;memory_type&quot;: &quot;AsyncMemoryManager&quot;
+  "conversations_count": 2,
+  "memory_stats": {
+    "session_id": "e3c5e79b-bb51-4c21-a115-ea679ed2750f",
+    "conversations_count": 2,
+    "has_graph_memory": false,
+    "memory_type": "AsyncMemoryManager"
   }
 }...
 
@@ -370,9 +370,9 @@ Test User Prefix: session_test_user
 ============================================================
 ✅ PASS: Session count consistency
    Data: {
-  &quot;health_endpoint_count&quot;: 8,
-  &quot;session_list_count&quot;: 8,
-  &quot;our_created_sessions&quot;: 8
+  "health_endpoint_count": 8,
+  "session_list_count": 8,
+  "our_created_sessions": 8
 }...
 
 ============================================================
@@ -380,14 +380,14 @@ Test User Prefix: session_test_user
 ============================================================
 ✅ PASS: Individual session deletion
    Data: {
-  &quot;deleted_session&quot;: &quot;eb98eee2...&quot;,
-  &quot;verification_status&quot;: 404
+  "deleted_session": "eb98eee2...",
+  "verification_status": 404
 }...
 ✅ PASS: Bulk session cleanup
    Data: {
-  &quot;status&quot;: &quot;success&quot;,
-  &quot;message&quot;: &quot;Expired sessions cleaned up&quot;,
-  &quot;active_sessions&quot;: 7
+  "status": "success",
+  "message": "Expired sessions cleaned up",
+  "active_sessions": 7
 }...
 
 ============================================================
@@ -436,7 +436,7 @@ Great! The session manager is working correctly. Now let's verify that the direc
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: ls -la agent_memories/</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: ls -la agent_memories/</summary>
 
 ```bash
 ls -la agent_memories/
@@ -459,7 +459,7 @@ drwxr-xr-x   2 andrewrapo  staff    64 Jun  7 16:18 sync
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: ls -la agent_memories/standard/</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: ls -la agent_memories/standard/</summary>
 
 ```bash
 ls -la agent_memories/standard/
@@ -543,14 +543,14 @@ Perfect! Now let's create a test session through the API to verify that the new 
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: curl -X POST http://localhost:8000/api/sessions -H "Content-Type: application/json" -d '{"domain": "dnd", "enable_graph": true}'</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: curl -X POST http://localhost:8000/api/sessions -H "Content-Type: application/json" -d '{"domain": "dnd", "enable_graph": true}'</summary>
 
 ```bash
 curl -X POST http://localhost:8000/api/sessions -H "Content-Type: application/json" -d '{"domain": "dnd", "enable_graph": true}'
 ```
 
 ```
-{&quot;detail&quot;:&quot;Not Found&quot;}%
+{"detail":"Not Found"}%
 
 
 ```
@@ -569,7 +569,7 @@ Let me start the API server first:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python -m uvicorn src.api.main:app --host 0.0.0.0 --port 8000 --reload</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python -m uvicorn src.api.main:app --host 0.0.0.0 --port 8000 --reload</summary>
 
 ```bash
 DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python -m uvicorn src.api.main:app --host 0.0.0.0 --port 8000 --reload
@@ -589,7 +589,7 @@ Now let me wait a moment for the server to start up, then create a test session:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: sleep 3 && curl -X POST http://localhost:8000/api/sessions -H "Content-Type: application/json" -d '{"domain": "dnd", "enable_graph": true}' | jq .</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: sleep 3 && curl -X POST http://localhost:8000/api/sessions -H "Content-Type: application/json" -d '{"domain": "dnd", "enable_graph": true}' | jq .</summary>
 
 ```bash
 sleep 3 && curl -X POST http://localhost:8000/api/sessions -H "Content-Type: application/json" -d '{"domain": "dnd", "enable_graph": true}' | jq .
@@ -597,13 +597,13 @@ sleep 3 && curl -X POST http://localhost:8000/api/sessions -H "Content-Type: app
 
 ```
 (.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent % sleep 3 &amp;&amp; curl -X POST http://localhost:8000/
-api/sessions -H &quot;Content-Type: application/json&quot; -d &#39;{&quot;domain&quot;sleep 3 &amp;&amp; curl -X POST http://localhost:8000/
-api/sessions -H &quot;Content-Type: application/json&quot; -d &#39;{&quot;domain&quot;: &quot;dnd&quot;, &quot;enable_graph&quot;: true}&#39; | jq .
+api/sessions -H "Content-Type: application/json" -d '{"domain"sleep 3 &amp;&amp; curl -X POST http://localhost:8000/
+api/sessions -H "Content-Type: application/json" -d '{"domain": "dnd", "enable_graph": true}' | jq .
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
 100    61  100    22  100    39   9208  16324 --:--:-- --:--:-- --:--:-- 30500
 {
-  &quot;detail&quot;: &quot;Not Found&quot;
+  "detail": "Not Found"
 }
 (.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent %
 ```
@@ -622,7 +622,7 @@ Let me check the API server status and available endpoints:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: curl http://localhost:8000/health | jq .</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: curl http://localhost:8000/health | jq .</summary>
 
 ```bash
 curl http://localhost:8000/health | jq .
@@ -634,10 +634,10 @@ curl http://localhost:8000/health | jq .
                                  Dload  Upload   Total   Spent    Left  Speed
 100    84  100    84    0     0  32507      0 --:--:-- --:--:-- --:--:-- 42000
 {
-  &quot;status&quot;: &quot;healthy&quot;,
-  &quot;version&quot;: &quot;1.0.0&quot;,
-  &quot;active_sessions&quot;: 0,
-  &quot;websocket_connections&quot;: 0
+  "status": "healthy",
+  "version": "1.0.0",
+  "active_sessions": 0,
+  "websocket_connections": 0
 }
 (.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent %
 ```
@@ -694,7 +694,7 @@ Now I can see the issue! The routers are included with the prefix "/api/v1", so 
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: curl -X POST http://localhost:8000/api/v1/sessions -H "Content-Type: application/json" -d '{"config": {"domain": "dnd", "enable_graph": true}}' | jq .</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: curl -X POST http://localhost:8000/api/v1/sessions -H "Content-Type: application/json" -d '{"config": {"domain": "dnd", "enable_graph": true}}' | jq .</summary>
 
 ```bash
 curl -X POST http://localhost:8000/api/v1/sessions -H "Content-Type: application/json" -d '{"config": {"domain": "dnd", "enable_graph": true}}' | jq .
@@ -702,15 +702,15 @@ curl -X POST http://localhost:8000/api/v1/sessions -H "Content-Type: application
 
 ```
 (.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent % curl -X POST http://localhost:8000/api/v1/sess
-ions -H &quot;Content-Type: application/json&quot; -d &#39;{&quot;config&quot;: {&quot;domacurl -X POST http://localhost:8000/api/v1/sess
-ions -H &quot;Content-Type: application/json&quot; -d &#39;{&quot;config&quot;: {&quot;domain&quot;: &quot;dnd&quot;, &quot;enable_graph&quot;: true}}&#39; | jq .
+ions -H "Content-Type: application/json" -d '{"config": {"domacurl -X POST http://localhost:8000/api/v1/sess
+ions -H "Content-Type: application/json" -d '{"config": {"domain": "dnd", "enable_graph": true}}' | jq .
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
 100   164  100   113  100    51   5281   2383 --:--:-- --:--:-- --:--:--  7809
 {
-  &quot;session_id&quot;: &quot;c8f69786-3c6c-4746-a87b-30baf3b7da61&quot;,
-  &quot;status&quot;: &quot;success&quot;,
-  &quot;message&quot;: &quot;Session created successfully&quot;
+  "session_id": "c8f69786-3c6c-4746-a87b-30baf3b7da61",
+  "status": "success",
+  "message": "Session created successfully"
 }
 (.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent %
 ```
@@ -729,7 +729,7 @@ Perfect! The session was created successfully. Now let's check if the directory 
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: ls -la agent_memories/standard/ | grep c8f69786</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: ls -la agent_memories/standard/ | grep c8f69786</summary>
 
 ```bash
 ls -la agent_memories/standard/ | grep c8f69786
@@ -754,7 +754,7 @@ Let me check all directories in the standard folder to see what was created:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: ls -la agent_memories/standard/</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: ls -la agent_memories/standard/</summary>
 
 ```bash
 ls -la agent_memories/standard/
@@ -786,7 +786,7 @@ It looks like the directory might not be created until the agent is actually use
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: curl -X POST http://localhost:8000/api/v1/agent/query -H "Content-Type: application/json" -d '{"session_id": "c8f69786-3c6c-4746-a87b-30baf3b7da61", "message": "Hello, tell me about yourself"}' | jq .</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: curl -X POST http://localhost:8000/api/v1/agent/query -H "Content-Type: application/json" -d '{"session_id": "c8f69786-3c6c-4746-a87b-30baf3b7da61", "message": "Hello, tell me about yourself"}' | jq .</summary>
 
 ```bash
 curl -X POST http://localhost:8000/api/v1/agent/query -H "Content-Type: application/json" -d '{"session_id": "c8f69786-3c6c-4746-a87b-30baf3b7da61", "message": "Hello, tell me about yourself"}' | jq .
@@ -794,15 +794,15 @@ curl -X POST http://localhost:8000/api/v1/agent/query -H "Content-Type: applicat
 
 ```
 (.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent % curl -X POST http://localhost:8000/api/v1/agen
-t/query -H &quot;Content-Type: application/json&quot; -d &#39;{&quot;session_id&quot;: &quot;c8f69786-3c6c-4746-a87b-30baf3b7da61&quot;, &quot;mess
-age&quot;: &quot;Hello, tell me about yourself&quot;}&#39; | jq .                curl -X POST http://localhost:8000/api/v1/agen
-t/query -H &quot;Content-Type: application/json&quot; -d &#39;{&quot;session_id&quot;: &quot;c8f69786-3c6c-4746-a87b-30baf3b7da61&quot;, &quot;mess
-age&quot;: &quot;Hello, tell me about yourself&quot;}&#39; | jq .
+t/query -H "Content-Type: application/json" -d '{"session_id": "c8f69786-3c6c-4746-a87b-30baf3b7da61", "mess
+age": "Hello, tell me about yourself"}' | jq .                curl -X POST http://localhost:8000/api/v1/agen
+t/query -H "Content-Type: application/json" -d '{"session_id": "c8f69786-3c6c-4746-a87b-30baf3b7da61", "mess
+age": "Hello, tell me about yourself"}' | jq .
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
 100   120  100    22  100    98   8413  37476 --:--:-- --:--:-- --:--:-- 60000
 {
-  &quot;detail&quot;: &quot;Not Found&quot;
+  "detail": "Not Found"
 }
 (.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent %
 ```
@@ -838,7 +838,7 @@ Now I can see the correct endpoint is `/sessions/{session_id}/query`. Let me try
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: curl -X POST http://localhost:8000/api/v1/sessions/c8f69786-3c6c-4746-a87b-30baf3b7da61/query -H "Content-Type: application/json" -d '{"message": "Hello, tell me about yourself"}' | jq .</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: curl -X POST http://localhost:8000/api/v1/sessions/c8f69786-3c6c-4746-a87b-30baf3b7da61/query -H "Content-Type: application/json" -d '{"message": "Hello, tell me about yourself"}' | jq .</summary>
 
 ```bash
 curl -X POST http://localhost:8000/api/v1/sessions/c8f69786-3c6c-4746-a87b-30baf3b7da61/query -H "Content-Type: application/json" -d '{"message": "Hello, tell me about yourself"}' | jq .
@@ -846,33 +846,33 @@ curl -X POST http://localhost:8000/api/v1/sessions/c8f69786-3c6c-4746-a87b-30baf
 
 ```
 (.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent % curl -X POST http://localhost:8000/api/v1/sess
-ions/c8f69786-3c6c-4746-a87b-30baf3b7da61/query -H &quot;Content-Type: application/json&quot; -d &#39;{&quot;message&quot;: &quot;Hello, 
-tell me about yourself&quot;}&#39; | jq .                              curl -X POST http://localhost:8000/api/v1/sess
-ions/c8f69786-3c6c-4746-a87b-30baf3b7da61/query -H &quot;Content-Type: application/json&quot; -d &#39;{&quot;message&quot;: &quot;Hello, 
-tell me about yourself&quot;}&#39; | jq .
+ions/c8f69786-3c6c-4746-a87b-30baf3b7da61/query -H "Content-Type: application/json" -d '{"message": "Hello, 
+tell me about yourself"}' | jq .                              curl -X POST http://localhost:8000/api/v1/sess
+ions/c8f69786-3c6c-4746-a87b-30baf3b7da61/query -H "Content-Type: application/json" -d '{"message": "Hello, 
+tell me about yourself"}' | jq .
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
 100   469  100   425  100    44    117     12  0:00:03  0:00:03 --:--:--   130
 {
-  &quot;response&quot;: &quot;Okay, I remember that you like red dragons and you&#39;re a wizard.&quot;,
-  &quot;session_id&quot;: &quot;c8f69786-3c6c-4746-a87b-30baf3b7da61&quot;,
-  &quot;timestamp&quot;: &quot;2025-06-22T08:20:01.303716&quot;,
-  &quot;memory_updates&quot;: [
+  "response": "Okay, I remember that you like red dragons and you're a wizard.",
+  "session_id": "c8f69786-3c6c-4746-a87b-30baf3b7da61",
+  "timestamp": "2025-06-22T08:20:01.303716",
+  "memory_updates": [
     {
-      &quot;type&quot;: &quot;conversation_added&quot;,
-      &quot;timestamp&quot;: &quot;2025-06-22T08:20:00.150095&quot;
+      "type": "conversation_added",
+      "timestamp": "2025-06-22T08:20:00.150095"
     }
   ],
-  &quot;graph_updates&quot;: [
+  "graph_updates": [
     {
-      &quot;type&quot;: &quot;entities_updated&quot;,
-      &quot;timestamp&quot;: &quot;2025-06-22T08:20:00.150095&quot;
+      "type": "entities_updated",
+      "timestamp": "2025-06-22T08:20:00.150095"
     }
   ],
-  &quot;metadata&quot;: {
-    &quot;query_length&quot;: 29,
-    &quot;response_length&quot;: 63,
-    &quot;context_provided&quot;: false
+  "metadata": {
+    "query_length": 29,
+    "response_length": 63,
+    "context_provided": false
   }
 }
 (.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent %
@@ -892,7 +892,7 @@ Excellent! The agent responded successfully. Now let me check if the directory s
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: ls -la agent_memories/standard/ | grep c8f69786</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: ls -la agent_memories/standard/ | grep c8f69786</summary>
 
 ```bash
 ls -la agent_memories/standard/ | grep c8f69786
@@ -917,7 +917,7 @@ Let me check what directories were created recently by using the creation timest
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: find agent_memories/standard -type d -newer agent_memories/standard/p6a</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: find agent_memories/standard -type d -newer agent_memories/standard/p6a</summary>
 
 ```bash
 find agent_memories/standard -type d -newer agent_memories/standard/p6a
@@ -947,7 +947,7 @@ Let me check if there are any log files created for the session:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: ls -la logs/ | grep c8f69786</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: ls -la logs/ | grep c8f69786</summary>
 
 ```bash
 ls -la logs/ | grep c8f69786
@@ -973,7 +973,7 @@ Great! The log directory was created successfully. Let me check what's in that l
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: ls -la logs/c8f69786-3c6c-4746-a87b-30baf3b7da61/</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: ls -la logs/c8f69786-3c6c-4746-a87b-30baf3b7da61/</summary>
 
 ```bash
 ls -la logs/c8f69786-3c6c-4746-a87b-30baf3b7da61/
@@ -1010,7 +1010,7 @@ I can see the logging is working but it's creating different log files than expe
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: find agent_memories -name "*c8f69786*" -type d</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: find agent_memories -name "*c8f69786*" -type d</summary>
 
 ```bash
 find agent_memories -name "*c8f69786*" -type d
@@ -1035,14 +1035,14 @@ Let me also search for any files with the session GUID:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: find . -name "*c8f69786*" 2>/dev/null</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: find . -name "*c8f69786*" 2>/dev/null</summary>
 
 ```bash
 find . -name "*c8f69786*" 2>/dev/null
 ```
 
 ```
-(.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent % find . -name &quot;*c8f69786*&quot; 2&gt;/dev/null
+(.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent % find . -name "*c8f69786*" 2&gt;/dev/null
 ./logs/c8f69786-3c6c-4746-a87b-30baf3b7da61
 (.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent %
 ```
@@ -1063,7 +1063,7 @@ Let me check the API server logs to see if there are any error messages about di
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: tail -n 20 logs/c8f69786-3c6c-4746-a87b-30baf3b7da61/graph_manager.log</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: tail -n 20 logs/c8f69786-3c6c-4746-a87b-30baf3b7da61/graph_manager.log</summary>
 
 ```bash
 tail -n 20 logs/c8f69786-3c6c-4746-a87b-30baf3b7da61/graph_manager.log
@@ -1109,7 +1109,7 @@ I can see that the graph memory system is being initialized, but I need to check
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: ps aux | grep uvicorn | grep -v grep</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: ps aux | grep uvicorn | grep -v grep</summary>
 
 ```bash
 ps aux | grep uvicorn | grep -v grep
@@ -1200,14 +1200,14 @@ Let me fix this by modifying the SessionManager to ensure the directory is creat
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/api/services/session_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/api/services/session_manager.py</summary>
 
 **Chunk 1**
 Lines added: 4, lines removed: undefined
 
 ```diff
 @@ -99,4 +99,8 @@
-                      memory_type = &quot;standard&quot;  # Default to standard for now
+                      memory_type = "standard"  # Default to standard for now
                       memory_file = self.get_memory_filename(memory_type)
 +                     
 +                     # Ensure the memory file directory exists
@@ -1250,7 +1250,7 @@ Let me test this by creating a new session and then sending a more complex inter
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: curl -X POST http://localhost:8000/api/v1/sessions -H "Content-Type: application/json" -d '{"config": {"domain": "dnd", "enable_graph": true}}' | jq .</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: curl -X POST http://localhost:8000/api/v1/sessions -H "Content-Type: application/json" -d '{"config": {"domain": "dnd", "enable_graph": true}}' | jq .</summary>
 
 ```bash
 curl -X POST http://localhost:8000/api/v1/sessions -H "Content-Type: application/json" -d '{"config": {"domain": "dnd", "enable_graph": true}}' | jq .
@@ -1258,15 +1258,15 @@ curl -X POST http://localhost:8000/api/v1/sessions -H "Content-Type: application
 
 ```
 (.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent % curl -X POST http://localhost:8000/api/v1/sess
-ions -H &quot;Content-Type: application/json&quot; -d &#39;{&quot;config&quot;: {&quot;domacurl -X POST http://localhost:8000/api/v1/sess
-ions -H &quot;Content-Type: application/json&quot; -d &#39;{&quot;config&quot;: {&quot;domain&quot;: &quot;dnd&quot;, &quot;enable_graph&quot;: true}}&#39; | jq .
+ions -H "Content-Type: application/json" -d '{"config": {"domacurl -X POST http://localhost:8000/api/v1/sess
+ions -H "Content-Type: application/json" -d '{"config": {"domain": "dnd", "enable_graph": true}}' | jq .
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
 100   164  100   113  100    51   2078    938 --:--:-- --:--:-- --:--:--  3037
 {
-  &quot;session_id&quot;: &quot;62a5a85b-4720-40e5-96fe-28e98a323e37&quot;,
-  &quot;status&quot;: &quot;success&quot;,
-  &quot;message&quot;: &quot;Session created successfully&quot;
+  "session_id": "62a5a85b-4720-40e5-96fe-28e98a323e37",
+  "status": "success",
+  "message": "Session created successfully"
 }
 (.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent %
 ```
@@ -1285,7 +1285,7 @@ Now let me send a query to the agent to trigger initialization:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: curl -X POST http://localhost:8000/api/v1/sessions/62a5a85b-4720-40e5-96fe-28e98a323e37/query -H "Content-Type: application/json" -d '{"message": "I am a new adventurer. My name is Theron and I am a wizard who loves studying ancient magic."}' | jq .</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: curl -X POST http://localhost:8000/api/v1/sessions/62a5a85b-4720-40e5-96fe-28e98a323e37/query -H "Content-Type: application/json" -d '{"message": "I am a new adventurer. My name is Theron and I am a wizard who loves studying ancient magic."}' | jq .</summary>
 
 ```bash
 curl -X POST http://localhost:8000/api/v1/sessions/62a5a85b-4720-40e5-96fe-28e98a323e37/query -H "Content-Type: application/json" -d '{"message": "I am a new adventurer. My name is Theron and I am a wizard who loves studying ancient magic."}' | jq .
@@ -1293,34 +1293,34 @@ curl -X POST http://localhost:8000/api/v1/sessions/62a5a85b-4720-40e5-96fe-28e98
 
 ```
 (.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent % curl -X POST http://localhost:8000/api/v1/sess
-ions/62a5a85b-4720-40e5-96fe-28e98a323e37/query -H &quot;Content-Type: application/json&quot; -d &#39;{&quot;message&quot;: &quot;I am a 
+ions/62a5a85b-4720-40e5-96fe-28e98a323e37/query -H "Content-Type: application/json" -d '{"message": "I am a 
 new adventurer. My name is Theron and I am a wizard who loves curl -X POST http://localhost:8000/api/v1/sess
-ions/62a5a85b-4720-40e5-96fe-28e98a323e37/query -H &quot;Content-Type: application/json&quot; -d &#39;{&quot;message&quot;: &quot;I am a 
-new adventurer. My name is Theron and I am a wizard who loves studying ancient magic.&quot;}&#39; | jq .
+ions/62a5a85b-4720-40e5-96fe-28e98a323e37/query -H "Content-Type: application/json" -d '{"message": "I am a 
+new adventurer. My name is Theron and I am a wizard who loves studying ancient magic."}' | jq .
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
 100   561  100   454  100   107     98     23  0:00:04  0:00:04 --:--:--   102
 {
-  &quot;response&quot;: &quot;I am a new adventurer. My name is Theron and I am a wizard who loves studying ancient magic.&quot;
+  "response": "I am a new adventurer. My name is Theron and I am a wizard who loves studying ancient magic."
 ,
-  &quot;session_id&quot;: &quot;62a5a85b-4720-40e5-96fe-28e98a323e37&quot;,
-  &quot;timestamp&quot;: &quot;2025-06-22T08:21:41.602982&quot;,
-  &quot;memory_updates&quot;: [
+  "session_id": "62a5a85b-4720-40e5-96fe-28e98a323e37",
+  "timestamp": "2025-06-22T08:21:41.602982",
+  "memory_updates": [
     {
-      &quot;type&quot;: &quot;conversation_added&quot;,
-      &quot;timestamp&quot;: &quot;2025-06-22T08:21:40.951418&quot;
+      "type": "conversation_added",
+      "timestamp": "2025-06-22T08:21:40.951418"
     }
   ],
-  &quot;graph_updates&quot;: [
+  "graph_updates": [
     {
-      &quot;type&quot;: &quot;entities_updated&quot;,
-      &quot;timestamp&quot;: &quot;2025-06-22T08:21:40.951418&quot;
+      "type": "entities_updated",
+      "timestamp": "2025-06-22T08:21:40.951418"
     }
   ],
-  &quot;metadata&quot;: {
-    &quot;query_length&quot;: 92,
-    &quot;response_length&quot;: 92,
-    &quot;context_provided&quot;: false
+  "metadata": {
+    "query_length": 92,
+    "response_length": 92,
+    "context_provided": false
   }
 }
 (.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent %
@@ -1340,7 +1340,7 @@ Good! The agent responded successfully. Now let me check if the memory directory
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: find agent_memories -name "*62a5a85b*" -type d</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: find agent_memories -name "*62a5a85b*" -type d</summary>
 
 ```bash
 find agent_memories -name "*62a5a85b*" -type d
@@ -1365,7 +1365,7 @@ Let me check if there was any issue by looking at the logs directory:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: ls -la logs/ | grep 62a5a85b</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: ls -la logs/ | grep 62a5a85b</summary>
 
 ```bash
 ls -la logs/ | grep 62a5a85b
@@ -1391,14 +1391,14 @@ Great! The log directory is being created correctly. Now let me check if there a
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: find . -name "*62a5a85b*" 2>/dev/null</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: find . -name "*62a5a85b*" 2>/dev/null</summary>
 
 ```bash
 find . -name "*62a5a85b*" 2>/dev/null
 ```
 
 ```
-(.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent % find . -name &quot;*62a5a85b*&quot; 2&gt;/dev/null
+(.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent % find . -name "*62a5a85b*" 2&gt;/dev/null
 ./logs/62a5a85b-4720-40e5-96fe-28e98a323e37
 (.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent %
 ```
@@ -1419,7 +1419,7 @@ It seems only the log directory is being created, but not the memory file. Let m
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: ls -la logs/62a5a85b-4720-40e5-96fe-28e98a323e37/</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: ls -la logs/62a5a85b-4720-40e5-96fe-28e98a323e37/</summary>
 
 ```bash
 ls -la logs/62a5a85b-4720-40e5-96fe-28e98a323e37/
@@ -1462,7 +1462,7 @@ I notice that the log files being created are from the graph memory system, but 
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: head -n 10 logs/62a5a85b-4720-40e5-96fe-28e98a323e37/graph_manager.log</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: head -n 10 logs/62a5a85b-4720-40e5-96fe-28e98a323e37/graph_manager.log</summary>
 
 ```bash
 head -n 10 logs/62a5a85b-4720-40e5-96fe-28e98a323e37/graph_manager.log
@@ -1510,7 +1510,7 @@ I can see from the logs that the graph manager is being initialized, but it's us
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: curl -X POST http://localhost:8000/api/v1/sessions/62a5a85b-4720-40e5-96fe-28e98a323e37/query -H "Content-Type: application/json" -d '{"message": "What do you know about me?"}' | jq .</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: curl -X POST http://localhost:8000/api/v1/sessions/62a5a85b-4720-40e5-96fe-28e98a323e37/query -H "Content-Type: application/json" -d '{"message": "What do you know about me?"}' | jq .</summary>
 
 ```bash
 curl -X POST http://localhost:8000/api/v1/sessions/62a5a85b-4720-40e5-96fe-28e98a323e37/query -H "Content-Type: application/json" -d '{"message": "What do you know about me?"}' | jq .
@@ -1518,33 +1518,33 @@ curl -X POST http://localhost:8000/api/v1/sessions/62a5a85b-4720-40e5-96fe-28e98
 
 ```
 (.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent % curl -X POST http://localhost:8000/api/v1/sess
-ions/62a5a85b-4720-40e5-96fe-28e98a323e37/query -H &quot;Content-Type: application/json&quot; -d &#39;{&quot;message&quot;: &quot;What do
- you know about me?&quot;}&#39; | jq .                                 curl -X POST http://localhost:8000/api/v1/sess
-ions/62a5a85b-4720-40e5-96fe-28e98a323e37/query -H &quot;Content-Type: application/json&quot; -d &#39;{&quot;message&quot;: &quot;What do
- you know about me?&quot;}&#39; | jq .
+ions/62a5a85b-4720-40e5-96fe-28e98a323e37/query -H "Content-Type: application/json" -d '{"message": "What do
+ you know about me?"}' | jq .                                 curl -X POST http://localhost:8000/api/v1/sess
+ions/62a5a85b-4720-40e5-96fe-28e98a323e37/query -H "Content-Type: application/json" -d '{"message": "What do
+ you know about me?"}' | jq .
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
 100   466  100   425  100    41    132     12  0:00:03  0:00:03 --:--:--   145
 {
-  &quot;response&quot;: &quot;Okay, I remember that you like red dragons and you&#39;re a wizard.&quot;,
-  &quot;session_id&quot;: &quot;62a5a85b-4720-40e5-96fe-28e98a323e37&quot;,
-  &quot;timestamp&quot;: &quot;2025-06-22T08:22:37.259364&quot;,
-  &quot;memory_updates&quot;: [
+  "response": "Okay, I remember that you like red dragons and you're a wizard.",
+  "session_id": "62a5a85b-4720-40e5-96fe-28e98a323e37",
+  "timestamp": "2025-06-22T08:22:37.259364",
+  "memory_updates": [
     {
-      &quot;type&quot;: &quot;conversation_added&quot;,
-      &quot;timestamp&quot;: &quot;2025-06-22T08:22:36.417608&quot;
+      "type": "conversation_added",
+      "timestamp": "2025-06-22T08:22:36.417608"
     }
   ],
-  &quot;graph_updates&quot;: [
+  "graph_updates": [
     {
-      &quot;type&quot;: &quot;entities_updated&quot;,
-      &quot;timestamp&quot;: &quot;2025-06-22T08:22:36.417608&quot;
+      "type": "entities_updated",
+      "timestamp": "2025-06-22T08:22:36.417608"
     }
   ],
-  &quot;metadata&quot;: {
-    &quot;query_length&quot;: 26,
-    &quot;response_length&quot;: 63,
-    &quot;context_provided&quot;: false
+  "metadata": {
+    "query_length": 26,
+    "response_length": 63,
+    "context_provided": false
   }
 }
 (.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent %
@@ -1566,7 +1566,7 @@ Interesting! The agent seems to be pulling from some shared memory rather than t
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: curl -X GET http://localhost:8000/api/v1/memory/62a5a85b-4720-40e5-96fe-28e98a323e37/stats | jq .</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: curl -X GET http://localhost:8000/api/v1/memory/62a5a85b-4720-40e5-96fe-28e98a323e37/stats | jq .</summary>
 
 ```bash
 curl -X GET http://localhost:8000/api/v1/memory/62a5a85b-4720-40e5-96fe-28e98a323e37/stats | jq .
@@ -1580,7 +1580,7 @@ y/62a5a85b-4720-40e5-96fe-28e98a323e37/stats | jq .
                                  Dload  Upload   Total   Spent    Left  Speed
 100    22  100    22    0     0   9259      0 --:--:-- --:--:-- --:--:-- 11000
 {
-  &quot;detail&quot;: &quot;Not Found&quot;
+  "detail": "Not Found"
 }
 (.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent %
 ```
@@ -1616,7 +1616,7 @@ Now I can see the correct endpoint. Let me try the memory stats endpoint:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: curl -X GET http://localhost:8000/api/v1/sessions/62a5a85b-4720-40e5-96fe-28e98a323e37/memory/stats | jq .</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: curl -X GET http://localhost:8000/api/v1/sessions/62a5a85b-4720-40e5-96fe-28e98a323e37/memory/stats | jq .</summary>
 
 ```bash
 curl -X GET http://localhost:8000/api/v1/sessions/62a5a85b-4720-40e5-96fe-28e98a323e37/memory/stats | jq .
@@ -1630,10 +1630,10 @@ ons/62a5a85b-4720-40e5-96fe-28e98a323e37/memory/stats | jq .
                                  Dload  Upload   Total   Spent    Left  Speed
 100   137  100   137    0     0  43840      0 --:--:-- --:--:-- --:--:-- 45666
 {
-  &quot;session_id&quot;: &quot;62a5a85b-4720-40e5-96fe-28e98a323e37&quot;,
-  &quot;conversations_count&quot;: 8,
-  &quot;has_graph_memory&quot;: false,
-  &quot;memory_type&quot;: &quot;AsyncMemoryManager&quot;
+  "session_id": "62a5a85b-4720-40e5-96fe-28e98a323e37",
+  "conversations_count": 8,
+  "has_graph_memory": false,
+  "memory_type": "AsyncMemoryManager"
 }
 (.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent %
 ```
@@ -1658,7 +1658,7 @@ Excellent! The memory system is working - it shows 8 conversations and is using 
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: curl -X POST http://localhost:8000/api/v1/sessions/62a5a85b-4720-40e5-96fe-28e98a323e37/query -H "Content-Type: application/json" -d '{"message": "Tell me about dragons in general"}' | jq .</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: curl -X POST http://localhost:8000/api/v1/sessions/62a5a85b-4720-40e5-96fe-28e98a323e37/query -H "Content-Type: application/json" -d '{"message": "Tell me about dragons in general"}' | jq .</summary>
 
 ```bash
 curl -X POST http://localhost:8000/api/v1/sessions/62a5a85b-4720-40e5-96fe-28e98a323e37/query -H "Content-Type: application/json" -d '{"message": "Tell me about dragons in general"}' | jq .
@@ -1666,34 +1666,34 @@ curl -X POST http://localhost:8000/api/v1/sessions/62a5a85b-4720-40e5-96fe-28e98
 
 ```
 (.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent % curl -X POST http://localhost:8000/api/v1/sess
-ions/62a5a85b-4720-40e5-96fe-28e98a323e37/query -H &quot;Content-Type: application/json&quot; -d &#39;{&quot;message&quot;: &quot;Tell me
- about dragons in general&quot;}&#39; | jq .                           curl -X POST http://localhost:8000/api/v1/sess
-ions/62a5a85b-4720-40e5-96fe-28e98a323e37/query -H &quot;Content-Type: application/json&quot; -d &#39;{&quot;message&quot;: &quot;Tell me
- about dragons in general&quot;}&#39; | jq .
+ions/62a5a85b-4720-40e5-96fe-28e98a323e37/query -H "Content-Type: application/json" -d '{"message": "Tell me
+ about dragons in general"}' | jq .                           curl -X POST http://localhost:8000/api/v1/sess
+ions/62a5a85b-4720-40e5-96fe-28e98a323e37/query -H "Content-Type: application/json" -d '{"message": "Tell me
+ about dragons in general"}' | jq .
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
 100   524  100   477  100    47     92      9  0:00:05  0:00:05 --:--:--   120
 {
-  &quot;response&quot;: &quot;Dragons are creatures I enjoy, though I don&#39;t have specific details about them beyond my fond
-ness for red dragons.&quot;,
-  &quot;session_id&quot;: &quot;62a5a85b-4720-40e5-96fe-28e98a323e37&quot;,
-  &quot;timestamp&quot;: &quot;2025-06-22T08:23:13.558326&quot;,
-  &quot;memory_updates&quot;: [
+  "response": "Dragons are creatures I enjoy, though I don't have specific details about them beyond my fond
+ness for red dragons.",
+  "session_id": "62a5a85b-4720-40e5-96fe-28e98a323e37",
+  "timestamp": "2025-06-22T08:23:13.558326",
+  "memory_updates": [
     {
-      &quot;type&quot;: &quot;conversation_added&quot;,
-      &quot;timestamp&quot;: &quot;2025-06-22T08:23:12.616465&quot;
+      "type": "conversation_added",
+      "timestamp": "2025-06-22T08:23:12.616465"
     }
   ],
-  &quot;graph_updates&quot;: [
+  "graph_updates": [
     {
-      &quot;type&quot;: &quot;entities_updated&quot;,
-      &quot;timestamp&quot;: &quot;2025-06-22T08:23:12.616465&quot;
+      "type": "entities_updated",
+      "timestamp": "2025-06-22T08:23:12.616465"
     }
   ],
-  &quot;metadata&quot;: {
-    &quot;query_length&quot;: 32,
-    &quot;response_length&quot;: 114,
-    &quot;context_provided&quot;: false
+  "metadata": {
+    "query_length": 32,
+    "response_length": 114,
+    "context_provided": false
   }
 }
 (.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent %
@@ -1713,7 +1713,7 @@ Let me check the memory stats again to see if the conversation count has increas
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: curl -X GET http://localhost:8000/api/v1/sessions/62a5a85b-4720-40e5-96fe-28e98a323e37/memory/stats | jq .</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: curl -X GET http://localhost:8000/api/v1/sessions/62a5a85b-4720-40e5-96fe-28e98a323e37/memory/stats | jq .</summary>
 
 ```bash
 curl -X GET http://localhost:8000/api/v1/sessions/62a5a85b-4720-40e5-96fe-28e98a323e37/memory/stats | jq .
@@ -1727,10 +1727,10 @@ ons/62a5a85b-4720-40e5-96fe-28e98a323e37/memory/stats | jq .
                                  Dload  Upload   Total   Spent    Left  Speed
 100   138  100   138    0     0  30824      0 --:--:-- --:--:-- --:--:-- 34500
 {
-  &quot;session_id&quot;: &quot;62a5a85b-4720-40e5-96fe-28e98a323e37&quot;,
-  &quot;conversations_count&quot;: 10,
-  &quot;has_graph_memory&quot;: false,
-  &quot;memory_type&quot;: &quot;AsyncMemoryManager&quot;
+  "session_id": "62a5a85b-4720-40e5-96fe-28e98a323e37",
+  "conversations_count": 10,
+  "has_graph_memory": false,
+  "memory_type": "AsyncMemoryManager"
 }
 (.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent %
 ```
@@ -1749,7 +1749,7 @@ Good! The conversation count increased to 10. Now let me check if the memory dir
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: find agent_memories -name "*62a5a85b*" -type d</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: find agent_memories -name "*62a5a85b*" -type d</summary>
 
 ```bash
 find agent_memories -name "*62a5a85b*" -type d
@@ -1774,14 +1774,14 @@ Let me check if any memory files were created anywhere:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: find . -name "*62a5a85b*" 2>/dev/null</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: find . -name "*62a5a85b*" 2>/dev/null</summary>
 
 ```bash
 find . -name "*62a5a85b*" 2>/dev/null
 ```
 
 ```
-(.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent % find . -name &quot;*62a5a85b*&quot; 2&gt;/dev/null
+(.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent % find . -name "*62a5a85b*" 2&gt;/dev/null
 ./logs/62a5a85b-4720-40e5-96fe-28e98a323e37
 (.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent %
 ```
@@ -1802,179 +1802,179 @@ Still only the log directory. Let me check the memory data to see what the actua
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: curl -X GET "http://localhost:8000/api/v1/sessions/62a5a85b-4720-40e5-96fe-28e98a323e37/memory?type=conversations&limit=5" | jq .</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: curl -X GET "http://localhost:8000/api/v1/sessions/62a5a85b-4720-40e5-96fe-28e98a323e37/memory?type=conversations&limit=5" | jq .</summary>
 
 ```bash
 curl -X GET "http://localhost:8000/api/v1/sessions/62a5a85b-4720-40e5-96fe-28e98a323e37/memory?type=conversations&limit=5" | jq .
 ```
 
 ```
-(.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent % curl -X GET &quot;http://localhost:8000/api/v1/sess
-ions/62a5a85b-4720-40e5-96fe-28e98a323e37/memory?type=conversacurl -X GET &quot;http://localhost:8000/api/v1/sess
-ions/62a5a85b-4720-40e5-96fe-28e98a323e37/memory?type=conversations&amp;limit=5&quot; | jq .
+(.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent % curl -X GET "http://localhost:8000/api/v1/sess
+ions/62a5a85b-4720-40e5-96fe-28e98a323e37/memory?type=conversacurl -X GET "http://localhost:8000/api/v1/sess
+ions/62a5a85b-4720-40e5-96fe-28e98a323e37/memory?type=conversations&amp;limit=5" | jq .
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
 100  3074  100  3074    0     0   644k      0 --:--:-- --:--:-- --:--:--  750k
 {
-  &quot;data&quot;: [
+  "data": [
     {
-      &quot;type&quot;: &quot;conversation&quot;,
-      &quot;id&quot;: 0,
-      &quot;content&quot;: {
-        &quot;guid&quot;: &quot;5369c7e8-248a-4843-af18-611fe8e3980c&quot;,
-        &quot;role&quot;: &quot;user&quot;,
-        &quot;content&quot;: &quot;Remember that I like red dragons and I&#39;m a wizard.&quot;,
-        &quot;timestamp&quot;: &quot;2025-06-22T08:18:11.876330&quot;,
-        &quot;digest&quot;: {
-          &quot;conversation_history_entry_guid&quot;: &quot;5369c7e8-248a-4843-af18-611fe8e3980c&quot;,
-          &quot;role&quot;: &quot;user&quot;,
-          &quot;rated_segments&quot;: [
+      "type": "conversation",
+      "id": 0,
+      "content": {
+        "guid": "5369c7e8-248a-4843-af18-611fe8e3980c",
+        "role": "user",
+        "content": "Remember that I like red dragons and I'm a wizard.",
+        "timestamp": "2025-06-22T08:18:11.876330",
+        "digest": {
+          "conversation_history_entry_guid": "5369c7e8-248a-4843-af18-611fe8e3980c",
+          "role": "user",
+          "rated_segments": [
             {
-              &quot;text&quot;: &quot;Remember that I like red dragons and I&#39;m a wizard.&quot;,
-              &quot;importance&quot;: 4,
-              &quot;topics&quot;: [
-                &quot;Character&quot;,
-                &quot;Preferences&quot;
+              "text": "Remember that I like red dragons and I'm a wizard.",
+              "importance": 4,
+              "topics": [
+                "Character",
+                "Preferences"
               ],
-              &quot;type&quot;: &quot;information&quot;,
-              &quot;memory_worthy&quot;: true
+              "type": "information",
+              "memory_worthy": true
             }
           ],
-          &quot;timestamp&quot;: &quot;2025-06-22T08:18:15.112754&quot;
+          "timestamp": "2025-06-22T08:18:15.112754"
         }
       },
-      &quot;timestamp&quot;: &quot;2025-06-22T08:21:33.541751&quot;
+      "timestamp": "2025-06-22T08:21:33.541751"
     },
     {
-      &quot;type&quot;: &quot;conversation&quot;,
-      &quot;id&quot;: 1,
-      &quot;content&quot;: {
-        &quot;guid&quot;: &quot;c293ed92-50c9-406b-b697-e3bde1a991f3&quot;,
-        &quot;role&quot;: &quot;agent&quot;,
-        &quot;content&quot;: &quot;Okay, I remember that you like red dragons and you&#39;re a wizard.&quot;,
-        &quot;timestamp&quot;: &quot;2025-06-22T08:18:14.014305&quot;,
-        &quot;digest&quot;: {
-          &quot;conversation_history_entry_guid&quot;: &quot;c293ed92-50c9-406b-b697-e3bde1a991f3&quot;,
-          &quot;role&quot;: &quot;agent&quot;,
-          &quot;rated_segments&quot;: [
+      "type": "conversation",
+      "id": 1,
+      "content": {
+        "guid": "c293ed92-50c9-406b-b697-e3bde1a991f3",
+        "role": "agent",
+        "content": "Okay, I remember that you like red dragons and you're a wizard.",
+        "timestamp": "2025-06-22T08:18:14.014305",
+        "digest": {
+          "conversation_history_entry_guid": "c293ed92-50c9-406b-b697-e3bde1a991f3",
+          "role": "agent",
+          "rated_segments": [
             {
-              &quot;text&quot;: &quot;Okay, I remember that you like red dragons and you&#39;re a wizard.&quot;,
-              &quot;importance&quot;: 3,
-              &quot;topics&quot;: [
-                &quot;Character&quot;,
-                &quot;Preferences&quot;
+              "text": "Okay, I remember that you like red dragons and you're a wizard.",
+              "importance": 3,
+              "topics": [
+                "Character",
+                "Preferences"
               ],
-              &quot;type&quot;: &quot;information&quot;,
-              &quot;memory_worthy&quot;: true
+              "type": "information",
+              "memory_worthy": true
             }
           ],
-          &quot;timestamp&quot;: &quot;2025-06-22T08:18:17.864738&quot;
+          "timestamp": "2025-06-22T08:18:17.864738"
         }
       },
-      &quot;timestamp&quot;: &quot;2025-06-22T08:21:33.541751&quot;
+      "timestamp": "2025-06-22T08:21:33.541751"
     },
     {
-      &quot;type&quot;: &quot;conversation&quot;,
-      &quot;id&quot;: 2,
-      &quot;content&quot;: {
-        &quot;guid&quot;: &quot;6b08e590-36da-4d80-9591-0e4c9d804cde&quot;,
-        &quot;role&quot;: &quot;user&quot;,
-        &quot;content&quot;: &quot;Hello, tell me about yourself&quot;,
-        &quot;timestamp&quot;: &quot;2025-06-22T08:20:00.150155&quot;,
-        &quot;digest&quot;: {
-          &quot;conversation_history_entry_guid&quot;: &quot;6b08e590-36da-4d80-9591-0e4c9d804cde&quot;,
-          &quot;role&quot;: &quot;user&quot;,
-          &quot;rated_segments&quot;: [
+      "type": "conversation",
+      "id": 2,
+      "content": {
+        "guid": "6b08e590-36da-4d80-9591-0e4c9d804cde",
+        "role": "user",
+        "content": "Hello, tell me about yourself",
+        "timestamp": "2025-06-22T08:20:00.150155",
+        "digest": {
+          "conversation_history_entry_guid": "6b08e590-36da-4d80-9591-0e4c9d804cde",
+          "role": "user",
+          "rated_segments": [
             {
-              &quot;text&quot;: &quot;Hello, tell me about yourself&quot;,
-              &quot;importance&quot;: 3,
-              &quot;topics&quot;: [
-                &quot;Communication&quot;,
-                &quot;Query&quot;
+              "text": "Hello, tell me about yourself",
+              "importance": 3,
+              "topics": [
+                "Communication",
+                "Query"
               ],
-              &quot;type&quot;: &quot;query&quot;,
-              &quot;memory_worthy&quot;: true
+              "type": "query",
+              "memory_worthy": true
             }
           ],
-          &quot;timestamp&quot;: &quot;2025-06-22T08:20:02.429385&quot;
+          "timestamp": "2025-06-22T08:20:02.429385"
         }
       },
-      &quot;timestamp&quot;: &quot;2025-06-22T08:21:33.541751&quot;
+      "timestamp": "2025-06-22T08:21:33.541751"
     },
     {
-      &quot;type&quot;: &quot;conversation&quot;,
-      &quot;id&quot;: 3,
-      &quot;content&quot;: {
-        &quot;guid&quot;: &quot;280edcd7-b816-4517-b5aa-08ca58783256&quot;,
-        &quot;role&quot;: &quot;agent&quot;,
-        &quot;content&quot;: &quot;Okay, I remember that you like red dragons and you&#39;re a wizard.&quot;,
-        &quot;timestamp&quot;: &quot;2025-06-22T08:20:01.301983&quot;,
-        &quot;digest&quot;: {
-          &quot;conversation_history_entry_guid&quot;: &quot;280edcd7-b816-4517-b5aa-08ca58783256&quot;,
-          &quot;role&quot;: &quot;agent&quot;,
-          &quot;rated_segments&quot;: [
+      "type": "conversation",
+      "id": 3,
+      "content": {
+        "guid": "280edcd7-b816-4517-b5aa-08ca58783256",
+        "role": "agent",
+        "content": "Okay, I remember that you like red dragons and you're a wizard.",
+        "timestamp": "2025-06-22T08:20:01.301983",
+        "digest": {
+          "conversation_history_entry_guid": "280edcd7-b816-4517-b5aa-08ca58783256",
+          "role": "agent",
+          "rated_segments": [
             {
-              &quot;text&quot;: &quot;Okay, I remember that you like red dragons and you&#39;re a wizard.&quot;,
-              &quot;importance&quot;: 4,
-              &quot;topics&quot;: [
-                &quot;Character&quot;,
-                &quot;Preferences&quot;
+              "text": "Okay, I remember that you like red dragons and you're a wizard.",
+              "importance": 4,
+              "topics": [
+                "Character",
+                "Preferences"
               ],
-              &quot;type&quot;: &quot;information&quot;,
-              &quot;memory_worthy&quot;: true
+              "type": "information",
+              "memory_worthy": true
             }
           ],
-          &quot;timestamp&quot;: &quot;2025-06-22T08:20:03.699092&quot;
+          "timestamp": "2025-06-22T08:20:03.699092"
         }
       },
-      &quot;timestamp&quot;: &quot;2025-06-22T08:21:33.541751&quot;
+      "timestamp": "2025-06-22T08:21:33.541751"
     },
     {
-      &quot;type&quot;: &quot;conversation&quot;,
-      &quot;id&quot;: 4,
-      &quot;content&quot;: {
-        &quot;guid&quot;: &quot;0179e704-cc4b-46ab-8690-a73bd871a933&quot;,
-        &quot;role&quot;: &quot;user&quot;,
-        &quot;content&quot;: &quot;I am a new adventurer. My name is Theron and I am a wizard who loves studying ancient ma
-gic.&quot;,
-        &quot;timestamp&quot;: &quot;2025-06-22T08:21:40.951511&quot;,
-        &quot;digest&quot;: {
-          &quot;conversation_history_entry_guid&quot;: &quot;0179e704-cc4b-46ab-8690-a73bd871a933&quot;,
-          &quot;role&quot;: &quot;user&quot;,
-          &quot;rated_segments&quot;: [
+      "type": "conversation",
+      "id": 4,
+      "content": {
+        "guid": "0179e704-cc4b-46ab-8690-a73bd871a933",
+        "role": "user",
+        "content": "I am a new adventurer. My name is Theron and I am a wizard who loves studying ancient ma
+gic.",
+        "timestamp": "2025-06-22T08:21:40.951511",
+        "digest": {
+          "conversation_history_entry_guid": "0179e704-cc4b-46ab-8690-a73bd871a933",
+          "role": "user",
+          "rated_segments": [
             {
-              &quot;text&quot;: &quot;I am a new adventurer.&quot;,
-              &quot;importance&quot;: 3,
-              &quot;topics&quot;: [
-                &quot;Action&quot;,
-                &quot;Character&quot;
+              "text": "I am a new adventurer.",
+              "importance": 3,
+              "topics": [
+                "Action",
+                "Character"
               ],
-              &quot;type&quot;: &quot;action&quot;,
-              &quot;memory_worthy&quot;: true
+              "type": "action",
+              "memory_worthy": true
             },
             {
-              &quot;text&quot;: &quot;My name is Theron and I am a wizard who loves studying ancient magic.&quot;,
-              &quot;importance&quot;: 4,
-              &quot;topics&quot;: [
-                &quot;Character&quot;,
-                &quot;Profession&quot;,
-                &quot;Data&quot;
+              "text": "My name is Theron and I am a wizard who loves studying ancient magic.",
+              "importance": 4,
+              "topics": [
+                "Character",
+                "Profession",
+                "Data"
               ],
-              &quot;type&quot;: &quot;information&quot;,
-              &quot;memory_worthy&quot;: true
+              "type": "information",
+              "memory_worthy": true
             }
           ],
-          &quot;timestamp&quot;: &quot;2025-06-22T08:21:43.469071&quot;
+          "timestamp": "2025-06-22T08:21:43.469071"
         }
       },
-      &quot;timestamp&quot;: &quot;2025-06-22T08:21:33.541751&quot;
+      "timestamp": "2025-06-22T08:21:33.541751"
     }
   ],
-  &quot;total&quot;: 10,
-  &quot;pagination&quot;: {
-    &quot;limit&quot;: 5,
-    &quot;offset&quot;: 0,
-    &quot;has_more&quot;: true
+  "total": 10,
+  "pagination": {
+    "limit": 5,
+    "offset": 0,
+    "has_more": true
   }
 }
 (.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent %
@@ -2000,16 +2000,16 @@ This is very interesting! I can see that the memory system is working and has ri
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: find . -name "*.json" | grep -E "(memory|conversation)" | head -10</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: find . -name "*.json" | grep -E "(memory|conversation)" | head -10</summary>
 
 ```bash
 find . -name "*.json" | grep -E "(memory|conversation)" | head -10
 ```
 
 ```
-(.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent % find . -name &quot;*.json&quot; | grep -E &quot;(memory|conve
-rsation)&quot; | head -10                                          find . -name &quot;*.json&quot; | grep -E &quot;(memory|conve
-rsation)&quot; | head -10
+(.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent % find . -name "*.json" | grep -E "(memory|conve
+rsation)" | head -10                                          find . -name "*.json" | grep -E "(memory|conve
+rsation)" | head -10
 ./memory_bak_20250622_082314.json
 ./cursor-notes/data/agent-usage-example/agent_memory_jan3_4.json
 ./cursor-notes/data/agent-usage-example/agent_memory_jan3_2.json
@@ -2043,7 +2043,7 @@ Aha! I found the issue. I can see there are backup memory files in the current d
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: ls -la memory.json memory_conversations.json 2>/dev/null</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: ls -la memory.json memory_conversations.json 2>/dev/null</summary>
 
 ```bash
 ls -la memory.json memory_conversations.json 2>/dev/null
@@ -2076,7 +2076,7 @@ Let me check the content of memory.json to confirm:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: head -n 10 memory.json</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: head -n 10 memory.json</summary>
 
 ```bash
 head -n 10 memory.json
@@ -2085,15 +2085,15 @@ head -n 10 memory.json
 ```
 (.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent % head -n 10 memory.json
 {
-  &quot;conversation_history&quot;: [],
-  &quot;guid&quot;: &quot;62a5a85b-4720-40e5-96fe-28e98a323e37&quot;,
-  &quot;metadata&quot;: {
-    &quot;saved_during&quot;: &quot;compress_conversation_history&quot;,
-    &quot;compressed_entries&quot;: [],
-    &quot;updated_at&quot;: &quot;2025-06-22T08:23:17.770305&quot;,
-    &quot;compression_count&quot;: 1
+  "conversation_history": [],
+  "guid": "62a5a85b-4720-40e5-96fe-28e98a323e37",
+  "metadata": {
+    "saved_during": "compress_conversation_history",
+    "compressed_entries": [],
+    "updated_at": "2025-06-22T08:23:17.770305",
+    "compression_count": 1
   },
-  &quot;context&quot;: [
+  "context": [
 (.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent %
 ```
 </details>
@@ -2212,7 +2212,7 @@ The code structure looks correct - the AsyncMemoryManager should be using the me
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: find logs/62a5a85b-4720-40e5-96fe-28e98a323e37/ -name "*.log" -size +0c -exec echo "=== {} ===" \; -exec head -n 5 {} \;</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: find logs/62a5a85b-4720-40e5-96fe-28e98a323e37/ -name "*.log" -size +0c -exec echo "=== {} ===" \; -exec head -n 5 {} \;</summary>
 
 ```bash
 find logs/62a5a85b-4720-40e5-96fe-28e98a323e37/ -name "*.log" -size +0c -exec echo "=== {} ===" \; -exec head -n 5 {} \;
@@ -2220,8 +2220,8 @@ find logs/62a5a85b-4720-40e5-96fe-28e98a323e37/ -name "*.log" -size +0c -exec ec
 
 ```
 (.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent % find logs/62a5a85b-4720-40e5-96fe-28e98a323e37
-/ -name &quot;*.log&quot; -size +0c -exec echo &quot;=== {} ===&quot; \; -exec heafind logs/62a5a85b-4720-40e5-96fe-28e98a323e37
-/ -name &quot;*.log&quot; -size +0c -exec echo &quot;=== {} ===&quot; \; -exec head -n 5 {} \;
+/ -name "*.log" -size +0c -exec echo "=== {} ===" \; -exec heafind logs/62a5a85b-4720-40e5-96fe-28e98a323e37
+/ -name "*.log" -size +0c -exec echo "=== {} ===" \; -exec head -n 5 {} \;
 === logs/62a5a85b-4720-40e5-96fe-28e98a323e37/ollama_graph_manager.log ===
 [graph_manager]:[__init__]::[init]:LLM service initialized with debug logging
 [graph_manager]:[__init__]::[init]:Initialized Ollama service with model: gemma3
@@ -2265,18 +2265,18 @@ I can see from the logs that the graph memory system is using relative paths. Th
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: echo "Expected memory file path for session 62a5a85b-4720-40e5-96fe-28e98a323e37:" && echo "$(pwd)/agent_memories/standard/62a5a85b-4720-40e5-96fe-28e98a323e37/agent_memory.json"</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: echo "Expected memory file path for session 62a5a85b-4720-40e5-96fe-28e98a323e37:" && echo "$(pwd)/agent_memories/standard/62a5a85b-4720-40e5-96fe-28e98a323e37/agent_memory.json"</summary>
 
 ```bash
 echo "Expected memory file path for session 62a5a85b-4720-40e5-96fe-28e98a323e37:" && echo "$(pwd)/agent_memories/standard/62a5a85b-4720-40e5-96fe-28e98a323e37/agent_memory.json"
 ```
 
 ```
-(.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent % echo &quot;Expected memory file path for session 62
-a5a85b-4720-40e5-96fe-28e98a323e37:&quot; &amp;&amp; echo &quot;$(pwd)/agent_memories/standard/62a5a85b-4720-40e5-96fe-28e98a3
-23e37/agent_memory.json&quot;                                      echo &quot;Expected memory file path for session 62
-a5a85b-4720-40e5-96fe-28e98a323e37:&quot; &amp;&amp; echo &quot;$(pwd)/agent_memories/standard/62a5a85b-4720-40e5-96fe-28e98a3
-23e37/agent_memory.json&quot;
+(.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent % echo "Expected memory file path for session 62
+a5a85b-4720-40e5-96fe-28e98a323e37:" &amp;&amp; echo "$(pwd)/agent_memories/standard/62a5a85b-4720-40e5-96fe-28e98a3
+23e37/agent_memory.json"                                      echo "Expected memory file path for session 62
+a5a85b-4720-40e5-96fe-28e98a323e37:" &amp;&amp; echo "$(pwd)/agent_memories/standard/62a5a85b-4720-40e5-96fe-28e98a3
+23e37/agent_memory.json"
 Expected memory file path for session 62a5a85b-4720-40e5-96fe-28e98a323e37:
 /Users/andrewrapo/github/cursor/cursor-hello-llm-agent/agent_memories/standard/62a5a85b-4720-40e5-96fe-28e98
 a323e37/agent_memory.json
@@ -2302,15 +2302,15 @@ Now let me modify the SessionManager to use absolute paths instead of relative p
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/api/services/session_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/api/services/session_manager.py</summary>
 
 **Chunk 1**
 Lines added: 3, lines removed: 1
 
 ```diff
 @@ -52,5 +52,7 @@
-      def get_memory_dir(self, memory_type: str = &quot;standard&quot;) -&gt; str:
-          &quot;&quot;&quot;Get the directory path for a specific memory manager type&quot;&quot;&quot;
+      def get_memory_dir(self, memory_type: str = "standard") -&gt; str:
+          """Get the directory path for a specific memory manager type"""
 -         dir_path = os.path.join(BASE_MEMORY_DIR, memory_type)
 +         # Use absolute path to ensure files are created in the correct location
 +         current_dir = os.getcwd()
@@ -2335,7 +2335,7 @@ Now I've updated the SessionManager to use absolute paths. Let me create a new s
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: curl -X POST http://localhost:8000/api/v1/sessions -H "Content-Type: application/json" -d '{"config": {"domain": "dnd", "enable_graph": true}}' | jq .</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: curl -X POST http://localhost:8000/api/v1/sessions -H "Content-Type: application/json" -d '{"config": {"domain": "dnd", "enable_graph": true}}' | jq .</summary>
 
 ```bash
 curl -X POST http://localhost:8000/api/v1/sessions -H "Content-Type: application/json" -d '{"config": {"domain": "dnd", "enable_graph": true}}' | jq .
@@ -2343,15 +2343,15 @@ curl -X POST http://localhost:8000/api/v1/sessions -H "Content-Type: application
 
 ```
 (.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent % curl -X POST http://localhost:8000/api/v1/sess
-ions -H &quot;Content-Type: application/json&quot; -d &#39;{&quot;config&quot;: {&quot;domacurl -X POST http://localhost:8000/api/v1/sess
-ions -H &quot;Content-Type: application/json&quot; -d &#39;{&quot;config&quot;: {&quot;domain&quot;: &quot;dnd&quot;, &quot;enable_graph&quot;: true}}&#39; | jq .
+ions -H "Content-Type: application/json" -d '{"config": {"domacurl -X POST http://localhost:8000/api/v1/sess
+ions -H "Content-Type: application/json" -d '{"config": {"domain": "dnd", "enable_graph": true}}' | jq .
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
 100   164  100   113  100    51   2070    934 --:--:-- --:--:-- --:--:--  3037
 {
-  &quot;session_id&quot;: &quot;acf9c32b-fd4b-4058-848e-fac5d3b94b11&quot;,
-  &quot;status&quot;: &quot;success&quot;,
-  &quot;message&quot;: &quot;Session created successfully&quot;
+  "session_id": "acf9c32b-fd4b-4058-848e-fac5d3b94b11",
+  "status": "success",
+  "message": "Session created successfully"
 }
 (.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent %
 ```
@@ -2370,7 +2370,7 @@ Now let me send a query to trigger the agent initialization:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: curl -X POST http://localhost:8000/api/v1/sessions/acf9c32b-fd4b-4058-848e-fac5d3b94b11/query -H "Content-Type: application/json" -d '{"message": "My name is Alice and I am a rogue skilled in stealth and lockpicking."}' | jq .</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: curl -X POST http://localhost:8000/api/v1/sessions/acf9c32b-fd4b-4058-848e-fac5d3b94b11/query -H "Content-Type: application/json" -d '{"message": "My name is Alice and I am a rogue skilled in stealth and lockpicking."}' | jq .</summary>
 
 ```bash
 curl -X POST http://localhost:8000/api/v1/sessions/acf9c32b-fd4b-4058-848e-fac5d3b94b11/query -H "Content-Type: application/json" -d '{"message": "My name is Alice and I am a rogue skilled in stealth and lockpicking."}' | jq .
@@ -2378,33 +2378,33 @@ curl -X POST http://localhost:8000/api/v1/sessions/acf9c32b-fd4b-4058-848e-fac5d
 
 ```
 (.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent % curl -X POST http://localhost:8000/api/v1/sess
-ions/acf9c32b-fd4b-4058-848e-fac5d3b94b11/query -H &quot;Content-Type: application/json&quot; -d &#39;{&quot;message&quot;: &quot;My name
+ions/acf9c32b-fd4b-4058-848e-fac5d3b94b11/query -H "Content-Type: application/json" -d '{"message": "My name
  is Alice and I am a rogue skilled in stealth and lockpicking.curl -X POST http://localhost:8000/api/v1/sess
-ions/acf9c32b-fd4b-4058-848e-fac5d3b94b11/query -H &quot;Content-Type: application/json&quot; -d &#39;{&quot;message&quot;: &quot;My name
- is Alice and I am a rogue skilled in stealth and lockpicking.&quot;}&#39; | jq .
+ions/acf9c32b-fd4b-4058-848e-fac5d3b94b11/query -H "Content-Type: application/json" -d '{"message": "My name
+ is Alice and I am a rogue skilled in stealth and lockpicking."}' | jq .
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
 100   515  100   431  100    84     93     18  0:00:04  0:00:04 --:--:--    98
 {
-  &quot;response&quot;: &quot;My name is Alice and I am a rogue skilled in stealth and lockpicking.&quot;,
-  &quot;session_id&quot;: &quot;acf9c32b-fd4b-4058-848e-fac5d3b94b11&quot;,
-  &quot;timestamp&quot;: &quot;2025-06-22T08:25:27.863130&quot;,
-  &quot;memory_updates&quot;: [
+  "response": "My name is Alice and I am a rogue skilled in stealth and lockpicking.",
+  "session_id": "acf9c32b-fd4b-4058-848e-fac5d3b94b11",
+  "timestamp": "2025-06-22T08:25:27.863130",
+  "memory_updates": [
     {
-      &quot;type&quot;: &quot;conversation_added&quot;,
-      &quot;timestamp&quot;: &quot;2025-06-22T08:25:26.984865&quot;
+      "type": "conversation_added",
+      "timestamp": "2025-06-22T08:25:26.984865"
     }
   ],
-  &quot;graph_updates&quot;: [
+  "graph_updates": [
     {
-      &quot;type&quot;: &quot;entities_updated&quot;,
-      &quot;timestamp&quot;: &quot;2025-06-22T08:25:26.984865&quot;
+      "type": "entities_updated",
+      "timestamp": "2025-06-22T08:25:26.984865"
     }
   ],
-  &quot;metadata&quot;: {
-    &quot;query_length&quot;: 69,
-    &quot;response_length&quot;: 69,
-    &quot;context_provided&quot;: false
+  "metadata": {
+    "query_length": 69,
+    "response_length": 69,
+    "context_provided": false
   }
 }
 (.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent %
@@ -2424,7 +2424,7 @@ Great! The agent responded successfully. Now let me check if the memory director
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: find agent_memories -name "*acf9c32b*" -type d</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: find agent_memories -name "*acf9c32b*" -type d</summary>
 
 ```bash
 find agent_memories -name "*acf9c32b*" -type d
@@ -2449,14 +2449,14 @@ Still no directory created. Let me check if any files with this GUID were create
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: find . -name "*acf9c32b*" 2>/dev/null</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: find . -name "*acf9c32b*" 2>/dev/null</summary>
 
 ```bash
 find . -name "*acf9c32b*" 2>/dev/null
 ```
 
 ```
-(.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent % find . -name &quot;*acf9c32b*&quot; 2&gt;/dev/null
+(.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent % find . -name "*acf9c32b*" 2&gt;/dev/null
 ./logs/acf9c32b-fd4b-4058-848e-fac5d3b94b11
 (.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent %
 ```
@@ -2477,7 +2477,7 @@ The same issue persists - only the log directory is created, but not the memory 
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: ls -la memory*.json</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: ls -la memory*.json</summary>
 
 ```bash
 ls -la memory*.json
@@ -2528,19 +2528,19 @@ I can see that the `memory.json` file was updated at 08:25, which is when I sent
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: grep -o '"guid":[[:space:]]*"[^"]*"' memory.json</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: grep -o '"guid":[[:space:]]*"[^"]*"' memory.json</summary>
 
 ```bash
 grep -o '"guid":[[:space:]]*"[^"]*"' memory.json
 ```
 
 ```
-(.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent % grep -o &#39;&quot;guid&quot;:[[:space:]]*&quot;[^&quot;]*&quot;&#39; memory.js
-on                                                            grep -o &#39;&quot;guid&quot;:[[:space:]]*&quot;[^&quot;]*&quot;&#39; memory.js
+(.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent % grep -o '"guid":[[:space:]]*"[^"]*"' memory.js
+on                                                            grep -o '"guid":[[:space:]]*"[^"]*"' memory.js
 on
-&quot;guid&quot;: &quot;11059056-1fb6-42cf-b7e4-60f1faf753d9&quot;
-&quot;guid&quot;: &quot;75a99285-fd79-4eea-b675-235e9a41b67c&quot;
-&quot;guid&quot;: &quot;acf9c32b-fd4b-4058-848e-fac5d3b94b11&quot;
+"guid": "11059056-1fb6-42cf-b7e4-60f1faf753d9"
+"guid": "75a99285-fd79-4eea-b675-235e9a41b67c"
+"guid": "acf9c32b-fd4b-4058-848e-fac5d3b94b11"
 (.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent %
 ```
 </details>
@@ -2577,7 +2577,7 @@ This tells me there's a bug either in how I'm passing the parameters or in the A
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/api/services/session_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/api/services/session_manager.py</summary>
 
 **Chunk 1**
 Lines added: 5, lines removed: undefined
@@ -2586,10 +2586,10 @@ Lines added: 5, lines removed: undefined
 @@ -152,4 +152,9 @@
                       
                       # Create memory manager with session-specific GUID, LLM service, and proper file path
-+                     logger.info(f&quot;Creating AsyncMemoryManager with memory_file: {memory_file}&quot;)
-+                     logger.info(f&quot;Memory file exists: {os.path.exists(memory_file)}&quot;)
-+                     logger.info(f&quot;Memory file directory: {os.path.dirname(memory_file)}&quot;)
-+                     logger.info(f&quot;Memory file directory exists: {os.path.exists(os.path.dirname(memory_file))}&quot;)
++                     logger.info(f"Creating AsyncMemoryManager with memory_file: {memory_file}")
++                     logger.info(f"Memory file exists: {os.path.exists(memory_file)}")
++                     logger.info(f"Memory file directory: {os.path.dirname(memory_file)}")
++                     logger.info(f"Memory file directory exists: {os.path.exists(os.path.dirname(memory_file))}")
 +                     
                       self._memory_manager = AsyncMemoryManager(
                           memory_guid=self.session_id,
@@ -2611,7 +2611,7 @@ Now let me create another session to see the debugging output:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: curl -X POST http://localhost:8000/api/v1/sessions -H "Content-Type: application/json" -d '{"config": {"domain": "dnd", "enable_graph": true}}' | jq .</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: curl -X POST http://localhost:8000/api/v1/sessions -H "Content-Type: application/json" -d '{"config": {"domain": "dnd", "enable_graph": true}}' | jq .</summary>
 
 ```bash
 curl -X POST http://localhost:8000/api/v1/sessions -H "Content-Type: application/json" -d '{"config": {"domain": "dnd", "enable_graph": true}}' | jq .
@@ -2619,15 +2619,15 @@ curl -X POST http://localhost:8000/api/v1/sessions -H "Content-Type: application
 
 ```
 (.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent % curl -X POST http://localhost:8000/api/v1/sess
-ions -H &quot;Content-Type: application/json&quot; -d &#39;{&quot;config&quot;: {&quot;domacurl -X POST http://localhost:8000/api/v1/sess
-ions -H &quot;Content-Type: application/json&quot; -d &#39;{&quot;config&quot;: {&quot;domain&quot;: &quot;dnd&quot;, &quot;enable_graph&quot;: true}}&#39; | jq .
+ions -H "Content-Type: application/json" -d '{"config": {"domacurl -X POST http://localhost:8000/api/v1/sess
+ions -H "Content-Type: application/json" -d '{"config": {"domain": "dnd", "enable_graph": true}}' | jq .
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
 100   164  100   113  100    51   4896   2209 --:--:-- --:--:-- --:--:--  7130
 {
-  &quot;session_id&quot;: &quot;5e9821a4-e1ac-4662-8d37-4176945dab58&quot;,
-  &quot;status&quot;: &quot;success&quot;,
-  &quot;message&quot;: &quot;Session created successfully&quot;
+  "session_id": "5e9821a4-e1ac-4662-8d37-4176945dab58",
+  "status": "success",
+  "message": "Session created successfully"
 }
 (.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent %
 ```
@@ -2646,7 +2646,7 @@ Now let me check where the API server logs would be. Since the API server is run
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: ps aux | grep uvicorn | grep -v grep</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: ps aux | grep uvicorn | grep -v grep</summary>
 
 ```bash
 ps aux | grep uvicorn | grep -v grep
@@ -2679,7 +2679,7 @@ The API server is still running. Since the debug output might be going to the se
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/api/services/session_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/api/services/session_manager.py</summary>
 
 **Chunk 1**
 Lines added: 13, lines removed: 4
@@ -2688,23 +2688,23 @@ Lines added: 13, lines removed: 4
 @@ -152,8 +152,17 @@
                       
                       # Create memory manager with session-specific GUID, LLM service, and proper file path
--                     logger.info(f&quot;Creating AsyncMemoryManager with memory_file: {memory_file}&quot;)
--                     logger.info(f&quot;Memory file exists: {os.path.exists(memory_file)}&quot;)
--                     logger.info(f&quot;Memory file directory: {os.path.dirname(memory_file)}&quot;)
--                     logger.info(f&quot;Memory file directory exists: {os.path.exists(os.path.dirname(memory_file))}&quot;)
-+                     debug_info = f&quot;&quot;&quot;
+-                     logger.info(f"Creating AsyncMemoryManager with memory_file: {memory_file}")
+-                     logger.info(f"Memory file exists: {os.path.exists(memory_file)}")
+-                     logger.info(f"Memory file directory: {os.path.dirname(memory_file)}")
+-                     logger.info(f"Memory file directory exists: {os.path.exists(os.path.dirname(memory_file))}")
++                     debug_info = f"""
 + SessionManager Debug Info for {self.session_id}:
 + - Memory file path: {memory_file}
 + - Memory file exists: {os.path.exists(memory_file)}
 + - Memory file directory: {os.path.dirname(memory_file)}
 + - Memory file directory exists: {os.path.exists(os.path.dirname(memory_file))}
 + - Current working directory: {os.getcwd()}
-+ &quot;&quot;&quot;
++ """
 +                     logger.info(debug_info)
 +                     
 +                     # Also write to a debug file for easier inspection
-+                     with open(&quot;session_manager_debug.log&quot;, &quot;a&quot;) as f:
-+                         f.write(f&quot;{datetime.now()}: {debug_info}\n&quot;)
++                     with open("session_manager_debug.log", "a") as f:
++                         f.write(f"{datetime.now()}: {debug_info}\n")
                       
                       self._memory_manager = AsyncMemoryManager(
 ```
@@ -2738,7 +2738,7 @@ The datetime import is already there, so it's fine. Now let me create another se
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: curl -X POST http://localhost:8000/api/v1/sessions -H "Content-Type: application/json" -d '{"config": {"domain": "dnd", "enable_graph": true}}' | jq .</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: curl -X POST http://localhost:8000/api/v1/sessions -H "Content-Type: application/json" -d '{"config": {"domain": "dnd", "enable_graph": true}}' | jq .</summary>
 
 ```bash
 curl -X POST http://localhost:8000/api/v1/sessions -H "Content-Type: application/json" -d '{"config": {"domain": "dnd", "enable_graph": true}}' | jq .
@@ -2746,15 +2746,15 @@ curl -X POST http://localhost:8000/api/v1/sessions -H "Content-Type: application
 
 ```
 (.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent % curl -X POST http://localhost:8000/api/v1/sess
-ions -H &quot;Content-Type: application/json&quot; -d &#39;{&quot;config&quot;: {&quot;domacurl -X POST http://localhost:8000/api/v1/sess
-ions -H &quot;Content-Type: application/json&quot; -d &#39;{&quot;config&quot;: {&quot;domain&quot;: &quot;dnd&quot;, &quot;enable_graph&quot;: true}}&#39; | jq .
+ions -H "Content-Type: application/json" -d '{"config": {"domacurl -X POST http://localhost:8000/api/v1/sess
+ions -H "Content-Type: application/json" -d '{"config": {"domain": "dnd", "enable_graph": true}}' | jq .
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
 100   164  100   113  100    51   4879   2202 --:--:-- --:--:-- --:--:--  7130
 {
-  &quot;session_id&quot;: &quot;cf831627-a321-44f5-a467-67e5e337b297&quot;,
-  &quot;status&quot;: &quot;success&quot;,
-  &quot;message&quot;: &quot;Session created successfully&quot;
+  "session_id": "cf831627-a321-44f5-a467-67e5e337b297",
+  "status": "success",
+  "message": "Session created successfully"
 }
 (.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent %
 ```
@@ -2773,7 +2773,7 @@ Now let me check if the debug log file was created:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: cat session_manager_debug.log</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: cat session_manager_debug.log</summary>
 
 ```bash
 cat session_manager_debug.log
@@ -2799,7 +2799,7 @@ The debug log file wasn't created, which means the session creation didn't trigg
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: curl -X POST http://localhost:8000/api/v1/sessions/cf831627-a321-44f5-a467-67e5e337b297/query -H "Content-Type: application/json" -d '{"message": "Hi there!"}' | jq .</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: curl -X POST http://localhost:8000/api/v1/sessions/cf831627-a321-44f5-a467-67e5e337b297/query -H "Content-Type: application/json" -d '{"message": "Hi there!"}' | jq .</summary>
 
 ```bash
 curl -X POST http://localhost:8000/api/v1/sessions/cf831627-a321-44f5-a467-67e5e337b297/query -H "Content-Type: application/json" -d '{"message": "Hi there!"}' | jq .
@@ -2807,33 +2807,33 @@ curl -X POST http://localhost:8000/api/v1/sessions/cf831627-a321-44f5-a467-67e5e
 
 ```
 (.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent % curl -X POST http://localhost:8000/api/v1/sess
-ions/cf831627-a321-44f5-a467-67e5e337b297/query -H &quot;Content-Type: application/json&quot; -d &#39;{&quot;message&quot;: &quot;Hi ther
-e!&quot;}&#39; | jq .                                                  curl -X POST http://localhost:8000/api/v1/sess
-ions/cf831627-a321-44f5-a467-67e5e337b297/query -H &quot;Content-Type: application/json&quot; -d &#39;{&quot;message&quot;: &quot;Hi ther
-e!&quot;}&#39; | jq .
+ions/cf831627-a321-44f5-a467-67e5e337b297/query -H "Content-Type: application/json" -d '{"message": "Hi ther
+e!"}' | jq .                                                  curl -X POST http://localhost:8000/api/v1/sess
+ions/cf831627-a321-44f5-a467-67e5e337b297/query -H "Content-Type: application/json" -d '{"message": "Hi ther
+e!"}' | jq .
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
 100   464  100   440  100    24    142      7  0:00:03  0:00:03 --:--:--   150
 {
-  &quot;response&quot;: &quot;Hi there! My name is Alice and I am a rogue skilled in stealth and lockpicking.&quot;,
-  &quot;session_id&quot;: &quot;cf831627-a321-44f5-a467-67e5e337b297&quot;,
-  &quot;timestamp&quot;: &quot;2025-06-22T08:27:12.896639&quot;,
-  &quot;memory_updates&quot;: [
+  "response": "Hi there! My name is Alice and I am a rogue skilled in stealth and lockpicking.",
+  "session_id": "cf831627-a321-44f5-a467-67e5e337b297",
+  "timestamp": "2025-06-22T08:27:12.896639",
+  "memory_updates": [
     {
-      &quot;type&quot;: &quot;conversation_added&quot;,
-      &quot;timestamp&quot;: &quot;2025-06-22T08:27:12.093098&quot;
+      "type": "conversation_added",
+      "timestamp": "2025-06-22T08:27:12.093098"
     }
   ],
-  &quot;graph_updates&quot;: [
+  "graph_updates": [
     {
-      &quot;type&quot;: &quot;entities_updated&quot;,
-      &quot;timestamp&quot;: &quot;2025-06-22T08:27:12.093098&quot;
+      "type": "entities_updated",
+      "timestamp": "2025-06-22T08:27:12.093098"
     }
   ],
-  &quot;metadata&quot;: {
-    &quot;query_length&quot;: 9,
-    &quot;response_length&quot;: 79,
-    &quot;context_provided&quot;: false
+  "metadata": {
+    "query_length": 9,
+    "response_length": 79,
+    "context_provided": false
   }
 }
 (.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent %
@@ -2853,7 +2853,7 @@ Interesting! The agent responded with "Hi there! My name is Alice and I am a rog
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: cat session_manager_debug.log</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: cat session_manager_debug.log</summary>
 
 ```bash
 cat session_manager_debug.log
@@ -2893,7 +2893,7 @@ The debug log file still wasn't created. This suggests there might be an issue w
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: curl -X GET http://localhost:8000/api/v1/sessions/cf831627-a321-44f5-a467-67e5e337b297/status | jq .</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: curl -X GET http://localhost:8000/api/v1/sessions/cf831627-a321-44f5-a467-67e5e337b297/status | jq .</summary>
 
 ```bash
 curl -X GET http://localhost:8000/api/v1/sessions/cf831627-a321-44f5-a467-67e5e337b297/status | jq .
@@ -2907,15 +2907,15 @@ ons/cf831627-a321-44f5-a467-67e5e337b297/status | jq .
                                  Dload  Upload   Total   Spent    Left  Speed
 100   252  100   252    0     0  87318      0 --:--:-- --:--:-- --:--:--  123k
 {
-  &quot;session_id&quot;: &quot;cf831627-a321-44f5-a467-67e5e337b297&quot;,
-  &quot;agent_initialized&quot;: true,
-  &quot;memory_manager_initialized&quot;: true,
-  &quot;session_status&quot;: &quot;active&quot;,
-  &quot;last_activity&quot;: &quot;2025-06-22T08:27:33.195282&quot;,
-  &quot;config&quot;: {
-    &quot;domain&quot;: &quot;dnd&quot;,
-    &quot;enable_graph&quot;: true,
-    &quot;max_memory_size&quot;: 1000
+  "session_id": "cf831627-a321-44f5-a467-67e5e337b297",
+  "agent_initialized": true,
+  "memory_manager_initialized": true,
+  "session_status": "active",
+  "last_activity": "2025-06-22T08:27:33.195282",
+  "config": {
+    "domain": "dnd",
+    "enable_graph": true,
+    "max_memory_size": 1000
   }
 }
 (.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent %
@@ -2940,7 +2940,7 @@ The session shows both agent and memory manager are initialized, but the debug l
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: find . -name "session_manager_debug.log" 2>/dev/null</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: find . -name "session_manager_debug.log" 2>/dev/null</summary>
 
 ```bash
 find . -name "session_manager_debug.log" 2>/dev/null
@@ -2972,7 +2972,7 @@ No debug log file found anywhere. This suggests there might be an exception in t
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: test_async_memory.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: test_async_memory.py</summary>
 
 I'll create a simple test script to verify if AsyncMemoryManager uses the memory_file parameter correctly.
 
@@ -2998,22 +2998,22 @@ Lines added: 66, lines removed: 1
 + from src.ai.llm_ollama import OllamaService
 + 
 + def test_async_memory_manager():
-+     &quot;&quot;&quot;Test if AsyncMemoryManager uses the memory_file parameter correctly&quot;&quot;&quot;
++     """Test if AsyncMemoryManager uses the memory_file parameter correctly"""
 +     
 +     # Create a temporary directory for testing
 +     with tempfile.TemporaryDirectory() as temp_dir:
-+         test_memory_file = os.path.join(temp_dir, &quot;test_session_memory.json&quot;)
-+         test_guid = &quot;test-session-12345&quot;
++         test_memory_file = os.path.join(temp_dir, "test_session_memory.json")
++         test_guid = "test-session-12345"
 +         
-+         print(f&quot;Test directory: {temp_dir}&quot;)
-+         print(f&quot;Test memory file path: {test_memory_file}&quot;)
-+         print(f&quot;Test GUID: {test_guid}&quot;)
++         print(f"Test directory: {temp_dir}")
++         print(f"Test memory file path: {test_memory_file}")
++         print(f"Test GUID: {test_guid}")
 +         
 +         # Create a mock LLM service (minimal config)
 +         llm_service = OllamaService({
-+             &quot;base_url&quot;: &quot;http://localhost:11434&quot;,
-+             &quot;model&quot;: &quot;llama2&quot;,
-+             &quot;debug&quot;: False
++             "base_url": "http://localhost:11434",
++             "model": "llama2",
++             "debug": False
 +         })
 +         
 +         # Create AsyncMemoryManager with specific memory file
@@ -3024,29 +3024,29 @@ Lines added: 66, lines removed: 1
 +             enable_graph_memory=False  # Disable graph memory for simpler test
 +         )
 +         
-+         print(f&quot;Memory manager memory_file attribute: {memory_manager.memory_file}&quot;)
-+         print(f&quot;Expected memory file path: {test_memory_file}&quot;)
-+         print(f&quot;Paths match: {memory_manager.memory_file == test_memory_file}&quot;)
++         print(f"Memory manager memory_file attribute: {memory_manager.memory_file}")
++         print(f"Expected memory file path: {test_memory_file}")
++         print(f"Paths match: {memory_manager.memory_file == test_memory_file}")
 +         
 +         # Try to save memory to trigger file creation
-+         memory_manager.memory[&quot;test&quot;] = &quot;data&quot;
-+         result = memory_manager.save_memory(&quot;test_operation&quot;)
++         memory_manager.memory["test"] = "data"
++         result = memory_manager.save_memory("test_operation")
 +         
-+         print(f&quot;Save memory result: {result}&quot;)
-+         print(f&quot;Memory file exists: {os.path.exists(test_memory_file)}&quot;)
++         print(f"Save memory result: {result}")
++         print(f"Memory file exists: {os.path.exists(test_memory_file)}")
 +         
 +         if os.path.exists(test_memory_file):
-+             print(&quot;SUCCESS: Memory file was created at the expected location&quot;)
-+             with open(test_memory_file, &#39;r&#39;) as f:
++             print("SUCCESS: Memory file was created at the expected location")
++             with open(test_memory_file, 'r') as f:
 +                 content = f.read()
-+                 print(f&quot;Memory file content: {content[:200]}...&quot;)
++                 print(f"Memory file content: {content[:200]}...")
 +         else:
-+             print(&quot;FAILURE: Memory file was not created at the expected location&quot;)
++             print("FAILURE: Memory file was not created at the expected location")
 +             # Check if any files were created in the current directory
-+             current_dir_files = [f for f in os.listdir(&#39;.&#39;) if f.endswith(&#39;.json&#39;)]
-+             print(f&quot;JSON files in current directory: {current_dir_files}&quot;)
++             current_dir_files = [f for f in os.listdir('.') if f.endswith('.json')]
++             print(f"JSON files in current directory: {current_dir_files}")
 + 
-+ if __name__ == &quot;__main__&quot;:
++ if __name__ == "__main__":
 +     test_async_memory_manager() 
 ```
 
@@ -3066,7 +3066,7 @@ Now let me run this test script to see if AsyncMemoryManager uses the memory_fil
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: python test_async_memory.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: python test_async_memory.py</summary>
 
 ```bash
 python test_async_memory.py
@@ -3086,10 +3086,10 @@ Save memory result: True
 Memory file exists: True
 SUCCESS: Memory file was created at the expected location
 Memory file content: {
-  &quot;test&quot;: &quot;data&quot;,
-  &quot;guid&quot;: &quot;test-session-12345&quot;,
-  &quot;metadata&quot;: {
-    &quot;saved_during&quot;: &quot;test_operation&quot;
+  "test": "data",
+  "guid": "test-session-12345",
+  "metadata": {
+    "saved_during": "test_operation"
   }
 }...
 (.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent %
@@ -3158,7 +3158,7 @@ Let me check what sessions are currently active and see if I can gather more inf
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: curl -X GET http://localhost:8000/api/v1/sessions | jq .</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: curl -X GET http://localhost:8000/api/v1/sessions | jq .</summary>
 
 ```bash
 curl -X GET http://localhost:8000/api/v1/sessions | jq .
@@ -3172,84 +3172,84 @@ ons | jq .
                                  Dload  Upload   Total   Spent    Left  Speed
 100  1514  100  1514    0     0   521k      0 --:--:-- --:--:-- --:--:--  739k
 {
-  &quot;sessions&quot;: [
+  "sessions": [
     {
-      &quot;session_id&quot;: &quot;c8f69786-3c6c-4746-a87b-30baf3b7da61&quot;,
-      &quot;user_id&quot;: null,
-      &quot;status&quot;: &quot;active&quot;,
-      &quot;created_at&quot;: &quot;2025-06-22T08:19:26.735769&quot;,
-      &quot;last_activity&quot;: &quot;2025-06-22T08:20:00.150095&quot;,
-      &quot;config&quot;: {
-        &quot;domain&quot;: &quot;dnd&quot;,
-        &quot;llm_model&quot;: null,
-        &quot;embed_model&quot;: null,
-        &quot;max_memory_size&quot;: 1000,
-        &quot;enable_graph&quot;: true,
-        &quot;custom_config&quot;: {}
+      "session_id": "c8f69786-3c6c-4746-a87b-30baf3b7da61",
+      "user_id": null,
+      "status": "active",
+      "created_at": "2025-06-22T08:19:26.735769",
+      "last_activity": "2025-06-22T08:20:00.150095",
+      "config": {
+        "domain": "dnd",
+        "llm_model": null,
+        "embed_model": null,
+        "max_memory_size": 1000,
+        "enable_graph": true,
+        "custom_config": {}
       }
     },
     {
-      &quot;session_id&quot;: &quot;62a5a85b-4720-40e5-96fe-28e98a323e37&quot;,
-      &quot;user_id&quot;: null,
-      &quot;status&quot;: &quot;active&quot;,
-      &quot;created_at&quot;: &quot;2025-06-22T08:21:33.541751&quot;,
-      &quot;last_activity&quot;: &quot;2025-06-22T08:23:46.488567&quot;,
-      &quot;config&quot;: {
-        &quot;domain&quot;: &quot;dnd&quot;,
-        &quot;llm_model&quot;: null,
-        &quot;embed_model&quot;: null,
-        &quot;max_memory_size&quot;: 1000,
-        &quot;enable_graph&quot;: true,
-        &quot;custom_config&quot;: {}
+      "session_id": "62a5a85b-4720-40e5-96fe-28e98a323e37",
+      "user_id": null,
+      "status": "active",
+      "created_at": "2025-06-22T08:21:33.541751",
+      "last_activity": "2025-06-22T08:23:46.488567",
+      "config": {
+        "domain": "dnd",
+        "llm_model": null,
+        "embed_model": null,
+        "max_memory_size": 1000,
+        "enable_graph": true,
+        "custom_config": {}
       }
     },
     {
-      &quot;session_id&quot;: &quot;acf9c32b-fd4b-4058-848e-fac5d3b94b11&quot;,
-      &quot;user_id&quot;: null,
-      &quot;status&quot;: &quot;active&quot;,
-      &quot;created_at&quot;: &quot;2025-06-22T08:25:19.733676&quot;,
-      &quot;last_activity&quot;: &quot;2025-06-22T08:25:26.984865&quot;,
-      &quot;config&quot;: {
-        &quot;domain&quot;: &quot;dnd&quot;,
-        &quot;llm_model&quot;: null,
-        &quot;embed_model&quot;: null,
-        &quot;max_memory_size&quot;: 1000,
-        &quot;enable_graph&quot;: true,
-        &quot;custom_config&quot;: {}
+      "session_id": "acf9c32b-fd4b-4058-848e-fac5d3b94b11",
+      "user_id": null,
+      "status": "active",
+      "created_at": "2025-06-22T08:25:19.733676",
+      "last_activity": "2025-06-22T08:25:26.984865",
+      "config": {
+        "domain": "dnd",
+        "llm_model": null,
+        "embed_model": null,
+        "max_memory_size": 1000,
+        "enable_graph": true,
+        "custom_config": {}
       }
     },
     {
-      &quot;session_id&quot;: &quot;5e9821a4-e1ac-4662-8d37-4176945dab58&quot;,
-      &quot;user_id&quot;: null,
-      &quot;status&quot;: &quot;active&quot;,
-      &quot;created_at&quot;: &quot;2025-06-22T08:26:24.563166&quot;,
-      &quot;last_activity&quot;: &quot;2025-06-22T08:26:24.563170&quot;,
-      &quot;config&quot;: {
-        &quot;domain&quot;: &quot;dnd&quot;,
-        &quot;llm_model&quot;: null,
-        &quot;embed_model&quot;: null,
-        &quot;max_memory_size&quot;: 1000,
-        &quot;enable_graph&quot;: true,
-        &quot;custom_config&quot;: {}
+      "session_id": "5e9821a4-e1ac-4662-8d37-4176945dab58",
+      "user_id": null,
+      "status": "active",
+      "created_at": "2025-06-22T08:26:24.563166",
+      "last_activity": "2025-06-22T08:26:24.563170",
+      "config": {
+        "domain": "dnd",
+        "llm_model": null,
+        "embed_model": null,
+        "max_memory_size": 1000,
+        "enable_graph": true,
+        "custom_config": {}
       }
     },
     {
-      &quot;session_id&quot;: &quot;cf831627-a321-44f5-a467-67e5e337b297&quot;,
-      &quot;user_id&quot;: null,
-      &quot;status&quot;: &quot;active&quot;,
-      &quot;created_at&quot;: &quot;2025-06-22T08:26:59.429206&quot;,
-      &quot;last_activity&quot;: &quot;2025-06-22T08:27:33.195282&quot;,
-      &quot;config&quot;: {
-        &quot;domain&quot;: &quot;dnd&quot;,
-        &quot;llm_model&quot;: null,
-        &quot;embed_model&quot;: null,
-        &quot;max_memory_size&quot;: 1000,
-        &quot;enable_graph&quot;: true,
-        &quot;custom_config&quot;: {}
+      "session_id": "cf831627-a321-44f5-a467-67e5e337b297",
+      "user_id": null,
+      "status": "active",
+      "created_at": "2025-06-22T08:26:59.429206",
+      "last_activity": "2025-06-22T08:27:33.195282",
+      "config": {
+        "domain": "dnd",
+        "llm_model": null,
+        "embed_model": null,
+        "max_memory_size": 1000,
+        "enable_graph": true,
+        "custom_config": {}
       }
     }
   ],
-  &quot;total&quot;: 5
+  "total": 5
 }
 (.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent %
 ```
@@ -3282,7 +3282,7 @@ I see there are 5 active sessions. Since the AsyncMemoryManager works correctly 
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: python3 -c "
+<details><summary>Tool use: **run_terminal_cmd** • Run command: python3 -c "
 import os
 import sys
 sys.path.append('.')
@@ -3319,22 +3319,22 @@ print('Directory exists:', os.path.exists(os.path.dirname(session.get_memory_fil
 ```
 
 ```
-(.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent % python3 -c &quot;
+(.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent % python3 -c "
 import os
 import sys
-sys.path.append(&#39;.&#39;)
+sys.path.append('.')
 from src.api.services.session_manager import AgentSession, SessionConfig
 
 # Create a mock session to test path generation
-session_id = &#39;test-123&#39;
-config = SessionConfig(domain=&#39;dnd&#39;, enable_graph=True)
+session_id = 'test-123'
+config = SessionConfig(domain='dnd', enable_graph=True)
 session = AgentSession(session_id, None, config)
 
-print(&#39;Current working directory:&#39;, os.getcwd())
-print(&#39;Generated memory file path:&#39;, session.get_memory_filename())
-print(&#39;Memory file directory:&#39;, os.path.dirname(session.get_memory_filename()))
-print(&#39;Directory exists:&#39;, os.path.exists(os.path.dirname(session.get_memory_filename())))
-&quot;rint(&#39;Directory exists:&#39;, os.path.exists(os.path.dirname(session.get_memory_filename())))
+print('Current working directory:', os.getcwd())
+print('Generated memory file path:', session.get_memory_filename())
+print('Memory file directory:', os.path.dirname(session.get_memory_filename()))
+print('Directory exists:', os.path.exists(os.path.dirname(session.get_memory_filename())))
+"rint('Directory exists:', os.path.exists(os.path.dirname(session.get_memory_filename())))
 Current working directory: /Users/andrewrapo/github/cursor/cursor-hello-llm-agent
 Generated memory file path: /Users/andrewrapo/github/cursor/cursor-hello-llm-agent/agent_memories/standard/t
 est-123/agent_memory.json
@@ -3360,7 +3360,7 @@ Perfect! The path generation is working correctly and the directory exists. The 
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: ls -la agent_memories/standard/ | head -10</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: ls -la agent_memories/standard/ | head -10</summary>
 
 ```bash
 ls -la agent_memories/standard/ | head -10
@@ -3409,7 +3409,7 @@ Let me add a simple debugging approach - I'll create a simple file to confirm wh
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/api/services/session_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/api/services/session_manager.py</summary>
 
 **Chunk 1**
 Lines added: 5, lines removed: undefined
@@ -3417,11 +3417,11 @@ Lines added: 5, lines removed: undefined
 ```diff
 @@ -92,4 +92,9 @@
       async def initialize_agent(self):
-          &quot;&quot;&quot;Initialize the agent for this session&quot;&quot;&quot;
+          """Initialize the agent for this session"""
 +         # Simple debug marker to confirm this method is called
-+         debug_file = f&quot;debug_init_{self.session_id[:8]}.txt&quot;
-+         with open(debug_file, &quot;w&quot;) as f:
-+             f.write(f&quot;initialize_agent called for {self.session_id}\n&quot;)
++         debug_file = f"debug_init_{self.session_id[:8]}.txt"
++         with open(debug_file, "w") as f:
++             f.write(f"initialize_agent called for {self.session_id}\n")
 +         
           with self._lock:
               if self._agent is None:
@@ -3443,7 +3443,7 @@ Now let me create a new session to see if this simple debug file gets created:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: curl -X POST http://localhost:8000/api/v1/sessions -H "Content-Type: application/json" -d '{"config": {"domain": "dnd", "enable_graph": true}}' | jq .</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: curl -X POST http://localhost:8000/api/v1/sessions -H "Content-Type: application/json" -d '{"config": {"domain": "dnd", "enable_graph": true}}' | jq .</summary>
 
 ```bash
 curl -X POST http://localhost:8000/api/v1/sessions -H "Content-Type: application/json" -d '{"config": {"domain": "dnd", "enable_graph": true}}' | jq .
@@ -3454,9 +3454,9 @@ curl -X POST http://localhost:8000/api/v1/sessions -H "Content-Type: application
                                  Dload  Upload   Total   Spent    Left  Speed
 100   164  100   113  100    51   1723    777 --:--:-- --:--:-- --:--:--  2523
 {
-  &quot;session_id&quot;: &quot;c985bc57-4521-4c77-8eae-750ad86d3d15&quot;,
-  &quot;status&quot;: &quot;success&quot;,
-  &quot;message&quot;: &quot;Session created successfully&quot;
+  "session_id": "c985bc57-4521-4c77-8eae-750ad86d3d15",
+  "status": "success",
+  "message": "Session created successfully"
 }
 
 ```
@@ -3475,7 +3475,7 @@ Now let me check if the debug file was created:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: ls -la debug_init_*.txt</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: ls -la debug_init_*.txt</summary>
 
 ```bash
 ls -la debug_init_*.txt
@@ -3514,7 +3514,7 @@ The debug file wasn't created, which confirms that `initialize_agent` is NOT bei
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: curl -X GET http://localhost:8000/api/v1/sessions/c985bc57-4521-4c77-8eae-750ad86d3d15/status | jq .</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: curl -X GET http://localhost:8000/api/v1/sessions/c985bc57-4521-4c77-8eae-750ad86d3d15/status | jq .</summary>
 
 ```bash
 curl -X GET http://localhost:8000/api/v1/sessions/c985bc57-4521-4c77-8eae-750ad86d3d15/status | jq .
@@ -3525,15 +3525,15 @@ curl -X GET http://localhost:8000/api/v1/sessions/c985bc57-4521-4c77-8eae-750ad8
                                  Dload  Upload   Total   Spent    Left  Speed
 100   252  100   252    0     0  86896      0 --:--:-- --:--:-- --:--:--  123k
 {
-  &quot;session_id&quot;: &quot;c985bc57-4521-4c77-8eae-750ad86d3d15&quot;,
-  &quot;agent_initialized&quot;: true,
-  &quot;memory_manager_initialized&quot;: true,
-  &quot;session_status&quot;: &quot;active&quot;,
-  &quot;last_activity&quot;: &quot;2025-06-22T08:29:49.483182&quot;,
-  &quot;config&quot;: {
-    &quot;domain&quot;: &quot;dnd&quot;,
-    &quot;enable_graph&quot;: true,
-    &quot;max_memory_size&quot;: 1000
+  "session_id": "c985bc57-4521-4c77-8eae-750ad86d3d15",
+  "agent_initialized": true,
+  "memory_manager_initialized": true,
+  "session_status": "active",
+  "last_activity": "2025-06-22T08:29:49.483182",
+  "config": {
+    "domain": "dnd",
+    "enable_graph": true,
+    "max_memory_size": 1000
   }
 }
 (.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent %
@@ -3592,7 +3592,7 @@ Let me check if the debug file might have been created but then removed, or if t
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: find . -name "*debug*" -o -name "*c985bc57*" 2>/dev/null</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: find . -name "*debug*" -o -name "*c985bc57*" 2>/dev/null</summary>
 
 ```bash
 find . -name "*debug*" -o -name "*c985bc57*" 2>/dev/null
@@ -3697,7 +3697,7 @@ Let me check what's in the session's log directory to see if there are any clues
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: ls -la logs/c985bc57-4521-4c77-8eae-750ad86d3d15/</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: ls -la logs/c985bc57-4521-4c77-8eae-750ad86d3d15/</summary>
 
 ```bash
 ls -la logs/c985bc57-4521-4c77-8eae-750ad86d3d15/
@@ -3750,7 +3750,7 @@ Let me check the graph manager log to see if there are any error messages:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: cat logs/c985bc57-4521-4c77-8eae-750ad86d3d15/graph_manager.log</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: cat logs/c985bc57-4521-4c77-8eae-750ad86d3d15/graph_manager.log</summary>
 
 ```bash
 cat logs/c985bc57-4521-4c77-8eae-750ad86d3d15/graph_manager.log
@@ -3813,7 +3813,7 @@ Let me add a simpler debug approach that writes to the logs directory where I kn
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/api/services/session_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/api/services/session_manager.py</summary>
 
 **Chunk 1**
 Lines added: 9, lines removed: undefined
@@ -3823,13 +3823,13 @@ Lines added: 9, lines removed: undefined
                       os.makedirs(memory_file_dir, exist_ok=True)
                       
 +                     # Debug logging to session log directory
-+                     debug_log_path = os.path.join(os.path.dirname(log_files[&#39;agent&#39;]), &quot;debug_memory_file.log&quot;)
-+                     with open(debug_log_path, &quot;w&quot;) as f:
-+                         f.write(f&quot;Session ID: {self.session_id}\n&quot;)
-+                         f.write(f&quot;Memory file path: {memory_file}\n&quot;)
-+                         f.write(f&quot;Memory file dir: {memory_file_dir}\n&quot;)
-+                         f.write(f&quot;Memory file is absolute: {os.path.isabs(memory_file)}\n&quot;)
-+                         f.write(f&quot;Current working directory: {os.getcwd()}\n&quot;)
++                     debug_log_path = os.path.join(os.path.dirname(log_files['agent']), "debug_memory_file.log")
++                     with open(debug_log_path, "w") as f:
++                         f.write(f"Session ID: {self.session_id}\n")
++                         f.write(f"Memory file path: {memory_file}\n")
++                         f.write(f"Memory file dir: {memory_file_dir}\n")
++                         f.write(f"Memory file is absolute: {os.path.isabs(memory_file)}\n")
++                         f.write(f"Current working directory: {os.getcwd()}\n")
 +                     
                       # Create LLM service for this session
                       # Use environment variables or defaults
@@ -3851,7 +3851,7 @@ Now let me create another session to trigger this debug logging:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: curl -X POST http://localhost:8000/api/v1/sessions -H "Content-Type: application/json" -d '{"config": {"domain": "dnd", "enable_graph": true}}' | jq .</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: curl -X POST http://localhost:8000/api/v1/sessions -H "Content-Type: application/json" -d '{"config": {"domain": "dnd", "enable_graph": true}}' | jq .</summary>
 
 ```bash
 curl -X POST http://localhost:8000/api/v1/sessions -H "Content-Type: application/json" -d '{"config": {"domain": "dnd", "enable_graph": true}}' | jq .
@@ -3862,9 +3862,9 @@ curl -X POST http://localhost:8000/api/v1/sessions -H "Content-Type: application
                                  Dload  Upload   Total   Spent    Left  Speed
 100   164  100   113  100    51   1845    833 --:--:-- --:--:-- --:--:--  2688
 {
-  &quot;session_id&quot;: &quot;be99efcd-ebd2-492f-9c75-f4148aa12442&quot;,
-  &quot;status&quot;: &quot;success&quot;,
-  &quot;message&quot;: &quot;Session created successfully&quot;
+  "session_id": "be99efcd-ebd2-492f-9c75-f4148aa12442",
+  "status": "success",
+  "message": "Session created successfully"
 }
 
 ```
@@ -3883,7 +3883,7 @@ Now let me check if the debug log was created in this session's log directory:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: find logs -name "*be99efcd*" -o -name "*debug_memory_file*" 2>/dev/null</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: find logs -name "*be99efcd*" -o -name "*debug_memory_file*" 2>/dev/null</summary>
 
 ```bash
 find logs -name "*be99efcd*" -o -name "*debug_memory_file*" 2>/dev/null
@@ -3908,7 +3908,7 @@ The session directory was created. Let me check what files are in it:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: ls -la logs/be99efcd-ebd2-492f-9c75-f4148aa12442/</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: ls -la logs/be99efcd-ebd2-492f-9c75-f4148aa12442/</summary>
 
 ```bash
 ls -la logs/be99efcd-ebd2-492f-9c75-f4148aa12442/
@@ -3977,14 +3977,14 @@ The debug file creation is already at the beginning of the method, but it's not 
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: grep -o '"guid":[[:space:]]*"[^"]*"' memory.json | tail -1</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: grep -o '"guid":[[:space:]]*"[^"]*"' memory.json | tail -1</summary>
 
 ```bash
 grep -o '"guid":[[:space:]]*"[^"]*"' memory.json | tail -1
 ```
 
 ```
-&quot;guid&quot;: &quot;cf831627-a321-44f5-a467-67e5e337b297&quot;
+"guid": "cf831627-a321-44f5-a467-67e5e337b297"
 
 ```
 </details>
@@ -4004,7 +4004,7 @@ The memory.json file shows a GUID from an earlier session, not the new session `
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: curl -X POST http://localhost:8000/api/v1/sessions/be99efcd-ebd2-492f-9c75-f4148aa12442/query -H "Content-Type: application/json" -d '{"message": "Hello, I am Bob the barbarian!"}' | jq .</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: curl -X POST http://localhost:8000/api/v1/sessions/be99efcd-ebd2-492f-9c75-f4148aa12442/query -H "Content-Type: application/json" -d '{"message": "Hello, I am Bob the barbarian!"}' | jq .</summary>
 
 ```bash
 curl -X POST http://localhost:8000/api/v1/sessions/be99efcd-ebd2-492f-9c75-f4148aa12442/query -H "Content-Type: application/json" -d '{"message": "Hello, I am Bob the barbarian!"}' | jq .
@@ -4015,25 +4015,25 @@ curl -X POST http://localhost:8000/api/v1/sessions/be99efcd-ebd2-492f-9c75-f4148
                                  Dload  Upload   Total   Spent    Left  Speed
 100   439  100   394  100    45    129     14  0:00:03  0:00:03 --:--:--   144
 {
-  &quot;response&quot;: &quot;Hello, I am Bob the barbarian!\n&quot;,
-  &quot;session_id&quot;: &quot;be99efcd-ebd2-492f-9c75-f4148aa12442&quot;,
-  &quot;timestamp&quot;: &quot;2025-06-22T08:32:00.053554&quot;,
-  &quot;memory_updates&quot;: [
+  "response": "Hello, I am Bob the barbarian!\n",
+  "session_id": "be99efcd-ebd2-492f-9c75-f4148aa12442",
+  "timestamp": "2025-06-22T08:32:00.053554",
+  "memory_updates": [
     {
-      &quot;type&quot;: &quot;conversation_added&quot;,
-      &quot;timestamp&quot;: &quot;2025-06-22T08:31:59.331829&quot;
+      "type": "conversation_added",
+      "timestamp": "2025-06-22T08:31:59.331829"
     }
   ],
-  &quot;graph_updates&quot;: [
+  "graph_updates": [
     {
-      &quot;type&quot;: &quot;entities_updated&quot;,
-      &quot;timestamp&quot;: &quot;2025-06-22T08:31:59.331829&quot;
+      "type": "entities_updated",
+      "timestamp": "2025-06-22T08:31:59.331829"
     }
   ],
-  &quot;metadata&quot;: {
-    &quot;query_length&quot;: 30,
-    &quot;response_length&quot;: 31,
-    &quot;context_provided&quot;: false
+  "metadata": {
+    "query_length": 30,
+    "response_length": 31,
+    "context_provided": false
   }
 }
 
@@ -4053,7 +4053,7 @@ Now let me check if the debug files were created:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: ls -la debug_init_*.txt debug_memory_file.log 2>/dev/null; ls -la logs/be99efcd-ebd2-492f-9c75-f4148aa12442/debug_memory_file.log 2>/dev/null</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: ls -la debug_init_*.txt debug_memory_file.log 2>/dev/null; ls -la logs/be99efcd-ebd2-492f-9c75-f4148aa12442/debug_memory_file.log 2>/dev/null</summary>
 
 ```bash
 ls -la debug_init_*.txt debug_memory_file.log 2>/dev/null; ls -la logs/be99efcd-ebd2-492f-9c75-f4148aa12442/debug_memory_file.log 2>/dev/null
@@ -4084,14 +4084,14 @@ Let me check if the memory.json file was updated:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: grep -o '"guid":[[:space:]]*"[^"]*"' memory.json | tail -1</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: grep -o '"guid":[[:space:]]*"[^"]*"' memory.json | tail -1</summary>
 
 ```bash
 grep -o '"guid":[[:space:]]*"[^"]*"' memory.json | tail -1
 ```
 
 ```
-&quot;guid&quot;: &quot;be99efcd-ebd2-492f-9c75-f4148aa12442&quot;
+"guid": "be99efcd-ebd2-492f-9c75-f4148aa12442"
 
 ```
 </details>
@@ -4167,7 +4167,7 @@ Let me clean up the debug code and implement a working solution:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: echo "Summary of findings:
+<details><summary>Tool use: **run_terminal_cmd** • Run command: echo "Summary of findings:
 1. ✅ AsyncMemoryManager DOES work with custom memory_file paths (tested)
 2. ✅ SessionManager generates correct absolute paths (tested) 
 3. ✅ Session creation calls initialize_agent method (evidenced by working sessions)
@@ -4196,9 +4196,9 @@ Summary of findings:
 3. ✅ Session creation calls initialize_agent method (evidenced by working sessions)
 4. ✅ Memory is being created and saved (memory.json gets updated)
 5. ❌ But sessions use shared memory.json instead of session-specific files
-6. ❌ Debug logging in SessionManager doesn&#39;t execute (suggests exceptions)
+6. ❌ Debug logging in SessionManager doesn't execute (suggests exceptions)
 
-The conclusion: There&#39;s likely an exception in SessionManager.initialize_agent that prevents proper memory_f
+The conclusion: There's likely an exception in SessionManager.initialize_agent that prevents proper memory_f
 ile usage, causing fallback to default behavior.
 
 ```
@@ -4533,7 +4533,7 @@ I'll start the server and then run the WebSocket test script to see what errors 
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python -m uvicorn src.api.main:app --host 0.0.0.0 --port 8000</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python -m uvicorn src.api.main:app --host 0.0.0.0 --port 8000</summary>
 
 ```bash
 DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python -m uvicorn src.api.main:app --host 0.0.0.0 --port 8000
@@ -4548,7 +4548,7 @@ Let me wait a moment for the server to start up and then run the WebSocket test 
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: sleep 5 && python scripts/api/test_websocket_api.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: sleep 5 && python scripts/api/test_websocket_api.py</summary>
 
 ```bash
 sleep 5 && python scripts/api/test_websocket_api.py
@@ -4559,8 +4559,8 @@ sleep 5 && python scripts/api/test_websocket_api.py
 API URL: http://localhost:8000
 WebSocket URL: ws://localhost:8000
 Test User ID: test_user_websocket
-❌ Failed to create session: 500 - {&quot;error&quot;:&quot;Failed to create session: local variable &#39;os&#39; referenced before
- assignment&quot;,&quot;status_code&quot;:500}
+❌ Failed to create session: 500 - {"error":"Failed to create session: local variable 'os' referenced before
+ assignment","status_code":500}
 ❌ Cannot create session. Aborting tests.
 
 ============================================================
@@ -4587,14 +4587,14 @@ There's a clear error: `local variable 'os' referenced before assignment` in the
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: curl -s http://localhost:8000/health | head -20</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: curl -s http://localhost:8000/health | head -20</summary>
 
 ```bash
 curl -s http://localhost:8000/health | head -20
 ```
 
 ```
-{&quot;status&quot;:&quot;healthy&quot;,&quot;version&quot;:&quot;1.0.0&quot;,&quot;active_sessions&quot;:1,&quot;websocket_connections&quot;:0}%
+{"status":"healthy","version":"1.0.0","active_sessions":1,"websocket_connections":0}%
 
 
 ```
@@ -4639,7 +4639,7 @@ I found the issue! There's a redundant `import os` statement inside the `initial
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/api/services/session_manager.py</summary>
+<details><summary>Tool use: **search_replace** • Edit file: src/api/services/session_manager.py</summary>
 
 **Chunk 1**
 Lines added: undefined, lines removed: 1
@@ -4664,7 +4664,7 @@ Now let me test the WebSocket API again to see if this fixes the session creatio
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: python scripts/api/test_websocket_api.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: python scripts/api/test_websocket_api.py</summary>
 
 ```bash
 python scripts/api/test_websocket_api.py
@@ -4675,8 +4675,8 @@ python scripts/api/test_websocket_api.py
 API URL: http://localhost:8000
 WebSocket URL: ws://localhost:8000
 Test User ID: test_user_websocket
-❌ Failed to create session: 500 - {&quot;error&quot;:&quot;Failed to create session: local variable &#39;os&#39; referenced before
- assignment&quot;,&quot;status_code&quot;:500}
+❌ Failed to create session: 500 - {"error":"Failed to create session: local variable 'os' referenced before
+ assignment","status_code":500}
 ❌ Cannot create session. Aborting tests.
 
 ============================================================
@@ -4703,7 +4703,7 @@ The error persists. Let me restart the server since the change might not have be
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: pkill -f uvicorn</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: pkill -f uvicorn</summary>
 
 ```bash
 pkill -f uvicorn
@@ -4719,7 +4719,7 @@ pkill -f uvicorn
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: sleep 2 && DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python -m uvicorn src.api.main:app --host 0.0.0.0 --port 8000</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: sleep 2 && DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python -m uvicorn src.api.main:app --host 0.0.0.0 --port 8000</summary>
 
 ```bash
 sleep 2 && DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python -m uvicorn src.api.main:app --host 0.0.0.0 --port 8000
@@ -4730,7 +4730,7 @@ sleep 2 && DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: sleep 5 && python scripts/api/test_websocket_api.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: sleep 5 && python scripts/api/test_websocket_api.py</summary>
 
 ```bash
 sleep 5 && python scripts/api/test_websocket_api.py
@@ -4747,30 +4747,30 @@ Test User ID: test_user_websocket
   WebSocket Connection
 ============================================================
 ✅ PASS: WebSocket connected successfully
-   Data: {&#39;type&#39;: &#39;connection_established&#39;, &#39;data&#39;: {&#39;connection_id&#39;: &#39;9d9a45c1-abf3-497b-93c4-f42b6508685c_
-1750600339.763002&#39;, &#39;session_id&#39;: &#39;9d9a45c1-abf3-497b-93c4-f42b6508685c&#39;, &#39;timestamp&#39;: &#39;2025-06-22T09...
+   Data: {'type': 'connection_established', 'data': {'connection_id': '9d9a45c1-abf3-497b-93c4-f42b6508685c_
+1750600339.763002', 'session_id': '9d9a45c1-abf3-497b-93c4-f42b6508685c', 'timestamp': '2025-06-22T09...
 
 ============================================================
   Ping/Pong Test
 ============================================================
 ✅ PASS: Ping/Pong exchange
-   Data: {&#39;type&#39;: &#39;pong&#39;, &#39;data&#39;: {&#39;timestamp&#39;: &#39;2025-06-22T09:52:19.769445&#39;, &#39;session_id&#39;: &#39;9d9a45c1-abf3-4
-97b-93c4-f42b6508685c&#39;, &#39;message&#39;: &#39;Hello WebSocket!&#39;}}...
+   Data: {'type': 'pong', 'data': {'timestamp': '2025-06-22T09:52:19.769445', 'session_id': '9d9a45c1-abf3-4
+97b-93c4-f42b6508685c', 'message': 'Hello WebSocket!'}}...
 
 ============================================================
   Get Status Test
 ============================================================
 🔍 Connected to WebSocket for status test
-🔍 Skipped initial message: {&quot;type&quot;: &quot;connection_established&quot;, &quot;data&quot;: {&quot;connection_id&quot;: &quot;9d9a45c1-abf3-497b
+🔍 Skipped initial message: {"type": "connection_established", "data": {"connection_id": "9d9a45c1-abf3-497b
 -93c4-f42b6508685c_1...
-🔍 Sending status message: {&#39;type&#39;: &#39;get_status&#39;, &#39;data&#39;: {}}
+🔍 Sending status message: {'type': 'get_status', 'data': {}}
 🔍 Status message sent, waiting for response...
-🔍 Received status response: {&quot;type&quot;: &quot;status_response&quot;, &quot;data&quot;: {&quot;session_id&quot;: &quot;9d9a45c1-abf3-497b-93c4-f42
-b6508685c&quot;, &quot;agent_initialized&quot;: true, &quot;memory_manager_initialized&quot;: true, &quot;last_activity&quot;: &quot;2025-06-22T09:5
-2:19.776795&quot;,...
+🔍 Received status response: {"type": "status_response", "data": {"session_id": "9d9a45c1-abf3-497b-93c4-f42
+b6508685c", "agent_initialized": true, "memory_manager_initialized": true, "last_activity": "2025-06-22T09:5
+2:19.776795",...
 ✅ PASS: Status retrieval
-   Data: {&#39;type&#39;: &#39;status_response&#39;, &#39;data&#39;: {&#39;session_id&#39;: &#39;9d9a45c1-abf3-497b-93c4-f42b6508685c&#39;, &#39;agent_i
-nitialized&#39;: True, &#39;memory_manager_initialized&#39;: True, &#39;last_activity&#39;: &#39;2025-06-22T09:52:19.776795&#39;,...
+   Data: {'type': 'status_response', 'data': {'session_id': '9d9a45c1-abf3-497b-93c4-f42b6508685c', 'agent_i
+nitialized': True, 'memory_manager_initialized': True, 'last_activity': '2025-06-22T09:52:19.776795',...
 
 ============================================================
   Agent Query Test
@@ -4778,45 +4778,45 @@ nitialized&#39;: True, &#39;memory_manager_initialized&#39;: True, &#39;last_act
 📨 Received: typing_start
 📨 Received: query_response
 ✅ PASS: Agent query (received 2 responses)
-   Data: [{&#39;type&#39;: &#39;typing_start&#39;, &#39;data&#39;: {&#39;session_id&#39;: &#39;9d9a45c1-abf3-497b-93c4-f42b6508685c&#39;, &#39;timestamp
-&#39;: &#39;2025-06-22T09:52:19.783364&#39;}}, {&#39;type&#39;: &#39;query_response&#39;, &#39;data&#39;: {&#39;message&#39;: &#39;Hello! Can you tel...
+   Data: [{'type': 'typing_start', 'data': {'session_id': '9d9a45c1-abf3-497b-93c4-f42b6508685c', 'timestamp
+': '2025-06-22T09:52:19.783364'}}, {'type': 'query_response', 'data': {'message': 'Hello! Can you tel...
 
 ============================================================
   Get Memory Test
 ============================================================
 ✅ PASS: Memory retrieval
-   Data: {&#39;type&#39;: &#39;memory_response&#39;, &#39;data&#39;: {&#39;session_id&#39;: &#39;9d9a45c1-abf3-497b-93c4-f42b6508685c&#39;, &#39;type&#39;: 
-&#39;conversations&#39;, &#39;data&#39;: {&#39;conversations&#39;: [{&#39;guid&#39;: &#39;41ec6b3a-6f0b-43ca-bad3-0b3cf6f89956&#39;, &#39;role&#39;: ...
+   Data: {'type': 'memory_response', 'data': {'session_id': '9d9a45c1-abf3-497b-93c4-f42b6508685c', 'type': 
+'conversations', 'data': {'conversations': [{'guid': '41ec6b3a-6f0b-43ca-bad3-0b3cf6f89956', 'role': ...
 
 ============================================================
   Search Memory Test
 ============================================================
 ✅ PASS: Memory search
-   Data: {&#39;type&#39;: &#39;search_response&#39;, &#39;data&#39;: {&#39;session_id&#39;: &#39;9d9a45c1-abf3-497b-93c4-f42b6508685c&#39;, &#39;query&#39;:
- &#39;dragon&#39;, &#39;results&#39;: [], &#39;total_results&#39;: 0, &#39;timestamp&#39;: &#39;2025-06-22T09:52:27.763886&#39;}}...
+   Data: {'type': 'search_response', 'data': {'session_id': '9d9a45c1-abf3-497b-93c4-f42b6508685c', 'query':
+ 'dragon', 'results': [], 'total_results': 0, 'timestamp': '2025-06-22T09:52:27.763886'}}...
 
 ============================================================
   Get Graph Test
 ============================================================
 ✅ PASS: Graph retrieval
-   Data: {&#39;type&#39;: &#39;graph_response&#39;, &#39;data&#39;: {&#39;session_id&#39;: &#39;9d9a45c1-abf3-497b-93c4-f42b6508685c&#39;, &#39;format&#39;:
- &#39;json&#39;, &#39;graph_data&#39;: {&#39;nodes&#39;: [], &#39;edges&#39;: [], &#39;metadata&#39;: {&#39;graph_disabled&#39;: True, &#39;message&#39;: &#39;Gr...
+   Data: {'type': 'graph_response', 'data': {'session_id': '9d9a45c1-abf3-497b-93c4-f42b6508685c', 'format':
+ 'json', 'graph_data': {'nodes': [], 'edges': [], 'metadata': {'graph_disabled': True, 'message': 'Gr...
 
 ============================================================
   Heartbeat Test
 ============================================================
 ✅ PASS: Heartbeat with response
-   Data: {&#39;type&#39;: &#39;heartbeat_response&#39;, &#39;data&#39;: {&#39;timestamp&#39;: &#39;2025-06-22T09:52:27.776271&#39;, &#39;session_id&#39;: &#39;9
-d9a45c1-abf3-497b-93c4-f42b6508685c&#39;}}...
+   Data: {'type': 'heartbeat_response', 'data': {'timestamp': '2025-06-22T09:52:27.776271', 'session_id': '9
+d9a45c1-abf3-497b-93c4-f42b6508685c'}}...
 
 ============================================================
   Monitor WebSocket Test
 ============================================================
 ✅ PASS: Monitor connected
-   Data: {&#39;type&#39;: &#39;monitor_connected&#39;, &#39;data&#39;: {&#39;active_sessions&#39;: 1, &#39;active_connections&#39;: 0, &#39;timestamp&#39;: 
-&#39;now&#39;}}...
+   Data: {'type': 'monitor_connected', 'data': {'active_sessions': 1, 'active_connections': 0, 'timestamp': 
+'now'}}...
 ✅ PASS: Monitor ping/pong
-   Data: {&#39;type&#39;: &#39;pong&#39;, &#39;data&#39;: {&#39;active_sessions&#39;: 1, &#39;active_connections&#39;: 0, &#39;timestamp&#39;: &#39;now&#39;}}...
+   Data: {'type': 'pong', 'data': {'active_sessions': 1, 'active_connections': 0, 'timestamp': 'now'}}...
 
 ============================================================
   Invalid Session WebSocket Test
@@ -4920,7 +4920,7 @@ Let's start:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/memory_manager.py</summary>
 
 I'm merging AsyncMemoryManager functionality into the main MemoryManager class. I'll add the pending operations tracking and async methods from AsyncMemoryManager to MemoryManager, then remove the separate AsyncMemoryManager class.
 
@@ -4931,12 +4931,12 @@ Lines added: 2, lines removed: 1
 @@ -61,7 +61,8 @@
   
   class MemoryManager(BaseMemoryManager):
--     &quot;&quot;&quot;LLM-driven memory manager implementation.
-+     &quot;&quot;&quot;LLM-driven memory manager implementation with both sync and async capabilities.
+-     """LLM-driven memory manager implementation.
++     """LLM-driven memory manager implementation with both sync and async capabilities.
       
       Extends BaseMemoryManager to provide LLM-driven memory operations with domain-specific configuration.
 +     Supports both synchronous and asynchronous operation modes for flexibility.
-      &quot;&quot;&quot;
+      """
   
 ```
 
@@ -4961,11 +4961,11 @@ Lines added: undefined, lines removed: 177
 
 ```diff
 @@ -1159,180 +1165,3 @@
-              self.logger.warning(f&quot;Error getting graph context: {e}&quot;)
-              return &quot;&quot;
+              self.logger.warning(f"Error getting graph context: {e}")
+              return ""
 - 
 - class AsyncMemoryManager(MemoryManager):
--     &quot;&quot;&quot;Asynchronous version of MemoryManager that handles digest generation and embeddings updates asynchronously.&quot;&quot;&quot;
+-     """Asynchronous version of MemoryManager that handles digest generation and embeddings updates asynchronously."""
 -     
 -     def __init__(self, *args, **kwargs):
 -         super().__init__(*args, **kwargs)
@@ -4974,170 +4974,170 @@ Lines added: undefined, lines removed: 177
 -         self._pending_graph_updates = set()  # set of guids
 -         
 -     async def add_conversation_entry(self, entry: Dict[str, Any]) -&gt; bool:
--         &quot;&quot;&quot;Add a conversation entry with asynchronous digest generation and embeddings update.
+-         """Add a conversation entry with asynchronous digest generation and embeddings update.
 -         
 -         Args:
 -             entry: Dictionary containing the conversation entry:
 -                   - guid: Optional unique identifier (will be generated if missing)
--                   - role: Role (e.g., &quot;user&quot;, &quot;agent&quot;, &quot;system&quot;)
+-                   - role: Role (e.g., "user", "agent", "system")
 -                   - content: Entry content text
 -                   - timestamp: Optional timestamp (will be generated if missing)
 -                   
 -         Returns:
 -             bool: True if the entry was added successfully
--         &quot;&quot;&quot;
+-         """
 -         try:
 -             # Ensure basic fields exist
--             if &quot;content&quot; not in entry:
--                 self.logger.error(&quot;Error: Conversation entry must have &#39;content&#39;&quot;)
+-             if "content" not in entry:
+-                 self.logger.error("Error: Conversation entry must have 'content'")
 -                 return False
 -                 
--             if &quot;role&quot; not in entry:
--                 self.logger.error(&quot;Error: Conversation entry must have &#39;role&#39;&quot;)
+-             if "role" not in entry:
+-                 self.logger.error("Error: Conversation entry must have 'role'")
 -                 return False
 -                 
 -             # Ensure GUID
--             if &quot;guid&quot; not in entry:
--                 entry[&quot;guid&quot;] = str(uuid.uuid4())
+-             if "guid" not in entry:
+-                 entry["guid"] = str(uuid.uuid4())
 -                 
 -             # Ensure timestamp
--             if &quot;timestamp&quot; not in entry:
--                 entry[&quot;timestamp&quot;] = datetime.now().isoformat()
+-             if "timestamp" not in entry:
+-                 entry["timestamp"] = datetime.now().isoformat()
 -             
 -             # Add to conversation history file and memory immediately
 -             self.add_to_conversation_history(entry)
 -             
--             if &quot;conversation_history&quot; not in self.memory:
--                 self.memory[&quot;conversation_history&quot;] = []
+-             if "conversation_history" not in self.memory:
+-                 self.memory["conversation_history"] = []
 -                 
--             self.memory[&quot;conversation_history&quot;].append(entry)
--             self.logger.debug(f&quot;Added {entry[&#39;role&#39;]} entry to conversation history&quot;)
+-             self.memory["conversation_history"].append(entry)
+-             self.logger.debug(f"Added {entry['role']} entry to conversation history")
 -             
 -             # Save to persist memory updates
--             self.save_memory(&quot;add_conversation_entry&quot;)
+-             self.save_memory("add_conversation_entry")
 -             
 -             # Start async digest generation if not already present
--             if &quot;digest&quot; not in entry:
--                 self.logger.debug(f&quot;Starting async digest generation for {entry[&#39;role&#39;]} entry...&quot;)
--                 self._pending_digests[entry[&quot;guid&quot;]] = entry
+-             if "digest" not in entry:
+-                 self.logger.debug(f"Starting async digest generation for {entry['role']} entry...")
+-                 self._pending_digests[entry["guid"]] = entry
 -                 asyncio.create_task(self._generate_digest_async(entry))
 -             else:
 -                 # If digest exists, start embeddings and graph updates
--                 self._pending_embeddings.add(entry[&quot;guid&quot;])
+-                 self._pending_embeddings.add(entry["guid"])
 -                 if self.enable_graph_memory and self.graph_manager:
--                     self._pending_graph_updates.add(entry[&quot;guid&quot;])
+-                     self._pending_graph_updates.add(entry["guid"])
 -                 asyncio.create_task(self._update_embeddings_async(entry))
 - 
 -             return True
 -             
 -         except Exception as e:
--             self.logger.error(f&quot;Error adding conversation entry: {str(e)}&quot;)
+-             self.logger.error(f"Error adding conversation entry: {str(e)}")
 -             return False
 -     
 -     async def _generate_digest_async(self, entry: Dict[str, Any]) -&gt; None:
--         &quot;&quot;&quot;Asynchronously generate digest for an entry.&quot;&quot;&quot;
+-         """Asynchronously generate digest for an entry."""
 -         try:
 -             # Generate digest
--             entry[&quot;digest&quot;] = self.digest_generator.generate_digest(entry, self.memory)
+-             entry["digest"] = self.digest_generator.generate_digest(entry, self.memory)
 -             
 -             # Update conversation history file with the digest
 -             self._update_conversation_history_entry(entry)
 -             
 -             # Remove from pending digests
--             self._pending_digests.pop(entry[&quot;guid&quot;], None)
+-             self._pending_digests.pop(entry["guid"], None)
 -             
 -             # Start embeddings and graph updates
--             self._pending_embeddings.add(entry[&quot;guid&quot;])
+-             self._pending_embeddings.add(entry["guid"])
 -             if self.enable_graph_memory and self.graph_manager:
--                 self._pending_graph_updates.add(entry[&quot;guid&quot;])
+-                 self._pending_graph_updates.add(entry["guid"])
 -             await self._update_embeddings_async(entry)
 -             
 -             # Save memory to persist the digest
--             self.save_memory(&quot;async_digest_generation&quot;)
+-             self.save_memory("async_digest_generation")
 -             
 -         except Exception as e:
--             self.logger.error(f&quot;Error in async digest generation: {str(e)}&quot;)
+-             self.logger.error(f"Error in async digest generation: {str(e)}")
 -     
 -     def _update_conversation_history_entry(self, entry: Dict[str, Any]) -&gt; bool:
--         &quot;&quot;&quot;Update an existing entry in the conversation history file.
+-         """Update an existing entry in the conversation history file.
 -         
 -         Args:
 -             entry: Updated conversation entry with digest
 -             
 -         Returns:
 -             bool: True if entry was updated successfully
--         &quot;&quot;&quot;
+-         """
 -         try:
 -             # Load current conversation history
 -             conversation_data = self._load_conversation_history()
 -             
 -             # Find and update the entry by GUID
--             entry_guid = entry.get(&quot;guid&quot;)
+-             entry_guid = entry.get("guid")
 -             if not entry_guid:
--                 self.logger.error(&quot;Cannot update conversation history entry without GUID&quot;)
+-                 self.logger.error("Cannot update conversation history entry without GUID")
 -                 return False
 -                 
 -             # Find the entry to update
 -             updated = False
--             for i, existing_entry in enumerate(conversation_data[&quot;entries&quot;]):
--                 if existing_entry.get(&quot;guid&quot;) == entry_guid:
--                     conversation_data[&quot;entries&quot;][i] = entry
+-             for i, existing_entry in enumerate(conversation_data["entries"]):
+-                 if existing_entry.get("guid") == entry_guid:
+-                     conversation_data["entries"][i] = entry
 -                     updated = True
 -                     break
 -             
 -             if not updated:
--                 self.logger.warning(f&quot;Could not find conversation history entry with GUID {entry_guid} to update&quot;)
+-                 self.logger.warning(f"Could not find conversation history entry with GUID {entry_guid} to update")
 -                 return False
 -             
 -             # Save updated history
 -             success = self._save_conversation_history(conversation_data)
 -             if success:
--                 self.logger.debug(f&quot;Updated conversation history entry {entry_guid} with digest&quot;)
+-                 self.logger.debug(f"Updated conversation history entry {entry_guid} with digest")
 -             return success
 -             
 -         except Exception as e:
--             self.logger.error(f&quot;Error updating conversation history entry: {str(e)}&quot;)
+-             self.logger.error(f"Error updating conversation history entry: {str(e)}")
 -             return False
 -     
 -     async def _update_embeddings_async(self, entry: Dict[str, Any]) -&gt; None:
--         &quot;&quot;&quot;Asynchronously update embeddings and graph memory for an entry.&quot;&quot;&quot;
+-         """Asynchronously update embeddings and graph memory for an entry."""
 -         try:
 -             # Update embeddings
 -             self.embeddings_manager.add_new_embeddings([entry])
 -             
 -             # Remove from pending embeddings
--             self._pending_embeddings.discard(entry[&quot;guid&quot;])
+-             self._pending_embeddings.discard(entry["guid"])
 -             
 -             # Update graph memory if enabled
--             if self.enable_graph_memory and self.graph_manager and entry[&quot;guid&quot;] in self._pending_graph_updates:
+-             if self.enable_graph_memory and self.graph_manager and entry["guid"] in self._pending_graph_updates:
 -                 await self._update_graph_memory_async(entry)
--                 self._pending_graph_updates.discard(entry[&quot;guid&quot;])
+-                 self._pending_graph_updates.discard(entry["guid"])
 -             
 -         except Exception as e:
--             self.logger.error(f&quot;Error in async embeddings/graph update: {str(e)}&quot;)
+-             self.logger.error(f"Error in async embeddings/graph update: {str(e)}")
 -     
 -     def get_pending_operations(self) -&gt; Dict[str, Any]:
--         &quot;&quot;&quot;Get information about pending async operations.
+-         """Get information about pending async operations.
 -         
 -         Returns:
 -             Dict with counts of pending digests, embeddings, and graph updates
--         &quot;&quot;&quot;
+-         """
 -         return {
--             &quot;pending_digests&quot;: len(self._pending_digests),
--             &quot;pending_embeddings&quot;: len(self._pending_embeddings),
--             &quot;pending_graph_updates&quot;: len(self._pending_graph_updates)
+-             "pending_digests": len(self._pending_digests),
+-             "pending_embeddings": len(self._pending_embeddings),
+-             "pending_graph_updates": len(self._pending_graph_updates)
 -         }
 -     
 -     def has_pending_operations(self) -&gt; bool:
--         &quot;&quot;&quot;Check if there are any pending async operations.
+-         """Check if there are any pending async operations.
 -         
 -         Returns:
 -             bool: True if there are pending operations
--         &quot;&quot;&quot;
+-         """
 -         return bool(self._pending_digests or self._pending_embeddings or self._pending_graph_updates)
 -     
 -     async def wait_for_pending_operations(self) -&gt; None:
--         &quot;&quot;&quot;Wait for all pending async operations to complete.&quot;&quot;&quot;
+-         """Wait for all pending async operations to complete."""
 -         while self._pending_digests or self._pending_embeddings or self._pending_graph_updates:
 -             await asyncio.sleep(0.1)  # Small delay to prevent busy waiting
   
@@ -5155,7 +5155,7 @@ Now I need to add the async methods from AsyncMemoryManager to the main MemoryMa
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/memory_manager.py</summary>
 
 I'm adding the async methods from AsyncMemoryManager to the main MemoryManager class. This includes add_conversation_entry_async, _generate_digest_async, _update_conversation_history_entry, _update_embeddings_async, and the pending operations methods.
 
@@ -5166,8 +5166,8 @@ Lines added: 1, lines removed: 1
 @@ -1038,5 +1038,5 @@
               
       def add_conversation_entry(self, entry: Dict[str, Any]) -&gt; bool:
--         &quot;&quot;&quot;Add a conversation entry with automatic digest generation.
-+         &quot;&quot;&quot;Add a conversation entry with automatic digest generation (synchronous version).
+-         """Add a conversation entry with automatic digest generation.
++         """Add a conversation entry with automatic digest generation (synchronous version).
           
           Args:
 ```
@@ -5180,183 +5180,183 @@ Lines added: 159, lines removed: 13
               return False
   
 -     def update_memory_with_conversations(self) -&gt; bool:
--         &quot;&quot;&quot;Update memory with current conversation history.
+-         """Update memory with current conversation history.
 -         
 -         This method processes the conversation history to extract important information
 -         and update the memory context.
 +     async def add_conversation_entry_async(self, entry: Dict[str, Any]) -&gt; bool:
-+         &quot;&quot;&quot;Add a conversation entry with asynchronous digest generation and embeddings update.
++         """Add a conversation entry with asynchronous digest generation and embeddings update.
 +         
 +         Args:
 +             entry: Dictionary containing the conversation entry:
 +                   - guid: Optional unique identifier (will be generated if missing)
-+                   - role: Role (e.g., &quot;user&quot;, &quot;agent&quot;, &quot;system&quot;)
++                   - role: Role (e.g., "user", "agent", "system")
 +                   - content: Entry content text
 +                   - timestamp: Optional timestamp (will be generated if missing)
                     
           Returns:
 -             bool: True if memory was updated successfully
 +             bool: True if the entry was added successfully
-          &quot;&quot;&quot;
+          """
           try:
 -             # Check if we need to compress based on conversation count
--             conversation_entries = len(self.memory.get(&quot;conversation_history&quot;, []))
+-             conversation_entries = len(self.memory.get("conversation_history", []))
 -             if conversation_entries &gt; self.max_recent_conversation_entries:
--                 self.logger.debug(f&quot;Memory has {conversation_entries} conversations, compressing...&quot;)
--                 return self.update_memory({&quot;operation&quot;: &quot;update&quot;})
+-                 self.logger.debug(f"Memory has {conversation_entries} conversations, compressing...")
+-                 return self.update_memory({"operation": "update"})
 +             # Ensure basic fields exist
-+             if &quot;content&quot; not in entry:
-+                 self.logger.error(&quot;Error: Conversation entry must have &#39;content&#39;&quot;)
++             if "content" not in entry:
++                 self.logger.error("Error: Conversation entry must have 'content'")
 +                 return False
 +                 
-+             if &quot;role&quot; not in entry:
-+                 self.logger.error(&quot;Error: Conversation entry must have &#39;role&#39;&quot;)
++             if "role" not in entry:
++                 self.logger.error("Error: Conversation entry must have 'role'")
 +                 return False
 +                 
 +             # Ensure GUID
-+             if &quot;guid&quot; not in entry:
-+                 entry[&quot;guid&quot;] = str(uuid.uuid4())
++             if "guid" not in entry:
++                 entry["guid"] = str(uuid.uuid4())
 +                 
 +             # Ensure timestamp
-+             if &quot;timestamp&quot; not in entry:
-+                 entry[&quot;timestamp&quot;] = datetime.now().isoformat()
++             if "timestamp" not in entry:
++                 entry["timestamp"] = datetime.now().isoformat()
 +             
 +             # Add to conversation history file and memory immediately
 +             self.add_to_conversation_history(entry)
 +             
-+             if &quot;conversation_history&quot; not in self.memory:
-+                 self.memory[&quot;conversation_history&quot;] = []
++             if "conversation_history" not in self.memory:
++                 self.memory["conversation_history"] = []
 +                 
-+             self.memory[&quot;conversation_history&quot;].append(entry)
-+             self.logger.debug(f&quot;Added {entry[&#39;role&#39;]} entry to conversation history&quot;)
++             self.memory["conversation_history"].append(entry)
++             self.logger.debug(f"Added {entry['role']} entry to conversation history")
 +             
 +             # Save to persist memory updates
-+             self.save_memory(&quot;add_conversation_entry&quot;)
++             self.save_memory("add_conversation_entry")
 +             
 +             # Start async digest generation if not already present
-+             if &quot;digest&quot; not in entry:
-+                 self.logger.debug(f&quot;Starting async digest generation for {entry[&#39;role&#39;]} entry...&quot;)
-+                 self._pending_digests[entry[&quot;guid&quot;]] = entry
++             if "digest" not in entry:
++                 self.logger.debug(f"Starting async digest generation for {entry['role']} entry...")
++                 self._pending_digests[entry["guid"]] = entry
 +                 asyncio.create_task(self._generate_digest_async(entry))
               else:
--                 self.logger.debug(f&quot;Memory has only {conversation_entries} conversations, compression not needed yet&quot;)
+-                 self.logger.debug(f"Memory has only {conversation_entries} conversations, compression not needed yet")
 +                 # If digest exists, start embeddings and graph updates
-+                 self._pending_embeddings.add(entry[&quot;guid&quot;])
++                 self._pending_embeddings.add(entry["guid"])
 +                 if self.enable_graph_memory and self.graph_manager:
-+                     self._pending_graph_updates.add(entry[&quot;guid&quot;])
++                     self._pending_graph_updates.add(entry["guid"])
 +                 asyncio.create_task(self._update_embeddings_async(entry))
 + 
               return True
 +             
           except Exception as e:
--             self.logger.error(f&quot;Error updating memory with conversations: {str(e)}&quot;)
-+             self.logger.error(f&quot;Error adding conversation entry: {str(e)}&quot;)
+-             self.logger.error(f"Error updating memory with conversations: {str(e)}")
++             self.logger.error(f"Error adding conversation entry: {str(e)}")
               return False
 +     
 +     async def _generate_digest_async(self, entry: Dict[str, Any]) -&gt; None:
-+         &quot;&quot;&quot;Asynchronously generate digest for an entry.&quot;&quot;&quot;
++         """Asynchronously generate digest for an entry."""
 +         try:
 +             # Generate digest
-+             entry[&quot;digest&quot;] = self.digest_generator.generate_digest(entry, self.memory)
++             entry["digest"] = self.digest_generator.generate_digest(entry, self.memory)
 +             
 +             # Update conversation history file with the digest
 +             self._update_conversation_history_entry(entry)
 +             
 +             # Remove from pending digests
-+             self._pending_digests.pop(entry[&quot;guid&quot;], None)
++             self._pending_digests.pop(entry["guid"], None)
 +             
 +             # Start embeddings and graph updates
-+             self._pending_embeddings.add(entry[&quot;guid&quot;])
++             self._pending_embeddings.add(entry["guid"])
 +             if self.enable_graph_memory and self.graph_manager:
-+                 self._pending_graph_updates.add(entry[&quot;guid&quot;])
++                 self._pending_graph_updates.add(entry["guid"])
 +             await self._update_embeddings_async(entry)
 +             
 +             # Save memory to persist the digest
-+             self.save_memory(&quot;async_digest_generation&quot;)
++             self.save_memory("async_digest_generation")
 +             
 +         except Exception as e:
-+             self.logger.error(f&quot;Error in async digest generation: {str(e)}&quot;)
++             self.logger.error(f"Error in async digest generation: {str(e)}")
 +     
 +     def _update_conversation_history_entry(self, entry: Dict[str, Any]) -&gt; bool:
-+         &quot;&quot;&quot;Update an existing entry in the conversation history file.
++         """Update an existing entry in the conversation history file.
 +         
 +         Args:
 +             entry: Updated conversation entry with digest
 +             
 +         Returns:
 +             bool: True if entry was updated successfully
-+         &quot;&quot;&quot;
++         """
 +         try:
 +             # Load current conversation history
 +             conversation_data = self._load_conversation_history()
 +             
 +             # Find and update the entry by GUID
-+             entry_guid = entry.get(&quot;guid&quot;)
++             entry_guid = entry.get("guid")
 +             if not entry_guid:
-+                 self.logger.error(&quot;Cannot update conversation history entry without GUID&quot;)
++                 self.logger.error("Cannot update conversation history entry without GUID")
 +                 return False
 +                 
 +             # Find the entry to update
 +             updated = False
-+             for i, existing_entry in enumerate(conversation_data[&quot;entries&quot;]):
-+                 if existing_entry.get(&quot;guid&quot;) == entry_guid:
-+                     conversation_data[&quot;entries&quot;][i] = entry
++             for i, existing_entry in enumerate(conversation_data["entries"]):
++                 if existing_entry.get("guid") == entry_guid:
++                     conversation_data["entries"][i] = entry
 +                     updated = True
 +                     break
 +             
 +             if not updated:
-+                 self.logger.warning(f&quot;Could not find conversation history entry with GUID {entry_guid} to update&quot;)
++                 self.logger.warning(f"Could not find conversation history entry with GUID {entry_guid} to update")
 +                 return False
 +             
 +             # Save updated history
 +             success = self._save_conversation_history(conversation_data)
 +             if success:
-+                 self.logger.debug(f&quot;Updated conversation history entry {entry_guid} with digest&quot;)
++                 self.logger.debug(f"Updated conversation history entry {entry_guid} with digest")
 +             return success
 +             
 +         except Exception as e:
-+             self.logger.error(f&quot;Error updating conversation history entry: {str(e)}&quot;)
++             self.logger.error(f"Error updating conversation history entry: {str(e)}")
 +             return False
 +     
 +     async def _update_embeddings_async(self, entry: Dict[str, Any]) -&gt; None:
-+         &quot;&quot;&quot;Asynchronously update embeddings and graph memory for an entry.&quot;&quot;&quot;
++         """Asynchronously update embeddings and graph memory for an entry."""
 +         try:
 +             # Update embeddings
 +             self.embeddings_manager.add_new_embeddings([entry])
 +             
 +             # Remove from pending embeddings
-+             self._pending_embeddings.discard(entry[&quot;guid&quot;])
++             self._pending_embeddings.discard(entry["guid"])
 +             
 +             # Update graph memory if enabled
-+             if self.enable_graph_memory and self.graph_manager and entry[&quot;guid&quot;] in self._pending_graph_updates:
++             if self.enable_graph_memory and self.graph_manager and entry["guid"] in self._pending_graph_updates:
 +                 await self._update_graph_memory_async(entry)
-+                 self._pending_graph_updates.discard(entry[&quot;guid&quot;])
++                 self._pending_graph_updates.discard(entry["guid"])
 +             
 +         except Exception as e:
-+             self.logger.error(f&quot;Error in async embeddings/graph update: {str(e)}&quot;)
++             self.logger.error(f"Error in async embeddings/graph update: {str(e)}")
 +     
 +     def get_pending_operations(self) -&gt; Dict[str, Any]:
-+         &quot;&quot;&quot;Get information about pending async operations.
++         """Get information about pending async operations.
 +         
 +         Returns:
 +             Dict with counts of pending digests, embeddings, and graph updates
-+         &quot;&quot;&quot;
++         """
 +         return {
-+             &quot;pending_digests&quot;: len(self._pending_digests),
-+             &quot;pending_embeddings&quot;: len(self._pending_embeddings),
-+             &quot;pending_graph_updates&quot;: len(self._pending_graph_updates)
++             "pending_digests": len(self._pending_digests),
++             "pending_embeddings": len(self._pending_embeddings),
++             "pending_graph_updates": len(self._pending_graph_updates)
 +         }
 +     
 +     def has_pending_operations(self) -&gt; bool:
-+         &quot;&quot;&quot;Check if there are any pending async operations.
++         """Check if there are any pending async operations.
 +         
 +         Returns:
 +             bool: True if there are pending operations
-+         &quot;&quot;&quot;
++         """
 +         return bool(self._pending_digests or self._pending_embeddings or self._pending_graph_updates)
 +     
 +     async def wait_for_pending_operations(self) -&gt; None:
-+         &quot;&quot;&quot;Wait for all pending async operations to complete.&quot;&quot;&quot;
++         """Wait for all pending async operations to complete."""
 +         while self._pending_digests or self._pending_embeddings or self._pending_graph_updates:
 +             await asyncio.sleep(0.1)  # Small delay to prevent busy waiting
   
@@ -5375,7 +5375,7 @@ I need to add back the `update_memory_with_conversations` method that was accide
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/memory_manager.py</summary>
 
 I need to add back the update_memory_with_conversations method that was accidentally removed during the merge. It should go after the wait_for_pending_operations method.
 
@@ -5387,29 +5387,29 @@ Lines added: 22, lines removed: undefined
               await asyncio.sleep(0.1)  # Small delay to prevent busy waiting
   
 +     def update_memory_with_conversations(self) -&gt; bool:
-+         &quot;&quot;&quot;Update memory with current conversation history.
++         """Update memory with current conversation history.
 +         
 +         This method processes the conversation history to extract important information
 +         and update the memory context.
 +         
 +         Returns:
 +             bool: True if memory was updated successfully
-+         &quot;&quot;&quot;
++         """
 +         try:
 +             # Check if we need to compress based on conversation count
-+             conversation_entries = len(self.memory.get(&quot;conversation_history&quot;, []))
++             conversation_entries = len(self.memory.get("conversation_history", []))
 +             if conversation_entries &gt; self.max_recent_conversation_entries:
-+                 self.logger.debug(f&quot;Memory has {conversation_entries} conversations, compressing...&quot;)
-+                 return self.update_memory({&quot;operation&quot;: &quot;update&quot;})
++                 self.logger.debug(f"Memory has {conversation_entries} conversations, compressing...")
++                 return self.update_memory({"operation": "update"})
 +             else:
-+                 self.logger.debug(f&quot;Memory has only {conversation_entries} conversations, compression not needed yet&quot;)
++                 self.logger.debug(f"Memory has only {conversation_entries} conversations, compression not needed yet")
 +                 return True
 +         except Exception as e:
-+             self.logger.error(f&quot;Error updating memory with conversations: {str(e)}&quot;)
++             self.logger.error(f"Error updating memory with conversations: {str(e)}")
 +             return False
 + 
       def get_graph_context(self, query: str, max_entities: int = 5) -&gt; str:
-          &quot;&quot;&quot;Get graph-based context for a query.
+          """Get graph-based context for a query.
 ```
 
 </details>
@@ -5424,7 +5424,7 @@ Now I need to update the base memory manager to have the proper default implemen
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/base_memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/base_memory_manager.py</summary>
 
 I need to update the has_pending_operations and get_pending_operations methods in BaseMemoryManager to match what's now available in MemoryManager.
 
@@ -5436,19 +5436,19 @@ Lines added: 12, lines removed: undefined
           return False  # Default implementation for synchronous managers
       
 +     def get_pending_operations(self) -&gt; Dict[str, Any]:
-+         &quot;&quot;&quot;Get information about pending async operations.
++         """Get information about pending async operations.
 +         
 +         Returns:
 +             Dict with counts of pending digests, embeddings, and graph updates
-+         &quot;&quot;&quot;
++         """
 +         return {
-+             &quot;pending_digests&quot;: 0,
-+             &quot;pending_embeddings&quot;: 0,
-+             &quot;pending_graph_updates&quot;: 0
++             "pending_digests": 0,
++             "pending_embeddings": 0,
++             "pending_graph_updates": 0
 +         }  # Default implementation for synchronous managers
 +     
       def get_graph_context(self, query: str, max_entities: int = 5) -&gt; str:
-          &quot;&quot;&quot;Get graph-based context for a query.
+          """Get graph-based context for a query.
 ```
 
 </details>
@@ -5463,7 +5463,7 @@ Now I need to add the AsyncMemoryManager alias for backward compatibility and up
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/memory_manager.py</summary>
 
 I'm adding a backward compatibility alias at the end of the file so existing code that imports AsyncMemoryManager will still work.
 
@@ -5472,8 +5472,8 @@ Lines added: 3, lines removed: undefined
 
 ```diff
 @@ -1333,3 +1333,6 @@
-              self.logger.warning(f&quot;Error getting graph context: {e}&quot;)
-              return &quot;&quot;
+              self.logger.warning(f"Error getting graph context: {e}")
+              return ""
 + 
 + # Backward compatibility alias
 + AsyncMemoryManager = MemoryManager
@@ -5492,7 +5492,7 @@ Now update the memory module's __init__.py file:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/__init__.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/__init__.py</summary>
 
 I'm updating the imports to reflect that AsyncMemoryManager is now just an alias for MemoryManager.
 
@@ -5507,8 +5507,8 @@ Lines added: 2, lines removed: 2
   from .simple_memory_manager import SimpleMemoryManager
   from .digest_generator import DigestGenerator
   
-- __all__ = [&#39;MemoryManager&#39;, &#39;SimpleMemoryManager&#39;, &#39;DigestGenerator&#39;] 
-+ __all__ = [&#39;MemoryManager&#39;, &#39;AsyncMemoryManager&#39;, &#39;SimpleMemoryManager&#39;, &#39;DigestGenerator&#39;] 
+- __all__ = ['MemoryManager', 'SimpleMemoryManager', 'DigestGenerator'] 
++ __all__ = ['MemoryManager', 'AsyncMemoryManager', 'SimpleMemoryManager', 'DigestGenerator'] 
 ```
 
 </details>
@@ -5523,7 +5523,7 @@ Now I need to update the session manager to use the async methods of the merged 
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/api/services/session_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/api/services/session_manager.py</summary>
 
 I'm updating the import to use MemoryManager instead of AsyncMemoryManager since they're now the same class, and updating the type hints and usage to reflect this change.
 
@@ -5558,7 +5558,7 @@ Lines added: 1, lines removed: 1
 
 ```diff
 @@ -179,5 +179,5 @@
-                          f.write(f&quot;{datetime.now()}: {debug_info}\n&quot;)
+                          f.write(f"{datetime.now()}: {debug_info}\n")
                       
 -                     self._memory_manager = AsyncMemoryManager(
 +                     self._memory_manager = MemoryManager(
@@ -5575,7 +5575,7 @@ Lines added: 1, lines removed: 1
       @property
 -     def memory_manager(self) -&gt; Optional[AsyncMemoryManager]:
 +     def memory_manager(self) -&gt; Optional[MemoryManager]:
-          &quot;&quot;&quot;Get the memory manager instance&quot;&quot;&quot;
+          """Get the memory manager instance"""
           return self._memory_manager
 ```
 
@@ -5591,7 +5591,7 @@ Now let's update the agent usage example to reflect the changes:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/agent_usage_example.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: examples/agent_usage_example.py</summary>
 
 I'm updating the imports and MEMORY_MANAGER_TYPES to reflect that AsyncMemoryManager is now just MemoryManager, and updating the comments accordingly.
 
@@ -5615,10 +5615,10 @@ Lines added: 1, lines removed: 1
 @@ -48,5 +48,5 @@
   # Memory manager types
   MEMORY_MANAGER_TYPES = {
--     &quot;standard&quot;: AsyncMemoryManager,  # Use async for better user experience
-+     &quot;standard&quot;: MemoryManager,  # Use async for better user experience
-      &quot;simple&quot;: SimpleMemoryManager,
-      &quot;sync&quot;: MemoryManager  # Keep sync version available for testing
+-     "standard": AsyncMemoryManager,  # Use async for better user experience
++     "standard": MemoryManager,  # Use async for better user experience
+      "simple": SimpleMemoryManager,
+      "sync": MemoryManager  # Keep sync version available for testing
 ```
 
 </details>
@@ -5656,7 +5656,7 @@ Let me update the key test files:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: tests/memory_manager/test_graph_memory_integration.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: tests/memory_manager/test_graph_memory_integration.py</summary>
 
 I'm updating the import to just use MemoryManager since AsyncMemoryManager is now an alias.
 
@@ -5678,11 +5678,11 @@ Lines added: 1, lines removed: 1
 
 ```diff
 @@ -139,5 +139,5 @@
-      memory_file = os.path.join(temp_memory_dir, &quot;test_memory.json&quot;)
+      memory_file = os.path.join(temp_memory_dir, "test_memory.json")
       
 -     async_memory_manager = AsyncMemoryManager(
 +     async_memory_manager = MemoryManager(
-          memory_guid=&quot;test-guid&quot;,
+          memory_guid="test-guid",
           memory_file=memory_file,
 ```
 
@@ -5691,11 +5691,11 @@ Lines added: 1, lines removed: 1
 
 ```diff
 @@ -181,5 +181,5 @@
-      memory_file = os.path.join(temp_memory_dir, &quot;test_memory.json&quot;)
+      memory_file = os.path.join(temp_memory_dir, "test_memory.json")
       
 -     async_memory_manager = AsyncMemoryManager(
 +     async_memory_manager = MemoryManager(
-          memory_guid=&quot;test-guid&quot;,
+          memory_guid="test-guid",
           memory_file=memory_file,
 ```
 
@@ -5708,7 +5708,7 @@ Lines added: 1, lines removed: 1
       # Create async memory manager with graph memory
 -     memory_manager = AsyncMemoryManager(
 +     memory_manager = MemoryManager(
-          memory_guid=&quot;test-guid&quot;,
+          memory_guid="test-guid",
           memory_file=memory_file,
 ```
 
@@ -5720,7 +5720,7 @@ Lines added: 1, lines removed: 1
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: tests/automated_agent_testing/test_runner.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: tests/automated_agent_testing/test_runner.py</summary>
 
 I'm updating the import and usage to just use MemoryManager since AsyncMemoryManager is now an alias.
 
@@ -5746,7 +5746,7 @@ Lines added: 1, lines removed: 1
           
 -     async def setup_agent(self) -&gt; Tuple[str, Agent, AsyncMemoryManager]:
 +     async def setup_agent(self) -&gt; Tuple[str, Agent, MemoryManager]:
-          &quot;&quot;&quot;Set up agent instance for testing&quot;&quot;&quot;
+          """Set up agent instance for testing"""
           
 ```
 
@@ -5771,7 +5771,7 @@ Lines added: 1, lines removed: 1
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: test_relationship_fix.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: test_relationship_fix.py</summary>
 
 I'm updating the import to just use MemoryManager since AsyncMemoryManager is now an alias.
 
@@ -5797,7 +5797,7 @@ Lines added: 1, lines removed: 1
           # Create memory manager with graph memory enabled
 -         memory_manager = AsyncMemoryManager(
 +         memory_manager = MemoryManager(
-              memory_guid=&quot;test-relationship-fix&quot;,
+              memory_guid="test-relationship-fix",
               memory_file=memory_file,
 ```
 
@@ -5812,7 +5812,7 @@ Now let's test our changes by running the WebSocket API test to make sure everyt
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: python scripts/api/test_websocket_api.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: python scripts/api/test_websocket_api.py</summary>
 
 ```bash
 python scripts/api/test_websocket_api.py
@@ -5823,9 +5823,9 @@ python scripts/api/test_websocket_api.py
 API URL: http://localhost:8000
 WebSocket URL: ws://localhost:8000
 Test User ID: test_user_websocket
-❌ Session creation failed: HTTPConnectionPool(host=&#39;localhost&#39;, port=8000): Max retries exceeded with url: 
-/api/v1/sessions (Caused by NewConnectionError(&#39;&lt;urllib3.connection.HTTPConnection object at 0x1060558b0&gt;: F
-ailed to establish a new connection: [Errno 61] Connection refused&#39;))
+❌ Session creation failed: HTTPConnectionPool(host='localhost', port=8000): Max retries exceeded with url: 
+/api/v1/sessions (Caused by NewConnectionError('&lt;urllib3.connection.HTTPConnection object at 0x1060558b0&gt;: F
+ailed to establish a new connection: [Errno 61] Connection refused'))
 ❌ Cannot create session. Aborting tests.
 
 ============================================================
@@ -5852,7 +5852,7 @@ The server isn't running. Let me start it and then test:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python -m uvicorn src.api.main:app --host 0.0.0.0 --port 8000</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python -m uvicorn src.api.main:app --host 0.0.0.0 --port 8000</summary>
 
 ```bash
 DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python -m uvicorn src.api.main:app --host 0.0.0.0 --port 8000
@@ -5863,7 +5863,7 @@ DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLL
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: sleep 5 && python scripts/api/test_websocket_api.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: sleep 5 && python scripts/api/test_websocket_api.py</summary>
 
 ```bash
 sleep 5 && python scripts/api/test_websocket_api.py
@@ -5880,30 +5880,30 @@ Test User ID: test_user_websocket
   WebSocket Connection
 ============================================================
 ✅ PASS: WebSocket connected successfully
-   Data: {&#39;type&#39;: &#39;connection_established&#39;, &#39;data&#39;: {&#39;connection_id&#39;: &#39;02ca6da6-647c-43de-9471-968925bf88f2_
-1750601110.382525&#39;, &#39;session_id&#39;: &#39;02ca6da6-647c-43de-9471-968925bf88f2&#39;, &#39;timestamp&#39;: &#39;2025-06-22T10...
+   Data: {'type': 'connection_established', 'data': {'connection_id': '02ca6da6-647c-43de-9471-968925bf88f2_
+1750601110.382525', 'session_id': '02ca6da6-647c-43de-9471-968925bf88f2', 'timestamp': '2025-06-22T10...
 
 ============================================================
   Ping/Pong Test
 ============================================================
 ✅ PASS: Ping/Pong exchange
-   Data: {&#39;type&#39;: &#39;pong&#39;, &#39;data&#39;: {&#39;timestamp&#39;: &#39;2025-06-22T10:05:10.406565&#39;, &#39;session_id&#39;: &#39;02ca6da6-647c-4
-3de-9471-968925bf88f2&#39;, &#39;message&#39;: &#39;Hello WebSocket!&#39;}}...
+   Data: {'type': 'pong', 'data': {'timestamp': '2025-06-22T10:05:10.406565', 'session_id': '02ca6da6-647c-4
+3de-9471-968925bf88f2', 'message': 'Hello WebSocket!'}}...
 
 ============================================================
   Get Status Test
 ============================================================
 🔍 Connected to WebSocket for status test
-🔍 Skipped initial message: {&quot;type&quot;: &quot;connection_established&quot;, &quot;data&quot;: {&quot;connection_id&quot;: &quot;02ca6da6-647c-43de
+🔍 Skipped initial message: {"type": "connection_established", "data": {"connection_id": "02ca6da6-647c-43de
 -9471-968925bf88f2_1...
-🔍 Sending status message: {&#39;type&#39;: &#39;get_status&#39;, &#39;data&#39;: {}}
+🔍 Sending status message: {'type': 'get_status', 'data': {}}
 🔍 Status message sent, waiting for response...
-🔍 Received status response: {&quot;type&quot;: &quot;status_response&quot;, &quot;data&quot;: {&quot;session_id&quot;: &quot;02ca6da6-647c-43de-9471-968
-925bf88f2&quot;, &quot;agent_initialized&quot;: true, &quot;memory_manager_initialized&quot;: true, &quot;last_activity&quot;: &quot;2025-06-22T10:0
-5:10.419503&quot;,...
+🔍 Received status response: {"type": "status_response", "data": {"session_id": "02ca6da6-647c-43de-9471-968
+925bf88f2", "agent_initialized": true, "memory_manager_initialized": true, "last_activity": "2025-06-22T10:0
+5:10.419503",...
 ✅ PASS: Status retrieval
-   Data: {&#39;type&#39;: &#39;status_response&#39;, &#39;data&#39;: {&#39;session_id&#39;: &#39;02ca6da6-647c-43de-9471-968925bf88f2&#39;, &#39;agent_i
-nitialized&#39;: True, &#39;memory_manager_initialized&#39;: True, &#39;last_activity&#39;: &#39;2025-06-22T10:05:10.419503&#39;,...
+   Data: {'type': 'status_response', 'data': {'session_id': '02ca6da6-647c-43de-9471-968925bf88f2', 'agent_i
+nitialized': True, 'memory_manager_initialized': True, 'last_activity': '2025-06-22T10:05:10.419503',...
 
 ============================================================
   Agent Query Test
@@ -5911,45 +5911,45 @@ nitialized&#39;: True, &#39;memory_manager_initialized&#39;: True, &#39;last_act
 📨 Received: typing_start
 📨 Received: query_response
 ✅ PASS: Agent query (received 2 responses)
-   Data: [{&#39;type&#39;: &#39;typing_start&#39;, &#39;data&#39;: {&#39;session_id&#39;: &#39;02ca6da6-647c-43de-9471-968925bf88f2&#39;, &#39;timestamp
-&#39;: &#39;2025-06-22T10:05:10.429420&#39;}}, {&#39;type&#39;: &#39;query_response&#39;, &#39;data&#39;: {&#39;message&#39;: &#39;Hello! Can you tel...
+   Data: [{'type': 'typing_start', 'data': {'session_id': '02ca6da6-647c-43de-9471-968925bf88f2', 'timestamp
+': '2025-06-22T10:05:10.429420'}}, {'type': 'query_response', 'data': {'message': 'Hello! Can you tel...
 
 ============================================================
   Get Memory Test
 ============================================================
 ✅ PASS: Memory retrieval
-   Data: {&#39;type&#39;: &#39;memory_response&#39;, &#39;data&#39;: {&#39;session_id&#39;: &#39;02ca6da6-647c-43de-9471-968925bf88f2&#39;, &#39;type&#39;: 
-&#39;conversations&#39;, &#39;data&#39;: {&#39;conversations&#39;: [{&#39;guid&#39;: &#39;3613b2bc-de5d-4647-9e81-97791497ade4&#39;, &#39;role&#39;: ...
+   Data: {'type': 'memory_response', 'data': {'session_id': '02ca6da6-647c-43de-9471-968925bf88f2', 'type': 
+'conversations', 'data': {'conversations': [{'guid': '3613b2bc-de5d-4647-9e81-97791497ade4', 'role': ...
 
 ============================================================
   Search Memory Test
 ============================================================
 ✅ PASS: Memory search
-   Data: {&#39;type&#39;: &#39;search_response&#39;, &#39;data&#39;: {&#39;session_id&#39;: &#39;02ca6da6-647c-43de-9471-968925bf88f2&#39;, &#39;query&#39;:
- &#39;dragon&#39;, &#39;results&#39;: [], &#39;total_results&#39;: 0, &#39;timestamp&#39;: &#39;2025-06-22T10:05:18.473907&#39;}}...
+   Data: {'type': 'search_response', 'data': {'session_id': '02ca6da6-647c-43de-9471-968925bf88f2', 'query':
+ 'dragon', 'results': [], 'total_results': 0, 'timestamp': '2025-06-22T10:05:18.473907'}}...
 
 ============================================================
   Get Graph Test
 ============================================================
 ✅ PASS: Graph retrieval
-   Data: {&#39;type&#39;: &#39;graph_response&#39;, &#39;data&#39;: {&#39;session_id&#39;: &#39;02ca6da6-647c-43de-9471-968925bf88f2&#39;, &#39;format&#39;:
- &#39;json&#39;, &#39;graph_data&#39;: {&#39;nodes&#39;: [], &#39;edges&#39;: [], &#39;metadata&#39;: {&#39;graph_disabled&#39;: True, &#39;message&#39;: &#39;Gr...
+   Data: {'type': 'graph_response', 'data': {'session_id': '02ca6da6-647c-43de-9471-968925bf88f2', 'format':
+ 'json', 'graph_data': {'nodes': [], 'edges': [], 'metadata': {'graph_disabled': True, 'message': 'Gr...
 
 ============================================================
   Heartbeat Test
 ============================================================
 ✅ PASS: Heartbeat with response
-   Data: {&#39;type&#39;: &#39;heartbeat_response&#39;, &#39;data&#39;: {&#39;timestamp&#39;: &#39;2025-06-22T10:05:18.486297&#39;, &#39;session_id&#39;: &#39;0
-2ca6da6-647c-43de-9471-968925bf88f2&#39;}}...
+   Data: {'type': 'heartbeat_response', 'data': {'timestamp': '2025-06-22T10:05:18.486297', 'session_id': '0
+2ca6da6-647c-43de-9471-968925bf88f2'}}...
 
 ============================================================
   Monitor WebSocket Test
 ============================================================
 ✅ PASS: Monitor connected
-   Data: {&#39;type&#39;: &#39;monitor_connected&#39;, &#39;data&#39;: {&#39;active_sessions&#39;: 1, &#39;active_connections&#39;: 0, &#39;timestamp&#39;: 
-&#39;now&#39;}}...
+   Data: {'type': 'monitor_connected', 'data': {'active_sessions': 1, 'active_connections': 0, 'timestamp': 
+'now'}}...
 ✅ PASS: Monitor ping/pong
-   Data: {&#39;type&#39;: &#39;pong&#39;, &#39;data&#39;: {&#39;active_sessions&#39;: 1, &#39;active_connections&#39;: 0, &#39;timestamp&#39;: &#39;now&#39;}}...
+   Data: {'type': 'pong', 'data': {'active_sessions': 1, 'active_connections': 0, 'timestamp': 'now'}}...
 
 ============================================================
   Invalid Session WebSocket Test
@@ -5992,7 +5992,7 @@ Excellent! 🎉 The merge is successful! All WebSocket tests are passing with 10
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: echo "Tell me about dragons" | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/agent_usage_example.py --guid test-merge --config dnd</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: echo "Tell me about dragons" | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/agent_usage_example.py --guid test-merge --config dnd</summary>
 
 ```bash
 echo "Tell me about dragons" | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large python examples/agent_usage_example.py --guid test-merge --config dnd
@@ -6005,46 +6005,46 @@ echo "Tell me about dragons" | DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.17
 ================================================================================
 
 Using domain config: dnd
-Domain config: {&#39;domain_name&#39;: &#39;dnd_campaign&#39;, &#39;domain_specific_prompt_instructions&#39;: {&#39;query&#39;: &quot;You are a D
-M for a D&amp;D campaign. ANSWER PLAYER QUESTIONS DIRECTLY. For simple questions (like &#39;are there goblins nearby
-?&#39;), give specific answers based on the campaign state. For exploration questions (like &#39;what do I see?&#39;), p
-rovide vivid but concise descriptions. Avoid starting every response with &#39;Okay, let&#39;s investigate&#39; or simil
-ar repetitive phrases. Move the story forward with actionable information and clear choices.&quot;, &#39;update&#39;: &#39;Yo
+Domain config: {'domain_name': 'dnd_campaign', 'domain_specific_prompt_instructions': {'query': "You are a D
+M for a D&amp;D campaign. ANSWER PLAYER QUESTIONS DIRECTLY. For simple questions (like 'are there goblins nearby
+?'), give specific answers based on the campaign state. For exploration questions (like 'what do I see?'), p
+rovide vivid but concise descriptions. Avoid starting every response with 'Okay, let's investigate' or simil
+ar repetitive phrases. Move the story forward with actionable information and clear choices.", 'update': 'Yo
 u are analyzing the input from both the user and the agent and extracting and classifying the important info
-rmation into the conversation history data structure.&#39;}, &#39;initial_data&#39;: &quot;\nCampaign Setting: The Lost Valle
+rmation into the conversation history data structure.'}, 'initial_data': "\nCampaign Setting: The Lost Valle
 y\n\nWorld Details:\n- Hidden valley surrounded by impassable mountains\n- Ancient ruins scattered throughou
 t\n- Mysterious magical anomalies\n- Three main settlements: Haven (central), Riverwatch (east), Mountainkee
-p (west)\n\nKey NPCs:\n1. Elena\n   - Role: Mayor of Haven\n   - Motivation: Protect the valley&#39;s inhabitant
+p (west)\n\nKey NPCs:\n1. Elena\n   - Role: Mayor of Haven\n   - Motivation: Protect the valley's inhabitant
 s\n   - Current Quest: Investigate strange occurrences in Haven\n\n2. Theron\n   - Role: Master Scholar\n
 - Expertise: Ancient ruins and artifacts\n   - Current Research: Decoding ruin inscriptions\n\n3. Sara\n   -
- Role: Captain of Riverwatch\n   - Responsibility: Valley&#39;s defense\n   - Current Concern: Increased monster
+ Role: Captain of Riverwatch\n   - Responsibility: Valley's defense\n   - Current Concern: Increased monster
  activity\n\nCurrent Situations:\n1. Trade Routes\n   - Main road between settlements disrupted\n   - Mercha
 nts seeking protection\n   - Alternative routes needed\n\n2. Ancient Ruins\n   - New chambers discovered\n
  - Strange energy emanations\n   - Valuable artifacts found\n\n3. Magical Anomalies\n   - Random magical eff
-ects\n   - Affecting local wildlife\n   - Possible connection to ruins&quot;, &#39;topic_taxonomy&#39;: {&#39;world&#39;: [&#39;setti
-ng&#39;, &#39;geography&#39;, &#39;location&#39;, &#39;environment&#39;, &#39;terrain&#39;], &#39;characters&#39;: [&#39;npc&#39;, &#39;player&#39;, &#39;personality&#39;, &#39;mot
-ivation&#39;, &#39;background&#39;], &#39;narrative&#39;: [&#39;story&#39;, &#39;plot&#39;, &#39;quest&#39;, &#39;adventure&#39;, &#39;campaign&#39;], &#39;mechanics&#39;: [&#39;ru
-les&#39;, &#39;dice&#39;, &#39;combat&#39;, &#39;magic&#39;, &#39;spells&#39;], &#39;objects&#39;: [&#39;items&#39;, &#39;equipment&#39;, &#39;artifacts&#39;, &#39;treasure&#39;, &#39;inve
-ntory&#39;], &#39;history&#39;: [&#39;lore&#39;, &#39;ruins&#39;, &#39;archaeology&#39;, &#39;ancient&#39;, &#39;past&#39;], &#39;society&#39;: [&#39;politics&#39;, &#39;trade&#39;, &#39;s
-ettlements&#39;, &#39;culture&#39;, &#39;religion&#39;], &#39;threats&#39;: [&#39;monsters&#39;, &#39;enemies&#39;, &#39;dangers&#39;, &#39;conflict&#39;, &#39;war&#39;], &#39;expl
-oration&#39;: [&#39;discovery&#39;, &#39;investigation&#39;, &#39;research&#39;, &#39;mystery&#39;], &#39;events&#39;: [&#39;happenings&#39;, &#39;situations&#39;, &#39;inc
-idents&#39;, &#39;occurrences&#39;]}, &#39;topic_normalizations&#39;: {&#39;locations&#39;: &#39;location&#39;, &#39;geography&#39;: &#39;location&#39;, &#39;terrai
-n&#39;: &#39;environment&#39;, &#39;area&#39;: &#39;location&#39;, &#39;place&#39;: &#39;location&#39;, &#39;region&#39;: &#39;location&#39;, &#39;character&#39;: &#39;characters&#39;,
- &#39;key npc&#39;: &#39;npc&#39;, &#39;npcs&#39;: &#39;npc&#39;, &#39;people&#39;: &#39;characters&#39;, &#39;ruins&#39;: &#39;archaeology&#39;, &#39;ancient ruins&#39;: &#39;archaeol
-ogy&#39;, &#39;artifacts&#39;: &#39;archaeology&#39;, &#39;archaeological&#39;: &#39;archaeology&#39;, &#39;situation&#39;: &#39;events&#39;, &#39;situations&#39;: &#39;eve
-nts&#39;, &#39;happenings&#39;: &#39;events&#39;, &#39;occurrences&#39;: &#39;events&#39;, &#39;research&#39;: &#39;investigation&#39;, &#39;exploration&#39;: &#39;investig
-ation&#39;, &#39;discovery&#39;: &#39;investigation&#39;, &#39;magical&#39;: &#39;magic&#39;, &#39;anomalies&#39;: &#39;magic&#39;, &#39;magical anomalies&#39;: &#39;magic&#39;
-, &#39;setting&#39;: &#39;world&#39;, &#39;world&#39;: &#39;setting&#39;, &#39;lore&#39;: &#39;history&#39;, &#39;ancient&#39;: &#39;history&#39;, &#39;monsters&#39;: &#39;threats&#39;, &#39;e
-nemies&#39;: &#39;threats&#39;, &#39;monster activity&#39;: &#39;threats&#39;, &#39;defense&#39;: &#39;threats&#39;, &#39;trade routes&#39;: &#39;trade&#39;, &#39;settlemen
-ts&#39;: &#39;society&#39;, &#39;politics&#39;: &#39;society&#39;, &#39;value&#39;: &#39;objects&#39;, &#39;treasure&#39;: &#39;objects&#39;, &#39;skills&#39;: &#39;mechanics&#39;, &#39;ex
-pertise&#39;: &#39;mechanics&#39;, &#39;decryption&#39;: &#39;investigation&#39;, &#39;wildlife&#39;: &#39;environment&#39;}, &#39;graph_memory_config&#39;: {&#39;e
-nabled&#39;: True, &#39;entity_types&#39;: [&#39;character&#39;, &#39;location&#39;, &#39;object&#39;, &#39;event&#39;, &#39;concept&#39;, &#39;organization&#39;], &#39;rel
-ationship_types&#39;: [&#39;located_in&#39;, &#39;owns&#39;, &#39;member_of&#39;, &#39;allies_with&#39;, &#39;enemies_with&#39;, &#39;uses&#39;, &#39;created_by&#39;, &#39;
-leads_to&#39;, &#39;participates_in&#39;, &#39;related_to&#39;, &#39;mentions&#39;], &#39;entity_extraction_prompt&#39;: &#39;Extract entities from
+ects\n   - Affecting local wildlife\n   - Possible connection to ruins", 'topic_taxonomy': {'world': ['setti
+ng', 'geography', 'location', 'environment', 'terrain'], 'characters': ['npc', 'player', 'personality', 'mot
+ivation', 'background'], 'narrative': ['story', 'plot', 'quest', 'adventure', 'campaign'], 'mechanics': ['ru
+les', 'dice', 'combat', 'magic', 'spells'], 'objects': ['items', 'equipment', 'artifacts', 'treasure', 'inve
+ntory'], 'history': ['lore', 'ruins', 'archaeology', 'ancient', 'past'], 'society': ['politics', 'trade', 's
+ettlements', 'culture', 'religion'], 'threats': ['monsters', 'enemies', 'dangers', 'conflict', 'war'], 'expl
+oration': ['discovery', 'investigation', 'research', 'mystery'], 'events': ['happenings', 'situations', 'inc
+idents', 'occurrences']}, 'topic_normalizations': {'locations': 'location', 'geography': 'location', 'terrai
+n': 'environment', 'area': 'location', 'place': 'location', 'region': 'location', 'character': 'characters',
+ 'key npc': 'npc', 'npcs': 'npc', 'people': 'characters', 'ruins': 'archaeology', 'ancient ruins': 'archaeol
+ogy', 'artifacts': 'archaeology', 'archaeological': 'archaeology', 'situation': 'events', 'situations': 'eve
+nts', 'happenings': 'events', 'occurrences': 'events', 'research': 'investigation', 'exploration': 'investig
+ation', 'discovery': 'investigation', 'magical': 'magic', 'anomalies': 'magic', 'magical anomalies': 'magic'
+, 'setting': 'world', 'world': 'setting', 'lore': 'history', 'ancient': 'history', 'monsters': 'threats', 'e
+nemies': 'threats', 'monster activity': 'threats', 'defense': 'threats', 'trade routes': 'trade', 'settlemen
+ts': 'society', 'politics': 'society', 'value': 'objects', 'treasure': 'objects', 'skills': 'mechanics', 'ex
+pertise': 'mechanics', 'decryption': 'investigation', 'wildlife': 'environment'}, 'graph_memory_config': {'e
+nabled': True, 'entity_types': ['character', 'location', 'object', 'event', 'concept', 'organization'], 'rel
+ationship_types': ['located_in', 'owns', 'member_of', 'allies_with', 'enemies_with', 'uses', 'created_by', '
+leads_to', 'participates_in', 'related_to', 'mentions'], 'entity_extraction_prompt': 'Extract entities from
 this D&amp;D campaign text. Focus on characters, locations, objects, events, concepts, and organizations that ar
-e important to the campaign world and story.&#39;, &#39;relationship_extraction_prompt&#39;: &#39;Identify relationships bet
+e important to the campaign world and story.', 'relationship_extraction_prompt': 'Identify relationships bet
 ween entities in this D&amp;D campaign text. Look for spatial relationships (located_in), ownership (owns), soci
-al relationships (allies_with, enemies_with), and story connections.&#39;, &#39;similarity_threshold&#39;: 0.8}}
+al relationships (allies_with, enemies_with), and story connections.', 'similarity_threshold': 0.8}}
 Setting up services...
 Initializing session with guid: test-merge
 Done initializing session
@@ -6062,11 +6062,11 @@ Memory File: agent_memories/standard/test-merge/agent_memory.json
 Metadata:
 ------------------------------
 {
-  &quot;created_at&quot;: &quot;2025-06-22T10:05:42.166185&quot;,
-  &quot;updated_at&quot;: &quot;2025-06-22T10:05:42.166185&quot;,
-  &quot;version&quot;: &quot;2.0.0&quot;,
-  &quot;domain&quot;: &quot;general&quot;,
-  &quot;saved_during&quot;: &quot;create_initial_memory&quot;
+  "created_at": "2025-06-22T10:05:42.166185",
+  "updated_at": "2025-06-22T10:05:42.166185",
+  "version": "2.0.0",
+  "domain": "general",
+  "saved_during": "create_initial_memory"
 }
 
 Conversation History: 1 messages
@@ -6076,16 +6076,16 @@ The campaign setting is The Lost Valley, a hidden valley encircled by impassable
 
 Scattered throughout the valley are ancient ruins, and mysterious magical anomalies are prevalent.
 
-There are three main settlements: Haven, located at the valley&#39;s center; Riverwatch, situated to the east; a
+There are three main settlements: Haven, located at the valley's center; Riverwatch, situated to the east; a
 nd Mountainkeep, located to the west.
 
 Key non-player characters include Elena, the Mayor of Haven, whose primary motivation is to protect the vall
-ey&#39;s inhabitants, and currently investigating strange occurrences in Haven.
+ey's inhabitants, and currently investigating strange occurrences in Haven.
 
 Theron is a Master Scholar with expertise in ancient ruins and artifacts, and he is presently focused on dec
 oding ruin inscriptions.
 
-Sara serves as the Captain of Riverwatch, responsible for the valley&#39;s defense, and is currently concerned b
+Sara serves as the Captain of Riverwatch, responsible for the valley's defense, and is currently concerned b
 y increased monster activity.
 
 Currently, trade routes between the settlements are disrupted, with merchants seeking protection.
@@ -6099,7 +6099,7 @@ ion between these anomalies and the ruins.
 Processing: Tell me about dragons
 
 Agent: There are no dragons currently known to inhabit The Lost Valley. However, the random magical anomalie
-s prevalent throughout the valley are linked to the ruins, and it&#39;s possible they could be related to ancien
+s prevalent throughout the valley are linked to the ruins, and it's possible they could be related to ancien
 t, powerful beings.
 
 ```
@@ -6113,7 +6113,7 @@ Perfect! Let's also quickly verify that the async functionality is working by ch
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: python -c "
+<details><summary>Tool use: **run_terminal_cmd** • Run command: python -c "
 from src.memory.memory_manager import MemoryManager, AsyncMemoryManager
 from src.ai.llm_ollama import OllamaService
 import asyncio
@@ -6190,7 +6190,7 @@ Has async methods:
 - has_pending_operations: True
 - get_pending_operations: True
 - wait_for_pending_operations: True
-Initial pending operations: {&#39;pending_digests&#39;: 0, &#39;pending_embeddings&#39;: 0, &#39;pending_graph_updates&#39;: 0}
+Initial pending operations: {'pending_digests': 0, 'pending_embeddings': 0, 'pending_graph_updates': 0}
 Has pending operations: False
 
 ```
@@ -6204,7 +6204,7 @@ Excellent! Let's clean up the test file and provide a summary of what we've acco
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: rm -f test_async.json</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: rm -f test_async.json</summary>
 
 ```bash
 rm -f test_async.json

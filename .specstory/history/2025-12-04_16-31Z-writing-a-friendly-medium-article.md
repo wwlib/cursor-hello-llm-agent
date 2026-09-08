@@ -42,7 +42,7 @@ Drafting a Medium article based on the project documentation:
 
 <tool-use data-tool-type="write" data-tool-name="write">
 
-<details><summary>Tool use: **code_edit** • Edit file: MEDIUM-ARTICLE.md</summary>
+<details><summary>Tool use: **write** • Edit file: MEDIUM-ARTICLE.md</summary>
 
 **Chunk 1**
 Lines added: 221, lines removed: 1
@@ -58,7 +58,7 @@ Lines added: 221, lines removed: 1
 + 
 + ## The Problem: LLMs Forget Everything
 + 
-+ You&#39;ve probably noticed that when you chat with ChatGPT or Claude, they don&#39;t remember your previous conversations unless you&#39;re in a single session. Once you close that tab, everything is gone. For complex, long-running applications—like managing a D&amp;D campaign, tracking a research project, or building a software feature—this is a dealbreaker.
++ You've probably noticed that when you chat with ChatGPT or Claude, they don't remember your previous conversations unless you're in a single session. Once you close that tab, everything is gone. For complex, long-running applications—like managing a D&amp;D campaign, tracking a research project, or building a software feature—this is a dealbreaker.
 + 
 + What if your AI assistant could:
 + - Remember every important detail from past conversations?
@@ -66,7 +66,7 @@ Lines added: 221, lines removed: 1
 + - Retrieve relevant context using semantic search?
 + - Compress and organize memories intelligently?
 + 
-+ That&#39;s exactly what I set out to build.
++ That's exactly what I set out to build.
 + 
 + ---
 + 
@@ -143,7 +143,7 @@ Lines added: 221, lines removed: 1
 + 
 + ## A Unique Development Journey
 + 
-+ This project was &quot;vibe-coded&quot; using Cursor as a way to get familiar with agent-assisted development. All agent interactions have been preserved in markdown transcripts, creating a fascinating record of the development process.
++ This project was "vibe-coded" using Cursor as a way to get familiar with agent-assisted development. All agent interactions have been preserved in markdown transcripts, creating a fascinating record of the development process.
 + 
 + The project evolved through six phases:
 + - **Phase 1-2**: Core memory and RAG system
@@ -158,10 +158,10 @@ Lines added: 221, lines removed: 1
 + ## Real-World Use Cases
 + 
 + ### D&amp;D Campaign Management
-+ Create and manage a virtual campaign world with persistent memory of NPCs, locations, quests, and relationships. The knowledge graph automatically tracks connections between characters and locations, making it easy to retrieve context like &quot;What did the innkeeper in Riverwood say about the missing merchant?&quot;
++ Create and manage a virtual campaign world with persistent memory of NPCs, locations, quests, and relationships. The knowledge graph automatically tracks connections between characters and locations, making it easy to retrieve context like "What did the innkeeper in Riverwood say about the missing merchant?"
 + 
 + ### Research Documentation
-+ Track laboratory work and experiments with semantic search. Ask &quot;What were the results of the protein synthesis experiment?&quot; and the system retrieves relevant context from any point in the conversation history.
++ Track laboratory work and experiments with semantic search. Ask "What were the results of the protein synthesis experiment?" and the system retrieves relevant context from any point in the conversation history.
 + 
 + ### Software Requirements Gathering
 + Assist in requirements gathering and feature planning. The system remembers past discussions, tracks relationships between features, and helps maintain consistency across long-running projects.
@@ -196,9 +196,9 @@ Lines added: 221, lines removed: 1
 + pip install -r requirements.txt
 + 
 + # Set environment variables
-+ export OLLAMA_BASE_URL=&quot;http://localhost:11434&quot;
-+ export OLLAMA_MODEL=&quot;gemma3&quot;
-+ export OLLAMA_EMBED_MODEL=&quot;mxbai-embed-large&quot;
++ export OLLAMA_BASE_URL="http://localhost:11434"
++ export OLLAMA_MODEL="gemma3"
++ export OLLAMA_EMBED_MODEL="mxbai-embed-large"
 + 
 + # Run the canonical RAG example
 + python examples/rag_enhanced_memory_example_simple.py
@@ -230,9 +230,9 @@ Lines added: 221, lines removed: 1
 + 
 + 3. **Background Processing is Essential**: Graph construction is slow, but by moving it to a separate process, the agent remains responsive.
 + 
-+ 4. **Semantic Search &gt; Keyword Search**: RAG-based retrieval finds relevant context even when exact keywords don&#39;t match.
++ 4. **Semantic Search &gt; Keyword Search**: RAG-based retrieval finds relevant context even when exact keywords don't match.
 + 
-+ 5. **Agent-Assisted Development Works**: Using Cursor for &quot;vibe-coding&quot; was incredibly productive, though it required careful oversight to maintain code quality.
++ 5. **Agent-Assisted Development Works**: Using Cursor for "vibe-coding" was incredibly productive, though it required careful oversight to maintain code quality.
 + 
 + ---
 + 
@@ -249,9 +249,9 @@ Lines added: 221, lines removed: 1
 + 
 + ## Open Source &amp; Available
 + 
-+ The project is open source and available on GitHub. It&#39;s a complete, working system that demonstrates modern LLM agent architecture with persistent memory, RAG, and knowledge graphs.
++ The project is open source and available on GitHub. It's a complete, working system that demonstrates modern LLM agent architecture with persistent memory, RAG, and knowledge graphs.
 + 
-+ Whether you&#39;re building a similar system, learning about RAG and knowledge graphs, or just curious about agent-assisted development, I hope this project provides value and inspiration.
++ Whether you're building a similar system, learning about RAG and knowledge graphs, or just curious about agent-assisted development, I hope this project provides value and inspiration.
 + 
 + ---
 + 
@@ -263,7 +263,7 @@ Lines added: 221, lines removed: 1
 + - **Modular architecture** makes complex systems manageable
 + - **Agent-assisted development** can be highly productive with proper oversight
 + 
-+ If you&#39;re interested in building LLM agents with memory, or just want to see how RAG and knowledge graphs work in practice, check out the project. The code is well-documented, the examples are clear, and the test suite is comprehensive.
++ If you're interested in building LLM agents with memory, or just want to see how RAG and knowledge graphs work in practice, check out the project. The code is well-documented, the examples are clear, and the test suite is comprehensive.
 + 
 + Happy coding! 🚀
 + 

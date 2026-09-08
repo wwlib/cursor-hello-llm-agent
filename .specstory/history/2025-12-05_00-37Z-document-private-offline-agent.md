@@ -46,7 +46,7 @@ Adding a section at the beginning about running 100% locally and offline:
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: docs/phase-6/PHASE-6-MEDIUM-STYLE-ARTICLE.md</summary>
+<details><summary>Tool use: **search_replace** • Edit file: docs/phase-6/PHASE-6-MEDIUM-STYLE-ARTICLE.md</summary>
 
 **Chunk 1**
 Lines added: 14, lines removed: undefined
@@ -162,7 +162,7 @@ Adding a note about the framework's simplicity and educational value in the "Wha
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **code_edit** • Edit file: docs/phase-6/PHASE-6-MEDIUM-STYLE-ARTICLE.md</summary>
+<details><summary>Tool use: **search_replace** • Edit file: docs/phase-6/PHASE-6-MEDIUM-STYLE-ARTICLE.md</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: undefined
@@ -172,7 +172,7 @@ Lines added: 2, lines removed: undefined
   
   The project supports both local LLMs (via Ollama) and cloud providers (OpenAI), includes a modern React web interface, and provides a full REST and WebSocket API for integration.
 + 
-+ **A Learning-First Design**: All key components are implemented in straightforward, bespoke Python—no complex frameworks or black-box libraries hiding the implementation details. This makes the codebase an excellent **petri dish for learning** about LLM agents, RAG systems, knowledge graphs, semantic search, and memory management. You can read the code, understand how each piece works, and experiment with modifications. Whether you&#39;re a student, researcher, or developer looking to understand these concepts deeply, this framework provides a clear, accessible implementation to study and extend.
++ **A Learning-First Design**: All key components are implemented in straightforward, bespoke Python—no complex frameworks or black-box libraries hiding the implementation details. This makes the codebase an excellent **petri dish for learning** about LLM agents, RAG systems, knowledge graphs, semantic search, and memory management. You can read the code, understand how each piece works, and experiment with modifications. Whether you're a student, researcher, or developer looking to understand these concepts deeply, this framework provides a clear, accessible implementation to study and extend.
   
   ### Key Features
 ```

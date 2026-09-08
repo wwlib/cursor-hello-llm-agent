@@ -98,7 +98,7 @@ _**Agent (mode Agent)**_
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/data_preprocessor.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/data_preprocessor.py</summary>
 
 **Chunk 1**
 Lines added: 74, lines removed: 1
@@ -112,37 +112,37 @@ Lines added: 74, lines removed: 1
 + from typing import List, Optional
 + 
 + class DataPreprocessor:
-+     &quot;&quot;&quot;Transforms structured or unstructured world data into embeddable phrases using LLM and a prompt template.&quot;&quot;&quot;
++     """Transforms structured or unstructured world data into embeddable phrases using LLM and a prompt template."""
 + 
 +     def __init__(self, llm_service):
-+         &quot;&quot;&quot;Initialize the DataPreprocessor.
++         """Initialize the DataPreprocessor.
 +         
 +         Args:
 +             llm_service: Service for LLM operations
-+         &quot;&quot;&quot;
++         """
 +         self.llm = llm_service
 +         self._load_templates()
 + 
 +     def _load_templates(self) -&gt; None:
-+         &quot;&quot;&quot;Load the preprocess_data prompt template from file.&quot;&quot;&quot;
-+         template_dir = os.path.join(os.path.dirname(__file__), &quot;templates&quot;)
++         """Load the preprocess_data prompt template from file."""
++         template_dir = os.path.join(os.path.dirname(__file__), "templates")
 +         try:
-+             with open(os.path.join(template_dir, &quot;preprocess_data.prompt&quot;), &#39;r&#39;) as f:
++             with open(os.path.join(template_dir, "preprocess_data.prompt"), 'r') as f:
 +                 self.preprocess_template = f.read().strip()
-+             print(&quot;Loaded preprocess_data template&quot;)
++             print("Loaded preprocess_data template")
 +         except Exception as e:
-+             print(f&quot;Error loading preprocess_data template: {str(e)}&quot;)
-+             raise Exception(&quot;Failed to load preprocess_data template&quot;)
++             print(f"Error loading preprocess_data template: {str(e)}")
++             raise Exception("Failed to load preprocess_data template")
 + 
 +     def preprocess_data(self, input_data: str) -&gt; List[str]:
-+         &quot;&quot;&quot;Turn input data into embeddable phrases using the LLM and the preprocess_data prompt.
++         """Turn input data into embeddable phrases using the LLM and the preprocess_data prompt.
 +         
 +         Args:
 +             input_data: The structured or unstructured text to process
 +         
 +         Returns:
 +             List[str]: List of embeddable phrases
-+         &quot;&quot;&quot;
++         """
 +         try:
 +             if not input_data or not input_data.strip():
 +                 return []
@@ -151,22 +151,22 @@ Lines added: 74, lines removed: 1
 +             llm_response = self.llm.generate(
 +                 prompt,
 +                 options={
-+                     &quot;temperature&quot;: 0,  # Consistent, deterministic output
-+                     &quot;stream&quot;: False
++                     "temperature": 0,  # Consistent, deterministic output
++                     "stream": False
 +                 },
-+                 debug_generate_scope=&quot;data_preprocessing&quot;
++                 debug_generate_scope="data_preprocessing"
 +             )
 + 
 +             # Try to parse as JSON array
 +             try:
 +                 phrases = json.loads(llm_response)
 +                 if not isinstance(phrases, list) or not all(isinstance(p, str) for p in phrases):
-+                     print(&quot;Preprocessing failed: Response is not a list of strings&quot;)
++                     print("Preprocessing failed: Response is not a list of strings")
 +                     return [input_data]
 +                 return phrases
 +             except json.JSONDecodeError:
 +                 # Try to extract JSON array if embedded in markdown or text
-+                 match = re.search(r&#39;\[\s*&quot;.*?&quot;.*?\]&#39;, llm_response, re.DOTALL)
++                 match = re.search(r'\[\s*".*?".*?\]', llm_response, re.DOTALL)
 +                 if match:
 +                     try:
 +                         phrases = json.loads(match.group(0))
@@ -174,10 +174,10 @@ Lines added: 74, lines removed: 1
 +                             return phrases
 +                     except json.JSONDecodeError:
 +                         pass
-+                 print(&quot;Failed to parse embeddable phrases, using input as fallback&quot;)
++                 print("Failed to parse embeddable phrases, using input as fallback")
 +                 return [input_data]
 +         except Exception as e:
-+             print(f&quot;Error in data preprocessing: {str(e)}&quot;)
++             print(f"Error in data preprocessing: {str(e)}")
 +             return [input_data]
 + 
 ```
@@ -255,7 +255,7 @@ No results found
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: tests/memory_manager/test_data_preprocessor_integration.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: tests/memory_manager/test_data_preprocessor_integration.py</summary>
 
 **Chunk 1**
 Lines added: 3, lines removed: undefined
@@ -276,33 +276,33 @@ Lines added: 26, lines removed: undefined
 
 ```diff
 @@ -53,3 +56,29 @@
-  &quot;&quot;&quot;
+  """
   
 + def test_data_preprocessor_integration():
-+     &quot;&quot;&quot;Integration test for DataPreprocessor with Ollama LLM service.&quot;&quot;&quot;
++     """Integration test for DataPreprocessor with Ollama LLM service."""
 +     llm_service = OllamaService({
-+         &quot;base_url&quot;: OLLAMA_BASE_URL,
-+         &quot;model&quot;: OLLAMA_LLM_MODEL,
-+         &quot;temperature&quot;: 0,
-+         &quot;stream&quot;: False,
-+         &quot;debug&quot;: DEV_MODE,
-+         &quot;debug_file&quot;: str(DEV_TEMP_DIR / &quot;data_preprocessor_integration.log&quot;),
-+         &quot;debug_scope&quot;: &quot;test_data_preprocessor_integration&quot;,
-+         &quot;console_output&quot;: DEV_MODE
++         "base_url": OLLAMA_BASE_URL,
++         "model": OLLAMA_LLM_MODEL,
++         "temperature": 0,
++         "stream": False,
++         "debug": DEV_MODE,
++         "debug_file": str(DEV_TEMP_DIR / "data_preprocessor_integration.log"),
++         "debug_scope": "test_data_preprocessor_integration",
++         "console_output": DEV_MODE
 +     })
 +     preprocessor = DataPreprocessor(llm_service)
 +     phrases = preprocessor.preprocess_data(input_data)
 + 
-+     print(&quot;\nEmbeddable Phrases:&quot;)
++     print("\nEmbeddable Phrases:")
 +     for i, phrase in enumerate(phrases):
-+         print(f&quot;Phrase {i+1}: {phrase}&quot;)
++         print(f"Phrase {i+1}: {phrase}")
 + 
 +     # Assertions
-+     assert isinstance(phrases, list), &quot;Output should be a list&quot;
-+     assert 2 &lt;= len(phrases) &lt;= 6, f&quot;Should return 3-5 phrases, got {len(phrases)}&quot;
++     assert isinstance(phrases, list), "Output should be a list"
++     assert 2 &lt;= len(phrases) &lt;= 6, f"Should return 3-5 phrases, got {len(phrases)}"
 +     for phrase in phrases:
-+         assert isinstance(phrase, str), &quot;Each phrase should be a string&quot;
-+         assert phrase.strip(), &quot;Each phrase should be non-empty&quot;
++         assert isinstance(phrase, str), "Each phrase should be a string"
++         assert phrase.strip(), "Each phrase should be non-empty"
 + 
   
 ```
@@ -340,7 +340,7 @@ Perfect. Please run the test.
 _**Agent (mode Agent)**_
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_LLM_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large pytest tests/memory_manager/test_data_preprocessor_integration.py -v -s</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_LLM_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large pytest tests/memory_manager/test_data_preprocessor_integration.py -v -s</summary>
 
 ```bash
 DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_LLM_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large pytest tests/memory_manager/test_data_preprocessor_integration.py -v -s
@@ -349,13 +349,13 @@ DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.173:11434 OLLAMA_LLM_MODEL=gemma3
 ```
 /Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/lib/python3.9/site-
 packages/pytest_asyncio/plug
-in.py:217: PytestDeprecationWarning: The configuration option &quot;asyncio_default_f
-ixture_loop_scope&quot; is unset.The event loop scope for asynchronous fixtures will
+in.py:217: PytestDeprecationWarning: The configuration option "asyncio_default_f
+ixture_loop_scope" is unset.The event loop scope for asynchronous fixtures will
 default to the fixture caching scope. Future versions of
  pytest-asyncio will default the loop scope for asynchronous fixtures to functio
 n scope. Set the default fixture loop scope explicitly in order to avoid unexpec
-ted behavior in the future. Valid fixture loop scopes are: &quot;function&quot;, &quot;class&quot;,
-&quot;module&quot;, &quot;package&quot;, &quot;session&quot;
+ted behavior in the future. Valid fixture loop scopes are: "function", "class",
+"module", "package", "session"
     
   warnings.warn(PytestDeprecationWarning(_DEFAULT_FIXTURE_LOOP_SCOPE_UNSET))
 =========================================== test session starts ================
@@ -422,7 +422,7 @@ World Details:
 Key NPCs:
 1. Elena
    - Role: Mayor of Haven
-   - Motivation: Protect the valley&#39;s inhabitants
+   - Motivation: Protect the valley's inhabitants
    - Current Quest: Investigate strange occurrences in Haven
 
 2. Theron
@@ -432,7 +432,7 @@ Key NPCs:
 
 3. Sara
    - Role: Captain of Riverwatch
-   - Responsibility: Valley&#39;s defense
+   - Responsibility: Valley's defense
    - Current Concern: Increased monster activity
 
 Current Situations:
@@ -454,15 +454,15 @@ Current Situations:
 [test_data_preprocessor_integration]:[generate]::[data_preprocessing]:Generation
  options:
 {
-  &quot;temperature&quot;: 0,
-  &quot;stream&quot;: false
+  "temperature": 0,
+  "stream": false
 }
 [test_data_preprocessor_integration]:[_generate_impl]::[data_preprocessing]:Send
 ing request to Ollama API:
 URL: http://192.168.1.173:11434/api/generate
 Data: {
-  &quot;model&quot;: &quot;gemma3&quot;,
-  &quot;prompt&quot;: &quot;You are a highly skilled world-building assistant. Your task is to
+  "model": "gemma3",
+  "prompt": "You are a highly skilled world-building assistant. Your task is to
 transform textual world data
  into a series of concise, embeddable phrases optimized for semantic search.\n\n
 **Input Format:**\n\nThe input will be plain text \u2013 this could include mark
@@ -480,66 +480,66 @@ rectly parsed.\n\n**Input Data:**\n\n\nCampaign Setting: The Lost Valley\n\nWorl
 d Details:\n- Hidden valley surrounded by impassable mountains\n- Ancient ruins
 scattered throughout\n- Mysterious magical anomalies\n- Three main settlements:
 Haven (central), Riverwatch (east), Mountainkeep (west)\n\nKey NPCs:\n1. Elena\n
-   - Role: Mayor of Haven\n   - Motivation: Protect the valley&#39;s inhabitants\n
+   - Role: Mayor of Haven\n   - Motivation: Protect the valley's inhabitants\n
  - Current Quest: Investigate strange occurrences in Haven\n\n2. Theron\n   - Ro
 le: Master Scholar\n   - Expertise: Ancient ruins and artifacts\n   - Current Re
 search: Decoding ruin inscriptions\n\n3. Sara\n   - Role: Captain of Riverwatch\
-n   - Responsibility: Valley&#39;s defense\n   - Current Concern: Increased monster
+n   - Responsibility: Valley's defense\n   - Current Concern: Increased monster
 activity\n\nCurrent Situations:\n1. Trade Routes\n   - Main road between settlem
 ents disrupted\n   - Merchants seeking protection\n   - Alternative routes neede
 d\n\n2. Ancient Ruins\n   - New chambers discovered\n   - Strange energy emanati
 ons\n   - Valuable artifacts found\n\n3. Magical Anomalies\n   - Random magical
-effects\n   - Affecting local wildlife\n   - Possible connection to ruins\n&quot;,
+effects\n   - Affecting local wildlife\n   - Possible connection to ruins\n",
 
-  &quot;temperature&quot;: 0,
-  &quot;stream&quot;: false
+  "temperature": 0,
+  "stream": false
 }
 [test_data_preprocessor_integration]:[_generate_impl]::[data_preprocessing]:Rece
 ived response from Ollama AP
 I:
                             {
-  &quot;model&quot;: &quot;gemma3&quot;,
-  &quot;created_at&quot;: &quot;2025-05-05T23:05:10.1539122Z&quot;,
-  &quot;response&quot;: &quot;&#96;&#96;&#96;json\n[\n  \&quot;The Lost Valley, a secluded haven concealed by fo
+  "model": "gemma3",
+  "created_at": "2025-05-05T23:05:10.1539122Z",
+  "response": "&#96;&#96;&#96;json\n[\n  \"The Lost Valley, a secluded haven concealed by fo
 rmidable, impassable mountai
-ns, harbors ancient ruins and unsettling magical anomalies.\&quot;,\n  \&quot;Mayor Elena
+ns, harbors ancient ruins and unsettling magical anomalies.\",\n  \"Mayor Elena
 of Haven is dedicated to safeguarding the valley\u2019s populace while currently
- investigating peculiar events and disturbances within the settlement itself.\&quot;,
-\n  \&quot;Theron, the Master Scholar of Riverwatch, tirelessly researches the intric
+ investigating peculiar events and disturbances within the settlement itself.\",
+\n  \"Theron, the Master Scholar of Riverwatch, tirelessly researches the intric
 ate inscriptions found within the valley\u2019s ancient ruins, seeking to unlock
- their secrets.\&quot;,\n  \&quot;Increased monster activity along the disrupted trade rou
+ their secrets.\",\n  \"Increased monster activity along the disrupted trade rou
 tes between Haven, Riverwatch, and Mountainkeep demands heightened vigilance and
- the establishment of secure passages.\&quot;,\n  \&quot;Recent discoveries within the val
-ley&#39;s ancient ruins, including new chambers and valuable artifacts, are intertwi
-ned with erratic magical anomalies impacting the surrounding wildlife.\&quot;\n]\n&#96;&#96;&#96;
-&quot;,                                                                &quot;done&quot;: true,
-  &quot;done_reason&quot;: &quot;stop&quot;,
-  &quot;total_duration&quot;: 5050354800,
-  &quot;load_duration&quot;: 1254545700,
-  &quot;prompt_eval_count&quot;: 481,
-  &quot;prompt_eval_duration&quot;: 204095400,
-  &quot;eval_count&quot;: 157,
-  &quot;eval_duration&quot;: 3591212600
+ the establishment of secure passages.\",\n  \"Recent discoveries within the val
+ley's ancient ruins, including new chambers and valuable artifacts, are intertwi
+ned with erratic magical anomalies impacting the surrounding wildlife.\"\n]\n&#96;&#96;&#96;
+",                                                                "done": true,
+  "done_reason": "stop",
+  "total_duration": 5050354800,
+  "load_duration": 1254545700,
+  "prompt_eval_count": 481,
+  "prompt_eval_duration": 204095400,
+  "eval_count": 157,
+  "eval_duration": 3591212600
 }
 [test_data_preprocessor_integration]:[generate]::[data_preprocessing]:Generated
 response:
 &#96;&#96;&#96;json
 [
-  &quot;The Lost Valley, a secluded haven concealed by formidable, impassable mountai
+  "The Lost Valley, a secluded haven concealed by formidable, impassable mountai
 ns, harbors ancient ruins an
-d unsettling magical anomalies.&quot;,
-                              &quot;Mayor Elena of Haven is dedicated to safeguarding
+d unsettling magical anomalies.",
+                              "Mayor Elena of Haven is dedicated to safeguarding
  the valley’s populace while currently investigating pec
-uliar events and disturbances within the settlement itself.&quot;,
-                              &quot;Theron, the Master Scholar of Riverwatch, tireles
+uliar events and disturbances within the settlement itself.",
+                              "Theron, the Master Scholar of Riverwatch, tireles
 sly researches the intricate inscriptions found within t
-he valley’s ancient ruins, seeking to unlock their secrets.&quot;,
-                              &quot;Increased monster activity along the disrupted tr
+he valley’s ancient ruins, seeking to unlock their secrets.",
+                              "Increased monster activity along the disrupted tr
 ade routes between Haven, Riverwatch, and Mountainkeep d
-emands heightened vigilance and the establishment of secure passages.&quot;,
-                              &quot;Recent discoveries within the valley&#39;s ancient ru
+emands heightened vigilance and the establishment of secure passages.",
+                              "Recent discoveries within the valley's ancient ru
 ins, including new chambers and valuable artifacts, are 
-intertwined with erratic magical anomalies impacting the surrounding wildlife.&quot;
+intertwined with erratic magical anomalies impacting the surrounding wildlife."
                             ]
 &#96;&#96;&#96;
 
@@ -553,15 +553,15 @@ Phrase 1: The Lost Valley, a secluded haven concealed by formidable, impassable
 mountains, harbors ancient r
 uins and unsettling magical anomalies.
                             Phrase 2: Mayor Elena of Haven is dedicated to safeg
-uarding the valley&#39;s populace while currently investigat
+uarding the valley's populace while currently investigat
 ing peculiar events and disturbances within the settlement itself.
                             Phrase 3: Theron, the Master Scholar of Riverwatch,
 tirelessly researches the intricate inscriptions found w
-ithin the valley&#39;s ancient ruins, seeking to unlock their secrets.
+ithin the valley's ancient ruins, seeking to unlock their secrets.
                             Phrase 4: Increased monster activity along the disru
 pted trade routes between Haven, Riverwatch, and Mountai
 nkeep demands heightened vigilance and the establishment of secure passages.
-                            Phrase 5: Recent discoveries within the valley&#39;s anc
+                            Phrase 5: Recent discoveries within the valley's anc
 ient ruins, including new chambers and valuable artifact
 s, are intertwined with erratic magical anomalies impacting the surrounding wild
 life.                       PASSED
@@ -628,18 +628,18 @@ _**Agent (mode Agent)**_
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/digest_generator.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/digest_generator.py</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: 1
 
 ```diff
 @@ -48,10 +48,11 @@
-                  raise Exception(f&quot;Failed to load template: {filename}&quot;)
+                  raise Exception(f"Failed to load template: {filename}")
       
 -     def generate_digest(self, conversation_entry: Dict[str, Any], memory_state: Optional[Dict[str, Any]] = None) -&gt; Dict[str, Any]:
 +     def generate_digest(self, conversation_entry: Dict[str, Any], memory_state: Optional[Dict[str, Any]] = None, segments: Optional[List[str]] = None) -&gt; Dict[str, Any]:
-          &quot;&quot;&quot;Generate a digest from a conversation entry by segmenting and rating importance.
+          """Generate a digest from a conversation entry by segmenting and rating importance.
           
           Args:
               conversation_entry: Dictionary containing the conversation entry with role, content, etc.
@@ -654,7 +654,7 @@ Lines added: 6, lines removed: 3
 
 ```diff
 @@ -70,9 +71,12 @@
-                  return self._create_empty_digest(entry_guid, conversation_entry.get(&quot;role&quot;, &quot;unknown&quot;))
+                  return self._create_empty_digest(entry_guid, conversation_entry.get("role", "unknown"))
               
 -             # Step 1: Segment the content using ContentSegmenter
 -             segments = self.content_segmenter.segment_content(content)
@@ -664,11 +664,11 @@ Lines added: 6, lines removed: 3
 +             else:
 +                 segments_to_use = self.content_segmenter.segment_content(content)
               
-              print(f&quot;\n\ngenerate_digest: Segments:&quot;)
+              print(f"\n\ngenerate_digest: Segments:")
 -             for segment in segments:
 +             for segment in segments_to_use:
                   print(segment)
-              print(f&quot;\n\n&quot;)
+              print(f"\n\n")
 ```
 
 **Chunk 3**
@@ -692,7 +692,7 @@ Lines added: 1, lines removed: 1
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: undefined
@@ -712,12 +712,12 @@ Lines added: 5, lines removed: undefined
 ```diff
 @@ -174,4 +175,9 @@
   
-              print(&quot;\nCreating initial memory structure...&quot;)
+              print("\nCreating initial memory structure...")
 + 
 +             # Use DataPreprocessor to segment the input data
 +             data_preprocessor = DataPreprocessor(self.llm)
 +             preprocessed_segments = data_preprocessor.preprocess_data(input_data)
-+             print(f&quot;Preprocessed segments: {preprocessed_segments}&quot;)
++             print(f"Preprocessed segments: {preprocessed_segments}")
   
               # Create system entry for initial data
 ```
@@ -730,12 +730,12 @@ Lines added: 3, lines removed: 3
               }
               
 -             # Generate digest for initial data
--             print(&quot;Generating digest for initial data...&quot;)
+-             print("Generating digest for initial data...")
 -             initial_digest = self.digest_generator.generate_digest(system_entry)
 +             # Generate digest for initial data using pre-segmented content
-+             print(&quot;Generating digest for initial data with pre-segmented content...&quot;)
++             print("Generating digest for initial data with pre-segmented content...")
 +             initial_digest = self.digest_generator.generate_digest(system_entry, segments=preprocessed_segments)
-              system_entry[&quot;digest&quot;] = initial_digest
+              system_entry["digest"] = initial_digest
                           
 ```
 
@@ -819,7 +819,7 @@ _**Agent (mode Agent)**_
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: README-phase-2.md</summary>
+<details><summary>Tool use: **edit_file** • Edit file: README-phase-2.md</summary>
 
 **Chunk 1**
 Lines added: 32, lines removed: undefined
@@ -831,7 +831,7 @@ Lines added: 32, lines removed: undefined
 + 
 + ## Phase 2 Update – May 05, 2025 – Data Preprocessing Integration &amp; Digest Flexibility
 + 
-+ We&#39;ve implemented a major improvement to the memory initialization and digest pipeline:
++ We've implemented a major improvement to the memory initialization and digest pipeline:
 + 
 + 1. **DataPreprocessor Integration**:
 +    - Introduced a dedicated &#96;DataPreprocessor&#96; class for transforming structured or unstructured world data into concise, embeddable phrases.
@@ -859,7 +859,7 @@ Lines added: 32, lines removed: undefined
 + - Makes the memory system more modular, testable, and extensible for future enhancements.
 + - Lays the groundwork for more advanced preprocessing and knowledge extraction workflows.
 + 
-+ This update represents a significant step forward in the modularity and quality of the agent&#39;s memory system, ensuring that all downstream processes benefit from high-quality, semantically meaningful segments right from initialization.
++ This update represents a significant step forward in the modularity and quality of the agent's memory system, ensuring that all downstream processes benefit from high-quality, semantically meaningful segments right from initialization.
   
 ```
 
@@ -985,29 +985,29 @@ _**Agent (mode Agent)**_
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 12, lines removed: undefined
 
 ```diff
 @@ -281,4 +281,16 @@
-              return &quot;&quot;
+              return ""
   
 +     def _get_initial_segments_text(self) -&gt; str:
-+         &quot;&quot;&quot;Concatenate the rated segments from the initial system entry for use in prompts.&quot;&quot;&quot;
-+         if &quot;conversation_history&quot; not in self.memory or not self.memory[&quot;conversation_history&quot;]:
-+             return &quot;&quot;
-+         initial_entry = self.memory[&quot;conversation_history&quot;][0]
-+         digest = initial_entry.get(&quot;digest&quot;, {})
-+         rated_segments = digest.get(&quot;rated_segments&quot;, [])
++         """Concatenate the rated segments from the initial system entry for use in prompts."""
++         if "conversation_history" not in self.memory or not self.memory["conversation_history"]:
++             return ""
++         initial_entry = self.memory["conversation_history"][0]
++         digest = initial_entry.get("digest", {})
++         rated_segments = digest.get("rated_segments", [])
 +         if not rated_segments:
-+             return initial_entry.get(&quot;content&quot;, &quot;&quot;)
++             return initial_entry.get("content", "")
 +         # Concatenate all segment texts, separated by newlines
-+         return &quot;\n&quot;.join(seg.get(&quot;text&quot;, &quot;&quot;) for seg in rated_segments if seg.get(&quot;text&quot;))
++         return "\n".join(seg.get("text", "") for seg in rated_segments if seg.get("text"))
 + 
       def query_memory(self, query_context: Dict[str, Any]) -&gt; Dict[str, Any]:
-          &quot;&quot;&quot;Query memory with the given context.
+          """Query memory with the given context.
 ```
 
 **Chunk 2**
@@ -1015,12 +1015,12 @@ Lines added: 2, lines removed: 2
 
 ```diff
 @@ -320,6 +332,6 @@
-                  print(f&quot;Added user message to history with digest: {user_message}&quot;)
+                  print(f"Added user message to history with digest: {user_message}")
               
 -             # Format static memory as text (use provided or get from memory)
--             static_memory_text = query_context.get(&quot;static_memory&quot;, &quot;&quot;) or self._format_static_memory_as_text()
+-             static_memory_text = query_context.get("static_memory", "") or self._format_static_memory_as_text()
 +             # Use concatenated initial segments for static memory in prompts
-+             static_memory_text = query_context.get(&quot;static_memory&quot;, &quot;&quot;) or self._get_initial_segments_text() or self._format_static_memory_as_text()
++             static_memory_text = query_context.get("static_memory", "") or self._get_initial_segments_text() or self._format_static_memory_as_text()
               
               # Format context as text (use provided or get from memory)
 ```
@@ -1058,7 +1058,7 @@ _**Agent (mode Agent)**_
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: 1
@@ -1066,11 +1066,11 @@ Lines added: 2, lines removed: 1
 ```diff
 @@ -506,5 +506,6 @@
               # Get current memory state
-              conversation_history = self.memory.get(&quot;conversation_history&quot;, [])
--             static_memory = self.memory.get(&quot;static_memory&quot;, &quot;&quot;)
+              conversation_history = self.memory.get("conversation_history", [])
+-             static_memory = self.memory.get("static_memory", "")
 +             # Use concatenated initial segments for static memory in compression
-+             static_memory = self._get_initial_segments_text() or self.memory.get(&quot;static_memory&quot;, &quot;&quot;)
-              current_context = self.memory.get(&quot;context&quot;, [])
++             static_memory = self._get_initial_segments_text() or self.memory.get("static_memory", "")
+              current_context = self.memory.get("context", [])
               
 ```
 
@@ -1238,7 +1238,7 @@ _**Agent (mode Agent)**_
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: undefined
@@ -1259,13 +1259,13 @@ Lines added: 6, lines removed: undefined
 ```diff
 @@ -86,4 +88,10 @@
           self.memory_compressor = MemoryCompressor(llm_service, importance_threshold)
-          print(&quot;Initialized MemoryCompressor&quot;)
+          print("Initialized MemoryCompressor")
 +         
 +         # Initialize EmbeddingsManager and RAGManager
-+         embeddings_file = os.path.splitext(memory_file)[0] + &quot;_embeddings.jsonl&quot;
++         embeddings_file = os.path.splitext(memory_file)[0] + "_embeddings.jsonl"
 +         self.embeddings_manager = EmbeddingsManager(embeddings_file, llm_service)
 +         self.rag_manager = RAGManager(llm_service, self.embeddings_manager)
-+         print(&quot;Initialized EmbeddingsManager and RAGManager&quot;)
++         print("Initialized EmbeddingsManager and RAGManager")
           
           # Ensure memory has a GUID
 ```
@@ -1275,20 +1275,20 @@ Lines added: 8, lines removed: 3
 
 ```diff
 @@ -341,8 +349,13 @@
-              conversation_history_text = query_context.get(&quot;conversation_history&quot;, &quot;&quot;) or self._format_conversation_history_as_text()
+              conversation_history_text = query_context.get("conversation_history", "") or self._format_conversation_history_as_text()
               
 -             # Get RAG context if provided
--             rag_context = query_context.get(&quot;rag_context&quot;, &quot;&quot;)
+-             rag_context = query_context.get("rag_context", "")
 +             # Get or generate RAG context
-+             rag_context = query_context.get(&quot;rag_context&quot;)
++             rag_context = query_context.get("rag_context")
 +             if not rag_context:
 +                 enhanced_context = self.rag_manager.enhance_memory_query(query_context)
-+                 rag_context = enhanced_context.get(&quot;rag_context&quot;, &quot;&quot;)
++                 rag_context = enhanced_context.get("rag_context", "")
                   if rag_context:
--                 print(&quot;Using RAG-enhanced context for memory query&quot;)
-+                     print(&quot;Using RAG-enhanced context for memory query (auto-generated)&quot;)
+-                 print("Using RAG-enhanced context for memory query")
++                     print("Using RAG-enhanced context for memory query (auto-generated)")
 +             else:
-+                 print(&quot;Using RAG-enhanced context for memory query (provided)&quot;)
++                 print("Using RAG-enhanced context for memory query (provided)")
               
               # Get domain-specific instructions (use provided or get from config)
 ```
@@ -1365,14 +1365,14 @@ _**Agent (mode Agent)**_
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 3, lines removed: undefined
 
 ```diff
 @@ -617,4 +617,7 @@
-              self.save_memory(&quot;add_conversation_entry&quot;)
+              self.save_memory("add_conversation_entry")
               
 +             # Update RAG/embeddings indices for the new entry
 +             self.rag_manager.update_indices([entry])
@@ -1478,77 +1478,77 @@ _**Agent (mode Agent)**_
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/embeddings_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/embeddings_manager.py</summary>
 
 **Chunk 1**
 Lines added: 62, lines removed: 1
 
 ```diff
 @@ -471,3 +471,64 @@
-              self.logger.error(f&quot;Error updating embeddings: {str(e)}&quot;)
+              self.logger.error(f"Error updating embeddings: {str(e)}")
               self.logger.error(traceback.format_exc())
 -             return False 
 +             return False
 +     
 +     def _existing_embedding_keys(self):
-+         &quot;&quot;&quot;Return a set of (guid, type, segment_index) for all current embeddings.&quot;&quot;&quot;
++         """Return a set of (guid, type, segment_index) for all current embeddings."""
 +         keys = set()
 +         for _, metadata in self.embeddings:
-+             guid = metadata.get(&#39;guid&#39;)
-+             typ = metadata.get(&#39;type&#39;, &#39;full_entry&#39;)
-+             segment_index = metadata.get(&#39;segment_index&#39;) if typ == &#39;segment&#39; else None
++             guid = metadata.get('guid')
++             typ = metadata.get('type', 'full_entry')
++             segment_index = metadata.get('segment_index') if typ == 'segment' else None
 +             keys.add((guid, typ, segment_index))
 +         return keys
 +     
 +     def add_embeddings_for_entry(self, entry: Dict) -&gt; int:
-+         &quot;&quot;&quot;Add embeddings for a single conversation entry and its segments, skipping duplicates.
-+         Returns the number of new embeddings added.&quot;&quot;&quot;
++         """Add embeddings for a single conversation entry and its segments, skipping duplicates.
++         Returns the number of new embeddings added."""
 +         added = 0
 +         existing_keys = self._existing_embedding_keys()
-+         guid = entry.get(&#39;guid&#39;)
-+         timestamp = entry.get(&#39;timestamp&#39;, datetime.now().isoformat())
-+         role = entry.get(&#39;role&#39;, &#39;unknown&#39;)
++         guid = entry.get('guid')
++         timestamp = entry.get('timestamp', datetime.now().isoformat())
++         role = entry.get('role', 'unknown')
 +         # Add full entry embedding if not present
-+         key = (guid, &#39;full_entry&#39;, None)
++         key = (guid, 'full_entry', None)
 +         if key not in existing_keys:
 +             entry_metadata = {
-+                 &#39;guid&#39;: guid,
-+                 &#39;timestamp&#39;: timestamp,
-+                 &#39;role&#39;: role,
-+                 &#39;type&#39;: &#39;full_entry&#39;,
-+                 &#39;content&#39;: entry.get(&#39;content&#39;, &#39;&#39;)
++                 'guid': guid,
++                 'timestamp': timestamp,
++                 'role': role,
++                 'type': 'full_entry',
++                 'content': entry.get('content', '')
 +             }
-+             if self.add_embedding(entry.get(&#39;content&#39;, &#39;&#39;), entry_metadata):
++             if self.add_embedding(entry.get('content', ''), entry_metadata):
 +                 added += 1
 +         # Add segment embeddings if present
-+         if &#39;digest&#39; in entry and &#39;rated_segments&#39; in entry[&#39;digest&#39;]:
-+             segments = entry[&#39;digest&#39;][&#39;rated_segments&#39;]
++         if 'digest' in entry and 'rated_segments' in entry['digest']:
++             segments = entry['digest']['rated_segments']
 +             for i, segment in enumerate(segments):
-+                 if &#39;text&#39; not in segment or not segment[&#39;text&#39;]:
++                 if 'text' not in segment or not segment['text']:
 +                     continue
-+                 key = (guid, &#39;segment&#39;, i)
++                 key = (guid, 'segment', i)
 +                 if key in existing_keys:
 +                     continue
 +                 segment_metadata = {
-+                     &#39;guid&#39;: guid,
-+                     &#39;timestamp&#39;: timestamp,
-+                     &#39;role&#39;: role,
-+                     &#39;type&#39;: &#39;segment&#39;,
-+                     &#39;importance&#39;: segment.get(&#39;importance&#39;, 3),
-+                     &#39;topics&#39;: segment.get(&#39;topics&#39;, []),
-+                     &#39;segment_index&#39;: i,
-+                     &#39;text&#39;: segment.get(&#39;text&#39;, &#39;&#39;)
++                     'guid': guid,
++                     'timestamp': timestamp,
++                     'role': role,
++                     'type': 'segment',
++                     'importance': segment.get('importance', 3),
++                     'topics': segment.get('topics', []),
++                     'segment_index': i,
++                     'text': segment.get('text', '')
 +                 }
-+                 if self.add_embedding(segment.get(&#39;text&#39;, &#39;&#39;), segment_metadata):
++                 if self.add_embedding(segment.get('text', ''), segment_metadata):
 +                     added += 1
 +         return added
 +     
 +     def update_indices(self, new_entries: List[Dict]) -&gt; bool:
-+         &quot;&quot;&quot;Incrementally add embeddings for new conversation entries only.&quot;&quot;&quot;
++         """Incrementally add embeddings for new conversation entries only."""
 +         total_added = 0
 +         for entry in new_entries:
 +             total_added += self.add_embeddings_for_entry(entry)
-+         self.logger.info(f&quot;Incremental embedding update: {total_added} new embeddings added.&quot;)
++         self.logger.info(f"Incremental embedding update: {total_added} new embeddings added.")
 +         return total_added &gt; 0 
 ```
 
@@ -1596,7 +1596,7 @@ _**Agent (mode Agent)**_
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 3, lines removed: undefined
@@ -1608,7 +1608,7 @@ Lines added: 3, lines removed: undefined
 +             # Generate and save embeddings for the initial system entry
 +             self.rag_manager.update_indices([system_entry])
 + 
-              print(&quot;Memory created and initialized with static knowledge&quot;)
+              print("Memory created and initialized with static knowledge")
               return True
 ```
 
@@ -1906,7 +1906,7 @@ _**Agent (mode Agent)**_
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/embeddings_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/embeddings_manager.py</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: undefined
@@ -1916,7 +1916,7 @@ Lines added: 2, lines removed: undefined
           self.llm_service = llm_service
           self.embeddings = []  # List of (embedding, metadata) tuples
 +         # Always use the embedding model from env or default
-+         self.embedding_model = os.getenv(&quot;OLLAMA_EMBED_MODEL&quot;, &quot;mxbai-embed-large&quot;)
++         self.embedding_model = os.getenv("OLLAMA_EMBED_MODEL", "mxbai-embed-large")
           
           # Configure logging
 ```
@@ -1929,8 +1929,8 @@ Lines added: 2, lines removed: undefined
               
           options = options or {}
 +         # Always set the embedding model
-+         options = {**options, &quot;model&quot;: self.embedding_model}
-          normalize = options.get(&#39;normalize&#39;, True)
++         options = {**options, "model": self.embedding_model}
+          normalize = options.get('normalize', True)
               
 ```
 
@@ -2130,7 +2130,7 @@ _**Agent (mode Agent)**_
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/agent/agent.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/agent/agent.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -2139,8 +2139,8 @@ Lines added: 1, lines removed: 1
 @@ -42,5 +42,5 @@
               # Create query context
               query_context = {
--                 &quot;user_message&quot;: message
-+                 &quot;query&quot;: message
+-                 "user_message": message
++                 "query": message
               }
               
 ```
@@ -2153,42 +2153,42 @@ Lines added: 1, lines removed: 1
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 4, lines removed: 7
 
 ```diff
 @@ -279,27 +279,24 @@
-              print(&quot;\nQuerying memory...&quot;)
+              print("\nQuerying memory...")
               
 -             # Extract query text and user message (for backward compatibility)
 +             # Extract query text
-              query = query_context.get(&quot;query&quot;, &quot;&quot;)
--             user_message = query_context.get(&quot;user_message&quot;, query)
+              query = query_context.get("query", "")
+-             user_message = query_context.get("user_message", query)
   
               # Add user message to history if it exists
 -             if user_message:
 +             if query:
                   # Create user message entry with GUID
                   user_entry = {
-                      &quot;guid&quot;: str(uuid.uuid4()),
-                      &quot;role&quot;: &quot;user&quot;,
--                     &quot;content&quot;: user_message,
-+                     &quot;content&quot;: query,
-                      &quot;timestamp&quot;: datetime.now().isoformat()
+                      "guid": str(uuid.uuid4()),
+                      "role": "user",
+-                     "content": user_message,
++                     "content": query,
+                      "timestamp": datetime.now().isoformat()
                   }
 -                 
                   # Generate digest for user message
-                  print(&quot;Generating digest for user message...&quot;)
+                  print("Generating digest for user message...")
                   user_digest = self.digest_generator.generate_digest(user_entry, self.memory)
-                  user_entry[&quot;digest&quot;] = user_digest
+                  user_entry["digest"] = user_digest
 -                 
                   # Add to both conversation history file and memory
                   self.add_to_conversation_history(user_entry)
-                  self.memory[&quot;conversation_history&quot;].append(user_entry)
--                 print(f&quot;Added user message to history with digest: {user_message}&quot;)
-+                 print(f&quot;Added user message to history with digest: {query}&quot;)
+                  self.memory["conversation_history"].append(user_entry)
+-                 print(f"Added user message to history with digest: {user_message}")
++                 print(f"Added user message to history with digest: {query}")
               
               # Use concatenated initial segments for static memory in prompts
 ```
@@ -2254,7 +2254,7 @@ _**Agent (mode Agent)**_
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/rag_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/rag_manager.py</summary>
 
 **Chunk 1**
 Lines added: 3, lines removed: 68
@@ -2264,55 +2264,55 @@ Lines added: 3, lines removed: 68
               return enhanced_context
       
 -     def index_memory(self, conversation_entries: List[Dict[str, Any]]) -&gt; bool:
--         &quot;&quot;&quot;Index conversation entries for semantic search.
+-         """Index conversation entries for semantic search.
 -         
 -         Args:
 -             conversation_entries: List of conversation entries to index
 -             
 -         Returns:
 -             bool: True if indexing was successful
--         &quot;&quot;&quot;
+-         """
 -         try:
--             self.logger.info(f&quot;Indexing {len(conversation_entries)} conversation entries for search&quot;)
+-             self.logger.info(f"Indexing {len(conversation_entries)} conversation entries for search")
 -             
 -             # Process entries to ensure they have proper text fields
 -             processed_entries = []
 -             for entry in conversation_entries:
 -                 # Skip entries without content
--                 if &quot;content&quot; not in entry or not entry[&quot;content&quot;]:
--                     self.logger.warning(f&quot;Skipping entry without content: {entry.get(&#39;guid&#39;, &#39;unknown&#39;)}&quot;)
+-                 if "content" not in entry or not entry["content"]:
+-                     self.logger.warning(f"Skipping entry without content: {entry.get('guid', 'unknown')}")
 -                     continue
 -                 
 -                 # Create a copy with both text and content fields to ensure embeddings work
 -                 processed_entry = entry.copy()
 -                 
 -                 # Ensure text field is present (some implementations expect this)
--                 if &quot;text&quot; not in processed_entry:
--                     processed_entry[&quot;text&quot;] = processed_entry[&quot;content&quot;]
+-                 if "text" not in processed_entry:
+-                     processed_entry["text"] = processed_entry["content"]
 -                 
 -                 # Process digest if available to extract segments
--                 if &quot;digest&quot; in processed_entry and &quot;rated_segments&quot; in processed_entry[&quot;digest&quot;]:
+-                 if "digest" in processed_entry and "rated_segments" in processed_entry["digest"]:
 -                     # Make sure the digest has text for each segment 
--                     for segment in processed_entry[&quot;digest&quot;][&quot;rated_segments&quot;]:
--                         if &quot;text&quot; not in segment or not segment[&quot;text&quot;]:
--                             self.logger.warning(f&quot;Segment in entry {processed_entry.get(&#39;guid&#39;, &#39;unknown&#39;)} missing text&quot;)
+-                     for segment in processed_entry["digest"]["rated_segments"]:
+-                         if "text" not in segment or not segment["text"]:
+-                             self.logger.warning(f"Segment in entry {processed_entry.get('guid', 'unknown')} missing text")
 -                 
 -                 processed_entries.append(processed_entry)
 -             
 -             # Use the embeddings manager to update indices
 -             if not processed_entries:
--                 self.logger.warning(&quot;No valid entries to index&quot;)
+-                 self.logger.warning("No valid entries to index")
 -                 return False
 -                 
 -             success = self.embeddings_manager.update_embeddings(processed_entries)
--             self.logger.info(f&quot;Indexing completed: {&#39;successfully&#39; if success else &#39;with errors&#39;}&quot;)
+-             self.logger.info(f"Indexing completed: {'successfully' if success else 'with errors'}")
 -             return success
 -         except Exception as e:
--             self.logger.error(f&quot;Error indexing memory: {str(e)}&quot;)
+-             self.logger.error(f"Error indexing memory: {str(e)}")
 -             return False
 -     
 -     def update_indices(self, new_entries: List[Dict[str, Any]]) -&gt; bool:
--         &quot;&quot;&quot;Update indices with new conversation entries.
+-         """Update indices with new conversation entries.
 -         
 -         This is typically called when new conversation entries are added.
 -         
@@ -2321,15 +2321,15 @@ Lines added: 3, lines removed: 68
 -             
 -         Returns:
 -             bool: True if update was successful
--         &quot;&quot;&quot;
+-         """
 -         try:
--             self.logger.info(f&quot;Updating indices with {len(new_entries)} new entries&quot;)
+-             self.logger.info(f"Updating indices with {len(new_entries)} new entries")
 -             # For now, this just calls index_memory, but in the future
 -             # we could implement incremental updates instead of rebuilding
 -             # the entire index
 -             return self.index_memory(new_entries)
 -         except Exception as e:
--             self.logger.error(f&quot;Error updating indices: {str(e)}&quot;)
+-             self.logger.error(f"Error updating indices: {str(e)}")
 -             return False
 +     # Embedding/indexing is now fully delegated to EmbeddingsManager.
 +     # For incremental updates, use self.embeddings_manager.update_indices(new_entries)
@@ -2377,7 +2377,7 @@ _**Agent (mode Agent)**_
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/embeddings_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/embeddings_manager.py</summary>
 
 **Chunk 1**
 Lines added: 3, lines removed: 26
@@ -2387,36 +2387,36 @@ Lines added: 3, lines removed: 26
               
               for entry in conversation_entries:
 -                 # Skip entries without content
--                 if &quot;content&quot; not in entry or not entry[&quot;content&quot;]:
--                     self.logger.warning(f&quot;Skipping entry without content: {entry.get(&#39;guid&#39;, &#39;unknown&#39;)}&quot;)
+-                 if "content" not in entry or not entry["content"]:
+-                     self.logger.warning(f"Skipping entry without content: {entry.get('guid', 'unknown')}")
 -                     continue
 -                     
 -                 total_count += 1
 -                 
 -                 # Generate metadata for full entry
 -                 entry_metadata = {
--                     &#39;guid&#39;: entry.get(&#39;guid&#39;, str(total_count)),
--                     &#39;timestamp&#39;: entry.get(&#39;timestamp&#39;, datetime.now().isoformat()),
--                     &#39;role&#39;: entry.get(&#39;role&#39;, &#39;unknown&#39;),
--                     &#39;type&#39;: &#39;full_entry&#39;,
--                     &#39;content&#39;: entry.get(&#39;content&#39;, &#39;&#39;)
+-                     'guid': entry.get('guid', str(total_count)),
+-                     'timestamp': entry.get('timestamp', datetime.now().isoformat()),
+-                     'role': entry.get('role', 'unknown'),
+-                     'type': 'full_entry',
+-                     'content': entry.get('content', '')
 -                 }
 -                 
 -                 # Generate embedding for full entry
--                 if self.add_embedding(entry.get(&#39;content&#39;, &#39;&#39;), entry_metadata):
+-                 if self.add_embedding(entry.get('content', ''), entry_metadata):
 -                     success_count += 1
 -                 
 -                 # Generate embeddings for segments if available
 +                 # Only embed rated_segments from digest
-                  if &#39;digest&#39; in entry and &#39;rated_segments&#39; in entry[&#39;digest&#39;]:
-                      segments = entry[&#39;digest&#39;][&#39;rated_segments&#39;]
--                     self.logger.info(f&quot;Processing {len(segments)} segments for entry {entry_metadata[&#39;guid&#39;]}&quot;)
+                  if 'digest' in entry and 'rated_segments' in entry['digest']:
+                      segments = entry['digest']['rated_segments']
+-                     self.logger.info(f"Processing {len(segments)} segments for entry {entry_metadata['guid']}")
 -                     
-+                     self.logger.info(f&quot;Processing {len(segments)} segments for entry {entry.get(&#39;guid&#39;, str(total_count))}&quot;)
++                     self.logger.info(f"Processing {len(segments)} segments for entry {entry.get('guid', str(total_count))}")
                       for i, segment in enumerate(segments):
-                          if &#39;text&#39; not in segment or not segment[&#39;text&#39;]:
--                             self.logger.warning(f&quot;Skipping segment {i} without text in entry {entry_metadata[&#39;guid&#39;]}&quot;)
-+                             self.logger.warning(f&quot;Skipping segment {i} without text in entry {entry.get(&#39;guid&#39;, str(total_count))}&quot;)
+                          if 'text' not in segment or not segment['text']:
+-                             self.logger.warning(f"Skipping segment {i} without text in entry {entry_metadata['guid']}")
++                             self.logger.warning(f"Skipping segment {i} without text in entry {entry.get('guid', str(total_count))}")
                               continue
 -                             
                           total_count += 1
@@ -2430,10 +2430,10 @@ Lines added: undefined, lines removed: 1
 
 ```diff
 @@ -466,5 +443,4 @@
-                              &#39;text&#39;: segment.get(&#39;text&#39;, &#39;&#39;)
+                              'text': segment.get('text', '')
                           }
 -                         
-                          if self.add_embedding(segment.get(&#39;text&#39;, &#39;&#39;), segment_metadata):
+                          if self.add_embedding(segment.get('text', ''), segment_metadata):
                               success_count += 1
 ```
 
@@ -2442,22 +2442,22 @@ Lines added: undefined, lines removed: 12
 
 ```diff
 @@ -495,16 +471,4 @@
-          timestamp = entry.get(&#39;timestamp&#39;, datetime.now().isoformat())
-          role = entry.get(&#39;role&#39;, &#39;unknown&#39;)
+          timestamp = entry.get('timestamp', datetime.now().isoformat())
+          role = entry.get('role', 'unknown')
 -         # Add full entry embedding if not present
--         key = (guid, &#39;full_entry&#39;, None)
+-         key = (guid, 'full_entry', None)
 -         if key not in existing_keys:
 -             entry_metadata = {
--                 &#39;guid&#39;: guid,
--                 &#39;timestamp&#39;: timestamp,
--                 &#39;role&#39;: role,
--                 &#39;type&#39;: &#39;full_entry&#39;,
--                 &#39;content&#39;: entry.get(&#39;content&#39;, &#39;&#39;)
+-                 'guid': guid,
+-                 'timestamp': timestamp,
+-                 'role': role,
+-                 'type': 'full_entry',
+-                 'content': entry.get('content', '')
 -             }
--             if self.add_embedding(entry.get(&#39;content&#39;, &#39;&#39;), entry_metadata):
+-             if self.add_embedding(entry.get('content', ''), entry_metadata):
 -                 added += 1
           # Add segment embeddings if present
-          if &#39;digest&#39; in entry and &#39;rated_segments&#39; in entry[&#39;digest&#39;]:
+          if 'digest' in entry and 'rated_segments' in entry['digest']:
 ```
 
 </details>
@@ -2529,7 +2529,7 @@ _**Agent (mode Agent)**_
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -2541,7 +2541,7 @@ Lines added: 1, lines removed: 1
 -             self.rag_manager.update_indices([system_entry])
 +             self.embeddings_manager.update_indices([system_entry])
   
-              print(&quot;Memory created and initialized with static knowledge&quot;)
+              print("Memory created and initialized with static knowledge")
 ```
 
 **Chunk 2**
@@ -2794,21 +2794,21 @@ _**Agent (mode Agent)**_
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 2
 
 ```diff
 @@ -282,7 +282,6 @@
-              query = query_context.get(&quot;query&quot;, &quot;&quot;)
+              query = query_context.get("query", "")
   
 -             # Add user message to history if it exists
 +             # Add user message to history and trigger embedding/indexing
               if query:
 -                 # Create user message entry with GUID
                   user_entry = {
-                      &quot;guid&quot;: str(uuid.uuid4()),
+                      "guid": str(uuid.uuid4()),
 ```
 
 **Chunk 2**
@@ -2816,16 +2816,16 @@ Lines added: 1, lines removed: 8
 
 ```diff
 @@ -291,12 +290,5 @@
-                      &quot;timestamp&quot;: datetime.now().isoformat()
+                      "timestamp": datetime.now().isoformat()
                   }
 -                 # Generate digest for user message
--                 print(&quot;Generating digest for user message...&quot;)
+-                 print("Generating digest for user message...")
 -                 user_digest = self.digest_generator.generate_digest(user_entry, self.memory)
--                 user_entry[&quot;digest&quot;] = user_digest
+-                 user_entry["digest"] = user_digest
 -                 # Add to both conversation history file and memory
 -                 self.add_to_conversation_history(user_entry)
--                 self.memory[&quot;conversation_history&quot;].append(user_entry)
--                 print(f&quot;Added user message to history with digest: {query}&quot;)
+-                 self.memory["conversation_history"].append(user_entry)
+-                 print(f"Added user message to history with digest: {query}")
 +                 self.add_conversation_entry(user_entry)
               
               # Use concatenated initial segments for static memory in prompts
@@ -2841,7 +2841,7 @@ Lines added: 1, lines removed: 1
 -             # Create agent entry with GUID
 +             # Add agent response to history and trigger embedding/indexing
               agent_entry = {
-                  &quot;guid&quot;: str(uuid.uuid4()),
+                  "guid": str(uuid.uuid4()),
 ```
 
 **Chunk 4**
@@ -2849,18 +2849,18 @@ Lines added: 1, lines removed: 10
 
 ```diff
 @@ -350,14 +342,5 @@
-                  &quot;timestamp&quot;: datetime.now().isoformat()
+                  "timestamp": datetime.now().isoformat()
               }
 -             
 -             # Generate digest for agent response
--             print(&quot;Generating digest for agent response...&quot;)
+-             print("Generating digest for agent response...")
 -             agent_digest = self.digest_generator.generate_digest(agent_entry, self.memory)
--             agent_entry[&quot;digest&quot;] = agent_digest
+-             agent_entry["digest"] = agent_digest
 -             
 -             # Add to both conversation history file and memory
 -             self.add_to_conversation_history(agent_entry)
--             self.memory[&quot;conversation_history&quot;].append(agent_entry)
--             print(&quot;Added agent response to history with digest&quot;)
+-             self.memory["conversation_history"].append(agent_entry)
+-             print("Added agent response to history with digest")
 +             self.add_conversation_entry(agent_entry)
   
               # Save to persist memory updates
@@ -2895,7 +2895,7 @@ _**Agent (mode Agent)**_
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: README-phase-2.md</summary>
+<details><summary>Tool use: **edit_file** • Edit file: README-phase-2.md</summary>
 
 **Chunk 1**
 Lines added: 23, lines removed: 26
@@ -2907,8 +2907,8 @@ Lines added: 23, lines removed: 26
 - ## Phase 2 Update – May 05, 2025 – Data Preprocessing Integration &amp; Digest Flexibility
 + ## Phase 2 Update – May 05, 2025 – Robust Embedding Pipeline, RAG Cleanup, and Unified Entry Handling
   
-- We&#39;ve implemented a major improvement to the memory initialization and digest pipeline:
-+ We&#39;ve completed a major round of improvements to the memory, embedding, and retrieval pipeline:
+- We've implemented a major improvement to the memory initialization and digest pipeline:
++ We've completed a major round of improvements to the memory, embedding, and retrieval pipeline:
   
 - 1. **DataPreprocessor Integration**:
 -    - Introduced a dedicated &#96;DataPreprocessor&#96; class for transforming structured or unstructured world data into concise, embeddable phrases.
@@ -2956,8 +2956,8 @@ Lines added: 23, lines removed: 26
 +    - All entry addition, digesting, and embedding logic is centralized, reducing the risk of future bugs.
 +    - The system is easier to test, extend, and reason about, paving the way for future improvements in knowledge extraction, RAG, and memory visualization.
   
-- This update represents a significant step forward in the modularity and quality of the agent&#39;s memory system, ensuring that all downstream processes benefit from high-quality, semantically meaningful segments right from initialization.
-+ These changes represent a significant step forward in the reliability, quality, and extensibility of the agent&#39;s memory and retrieval system. The groundwork is now laid for even more advanced RAG, semantic search, and knowledge graph features in the next phase.
+- This update represents a significant step forward in the modularity and quality of the agent's memory system, ensuring that all downstream processes benefit from high-quality, semantically meaningful segments right from initialization.
++ These changes represent a significant step forward in the reliability, quality, and extensibility of the agent's memory and retrieval system. The groundwork is now laid for even more advanced RAG, semantic search, and knowledge graph features in the next phase.
   
   ## TODO
 ```
@@ -3015,7 +3015,7 @@ _**Agent (mode Agent)**_
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: README-phase-2.md</summary>
+<details><summary>Tool use: **edit_file** • Edit file: README-phase-2.md</summary>
 
 **Chunk 1**
 Lines added: 28, lines removed: undefined
@@ -3023,11 +3023,11 @@ Lines added: 28, lines removed: undefined
 ```diff
 @@ -682,4 +682,32 @@
   
-  This update represents a significant step forward in the modularity and quality of the agent&#39;s memory system, ensuring that all downstream processes benefit from high-quality, semantically meaningful segments right from initialization.
+  This update represents a significant step forward in the modularity and quality of the agent's memory system, ensuring that all downstream processes benefit from high-quality, semantically meaningful segments right from initialization.
 + 
 + ## Phase 2 Update – May 06, 2025 – Segment-Only Embeddings, Unified Entry Flow, and RAG/Embedding Separation
 + 
-+ We&#39;ve delivered another round of critical improvements to the agent&#39;s memory and retrieval system:
++ We've delivered another round of critical improvements to the agent's memory and retrieval system:
 + 
 + 1. **Segment-Only Embedding Generation**:
 +    - Embeddings are now generated exclusively for the LLM-rated segments (&#96;rated_segments&#96;) of each conversation entry, rather than for the full entry content.
@@ -3051,7 +3051,7 @@ Lines added: 28, lines removed: undefined
 +    - All entry addition, digesting, and embedding logic is centralized, reducing the risk of future bugs.
 +    - The system is easier to test, extend, and reason about, paving the way for future improvements in knowledge extraction, RAG, and memory visualization.
 + 
-+ These changes further strengthen the reliability, quality, and extensibility of the agent&#39;s memory and retrieval system. The groundwork is now laid for even more advanced RAG, semantic search, and knowledge graph features in the next phase.
++ These changes further strengthen the reliability, quality, and extensibility of the agent's memory and retrieval system. The groundwork is now laid for even more advanced RAG, semantic search, and knowledge graph features in the next phase.
   
   ## TODO
 ```

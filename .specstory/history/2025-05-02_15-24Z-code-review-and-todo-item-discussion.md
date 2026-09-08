@@ -111,7 +111,7 @@ I'll create a new file for the `ContentSegmenter` class and then modify the `Dig
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/content_segmenter.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/content_segmenter.py</summary>
 
 **Chunk 1**
 Lines added: 92, lines removed: 1
@@ -119,7 +119,7 @@ Lines added: 92, lines removed: 1
 ```diff
 @@ -1,1 +1,92 @@
 - 
-+ &quot;&quot;&quot;Content Segmenter for Agent System
++ """Content Segmenter for Agent System
 + 
 + This module provides functionality for segmenting text content into meaningful chunks.
 + The ContentSegmenter uses LLM to intelligently break down text while preserving context
@@ -140,7 +140,7 @@ Lines added: 92, lines removed: 1
 +    - Graceful degradation when segmentation fails
 +    - Fallback to simpler segmentation methods
 +    - Comprehensive validation of results
-+ &quot;&quot;&quot;
++ """
 + 
 + from typing import List, Optional
 + import json
@@ -148,38 +148,38 @@ Lines added: 92, lines removed: 1
 + import os
 + 
 + class ContentSegmenter:
-+     &quot;&quot;&quot;Handles segmentation of text content into meaningful chunks.&quot;&quot;&quot;
++     """Handles segmentation of text content into meaningful chunks."""
 +     
 +     def __init__(self, llm_service):
-+         &quot;&quot;&quot;Initialize the ContentSegmenter.
++         """Initialize the ContentSegmenter.
 +         
 +         Args:
 +             llm_service: Service for LLM operations
-+         &quot;&quot;&quot;
++         """
 +         self.llm = llm_service
 +         self._load_templates()
 +     
 +     def _load_templates(self) -&gt; None:
-+         &quot;&quot;&quot;Load prompt templates from files&quot;&quot;&quot;
-+         template_dir = os.path.join(os.path.dirname(__file__), &quot;templates&quot;)
++         """Load prompt templates from files"""
++         template_dir = os.path.join(os.path.dirname(__file__), "templates")
 +         
 +         try:
-+             with open(os.path.join(template_dir, &quot;segment_conversation.prompt&quot;), &#39;r&#39;) as f:
++             with open(os.path.join(template_dir, "segment_conversation.prompt"), 'r') as f:
 +                 self.segment_template = f.read().strip()
-+             print(&quot;Loaded segmentation template&quot;)
++             print("Loaded segmentation template")
 +         except Exception as e:
-+             print(f&quot;Error loading segmentation template: {str(e)}&quot;)
-+             raise Exception(&quot;Failed to load segmentation template&quot;)
++             print(f"Error loading segmentation template: {str(e)}")
++             raise Exception("Failed to load segmentation template")
 +     
 +     def segment_content(self, content: str) -&gt; List[str]:
-+         &quot;&quot;&quot;Segment the content into meaningful phrases using LLM.
++         """Segment the content into meaningful phrases using LLM.
 +         
 +         Args:
 +             content: The text content to segment
 +             
 +         Returns:
 +             list: A list of segmented phrases
-+         &quot;&quot;&quot;
++         """
 +         try:
 +             # Format the prompt with the content
 +             prompt = self.segment_template.format(content=content)
@@ -191,12 +191,12 @@ Lines added: 92, lines removed: 1
 +             try:
 +                 segments = json.loads(llm_response)
 +                 if not isinstance(segments, list):
-+                     print(&quot;Segmentation failed: Response is not a list&quot;)
++                     print("Segmentation failed: Response is not a list")
 +                     return [content]  # Fall back to using the entire content as a single segment
 +                 return segments
 +             except json.JSONDecodeError:
-+                 # Try to extract JSON array if it&#39;s embedded in markdown or other text
-+                 segments_match = re.search(r&#39;\[\s*&quot;.*&quot;\s*(?:,\s*&quot;.*&quot;\s*)*\]&#39;, llm_response, re.DOTALL)
++                 # Try to extract JSON array if it's embedded in markdown or other text
++                 segments_match = re.search(r'\[\s*".*"\s*(?:,\s*".*"\s*)*\]', llm_response, re.DOTALL)
 +                 if segments_match:
 +                     try:
 +                         segments = json.loads(segments_match.group(0))
@@ -205,11 +205,11 @@ Lines added: 92, lines removed: 1
 +                         pass
 +                 
 +                 # Fall back to using the entire content as a single segment
-+                 print(&quot;Failed to parse segments, using entire content&quot;)
++                 print("Failed to parse segments, using entire content")
 +                 return [content]
 +                 
 +         except Exception as e:
-+             print(f&quot;Error in content segmentation: {str(e)}&quot;)
++             print(f"Error in content segmentation: {str(e)}")
 +             return [content]  # Fall back to using the entire content as a single segment 
 ```
 
@@ -226,7 +226,7 @@ Now I'll modify the `DigestGenerator` class to use the new `ContentSegmenter`:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/digest_generator.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/digest_generator.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: undefined
@@ -245,7 +245,7 @@ Lines added: 1, lines removed: undefined
 
 ```diff
 @@ -24,4 +25,5 @@
-          &quot;&quot;&quot;
+          """
           self.llm = llm_service
 +         self.content_segmenter = ContentSegmenter(llm_service)
           self._load_templates()
@@ -259,8 +259,8 @@ Lines added: undefined, lines removed: 1
 @@ -32,5 +34,4 @@
           
           template_files = {
--             &quot;segment&quot;: &quot;segment_conversation.prompt&quot;,
-              &quot;rate&quot;: &quot;rate_segments.prompt&quot;
+-             "segment": "segment_conversation.prompt",
+              "rate": "rate_segments.prompt"
           }
 ```
 
@@ -269,14 +269,14 @@ Lines added: 2, lines removed: 2
 
 ```diff
 @@ -69,6 +70,6 @@
-                  return self._create_empty_digest(entry_guid, conversation_entry.get(&quot;role&quot;, &quot;unknown&quot;))
+                  return self._create_empty_digest(entry_guid, conversation_entry.get("role", "unknown"))
               
 -             # Step 1: Segment the content
 -             segments = self._segment_content(content)
 +             # Step 1: Segment the content using ContentSegmenter
 +             segments = self.content_segmenter.segment_content(content)
               
-              print(f&quot;\n\ngenerate_digest: Segments:&quot;)
+              print(f"\n\ngenerate_digest: Segments:")
 ```
 
 **Chunk 5**
@@ -284,20 +284,20 @@ Lines added: undefined, lines removed: 41
 
 ```diff
 @@ -103,45 +104,4 @@
-                                              conversation_entry.get(&quot;role&quot;, &quot;unknown&quot;))
+                                              conversation_entry.get("role", "unknown"))
       
 -     def _segment_content(self, content: str) -&gt; List[str]:
--         &quot;&quot;&quot;Segment the content into meaningful phrases using LLM.
+-         """Segment the content into meaningful phrases using LLM.
 -         
 -         Args:
 -             content: The text content to segment
 -             
 -         Returns:
 -             list: A list of segmented phrases
--         &quot;&quot;&quot;
+-         """
 -         try:
 -             # Format the prompt with the content
--             prompt = self.templates[&quot;segment&quot;].format(content=content)
+-             prompt = self.templates["segment"].format(content=content)
 -             
 -             # Call LLM to segment the content
 -             llm_response = self.llm.generate(prompt)
@@ -306,12 +306,12 @@ Lines added: undefined, lines removed: 41
 -             try:
 -                 segments = json.loads(llm_response)
 -                 if not isinstance(segments, list):
--                     print(&quot;Segmentation failed: Response is not a list&quot;)
+-                     print("Segmentation failed: Response is not a list")
 -                     return [content]  # Fall back to using the entire content as a single segment
 -                 return segments
 -             except json.JSONDecodeError:
--                 # Try to extract JSON array if it&#39;s embedded in markdown or other text
--                 segments_match = re.search(r&#39;\[\s*&quot;.*&quot;\s*(?:,\s*&quot;.*&quot;\s*)*\]&#39;, llm_response, re.DOTALL)
+-                 # Try to extract JSON array if it's embedded in markdown or other text
+-                 segments_match = re.search(r'\[\s*".*"\s*(?:,\s*".*"\s*)*\]', llm_response, re.DOTALL)
 -                 if segments_match:
 -                     try:
 -                         segments = json.loads(segments_match.group(0))
@@ -320,15 +320,15 @@ Lines added: undefined, lines removed: 41
 -                         pass
 -                 
 -                 # Fall back to using the entire content as a single segment
--                 print(&quot;Failed to parse segments, using entire content&quot;)
+-                 print("Failed to parse segments, using entire content")
 -                 return [content]
 -                 
 -         except Exception as e:
--             print(f&quot;Error in content segmentation: {str(e)}&quot;)
+-             print(f"Error in content segmentation: {str(e)}")
 -             return [content]  # Fall back to using the entire content as a single segment
 -     
       def _rate_segments(self, segments: List[str], memory_state: Optional[Dict[str, Any]] = None) -&gt; List[Dict[str, Any]]:
-          &quot;&quot;&quot;Rate segments for importance and assign topics using LLM.
+          """Rate segments for importance and assign topics using LLM.
 ```
 
 </details>
@@ -344,7 +344,7 @@ Now I'll create a test file for the new `ContentSegmenter` class:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: tests/memory_manager/test_content_segmenter.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: tests/memory_manager/test_content_segmenter.py</summary>
 
 **Chunk 1**
 Lines added: 76, lines removed: 1
@@ -352,7 +352,7 @@ Lines added: 76, lines removed: 1
 ```diff
 @@ -1,1 +1,76 @@
 - 
-+ &quot;&quot;&quot;Tests for the ContentSegmenter class.&quot;&quot;&quot;
++ """Tests for the ContentSegmenter class."""
 + 
 + import pytest
 + from src.memory.content_segmenter import ContentSegmenter
@@ -360,74 +360,74 @@ Lines added: 76, lines removed: 1
 + 
 + @pytest.fixture
 + def llm_service():
-+     &quot;&quot;&quot;Create an LLM service for testing.&quot;&quot;&quot;
++     """Create an LLM service for testing."""
 +     return OllamaService({
-+         &quot;base_url&quot;: &quot;http://localhost:11434&quot;,
-+         &quot;model&quot;: &quot;llama2&quot;,
-+         &quot;debug&quot;: True,
-+         &quot;debug_scope&quot;: &quot;test_content_segmenter&quot;
++         "base_url": "http://localhost:11434",
++         "model": "llama2",
++         "debug": True,
++         "debug_scope": "test_content_segmenter"
 +     })
 + 
 + @pytest.fixture
 + def content_segmenter(llm_service):
-+     &quot;&quot;&quot;Create a ContentSegmenter instance for testing.&quot;&quot;&quot;
++     """Create a ContentSegmenter instance for testing."""
 +     return ContentSegmenter(llm_service)
 + 
 + def test_segment_content(content_segmenter):
-+     &quot;&quot;&quot;Test segmenting content into meaningful chunks.&quot;&quot;&quot;
++     """Test segmenting content into meaningful chunks."""
 +     # Test with a simple text
-+     content = &quot;Captain Sara patrols the eastern border with her squad of ten guards. She&#39;s concerned about recent monster sightings and has requested additional resources.&quot;
++     content = "Captain Sara patrols the eastern border with her squad of ten guards. She's concerned about recent monster sightings and has requested additional resources."
 +     segments = content_segmenter.segment_content(content)
 +     
-+     assert isinstance(segments, list), &quot;Segments should be a list&quot;
-+     assert len(segments) &gt; 1, &quot;Should produce multiple segments&quot;
++     assert isinstance(segments, list), "Segments should be a list"
++     assert len(segments) &gt; 1, "Should produce multiple segments"
 +     
 +     # Print the segments for inspection
-+     print(&quot;\nSegmentation Results:&quot;)
++     print("\nSegmentation Results:")
 +     for i, segment in enumerate(segments):
-+         print(f&quot;Segment {i}: {segment}&quot;)
++         print(f"Segment {i}: {segment}")
 +     
 +     # Verify that all content is covered
-+     combined_segments = &quot; &quot;.join(segments)
-+     assert content.replace(&quot; &quot;, &quot;&quot;) == combined_segments.replace(&quot; &quot;, &quot;&quot;), &quot;All content should be covered&quot;
++     combined_segments = " ".join(segments)
++     assert content.replace(" ", "") == combined_segments.replace(" ", ""), "All content should be covered"
 + 
 + def test_segment_content_empty(content_segmenter):
-+     &quot;&quot;&quot;Test segmenting empty content.&quot;&quot;&quot;
-+     segments = content_segmenter.segment_content(&quot;&quot;)
-+     assert isinstance(segments, list), &quot;Should return a list&quot;
-+     assert len(segments) == 1, &quot;Should return a single empty segment&quot;
-+     assert segments[0] == &quot;&quot;, &quot;Should return empty string&quot;
++     """Test segmenting empty content."""
++     segments = content_segmenter.segment_content("")
++     assert isinstance(segments, list), "Should return a list"
++     assert len(segments) == 1, "Should return a single empty segment"
++     assert segments[0] == "", "Should return empty string"
 + 
 + def test_segment_content_single_sentence(content_segmenter):
-+     &quot;&quot;&quot;Test segmenting a single sentence.&quot;&quot;&quot;
-+     content = &quot;This is a single sentence.&quot;
++     """Test segmenting a single sentence."""
++     content = "This is a single sentence."
 +     segments = content_segmenter.segment_content(content)
 +     
-+     assert isinstance(segments, list), &quot;Should return a list&quot;
-+     assert len(segments) == 1, &quot;Should return a single segment&quot;
-+     assert segments[0] == content, &quot;Should return the original content&quot;
++     assert isinstance(segments, list), "Should return a list"
++     assert len(segments) == 1, "Should return a single segment"
++     assert segments[0] == content, "Should return the original content"
 + 
 + def test_segment_content_complex(content_segmenter):
-+     &quot;&quot;&quot;Test segmenting complex content with multiple types of sentences.&quot;&quot;&quot;
-+     content = &quot;&quot;&quot;The world is known as The Lost Valley, a place shielded by towering, impassable mountains.
-+     Within this valley, you&#39;ll find ancient ruins scattered across the landscape.
++     """Test segmenting complex content with multiple types of sentences."""
++     content = """The world is known as The Lost Valley, a place shielded by towering, impassable mountains.
++     Within this valley, you'll find ancient ruins scattered across the landscape.
 +     These ruins are the source of strange occurrences: mysterious magical anomalies, and even random magical effects!
 +     Currently, there are three main settlements: Haven, governed by Mayor Elena; Riverwatch, and Mountainkeep.
-+     The valley&#39;s inhabitants are increasingly concerned about a rise in monster activity.&quot;&quot;&quot;
++     The valley's inhabitants are increasingly concerned about a rise in monster activity."""
 +     
 +     segments = content_segmenter.segment_content(content)
 +     
-+     assert isinstance(segments, list), &quot;Segments should be a list&quot;
-+     assert len(segments) &gt; 1, &quot;Should produce multiple segments&quot;
++     assert isinstance(segments, list), "Segments should be a list"
++     assert len(segments) &gt; 1, "Should produce multiple segments"
 +     
 +     # Print the segments for inspection
-+     print(&quot;\nComplex Segmentation Results:&quot;)
++     print("\nComplex Segmentation Results:")
 +     for i, segment in enumerate(segments):
-+         print(f&quot;Segment {i}: {segment}&quot;)
++         print(f"Segment {i}: {segment}")
 +     
 +     # Verify that all content is covered
-+     combined_segments = &quot; &quot;.join(segments)
-+     assert content.replace(&quot; &quot;, &quot;&quot;).replace(&quot;\n&quot;, &quot;&quot;) == combined_segments.replace(&quot; &quot;, &quot;&quot;), &quot;All content should be covered&quot; 
++     combined_segments = " ".join(segments)
++     assert content.replace(" ", "").replace("\n", "") == combined_segments.replace(" ", ""), "All content should be covered" 
 ```
 
 </details>
@@ -498,18 +498,18 @@ The `debug_scope` parameter appears twice in the configuration dictionary, with 
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: tests/memory_manager/test_content_segmenter.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: tests/memory_manager/test_content_segmenter.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 2
 
 ```diff
 @@ -16,6 +16,5 @@
-          &quot;debug_file&quot;: &quot;content_segmenter.log&quot;,
-          &quot;debug_scope&quot;: &quot;test_content_segmenter&quot;,
--         &quot;console_output&quot;: False,
--         &quot;debug_scope&quot;: &quot;test_content_segmenter&quot;
-+         &quot;console_output&quot;: False
+          "debug_file": "content_segmenter.log",
+          "debug_scope": "test_content_segmenter",
+-         "console_output": False,
+-         "debug_scope": "test_content_segmenter"
++         "console_output": False
       })
   
 ```
@@ -624,7 +624,7 @@ I see the issue. The prompt could be improved to better handle single sentences 
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/templates/segment_conversation.prompt</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/templates/segment_conversation.prompt</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: undefined
@@ -647,9 +647,9 @@ Lines added: 6, lines removed: 1
   ]
   
 - Return ONLY a JSON array of strings, with each string being a distinct segment. The response should be valid JSON that can be directly parsed. Make sure to include ALL content from the original text in your segmentation. 
-+ For a single sentence like &quot;This is a single sentence.&quot;, the segmentation would be:
++ For a single sentence like "This is a single sentence.", the segmentation would be:
 + [
-+   &quot;This is a single sentence.&quot;
++   "This is a single sentence."
 + ]
 + 
 + Return ONLY a JSON array of strings, with each string being a distinct segment. The response should be valid JSON that can be directly parsed. Make sure to include ALL content from the original text in your segmentation, with NO DUPLICATION. 
@@ -690,7 +690,7 @@ I'll modify the `ContentSegmenter` class to return an empty array when the input
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/content_segmenter.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/content_segmenter.py</summary>
 
 **Chunk 1**
 Lines added: 5, lines removed: 1
@@ -701,7 +701,7 @@ Lines added: 5, lines removed: 1
           Returns:
 -             list: A list of segmented phrases
 +             list: A list of segmented phrases. Returns an empty list if input is empty.
-          &quot;&quot;&quot;
+          """
           try:
 +             # Return empty list for empty input
 +             if not content or not content.strip():
@@ -724,23 +724,23 @@ Now I'll update the test to verify this behavior:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: tests/memory_manager/test_content_segmenter.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: tests/memory_manager/test_content_segmenter.py</summary>
 
 **Chunk 1**
 Lines added: 6, lines removed: 2
 
 ```diff
 @@ -46,6 +46,10 @@
-      segments = content_segmenter.segment_content(&quot;&quot;)
-      assert isinstance(segments, list), &quot;Should return a list&quot;
--     assert len(segments) == 1, &quot;Should return a single empty segment&quot;
--     assert segments[0] == &quot;&quot;, &quot;Should return empty string&quot;
-+     assert len(segments) == 0, &quot;Should return an empty list for empty input&quot;
+      segments = content_segmenter.segment_content("")
+      assert isinstance(segments, list), "Should return a list"
+-     assert len(segments) == 1, "Should return a single empty segment"
+-     assert segments[0] == "", "Should return empty string"
++     assert len(segments) == 0, "Should return an empty list for empty input"
 +     
 +     # Test with whitespace-only content
-+     segments = content_segmenter.segment_content(&quot;   \n\t  &quot;)
-+     assert isinstance(segments, list), &quot;Should return a list&quot;
-+     assert len(segments) == 0, &quot;Should return an empty list for whitespace-only input&quot;
++     segments = content_segmenter.segment_content("   \n\t  ")
++     assert isinstance(segments, list), "Should return a list"
++     assert len(segments) == 0, "Should return an empty list for whitespace-only input"
   
   def test_segment_content_single_sentence(content_segmenter):
 ```
@@ -791,30 +791,30 @@ You're right. The current assertion is too strict because it expects an exact ch
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: tests/memory_manager/test_content_segmenter.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: tests/memory_manager/test_content_segmenter.py</summary>
 
 **Chunk 1**
 Lines added: 12, lines removed: 3
 
 ```diff
 @@ -38,7 +38,16 @@
-          print(f&quot;Segment {i}: {segment}&quot;)
+          print(f"Segment {i}: {segment}")
       
 -     # Verify that all content is covered
--     combined_segments = &quot; &quot;.join(segments)
--     assert content.replace(&quot; &quot;, &quot;&quot;) == combined_segments.replace(&quot; &quot;, &quot;&quot;), &quot;All content should be covered&quot;
+-     combined_segments = " ".join(segments)
+-     assert content.replace(" ", "") == combined_segments.replace(" ", ""), "All content should be covered"
 +     # Verify that all content is covered by checking for key phrases
 +     # This is more flexible than exact character matching
 +     key_phrases = [
-+         &quot;Captain Sara&quot;,
-+         &quot;eastern border&quot;,
-+         &quot;squad of ten guards&quot;,
-+         &quot;monster sightings&quot;,
-+         &quot;additional resources&quot;
++         "Captain Sara",
++         "eastern border",
++         "squad of ten guards",
++         "monster sightings",
++         "additional resources"
 +     ]
-+     combined_segments = &quot; &quot;.join(segments).lower()
++     combined_segments = " ".join(segments).lower()
 +     for phrase in key_phrases:
-+         assert phrase.lower() in combined_segments, f&quot;Key phrase &#39;{phrase}&#39; not found in segments&quot;
++         assert phrase.lower() in combined_segments, f"Key phrase '{phrase}' not found in segments"
   
   def test_segment_content_empty(content_segmenter):
 ```
@@ -824,27 +824,27 @@ Lines added: 16, lines removed: 3
 
 ```diff
 @@ -80,5 +89,18 @@
-          print(f&quot;Segment {i}: {segment}&quot;)
+          print(f"Segment {i}: {segment}")
       
 -     # Verify that all content is covered
--     combined_segments = &quot; &quot;.join(segments)
--     assert content.replace(&quot; &quot;, &quot;&quot;).replace(&quot;\n&quot;, &quot;&quot;) == combined_segments.replace(&quot; &quot;, &quot;&quot;), &quot;All content should be covered&quot; 
+-     combined_segments = " ".join(segments)
+-     assert content.replace(" ", "").replace("\n", "") == combined_segments.replace(" ", ""), "All content should be covered" 
 +     # Verify that all content is covered by checking for key phrases
 +     key_phrases = [
-+         &quot;Lost Valley&quot;,
-+         &quot;towering mountains&quot;,
-+         &quot;ancient ruins&quot;,
-+         &quot;magical anomalies&quot;,
-+         &quot;three main settlements&quot;,
-+         &quot;Haven&quot;,
-+         &quot;Mayor Elena&quot;,
-+         &quot;Riverwatch&quot;,
-+         &quot;Mountainkeep&quot;,
-+         &quot;monster activity&quot;
++         "Lost Valley",
++         "towering mountains",
++         "ancient ruins",
++         "magical anomalies",
++         "three main settlements",
++         "Haven",
++         "Mayor Elena",
++         "Riverwatch",
++         "Mountainkeep",
++         "monster activity"
 +     ]
-+     combined_segments = &quot; &quot;.join(segments).lower()
++     combined_segments = " ".join(segments).lower()
 +     for phrase in key_phrases:
-+         assert phrase.lower() in combined_segments, f&quot;Key phrase &#39;{phrase}&#39; not found in segments&quot; 
++         assert phrase.lower() in combined_segments, f"Key phrase '{phrase}' not found in segments" 
 ```
 
 </details>
@@ -900,7 +900,7 @@ Let's modify the prompt to be even more explicit about single sentences and add 
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/templates/segment_conversation.prompt</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/templates/segment_conversation.prompt</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: undefined
@@ -948,7 +948,7 @@ Let's also add a specific test case to verify this behavior:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: tests/memory_manager/test_content_segmenter.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: tests/memory_manager/test_content_segmenter.py</summary>
 
 **Chunk 1**
 Lines added: 10, lines removed: 2
@@ -956,19 +956,19 @@ Lines added: 10, lines removed: 2
 ```diff
 @@ -68,6 +68,14 @@
       
-      assert isinstance(segments, list), &quot;Should return a list&quot;
--     assert len(segments) == 1, &quot;Should return a single segment&quot;
--     assert segments[0] == content, &quot;Should return the original content&quot;
-+     assert len(segments) == 1, &quot;Should return exactly one segment for a single sentence&quot;
-+     assert segments[0] == content, &quot;Should return the original content as a single segment&quot;
+      assert isinstance(segments, list), "Should return a list"
+-     assert len(segments) == 1, "Should return a single segment"
+-     assert segments[0] == content, "Should return the original content"
++     assert len(segments) == 1, "Should return exactly one segment for a single sentence"
++     assert segments[0] == content, "Should return the original content as a single segment"
 +     
 +     # Test with another single sentence
-+     content = &quot;The quick brown fox jumps over the lazy dog.&quot;
++     content = "The quick brown fox jumps over the lazy dog."
 +     segments = content_segmenter.segment_content(content)
 +     
-+     assert isinstance(segments, list), &quot;Should return a list&quot;
-+     assert len(segments) == 1, &quot;Should return exactly one segment for a single sentence&quot;
-+     assert segments[0] == content, &quot;Should return the original content as a single segment&quot;
++     assert isinstance(segments, list), "Should return a list"
++     assert len(segments) == 1, "Should return exactly one segment for a single sentence"
++     assert segments[0] == content, "Should return the original content as a single segment"
   
   def test_segment_content_complex(content_segmenter):
 ```
@@ -1028,7 +1028,7 @@ I'll help write an update for the phase-2 README to document the recent changes 
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: docs/phase-2/README.md</summary>
+<details><summary>Tool use: **edit_file** • Edit file: docs/phase-2/README.md</summary>
 
 **Chunk 1**
 Lines added: 45, lines removed: 1
@@ -1071,7 +1071,7 @@ Lines added: 45, lines removed: 1
 + segmenter = ContentSegmenter(llm_service)
 + 
 + # Segment content
-+ content = &quot;This is a test sentence. This is another sentence.&quot;
++ content = "This is a test sentence. This is another sentence."
 + segments = segmenter.segment_content(content)
 + &#96;&#96;&#96;
 + 
@@ -1118,7 +1118,7 @@ I'll move the content segmentation section to the main phase-2 README file.
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: README-phase-2.md</summary>
+<details><summary>Tool use: **edit_file** • Edit file: README-phase-2.md</summary>
 
 **Chunk 1**
 Lines added: 48, lines removed: undefined
@@ -1130,7 +1130,7 @@ Lines added: 48, lines removed: undefined
 + 
 + ## Phase 2 Update - May 02, 2025 - Content Segmentation Improvements
 + 
-+ We&#39;ve implemented significant improvements to the content segmentation system:
++ We've implemented significant improvements to the content segmentation system:
 + 
 + 1. **Dedicated ContentSegmenter Class**:
 +    - Moved segmentation logic from &#96;DigestGenerator&#96; into its own class
@@ -1163,7 +1163,7 @@ Lines added: 48, lines removed: undefined
 + segmenter = ContentSegmenter(llm_service)
 + 
 + # Segment content
-+ content = &quot;This is a test sentence. This is another sentence.&quot;
++ content = "This is a test sentence. This is another sentence."
 + segments = segmenter.segment_content(content)
 + &#96;&#96;&#96;
 + 
@@ -1255,7 +1255,7 @@ I notice there's a bug in the test where we're incorrectly calling `segment_cont
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: tests/memory_manager/test_digest_generator_integration.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: tests/memory_manager/test_digest_generator_integration.py</summary>
 
 **Chunk 1**
 Lines added: 3, lines removed: 3
@@ -1263,11 +1263,11 @@ Lines added: 3, lines removed: 3
 ```diff
 @@ -101,12 +101,12 @@
       # First segment the content
-      segments = digest_generator.content_segmenter.segment_content(test_conversation_entry[&quot;content&quot;])
+      segments = digest_generator.content_segmenter.segment_content(test_conversation_entry["content"])
 -     
 + 
       # Print the segments for inspection
-      print(&quot;\nSegments:&quot;)
+      print("\nSegments:")
       print(json.dumps(segments, indent=2))
   
       # Then rate the segments
@@ -1276,7 +1276,7 @@ Lines added: 3, lines removed: 3
 +     rated_segments = digest_generator._rate_segments(segments)
 + 
       # Print the rated segments for inspection
-      print(&quot;\nRated Segments:&quot;)
+      print("\nRated Segments:")
 ```
 
 **Chunk 2**
@@ -1284,18 +1284,18 @@ Lines added: 10, lines removed: 1
 
 ```diff
 @@ -115,5 +115,14 @@
-      assert isinstance(rated_segments, list), &quot;Rated segments should be a list&quot;
-      assert len(rated_segments) == len(segments), &quot;Should have same number of rated segments as input segments&quot;
+      assert isinstance(rated_segments, list), "Rated segments should be a list"
+      assert len(rated_segments) == len(segments), "Should have same number of rated segments as input segments"
 -     
 +     
 +     # Verify each rated segment has required fields
 +     for segment in rated_segments:
-+         assert isinstance(segment, dict), &quot;Each rated segment should be a dictionary&quot;
-+         assert &quot;text&quot; in segment, &quot;Each segment should have text&quot;
-+         assert &quot;importance&quot; in segment, &quot;Each segment should have importance&quot;
-+         assert &quot;topics&quot; in segment, &quot;Each segment should have topics&quot;
-+         assert &quot;type&quot; in segment, &quot;Each segment should have type&quot;
-+         assert segment[&quot;type&quot;] in [&quot;query&quot;, &quot;information&quot;, &quot;action&quot;, &quot;command&quot;], &quot;Invalid segment type&quot;
++         assert isinstance(segment, dict), "Each rated segment should be a dictionary"
++         assert "text" in segment, "Each segment should have text"
++         assert "importance" in segment, "Each segment should have importance"
++         assert "topics" in segment, "Each segment should have topics"
++         assert "type" in segment, "Each segment should have type"
++         assert segment["type"] in ["query", "information", "action", "command"], "Invalid segment type"
 + 
       
   

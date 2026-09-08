@@ -404,7 +404,7 @@ _**Agent (mode Agent)**_
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed directory src/ai • **6** results</summary>
+            <summary>Tool use: **list_dir** • Listed directory src/ai, 6 results</summary>
         
 | Name |
 |-------|
@@ -422,7 +422,7 @@ _**Agent (mode Agent)**_
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed directory src/memory • **14** results</summary>
+            <summary>Tool use: **list_dir** • Listed directory src/memory, 14 results</summary>
         
 | Name |
 |-------|
@@ -452,7 +452,7 @@ Could not resolve URI: Error: Unable to resolve nonexistent file '/Users/andrewr
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed current directory • **22** results</summary>
+            <summary>Tool use: **list_dir** • Listed current directory, 22 results</summary>
         
 | Name |
 |-------|
@@ -526,7 +526,7 @@ Could not resolve URI: Error: Unable to resolve nonexistent file '/Users/andrewr
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/ai/llm_ollama.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/ai/llm_ollama.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: undefined
@@ -546,15 +546,15 @@ Lines added: 6, lines removed: undefined
 ```diff
 @@ -44,4 +45,10 @@
                      - console_output: bool - Whether to also log to console
-          &quot;&quot;&quot;
+          """
 +         # Ensure /logs directory exists if debug_file is specified
-+         debug_file = config.get(&#39;debug_file&#39;)
++         debug_file = config.get('debug_file')
 +         if debug_file:
 +             logs_dir = os.path.dirname(debug_file)
 +             if logs_dir and not os.path.exists(logs_dir):
 +                 os.makedirs(logs_dir, exist_ok=True)
           # Set default debug scope if not provided
-          if &#39;debug&#39; in config and &#39;debug_scope&#39; not in config:
+          if 'debug' in config and 'debug_scope' not in config:
 ```
 
 </details>
@@ -565,7 +565,7 @@ Lines added: 6, lines removed: undefined
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 3, lines removed: 3
@@ -573,13 +573,13 @@ Lines added: 3, lines removed: 3
 ```diff
 @@ -56,7 +56,7 @@
   
-      def __init__(self, memory_file: str = &quot;memory.json&quot;, domain_config: Optional[Dict[str, Any]] = None, 
+      def __init__(self, memory_file: str = "memory.json", domain_config: Optional[Dict[str, Any]] = None, 
 -                  llm_service = None, memory_guid: str = None, max_recent_conversation_entries: int = 8, 
 -                  importance_threshold: int = 3):
--         &quot;&quot;&quot;Initialize the MemoryManager with an LLM service and domain configuration.
+-         """Initialize the MemoryManager with an LLM service and domain configuration.
 +                  llm_service = None, digest_llm_service = None, embeddings_llm_service = None, memory_guid: str = None, 
 +                  max_recent_conversation_entries: int = 8, importance_threshold: int = 3):
-+         &quot;&quot;&quot;Initialize the MemoryManager with LLM service instances and domain configuration.
++         """Initialize the MemoryManager with LLM service instances and domain configuration.
           
           Args:
 ```
@@ -604,7 +604,7 @@ Lines added: 9, lines removed: 7
 
 ```diff
 @@ -79,18 +81,20 @@
-          print(f&quot;\nInitializing MemoryManager with file: {memory_file}&quot;)
+          print(f"\nInitializing MemoryManager with file: {memory_file}")
           self.llm = llm_service
 +         self.digest_llm = digest_llm_service or llm_service
 +         self.embeddings_llm = embeddings_llm_service or llm_service
@@ -614,23 +614,23 @@ Lines added: 9, lines removed: 7
 -         self.digest_generator = DigestGenerator(llm_service)
 +         # Initialize DigestGenerator with dedicated LLM service
 +         self.digest_generator = DigestGenerator(self.digest_llm)
-          print(&quot;Initialized DigestGenerator&quot;)
+          print("Initialized DigestGenerator")
           
 -         # Initialize MemoryCompressor
 -         self.memory_compressor = MemoryCompressor(llm_service, importance_threshold)
 +         # Initialize MemoryCompressor (uses general LLM)
 +         self.memory_compressor = MemoryCompressor(self.llm, importance_threshold)
-          print(&quot;Initialized MemoryCompressor&quot;)
+          print("Initialized MemoryCompressor")
           
 -         # Initialize EmbeddingsManager and RAGManager
 +         # Initialize EmbeddingsManager and RAGManager with dedicated embeddings LLM service
-          embeddings_file = os.path.splitext(memory_file)[0] + &quot;_embeddings.jsonl&quot;
+          embeddings_file = os.path.splitext(memory_file)[0] + "_embeddings.jsonl"
 -         self.embeddings_manager = EmbeddingsManager(embeddings_file, llm_service)
 -         self.rag_manager = RAGManager(llm_service, self.embeddings_manager)
 +         self.embeddings_manager = EmbeddingsManager(embeddings_file, self.embeddings_llm)
 +         self.rag_manager = RAGManager(self.embeddings_llm, self.embeddings_manager)
-          print(&quot;Initialized EmbeddingsManager and RAGManager&quot;)
-          print(f&quot;Embeddings file: {embeddings_file}&quot;)
+          print("Initialized EmbeddingsManager and RAGManager")
+          print(f"Embeddings file: {embeddings_file}")
 ```
 
 </details>
@@ -718,36 +718,36 @@ First, let's update the `agent_usage_example.py` since it's the main example fil
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/agent_usage_example.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: examples/agent_usage_example.py</summary>
 
 **Chunk 1**
 Lines added: 17, lines removed: 2
 
 ```diff
 @@ -331,6 +331,21 @@
-      print(f&quot;Debug log file: {debug_file}&quot;)
+      print(f"Debug log file: {debug_file}")
       
--     print(&quot;Initializing LLM service (Ollama)...&quot;)
+-     print("Initializing LLM service (Ollama)...")
 -     llm_service = OllamaService({
 +     # Create separate OllamaService instances for different purposes
-+     print(&quot;Initializing LLM services (Ollama)...&quot;)
++     print("Initializing LLM services (Ollama)...")
 +     
 +     # General query service with logging enabled
 +     general_llm_service = OllamaService({
-+         &quot;base_url&quot;: &quot;http://192.168.1.173:11434&quot;,
-+         &quot;model&quot;: &quot;gemma3&quot;,
-+         &quot;temperature&quot;: 0.7,
-+         &quot;stream&quot;: False,
-+         &quot;debug&quot;: True,
-+         &quot;debug_file&quot;: debug_file,
-+         &quot;debug_scope&quot;: &quot;agent_example_general&quot;,
-+         &quot;console_output&quot;: False
++         "base_url": "http://192.168.1.173:11434",
++         "model": "gemma3",
++         "temperature": 0.7,
++         "stream": False,
++         "debug": True,
++         "debug_file": debug_file,
++         "debug_scope": "agent_example_general",
++         "console_output": False
 +     })
 +     
 +     # Digest generation service with logging enabled
 +     digest_llm_service = OllamaService({
-          &quot;base_url&quot;: &quot;http://192.168.1.173:11434&quot;,
-          &quot;model&quot;: &quot;gemma3&quot;,
+          "base_url": "http://192.168.1.173:11434",
+          "model": "gemma3",
 ```
 
 **Chunk 2**
@@ -755,18 +755,18 @@ Lines added: 8, lines removed: 1
 
 ```diff
 @@ -339,7 +354,14 @@
-          &quot;debug&quot;: True,
-          &quot;debug_file&quot;: debug_file,
--         &quot;debug_scope&quot;: &quot;agent_example&quot;,
-+         &quot;debug_scope&quot;: &quot;agent_example_digest&quot;,
-          &quot;console_output&quot;: False
+          "debug": True,
+          "debug_file": debug_file,
+-         "debug_scope": "agent_example",
++         "debug_scope": "agent_example_digest",
+          "console_output": False
       })
 +     
 +     # Embeddings service with logging disabled
 +     embed_llm_service = OllamaService({
-+         &quot;base_url&quot;: &quot;http://192.168.1.173:11434&quot;,
-+         &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-+         &quot;debug&quot;: False
++         "base_url": "http://192.168.1.173:11434",
++         "model": "mxbai-embed-large",
++         "debug": False
 +     })
       
       try:
@@ -788,9 +788,9 @@ Lines added: 5, lines removed: 3
 +             embed_llm_service=embed_llm_service  # Use embed service for embeddings
           )
           
--         agent = Agent(llm_service, memory_manager, domain_name=&quot;dnd_campaign&quot;)
-+         agent = Agent(general_llm_service, memory_manager, domain_name=&quot;dnd_campaign&quot;)
-          print(&quot;Services initialized successfully&quot;)
+-         agent = Agent(llm_service, memory_manager, domain_name="dnd_campaign")
++         agent = Agent(general_llm_service, memory_manager, domain_name="dnd_campaign")
+          print("Services initialized successfully")
           return agent, memory_manager
 ```
 
@@ -807,7 +807,7 @@ Now let's update the `memory_manager_usage_example.py`:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/memory_manager_usage_example.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: examples/memory_manager_usage_example.py</summary>
 
 **Chunk 1**
 Lines added: 11, lines removed: 1
@@ -818,18 +818,18 @@ Lines added: 11, lines removed: 1
       # Initialize services
 -     llm_service = OllamaService({
 +     general_llm_service = OllamaService({
-+         &quot;base_url&quot;: &quot;http://192.168.1.173:11434&quot;,
-+         &quot;model&quot;: &quot;llama3&quot;,
-+         &quot;temperature&quot;: 0.7,
-+         &quot;stream&quot;: False,
-+         &quot;debug&quot;: True,
-+         &quot;debug_file&quot;: &quot;example_memory_debug.log&quot;,
-+         &quot;debug_scope&quot;: &quot;memory_demo_general&quot;
++         "base_url": "http://192.168.1.173:11434",
++         "model": "llama3",
++         "temperature": 0.7,
++         "stream": False,
++         "debug": True,
++         "debug_file": "example_memory_debug.log",
++         "debug_scope": "memory_demo_general"
 +     })
 +     
 +     digest_llm_service = OllamaService({
-          &quot;base_url&quot;: &quot;http://192.168.1.173:11434&quot;,
-          &quot;model&quot;: &quot;llama3&quot;,
+          "base_url": "http://192.168.1.173:11434",
+          "model": "llama3",
 ```
 
 **Chunk 2**
@@ -837,16 +837,16 @@ Lines added: 7, lines removed: 1
 
 ```diff
 @@ -43,5 +53,11 @@
-          &quot;debug&quot;: True,
-          &quot;debug_file&quot;: &quot;example_memory_debug.log&quot;,
--         &quot;debug_scope&quot;: &quot;memory_demo&quot;
-+         &quot;debug_scope&quot;: &quot;memory_demo_digest&quot;
+          "debug": True,
+          "debug_file": "example_memory_debug.log",
+-         "debug_scope": "memory_demo"
++         "debug_scope": "memory_demo_digest"
 +     })
 +     
 +     embed_llm_service = OllamaService({
-+         &quot;base_url&quot;: &quot;http://192.168.1.173:11434&quot;,
-+         &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-+         &quot;debug&quot;: False
++         "base_url": "http://192.168.1.173:11434",
++         "model": "mxbai-embed-large",
++         "debug": False
       })
       
 ```
@@ -859,11 +859,11 @@ Lines added: 6, lines removed: 4
       
       memory_manager = MemoryManager(
 -         llm_service=llm_service, 
--         memory_file=&quot;example_memory.json&quot;, 
+-         memory_file="example_memory.json", 
 -         domain_config=USER_STORY_CONFIG, 
 -         memory_guid=demo_guid
 +         llm_service=general_llm_service,
-+         memory_file=&quot;example_memory.json&quot;,
++         memory_file="example_memory.json",
 +         domain_config=USER_STORY_CONFIG,
 +         memory_guid=demo_guid,
 +         digest_llm_service=digest_llm_service,
@@ -885,7 +885,7 @@ Now let's update the `configure_memory_example.py`:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/configure_memory_example.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: examples/configure_memory_example.py</summary>
 
 **Chunk 1**
 Lines added: 28, lines removed: 5
@@ -895,40 +895,40 @@ Lines added: 28, lines removed: 5
       
       try:
 -         # Initialize LLM service
--         print(&quot;Initializing LLM service...&quot;)
+-         print("Initializing LLM service...")
 -         llm_service = OllamaService({
--             &quot;base_url&quot;: &quot;http://192.168.1.173:11434&quot;,  # Update this to your Ollama server
+-             "base_url": "http://192.168.1.173:11434",  # Update this to your Ollama server
 +         # Initialize LLM services
-+         print(&quot;Initializing LLM services...&quot;)
++         print("Initializing LLM services...")
 +         
 +         # General query service
 +         general_llm_service = OllamaService({
-+             &quot;base_url&quot;: &quot;http://192.168.1.173:11434&quot;,
-+             &quot;model&quot;: &quot;gemma3&quot;,
-+             &quot;temperature&quot;: 0.7,
-+             &quot;stream&quot;: False,
-+             &quot;debug&quot;: True,
-+             &quot;debug_file&quot;: &quot;example_memory_debug.log&quot;,
-+             &quot;debug_scope&quot;: &quot;memory_config_general&quot;
++             "base_url": "http://192.168.1.173:11434",
++             "model": "gemma3",
++             "temperature": 0.7,
++             "stream": False,
++             "debug": True,
++             "debug_file": "example_memory_debug.log",
++             "debug_scope": "memory_config_general"
 +         })
 +         
 +         # Digest generation service
 +         digest_llm_service = OllamaService({
-+             &quot;base_url&quot;: &quot;http://192.168.1.173:11434&quot;,
-              &quot;model&quot;: &quot;gemma3&quot;,
-              &quot;temperature&quot;: 0.7,
--             &quot;stream&quot;: False
-+             &quot;stream&quot;: False,
-+             &quot;debug&quot;: True,
-+             &quot;debug_file&quot;: &quot;example_memory_debug.log&quot;,
-+             &quot;debug_scope&quot;: &quot;memory_config_digest&quot;
++             "base_url": "http://192.168.1.173:11434",
+              "model": "gemma3",
+              "temperature": 0.7,
+-             "stream": False
++             "stream": False,
++             "debug": True,
++             "debug_file": "example_memory_debug.log",
++             "debug_scope": "memory_config_digest"
 +         })
 +         
 +         # Embeddings service
 +         embed_llm_service = OllamaService({
-+             &quot;base_url&quot;: &quot;http://192.168.1.173:11434&quot;,
-+             &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-+             &quot;debug&quot;: False
++             "base_url": "http://192.168.1.173:11434",
++             "model": "mxbai-embed-large",
++             "debug": False
           })
           
 ```
@@ -964,12 +964,12 @@ Lines added: 5, lines removed: 3
           )
           
           # Initialize agent with default memory manager
--         default_agent = Agent(llm_service, default_memory, domain_name=&quot;notes&quot;)
-+         default_agent = Agent(general_llm_service, default_memory, domain_name=&quot;notes&quot;)
+-         default_agent = Agent(llm_service, default_memory, domain_name="notes")
++         default_agent = Agent(general_llm_service, default_memory, domain_name="notes")
           
           # Initialize agent with custom memory manager
--         custom_agent = Agent(llm_service, custom_memory, domain_name=&quot;notes&quot;)
-+         custom_agent = Agent(general_llm_service, custom_memory, domain_name=&quot;notes&quot;)
+-         custom_agent = Agent(llm_service, custom_memory, domain_name="notes")
++         custom_agent = Agent(general_llm_service, custom_memory, domain_name="notes")
           
           # Initialize memories
 ```
@@ -980,9 +980,9 @@ Lines added: 1, lines removed: 1
 ```diff
 @@ -158,5 +185,5 @@
           
-          print(&quot;\nThis demonstrates that even though the memory file may contain fewer conversations due to compression,&quot;)
--         print(&quot;all conversations are still preserved in the separate conversation history file.&quot;)
-+         print(&quot;the conversation history file maintains a complete record of all interactions.&quot;)
+          print("\nThis demonstrates that even though the memory file may contain fewer conversations due to compression,")
+-         print("all conversations are still preserved in the separate conversation history file.")
++         print("the conversation history file maintains a complete record of all interactions.")
           
       except Exception as e:
 ```
@@ -1047,7 +1047,7 @@ I'll help update the code to use separate debug files for each LLM service insta
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/agent_usage_example.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: examples/agent_usage_example.py</summary>
 
 **Chunk 1**
 Lines added: 14, lines removed: 3
@@ -1057,22 +1057,22 @@ Lines added: 14, lines removed: 3
       guid, memory_file, memory_type = initialize_session(memory_guid, memory_type)
       
 -     # Create unique debug file for this session
--     debug_file = f&quot;agent_debug_{guid}.log&quot;
--     print(f&quot;Debug log file: {debug_file}&quot;)
-+     # Create logs directory if it doesn&#39;t exist
-+     logs_dir = os.path.join(project_root, &quot;logs&quot;)
+-     debug_file = f"agent_debug_{guid}.log"
+-     print(f"Debug log file: {debug_file}")
++     # Create logs directory if it doesn't exist
++     logs_dir = os.path.join(project_root, "logs")
 +     os.makedirs(logs_dir, exist_ok=True)
-+     print(f&quot;Logs directory: {logs_dir}&quot;)
++     print(f"Logs directory: {logs_dir}")
 +     
 +     # Create separate debug files for each service
-+     general_debug_file = os.path.join(logs_dir, f&quot;agent_general_{guid}.log&quot;)
-+     digest_debug_file = os.path.join(logs_dir, f&quot;agent_digest_{guid}.log&quot;)
-+     embed_debug_file = os.path.join(logs_dir, f&quot;agent_embed_{guid}.log&quot;)
++     general_debug_file = os.path.join(logs_dir, f"agent_general_{guid}.log")
++     digest_debug_file = os.path.join(logs_dir, f"agent_digest_{guid}.log")
++     embed_debug_file = os.path.join(logs_dir, f"agent_embed_{guid}.log")
 +     
-+     print(f&quot;Debug log files:&quot;)
-+     print(f&quot;  General: {general_debug_file}&quot;)
-+     print(f&quot;  Digest: {digest_debug_file}&quot;)
-+     print(f&quot;  Embed: {embed_debug_file}&quot;)
++     print(f"Debug log files:")
++     print(f"  General: {general_debug_file}")
++     print(f"  Digest: {digest_debug_file}")
++     print(f"  Embed: {embed_debug_file}")
       
       # Create separate OllamaService instances for different purposes
 ```
@@ -1082,12 +1082,12 @@ Lines added: 1, lines removed: 1
 
 ```diff
 @@ -341,5 +352,5 @@
-          &quot;stream&quot;: False,
-          &quot;debug&quot;: True,
--         &quot;debug_file&quot;: debug_file,
-+         &quot;debug_file&quot;: general_debug_file,
-          &quot;debug_scope&quot;: &quot;agent_example_general&quot;,
-          &quot;console_output&quot;: False
+          "stream": False,
+          "debug": True,
+-         "debug_file": debug_file,
++         "debug_file": general_debug_file,
+          "debug_scope": "agent_example_general",
+          "console_output": False
 ```
 
 **Chunk 3**
@@ -1095,12 +1095,12 @@ Lines added: 1, lines removed: 1
 
 ```diff
 @@ -353,5 +364,5 @@
-          &quot;stream&quot;: False,
-          &quot;debug&quot;: True,
--         &quot;debug_file&quot;: debug_file,
-+         &quot;debug_file&quot;: digest_debug_file,
-          &quot;debug_scope&quot;: &quot;agent_example_digest&quot;,
-          &quot;console_output&quot;: False
+          "stream": False,
+          "debug": True,
+-         "debug_file": debug_file,
++         "debug_file": digest_debug_file,
+          "debug_scope": "agent_example_digest",
+          "console_output": False
 ```
 
 **Chunk 4**
@@ -1108,11 +1108,11 @@ Lines added: 2, lines removed: 1
 
 ```diff
 @@ -362,5 +373,6 @@
-          &quot;base_url&quot;: &quot;http://192.168.1.173:11434&quot;,
-          &quot;model&quot;: &quot;mxbai-embed-large&quot;,
--         &quot;debug&quot;: False
-+         &quot;debug&quot;: False,
-+         &quot;debug_file&quot;: embed_debug_file  # Still specify the file even though logging is disabled
+          "base_url": "http://192.168.1.173:11434",
+          "model": "mxbai-embed-large",
+-         "debug": False
++         "debug": False,
++         "debug_file": embed_debug_file  # Still specify the file even though logging is disabled
       })
       
 ```
@@ -1130,7 +1130,7 @@ Now let's update the `memory_manager_usage_example.py` to use separate debug fil
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/memory_manager_usage_example.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: examples/memory_manager_usage_example.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: undefined
@@ -1151,80 +1151,80 @@ Lines added: 85, lines removed: 53
 @@ -32,83 +33,115 @@
   
   async def demonstrate_memory_creation():
--     &quot;&quot;&quot;Demonstrate creating initial memory structure&quot;&quot;&quot;
--     print_section_header(&quot;Memory Creation Demo&quot;)
-+     &quot;&quot;&quot;Demonstrate memory creation and retrieval&quot;&quot;&quot;
-+     print_section_header(&quot;Memory Creation Example&quot;)
+-     """Demonstrate creating initial memory structure"""
+-     print_section_header("Memory Creation Demo")
++     """Demonstrate memory creation and retrieval"""
++     print_section_header("Memory Creation Example")
 +     
-+     # Create logs directory if it doesn&#39;t exist
-+     logs_dir = os.path.join(project_root, &quot;logs&quot;)
++     # Create logs directory if it doesn't exist
++     logs_dir = os.path.join(project_root, "logs")
 +     os.makedirs(logs_dir, exist_ok=True)
-+     print(f&quot;Logs directory: {logs_dir}&quot;)
++     print(f"Logs directory: {logs_dir}")
 +     
 +     # Generate a unique GUID for this example
 +     guid = str(uuid.uuid4())
 +     
 +     # Create separate debug files for each service
-+     general_debug_file = os.path.join(logs_dir, f&quot;memory_general_{guid}.log&quot;)
-+     digest_debug_file = os.path.join(logs_dir, f&quot;memory_digest_{guid}.log&quot;)
-+     embed_debug_file = os.path.join(logs_dir, f&quot;memory_embed_{guid}.log&quot;)
++     general_debug_file = os.path.join(logs_dir, f"memory_general_{guid}.log")
++     digest_debug_file = os.path.join(logs_dir, f"memory_digest_{guid}.log")
++     embed_debug_file = os.path.join(logs_dir, f"memory_embed_{guid}.log")
 +     
-+     print(f&quot;Debug log files:&quot;)
-+     print(f&quot;  General: {general_debug_file}&quot;)
-+     print(f&quot;  Digest: {digest_debug_file}&quot;)
-+     print(f&quot;  Embed: {embed_debug_file}&quot;)
++     print(f"Debug log files:")
++     print(f"  General: {general_debug_file}")
++     print(f"  Digest: {digest_debug_file}")
++     print(f"  Embed: {embed_debug_file}")
       
 -     # Initialize services
 +     # Initialize LLM services
-+     print(&quot;\nInitializing LLM services...&quot;)
++     print("\nInitializing LLM services...")
 +     
 +     # General query service
       general_llm_service = OllamaService({
-          &quot;base_url&quot;: &quot;http://192.168.1.173:11434&quot;,
--         &quot;model&quot;: &quot;llama3&quot;,
-+         &quot;model&quot;: &quot;gemma3&quot;,
-          &quot;temperature&quot;: 0.7,
-          &quot;stream&quot;: False,
-          &quot;debug&quot;: True,
--         &quot;debug_file&quot;: &quot;example_memory_debug.log&quot;,
--         &quot;debug_scope&quot;: &quot;memory_demo_general&quot;
-+         &quot;debug_file&quot;: general_debug_file,
-+         &quot;debug_scope&quot;: &quot;memory_example_general&quot;
+          "base_url": "http://192.168.1.173:11434",
+-         "model": "llama3",
++         "model": "gemma3",
+          "temperature": 0.7,
+          "stream": False,
+          "debug": True,
+-         "debug_file": "example_memory_debug.log",
+-         "debug_scope": "memory_demo_general"
++         "debug_file": general_debug_file,
++         "debug_scope": "memory_example_general"
       })
       
 +     # Digest generation service
       digest_llm_service = OllamaService({
-          &quot;base_url&quot;: &quot;http://192.168.1.173:11434&quot;,
--         &quot;model&quot;: &quot;llama3&quot;,
-+         &quot;model&quot;: &quot;gemma3&quot;,
-          &quot;temperature&quot;: 0.7,
-          &quot;stream&quot;: False,
-          &quot;debug&quot;: True,
--         &quot;debug_file&quot;: &quot;example_memory_debug.log&quot;,
--         &quot;debug_scope&quot;: &quot;memory_demo_digest&quot;
-+         &quot;debug_file&quot;: digest_debug_file,
-+         &quot;debug_scope&quot;: &quot;memory_example_digest&quot;
+          "base_url": "http://192.168.1.173:11434",
+-         "model": "llama3",
++         "model": "gemma3",
+          "temperature": 0.7,
+          "stream": False,
+          "debug": True,
+-         "debug_file": "example_memory_debug.log",
+-         "debug_scope": "memory_demo_digest"
++         "debug_file": digest_debug_file,
++         "debug_scope": "memory_example_digest"
       })
       
 +     # Embeddings service
       embed_llm_service = OllamaService({
-          &quot;base_url&quot;: &quot;http://192.168.1.173:11434&quot;,
-          &quot;model&quot;: &quot;mxbai-embed-large&quot;,
--         &quot;debug&quot;: False
-+         &quot;debug&quot;: False,
-+         &quot;debug_file&quot;: embed_debug_file  # Still specify the file even though logging is disabled
+          "base_url": "http://192.168.1.173:11434",
+          "model": "mxbai-embed-large",
+-         "debug": False
++         "debug": False,
++         "debug_file": embed_debug_file  # Still specify the file even though logging is disabled
       })
       
 -     # Create memory manager with test file and a specific GUID
 -     demo_guid = str(uuid.uuid4())
--     print(f&quot;Using predefined GUID for new memory: {demo_guid}&quot;)
+-     print(f"Using predefined GUID for new memory: {demo_guid}")
 -     
 +     # Create memory manager
       memory_manager = MemoryManager(
-+         memory_file=f&quot;memory_{guid}.json&quot;,
++         memory_file=f"memory_{guid}.json",
 +         domain_config=USER_STORY_CONFIG,
           llm_service=general_llm_service,
--         memory_file=&quot;example_memory.json&quot;,
+-         memory_file="example_memory.json",
 -         domain_config=USER_STORY_CONFIG,
 -         memory_guid=demo_guid,
           digest_llm_service=digest_llm_service,
@@ -1236,8 +1236,8 @@ Lines added: 85, lines removed: 53
 -     # Example input data
 -     # llm-driven-agent-with-session-memory
 +     # Create initial memory
-+     print(&quot;\nCreating initial memory...&quot;)
-      input_data = &quot;&quot;&quot;
++     print("\nCreating initial memory...")
+      input_data = """
 - Project Details:
 - - Project Name: LLM-Driven Agent with Session Memory
 - - Project Description: A service framework for providing lightweightmulti-use-case LLM-driven agents
@@ -1256,19 +1256,19 @@ Lines added: 85, lines removed: 53
 -     - pytest
 - 
 - - Agent Role:
--     - Understand the project&#39;s current features, requirements and technology
+-     - Understand the project's current features, requirements and technology
 -     - Receive user input about new, proposed features
 -     - Break new features into smaller, manageable user stories
 -     - Generate user stories with clear descriptions and acceptance criteria
-- &quot;&quot;&quot;
+- """
 -     
 -     # Create initial memory
 -     success = memory_manager.create_initial_memory(input_data)
 -     if success:
--         print(&quot;\nInitial memory created successfully!&quot;)
--         print_memory_state(memory_manager, &quot;Initial Memory State&quot;)
+-         print("\nInitial memory created successfully!")
+-         print_memory_state(memory_manager, "Initial Memory State")
 -     else:
--         print(&quot;\nFailed to create initial memory&quot;)
+-         print("\nFailed to create initial memory")
 -     
 -     return memory_manager, demo_guid
 +     The party consists of:
@@ -1278,43 +1278,43 @@ Lines added: 85, lines removed: 53
 +     - A halfling rogue named Pip who is an expert lockpick
 +     
 +     They are currently in the town of Winterhaven, investigating rumors of undead in the nearby ruins.
-+     The town&#39;s mayor, Padraig, has offered a reward for clearing out the ruins.
++     The town's mayor, Padraig, has offered a reward for clearing out the ruins.
 +     The party has learned that the ruins were once a temple to Orcus, and the undead are likely being raised by a necromancer.
-+     &quot;&quot;&quot;
++     """
 +     
 +     await memory_manager.create_memory(input_data)
-+     print(&quot;Initial memory created successfully&quot;)
++     print("Initial memory created successfully")
 +     
 +     # Query the memory
-+     print(&quot;\nQuerying memory...&quot;)
-+     query = &quot;Tell me about the party members and their current mission&quot;
++     print("\nQuerying memory...")
++     query = "Tell me about the party members and their current mission"
 +     response = await memory_manager.query_memory(query)
-+     print(f&quot;\nQuery: {query}&quot;)
-+     print(f&quot;Response: {response}&quot;)
++     print(f"\nQuery: {query}")
++     print(f"Response: {response}")
 +     
 +     # Update the memory
-+     print(&quot;\nUpdating memory...&quot;)
-+     update_data = &quot;&quot;&quot;
++     print("\nUpdating memory...")
++     update_data = """
 +     The party has discovered that the necromancer is a former priest of Orcus named Kalarel.
 +     He is using a portal to the Shadowfell to raise undead.
-+     The party needs to find the key to the portal, which is hidden in the temple&#39;s crypt.
-+     &quot;&quot;&quot;
++     The party needs to find the key to the portal, which is hidden in the temple's crypt.
++     """
 +     
 +     await memory_manager.update_memory(update_data)
-+     print(&quot;Memory updated successfully&quot;)
++     print("Memory updated successfully")
 +     
 +     # Query again
-+     print(&quot;\nQuerying updated memory...&quot;)
-+     query = &quot;What have they learned about the necromancer and what do they need to do?&quot;
++     print("\nQuerying updated memory...")
++     query = "What have they learned about the necromancer and what do they need to do?"
 +     response = await memory_manager.query_memory(query)
-+     print(f&quot;\nQuery: {query}&quot;)
-+     print(f&quot;Response: {response}&quot;)
++     print(f"\nQuery: {query}")
++     print(f"Response: {response}")
 +     
 +     # Clean up
-+     print(&quot;\nCleaning up...&quot;)
++     print("\nCleaning up...")
 +     if os.path.exists(memory_manager.memory_file):
 +         os.remove(memory_manager.memory_file)
-+     print(&quot;Memory file removed&quot;)
++     print("Memory file removed")
   
   async def demonstrate_multiple_memories():
 ```
@@ -1345,7 +1345,7 @@ Finally, let's update the `configure_memory_example.py` to use separate debug fi
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/configure_memory_example.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: examples/configure_memory_example.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: undefined
@@ -1364,26 +1364,26 @@ Lines added: 18, lines removed: undefined
 
 ```diff
 @@ -29,4 +30,22 @@
-      memory_dir = os.path.join(project_root, &quot;examples&quot;, &quot;temp_memories&quot;)
+      memory_dir = os.path.join(project_root, "examples", "temp_memories")
       os.makedirs(memory_dir, exist_ok=True)
 +     
-+     # Create logs directory if it doesn&#39;t exist
-+     logs_dir = os.path.join(project_root, &quot;logs&quot;)
++     # Create logs directory if it doesn't exist
++     logs_dir = os.path.join(project_root, "logs")
 +     os.makedirs(logs_dir, exist_ok=True)
-+     print(f&quot;Logs directory: {logs_dir}&quot;)
++     print(f"Logs directory: {logs_dir}")
 +     
 +     # Generate a unique GUID for this example
 +     guid = str(uuid.uuid4())
 +     
 +     # Create separate debug files for each service
-+     general_debug_file = os.path.join(logs_dir, f&quot;config_general_{guid}.log&quot;)
-+     digest_debug_file = os.path.join(logs_dir, f&quot;config_digest_{guid}.log&quot;)
-+     embed_debug_file = os.path.join(logs_dir, f&quot;config_embed_{guid}.log&quot;)
++     general_debug_file = os.path.join(logs_dir, f"config_general_{guid}.log")
++     digest_debug_file = os.path.join(logs_dir, f"config_digest_{guid}.log")
++     embed_debug_file = os.path.join(logs_dir, f"config_embed_{guid}.log")
 +     
-+     print(f&quot;Debug log files:&quot;)
-+     print(f&quot;  General: {general_debug_file}&quot;)
-+     print(f&quot;  Digest: {digest_debug_file}&quot;)
-+     print(f&quot;  Embed: {embed_debug_file}&quot;)
++     print(f"Debug log files:")
++     print(f"  General: {general_debug_file}")
++     print(f"  Digest: {digest_debug_file}")
++     print(f"  Embed: {embed_debug_file}")
       
       # Sample domain config
 ```
@@ -1393,11 +1393,11 @@ Lines added: 1, lines removed: 1
 
 ```diff
 @@ -54,5 +73,5 @@
-              &quot;stream&quot;: False,
-              &quot;debug&quot;: True,
--             &quot;debug_file&quot;: &quot;example_memory_debug.log&quot;,
-+             &quot;debug_file&quot;: general_debug_file,
-              &quot;debug_scope&quot;: &quot;memory_config_general&quot;
+              "stream": False,
+              "debug": True,
+-             "debug_file": "example_memory_debug.log",
++             "debug_file": general_debug_file,
+              "debug_scope": "memory_config_general"
           })
 ```
 
@@ -1406,11 +1406,11 @@ Lines added: 1, lines removed: 1
 
 ```diff
 @@ -65,5 +84,5 @@
-              &quot;stream&quot;: False,
-              &quot;debug&quot;: True,
--             &quot;debug_file&quot;: &quot;example_memory_debug.log&quot;,
-+             &quot;debug_file&quot;: digest_debug_file,
-              &quot;debug_scope&quot;: &quot;memory_config_digest&quot;
+              "stream": False,
+              "debug": True,
+-             "debug_file": "example_memory_debug.log",
++             "debug_file": digest_debug_file,
+              "debug_scope": "memory_config_digest"
           })
 ```
 
@@ -1419,11 +1419,11 @@ Lines added: 2, lines removed: 1
 
 ```diff
 @@ -73,5 +92,6 @@
-              &quot;base_url&quot;: &quot;http://192.168.1.173:11434&quot;,
-              &quot;model&quot;: &quot;mxbai-embed-large&quot;,
--             &quot;debug&quot;: False
-+             &quot;debug&quot;: False,
-+             &quot;debug_file&quot;: embed_debug_file  # Still specify the file even though logging is disabled
+              "base_url": "http://192.168.1.173:11434",
+              "model": "mxbai-embed-large",
+-             "debug": False
++             "debug": False,
++             "debug_file": embed_debug_file  # Still specify the file even though logging is disabled
           })
           
 ```
@@ -1521,7 +1521,7 @@ Let me update each example file to use the correct parameter name. I'll start wi
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/agent_usage_example.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: examples/agent_usage_example.py</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: 2
@@ -1534,8 +1534,8 @@ Lines added: 2, lines removed: 2
 -     embed_llm_service = OllamaService({
 +     # Initialize embeddings service
 +     embeddings_llm_service = OllamaService({
-          &quot;base_url&quot;: &quot;http://192.168.1.173:11434&quot;,
-          &quot;model&quot;: &quot;mxbai-embed-large&quot;,
+          "base_url": "http://192.168.1.173:11434",
+          "model": "mxbai-embed-large",
 ```
 
 **Chunk 2**
@@ -1564,7 +1564,7 @@ Now let's update `memory_manager_usage_example.py`:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/memory_manager_usage_example.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: examples/memory_manager_usage_example.py</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: 2
@@ -1577,8 +1577,8 @@ Lines added: 2, lines removed: 2
 -     embed_llm_service = OllamaService({
 +     # Initialize embeddings service
 +     embeddings_llm_service = OllamaService({
-          &quot;base_url&quot;: &quot;http://192.168.1.173:11434&quot;,
-          &quot;model&quot;: &quot;mxbai-embed-large&quot;,
+          "base_url": "http://192.168.1.173:11434",
+          "model": "mxbai-embed-large",
 ```
 
 **Chunk 2**
@@ -1607,7 +1607,7 @@ Finally, let's update `configure_memory_example.py`:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/configure_memory_example.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: examples/configure_memory_example.py</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: 2
@@ -1620,8 +1620,8 @@ Lines added: 2, lines removed: 2
 -         embed_llm_service = OllamaService({
 +         # Initialize embeddings service
 +         embeddings_llm_service = OllamaService({
-              &quot;base_url&quot;: &quot;http://192.168.1.173:11434&quot;,
-              &quot;model&quot;: &quot;mxbai-embed-large&quot;,
+              "base_url": "http://192.168.1.173:11434",
+              "model": "mxbai-embed-large",
 ```
 
 **Chunk 2**
@@ -1691,7 +1691,7 @@ I'll help update the code to organize logs in a folder structure per GUID. I'll 
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/agent_usage_example.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: examples/agent_usage_example.py</summary>
 
 **Chunk 1**
 Lines added: 8, lines removed: 7
@@ -1700,25 +1700,25 @@ Lines added: 8, lines removed: 7
 @@ -327,13 +327,14 @@
       guid, memory_file, memory_type = initialize_session(memory_guid, memory_type)
       
--     # Create logs directory if it doesn&#39;t exist
+-     # Create logs directory if it doesn't exist
 +     # Create logs directory structure
-      logs_dir = os.path.join(project_root, &quot;logs&quot;)
+      logs_dir = os.path.join(project_root, "logs")
 -     os.makedirs(logs_dir, exist_ok=True)
--     print(f&quot;Logs directory: {logs_dir}&quot;)
+-     print(f"Logs directory: {logs_dir}")
 +     guid_logs_dir = os.path.join(logs_dir, guid)
 +     os.makedirs(guid_logs_dir, exist_ok=True)
-+     print(f&quot;Logs directory: {guid_logs_dir}&quot;)
++     print(f"Logs directory: {guid_logs_dir}")
       
 -     # Create separate debug files for each service
--     general_debug_file = os.path.join(logs_dir, f&quot;agent_general_{guid}.log&quot;)
--     digest_debug_file = os.path.join(logs_dir, f&quot;agent_digest_{guid}.log&quot;)
--     embed_debug_file = os.path.join(logs_dir, f&quot;agent_embed_{guid}.log&quot;)
+-     general_debug_file = os.path.join(logs_dir, f"agent_general_{guid}.log")
+-     digest_debug_file = os.path.join(logs_dir, f"agent_digest_{guid}.log")
+-     embed_debug_file = os.path.join(logs_dir, f"agent_embed_{guid}.log")
 +     # Create separate debug files for each service within the GUID directory
-+     general_debug_file = os.path.join(guid_logs_dir, &quot;general.log&quot;)
-+     digest_debug_file = os.path.join(guid_logs_dir, &quot;digest.log&quot;)
-+     embed_debug_file = os.path.join(guid_logs_dir, &quot;embed.log&quot;)
++     general_debug_file = os.path.join(guid_logs_dir, "general.log")
++     digest_debug_file = os.path.join(guid_logs_dir, "digest.log")
++     embed_debug_file = os.path.join(guid_logs_dir, "embed.log")
       
-      print(f&quot;Debug log files:&quot;)
+      print(f"Debug log files:")
 ```
 
 </details>
@@ -1734,7 +1734,7 @@ Now let's update the `memory_manager_usage_example.py` file to use the same log 
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/memory_manager_usage_example.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: examples/memory_manager_usage_example.py</summary>
 
 **Chunk 1**
 Lines added: 10, lines removed: 11
@@ -1743,33 +1743,33 @@ Lines added: 10, lines removed: 11
 @@ -33,19 +33,18 @@
   
   async def demonstrate_memory_creation():
--     &quot;&quot;&quot;Demonstrate memory creation and retrieval&quot;&quot;&quot;
--     print_section_header(&quot;Memory Creation Example&quot;)
-+     &quot;&quot;&quot;Demonstrate creating and using memory with the MemoryManager&quot;&quot;&quot;
-+     print(&quot;\n=== Memory Creation Example ===&quot;)
+-     """Demonstrate memory creation and retrieval"""
+-     print_section_header("Memory Creation Example")
++     """Demonstrate creating and using memory with the MemoryManager"""
++     print("\n=== Memory Creation Example ===")
       
--     # Create logs directory if it doesn&#39;t exist
+-     # Create logs directory if it doesn't exist
 +     # Create logs directory structure
-      logs_dir = os.path.join(project_root, &quot;logs&quot;)
+      logs_dir = os.path.join(project_root, "logs")
 -     os.makedirs(logs_dir, exist_ok=True)
--     print(f&quot;Logs directory: {logs_dir}&quot;)
+-     print(f"Logs directory: {logs_dir}")
 -     
 -     # Generate a unique GUID for this example
       guid = str(uuid.uuid4())
 +     guid_logs_dir = os.path.join(logs_dir, guid)
 +     os.makedirs(guid_logs_dir, exist_ok=True)
-+     print(f&quot;Logs directory: {guid_logs_dir}&quot;)
++     print(f"Logs directory: {guid_logs_dir}")
       
 -     # Create separate debug files for each service
--     general_debug_file = os.path.join(logs_dir, f&quot;memory_general_{guid}.log&quot;)
--     digest_debug_file = os.path.join(logs_dir, f&quot;memory_digest_{guid}.log&quot;)
--     embed_debug_file = os.path.join(logs_dir, f&quot;memory_embed_{guid}.log&quot;)
+-     general_debug_file = os.path.join(logs_dir, f"memory_general_{guid}.log")
+-     digest_debug_file = os.path.join(logs_dir, f"memory_digest_{guid}.log")
+-     embed_debug_file = os.path.join(logs_dir, f"memory_embed_{guid}.log")
 +     # Create separate debug files for each service within the GUID directory
-+     general_debug_file = os.path.join(guid_logs_dir, &quot;general.log&quot;)
-+     digest_debug_file = os.path.join(guid_logs_dir, &quot;digest.log&quot;)
-+     embed_debug_file = os.path.join(guid_logs_dir, &quot;embed.log&quot;)
++     general_debug_file = os.path.join(guid_logs_dir, "general.log")
++     digest_debug_file = os.path.join(guid_logs_dir, "digest.log")
++     embed_debug_file = os.path.join(guid_logs_dir, "embed.log")
       
-      print(f&quot;Debug log files:&quot;)
+      print(f"Debug log files:")
 ```
 
 </details>
@@ -1785,7 +1785,7 @@ Finally, let's update the `configure_memory_example.py` file to use the same log
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/configure_memory_example.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: examples/configure_memory_example.py</summary>
 
 **Chunk 1**
 Lines added: 13, lines removed: 14
@@ -1794,40 +1794,40 @@ Lines added: 13, lines removed: 14
 @@ -24,23 +24,22 @@
   
   async def main():
--     &quot;&quot;&quot;Demonstrate configurable memory parameters&quot;&quot;&quot;
--     print_section_header(&quot;Configurable Memory Parameters Example&quot;)
-+     &quot;&quot;&quot;Demonstrate different memory configurations&quot;&quot;&quot;
-+     print(&quot;\n=== Memory Configuration Example ===&quot;)
+-     """Demonstrate configurable memory parameters"""
+-     print_section_header("Configurable Memory Parameters Example")
++     """Demonstrate different memory configurations"""
++     print("\n=== Memory Configuration Example ===")
       
 -     # Create a temporary directory for this example
--     memory_dir = os.path.join(project_root, &quot;examples&quot;, &quot;temp_memories&quot;)
+-     memory_dir = os.path.join(project_root, "examples", "temp_memories")
 -     os.makedirs(memory_dir, exist_ok=True)
 +     # Create a temporary directory for memory storage
-+     temp_dir = os.path.join(project_root, &quot;temp_memory&quot;)
++     temp_dir = os.path.join(project_root, "temp_memory")
 +     os.makedirs(temp_dir, exist_ok=True)
       
--     # Create logs directory if it doesn&#39;t exist
+-     # Create logs directory if it doesn't exist
 +     # Create logs directory structure
-      logs_dir = os.path.join(project_root, &quot;logs&quot;)
+      logs_dir = os.path.join(project_root, "logs")
 -     os.makedirs(logs_dir, exist_ok=True)
--     print(f&quot;Logs directory: {logs_dir}&quot;)
+-     print(f"Logs directory: {logs_dir}")
 -     
 -     # Generate a unique GUID for this example
       guid = str(uuid.uuid4())
 +     guid_logs_dir = os.path.join(logs_dir, guid)
 +     os.makedirs(guid_logs_dir, exist_ok=True)
-+     print(f&quot;Logs directory: {guid_logs_dir}&quot;)
++     print(f"Logs directory: {guid_logs_dir}")
       
 -     # Create separate debug files for each service
--     general_debug_file = os.path.join(logs_dir, f&quot;config_general_{guid}.log&quot;)
--     digest_debug_file = os.path.join(logs_dir, f&quot;config_digest_{guid}.log&quot;)
--     embed_debug_file = os.path.join(logs_dir, f&quot;config_embed_{guid}.log&quot;)
+-     general_debug_file = os.path.join(logs_dir, f"config_general_{guid}.log")
+-     digest_debug_file = os.path.join(logs_dir, f"config_digest_{guid}.log")
+-     embed_debug_file = os.path.join(logs_dir, f"config_embed_{guid}.log")
 +     # Create separate debug files for each service within the GUID directory
-+     general_debug_file = os.path.join(guid_logs_dir, &quot;general.log&quot;)
-+     digest_debug_file = os.path.join(guid_logs_dir, &quot;digest.log&quot;)
-+     embed_debug_file = os.path.join(guid_logs_dir, &quot;embed.log&quot;)
++     general_debug_file = os.path.join(guid_logs_dir, "general.log")
++     digest_debug_file = os.path.join(guid_logs_dir, "digest.log")
++     embed_debug_file = os.path.join(guid_logs_dir, "embed.log")
       
-      print(f&quot;Debug log files:&quot;)
+      print(f"Debug log files:")
 ```
 
 **Chunk 2**
@@ -1836,9 +1836,9 @@ Lines added: 1, lines removed: 1
 ```diff
 @@ -98,5 +97,5 @@
           # Create the first MemoryManager with default settings
-          print(&quot;\nCreating MemoryManager with default settings...&quot;)
--         default_memory_file = os.path.join(memory_dir, &quot;default_memory.json&quot;)
-+         default_memory_file = os.path.join(temp_dir, &quot;default_memory.json&quot;)
+          print("\nCreating MemoryManager with default settings...")
+-         default_memory_file = os.path.join(memory_dir, "default_memory.json")
++         default_memory_file = os.path.join(temp_dir, "default_memory.json")
           default_memory = MemoryManager(
               memory_file=default_memory_file,
 ```
@@ -1849,9 +1849,9 @@ Lines added: 1, lines removed: 1
 ```diff
 @@ -109,5 +108,5 @@
           # Create the second MemoryManager with custom compression settings
-          print(&quot;\nCreating MemoryManager with custom compression settings...&quot;)
--         custom_memory_file = os.path.join(memory_dir, &quot;custom_memory.json&quot;)
-+         custom_memory_file = os.path.join(temp_dir, &quot;custom_memory.json&quot;)
+          print("\nCreating MemoryManager with custom compression settings...")
+-         custom_memory_file = os.path.join(memory_dir, "custom_memory.json")
++         custom_memory_file = os.path.join(temp_dir, "custom_memory.json")
           custom_memory = MemoryManager(
               memory_file=custom_memory_file,
 ```
@@ -1977,18 +1977,18 @@ Let me update these files one by one:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: tests/memory_manager/test_memory_compression.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: tests/memory_manager/test_memory_compression.py</summary>
 
 **Chunk 1**
 Lines added: undefined, lines removed: 1
 
 ```diff
 @@ -17,5 +17,4 @@
-      &quot;stream&quot;: False,
-      &quot;debug&quot;: True,
--     &quot;debug_file&quot;: &quot;memory_compression_test.log&quot;,
-      &quot;debug_scope&quot;: &quot;memory_compression_test&quot;,
-      &quot;console_output&quot;: False
+      "stream": False,
+      "debug": True,
+-     "debug_file": "memory_compression_test.log",
+      "debug_scope": "memory_compression_test",
+      "console_output": False
 ```
 
 **Chunk 2**
@@ -1997,22 +1997,22 @@ Lines added: 16, lines removed: 1
 ```diff
 @@ -25,5 +24,20 @@
   def llm_service():
-      &quot;&quot;&quot;Create a real OllamaService instance for integration testing&quot;&quot;&quot;
+      """Create a real OllamaService instance for integration testing"""
 -     service = OllamaService(LLM_CONFIG)
 +     # Create logs directory structure
-+     logs_dir = os.path.join(os.path.dirname(__file__), &quot;logs&quot;)
-+     guid = &quot;memory_compression_test&quot;
++     logs_dir = os.path.join(os.path.dirname(__file__), "logs")
++     guid = "memory_compression_test"
 +     guid_logs_dir = os.path.join(logs_dir, guid)
 +     os.makedirs(guid_logs_dir, exist_ok=True)
 +     
 +     # Create separate debug files for each service
-+     general_debug_file = os.path.join(guid_logs_dir, &quot;general.log&quot;)
-+     digest_debug_file = os.path.join(guid_logs_dir, &quot;digest.log&quot;)
-+     embed_debug_file = os.path.join(guid_logs_dir, &quot;embed.log&quot;)
++     general_debug_file = os.path.join(guid_logs_dir, "general.log")
++     digest_debug_file = os.path.join(guid_logs_dir, "digest.log")
++     embed_debug_file = os.path.join(guid_logs_dir, "embed.log")
 +     
 +     # Update config with debug files
 +     config = LLM_CONFIG.copy()
-+     config[&quot;debug_file&quot;] = general_debug_file
++     config["debug_file"] = general_debug_file
 +     
 +     service = OllamaService(config)
       return service
@@ -2032,7 +2032,7 @@ Lines added: 16, lines removed: 1
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: tests/memory_manager/test_digest_generator_integration.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: tests/memory_manager/test_digest_generator_integration.py</summary>
 
 **Chunk 1**
 Lines added: 11, lines removed: undefined
@@ -2040,20 +2040,20 @@ Lines added: 11, lines removed: undefined
 ```diff
 @@ -16,4 +16,15 @@
   def llm_service():
-      &quot;&quot;&quot;Create an LLM service instance for testing.&quot;&quot;&quot;
+      """Create an LLM service instance for testing."""
 +     # Create logs directory structure
-+     logs_dir = os.path.join(project_root, &quot;logs&quot;)
-+     guid = &quot;digest_generator_test&quot;
++     logs_dir = os.path.join(project_root, "logs")
++     guid = "digest_generator_test"
 +     guid_logs_dir = os.path.join(logs_dir, guid)
 +     os.makedirs(guid_logs_dir, exist_ok=True)
 +     
 +     # Create separate debug files for each service
-+     general_debug_file = os.path.join(guid_logs_dir, &quot;general.log&quot;)
-+     digest_debug_file = os.path.join(guid_logs_dir, &quot;digest.log&quot;)
-+     embed_debug_file = os.path.join(guid_logs_dir, &quot;embed.log&quot;)
++     general_debug_file = os.path.join(guid_logs_dir, "general.log")
++     digest_debug_file = os.path.join(guid_logs_dir, "digest.log")
++     embed_debug_file = os.path.join(guid_logs_dir, "embed.log")
 +     
       service = OllamaService({
-          &quot;base_url&quot;: &quot;http://192.168.1.173:11434&quot;,
+          "base_url": "http://192.168.1.173:11434",
 ```
 
 **Chunk 2**
@@ -2061,12 +2061,12 @@ Lines added: 1, lines removed: 1
 
 ```diff
 @@ -22,5 +33,5 @@
-          &quot;stream&quot;: False,
-          &quot;debug&quot;: True,
--         &quot;debug_file&quot;: &quot;digest_generation.log&quot;,
-+         &quot;debug_file&quot;: general_debug_file,
-          &quot;debug_scope&quot;: &quot;test_digest_generator_integration&quot;,
-          &quot;console_output&quot;: False
+          "stream": False,
+          "debug": True,
+-         "debug_file": "digest_generation.log",
++         "debug_file": general_debug_file,
+          "debug_scope": "test_digest_generator_integration",
+          "console_output": False
 ```
 
 </details>
@@ -2082,7 +2082,7 @@ Lines added: 1, lines removed: 1
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: tests/memory_manager/test_content_segmenter.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: tests/memory_manager/test_content_segmenter.py</summary>
 
 **Chunk 1**
 Lines added: 12, lines removed: undefined
@@ -2095,20 +2095,20 @@ Lines added: 12, lines removed: undefined
   
   @pytest.fixture
   def llm_service():
-      &quot;&quot;&quot;Create an LLM service for testing.&quot;&quot;&quot;
+      """Create an LLM service for testing."""
 +     # Create logs directory structure
-+     logs_dir = os.path.join(os.path.dirname(__file__), &quot;logs&quot;)
-+     guid = &quot;content_segmenter_test&quot;
++     logs_dir = os.path.join(os.path.dirname(__file__), "logs")
++     guid = "content_segmenter_test"
 +     guid_logs_dir = os.path.join(logs_dir, guid)
 +     os.makedirs(guid_logs_dir, exist_ok=True)
 +     
 +     # Create separate debug files for each service
-+     general_debug_file = os.path.join(guid_logs_dir, &quot;general.log&quot;)
-+     digest_debug_file = os.path.join(guid_logs_dir, &quot;digest.log&quot;)
-+     embed_debug_file = os.path.join(guid_logs_dir, &quot;embed.log&quot;)
++     general_debug_file = os.path.join(guid_logs_dir, "general.log")
++     digest_debug_file = os.path.join(guid_logs_dir, "digest.log")
++     embed_debug_file = os.path.join(guid_logs_dir, "embed.log")
 +     
       return OllamaService({
-          &quot;base_url&quot;: &quot;http://192.168.1.173:11434&quot;,
+          "base_url": "http://192.168.1.173:11434",
 ```
 
 **Chunk 2**
@@ -2116,12 +2116,12 @@ Lines added: 1, lines removed: 1
 
 ```diff
 @@ -14,5 +26,5 @@
-          &quot;stream&quot;: False,
-          &quot;debug&quot;: True,
--         &quot;debug_file&quot;: &quot;content_segmenter.log&quot;,
-+         &quot;debug_file&quot;: general_debug_file,
-          &quot;debug_scope&quot;: &quot;test_content_segmenter&quot;,
-          &quot;console_output&quot;: False
+          "stream": False,
+          "debug": True,
+-         "debug_file": "content_segmenter.log",
++         "debug_file": general_debug_file,
+          "debug_scope": "test_content_segmenter",
+          "console_output": False
 ```
 
 </details>
@@ -2137,7 +2137,7 @@ Lines added: 1, lines removed: 1
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: tests/memory_manager/test_data_preprocessor_integration.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: tests/memory_manager/test_data_preprocessor_integration.py</summary>
 
 **Chunk 1**
 Lines added: 11, lines removed: undefined
@@ -2145,20 +2145,20 @@ Lines added: 11, lines removed: undefined
 ```diff
 @@ -58,4 +58,15 @@
   def test_data_preprocessor_integration():
-      &quot;&quot;&quot;Integration test for DataPreprocessor with Ollama LLM service.&quot;&quot;&quot;
+      """Integration test for DataPreprocessor with Ollama LLM service."""
 +     # Create logs directory structure
-+     logs_dir = os.path.join(project_root, &quot;logs&quot;)
-+     guid = &quot;data_preprocessor_test&quot;
++     logs_dir = os.path.join(project_root, "logs")
++     guid = "data_preprocessor_test"
 +     guid_logs_dir = os.path.join(logs_dir, guid)
 +     os.makedirs(guid_logs_dir, exist_ok=True)
 +     
 +     # Create separate debug files for each service
-+     general_debug_file = os.path.join(guid_logs_dir, &quot;general.log&quot;)
-+     digest_debug_file = os.path.join(guid_logs_dir, &quot;digest.log&quot;)
-+     embed_debug_file = os.path.join(guid_logs_dir, &quot;embed.log&quot;)
++     general_debug_file = os.path.join(guid_logs_dir, "general.log")
++     digest_debug_file = os.path.join(guid_logs_dir, "digest.log")
++     embed_debug_file = os.path.join(guid_logs_dir, "embed.log")
 +     
       llm_service = OllamaService({
-          &quot;base_url&quot;: OLLAMA_BASE_URL,
+          "base_url": OLLAMA_BASE_URL,
 ```
 
 **Chunk 2**
@@ -2166,12 +2166,12 @@ Lines added: 1, lines removed: 1
 
 ```diff
 @@ -64,5 +75,5 @@
-          &quot;stream&quot;: False,
-          &quot;debug&quot;: DEV_MODE,
--         &quot;debug_file&quot;: str(DEV_TEMP_DIR / &quot;data_preprocessor_integration.log&quot;),
-+         &quot;debug_file&quot;: general_debug_file,
-          &quot;debug_scope&quot;: &quot;test_data_preprocessor_integration&quot;,
-          &quot;console_output&quot;: DEV_MODE
+          "stream": False,
+          "debug": DEV_MODE,
+-         "debug_file": str(DEV_TEMP_DIR / "data_preprocessor_integration.log"),
++         "debug_file": general_debug_file,
+          "debug_scope": "test_data_preprocessor_integration",
+          "console_output": DEV_MODE
 ```
 
 </details>
@@ -2242,7 +2242,7 @@ I'll help you run the test with the specified environment variables.
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.143:11434 OLLAMA_LLM_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large pytest tests/memory_manager/test_memory_manager.py -v -s</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.143:11434 OLLAMA_LLM_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large pytest tests/memory_manager/test_memory_manager.py -v -s</summary>
 
 ```bash
 DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.143:11434 OLLAMA_LLM_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large pytest tests/memory_manager/test_memory_manager.py -v -s
@@ -2251,13 +2251,13 @@ DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.143:11434 OLLAMA_LLM_MODEL=gemma3
 ```
 /Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/lib/python3.9/site-
 packages/pytest_asyncio/plug
-in.py:217: PytestDeprecationWarning: The configuration option &quot;asyncio_default_f
-ixture_loop_scope&quot; is unset.The event loop scope for asynchronous fixtures will
+in.py:217: PytestDeprecationWarning: The configuration option "asyncio_default_f
+ixture_loop_scope" is unset.The event loop scope for asynchronous fixtures will
 default to the fixture caching scope. Future versions of
  pytest-asyncio will default the loop scope for asynchronous fixtures to functio
 n scope. Set the default fixture loop scope explicitly in order to avoid unexpec
-ted behavior in the future. Valid fixture loop scopes are: &quot;function&quot;, &quot;class&quot;,
-&quot;module&quot;, &quot;package&quot;, &quot;session&quot;
+ted behavior in the future. Valid fixture loop scopes are: "function", "class",
+"module", "package", "session"
     
   warnings.warn(PytestDeprecationWarning(_DEFAULT_FIXTURE_LOOP_SCOPE_UNSET))
 =========================================== test session starts ================
@@ -2309,7 +2309,7 @@ Memory configuration: max_recent_conversation_entries=8, importance_threshold=3
 Creating initial memory structure...
 Loaded preprocess_data template
 Failed to parse embeddable phrases, using input as fallback
-Preprocessed segments: [&#39;Initial test data&#39;]
+Preprocessed segments: ['Initial test data']
 Generating digest for initial data with pre-segmented content...
 
 
@@ -2326,29 +2326,29 @@ generate_digest: Memory state: static_memory
 
 
 Failed to parse rated segments, using defaults
-Memory saved after &#39;create_initial_memory&#39; operation
+Memory saved after 'create_initial_memory' operation
 Warning: Conversation history GUID mismatch. Expected a399a8ae-6186-4e69-89e0-85
 18f08b4d39, found 
 embeddings_manager - ERROR - Error generating embedding: unsupported operand typ
-e(s) for *: &#39;Mock&#39; and &#39;Mock
-&#39;
+e(s) for *: 'Mock' and 'Mock
+'
                             embeddings_manager - ERROR - Error adding embedding:
- unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock&#39;
+ unsupported operand type(s) for *: 'Mock' and 'Mock'
 embeddings_manager - ERROR - Traceback (most recent call last):
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embedd
-ings_manager.py&quot;, line 259, 
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embedd
+ings_manager.py", line 259, 
 in add_embedding
                                 embedding = self.generate_embedding(text, option
 s)
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embedd
-ings_manager.py&quot;, line 177, 
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embedd
+ings_manager.py", line 177, 
 in generate_embedding
                                 norm = np.linalg.norm(embedding_array)
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/lib/python3
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/lib/python3
 .9/site-packages/numpy/linal
-g/_linalg.py&quot;, line 2736, in norm
+g/_linalg.py", line 2736, in norm
                                 sqnorm = x.dot(x)
-TypeError: unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock&#39;
+TypeError: unsupported operand type(s) for *: 'Mock' and 'Mock'
 
 embeddings_manager - INFO - Incremental embedding update: 0 new embeddings added
 .
@@ -2389,7 +2389,7 @@ Memory configuration: max_recent_conversation_entries=8, importance_threshold=3
 Creating initial memory structure...
 Loaded preprocess_data template
 Failed to parse embeddable phrases, using input as fallback
-Preprocessed segments: [&#39;Initial test data&#39;]
+Preprocessed segments: ['Initial test data']
 Generating digest for initial data with pre-segmented content...
 
 
@@ -2406,37 +2406,37 @@ generate_digest: Memory state: static_memory
 
 
 Failed to parse rated segments, using defaults
-Memory saved after &#39;create_initial_memory&#39; operation
+Memory saved after 'create_initial_memory' operation
 Warning: Conversation history GUID mismatch. Expected caef50fa-74e9-41bb-be59-16
 8597671593, found 
 embeddings_manager - ERROR - Error generating embedding: unsupported operand typ
-e(s) for *: &#39;Mock&#39; and &#39;Mock
-&#39;
+e(s) for *: 'Mock' and 'Mock
+'
                             embeddings_manager - ERROR - Error adding embedding:
- unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock&#39;
+ unsupported operand type(s) for *: 'Mock' and 'Mock'
 embeddings_manager - ERROR - Traceback (most recent call last):
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embedd
-ings_manager.py&quot;, line 259, 
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embedd
+ings_manager.py", line 259, 
 in add_embedding
                                 embedding = self.generate_embedding(text, option
 s)
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embedd
-ings_manager.py&quot;, line 177, 
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embedd
+ings_manager.py", line 177, 
 in generate_embedding
                                 norm = np.linalg.norm(embedding_array)
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/lib/python3
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/lib/python3
 .9/site-packages/numpy/linal
-g/_linalg.py&quot;, line 2736, in norm
+g/_linalg.py", line 2736, in norm
                                 sqnorm = x.dot(x)
-TypeError: unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock&#39;
+TypeError: unsupported operand type(s) for *: 'Mock' and 'Mock'
 
 embeddings_manager - INFO - Incremental embedding update: 0 new embeddings added
 .
 Memory created and initialized with static knowledge
 
 Querying memory...
-rag_manager - INFO - Enhancing memory query: &#39;&#39;
-rag_manager - INFO - Querying for: &#39;&#39; (limit=5, min_importance=2)
+rag_manager - INFO - Enhancing memory query: ''
+rag_manager - INFO - Querying for: '' (limit=5, min_importance=2)
 embeddings_manager - WARNING - No embeddings available for search
 rag_manager - INFO - Search returned 0 raw results
 rag_manager - INFO - Returning 0 processed results
@@ -2465,35 +2465,35 @@ Added agent entry to conversation history
 Backup created: /private/var/folders/rt/vkpjxg7922l4qscz5rlkrkj80000gn/T/pytest-
 of-andrewrapo/pytest-16/test
 _query_memory_success0/test_memory_bak_20250508_002845.json
-                            Memory saved after &#39;add_conversation_entry&#39; operatio
+                            Memory saved after 'add_conversation_entry' operatio
 n
 embeddings_manager - ERROR - Error generating embedding: unsupported operand typ
-e(s) for *: &#39;Mock&#39; and &#39;Mock
-&#39;
+e(s) for *: 'Mock' and 'Mock
+'
                             embeddings_manager - ERROR - Error adding embedding:
- unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock&#39;
+ unsupported operand type(s) for *: 'Mock' and 'Mock'
 embeddings_manager - ERROR - Traceback (most recent call last):
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embedd
-ings_manager.py&quot;, line 259, 
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embedd
+ings_manager.py", line 259, 
 in add_embedding
                                 embedding = self.generate_embedding(text, option
 s)
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embedd
-ings_manager.py&quot;, line 177, 
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embedd
+ings_manager.py", line 177, 
 in generate_embedding
                                 norm = np.linalg.norm(embedding_array)
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/lib/python3
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/lib/python3
 .9/site-packages/numpy/linal
-g/_linalg.py&quot;, line 2736, in norm
+g/_linalg.py", line 2736, in norm
                                 sqnorm = x.dot(x)
-TypeError: unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock&#39;
+TypeError: unsupported operand type(s) for *: 'Mock' and 'Mock'
 
 embeddings_manager - INFO - Incremental embedding update: 0 new embeddings added
 .
 Backup created: /private/var/folders/rt/vkpjxg7922l4qscz5rlkrkj80000gn/T/pytest-
 of-andrewrapo/pytest-16/test
 _query_memory_success0/test_memory_bak_20250508_002845.json
-                            Memory saved after &#39;query_memory&#39; operation
+                            Memory saved after 'query_memory' operation
 FAILED
 tests/memory_manager/test_memory_manager.py::test_query_memory_failure Memory fi
 le not found, will create ne
@@ -2528,8 +2528,8 @@ d739 for memory file that will be created
 Memory configuration: max_recent_conversation_entries=8, importance_threshold=3
 
 Querying memory...
-rag_manager - INFO - Enhancing memory query: &#39;&#39;
-rag_manager - INFO - Querying for: &#39;&#39; (limit=5, min_importance=2)
+rag_manager - INFO - Enhancing memory query: ''
+rag_manager - INFO - Querying for: '' (limit=5, min_importance=2)
 embeddings_manager - WARNING - No embeddings available for search
 rag_manager - INFO - Search returned 0 raw results
 rag_manager - INFO - Returning 0 processed results
@@ -2557,34 +2557,34 @@ Failed to parse rated segments, using defaults
 Warning: Conversation history GUID mismatch. Expected 43ebfdaf-b2ce-48be-bb4c-29
 c380d0d739, found 
 Added agent entry to conversation history
-Memory saved after &#39;add_conversation_entry&#39; operation
+Memory saved after 'add_conversation_entry' operation
 embeddings_manager - ERROR - Error generating embedding: unsupported operand typ
-e(s) for *: &#39;Mock&#39; and &#39;Mock
-&#39;
+e(s) for *: 'Mock' and 'Mock
+'
                             embeddings_manager - ERROR - Error adding embedding:
- unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock&#39;
+ unsupported operand type(s) for *: 'Mock' and 'Mock'
 embeddings_manager - ERROR - Traceback (most recent call last):
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embedd
-ings_manager.py&quot;, line 259, 
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embedd
+ings_manager.py", line 259, 
 in add_embedding
                                 embedding = self.generate_embedding(text, option
 s)
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embedd
-ings_manager.py&quot;, line 177, 
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embedd
+ings_manager.py", line 177, 
 in generate_embedding
                                 norm = np.linalg.norm(embedding_array)
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/lib/python3
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/lib/python3
 .9/site-packages/numpy/linal
-g/_linalg.py&quot;, line 2736, in norm
+g/_linalg.py", line 2736, in norm
                                 sqnorm = x.dot(x)
-TypeError: unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock&#39;
+TypeError: unsupported operand type(s) for *: 'Mock' and 'Mock'
 
 embeddings_manager - INFO - Incremental embedding update: 0 new embeddings added
 .
 Backup created: /private/var/folders/rt/vkpjxg7922l4qscz5rlkrkj80000gn/T/pytest-
 of-andrewrapo/pytest-16/test
 _query_memory_failure0/test_memory_bak_20250508_002845.json
-                            Memory saved after &#39;query_memory&#39; operation
+                            Memory saved after 'query_memory' operation
 PASSED
 tests/memory_manager/test_memory_manager.py::test_save_and_load_memory Memory fi
 le not found, will create ne
@@ -2621,7 +2621,7 @@ Memory configuration: max_recent_conversation_entries=8, importance_threshold=3
 Creating initial memory structure...
 Loaded preprocess_data template
 Failed to parse embeddable phrases, using input as fallback
-Preprocessed segments: [&#39;Initial test data&#39;]
+Preprocessed segments: ['Initial test data']
 Generating digest for initial data with pre-segmented content...
 
 
@@ -2638,29 +2638,29 @@ generate_digest: Memory state: static_memory
 
 
 Failed to parse rated segments, using defaults
-Memory saved after &#39;create_initial_memory&#39; operation
+Memory saved after 'create_initial_memory' operation
 Warning: Conversation history GUID mismatch. Expected 58b2862f-92e8-4d89-a693-1c
 6b1da8f5e3, found 
 embeddings_manager - ERROR - Error generating embedding: unsupported operand typ
-e(s) for *: &#39;Mock&#39; and &#39;Mock
-&#39;
+e(s) for *: 'Mock' and 'Mock
+'
                             embeddings_manager - ERROR - Error adding embedding:
- unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock&#39;
+ unsupported operand type(s) for *: 'Mock' and 'Mock'
 embeddings_manager - ERROR - Traceback (most recent call last):
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embedd
-ings_manager.py&quot;, line 259, 
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embedd
+ings_manager.py", line 259, 
 in add_embedding
                                 embedding = self.generate_embedding(text, option
 s)
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embedd
-ings_manager.py&quot;, line 177, 
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embedd
+ings_manager.py", line 177, 
 in generate_embedding
                                 norm = np.linalg.norm(embedding_array)
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/lib/python3
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/lib/python3
 .9/site-packages/numpy/linal
-g/_linalg.py&quot;, line 2736, in norm
+g/_linalg.py", line 2736, in norm
                                 sqnorm = x.dot(x)
-TypeError: unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock&#39;
+TypeError: unsupported operand type(s) for *: 'Mock' and 'Mock'
 
 embeddings_manager - INFO - Incremental embedding update: 0 new embeddings added
 .
@@ -2668,7 +2668,7 @@ Memory created and initialized with static knowledge
 Backup created: /private/var/folders/rt/vkpjxg7922l4qscz5rlkrkj80000gn/T/pytest-
 of-andrewrapo/pytest-16/test
 _save_and_load_memory0/test_memory_bak_20250508_002845.json
-                            Memory saved after &#39;unknown&#39; operation
+                            Memory saved after 'unknown' operation
 Loaded memory with existing GUID: 58b2862f-92e8-4d89-a693-1c6b1da8f5e3
 Memory loaded from file
 Conversation history file: /private/var/folders/rt/vkpjxg7922l4qscz5rlkrkj80000g
@@ -2699,7 +2699,7 @@ s=8, importance_threshold=3
 Creating initial memory structure...
 Loaded preprocess_data template
 Failed to parse embeddable phrases, using input as fallback
-Preprocessed segments: [&#39;Initial test data&#39;]
+Preprocessed segments: ['Initial test data']
 Generating digest for initial data with pre-segmented content...
 
 
@@ -2719,27 +2719,27 @@ Failed to parse rated segments, using defaults
 Backup created: /private/var/folders/rt/vkpjxg7922l4qscz5rlkrkj80000gn/T/pytest-
 of-andrewrapo/pytest-16/test
 _save_and_load_memory0/test_memory_bak_20250508_002845.json
-                            Memory saved after &#39;create_initial_memory&#39; operation
+                            Memory saved after 'create_initial_memory' operation
 embeddings_manager - ERROR - Error generating embedding: unsupported operand typ
-e(s) for *: &#39;Mock&#39; and &#39;Mock
-&#39;
+e(s) for *: 'Mock' and 'Mock
+'
                             embeddings_manager - ERROR - Error adding embedding:
- unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock&#39;
+ unsupported operand type(s) for *: 'Mock' and 'Mock'
 embeddings_manager - ERROR - Traceback (most recent call last):
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embedd
-ings_manager.py&quot;, line 259, 
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embedd
+ings_manager.py", line 259, 
 in add_embedding
                                 embedding = self.generate_embedding(text, option
 s)
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embedd
-ings_manager.py&quot;, line 177, 
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embedd
+ings_manager.py", line 177, 
 in generate_embedding
                                 norm = np.linalg.norm(embedding_array)
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/lib/python3
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/lib/python3
 .9/site-packages/numpy/linal
-g/_linalg.py&quot;, line 2736, in norm
+g/_linalg.py", line 2736, in norm
                                 sqnorm = x.dot(x)
-TypeError: unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock&#39;
+TypeError: unsupported operand type(s) for *: 'Mock' and 'Mock'
 
 embeddings_manager - INFO - Incremental embedding update: 0 new embeddings added
 .
@@ -2780,7 +2780,7 @@ Memory configuration: max_recent_conversation_entries=8, importance_threshold=3
 Creating initial memory structure...
 Loaded preprocess_data template
 Failed to parse embeddable phrases, using input as fallback
-Preprocessed segments: [&#39;Test data&#39;]
+Preprocessed segments: ['Test data']
 Generating digest for initial data with pre-segmented content...
 
 
@@ -2797,37 +2797,37 @@ generate_digest: Memory state: static_memory
 
 
 Failed to parse rated segments, using defaults
-Memory saved after &#39;create_initial_memory&#39; operation
+Memory saved after 'create_initial_memory' operation
 Warning: Conversation history GUID mismatch. Expected fbed7a47-d541-4614-97bd-e3
 1e257d278e, found 
 embeddings_manager - ERROR - Error generating embedding: unsupported operand typ
-e(s) for *: &#39;Mock&#39; and &#39;Mock
-&#39;
+e(s) for *: 'Mock' and 'Mock
+'
                             embeddings_manager - ERROR - Error adding embedding:
- unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock&#39;
+ unsupported operand type(s) for *: 'Mock' and 'Mock'
 embeddings_manager - ERROR - Traceback (most recent call last):
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embedd
-ings_manager.py&quot;, line 259, 
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embedd
+ings_manager.py", line 259, 
 in add_embedding
                                 embedding = self.generate_embedding(text, option
 s)
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embedd
-ings_manager.py&quot;, line 177, 
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embedd
+ings_manager.py", line 177, 
 in generate_embedding
                                 norm = np.linalg.norm(embedding_array)
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/lib/python3
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/lib/python3
 .9/site-packages/numpy/linal
-g/_linalg.py&quot;, line 2736, in norm
+g/_linalg.py", line 2736, in norm
                                 sqnorm = x.dot(x)
-TypeError: unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock&#39;
+TypeError: unsupported operand type(s) for *: 'Mock' and 'Mock'
 
 embeddings_manager - INFO - Incremental embedding update: 0 new embeddings added
 .
 Memory created and initialized with static knowledge
 
 Querying memory...
-rag_manager - INFO - Enhancing memory query: &#39;&#39;
-rag_manager - INFO - Querying for: &#39;&#39; (limit=5, min_importance=2)
+rag_manager - INFO - Enhancing memory query: ''
+rag_manager - INFO - Querying for: '' (limit=5, min_importance=2)
 embeddings_manager - WARNING - No embeddings available for search
 rag_manager - INFO - Search returned 0 raw results
 rag_manager - INFO - Returning 0 processed results
@@ -2856,35 +2856,35 @@ Added agent entry to conversation history
 Backup created: /private/var/folders/rt/vkpjxg7922l4qscz5rlkrkj80000gn/T/pytest-
 of-andrewrapo/pytest-16/test
 _invalid_query_context0/test_memory_bak_20250508_002845.json
-                            Memory saved after &#39;add_conversation_entry&#39; operatio
+                            Memory saved after 'add_conversation_entry' operatio
 n
 embeddings_manager - ERROR - Error generating embedding: unsupported operand typ
-e(s) for *: &#39;Mock&#39; and &#39;Mock
-&#39;
+e(s) for *: 'Mock' and 'Mock
+'
                             embeddings_manager - ERROR - Error adding embedding:
- unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock&#39;
+ unsupported operand type(s) for *: 'Mock' and 'Mock'
 embeddings_manager - ERROR - Traceback (most recent call last):
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embedd
-ings_manager.py&quot;, line 259, 
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embedd
+ings_manager.py", line 259, 
 in add_embedding
                                 embedding = self.generate_embedding(text, option
 s)
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embedd
-ings_manager.py&quot;, line 177, 
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embedd
+ings_manager.py", line 177, 
 in generate_embedding
                                 norm = np.linalg.norm(embedding_array)
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/lib/python3
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/lib/python3
 .9/site-packages/numpy/linal
-g/_linalg.py&quot;, line 2736, in norm
+g/_linalg.py", line 2736, in norm
                                 sqnorm = x.dot(x)
-TypeError: unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock&#39;
+TypeError: unsupported operand type(s) for *: 'Mock' and 'Mock'
 
 embeddings_manager - INFO - Incremental embedding update: 0 new embeddings added
 .
 Backup created: /private/var/folders/rt/vkpjxg7922l4qscz5rlkrkj80000gn/T/pytest-
 of-andrewrapo/pytest-16/test
 _invalid_query_context0/test_memory_bak_20250508_002845.json
-                            Memory saved after &#39;query_memory&#39; operation
+                            Memory saved after 'query_memory' operation
 PASSED
 
 ================================================= FAILURES =====================
@@ -2895,29 +2895,29 @@ ____________________________
 memory_manager = &lt;src.memory.memory_manager.MemoryManager object at 0x103a0eee0&gt;
 
     def test_query_memory_success(memory_manager):
-        memory_manager.create_initial_memory(&quot;Initial test data&quot;)
-        result = memory_manager.query_memory({&quot;user_message&quot;: &quot;Test question&quot;})
+        memory_manager.create_initial_memory("Initial test data")
+        result = memory_manager.query_memory({"user_message": "Test question"})
         assert isinstance(result, dict)
         # Accept either the markdown or plain text response as valid
-        valid_responses = (&quot;Test response from LLM.&quot;, &quot;# Knowledge Base\n[!3] In
-itial test data\n&quot;)
-        assert result[&quot;response&quot;] in valid_responses or &quot;Test question&quot; in resul
-t[&quot;response&quot;]
-        # The new memory system includes a &#39;system&#39; message for the initial memo
+        valid_responses = ("Test response from LLM.", "# Knowledge Base\n[!3] In
+itial test data\n")
+        assert result["response"] in valid_responses or "Test question" in resul
+t["response"]
+        # The new memory system includes a 'system' message for the initial memo
 ry
-&gt;       assert len(memory_manager.memory[&quot;conversation_history&quot;]) == 3
+&gt;       assert len(memory_manager.memory["conversation_history"]) == 3
 E       AssertionError: assert 2 == 3
-E        +  where 2 = len([{&#39;content&#39;: &#39;Initial test data&#39;, &#39;digest&#39;: {&#39;conversa
-tion_history_entry_guid&#39;: &#39;a
-665faea-eabb-4a67-897e-2cc9d55c574c&#39;, &#39;rated_segments&#39;: [{&#39;importance&#39;: 3, &#39;text
-&#39;: &#39;Initial test data&#39;, &#39;topics&#39;: [], &#39;type&#39;: &#39;information&#39;}], &#39;role&#39;: &#39;system&#39;,
- &#39;timestamp&#39;: &#39;2025-05-08T00:28:45.659076&#39;}, &#39;guid&#39;: &#39;a665faea-eabb-4a67-897e-2c
-c9d55c574c&#39;, &#39;role&#39;: &#39;system&#39;, ...}, {&#39;content&#39;: &#39;# Knowledge Base\n[!3] Initial
- test data\n&#39;, &#39;digest&#39;: {&#39;conversation_history_entry_guid&#39;: &#39;73720557-5544-4e49
--ae01-d91ca06c8e3f&#39;, &#39;rated_segments&#39;: [{&#39;importance&#39;: 3, &#39;text&#39;: &#39;# Knowledge B
-ase\n[!3] Initial test data\n&#39;, &#39;topics&#39;: [], &#39;type&#39;: &#39;information&#39;}], &#39;role&#39;: &#39;
-agent&#39;, &#39;timestamp&#39;: &#39;2025-05-08T00:28:45.663038&#39;}, &#39;guid&#39;: &#39;73720557-5544-4e49-
-ae01-d91ca06c8e3f&#39;, &#39;role&#39;: &#39;agent&#39;, ...}])
+E        +  where 2 = len([{'content': 'Initial test data', 'digest': {'conversa
+tion_history_entry_guid': 'a
+665faea-eabb-4a67-897e-2cc9d55c574c', 'rated_segments': [{'importance': 3, 'text
+': 'Initial test data', 'topics': [], 'type': 'information'}], 'role': 'system',
+ 'timestamp': '2025-05-08T00:28:45.659076'}, 'guid': 'a665faea-eabb-4a67-897e-2c
+c9d55c574c', 'role': 'system', ...}, {'content': '# Knowledge Base\n[!3] Initial
+ test data\n', 'digest': {'conversation_history_entry_guid': '73720557-5544-4e49
+-ae01-d91ca06c8e3f', 'rated_segments': [{'importance': 3, 'text': '# Knowledge B
+ase\n[!3] Initial test data\n', 'topics': [], 'type': 'information'}], 'role': '
+agent', 'timestamp': '2025-05-08T00:28:45.663038'}, 'guid': '73720557-5544-4e49-
+ae01-d91ca06c8e3f', 'role': 'agent', ...}])
                                     
 tests/memory_manager/test_memory_manager.py:44: AssertionError
 -------------------------------------------- Captured log setup ----------------
@@ -2931,31 +2931,31 @@ t_memory_embeddings.jsonl does not exist, starting with empty embeddings.
 ----
 ERROR    embeddings_manager:embeddings_manager.py:184 Error generating embedding
 : unsupported operand type(s
-) for *: &#39;Mock&#39; and &#39;Mock&#39;
+) for *: 'Mock' and 'Mock'
                             ERROR    embeddings_manager:embeddings_manager.py:27
 9 Error adding embedding: unsupported operand type(s) fo
-r *: &#39;Mock&#39; and &#39;Mock&#39;
+r *: 'Mock' and 'Mock'
                             ERROR    embeddings_manager:embeddings_manager.py:28
 0 Traceback (most recent call last):
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embedd
-ings_manager.py&quot;, line 259, 
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embedd
+ings_manager.py", line 259, 
 in add_embedding
                                 embedding = self.generate_embedding(text, option
 s)
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embedd
-ings_manager.py&quot;, line 177, 
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embedd
+ings_manager.py", line 177, 
 in generate_embedding
                                 norm = np.linalg.norm(embedding_array)
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/lib/python3
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/lib/python3
 .9/site-packages/numpy/linal
-g/_linalg.py&quot;, line 2736, in norm
+g/_linalg.py", line 2736, in norm
                                 sqnorm = x.dot(x)
-TypeError: unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock&#39;
+TypeError: unsupported operand type(s) for *: 'Mock' and 'Mock'
 
 INFO     embeddings_manager:embeddings_manager.py:501 Incremental embedding upda
 te: 0 new embeddings added.
-INFO     rag_manager:rag_manager.py:282 Enhancing memory query: &#39;&#39;
-INFO     rag_manager:rag_manager.py:176 Querying for: &#39;&#39; (limit=5, min_importanc
+INFO     rag_manager:rag_manager.py:282 Enhancing memory query: ''
+INFO     rag_manager:rag_manager.py:176 Querying for: '' (limit=5, min_importanc
 e=2)
 WARNING  embeddings_manager:embeddings_manager.py:319 No embeddings available fo
 r search
@@ -2964,26 +2964,26 @@ INFO     rag_manager:rag_manager.py:224 Returning 0 processed results
 WARNING  rag_manager:rag_manager.py:298 No relevant context found for query
 ERROR    embeddings_manager:embeddings_manager.py:184 Error generating embedding
 : unsupported operand type(s
-) for *: &#39;Mock&#39; and &#39;Mock&#39;
+) for *: 'Mock' and 'Mock'
                             ERROR    embeddings_manager:embeddings_manager.py:27
 9 Error adding embedding: unsupported operand type(s) fo
-r *: &#39;Mock&#39; and &#39;Mock&#39;
+r *: 'Mock' and 'Mock'
                             ERROR    embeddings_manager:embeddings_manager.py:28
 0 Traceback (most recent call last):
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embedd
-ings_manager.py&quot;, line 259, 
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embedd
+ings_manager.py", line 259, 
 in add_embedding
                                 embedding = self.generate_embedding(text, option
 s)
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embedd
-ings_manager.py&quot;, line 177, 
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embedd
+ings_manager.py", line 177, 
 in generate_embedding
                                 norm = np.linalg.norm(embedding_array)
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/lib/python3
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/lib/python3
 .9/site-packages/numpy/linal
-g/_linalg.py&quot;, line 2736, in norm
+g/_linalg.py", line 2736, in norm
                                 sqnorm = x.dot(x)
-TypeError: unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock&#39;
+TypeError: unsupported operand type(s) for *: 'Mock' and 'Mock'
 
 INFO     embeddings_manager:embeddings_manager.py:501 Incremental embedding upda
 te: 0 new embeddings added.
@@ -3087,7 +3087,7 @@ I see the issue now. In the `query_memory` method of `MemoryManager`, we're extr
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -3097,7 +3097,7 @@ Lines added: 1, lines removed: 1
           Args:
               query_context: Dictionary containing query context:
 -                            - query: The query text
-+                            - user_message: The user&#39;s query text
++                            - user_message: The user's query text
                              - domain_instructions: Optional domain-specific instructions
                              - rag_context: Optional RAG-enhanced context
 ```
@@ -3107,12 +3107,12 @@ Lines added: 2, lines removed: 2
 
 ```diff
 @@ -283,6 +283,6 @@
-              print(&quot;\nQuerying memory...&quot;)
+              print("\nQuerying memory...")
               
 -             # Extract query text
--             query = query_context.get(&quot;query&quot;, &quot;&quot;)
+-             query = query_context.get("query", "")
 +             # Extract query text from user_message
-+             query = query_context.get(&quot;user_message&quot;, &quot;&quot;)
++             query = query_context.get("user_message", "")
   
               # Add user message to history and trigger embedding/indexing
 ```
@@ -3129,7 +3129,7 @@ Now let's run the test again to see if this fixes the issue:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.143:11434 OLLAMA_LLM_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large pytest tests/memory_manager/test_memory_manager.py -v -s</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.143:11434 OLLAMA_LLM_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large pytest tests/memory_manager/test_memory_manager.py -v -s</summary>
 
 ```bash
 DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.143:11434 OLLAMA_LLM_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large pytest tests/memory_manager/test_memory_manager.py -v -s
@@ -3137,11 +3137,11 @@ DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.143:11434 OLLAMA_LLM_MODEL=gemma3
 
 ```
 /Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/lib/python3.9/site-packages/pytest_asyncio/plug
-in.py:217: PytestDeprecationWarning: The configuration option &quot;asyncio_default_fixture_loop_scope&quot; is unset.
+in.py:217: PytestDeprecationWarning: The configuration option "asyncio_default_fixture_loop_scope" is unset.
 The event loop scope for asynchronous fixtures will default to the fixture caching scope. Future versions of
  pytest-asyncio will default the loop scope for asynchronous fixtures to function scope. Set the default fix
 ture loop scope explicitly in order to avoid unexpected behavior in the future. Valid fixture loop scopes ar
-e: &quot;function&quot;, &quot;class&quot;, &quot;module&quot;, &quot;package&quot;, &quot;session&quot;
+e: "function", "class", "module", "package", "session"
 
   warnings.warn(PytestDeprecationWarning(_DEFAULT_FIXTURE_LOOP_SCOPE_UNSET))
 =========================================== test session starts ============================================
@@ -3181,7 +3181,7 @@ Memory configuration: max_recent_conversation_entries=8, importance_threshold=3
 Creating initial memory structure...
 Loaded preprocess_data template
 Failed to parse embeddable phrases, using input as fallback
-Preprocessed segments: [&#39;Initial test data&#39;]
+Preprocessed segments: ['Initial test data']
 Generating digest for initial data with pre-segmented content...
 
 
@@ -3198,22 +3198,22 @@ generate_digest: Memory state: static_memory
 
 
 Failed to parse rated segments, using defaults
-Memory saved after &#39;create_initial_memory&#39; operation
+Memory saved after 'create_initial_memory' operation
 Warning: Conversation history GUID mismatch. Expected 53c2cef6-0980-43ff-94fa-6b2c54cc8ca3, found 
-embeddings_manager - ERROR - Error generating embedding: unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock
-&#39;
-embeddings_manager - ERROR - Error adding embedding: unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock&#39;
+embeddings_manager - ERROR - Error generating embedding: unsupported operand type(s) for *: 'Mock' and 'Mock
+'
+embeddings_manager - ERROR - Error adding embedding: unsupported operand type(s) for *: 'Mock' and 'Mock'
 embeddings_manager - ERROR - Traceback (most recent call last):
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py&quot;, line 259, 
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py", line 259, 
 in add_embedding
     embedding = self.generate_embedding(text, options)
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py&quot;, line 177, 
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py", line 177, 
 in generate_embedding
     norm = np.linalg.norm(embedding_array)
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/lib/python3.9/site-packages/numpy/linal
-g/_linalg.py&quot;, line 2736, in norm
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/lib/python3.9/site-packages/numpy/linal
+g/_linalg.py", line 2736, in norm
     sqnorm = x.dot(x)
-TypeError: unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock&#39;
+TypeError: unsupported operand type(s) for *: 'Mock' and 'Mock'
 
 embeddings_manager - INFO - Incremental embedding update: 0 new embeddings added.
 Memory created and initialized with static knowledge
@@ -3245,7 +3245,7 @@ Memory configuration: max_recent_conversation_entries=8, importance_threshold=3
 Creating initial memory structure...
 Loaded preprocess_data template
 Failed to parse embeddable phrases, using input as fallback
-Preprocessed segments: [&#39;Initial test data&#39;]
+Preprocessed segments: ['Initial test data']
 Generating digest for initial data with pre-segmented content...
 
 
@@ -3262,22 +3262,22 @@ generate_digest: Memory state: static_memory
 
 
 Failed to parse rated segments, using defaults
-Memory saved after &#39;create_initial_memory&#39; operation
+Memory saved after 'create_initial_memory' operation
 Warning: Conversation history GUID mismatch. Expected c96b5c78-879b-44d5-b4ba-6d909e094324, found 
-embeddings_manager - ERROR - Error generating embedding: unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock
-&#39;
-embeddings_manager - ERROR - Error adding embedding: unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock&#39;
+embeddings_manager - ERROR - Error generating embedding: unsupported operand type(s) for *: 'Mock' and 'Mock
+'
+embeddings_manager - ERROR - Error adding embedding: unsupported operand type(s) for *: 'Mock' and 'Mock'
 embeddings_manager - ERROR - Traceback (most recent call last):
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py&quot;, line 259, 
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py", line 259, 
 in add_embedding
     embedding = self.generate_embedding(text, options)
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py&quot;, line 177, 
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py", line 177, 
 in generate_embedding
     norm = np.linalg.norm(embedding_array)
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/lib/python3.9/site-packages/numpy/linal
-g/_linalg.py&quot;, line 2736, in norm
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/lib/python3.9/site-packages/numpy/linal
+g/_linalg.py", line 2736, in norm
     sqnorm = x.dot(x)
-TypeError: unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock&#39;
+TypeError: unsupported operand type(s) for *: 'Mock' and 'Mock'
 
 embeddings_manager - INFO - Incremental embedding update: 0 new embeddings added.
 Memory created and initialized with static knowledge
@@ -3303,25 +3303,25 @@ Failed to parse rated segments, using defaults
 Added user entry to conversation history
 Backup created: /private/var/folders/rt/vkpjxg7922l4qscz5rlkrkj80000gn/T/pytest-of-andrewrapo/pytest-17/test
 _query_memory_success0/test_memory_bak_20250508_002934.json
-Memory saved after &#39;add_conversation_entry&#39; operation
-embeddings_manager - ERROR - Error generating embedding: unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock
-&#39;
-embeddings_manager - ERROR - Error adding embedding: unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock&#39;
+Memory saved after 'add_conversation_entry' operation
+embeddings_manager - ERROR - Error generating embedding: unsupported operand type(s) for *: 'Mock' and 'Mock
+'
+embeddings_manager - ERROR - Error adding embedding: unsupported operand type(s) for *: 'Mock' and 'Mock'
 embeddings_manager - ERROR - Traceback (most recent call last):
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py&quot;, line 259, 
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py", line 259, 
 in add_embedding
     embedding = self.generate_embedding(text, options)
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py&quot;, line 177, 
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py", line 177, 
 in generate_embedding
     norm = np.linalg.norm(embedding_array)
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/lib/python3.9/site-packages/numpy/linal
-g/_linalg.py&quot;, line 2736, in norm
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/lib/python3.9/site-packages/numpy/linal
+g/_linalg.py", line 2736, in norm
     sqnorm = x.dot(x)
-TypeError: unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock&#39;
+TypeError: unsupported operand type(s) for *: 'Mock' and 'Mock'
 
 embeddings_manager - INFO - Incremental embedding update: 0 new embeddings added.
-rag_manager - INFO - Enhancing memory query: &#39;&#39;
-rag_manager - INFO - Querying for: &#39;&#39; (limit=5, min_importance=2)
+rag_manager - INFO - Enhancing memory query: ''
+rag_manager - INFO - Querying for: '' (limit=5, min_importance=2)
 embeddings_manager - WARNING - No embeddings available for search
 rag_manager - INFO - Search returned 0 raw results
 rag_manager - INFO - Returning 0 processed results
@@ -3347,26 +3347,26 @@ Failed to parse rated segments, using defaults
 Added agent entry to conversation history
 Backup created: /private/var/folders/rt/vkpjxg7922l4qscz5rlkrkj80000gn/T/pytest-of-andrewrapo/pytest-17/test
 _query_memory_success0/test_memory_bak_20250508_002934.json
-Memory saved after &#39;add_conversation_entry&#39; operation
-embeddings_manager - ERROR - Error generating embedding: unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock
-&#39;
-embeddings_manager - ERROR - Error adding embedding: unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock&#39;
+Memory saved after 'add_conversation_entry' operation
+embeddings_manager - ERROR - Error generating embedding: unsupported operand type(s) for *: 'Mock' and 'Mock
+'
+embeddings_manager - ERROR - Error adding embedding: unsupported operand type(s) for *: 'Mock' and 'Mock'
 embeddings_manager - ERROR - Traceback (most recent call last):
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py&quot;, line 259, 
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py", line 259, 
 in add_embedding
     embedding = self.generate_embedding(text, options)
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py&quot;, line 177, 
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py", line 177, 
 in generate_embedding
     norm = np.linalg.norm(embedding_array)
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/lib/python3.9/site-packages/numpy/linal
-g/_linalg.py&quot;, line 2736, in norm
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/lib/python3.9/site-packages/numpy/linal
+g/_linalg.py", line 2736, in norm
     sqnorm = x.dot(x)
-TypeError: unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock&#39;
+TypeError: unsupported operand type(s) for *: 'Mock' and 'Mock'
 
 embeddings_manager - INFO - Incremental embedding update: 0 new embeddings added.
 Backup created: /private/var/folders/rt/vkpjxg7922l4qscz5rlkrkj80000gn/T/pytest-of-andrewrapo/pytest-17/test
 _query_memory_success0/test_memory_bak_20250508_002934.json
-Memory saved after &#39;query_memory&#39; operation
+Memory saved after 'query_memory' operation
 PASSED
 tests/memory_manager/test_memory_manager.py::test_query_memory_failure Memory file not found, will create ne
 w memory
@@ -3393,8 +3393,8 @@ Generated new GUID: d8577c52-3280-4104-b038-dcb430736383 for memory file that wi
 Memory configuration: max_recent_conversation_entries=8, importance_threshold=3
 
 Querying memory...
-rag_manager - INFO - Enhancing memory query: &#39;&#39;
-rag_manager - INFO - Querying for: &#39;&#39; (limit=5, min_importance=2)
+rag_manager - INFO - Enhancing memory query: ''
+rag_manager - INFO - Querying for: '' (limit=5, min_importance=2)
 embeddings_manager - WARNING - No embeddings available for search
 rag_manager - INFO - Search returned 0 raw results
 rag_manager - INFO - Returning 0 processed results
@@ -3421,26 +3421,26 @@ generate_digest: Memory state: static_memory
 Failed to parse rated segments, using defaults
 Warning: Conversation history GUID mismatch. Expected d8577c52-3280-4104-b038-dcb430736383, found 
 Added agent entry to conversation history
-Memory saved after &#39;add_conversation_entry&#39; operation
-embeddings_manager - ERROR - Error generating embedding: unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock
-&#39;
-embeddings_manager - ERROR - Error adding embedding: unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock&#39;
+Memory saved after 'add_conversation_entry' operation
+embeddings_manager - ERROR - Error generating embedding: unsupported operand type(s) for *: 'Mock' and 'Mock
+'
+embeddings_manager - ERROR - Error adding embedding: unsupported operand type(s) for *: 'Mock' and 'Mock'
 embeddings_manager - ERROR - Traceback (most recent call last):
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py&quot;, line 259, 
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py", line 259, 
 in add_embedding
     embedding = self.generate_embedding(text, options)
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py&quot;, line 177, 
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py", line 177, 
 in generate_embedding
     norm = np.linalg.norm(embedding_array)
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/lib/python3.9/site-packages/numpy/linal
-g/_linalg.py&quot;, line 2736, in norm
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/lib/python3.9/site-packages/numpy/linal
+g/_linalg.py", line 2736, in norm
     sqnorm = x.dot(x)
-TypeError: unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock&#39;
+TypeError: unsupported operand type(s) for *: 'Mock' and 'Mock'
 
 embeddings_manager - INFO - Incremental embedding update: 0 new embeddings added.
 Backup created: /private/var/folders/rt/vkpjxg7922l4qscz5rlkrkj80000gn/T/pytest-of-andrewrapo/pytest-17/test
 _query_memory_failure0/test_memory_bak_20250508_002934.json
-Memory saved after &#39;query_memory&#39; operation
+Memory saved after 'query_memory' operation
 PASSED
 tests/memory_manager/test_memory_manager.py::test_save_and_load_memory Memory file not found, will create ne
 w memory
@@ -3469,7 +3469,7 @@ Memory configuration: max_recent_conversation_entries=8, importance_threshold=3
 Creating initial memory structure...
 Loaded preprocess_data template
 Failed to parse embeddable phrases, using input as fallback
-Preprocessed segments: [&#39;Initial test data&#39;]
+Preprocessed segments: ['Initial test data']
 Generating digest for initial data with pre-segmented content...
 
 
@@ -3486,28 +3486,28 @@ generate_digest: Memory state: static_memory
 
 
 Failed to parse rated segments, using defaults
-Memory saved after &#39;create_initial_memory&#39; operation
+Memory saved after 'create_initial_memory' operation
 Warning: Conversation history GUID mismatch. Expected 8f500cc1-a0c8-468d-936a-c3194b16479b, found 
-embeddings_manager - ERROR - Error generating embedding: unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock
-&#39;
-embeddings_manager - ERROR - Error adding embedding: unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock&#39;
+embeddings_manager - ERROR - Error generating embedding: unsupported operand type(s) for *: 'Mock' and 'Mock
+'
+embeddings_manager - ERROR - Error adding embedding: unsupported operand type(s) for *: 'Mock' and 'Mock'
 embeddings_manager - ERROR - Traceback (most recent call last):
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py&quot;, line 259, 
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py", line 259, 
 in add_embedding
     embedding = self.generate_embedding(text, options)
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py&quot;, line 177, 
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py", line 177, 
 in generate_embedding
     norm = np.linalg.norm(embedding_array)
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/lib/python3.9/site-packages/numpy/linal
-g/_linalg.py&quot;, line 2736, in norm
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/lib/python3.9/site-packages/numpy/linal
+g/_linalg.py", line 2736, in norm
     sqnorm = x.dot(x)
-TypeError: unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock&#39;
+TypeError: unsupported operand type(s) for *: 'Mock' and 'Mock'
 
 embeddings_manager - INFO - Incremental embedding update: 0 new embeddings added.
 Memory created and initialized with static knowledge
 Backup created: /private/var/folders/rt/vkpjxg7922l4qscz5rlkrkj80000gn/T/pytest-of-andrewrapo/pytest-17/test
 _save_and_load_memory0/test_memory_bak_20250508_002934.json
-Memory saved after &#39;unknown&#39; operation
+Memory saved after 'unknown' operation
 Loaded memory with existing GUID: 8f500cc1-a0c8-468d-936a-c3194b16479b
 Memory loaded from file
 Conversation history file: /private/var/folders/rt/vkpjxg7922l4qscz5rlkrkj80000gn/T/pytest-of-andrewrapo/pyt
@@ -3532,7 +3532,7 @@ Memory configuration: max_recent_conversation_entries=8, importance_threshold=3
 Creating initial memory structure...
 Loaded preprocess_data template
 Failed to parse embeddable phrases, using input as fallback
-Preprocessed segments: [&#39;Initial test data&#39;]
+Preprocessed segments: ['Initial test data']
 Generating digest for initial data with pre-segmented content...
 
 
@@ -3551,21 +3551,21 @@ generate_digest: Memory state: static_memory
 Failed to parse rated segments, using defaults
 Backup created: /private/var/folders/rt/vkpjxg7922l4qscz5rlkrkj80000gn/T/pytest-of-andrewrapo/pytest-17/test
 _save_and_load_memory0/test_memory_bak_20250508_002934.json
-Memory saved after &#39;create_initial_memory&#39; operation
-embeddings_manager - ERROR - Error generating embedding: unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock
-&#39;
-embeddings_manager - ERROR - Error adding embedding: unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock&#39;
+Memory saved after 'create_initial_memory' operation
+embeddings_manager - ERROR - Error generating embedding: unsupported operand type(s) for *: 'Mock' and 'Mock
+'
+embeddings_manager - ERROR - Error adding embedding: unsupported operand type(s) for *: 'Mock' and 'Mock'
 embeddings_manager - ERROR - Traceback (most recent call last):
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py&quot;, line 259, 
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py", line 259, 
 in add_embedding
     embedding = self.generate_embedding(text, options)
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py&quot;, line 177, 
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py", line 177, 
 in generate_embedding
     norm = np.linalg.norm(embedding_array)
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/lib/python3.9/site-packages/numpy/linal
-g/_linalg.py&quot;, line 2736, in norm
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/lib/python3.9/site-packages/numpy/linal
+g/_linalg.py", line 2736, in norm
     sqnorm = x.dot(x)
-TypeError: unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock&#39;
+TypeError: unsupported operand type(s) for *: 'Mock' and 'Mock'
 
 embeddings_manager - INFO - Incremental embedding update: 0 new embeddings added.
 Memory created and initialized with static knowledge
@@ -3597,7 +3597,7 @@ Memory configuration: max_recent_conversation_entries=8, importance_threshold=3
 Creating initial memory structure...
 Loaded preprocess_data template
 Failed to parse embeddable phrases, using input as fallback
-Preprocessed segments: [&#39;Test data&#39;]
+Preprocessed segments: ['Test data']
 Generating digest for initial data with pre-segmented content...
 
 
@@ -3614,29 +3614,29 @@ generate_digest: Memory state: static_memory
 
 
 Failed to parse rated segments, using defaults
-Memory saved after &#39;create_initial_memory&#39; operation
+Memory saved after 'create_initial_memory' operation
 Warning: Conversation history GUID mismatch. Expected 802c69cc-1b69-4b66-a4d6-a773a4ef8576, found 
-embeddings_manager - ERROR - Error generating embedding: unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock
-&#39;
-embeddings_manager - ERROR - Error adding embedding: unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock&#39;
+embeddings_manager - ERROR - Error generating embedding: unsupported operand type(s) for *: 'Mock' and 'Mock
+'
+embeddings_manager - ERROR - Error adding embedding: unsupported operand type(s) for *: 'Mock' and 'Mock'
 embeddings_manager - ERROR - Traceback (most recent call last):
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py&quot;, line 259, 
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py", line 259, 
 in add_embedding
     embedding = self.generate_embedding(text, options)
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py&quot;, line 177, 
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py", line 177, 
 in generate_embedding
     norm = np.linalg.norm(embedding_array)
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/lib/python3.9/site-packages/numpy/linal
-g/_linalg.py&quot;, line 2736, in norm
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/lib/python3.9/site-packages/numpy/linal
+g/_linalg.py", line 2736, in norm
     sqnorm = x.dot(x)
-TypeError: unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock&#39;
+TypeError: unsupported operand type(s) for *: 'Mock' and 'Mock'
 
 embeddings_manager - INFO - Incremental embedding update: 0 new embeddings added.
 Memory created and initialized with static knowledge
 
 Querying memory...
-rag_manager - INFO - Enhancing memory query: &#39;&#39;
-rag_manager - INFO - Querying for: &#39;&#39; (limit=5, min_importance=2)
+rag_manager - INFO - Enhancing memory query: ''
+rag_manager - INFO - Querying for: '' (limit=5, min_importance=2)
 embeddings_manager - WARNING - No embeddings available for search
 rag_manager - INFO - Search returned 0 raw results
 rag_manager - INFO - Returning 0 processed results
@@ -3664,26 +3664,26 @@ Failed to parse rated segments, using defaults
 Added agent entry to conversation history
 Backup created: /private/var/folders/rt/vkpjxg7922l4qscz5rlkrkj80000gn/T/pytest-of-andrewrapo/pytest-17/test
 _invalid_query_context0/test_memory_bak_20250508_002934.json
-Memory saved after &#39;add_conversation_entry&#39; operation
-embeddings_manager - ERROR - Error generating embedding: unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock
-&#39;
-embeddings_manager - ERROR - Error adding embedding: unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock&#39;
+Memory saved after 'add_conversation_entry' operation
+embeddings_manager - ERROR - Error generating embedding: unsupported operand type(s) for *: 'Mock' and 'Mock
+'
+embeddings_manager - ERROR - Error adding embedding: unsupported operand type(s) for *: 'Mock' and 'Mock'
 embeddings_manager - ERROR - Traceback (most recent call last):
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py&quot;, line 259, 
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py", line 259, 
 in add_embedding
     embedding = self.generate_embedding(text, options)
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py&quot;, line 177, 
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py", line 177, 
 in generate_embedding
     norm = np.linalg.norm(embedding_array)
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/lib/python3.9/site-packages/numpy/linal
-g/_linalg.py&quot;, line 2736, in norm
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/lib/python3.9/site-packages/numpy/linal
+g/_linalg.py", line 2736, in norm
     sqnorm = x.dot(x)
-TypeError: unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock&#39;
+TypeError: unsupported operand type(s) for *: 'Mock' and 'Mock'
 
 embeddings_manager - INFO - Incremental embedding update: 0 new embeddings added.
 Backup created: /private/var/folders/rt/vkpjxg7922l4qscz5rlkrkj80000gn/T/pytest-of-andrewrapo/pytest-17/test
 _invalid_query_context0/test_memory_bak_20250508_002934.json
-Memory saved after &#39;query_memory&#39; operation
+Memory saved after 'query_memory' operation
 PASSED
 
 ============================================ 5 passed in 0.26s =============================================
@@ -3724,7 +3724,7 @@ Ah, you're right! The test is using the old `"user_message"` key but the `query_
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: tests/memory_manager/test_memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: tests/memory_manager/test_memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 10, lines removed: 9
@@ -3734,25 +3734,25 @@ Lines added: 10, lines removed: 9
   
   def test_query_memory_success(memory_manager):
 +     # Create initial memory
-      memory_manager.create_initial_memory(&quot;Initial test data&quot;)
--     result = memory_manager.query_memory({&quot;user_message&quot;: &quot;Test question&quot;})
+      memory_manager.create_initial_memory("Initial test data")
+-     result = memory_manager.query_memory({"user_message": "Test question"})
 -     assert isinstance(result, dict)
 -     # Accept either the markdown or plain text response as valid
--     valid_responses = (&quot;Test response from LLM.&quot;, &quot;# Knowledge Base\n[!3] Initial test data\n&quot;)
--     assert result[&quot;response&quot;] in valid_responses or &quot;Test question&quot; in result[&quot;response&quot;]
--     # The new memory system includes a &#39;system&#39; message for the initial memory
--     assert len(memory_manager.memory[&quot;conversation_history&quot;]) == 3
--     roles = [entry[&quot;role&quot;] for entry in memory_manager.memory[&quot;conversation_history&quot;]]
--     assert roles == [&quot;system&quot;, &quot;user&quot;, &quot;agent&quot;]
+-     valid_responses = ("Test response from LLM.", "# Knowledge Base\n[!3] Initial test data\n")
+-     assert result["response"] in valid_responses or "Test question" in result["response"]
+-     # The new memory system includes a 'system' message for the initial memory
+-     assert len(memory_manager.memory["conversation_history"]) == 3
+-     roles = [entry["role"] for entry in memory_manager.memory["conversation_history"]]
+-     assert roles == ["system", "user", "agent"]
 +     
 +     # Query memory with test question
 +     response = memory_manager.query_memory({
-+         &quot;query&quot;: &quot;Test question&quot;
++         "query": "Test question"
 +     })
 +     
 +     assert response is not None
-+     assert &quot;response&quot; in response
-+     assert response[&quot;response&quot;] == &quot;Test response from LLM.&quot;
++     assert "response" in response
++     assert response["response"] == "Test response from LLM."
   
   def test_query_memory_failure(memory_manager):
 ```
@@ -3768,7 +3768,7 @@ Let me run the test again to make sure it works:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.143:11434 OLLAMA_LLM_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large pytest tests/memory_manager/test_memory_manager.py -v -s</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.143:11434 OLLAMA_LLM_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large pytest tests/memory_manager/test_memory_manager.py -v -s</summary>
 
 ```bash
 DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.143:11434 OLLAMA_LLM_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large pytest tests/memory_manager/test_memory_manager.py -v -s
@@ -3776,11 +3776,11 @@ DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.143:11434 OLLAMA_LLM_MODEL=gemma3
 
 ```
 /Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/lib/python3.9/site-packages/pytest_asyncio/plug
-in.py:217: PytestDeprecationWarning: The configuration option &quot;asyncio_default_fixture_loop_scope&quot; is unset.
+in.py:217: PytestDeprecationWarning: The configuration option "asyncio_default_fixture_loop_scope" is unset.
 The event loop scope for asynchronous fixtures will default to the fixture caching scope. Future versions of
  pytest-asyncio will default the loop scope for asynchronous fixtures to function scope. Set the default fix
 ture loop scope explicitly in order to avoid unexpected behavior in the future. Valid fixture loop scopes ar
-e: &quot;function&quot;, &quot;class&quot;, &quot;module&quot;, &quot;package&quot;, &quot;session&quot;
+e: "function", "class", "module", "package", "session"
 
   warnings.warn(PytestDeprecationWarning(_DEFAULT_FIXTURE_LOOP_SCOPE_UNSET))
 =========================================== test session starts ============================================
@@ -3820,7 +3820,7 @@ Memory configuration: max_recent_conversation_entries=8, importance_threshold=3
 Creating initial memory structure...
 Loaded preprocess_data template
 Failed to parse embeddable phrases, using input as fallback
-Preprocessed segments: [&#39;Initial test data&#39;]
+Preprocessed segments: ['Initial test data']
 Generating digest for initial data with pre-segmented content...
 
 
@@ -3837,22 +3837,22 @@ generate_digest: Memory state: static_memory
 
 
 Failed to parse rated segments, using defaults
-Memory saved after &#39;create_initial_memory&#39; operation
+Memory saved after 'create_initial_memory' operation
 Warning: Conversation history GUID mismatch. Expected de8080e3-132c-40e7-b614-f114aa38b16b, found 
-embeddings_manager - ERROR - Error generating embedding: unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock
-&#39;
-embeddings_manager - ERROR - Error adding embedding: unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock&#39;
+embeddings_manager - ERROR - Error generating embedding: unsupported operand type(s) for *: 'Mock' and 'Mock
+'
+embeddings_manager - ERROR - Error adding embedding: unsupported operand type(s) for *: 'Mock' and 'Mock'
 embeddings_manager - ERROR - Traceback (most recent call last):
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py&quot;, line 259, 
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py", line 259, 
 in add_embedding
     embedding = self.generate_embedding(text, options)
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py&quot;, line 177, 
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py", line 177, 
 in generate_embedding
     norm = np.linalg.norm(embedding_array)
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/lib/python3.9/site-packages/numpy/linal
-g/_linalg.py&quot;, line 2736, in norm
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/lib/python3.9/site-packages/numpy/linal
+g/_linalg.py", line 2736, in norm
     sqnorm = x.dot(x)
-TypeError: unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock&#39;
+TypeError: unsupported operand type(s) for *: 'Mock' and 'Mock'
 
 embeddings_manager - INFO - Incremental embedding update: 0 new embeddings added.
 Memory created and initialized with static knowledge
@@ -3884,7 +3884,7 @@ Memory configuration: max_recent_conversation_entries=8, importance_threshold=3
 Creating initial memory structure...
 Loaded preprocess_data template
 Failed to parse embeddable phrases, using input as fallback
-Preprocessed segments: [&#39;Initial test data&#39;]
+Preprocessed segments: ['Initial test data']
 Generating digest for initial data with pre-segmented content...
 
 
@@ -3901,22 +3901,22 @@ generate_digest: Memory state: static_memory
 
 
 Failed to parse rated segments, using defaults
-Memory saved after &#39;create_initial_memory&#39; operation
+Memory saved after 'create_initial_memory' operation
 Warning: Conversation history GUID mismatch. Expected e53e36a8-f261-4d33-8633-f2e17c6215e0, found 
-embeddings_manager - ERROR - Error generating embedding: unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock
-&#39;
-embeddings_manager - ERROR - Error adding embedding: unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock&#39;
+embeddings_manager - ERROR - Error generating embedding: unsupported operand type(s) for *: 'Mock' and 'Mock
+'
+embeddings_manager - ERROR - Error adding embedding: unsupported operand type(s) for *: 'Mock' and 'Mock'
 embeddings_manager - ERROR - Traceback (most recent call last):
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py&quot;, line 259, 
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py", line 259, 
 in add_embedding
     embedding = self.generate_embedding(text, options)
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py&quot;, line 177, 
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py", line 177, 
 in generate_embedding
     norm = np.linalg.norm(embedding_array)
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/lib/python3.9/site-packages/numpy/linal
-g/_linalg.py&quot;, line 2736, in norm
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/lib/python3.9/site-packages/numpy/linal
+g/_linalg.py", line 2736, in norm
     sqnorm = x.dot(x)
-TypeError: unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock&#39;
+TypeError: unsupported operand type(s) for *: 'Mock' and 'Mock'
 
 embeddings_manager - INFO - Incremental embedding update: 0 new embeddings added.
 Memory created and initialized with static knowledge
@@ -3942,25 +3942,25 @@ Failed to parse rated segments, using defaults
 Added user entry to conversation history
 Backup created: /private/var/folders/rt/vkpjxg7922l4qscz5rlkrkj80000gn/T/pytest-of-andrewrapo/pytest-18/test
 _query_memory_success0/test_memory_bak_20250508_003258.json
-Memory saved after &#39;add_conversation_entry&#39; operation
-embeddings_manager - ERROR - Error generating embedding: unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock
-&#39;
-embeddings_manager - ERROR - Error adding embedding: unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock&#39;
+Memory saved after 'add_conversation_entry' operation
+embeddings_manager - ERROR - Error generating embedding: unsupported operand type(s) for *: 'Mock' and 'Mock
+'
+embeddings_manager - ERROR - Error adding embedding: unsupported operand type(s) for *: 'Mock' and 'Mock'
 embeddings_manager - ERROR - Traceback (most recent call last):
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py&quot;, line 259, 
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py", line 259, 
 in add_embedding
     embedding = self.generate_embedding(text, options)
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py&quot;, line 177, 
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py", line 177, 
 in generate_embedding
     norm = np.linalg.norm(embedding_array)
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/lib/python3.9/site-packages/numpy/linal
-g/_linalg.py&quot;, line 2736, in norm
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/lib/python3.9/site-packages/numpy/linal
+g/_linalg.py", line 2736, in norm
     sqnorm = x.dot(x)
-TypeError: unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock&#39;
+TypeError: unsupported operand type(s) for *: 'Mock' and 'Mock'
 
 embeddings_manager - INFO - Incremental embedding update: 0 new embeddings added.
-rag_manager - INFO - Enhancing memory query: &#39;Test question&#39;
-rag_manager - INFO - Querying for: &#39;Test question&#39; (limit=5, min_importance=2)
+rag_manager - INFO - Enhancing memory query: 'Test question'
+rag_manager - INFO - Querying for: 'Test question' (limit=5, min_importance=2)
 embeddings_manager - WARNING - No embeddings available for search
 rag_manager - INFO - Search returned 0 raw results
 rag_manager - INFO - Returning 0 processed results
@@ -3986,26 +3986,26 @@ Failed to parse rated segments, using defaults
 Added agent entry to conversation history
 Backup created: /private/var/folders/rt/vkpjxg7922l4qscz5rlkrkj80000gn/T/pytest-of-andrewrapo/pytest-18/test
 _query_memory_success0/test_memory_bak_20250508_003258.json
-Memory saved after &#39;add_conversation_entry&#39; operation
-embeddings_manager - ERROR - Error generating embedding: unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock
-&#39;
-embeddings_manager - ERROR - Error adding embedding: unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock&#39;
+Memory saved after 'add_conversation_entry' operation
+embeddings_manager - ERROR - Error generating embedding: unsupported operand type(s) for *: 'Mock' and 'Mock
+'
+embeddings_manager - ERROR - Error adding embedding: unsupported operand type(s) for *: 'Mock' and 'Mock'
 embeddings_manager - ERROR - Traceback (most recent call last):
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py&quot;, line 259, 
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py", line 259, 
 in add_embedding
     embedding = self.generate_embedding(text, options)
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py&quot;, line 177, 
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py", line 177, 
 in generate_embedding
     norm = np.linalg.norm(embedding_array)
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/lib/python3.9/site-packages/numpy/linal
-g/_linalg.py&quot;, line 2736, in norm
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/lib/python3.9/site-packages/numpy/linal
+g/_linalg.py", line 2736, in norm
     sqnorm = x.dot(x)
-TypeError: unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock&#39;
+TypeError: unsupported operand type(s) for *: 'Mock' and 'Mock'
 
 embeddings_manager - INFO - Incremental embedding update: 0 new embeddings added.
 Backup created: /private/var/folders/rt/vkpjxg7922l4qscz5rlkrkj80000gn/T/pytest-of-andrewrapo/pytest-18/test
 _query_memory_success0/test_memory_bak_20250508_003258.json
-Memory saved after &#39;query_memory&#39; operation
+Memory saved after 'query_memory' operation
 PASSED
 tests/memory_manager/test_memory_manager.py::test_query_memory_failure Memory file not found, will create ne
 w memory
@@ -4032,8 +4032,8 @@ Generated new GUID: 179ed57e-d12f-4191-9ea1-58f0161bfce7 for memory file that wi
 Memory configuration: max_recent_conversation_entries=8, importance_threshold=3
 
 Querying memory...
-rag_manager - INFO - Enhancing memory query: &#39;&#39;
-rag_manager - INFO - Querying for: &#39;&#39; (limit=5, min_importance=2)
+rag_manager - INFO - Enhancing memory query: ''
+rag_manager - INFO - Querying for: '' (limit=5, min_importance=2)
 embeddings_manager - WARNING - No embeddings available for search
 rag_manager - INFO - Search returned 0 raw results
 rag_manager - INFO - Returning 0 processed results
@@ -4060,26 +4060,26 @@ generate_digest: Memory state: static_memory
 Failed to parse rated segments, using defaults
 Warning: Conversation history GUID mismatch. Expected 179ed57e-d12f-4191-9ea1-58f0161bfce7, found 
 Added agent entry to conversation history
-Memory saved after &#39;add_conversation_entry&#39; operation
-embeddings_manager - ERROR - Error generating embedding: unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock
-&#39;
-embeddings_manager - ERROR - Error adding embedding: unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock&#39;
+Memory saved after 'add_conversation_entry' operation
+embeddings_manager - ERROR - Error generating embedding: unsupported operand type(s) for *: 'Mock' and 'Mock
+'
+embeddings_manager - ERROR - Error adding embedding: unsupported operand type(s) for *: 'Mock' and 'Mock'
 embeddings_manager - ERROR - Traceback (most recent call last):
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py&quot;, line 259, 
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py", line 259, 
 in add_embedding
     embedding = self.generate_embedding(text, options)
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py&quot;, line 177, 
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py", line 177, 
 in generate_embedding
     norm = np.linalg.norm(embedding_array)
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/lib/python3.9/site-packages/numpy/linal
-g/_linalg.py&quot;, line 2736, in norm
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/lib/python3.9/site-packages/numpy/linal
+g/_linalg.py", line 2736, in norm
     sqnorm = x.dot(x)
-TypeError: unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock&#39;
+TypeError: unsupported operand type(s) for *: 'Mock' and 'Mock'
 
 embeddings_manager - INFO - Incremental embedding update: 0 new embeddings added.
 Backup created: /private/var/folders/rt/vkpjxg7922l4qscz5rlkrkj80000gn/T/pytest-of-andrewrapo/pytest-18/test
 _query_memory_failure0/test_memory_bak_20250508_003258.json
-Memory saved after &#39;query_memory&#39; operation
+Memory saved after 'query_memory' operation
 PASSED
 tests/memory_manager/test_memory_manager.py::test_save_and_load_memory Memory file not found, will create ne
 w memory
@@ -4108,7 +4108,7 @@ Memory configuration: max_recent_conversation_entries=8, importance_threshold=3
 Creating initial memory structure...
 Loaded preprocess_data template
 Failed to parse embeddable phrases, using input as fallback
-Preprocessed segments: [&#39;Initial test data&#39;]
+Preprocessed segments: ['Initial test data']
 Generating digest for initial data with pre-segmented content...
 
 
@@ -4125,28 +4125,28 @@ generate_digest: Memory state: static_memory
 
 
 Failed to parse rated segments, using defaults
-Memory saved after &#39;create_initial_memory&#39; operation
+Memory saved after 'create_initial_memory' operation
 Warning: Conversation history GUID mismatch. Expected c133fb22-42e4-488e-b365-8f33752d9925, found 
-embeddings_manager - ERROR - Error generating embedding: unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock
-&#39;
-embeddings_manager - ERROR - Error adding embedding: unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock&#39;
+embeddings_manager - ERROR - Error generating embedding: unsupported operand type(s) for *: 'Mock' and 'Mock
+'
+embeddings_manager - ERROR - Error adding embedding: unsupported operand type(s) for *: 'Mock' and 'Mock'
 embeddings_manager - ERROR - Traceback (most recent call last):
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py&quot;, line 259, 
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py", line 259, 
 in add_embedding
     embedding = self.generate_embedding(text, options)
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py&quot;, line 177, 
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py", line 177, 
 in generate_embedding
     norm = np.linalg.norm(embedding_array)
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/lib/python3.9/site-packages/numpy/linal
-g/_linalg.py&quot;, line 2736, in norm
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/lib/python3.9/site-packages/numpy/linal
+g/_linalg.py", line 2736, in norm
     sqnorm = x.dot(x)
-TypeError: unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock&#39;
+TypeError: unsupported operand type(s) for *: 'Mock' and 'Mock'
 
 embeddings_manager - INFO - Incremental embedding update: 0 new embeddings added.
 Memory created and initialized with static knowledge
 Backup created: /private/var/folders/rt/vkpjxg7922l4qscz5rlkrkj80000gn/T/pytest-of-andrewrapo/pytest-18/test
 _save_and_load_memory0/test_memory_bak_20250508_003258.json
-Memory saved after &#39;unknown&#39; operation
+Memory saved after 'unknown' operation
 Loaded memory with existing GUID: c133fb22-42e4-488e-b365-8f33752d9925
 Memory loaded from file
 Conversation history file: /private/var/folders/rt/vkpjxg7922l4qscz5rlkrkj80000gn/T/pytest-of-andrewrapo/pyt
@@ -4171,7 +4171,7 @@ Memory configuration: max_recent_conversation_entries=8, importance_threshold=3
 Creating initial memory structure...
 Loaded preprocess_data template
 Failed to parse embeddable phrases, using input as fallback
-Preprocessed segments: [&#39;Initial test data&#39;]
+Preprocessed segments: ['Initial test data']
 Generating digest for initial data with pre-segmented content...
 
 
@@ -4190,21 +4190,21 @@ generate_digest: Memory state: static_memory
 Failed to parse rated segments, using defaults
 Backup created: /private/var/folders/rt/vkpjxg7922l4qscz5rlkrkj80000gn/T/pytest-of-andrewrapo/pytest-18/test
 _save_and_load_memory0/test_memory_bak_20250508_003258.json
-Memory saved after &#39;create_initial_memory&#39; operation
-embeddings_manager - ERROR - Error generating embedding: unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock
-&#39;
-embeddings_manager - ERROR - Error adding embedding: unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock&#39;
+Memory saved after 'create_initial_memory' operation
+embeddings_manager - ERROR - Error generating embedding: unsupported operand type(s) for *: 'Mock' and 'Mock
+'
+embeddings_manager - ERROR - Error adding embedding: unsupported operand type(s) for *: 'Mock' and 'Mock'
 embeddings_manager - ERROR - Traceback (most recent call last):
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py&quot;, line 259, 
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py", line 259, 
 in add_embedding
     embedding = self.generate_embedding(text, options)
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py&quot;, line 177, 
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py", line 177, 
 in generate_embedding
     norm = np.linalg.norm(embedding_array)
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/lib/python3.9/site-packages/numpy/linal
-g/_linalg.py&quot;, line 2736, in norm
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/lib/python3.9/site-packages/numpy/linal
+g/_linalg.py", line 2736, in norm
     sqnorm = x.dot(x)
-TypeError: unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock&#39;
+TypeError: unsupported operand type(s) for *: 'Mock' and 'Mock'
 
 embeddings_manager - INFO - Incremental embedding update: 0 new embeddings added.
 Memory created and initialized with static knowledge
@@ -4236,7 +4236,7 @@ Memory configuration: max_recent_conversation_entries=8, importance_threshold=3
 Creating initial memory structure...
 Loaded preprocess_data template
 Failed to parse embeddable phrases, using input as fallback
-Preprocessed segments: [&#39;Test data&#39;]
+Preprocessed segments: ['Test data']
 Generating digest for initial data with pre-segmented content...
 
 
@@ -4253,29 +4253,29 @@ generate_digest: Memory state: static_memory
 
 
 Failed to parse rated segments, using defaults
-Memory saved after &#39;create_initial_memory&#39; operation
+Memory saved after 'create_initial_memory' operation
 Warning: Conversation history GUID mismatch. Expected 7cc0edca-dfc1-4f35-bbb8-94484da1e2ba, found 
-embeddings_manager - ERROR - Error generating embedding: unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock
-&#39;
-embeddings_manager - ERROR - Error adding embedding: unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock&#39;
+embeddings_manager - ERROR - Error generating embedding: unsupported operand type(s) for *: 'Mock' and 'Mock
+'
+embeddings_manager - ERROR - Error adding embedding: unsupported operand type(s) for *: 'Mock' and 'Mock'
 embeddings_manager - ERROR - Traceback (most recent call last):
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py&quot;, line 259, 
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py", line 259, 
 in add_embedding
     embedding = self.generate_embedding(text, options)
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py&quot;, line 177, 
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py", line 177, 
 in generate_embedding
     norm = np.linalg.norm(embedding_array)
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/lib/python3.9/site-packages/numpy/linal
-g/_linalg.py&quot;, line 2736, in norm
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/lib/python3.9/site-packages/numpy/linal
+g/_linalg.py", line 2736, in norm
     sqnorm = x.dot(x)
-TypeError: unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock&#39;
+TypeError: unsupported operand type(s) for *: 'Mock' and 'Mock'
 
 embeddings_manager - INFO - Incremental embedding update: 0 new embeddings added.
 Memory created and initialized with static knowledge
 
 Querying memory...
-rag_manager - INFO - Enhancing memory query: &#39;&#39;
-rag_manager - INFO - Querying for: &#39;&#39; (limit=5, min_importance=2)
+rag_manager - INFO - Enhancing memory query: ''
+rag_manager - INFO - Querying for: '' (limit=5, min_importance=2)
 embeddings_manager - WARNING - No embeddings available for search
 rag_manager - INFO - Search returned 0 raw results
 rag_manager - INFO - Returning 0 processed results
@@ -4303,26 +4303,26 @@ Failed to parse rated segments, using defaults
 Added agent entry to conversation history
 Backup created: /private/var/folders/rt/vkpjxg7922l4qscz5rlkrkj80000gn/T/pytest-of-andrewrapo/pytest-18/test
 _invalid_query_context0/test_memory_bak_20250508_003258.json
-Memory saved after &#39;add_conversation_entry&#39; operation
-embeddings_manager - ERROR - Error generating embedding: unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock
-&#39;
-embeddings_manager - ERROR - Error adding embedding: unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock&#39;
+Memory saved after 'add_conversation_entry' operation
+embeddings_manager - ERROR - Error generating embedding: unsupported operand type(s) for *: 'Mock' and 'Mock
+'
+embeddings_manager - ERROR - Error adding embedding: unsupported operand type(s) for *: 'Mock' and 'Mock'
 embeddings_manager - ERROR - Traceback (most recent call last):
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py&quot;, line 259, 
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py", line 259, 
 in add_embedding
     embedding = self.generate_embedding(text, options)
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py&quot;, line 177, 
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/src/memory/embeddings_manager.py", line 177, 
 in generate_embedding
     norm = np.linalg.norm(embedding_array)
-  File &quot;/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/lib/python3.9/site-packages/numpy/linal
-g/_linalg.py&quot;, line 2736, in norm
+  File "/Users/andrewrapo/github/cursor/cursor-hello-llm-agent/.venv/lib/python3.9/site-packages/numpy/linal
+g/_linalg.py", line 2736, in norm
     sqnorm = x.dot(x)
-TypeError: unsupported operand type(s) for *: &#39;Mock&#39; and &#39;Mock&#39;
+TypeError: unsupported operand type(s) for *: 'Mock' and 'Mock'
 
 embeddings_manager - INFO - Incremental embedding update: 0 new embeddings added.
 Backup created: /private/var/folders/rt/vkpjxg7922l4qscz5rlkrkj80000gn/T/pytest-of-andrewrapo/pytest-18/test
 _invalid_query_context0/test_memory_bak_20250508_003258.json
-Memory saved after &#39;query_memory&#39; operation
+Memory saved after 'query_memory' operation
 PASSED
 
 ============================================ 5 passed in 0.25s =============================================
@@ -4361,7 +4361,7 @@ I'll help you run the embeddings manager integration tests.
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.143:11434 OLLAMA_LLM_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large pytest tests/memory_manager/test_embeddings_manager_integration.py -v -s</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.143:11434 OLLAMA_LLM_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large pytest tests/memory_manager/test_embeddings_manager_integration.py -v -s</summary>
 
 ```bash
 DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.143:11434 OLLAMA_LLM_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large pytest tests/memory_manager/test_embeddings_manager_integration.py -v -s
@@ -4369,57 +4369,57 @@ DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.143:11434 OLLAMA_LLM_MODEL=gemma3
 
 ```
 (.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent % 
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;Would you like me to tell you more about the goblins - perhaps their numbers or any known weakn
-esses - before you decide to take on this quest?&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "Would you like me to tell you more about the goblins - perhaps their numbers or any known weakn
+esses - before you decide to take on this quest?"
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;Would you like me to tell you more about the goblins - perhaps their numbers or any known weakn
-esses - before you decide to take on this quest?&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "Would you like me to tell you more about the goblins - perhaps their numbers or any known weakn
+esses - before you decide to take on this quest?"
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;Would you like me to tell you more about the goblins - perhaps their numbers or any known weakn
-esses - before you decide to take on this quest?&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "Would you like me to tell you more about the goblins - perhaps their numbers or any known weakn
+esses - before you decide to take on this quest?"
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;Would you like me to tell you more about the goblins - perhaps their numbers or any known weakn
-esses - before you decide to take on this quest?&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "Would you like me to tell you more about the goblins - perhaps their numbers or any known weakn
+esses - before you decide to take on this quest?"
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;Would you like me to tell you more about the goblins - perhaps their numbers or any known weakn
-esses - before you decide to take on this quest?&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "Would you like me to tell you more about the goblins - perhaps their numbers or any known weakn
+esses - before you decide to take on this quest?"
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;Would you like me to tell you more about the goblins - perhaps their numbers or any known weakn
-esses - before you decide to take on this quest?&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "Would you like me to tell you more about the goblins - perhaps their numbers or any known weakn
+esses - before you decide to take on this quest?"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
@@ -4429,76 +4429,76 @@ esses - before you decide to take on this quest?&quot;
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 embeddings_manager - INFO - Processing 2 segments for entry d76b69f2-8f39-4c47-812a-e00b639cc950
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-accept elena&#39;s quest
+accept elena's quest
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-accept elena&#39;s quest
+accept elena's quest
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-accept elena&#39;s quest
+accept elena's quest
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-accept elena&#39;s quest
+accept elena's quest
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-accept elena&#39;s quest
+accept elena's quest
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-accept elena&#39;s quest
+accept elena's quest
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;accept elena&#39;s quest&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "accept elena's quest"
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;accept elena&#39;s quest&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "accept elena's quest"
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;accept elena&#39;s quest&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "accept elena's quest"
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;accept elena&#39;s quest&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "accept elena's quest"
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;accept elena&#39;s quest&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "accept elena's quest"
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;accept elena&#39;s quest&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "accept elena's quest"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
@@ -4520,63 +4520,63 @@ and get started
 and get started
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;and get started&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "and get started"
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;and get started&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "and get started"
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;and get started&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "and get started"
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;and get started&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "and get started"
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;and get started&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "and get started"
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;and get started&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "and get started"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
@@ -4599,63 +4599,63 @@ Excellent! Elena appreciates your willingness to help.
 Excellent! Elena appreciates your willingness to help.
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;Excellent! Elena appreciates your willingness to help.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "Excellent! Elena appreciates your willingness to help."
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;Excellent! Elena appreciates your willingness to help.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "Excellent! Elena appreciates your willingness to help."
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;Excellent! Elena appreciates your willingness to help.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "Excellent! Elena appreciates your willingness to help."
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;Excellent! Elena appreciates your willingness to help.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "Excellent! Elena appreciates your willingness to help."
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;Excellent! Elena appreciates your willingness to help.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "Excellent! Elena appreciates your willingness to help."
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;Excellent! Elena appreciates your willingness to help.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "Excellent! Elena appreciates your willingness to help."
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
@@ -4664,76 +4664,76 @@ Data: {
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-Here&#39;s what you need to know,
+Here's what you need to know,
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-Here&#39;s what you need to know,
+Here's what you need to know,
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-Here&#39;s what you need to know,
+Here's what you need to know,
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-Here&#39;s what you need to know,
+Here's what you need to know,
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-Here&#39;s what you need to know,
+Here's what you need to know,
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-Here&#39;s what you need to know,
+Here's what you need to know,
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;Here&#39;s what you need to know,&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "Here's what you need to know,"
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;Here&#39;s what you need to know,&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "Here's what you need to know,"
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;Here&#39;s what you need to know,&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "Here's what you need to know,"
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;Here&#39;s what you need to know,&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "Here's what you need to know,"
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;Here&#39;s what you need to know,&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "Here's what you need to know,"
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;Here&#39;s what you need to know,&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "Here's what you need to know,"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
@@ -4742,88 +4742,88 @@ Data: {
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-The goblins are a relatively small band - estimates put them at around twenty, though they&#39;re surprisingly w
+The goblins are a relatively small band - estimates put them at around twenty, though they're surprisingly w
 ell-organized.
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-The goblins are a relatively small band - estimates put them at around twenty, though they&#39;re surprisingly w
+The goblins are a relatively small band - estimates put them at around twenty, though they're surprisingly w
 ell-organized.
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-The goblins are a relatively small band - estimates put them at around twenty, though they&#39;re surprisingly w
+The goblins are a relatively small band - estimates put them at around twenty, though they're surprisingly w
 ell-organized.
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-The goblins are a relatively small band - estimates put them at around twenty, though they&#39;re surprisingly w
+The goblins are a relatively small band - estimates put them at around twenty, though they're surprisingly w
 ell-organized.
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-The goblins are a relatively small band - estimates put them at around twenty, though they&#39;re surprisingly w
+The goblins are a relatively small band - estimates put them at around twenty, though they're surprisingly w
 ell-organized.
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-The goblins are a relatively small band - estimates put them at around twenty, though they&#39;re surprisingly w
+The goblins are a relatively small band - estimates put them at around twenty, though they're surprisingly w
 ell-organized.
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;The goblins are a relatively small band - estimates put them at around twenty, though they&#39;re s
-urprisingly well-organized.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "The goblins are a relatively small band - estimates put them at around twenty, though they're s
+urprisingly well-organized."
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;The goblins are a relatively small band - estimates put them at around twenty, though they&#39;re s
-urprisingly well-organized.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "The goblins are a relatively small band - estimates put them at around twenty, though they're s
+urprisingly well-organized."
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;The goblins are a relatively small band - estimates put them at around twenty, though they&#39;re s
-urprisingly well-organized.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "The goblins are a relatively small band - estimates put them at around twenty, though they're s
+urprisingly well-organized."
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;The goblins are a relatively small band - estimates put them at around twenty, though they&#39;re s
-urprisingly well-organized.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "The goblins are a relatively small band - estimates put them at around twenty, though they're s
+urprisingly well-organized."
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;The goblins are a relatively small band - estimates put them at around twenty, though they&#39;re s
-urprisingly well-organized.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "The goblins are a relatively small band - estimates put them at around twenty, though they're s
+urprisingly well-organized."
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;The goblins are a relatively small band - estimates put them at around twenty, though they&#39;re s
-urprisingly well-organized.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "The goblins are a relatively small band - estimates put them at around twenty, though they're s
+urprisingly well-organized."
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
@@ -4832,88 +4832,88 @@ urprisingly well-organized.&quot;
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-They&#39;ve been focusing their raids on caravans heading towards the ruins near Riverwatch, likely drawn by the
+They've been focusing their raids on caravans heading towards the ruins near Riverwatch, likely drawn by the
  recent discoveries.
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-They&#39;ve been focusing their raids on caravans heading towards the ruins near Riverwatch, likely drawn by the
+They've been focusing their raids on caravans heading towards the ruins near Riverwatch, likely drawn by the
  recent discoveries.
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-They&#39;ve been focusing their raids on caravans heading towards the ruins near Riverwatch, likely drawn by the
+They've been focusing their raids on caravans heading towards the ruins near Riverwatch, likely drawn by the
  recent discoveries.
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-They&#39;ve been focusing their raids on caravans heading towards the ruins near Riverwatch, likely drawn by the
+They've been focusing their raids on caravans heading towards the ruins near Riverwatch, likely drawn by the
  recent discoveries.
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-They&#39;ve been focusing their raids on caravans heading towards the ruins near Riverwatch, likely drawn by the
+They've been focusing their raids on caravans heading towards the ruins near Riverwatch, likely drawn by the
  recent discoveries.
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-They&#39;ve been focusing their raids on caravans heading towards the ruins near Riverwatch, likely drawn by the
+They've been focusing their raids on caravans heading towards the ruins near Riverwatch, likely drawn by the
  recent discoveries.
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;They&#39;ve been focusing their raids on caravans heading towards the ruins near Riverwatch, likely
- drawn by the recent discoveries.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "They've been focusing their raids on caravans heading towards the ruins near Riverwatch, likely
+ drawn by the recent discoveries."
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;They&#39;ve been focusing their raids on caravans heading towards the ruins near Riverwatch, likely
- drawn by the recent discoveries.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "They've been focusing their raids on caravans heading towards the ruins near Riverwatch, likely
+ drawn by the recent discoveries."
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;They&#39;ve been focusing their raids on caravans heading towards the ruins near Riverwatch, likely
- drawn by the recent discoveries.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "They've been focusing their raids on caravans heading towards the ruins near Riverwatch, likely
+ drawn by the recent discoveries."
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;They&#39;ve been focusing their raids on caravans heading towards the ruins near Riverwatch, likely
- drawn by the recent discoveries.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "They've been focusing their raids on caravans heading towards the ruins near Riverwatch, likely
+ drawn by the recent discoveries."
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;They&#39;ve been focusing their raids on caravans heading towards the ruins near Riverwatch, likely
- drawn by the recent discoveries.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "They've been focusing their raids on caravans heading towards the ruins near Riverwatch, likely
+ drawn by the recent discoveries."
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;They&#39;ve been focusing their raids on caravans heading towards the ruins near Riverwatch, likely
- drawn by the recent discoveries.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "They've been focusing their raids on caravans heading towards the ruins near Riverwatch, likely
+ drawn by the recent discoveries."
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
@@ -4922,88 +4922,88 @@ Data: {
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-She&#39;s provided you with a basic map indicating the route to the goblins&#39; likely camp - a small cave system n
-estled amongst the foothills, about a day&#39;s travel east of Haven.
+She's provided you with a basic map indicating the route to the goblins' likely camp - a small cave system n
+estled amongst the foothills, about a day's travel east of Haven.
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-She&#39;s provided you with a basic map indicating the route to the goblins&#39; likely camp - a small cave system n
-estled amongst the foothills, about a day&#39;s travel east of Haven.
+She's provided you with a basic map indicating the route to the goblins' likely camp - a small cave system n
+estled amongst the foothills, about a day's travel east of Haven.
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-She&#39;s provided you with a basic map indicating the route to the goblins&#39; likely camp - a small cave system n
-estled amongst the foothills, about a day&#39;s travel east of Haven.
+She's provided you with a basic map indicating the route to the goblins' likely camp - a small cave system n
+estled amongst the foothills, about a day's travel east of Haven.
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-She&#39;s provided you with a basic map indicating the route to the goblins&#39; likely camp - a small cave system n
-estled amongst the foothills, about a day&#39;s travel east of Haven.
+She's provided you with a basic map indicating the route to the goblins' likely camp - a small cave system n
+estled amongst the foothills, about a day's travel east of Haven.
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-She&#39;s provided you with a basic map indicating the route to the goblins&#39; likely camp - a small cave system n
-estled amongst the foothills, about a day&#39;s travel east of Haven.
+She's provided you with a basic map indicating the route to the goblins' likely camp - a small cave system n
+estled amongst the foothills, about a day's travel east of Haven.
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-She&#39;s provided you with a basic map indicating the route to the goblins&#39; likely camp - a small cave system n
-estled amongst the foothills, about a day&#39;s travel east of Haven.
+She's provided you with a basic map indicating the route to the goblins' likely camp - a small cave system n
+estled amongst the foothills, about a day's travel east of Haven.
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;She&#39;s provided you with a basic map indicating the route to the goblins&#39; likely camp - a small 
-cave system nestled amongst the foothills, about a day&#39;s travel east of Haven.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "She's provided you with a basic map indicating the route to the goblins' likely camp - a small 
+cave system nestled amongst the foothills, about a day's travel east of Haven."
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;She&#39;s provided you with a basic map indicating the route to the goblins&#39; likely camp - a small 
-cave system nestled amongst the foothills, about a day&#39;s travel east of Haven.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "She's provided you with a basic map indicating the route to the goblins' likely camp - a small 
+cave system nestled amongst the foothills, about a day's travel east of Haven."
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;She&#39;s provided you with a basic map indicating the route to the goblins&#39; likely camp - a small 
-cave system nestled amongst the foothills, about a day&#39;s travel east of Haven.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "She's provided you with a basic map indicating the route to the goblins' likely camp - a small 
+cave system nestled amongst the foothills, about a day's travel east of Haven."
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;She&#39;s provided you with a basic map indicating the route to the goblins&#39; likely camp - a small 
-cave system nestled amongst the foothills, about a day&#39;s travel east of Haven.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "She's provided you with a basic map indicating the route to the goblins' likely camp - a small 
+cave system nestled amongst the foothills, about a day's travel east of Haven."
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;She&#39;s provided you with a basic map indicating the route to the goblins&#39; likely camp - a small 
-cave system nestled amongst the foothills, about a day&#39;s travel east of Haven.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "She's provided you with a basic map indicating the route to the goblins' likely camp - a small 
+cave system nestled amongst the foothills, about a day's travel east of Haven."
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;She&#39;s provided you with a basic map indicating the route to the goblins&#39; likely camp - a small 
-cave system nestled amongst the foothills, about a day&#39;s travel east of Haven.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "She's provided you with a basic map indicating the route to the goblins' likely camp - a small 
+cave system nestled amongst the foothills, about a day's travel east of Haven."
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
@@ -5012,82 +5012,82 @@ cave system nestled amongst the foothills, about a day&#39;s travel east of Have
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-She&#39;s also instructed you to prioritize securing any artifacts you find, as they&#39;re a significant concern.
+She's also instructed you to prioritize securing any artifacts you find, as they're a significant concern.
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-She&#39;s also instructed you to prioritize securing any artifacts you find, as they&#39;re a significant concern.
+She's also instructed you to prioritize securing any artifacts you find, as they're a significant concern.
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-She&#39;s also instructed you to prioritize securing any artifacts you find, as they&#39;re a significant concern.
+She's also instructed you to prioritize securing any artifacts you find, as they're a significant concern.
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-She&#39;s also instructed you to prioritize securing any artifacts you find, as they&#39;re a significant concern.
+She's also instructed you to prioritize securing any artifacts you find, as they're a significant concern.
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-She&#39;s also instructed you to prioritize securing any artifacts you find, as they&#39;re a significant concern.
+She's also instructed you to prioritize securing any artifacts you find, as they're a significant concern.
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-She&#39;s also instructed you to prioritize securing any artifacts you find, as they&#39;re a significant concern.
+She's also instructed you to prioritize securing any artifacts you find, as they're a significant concern.
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;She&#39;s also instructed you to prioritize securing any artifacts you find, as they&#39;re a significa
-nt concern.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "She's also instructed you to prioritize securing any artifacts you find, as they're a significa
+nt concern."
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;She&#39;s also instructed you to prioritize securing any artifacts you find, as they&#39;re a significa
-nt concern.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "She's also instructed you to prioritize securing any artifacts you find, as they're a significa
+nt concern."
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;She&#39;s also instructed you to prioritize securing any artifacts you find, as they&#39;re a significa
-nt concern.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "She's also instructed you to prioritize securing any artifacts you find, as they're a significa
+nt concern."
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;She&#39;s also instructed you to prioritize securing any artifacts you find, as they&#39;re a significa
-nt concern.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "She's also instructed you to prioritize securing any artifacts you find, as they're a significa
+nt concern."
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;She&#39;s also instructed you to prioritize securing any artifacts you find, as they&#39;re a significa
-nt concern.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "She's also instructed you to prioritize securing any artifacts you find, as they're a significa
+nt concern."
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;She&#39;s also instructed you to prioritize securing any artifacts you find, as they&#39;re a significa
-nt concern.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "She's also instructed you to prioritize securing any artifacts you find, as they're a significa
+nt concern."
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
@@ -5096,88 +5096,88 @@ nt concern.&quot;
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-To help you on your way, she&#39;s provided a small pouch of 10 gold pieces as an advance, and will pay out the 
+To help you on your way, she's provided a small pouch of 10 gold pieces as an advance, and will pay out the 
 remaining 40 once the goblins are dealt with and the road secured.
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-To help you on your way, she&#39;s provided a small pouch of 10 gold pieces as an advance, and will pay out the 
+To help you on your way, she's provided a small pouch of 10 gold pieces as an advance, and will pay out the 
 remaining 40 once the goblins are dealt with and the road secured.
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-To help you on your way, she&#39;s provided a small pouch of 10 gold pieces as an advance, and will pay out the 
+To help you on your way, she's provided a small pouch of 10 gold pieces as an advance, and will pay out the 
 remaining 40 once the goblins are dealt with and the road secured.
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-To help you on your way, she&#39;s provided a small pouch of 10 gold pieces as an advance, and will pay out the 
+To help you on your way, she's provided a small pouch of 10 gold pieces as an advance, and will pay out the 
 remaining 40 once the goblins are dealt with and the road secured.
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-To help you on your way, she&#39;s provided a small pouch of 10 gold pieces as an advance, and will pay out the 
+To help you on your way, she's provided a small pouch of 10 gold pieces as an advance, and will pay out the 
 remaining 40 once the goblins are dealt with and the road secured.
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-To help you on your way, she&#39;s provided a small pouch of 10 gold pieces as an advance, and will pay out the 
+To help you on your way, she's provided a small pouch of 10 gold pieces as an advance, and will pay out the 
 remaining 40 once the goblins are dealt with and the road secured.
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;To help you on your way, she&#39;s provided a small pouch of 10 gold pieces as an advance, and will
- pay out the remaining 40 once the goblins are dealt with and the road secured.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "To help you on your way, she's provided a small pouch of 10 gold pieces as an advance, and will
+ pay out the remaining 40 once the goblins are dealt with and the road secured."
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;To help you on your way, she&#39;s provided a small pouch of 10 gold pieces as an advance, and will
- pay out the remaining 40 once the goblins are dealt with and the road secured.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "To help you on your way, she's provided a small pouch of 10 gold pieces as an advance, and will
+ pay out the remaining 40 once the goblins are dealt with and the road secured."
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;To help you on your way, she&#39;s provided a small pouch of 10 gold pieces as an advance, and will
- pay out the remaining 40 once the goblins are dealt with and the road secured.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "To help you on your way, she's provided a small pouch of 10 gold pieces as an advance, and will
+ pay out the remaining 40 once the goblins are dealt with and the road secured."
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;To help you on your way, she&#39;s provided a small pouch of 10 gold pieces as an advance, and will
- pay out the remaining 40 once the goblins are dealt with and the road secured.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "To help you on your way, she's provided a small pouch of 10 gold pieces as an advance, and will
+ pay out the remaining 40 once the goblins are dealt with and the road secured."
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;To help you on your way, she&#39;s provided a small pouch of 10 gold pieces as an advance, and will
- pay out the remaining 40 once the goblins are dealt with and the road secured.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "To help you on your way, she's provided a small pouch of 10 gold pieces as an advance, and will
+ pay out the remaining 40 once the goblins are dealt with and the road secured."
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;To help you on your way, she&#39;s provided a small pouch of 10 gold pieces as an advance, and will
- pay out the remaining 40 once the goblins are dealt with and the road secured.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "To help you on your way, she's provided a small pouch of 10 gold pieces as an advance, and will
+ pay out the remaining 40 once the goblins are dealt with and the road secured."
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
@@ -5186,88 +5186,88 @@ Data: {
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-Let&#39;s get moving! Do you want me to detail the terrain you&#39;ll be traversing, or perhaps suggest a few suppli
+Let's get moving! Do you want me to detail the terrain you'll be traversing, or perhaps suggest a few suppli
 es you might want to acquire before setting out?
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-Let&#39;s get moving! Do you want me to detail the terrain you&#39;ll be traversing, or perhaps suggest a few suppli
+Let's get moving! Do you want me to detail the terrain you'll be traversing, or perhaps suggest a few suppli
 es you might want to acquire before setting out?
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-Let&#39;s get moving! Do you want me to detail the terrain you&#39;ll be traversing, or perhaps suggest a few suppli
+Let's get moving! Do you want me to detail the terrain you'll be traversing, or perhaps suggest a few suppli
 es you might want to acquire before setting out?
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-Let&#39;s get moving! Do you want me to detail the terrain you&#39;ll be traversing, or perhaps suggest a few suppli
+Let's get moving! Do you want me to detail the terrain you'll be traversing, or perhaps suggest a few suppli
 es you might want to acquire before setting out?
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-Let&#39;s get moving! Do you want me to detail the terrain you&#39;ll be traversing, or perhaps suggest a few suppli
+Let's get moving! Do you want me to detail the terrain you'll be traversing, or perhaps suggest a few suppli
 es you might want to acquire before setting out?
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-Let&#39;s get moving! Do you want me to detail the terrain you&#39;ll be traversing, or perhaps suggest a few suppli
+Let's get moving! Do you want me to detail the terrain you'll be traversing, or perhaps suggest a few suppli
 es you might want to acquire before setting out?
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;Let&#39;s get moving! Do you want me to detail the terrain you&#39;ll be traversing, or perhaps suggest
- a few supplies you might want to acquire before setting out?&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "Let's get moving! Do you want me to detail the terrain you'll be traversing, or perhaps suggest
+ a few supplies you might want to acquire before setting out?"
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;Let&#39;s get moving! Do you want me to detail the terrain you&#39;ll be traversing, or perhaps suggest
- a few supplies you might want to acquire before setting out?&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "Let's get moving! Do you want me to detail the terrain you'll be traversing, or perhaps suggest
+ a few supplies you might want to acquire before setting out?"
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;Let&#39;s get moving! Do you want me to detail the terrain you&#39;ll be traversing, or perhaps suggest
- a few supplies you might want to acquire before setting out?&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "Let's get moving! Do you want me to detail the terrain you'll be traversing, or perhaps suggest
+ a few supplies you might want to acquire before setting out?"
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;Let&#39;s get moving! Do you want me to detail the terrain you&#39;ll be traversing, or perhaps suggest
- a few supplies you might want to acquire before setting out?&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "Let's get moving! Do you want me to detail the terrain you'll be traversing, or perhaps suggest
+ a few supplies you might want to acquire before setting out?"
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;Let&#39;s get moving! Do you want me to detail the terrain you&#39;ll be traversing, or perhaps suggest
- a few supplies you might want to acquire before setting out?&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "Let's get moving! Do you want me to detail the terrain you'll be traversing, or perhaps suggest
+ a few supplies you might want to acquire before setting out?"
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;Let&#39;s get moving! Do you want me to detail the terrain you&#39;ll be traversing, or perhaps suggest
- a few supplies you might want to acquire before setting out?&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "Let's get moving! Do you want me to detail the terrain you'll be traversing, or perhaps suggest
+ a few supplies you might want to acquire before setting out?"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
@@ -5284,24 +5284,24 @@ l
 _____________________________ test_update_embeddings_from_conversation_history _____________________________
 
 llm_service = &lt;src.ai.llm_ollama.OllamaService object at 0x109ce2700&gt;
-temp_embeddings_file = &#39;tests/test_files/tmp/embeddings_test_20250508_003407.jsonl&#39;
-test_conversation_data = {&#39;entries&#39;: [{&#39;content&#39;: &#39;\nCampaign Setting: The Lost Valley\n\nWorld Details:\n- 
-Hidden valley surrounded by impassa...2-8f39-4c47-812a-e00b639cc950&#39;, &#39;role&#39;: &#39;user&#39;, ...}, ...], &#39;memory_fi
-le_guid&#39;: &#39;f1ce087f-76b3-4383-865f-4179c927d162&#39;}
+temp_embeddings_file = 'tests/test_files/tmp/embeddings_test_20250508_003407.jsonl'
+test_conversation_data = {'entries': [{'content': '\nCampaign Setting: The Lost Valley\n\nWorld Details:\n- 
+Hidden valley surrounded by impassa...2-8f39-4c47-812a-e00b639cc950', 'role': 'user', ...}, ...], 'memory_fi
+le_guid': 'f1ce087f-76b3-4383-865f-4179c927d162'}
 
     @pytest.mark.skipif(not TEST_CONVERSATIONS_PATH.exists(),
-                        reason=f&quot;Test conversation data not found at {TEST_CONVERSATIONS_PATH}&quot;)
+                        reason=f"Test conversation data not found at {TEST_CONVERSATIONS_PATH}")
     def test_update_embeddings_from_conversation_history(llm_service, temp_embeddings_file, test_conversatio
 n_data):
-        &quot;&quot;&quot;Test updating embeddings from conversation history.&quot;&quot;&quot;
+        """Test updating embeddings from conversation history."""
         # Ensure file is empty at start
         clear_file(temp_embeddings_file)
     
         manager = EmbeddingsManager(temp_embeddings_file, llm_service)
     
         # Get conversation entries
-        entries = test_conversation_data.get(&quot;entries&quot;, [])
-        assert len(entries) &gt; 0, &quot;No entries found in test conversation data&quot;
+        entries = test_conversation_data.get("entries", [])
+        assert len(entries) &gt; 0, "No entries found in test conversation data"
     
         # Update embeddings from this history
         success = manager.update_embeddings(entries)
@@ -5311,38 +5311,38 @@ n_data):
         expected_count = 0
         for entry in entries:
             expected_count += 1  # Count the entry itself
-            if &#39;digest&#39; in entry and &#39;rated_segments&#39; in entry[&#39;digest&#39;]:
-                expected_count += len(entry[&#39;digest&#39;][&#39;rated_segments&#39;])
+            if 'digest' in entry and 'rated_segments' in entry['digest']:
+                expected_count += len(entry['digest']['rated_segments'])
     
         # Check that we have the right number of embeddings
 &gt;       assert len(manager.embeddings) == expected_count
 E       AssertionError: assert 56 == 63
 E        +  where 56 = len([(array([ 0.00908185,  0.02376577, -0.00611739, ...,  0.0268624 ,\n        0.0258
-3179, -0.01705588]), {&#39;guid&#39;: &#39;dee8df28-2a54-4bc2-862b-3ad5c4d61470&#39;, &#39;importance&#39;: 5, &#39;role&#39;: &#39;system&#39;, &#39;se
-gment_index&#39;: 0, ...}), (array([ 0.00603895,  0.04498115, -0.01012068, ..., -0.00448989,\n        0.01836397
-,  0.00531743]), {&#39;guid&#39;: &#39;dee8df28-2a54-4bc2-862b-3ad5c4d61470&#39;, &#39;importance&#39;: 4, &#39;role&#39;: &#39;system&#39;, &#39;segmen
-t_index&#39;: 1, ...}), (array([-0.03780889,  0.0333194 ,  0.00529636, ...,  0.00810668,\n       -0.01513522,  0
-.03539498]), {&#39;guid&#39;: &#39;dee8df28-2a54-4bc2-862b-3ad5c4d61470&#39;, &#39;importance&#39;: 4, &#39;role&#39;: &#39;system&#39;, &#39;segment_in
-dex&#39;: 2, ...}), (array([-0.03491409,  0.00060573,  0.02414331, ...,  0.00605645,\n        0.00572742,  0.022
-76203]), {&#39;guid&#39;: &#39;dee8df28-2a54-4bc2-862b-3ad5c4d61470&#39;, &#39;importance&#39;: 5, &#39;role&#39;: &#39;system&#39;, &#39;segment_index&#39;
+3179, -0.01705588]), {'guid': 'dee8df28-2a54-4bc2-862b-3ad5c4d61470', 'importance': 5, 'role': 'system', 'se
+gment_index': 0, ...}), (array([ 0.00603895,  0.04498115, -0.01012068, ..., -0.00448989,\n        0.01836397
+,  0.00531743]), {'guid': 'dee8df28-2a54-4bc2-862b-3ad5c4d61470', 'importance': 4, 'role': 'system', 'segmen
+t_index': 1, ...}), (array([-0.03780889,  0.0333194 ,  0.00529636, ...,  0.00810668,\n       -0.01513522,  0
+.03539498]), {'guid': 'dee8df28-2a54-4bc2-862b-3ad5c4d61470', 'importance': 4, 'role': 'system', 'segment_in
+dex': 2, ...}), (array([-0.03491409,  0.00060573,  0.02414331, ...,  0.00605645,\n        0.00572742,  0.022
+76203]), {'guid': 'dee8df28-2a54-4bc2-862b-3ad5c4d61470', 'importance': 5, 'role': 'system', 'segment_index'
 : 3, ...}), (array([ 0.00706241,  0.03265237,  0.00053594, ..., -0.02093669,\n       -0.0390717 ,  0.0305297
- ]), {&#39;guid&#39;: &#39;dee8df28-2a54-4bc2-862b-3ad5c4d61470&#39;, &#39;importance&#39;: 4, &#39;role&#39;: &#39;system&#39;, &#39;segment_index&#39;: 4,
+ ]), {'guid': 'dee8df28-2a54-4bc2-862b-3ad5c4d61470', 'importance': 4, 'role': 'system', 'segment_index': 4,
  ...}), (array([ 7.26047045e-03, -2.35093177e-02, -3.10133143e-02, ...,\n       -4.45131263e-05, -4.02708183
-e-03, -1.13634930e-02]), {&#39;guid&#39;: &#39;dee8df28-2a54-4bc2-862b-3ad5c4d61470&#39;, &#39;importance&#39;: 3, &#39;role&#39;: &#39;system&#39;,
- &#39;segment_index&#39;: 5, ...}), ...])
+e-03, -1.13634930e-02]), {'guid': 'dee8df28-2a54-4bc2-862b-3ad5c4d61470', 'importance': 3, 'role': 'system',
+ 'segment_index': 5, ...}), ...])
 E        +    where [(array([ 0.00908185,  0.02376577, -0.00611739, ...,  0.0268624 ,\n        0.02583179, -
-0.01705588]), {&#39;guid&#39;: &#39;dee8df28-2a54-4bc2-862b-3ad5c4d61470&#39;, &#39;importance&#39;: 5, &#39;role&#39;: &#39;system&#39;, &#39;segment_i
-ndex&#39;: 0, ...}), (array([ 0.00603895,  0.04498115, -0.01012068, ..., -0.00448989,\n        0.01836397,  0.00
-531743]), {&#39;guid&#39;: &#39;dee8df28-2a54-4bc2-862b-3ad5c4d61470&#39;, &#39;importance&#39;: 4, &#39;role&#39;: &#39;system&#39;, &#39;segment_index
-&#39;: 1, ...}), (array([-0.03780889,  0.0333194 ,  0.00529636, ...,  0.00810668,\n       -0.01513522,  0.035394
-98]), {&#39;guid&#39;: &#39;dee8df28-2a54-4bc2-862b-3ad5c4d61470&#39;, &#39;importance&#39;: 4, &#39;role&#39;: &#39;system&#39;, &#39;segment_index&#39;: 2
+0.01705588]), {'guid': 'dee8df28-2a54-4bc2-862b-3ad5c4d61470', 'importance': 5, 'role': 'system', 'segment_i
+ndex': 0, ...}), (array([ 0.00603895,  0.04498115, -0.01012068, ..., -0.00448989,\n        0.01836397,  0.00
+531743]), {'guid': 'dee8df28-2a54-4bc2-862b-3ad5c4d61470', 'importance': 4, 'role': 'system', 'segment_index
+': 1, ...}), (array([-0.03780889,  0.0333194 ,  0.00529636, ...,  0.00810668,\n       -0.01513522,  0.035394
+98]), {'guid': 'dee8df28-2a54-4bc2-862b-3ad5c4d61470', 'importance': 4, 'role': 'system', 'segment_index': 2
 , ...}), (array([-0.03491409,  0.00060573,  0.02414331, ...,  0.00605645,\n        0.00572742,  0.02276203])
-, {&#39;guid&#39;: &#39;dee8df28-2a54-4bc2-862b-3ad5c4d61470&#39;, &#39;importance&#39;: 5, &#39;role&#39;: &#39;system&#39;, &#39;segment_index&#39;: 3, ..
-.}), (array([ 0.00706241,  0.03265237,  0.00053594, ..., -0.02093669,\n       -0.0390717 ,  0.0305297 ]), {&#39;
-guid&#39;: &#39;dee8df28-2a54-4bc2-862b-3ad5c4d61470&#39;, &#39;importance&#39;: 4, &#39;role&#39;: &#39;system&#39;, &#39;segment_index&#39;: 4, ...}),
+, {'guid': 'dee8df28-2a54-4bc2-862b-3ad5c4d61470', 'importance': 5, 'role': 'system', 'segment_index': 3, ..
+.}), (array([ 0.00706241,  0.03265237,  0.00053594, ..., -0.02093669,\n       -0.0390717 ,  0.0305297 ]), {'
+guid': 'dee8df28-2a54-4bc2-862b-3ad5c4d61470', 'importance': 4, 'role': 'system', 'segment_index': 4, ...}),
  (array([ 7.26047045e-03, -2.35093177e-02, -3.10133143e-02, ...,\n       -4.45131263e-05, -4.02708183e-03, -
-1.13634930e-02]), {&#39;guid&#39;: &#39;dee8df28-2a54-4bc2-862b-3ad5c4d61470&#39;, &#39;importance&#39;: 3, &#39;role&#39;: &#39;system&#39;, &#39;segme
-nt_index&#39;: 5, ...}), ...] = &lt;src.memory.embeddings_manager.EmbeddingsManager object at 0x109ce2940&gt;.embeddin
+1.13634930e-02]), {'guid': 'dee8df28-2a54-4bc2-862b-3ad5c4d61470', 'importance': 3, 'role': 'system', 'segme
+nt_index': 5, ...}), ...] = &lt;src.memory.embeddings_manager.EmbeddingsManager object at 0x109ce2940&gt;.embeddin
 gs
 
 tests/memory_manager/test_embeddings_manager_integration.py:269: AssertionError
@@ -5403,7 +5403,7 @@ I see the issue. The test is expecting embeddings for both the full entries and 
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/embeddings_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/embeddings_manager.py</summary>
 
 **Chunk 1**
 Lines added: 13, lines removed: 1
@@ -5416,18 +5416,18 @@ Lines added: 13, lines removed: 1
 +                 # First, generate embedding for the full entry
 +                 total_count += 1
 +                 entry_metadata = {
-+                     &#39;guid&#39;: entry.get(&#39;guid&#39;, str(total_count)),
-+                     &#39;timestamp&#39;: entry.get(&#39;timestamp&#39;, datetime.now().isoformat()),
-+                     &#39;role&#39;: entry.get(&#39;role&#39;, &#39;unknown&#39;),
-+                     &#39;type&#39;: &#39;full_entry&#39;,
-+                     &#39;content&#39;: entry.get(&#39;content&#39;, &#39;&#39;)
++                     'guid': entry.get('guid', str(total_count)),
++                     'timestamp': entry.get('timestamp', datetime.now().isoformat()),
++                     'role': entry.get('role', 'unknown'),
++                     'type': 'full_entry',
++                     'content': entry.get('content', '')
 +                 }
-+                 if self.add_embedding(entry.get(&#39;content&#39;, &#39;&#39;), entry_metadata):
++                 if self.add_embedding(entry.get('content', ''), entry_metadata):
 +                     success_count += 1
 +                 
 +                 # Then process segments if they exist
-                  if &#39;digest&#39; in entry and &#39;rated_segments&#39; in entry[&#39;digest&#39;]:
-                      segments = entry[&#39;digest&#39;][&#39;rated_segments&#39;]
+                  if 'digest' in entry and 'rated_segments' in entry['digest']:
+                      segments = entry['digest']['rated_segments']
 ```
 
 </details>
@@ -5441,7 +5441,7 @@ Now let's run the test again to see if this fixes the issue:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.143:11434 OLLAMA_LLM_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large pytest tests/memory_manager/test_embeddings_manager_integration.py -v -s</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.143:11434 OLLAMA_LLM_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large pytest tests/memory_manager/test_embeddings_manager_integration.py -v -s</summary>
 
 ```bash
 DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.143:11434 OLLAMA_LLM_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large pytest tests/memory_manager/test_embeddings_manager_integration.py -v -s
@@ -5468,7 +5468,7 @@ Let me revert the changes to `query_memory` in `memory_manager.py`:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/memory_manager.py</summary>
 
 </details>
 
@@ -5502,7 +5502,7 @@ I'll run the test command for the embeddings manager integration tests:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.143:11434 OLLAMA_LLM_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large pytest tests/memory_manager/test_embeddings_manager_integration.py -v -s</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.143:11434 OLLAMA_LLM_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large pytest tests/memory_manager/test_embeddings_manager_integration.py -v -s</summary>
 
 ```bash
 DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.143:11434 OLLAMA_LLM_MODEL=gemma3 OLLAMA_EMBED_MODEL=mxbai-embed-large pytest tests/memory_manager/test_embeddings_manager_integration.py -v -s
@@ -5511,14 +5511,14 @@ DEV_MODE=true OLLAMA_BASE_URL=http://192.168.1.143:11434 OLLAMA_LLM_MODEL=gemma3
 ```
 (.venv) (base) andrewrapo@MacBookPro cursor-hello-llm-agent % 
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;accept elena&#39;s quest&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "accept elena's quest"
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;accept elena&#39;s quest&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "accept elena's quest"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
@@ -5540,63 +5540,63 @@ and get started
 and get started
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;and get started&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "and get started"
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;and get started&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "and get started"
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;and get started&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "and get started"
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;and get started&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "and get started"
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;and get started&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "and get started"
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;and get started&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "and get started"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
@@ -5605,208 +5605,208 @@ Data: {
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-&quot;Excellent! Elena appreciates your willingness to help. Here&#39;s what you need to know,&quot; I say, adjusting my t
-one to reflect the urgency of the situation. &quot;The goblins are a relatively small band - estimates put them a
-t around twenty, though they&#39;re surprisingly well-organized. They&#39;ve been focusing their raids on caravans h
+"Excellent! Elena appreciates your willingness to help. Here's what you need to know," I say, adjusting my t
+one to reflect the urgency of the situation. "The goblins are a relatively small band - estimates put them a
+t around twenty, though they're surprisingly well-organized. They've been focusing their raids on caravans h
 eading towards the ruins near Riverwatch, likely drawn by the recent discoveries.
 
-She&#39;s provided you with a basic map indicating the route to the goblins&#39; likely camp - a small cave system n
-estled amongst the foothills, about a day&#39;s travel east of Haven.  She&#39;s also instructed you to prioritize s
-ecuring any artifacts you find, as they&#39;re a significant concern.
+She's provided you with a basic map indicating the route to the goblins' likely camp - a small cave system n
+estled amongst the foothills, about a day's travel east of Haven.  She's also instructed you to prioritize s
+ecuring any artifacts you find, as they're a significant concern.
 
-To help you on your way, she&#39;s provided a small pouch of 10 gold pieces as an advance, and will pay out the 
+To help you on your way, she's provided a small pouch of 10 gold pieces as an advance, and will pay out the 
 remaining 40 once the goblins are dealt with and the road secured.
 
-Let&#39;s get moving! Do you want me to detail the terrain you&#39;ll be traversing, or perhaps suggest a few suppli
-es you might want to acquire before setting out?&quot;
+Let's get moving! Do you want me to detail the terrain you'll be traversing, or perhaps suggest a few suppli
+es you might want to acquire before setting out?"
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-&quot;Excellent! Elena appreciates your willingness to help. Here&#39;s what you need to know,&quot; I say, adjusting my t
-one to reflect the urgency of the situation. &quot;The goblins are a relatively small band - estimates put them a
-t around twenty, though they&#39;re surprisingly well-organized. They&#39;ve been focusing their raids on caravans h
+"Excellent! Elena appreciates your willingness to help. Here's what you need to know," I say, adjusting my t
+one to reflect the urgency of the situation. "The goblins are a relatively small band - estimates put them a
+t around twenty, though they're surprisingly well-organized. They've been focusing their raids on caravans h
 eading towards the ruins near Riverwatch, likely drawn by the recent discoveries.
 
-She&#39;s provided you with a basic map indicating the route to the goblins&#39; likely camp - a small cave system n
-estled amongst the foothills, about a day&#39;s travel east of Haven.  She&#39;s also instructed you to prioritize s
-ecuring any artifacts you find, as they&#39;re a significant concern.
+She's provided you with a basic map indicating the route to the goblins' likely camp - a small cave system n
+estled amongst the foothills, about a day's travel east of Haven.  She's also instructed you to prioritize s
+ecuring any artifacts you find, as they're a significant concern.
 
-To help you on your way, she&#39;s provided a small pouch of 10 gold pieces as an advance, and will pay out the 
+To help you on your way, she's provided a small pouch of 10 gold pieces as an advance, and will pay out the 
 remaining 40 once the goblins are dealt with and the road secured.
 
-Let&#39;s get moving! Do you want me to detail the terrain you&#39;ll be traversing, or perhaps suggest a few suppli
-es you might want to acquire before setting out?&quot;
+Let's get moving! Do you want me to detail the terrain you'll be traversing, or perhaps suggest a few suppli
+es you might want to acquire before setting out?"
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-&quot;Excellent! Elena appreciates your willingness to help. Here&#39;s what you need to know,&quot; I say, adjusting my t
-one to reflect the urgency of the situation. &quot;The goblins are a relatively small band - estimates put them a
-t around twenty, though they&#39;re surprisingly well-organized. They&#39;ve been focusing their raids on caravans h
+"Excellent! Elena appreciates your willingness to help. Here's what you need to know," I say, adjusting my t
+one to reflect the urgency of the situation. "The goblins are a relatively small band - estimates put them a
+t around twenty, though they're surprisingly well-organized. They've been focusing their raids on caravans h
 eading towards the ruins near Riverwatch, likely drawn by the recent discoveries.
 
-She&#39;s provided you with a basic map indicating the route to the goblins&#39; likely camp - a small cave system n
-estled amongst the foothills, about a day&#39;s travel east of Haven.  She&#39;s also instructed you to prioritize s
-ecuring any artifacts you find, as they&#39;re a significant concern.
+She's provided you with a basic map indicating the route to the goblins' likely camp - a small cave system n
+estled amongst the foothills, about a day's travel east of Haven.  She's also instructed you to prioritize s
+ecuring any artifacts you find, as they're a significant concern.
 
-To help you on your way, she&#39;s provided a small pouch of 10 gold pieces as an advance, and will pay out the 
+To help you on your way, she's provided a small pouch of 10 gold pieces as an advance, and will pay out the 
 remaining 40 once the goblins are dealt with and the road secured.
 
-Let&#39;s get moving! Do you want me to detail the terrain you&#39;ll be traversing, or perhaps suggest a few suppli
-es you might want to acquire before setting out?&quot;
+Let's get moving! Do you want me to detail the terrain you'll be traversing, or perhaps suggest a few suppli
+es you might want to acquire before setting out?"
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-&quot;Excellent! Elena appreciates your willingness to help. Here&#39;s what you need to know,&quot; I say, adjusting my t
-one to reflect the urgency of the situation. &quot;The goblins are a relatively small band - estimates put them a
-t around twenty, though they&#39;re surprisingly well-organized. They&#39;ve been focusing their raids on caravans h
+"Excellent! Elena appreciates your willingness to help. Here's what you need to know," I say, adjusting my t
+one to reflect the urgency of the situation. "The goblins are a relatively small band - estimates put them a
+t around twenty, though they're surprisingly well-organized. They've been focusing their raids on caravans h
 eading towards the ruins near Riverwatch, likely drawn by the recent discoveries.
 
-She&#39;s provided you with a basic map indicating the route to the goblins&#39; likely camp - a small cave system n
-estled amongst the foothills, about a day&#39;s travel east of Haven.  She&#39;s also instructed you to prioritize s
-ecuring any artifacts you find, as they&#39;re a significant concern.
+She's provided you with a basic map indicating the route to the goblins' likely camp - a small cave system n
+estled amongst the foothills, about a day's travel east of Haven.  She's also instructed you to prioritize s
+ecuring any artifacts you find, as they're a significant concern.
 
-To help you on your way, she&#39;s provided a small pouch of 10 gold pieces as an advance, and will pay out the 
+To help you on your way, she's provided a small pouch of 10 gold pieces as an advance, and will pay out the 
 remaining 40 once the goblins are dealt with and the road secured.
 
-Let&#39;s get moving! Do you want me to detail the terrain you&#39;ll be traversing, or perhaps suggest a few suppli
-es you might want to acquire before setting out?&quot;
+Let's get moving! Do you want me to detail the terrain you'll be traversing, or perhaps suggest a few suppli
+es you might want to acquire before setting out?"
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-&quot;Excellent! Elena appreciates your willingness to help. Here&#39;s what you need to know,&quot; I say, adjusting my t
-one to reflect the urgency of the situation. &quot;The goblins are a relatively small band - estimates put them a
-t around twenty, though they&#39;re surprisingly well-organized. They&#39;ve been focusing their raids on caravans h
+"Excellent! Elena appreciates your willingness to help. Here's what you need to know," I say, adjusting my t
+one to reflect the urgency of the situation. "The goblins are a relatively small band - estimates put them a
+t around twenty, though they're surprisingly well-organized. They've been focusing their raids on caravans h
 eading towards the ruins near Riverwatch, likely drawn by the recent discoveries.
 
-She&#39;s provided you with a basic map indicating the route to the goblins&#39; likely camp - a small cave system n
-estled amongst the foothills, about a day&#39;s travel east of Haven.  She&#39;s also instructed you to prioritize s
-ecuring any artifacts you find, as they&#39;re a significant concern.
+She's provided you with a basic map indicating the route to the goblins' likely camp - a small cave system n
+estled amongst the foothills, about a day's travel east of Haven.  She's also instructed you to prioritize s
+ecuring any artifacts you find, as they're a significant concern.
 
-To help you on your way, she&#39;s provided a small pouch of 10 gold pieces as an advance, and will pay out the 
+To help you on your way, she's provided a small pouch of 10 gold pieces as an advance, and will pay out the 
 remaining 40 once the goblins are dealt with and the road secured.
 
-Let&#39;s get moving! Do you want me to detail the terrain you&#39;ll be traversing, or perhaps suggest a few suppli
-es you might want to acquire before setting out?&quot;
+Let's get moving! Do you want me to detail the terrain you'll be traversing, or perhaps suggest a few suppli
+es you might want to acquire before setting out?"
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-&quot;Excellent! Elena appreciates your willingness to help. Here&#39;s what you need to know,&quot; I say, adjusting my t
-one to reflect the urgency of the situation. &quot;The goblins are a relatively small band - estimates put them a
-t around twenty, though they&#39;re surprisingly well-organized. They&#39;ve been focusing their raids on caravans h
+"Excellent! Elena appreciates your willingness to help. Here's what you need to know," I say, adjusting my t
+one to reflect the urgency of the situation. "The goblins are a relatively small band - estimates put them a
+t around twenty, though they're surprisingly well-organized. They've been focusing their raids on caravans h
 eading towards the ruins near Riverwatch, likely drawn by the recent discoveries.
 
-She&#39;s provided you with a basic map indicating the route to the goblins&#39; likely camp - a small cave system n
-estled amongst the foothills, about a day&#39;s travel east of Haven.  She&#39;s also instructed you to prioritize s
-ecuring any artifacts you find, as they&#39;re a significant concern.
+She's provided you with a basic map indicating the route to the goblins' likely camp - a small cave system n
+estled amongst the foothills, about a day's travel east of Haven.  She's also instructed you to prioritize s
+ecuring any artifacts you find, as they're a significant concern.
 
-To help you on your way, she&#39;s provided a small pouch of 10 gold pieces as an advance, and will pay out the 
+To help you on your way, she's provided a small pouch of 10 gold pieces as an advance, and will pay out the 
 remaining 40 once the goblins are dealt with and the road secured.
 
-Let&#39;s get moving! Do you want me to detail the terrain you&#39;ll be traversing, or perhaps suggest a few suppli
-es you might want to acquire before setting out?&quot;
+Let's get moving! Do you want me to detail the terrain you'll be traversing, or perhaps suggest a few suppli
+es you might want to acquire before setting out?"
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;\&quot;Excellent! Elena appreciates your willingness to help. Here&#39;s what you need to know,\&quot; I say,
- adjusting my tone to reflect the urgency of the situation. \&quot;The goblins are a relatively small band - esti
-mates put them at around twenty, though they&#39;re surprisingly well-organized. They&#39;ve been focusing their rai
-ds on caravans heading towards the ruins near Riverwatch, likely drawn by the recent discoveries. \n\nShe&#39;s
-provided you with a basic map indicating the route to the goblins&#39; likely camp - a small cave system nestled
- amongst the foothills, about a day&#39;s travel east of Haven.  She&#39;s also instructed you to prioritize securin
-g any artifacts you find, as they&#39;re a significant concern. \n\nTo help you on your way, she&#39;s provided a sm
+  "model": "mxbai-embed-large",
+  "prompt": "\"Excellent! Elena appreciates your willingness to help. Here's what you need to know,\" I say,
+ adjusting my tone to reflect the urgency of the situation. \"The goblins are a relatively small band - esti
+mates put them at around twenty, though they're surprisingly well-organized. They've been focusing their rai
+ds on caravans heading towards the ruins near Riverwatch, likely drawn by the recent discoveries. \n\nShe's
+provided you with a basic map indicating the route to the goblins' likely camp - a small cave system nestled
+ amongst the foothills, about a day's travel east of Haven.  She's also instructed you to prioritize securin
+g any artifacts you find, as they're a significant concern. \n\nTo help you on your way, she's provided a sm
 all pouch of 10 gold pieces as an advance, and will pay out the remaining 40 once the goblins are dealt with
- and the road secured. \n\nLet&#39;s get moving! Do you want me to detail the terrain you&#39;ll be traversing, or p
-erhaps suggest a few supplies you might want to acquire before setting out?\&quot;&quot;
+ and the road secured. \n\nLet's get moving! Do you want me to detail the terrain you'll be traversing, or p
+erhaps suggest a few supplies you might want to acquire before setting out?\""
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;\&quot;Excellent! Elena appreciates your willingness to help. Here&#39;s what you need to know,\&quot; I say,
- adjusting my tone to reflect the urgency of the situation. \&quot;The goblins are a relatively small band - esti
-mates put them at around twenty, though they&#39;re surprisingly well-organized. They&#39;ve been focusing their rai
-ds on caravans heading towards the ruins near Riverwatch, likely drawn by the recent discoveries. \n\nShe&#39;s
-provided you with a basic map indicating the route to the goblins&#39; likely camp - a small cave system nestled
- amongst the foothills, about a day&#39;s travel east of Haven.  She&#39;s also instructed you to prioritize securin
-g any artifacts you find, as they&#39;re a significant concern. \n\nTo help you on your way, she&#39;s provided a sm
+  "model": "mxbai-embed-large",
+  "prompt": "\"Excellent! Elena appreciates your willingness to help. Here's what you need to know,\" I say,
+ adjusting my tone to reflect the urgency of the situation. \"The goblins are a relatively small band - esti
+mates put them at around twenty, though they're surprisingly well-organized. They've been focusing their rai
+ds on caravans heading towards the ruins near Riverwatch, likely drawn by the recent discoveries. \n\nShe's
+provided you with a basic map indicating the route to the goblins' likely camp - a small cave system nestled
+ amongst the foothills, about a day's travel east of Haven.  She's also instructed you to prioritize securin
+g any artifacts you find, as they're a significant concern. \n\nTo help you on your way, she's provided a sm
 all pouch of 10 gold pieces as an advance, and will pay out the remaining 40 once the goblins are dealt with
- and the road secured. \n\nLet&#39;s get moving! Do you want me to detail the terrain you&#39;ll be traversing, or p
-erhaps suggest a few supplies you might want to acquire before setting out?\&quot;&quot;
+ and the road secured. \n\nLet's get moving! Do you want me to detail the terrain you'll be traversing, or p
+erhaps suggest a few supplies you might want to acquire before setting out?\""
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;\&quot;Excellent! Elena appreciates your willingness to help. Here&#39;s what you need to know,\&quot; I say,
- adjusting my tone to reflect the urgency of the situation. \&quot;The goblins are a relatively small band - esti
-mates put them at around twenty, though they&#39;re surprisingly well-organized. They&#39;ve been focusing their rai
-ds on caravans heading towards the ruins near Riverwatch, likely drawn by the recent discoveries. \n\nShe&#39;s
-provided you with a basic map indicating the route to the goblins&#39; likely camp - a small cave system nestled
- amongst the foothills, about a day&#39;s travel east of Haven.  She&#39;s also instructed you to prioritize securin
-g any artifacts you find, as they&#39;re a significant concern. \n\nTo help you on your way, she&#39;s provided a sm
+  "model": "mxbai-embed-large",
+  "prompt": "\"Excellent! Elena appreciates your willingness to help. Here's what you need to know,\" I say,
+ adjusting my tone to reflect the urgency of the situation. \"The goblins are a relatively small band - esti
+mates put them at around twenty, though they're surprisingly well-organized. They've been focusing their rai
+ds on caravans heading towards the ruins near Riverwatch, likely drawn by the recent discoveries. \n\nShe's
+provided you with a basic map indicating the route to the goblins' likely camp - a small cave system nestled
+ amongst the foothills, about a day's travel east of Haven.  She's also instructed you to prioritize securin
+g any artifacts you find, as they're a significant concern. \n\nTo help you on your way, she's provided a sm
 all pouch of 10 gold pieces as an advance, and will pay out the remaining 40 once the goblins are dealt with
- and the road secured. \n\nLet&#39;s get moving! Do you want me to detail the terrain you&#39;ll be traversing, or p
-erhaps suggest a few supplies you might want to acquire before setting out?\&quot;&quot;
+ and the road secured. \n\nLet's get moving! Do you want me to detail the terrain you'll be traversing, or p
+erhaps suggest a few supplies you might want to acquire before setting out?\""
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;\&quot;Excellent! Elena appreciates your willingness to help. Here&#39;s what you need to know,\&quot; I say,
- adjusting my tone to reflect the urgency of the situation. \&quot;The goblins are a relatively small band - esti
-mates put them at around twenty, though they&#39;re surprisingly well-organized. They&#39;ve been focusing their rai
-ds on caravans heading towards the ruins near Riverwatch, likely drawn by the recent discoveries. \n\nShe&#39;s
-provided you with a basic map indicating the route to the goblins&#39; likely camp - a small cave system nestled
- amongst the foothills, about a day&#39;s travel east of Haven.  She&#39;s also instructed you to prioritize securin
-g any artifacts you find, as they&#39;re a significant concern. \n\nTo help you on your way, she&#39;s provided a sm
+  "model": "mxbai-embed-large",
+  "prompt": "\"Excellent! Elena appreciates your willingness to help. Here's what you need to know,\" I say,
+ adjusting my tone to reflect the urgency of the situation. \"The goblins are a relatively small band - esti
+mates put them at around twenty, though they're surprisingly well-organized. They've been focusing their rai
+ds on caravans heading towards the ruins near Riverwatch, likely drawn by the recent discoveries. \n\nShe's
+provided you with a basic map indicating the route to the goblins' likely camp - a small cave system nestled
+ amongst the foothills, about a day's travel east of Haven.  She's also instructed you to prioritize securin
+g any artifacts you find, as they're a significant concern. \n\nTo help you on your way, she's provided a sm
 all pouch of 10 gold pieces as an advance, and will pay out the remaining 40 once the goblins are dealt with
- and the road secured. \n\nLet&#39;s get moving! Do you want me to detail the terrain you&#39;ll be traversing, or p
-erhaps suggest a few supplies you might want to acquire before setting out?\&quot;&quot;
+ and the road secured. \n\nLet's get moving! Do you want me to detail the terrain you'll be traversing, or p
+erhaps suggest a few supplies you might want to acquire before setting out?\""
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;\&quot;Excellent! Elena appreciates your willingness to help. Here&#39;s what you need to know,\&quot; I say,
- adjusting my tone to reflect the urgency of the situation. \&quot;The goblins are a relatively small band - esti
-mates put them at around twenty, though they&#39;re surprisingly well-organized. They&#39;ve been focusing their rai
-ds on caravans heading towards the ruins near Riverwatch, likely drawn by the recent discoveries. \n\nShe&#39;s
-provided you with a basic map indicating the route to the goblins&#39; likely camp - a small cave system nestled
- amongst the foothills, about a day&#39;s travel east of Haven.  She&#39;s also instructed you to prioritize securin
-g any artifacts you find, as they&#39;re a significant concern. \n\nTo help you on your way, she&#39;s provided a sm
+  "model": "mxbai-embed-large",
+  "prompt": "\"Excellent! Elena appreciates your willingness to help. Here's what you need to know,\" I say,
+ adjusting my tone to reflect the urgency of the situation. \"The goblins are a relatively small band - esti
+mates put them at around twenty, though they're surprisingly well-organized. They've been focusing their rai
+ds on caravans heading towards the ruins near Riverwatch, likely drawn by the recent discoveries. \n\nShe's
+provided you with a basic map indicating the route to the goblins' likely camp - a small cave system nestled
+ amongst the foothills, about a day's travel east of Haven.  She's also instructed you to prioritize securin
+g any artifacts you find, as they're a significant concern. \n\nTo help you on your way, she's provided a sm
 all pouch of 10 gold pieces as an advance, and will pay out the remaining 40 once the goblins are dealt with
- and the road secured. \n\nLet&#39;s get moving! Do you want me to detail the terrain you&#39;ll be traversing, or p
-erhaps suggest a few supplies you might want to acquire before setting out?\&quot;&quot;
+ and the road secured. \n\nLet's get moving! Do you want me to detail the terrain you'll be traversing, or p
+erhaps suggest a few supplies you might want to acquire before setting out?\""
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;\&quot;Excellent! Elena appreciates your willingness to help. Here&#39;s what you need to know,\&quot; I say,
- adjusting my tone to reflect the urgency of the situation. \&quot;The goblins are a relatively small band - esti
-mates put them at around twenty, though they&#39;re surprisingly well-organized. They&#39;ve been focusing their rai
-ds on caravans heading towards the ruins near Riverwatch, likely drawn by the recent discoveries. \n\nShe&#39;s
-provided you with a basic map indicating the route to the goblins&#39; likely camp - a small cave system nestled
- amongst the foothills, about a day&#39;s travel east of Haven.  She&#39;s also instructed you to prioritize securin
-g any artifacts you find, as they&#39;re a significant concern. \n\nTo help you on your way, she&#39;s provided a sm
+  "model": "mxbai-embed-large",
+  "prompt": "\"Excellent! Elena appreciates your willingness to help. Here's what you need to know,\" I say,
+ adjusting my tone to reflect the urgency of the situation. \"The goblins are a relatively small band - esti
+mates put them at around twenty, though they're surprisingly well-organized. They've been focusing their rai
+ds on caravans heading towards the ruins near Riverwatch, likely drawn by the recent discoveries. \n\nShe's
+provided you with a basic map indicating the route to the goblins' likely camp - a small cave system nestled
+ amongst the foothills, about a day's travel east of Haven.  She's also instructed you to prioritize securin
+g any artifacts you find, as they're a significant concern. \n\nTo help you on your way, she's provided a sm
 all pouch of 10 gold pieces as an advance, and will pay out the remaining 40 once the goblins are dealt with
- and the road secured. \n\nLet&#39;s get moving! Do you want me to detail the terrain you&#39;ll be traversing, or p
-erhaps suggest a few supplies you might want to acquire before setting out?\&quot;&quot;
+ and the road secured. \n\nLet's get moving! Do you want me to detail the terrain you'll be traversing, or p
+erhaps suggest a few supplies you might want to acquire before setting out?\""
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
@@ -5829,63 +5829,63 @@ Excellent! Elena appreciates your willingness to help.
 Excellent! Elena appreciates your willingness to help.
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;Excellent! Elena appreciates your willingness to help.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "Excellent! Elena appreciates your willingness to help."
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;Excellent! Elena appreciates your willingness to help.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "Excellent! Elena appreciates your willingness to help."
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;Excellent! Elena appreciates your willingness to help.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "Excellent! Elena appreciates your willingness to help."
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;Excellent! Elena appreciates your willingness to help.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "Excellent! Elena appreciates your willingness to help."
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;Excellent! Elena appreciates your willingness to help.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "Excellent! Elena appreciates your willingness to help."
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;Excellent! Elena appreciates your willingness to help.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "Excellent! Elena appreciates your willingness to help."
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
@@ -5894,76 +5894,76 @@ Data: {
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-Here&#39;s what you need to know,
+Here's what you need to know,
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-Here&#39;s what you need to know,
+Here's what you need to know,
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-Here&#39;s what you need to know,
+Here's what you need to know,
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-Here&#39;s what you need to know,
+Here's what you need to know,
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-Here&#39;s what you need to know,
+Here's what you need to know,
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-Here&#39;s what you need to know,
+Here's what you need to know,
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;Here&#39;s what you need to know,&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "Here's what you need to know,"
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;Here&#39;s what you need to know,&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "Here's what you need to know,"
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;Here&#39;s what you need to know,&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "Here's what you need to know,"
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;Here&#39;s what you need to know,&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "Here's what you need to know,"
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;Here&#39;s what you need to know,&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "Here's what you need to know,"
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;Here&#39;s what you need to know,&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "Here's what you need to know,"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
@@ -5972,88 +5972,88 @@ Data: {
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-The goblins are a relatively small band - estimates put them at around twenty, though they&#39;re surprisingly w
+The goblins are a relatively small band - estimates put them at around twenty, though they're surprisingly w
 ell-organized.
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-The goblins are a relatively small band - estimates put them at around twenty, though they&#39;re surprisingly w
+The goblins are a relatively small band - estimates put them at around twenty, though they're surprisingly w
 ell-organized.
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-The goblins are a relatively small band - estimates put them at around twenty, though they&#39;re surprisingly w
+The goblins are a relatively small band - estimates put them at around twenty, though they're surprisingly w
 ell-organized.
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-The goblins are a relatively small band - estimates put them at around twenty, though they&#39;re surprisingly w
+The goblins are a relatively small band - estimates put them at around twenty, though they're surprisingly w
 ell-organized.
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-The goblins are a relatively small band - estimates put them at around twenty, though they&#39;re surprisingly w
+The goblins are a relatively small band - estimates put them at around twenty, though they're surprisingly w
 ell-organized.
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-The goblins are a relatively small band - estimates put them at around twenty, though they&#39;re surprisingly w
+The goblins are a relatively small band - estimates put them at around twenty, though they're surprisingly w
 ell-organized.
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;The goblins are a relatively small band - estimates put them at around twenty, though they&#39;re s
-urprisingly well-organized.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "The goblins are a relatively small band - estimates put them at around twenty, though they're s
+urprisingly well-organized."
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;The goblins are a relatively small band - estimates put them at around twenty, though they&#39;re s
-urprisingly well-organized.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "The goblins are a relatively small band - estimates put them at around twenty, though they're s
+urprisingly well-organized."
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;The goblins are a relatively small band - estimates put them at around twenty, though they&#39;re s
-urprisingly well-organized.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "The goblins are a relatively small band - estimates put them at around twenty, though they're s
+urprisingly well-organized."
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;The goblins are a relatively small band - estimates put them at around twenty, though they&#39;re s
-urprisingly well-organized.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "The goblins are a relatively small band - estimates put them at around twenty, though they're s
+urprisingly well-organized."
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;The goblins are a relatively small band - estimates put them at around twenty, though they&#39;re s
-urprisingly well-organized.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "The goblins are a relatively small band - estimates put them at around twenty, though they're s
+urprisingly well-organized."
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;The goblins are a relatively small band - estimates put them at around twenty, though they&#39;re s
-urprisingly well-organized.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "The goblins are a relatively small band - estimates put them at around twenty, though they're s
+urprisingly well-organized."
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
@@ -6062,88 +6062,88 @@ urprisingly well-organized.&quot;
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-They&#39;ve been focusing their raids on caravans heading towards the ruins near Riverwatch, likely drawn by the
+They've been focusing their raids on caravans heading towards the ruins near Riverwatch, likely drawn by the
  recent discoveries.
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-They&#39;ve been focusing their raids on caravans heading towards the ruins near Riverwatch, likely drawn by the
+They've been focusing their raids on caravans heading towards the ruins near Riverwatch, likely drawn by the
  recent discoveries.
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-They&#39;ve been focusing their raids on caravans heading towards the ruins near Riverwatch, likely drawn by the
+They've been focusing their raids on caravans heading towards the ruins near Riverwatch, likely drawn by the
  recent discoveries.
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-They&#39;ve been focusing their raids on caravans heading towards the ruins near Riverwatch, likely drawn by the
+They've been focusing their raids on caravans heading towards the ruins near Riverwatch, likely drawn by the
  recent discoveries.
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-They&#39;ve been focusing their raids on caravans heading towards the ruins near Riverwatch, likely drawn by the
+They've been focusing their raids on caravans heading towards the ruins near Riverwatch, likely drawn by the
  recent discoveries.
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-They&#39;ve been focusing their raids on caravans heading towards the ruins near Riverwatch, likely drawn by the
+They've been focusing their raids on caravans heading towards the ruins near Riverwatch, likely drawn by the
  recent discoveries.
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;They&#39;ve been focusing their raids on caravans heading towards the ruins near Riverwatch, likely
- drawn by the recent discoveries.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "They've been focusing their raids on caravans heading towards the ruins near Riverwatch, likely
+ drawn by the recent discoveries."
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;They&#39;ve been focusing their raids on caravans heading towards the ruins near Riverwatch, likely
- drawn by the recent discoveries.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "They've been focusing their raids on caravans heading towards the ruins near Riverwatch, likely
+ drawn by the recent discoveries."
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;They&#39;ve been focusing their raids on caravans heading towards the ruins near Riverwatch, likely
- drawn by the recent discoveries.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "They've been focusing their raids on caravans heading towards the ruins near Riverwatch, likely
+ drawn by the recent discoveries."
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;They&#39;ve been focusing their raids on caravans heading towards the ruins near Riverwatch, likely
- drawn by the recent discoveries.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "They've been focusing their raids on caravans heading towards the ruins near Riverwatch, likely
+ drawn by the recent discoveries."
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;They&#39;ve been focusing their raids on caravans heading towards the ruins near Riverwatch, likely
- drawn by the recent discoveries.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "They've been focusing their raids on caravans heading towards the ruins near Riverwatch, likely
+ drawn by the recent discoveries."
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;They&#39;ve been focusing their raids on caravans heading towards the ruins near Riverwatch, likely
- drawn by the recent discoveries.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "They've been focusing their raids on caravans heading towards the ruins near Riverwatch, likely
+ drawn by the recent discoveries."
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
@@ -6152,88 +6152,88 @@ Data: {
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-She&#39;s provided you with a basic map indicating the route to the goblins&#39; likely camp - a small cave system n
-estled amongst the foothills, about a day&#39;s travel east of Haven.
+She's provided you with a basic map indicating the route to the goblins' likely camp - a small cave system n
+estled amongst the foothills, about a day's travel east of Haven.
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-She&#39;s provided you with a basic map indicating the route to the goblins&#39; likely camp - a small cave system n
-estled amongst the foothills, about a day&#39;s travel east of Haven.
+She's provided you with a basic map indicating the route to the goblins' likely camp - a small cave system n
+estled amongst the foothills, about a day's travel east of Haven.
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-She&#39;s provided you with a basic map indicating the route to the goblins&#39; likely camp - a small cave system n
-estled amongst the foothills, about a day&#39;s travel east of Haven.
+She's provided you with a basic map indicating the route to the goblins' likely camp - a small cave system n
+estled amongst the foothills, about a day's travel east of Haven.
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-She&#39;s provided you with a basic map indicating the route to the goblins&#39; likely camp - a small cave system n
-estled amongst the foothills, about a day&#39;s travel east of Haven.
+She's provided you with a basic map indicating the route to the goblins' likely camp - a small cave system n
+estled amongst the foothills, about a day's travel east of Haven.
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-She&#39;s provided you with a basic map indicating the route to the goblins&#39; likely camp - a small cave system n
-estled amongst the foothills, about a day&#39;s travel east of Haven.
+She's provided you with a basic map indicating the route to the goblins' likely camp - a small cave system n
+estled amongst the foothills, about a day's travel east of Haven.
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-She&#39;s provided you with a basic map indicating the route to the goblins&#39; likely camp - a small cave system n
-estled amongst the foothills, about a day&#39;s travel east of Haven.
+She's provided you with a basic map indicating the route to the goblins' likely camp - a small cave system n
+estled amongst the foothills, about a day's travel east of Haven.
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;She&#39;s provided you with a basic map indicating the route to the goblins&#39; likely camp - a small 
-cave system nestled amongst the foothills, about a day&#39;s travel east of Haven.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "She's provided you with a basic map indicating the route to the goblins' likely camp - a small 
+cave system nestled amongst the foothills, about a day's travel east of Haven."
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;She&#39;s provided you with a basic map indicating the route to the goblins&#39; likely camp - a small 
-cave system nestled amongst the foothills, about a day&#39;s travel east of Haven.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "She's provided you with a basic map indicating the route to the goblins' likely camp - a small 
+cave system nestled amongst the foothills, about a day's travel east of Haven."
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;She&#39;s provided you with a basic map indicating the route to the goblins&#39; likely camp - a small 
-cave system nestled amongst the foothills, about a day&#39;s travel east of Haven.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "She's provided you with a basic map indicating the route to the goblins' likely camp - a small 
+cave system nestled amongst the foothills, about a day's travel east of Haven."
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;She&#39;s provided you with a basic map indicating the route to the goblins&#39; likely camp - a small 
-cave system nestled amongst the foothills, about a day&#39;s travel east of Haven.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "She's provided you with a basic map indicating the route to the goblins' likely camp - a small 
+cave system nestled amongst the foothills, about a day's travel east of Haven."
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;She&#39;s provided you with a basic map indicating the route to the goblins&#39; likely camp - a small 
-cave system nestled amongst the foothills, about a day&#39;s travel east of Haven.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "She's provided you with a basic map indicating the route to the goblins' likely camp - a small 
+cave system nestled amongst the foothills, about a day's travel east of Haven."
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;She&#39;s provided you with a basic map indicating the route to the goblins&#39; likely camp - a small 
-cave system nestled amongst the foothills, about a day&#39;s travel east of Haven.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "She's provided you with a basic map indicating the route to the goblins' likely camp - a small 
+cave system nestled amongst the foothills, about a day's travel east of Haven."
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
@@ -6242,82 +6242,82 @@ cave system nestled amongst the foothills, about a day&#39;s travel east of Have
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-She&#39;s also instructed you to prioritize securing any artifacts you find, as they&#39;re a significant concern.
+She's also instructed you to prioritize securing any artifacts you find, as they're a significant concern.
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-She&#39;s also instructed you to prioritize securing any artifacts you find, as they&#39;re a significant concern.
+She's also instructed you to prioritize securing any artifacts you find, as they're a significant concern.
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-She&#39;s also instructed you to prioritize securing any artifacts you find, as they&#39;re a significant concern.
+She's also instructed you to prioritize securing any artifacts you find, as they're a significant concern.
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-She&#39;s also instructed you to prioritize securing any artifacts you find, as they&#39;re a significant concern.
+She's also instructed you to prioritize securing any artifacts you find, as they're a significant concern.
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-She&#39;s also instructed you to prioritize securing any artifacts you find, as they&#39;re a significant concern.
+She's also instructed you to prioritize securing any artifacts you find, as they're a significant concern.
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-She&#39;s also instructed you to prioritize securing any artifacts you find, as they&#39;re a significant concern.
+She's also instructed you to prioritize securing any artifacts you find, as they're a significant concern.
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;She&#39;s also instructed you to prioritize securing any artifacts you find, as they&#39;re a significa
-nt concern.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "She's also instructed you to prioritize securing any artifacts you find, as they're a significa
+nt concern."
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;She&#39;s also instructed you to prioritize securing any artifacts you find, as they&#39;re a significa
-nt concern.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "She's also instructed you to prioritize securing any artifacts you find, as they're a significa
+nt concern."
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;She&#39;s also instructed you to prioritize securing any artifacts you find, as they&#39;re a significa
-nt concern.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "She's also instructed you to prioritize securing any artifacts you find, as they're a significa
+nt concern."
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;She&#39;s also instructed you to prioritize securing any artifacts you find, as they&#39;re a significa
-nt concern.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "She's also instructed you to prioritize securing any artifacts you find, as they're a significa
+nt concern."
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;She&#39;s also instructed you to prioritize securing any artifacts you find, as they&#39;re a significa
-nt concern.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "She's also instructed you to prioritize securing any artifacts you find, as they're a significa
+nt concern."
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;She&#39;s also instructed you to prioritize securing any artifacts you find, as they&#39;re a significa
-nt concern.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "She's also instructed you to prioritize securing any artifacts you find, as they're a significa
+nt concern."
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
@@ -6326,88 +6326,88 @@ nt concern.&quot;
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-To help you on your way, she&#39;s provided a small pouch of 10 gold pieces as an advance, and will pay out the 
+To help you on your way, she's provided a small pouch of 10 gold pieces as an advance, and will pay out the 
 remaining 40 once the goblins are dealt with and the road secured.
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-To help you on your way, she&#39;s provided a small pouch of 10 gold pieces as an advance, and will pay out the 
+To help you on your way, she's provided a small pouch of 10 gold pieces as an advance, and will pay out the 
 remaining 40 once the goblins are dealt with and the road secured.
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-To help you on your way, she&#39;s provided a small pouch of 10 gold pieces as an advance, and will pay out the 
+To help you on your way, she's provided a small pouch of 10 gold pieces as an advance, and will pay out the 
 remaining 40 once the goblins are dealt with and the road secured.
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-To help you on your way, she&#39;s provided a small pouch of 10 gold pieces as an advance, and will pay out the 
+To help you on your way, she's provided a small pouch of 10 gold pieces as an advance, and will pay out the 
 remaining 40 once the goblins are dealt with and the road secured.
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-To help you on your way, she&#39;s provided a small pouch of 10 gold pieces as an advance, and will pay out the 
+To help you on your way, she's provided a small pouch of 10 gold pieces as an advance, and will pay out the 
 remaining 40 once the goblins are dealt with and the road secured.
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-To help you on your way, she&#39;s provided a small pouch of 10 gold pieces as an advance, and will pay out the 
+To help you on your way, she's provided a small pouch of 10 gold pieces as an advance, and will pay out the 
 remaining 40 once the goblins are dealt with and the road secured.
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;To help you on your way, she&#39;s provided a small pouch of 10 gold pieces as an advance, and will
- pay out the remaining 40 once the goblins are dealt with and the road secured.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "To help you on your way, she's provided a small pouch of 10 gold pieces as an advance, and will
+ pay out the remaining 40 once the goblins are dealt with and the road secured."
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;To help you on your way, she&#39;s provided a small pouch of 10 gold pieces as an advance, and will
- pay out the remaining 40 once the goblins are dealt with and the road secured.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "To help you on your way, she's provided a small pouch of 10 gold pieces as an advance, and will
+ pay out the remaining 40 once the goblins are dealt with and the road secured."
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;To help you on your way, she&#39;s provided a small pouch of 10 gold pieces as an advance, and will
- pay out the remaining 40 once the goblins are dealt with and the road secured.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "To help you on your way, she's provided a small pouch of 10 gold pieces as an advance, and will
+ pay out the remaining 40 once the goblins are dealt with and the road secured."
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;To help you on your way, she&#39;s provided a small pouch of 10 gold pieces as an advance, and will
- pay out the remaining 40 once the goblins are dealt with and the road secured.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "To help you on your way, she's provided a small pouch of 10 gold pieces as an advance, and will
+ pay out the remaining 40 once the goblins are dealt with and the road secured."
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;To help you on your way, she&#39;s provided a small pouch of 10 gold pieces as an advance, and will
- pay out the remaining 40 once the goblins are dealt with and the road secured.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "To help you on your way, she's provided a small pouch of 10 gold pieces as an advance, and will
+ pay out the remaining 40 once the goblins are dealt with and the road secured."
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;To help you on your way, she&#39;s provided a small pouch of 10 gold pieces as an advance, and will
- pay out the remaining 40 once the goblins are dealt with and the road secured.&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "To help you on your way, she's provided a small pouch of 10 gold pieces as an advance, and will
+ pay out the remaining 40 once the goblins are dealt with and the road secured."
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
@@ -6416,88 +6416,88 @@ Data: {
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-Let&#39;s get moving! Do you want me to detail the terrain you&#39;ll be traversing, or perhaps suggest a few suppli
+Let's get moving! Do you want me to detail the terrain you'll be traversing, or perhaps suggest a few suppli
 es you might want to acquire before setting out?
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-Let&#39;s get moving! Do you want me to detail the terrain you&#39;ll be traversing, or perhaps suggest a few suppli
+Let's get moving! Do you want me to detail the terrain you'll be traversing, or perhaps suggest a few suppli
 es you might want to acquire before setting out?
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-Let&#39;s get moving! Do you want me to detail the terrain you&#39;ll be traversing, or perhaps suggest a few suppli
+Let's get moving! Do you want me to detail the terrain you'll be traversing, or perhaps suggest a few suppli
 es you might want to acquire before setting out?
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-Let&#39;s get moving! Do you want me to detail the terrain you&#39;ll be traversing, or perhaps suggest a few suppli
+Let's get moving! Do you want me to detail the terrain you'll be traversing, or perhaps suggest a few suppli
 es you might want to acquire before setting out?
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-Let&#39;s get moving! Do you want me to detail the terrain you&#39;ll be traversing, or perhaps suggest a few suppli
+Let's get moving! Do you want me to detail the terrain you'll be traversing, or perhaps suggest a few suppli
 es you might want to acquire before setting out?
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generating embedding for text:
-Let&#39;s get moving! Do you want me to detail the terrain you&#39;ll be traversing, or perhaps suggest a few suppli
+Let's get moving! Do you want me to detail the terrain you'll be traversing, or perhaps suggest a few suppli
 es you might want to acquire before setting out?
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Embedding options:
 {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;
+  "model": "mxbai-embed-large"
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;Let&#39;s get moving! Do you want me to detail the terrain you&#39;ll be traversing, or perhaps suggest
- a few supplies you might want to acquire before setting out?&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "Let's get moving! Do you want me to detail the terrain you'll be traversing, or perhaps suggest
+ a few supplies you might want to acquire before setting out?"
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;Let&#39;s get moving! Do you want me to detail the terrain you&#39;ll be traversing, or perhaps suggest
- a few supplies you might want to acquire before setting out?&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "Let's get moving! Do you want me to detail the terrain you'll be traversing, or perhaps suggest
+ a few supplies you might want to acquire before setting out?"
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;Let&#39;s get moving! Do you want me to detail the terrain you&#39;ll be traversing, or perhaps suggest
- a few supplies you might want to acquire before setting out?&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "Let's get moving! Do you want me to detail the terrain you'll be traversing, or perhaps suggest
+ a few supplies you might want to acquire before setting out?"
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;Let&#39;s get moving! Do you want me to detail the terrain you&#39;ll be traversing, or perhaps suggest
- a few supplies you might want to acquire before setting out?&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "Let's get moving! Do you want me to detail the terrain you'll be traversing, or perhaps suggest
+ a few supplies you might want to acquire before setting out?"
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;Let&#39;s get moving! Do you want me to detail the terrain you&#39;ll be traversing, or perhaps suggest
- a few supplies you might want to acquire before setting out?&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "Let's get moving! Do you want me to detail the terrain you'll be traversing, or perhaps suggest
+ a few supplies you might want to acquire before setting out?"
 }
 [test_embeddings_manager]:[_generate_embedding_impl]::[embedding]:Sending request to Ollama API:
 URL: http://192.168.1.143:11434/api/embeddings
 Data: {
-  &quot;model&quot;: &quot;mxbai-embed-large&quot;,
-  &quot;prompt&quot;: &quot;Let&#39;s get moving! Do you want me to detail the terrain you&#39;ll be traversing, or perhaps suggest
- a few supplies you might want to acquire before setting out?&quot;
+  "model": "mxbai-embed-large",
+  "prompt": "Let's get moving! Do you want me to detail the terrain you'll be traversing, or perhaps suggest
+ a few supplies you might want to acquire before setting out?"
 }
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
 [test_embeddings_manager]:[generate_embedding]::[embedding]:Generated embedding vector of length 1024
@@ -6580,7 +6580,7 @@ Based on the recent changes and the current state of the project, I'll create an
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: README-phase-3.md</summary>
+<details><summary>Tool use: **edit_file** • Edit file: README-phase-3.md</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -6605,7 +6605,7 @@ Lines added: 29, lines removed: undefined
 + 
 + ## Phase 3 Update - May 07, 2025 - Memory Management and Testing Improvements
 + 
-+ We&#39;ve made significant improvements to the memory management system and testing infrastructure:
++ We've made significant improvements to the memory management system and testing infrastructure:
 + 
 + 1. **Memory Management Enhancements**:
 +    - Refined the &#96;query_memory&#96; method to focus on segment-level embeddings
@@ -6677,7 +6677,7 @@ I'll help complete the update with details about the logging improvements and ot
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: README-phase-3.md</summary>
+<details><summary>Tool use: **edit_file** • Edit file: README-phase-3.md</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -6700,7 +6700,7 @@ Lines added: 31, lines removed: undefined
   
   ## Phase 3 Update - May 07, 2025 - Improved log management in the code and tests
 + 
-+ We&#39;ve made significant improvements to the logging system and test infrastructure:
++ We've made significant improvements to the logging system and test infrastructure:
 + 
 + 1. **Enhanced Logging System**:
 +    - Implemented structured logging with consistent formatting across all components
@@ -6729,7 +6729,7 @@ Lines added: 31, lines removed: undefined
 +    - Enhanced code documentation with logging details
 +    - Added performance tracking through logging
 + 
-+ These improvements make the system more maintainable and easier to debug, while providing better visibility into the system&#39;s operation and test execution.
++ These improvements make the system more maintainable and easier to debug, while providing better visibility into the system's operation and test execution.
   
   
 ```

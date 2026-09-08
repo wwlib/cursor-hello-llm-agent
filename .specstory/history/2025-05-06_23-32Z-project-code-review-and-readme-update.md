@@ -18,7 +18,7 @@ _**Agent (mode Agent)**_
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed directory src • **6** results</summary>
+            <summary>Tool use: **list_dir** • Listed directory src, 6 results</summary>
         
 | Name |
 |-------|
@@ -36,7 +36,7 @@ _**Agent (mode Agent)**_
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed directory src/memory • **14** results</summary>
+            <summary>Tool use: **list_dir** • Listed directory src/memory, 14 results</summary>
         
 | Name |
 |-------|
@@ -62,7 +62,7 @@ _**Agent (mode Agent)**_
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed directory src/ai • **6** results</summary>
+            <summary>Tool use: **list_dir** • Listed directory src/ai, 6 results</summary>
         
 | Name |
 |-------|
@@ -80,7 +80,7 @@ _**Agent (mode Agent)**_
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed directory src/agent • **3** results</summary>
+            <summary>Tool use: **list_dir** • Listed directory src/agent, 3 results</summary>
         
 | Name |
 |-------|
@@ -239,7 +239,7 @@ _**Agent (mode Agent)**_
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed directory examples • **14** results</summary>
+            <summary>Tool use: **list_dir** • Listed directory examples, 14 results</summary>
         
 | Name |
 |-------|
@@ -337,7 +337,7 @@ Here’s a plan for updating the main `README.md` to accurately reflect the curr
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: README.md</summary>
+<details><summary>Tool use: **edit_file** • Edit file: README.md</summary>
 
 **Chunk 1**
 Lines added: 64, lines removed: 108
@@ -478,7 +478,7 @@ Lines added: 64, lines removed: 108
   
   ## Example Use Cases
   
-- The repository includes examples demonstrating the system&#39;s versatility:
+- The repository includes examples demonstrating the system's versatility:
 - 
 - 1. **D&amp;D Campaign Management**: Creating and managing a virtual D&amp;D campaign world, including locations, characters, and plot elements.
 - 
@@ -507,14 +507,14 @@ Lines added: 64, lines removed: 108
 - 
 - &#96;&#96;&#96;python
 -     llm_service = OllamaService({
--         &quot;base_url&quot;: &quot;http://localhost:11434&quot;,
--         &quot;model&quot;: &quot;llama3&quot;, // gemma3
--         &quot;temperature&quot;: 0.7,
--         &quot;stream&quot;: False,
--         &quot;debug&quot;: True,
--         &quot;debug_file&quot;: &quot;agent_debug.log&quot;,
--         &quot;debug_scope&quot;: &quot;agent_example&quot;,
--         &quot;console_output&quot;: False
+-         "base_url": "http://localhost:11434",
+-         "model": "llama3", // gemma3
+-         "temperature": 0.7,
+-         "stream": False,
+-         "debug": True,
+-         "debug_file": "agent_debug.log",
+-         "debug_scope": "agent_example",
+-         "console_output": False
 -     })
 - &#96;&#96;&#96;
 - 
@@ -546,12 +546,12 @@ Lines added: 50, lines removed: 45
 - &#96;&#96;&#96;
 - First, we need to install the build dependencies
 - Then we can install the project in editable mode
-- Let me help you with the correct installation steps. I&#39;ll propose the commands to run:
+- Let me help you with the correct installation steps. I'll propose the commands to run:
 - pip install --upgrade pip setuptools wheel
 - wheel
 - &#96;&#96;&#96;
 - 
-- Note: &#96;Now that we have the build dependencies installed, let&#39;s install the project in editable mode:&#96;
+- Note: &#96;Now that we have the build dependencies installed, let's install the project in editable mode:&#96;
 - &#96;pip install -e .&#96;
 - 
 - If necessary...
@@ -561,14 +561,14 @@ Lines added: 50, lines removed: 45
 + &#96;&#96;&#96;python
 + from src.ai.llm_ollama import OllamaService
 + llm_service = OllamaService({
-+     &quot;base_url&quot;: &quot;http://localhost:11434&quot;,
-+     &quot;model&quot;: &quot;llama3&quot;,  # or gemma3, etc.
-+     &quot;temperature&quot;: 0.7,
-+     &quot;stream&quot;: False,
-+     &quot;debug&quot;: True,
-+     &quot;debug_file&quot;: &quot;agent_debug.log&quot;,
-+     &quot;debug_scope&quot;: &quot;agent_example&quot;,
-+     &quot;console_output&quot;: False
++     "base_url": "http://localhost:11434",
++     "model": "llama3",  # or gemma3, etc.
++     "temperature": 0.7,
++     "stream": False,
++     "debug": True,
++     "debug_file": "agent_debug.log",
++     "debug_scope": "agent_example",
++     "console_output": False
 + })
 + &#96;&#96;&#96;
 + 
@@ -582,7 +582,7 @@ Lines added: 50, lines removed: 45
 - Example usage:
 - 
 - &#96;&#96;&#96;bash
-- # D&amp;D Campaign Example - usinf the default, LLM-driven &quot;standard&quot; MemoryManager
+- # D&amp;D Campaign Example - usinf the default, LLM-driven "standard" MemoryManager
 + # D&amp;D Campaign Example (standard memory manager)
   python examples/agent_usage_example.py
 - OLLAMA_BASE_URL=http://ollama-ip-address:11434 python examples/call_ollama_to_generate_embeddings.py
@@ -723,7 +723,7 @@ Here’s a plan for updating `src/agent/README-agent.md` to match the current ar
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/agent/README-agent.md</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/agent/README-agent.md</summary>
 
 **Chunk 1**
 Lines added: 70, lines removed: 169
@@ -738,7 +738,7 @@ Lines added: 70, lines removed: 169
   
   ## Overview
   
-- The Agent serves as the core orchestrator, managing conversations with users while leveraging the Memory Manager to maintain context and the LLM Service for generating responses. It&#39;s designed to be domain-agnostic but includes specialized capabilities for running tabletop RPG campaigns.
+- The Agent serves as the core orchestrator, managing conversations with users while leveraging the Memory Manager to maintain context and the LLM Service for generating responses. It's designed to be domain-agnostic but includes specialized capabilities for running tabletop RPG campaigns.
 - 
 - ### Key Features
 + The Agent serves as a thin orchestrator, managing conversation phases and delegating all memory operations to the MemoryManager. It is designed to be:
@@ -804,41 +804,41 @@ Lines added: 70, lines removed: 169
   &#96;&#96;&#96;python
   class Agent:
 -     def __init__(self, llm_service, memory_manager):
--         &quot;&quot;&quot;Initialize the agent with required services&quot;&quot;&quot;
-+     def __init__(self, llm_service, memory_manager, domain_name=&quot;general&quot;):
+-         """Initialize the agent with required services"""
++     def __init__(self, llm_service, memory_manager, domain_name="general"):
           self.llm = llm_service
           self.memory = memory_manager
--         self.current_phase = &quot;initialization&quot;
+-         self.current_phase = "initialization"
 +         self.domain_name = domain_name
 +         self.current_phase = AgentPhase.INITIALIZATION
   
       async def process_message(self, message: str) -&gt; str:
--         &quot;&quot;&quot;Process a user message and return a response&quot;&quot;&quot;
+-         """Process a user message and return a response"""
 -         # 1. Query memory for context
 -         # 2. Generate response using LLM
 -         # 3. Update memory with new information
 -         # 4. Return response
-+         &quot;&quot;&quot;Process a user message and return a response (memory/RAG handled automatically).&quot;&quot;&quot;
-+         response = self.memory.query_memory({&quot;query&quot;: message})
++         """Process a user message and return a response (memory/RAG handled automatically)."""
++         response = self.memory.query_memory({"query": message})
 +         if self.current_phase == AgentPhase.INITIALIZATION:
 +             self.current_phase = AgentPhase.INTERACTION
-+         return response.get(&quot;response&quot;, str(response))
++         return response.get("response", str(response))
   
       async def learn(self, information: str) -&gt; bool:
--         &quot;&quot;&quot;Learn new information and update memory&quot;&quot;&quot;
+-         """Learn new information and update memory"""
 -         # Process and store new information
 - 
 -     async def reflect(self) -&gt; None:
--         &quot;&quot;&quot;Periodic reflection to optimize memory&quot;&quot;&quot;
+-         """Periodic reflection to optimize memory"""
 -         # Analyze and restructure memory if needed
-+         &quot;&quot;&quot;Learn new information and update memory.&quot;&quot;&quot;
++         """Learn new information and update memory."""
 +         if self.current_phase == AgentPhase.INITIALIZATION:
 +             success = self.memory.create_initial_memory(information)
 +             if success:
 +                 self.current_phase = AgentPhase.LEARNING
 +             return success
 +         else:
-+             return self.memory.update_memory({&quot;operation&quot;: &quot;update&quot;, &quot;learning_content&quot;: information})
++             return self.memory.update_memory({"operation": "update", "learning_content": information})
   &#96;&#96;&#96;
   
 - ## Usage
@@ -859,9 +859,9 @@ Lines added: 70, lines removed: 169
 - memory_manager = MemoryManager(llm_service)
 + # Initialize LLM and memory manager
 + llm_service = OllamaService({
-+     &quot;base_url&quot;: &quot;http://localhost:11434&quot;,
-+     &quot;model&quot;: &quot;gemma3&quot;,
-+     &quot;temperature&quot;: 0.7
++     "base_url": "http://localhost:11434",
++     "model": "gemma3",
++     "temperature": 0.7
 + })
 + memory_manager = MemoryManager(llm_service=llm_service)
   
@@ -873,10 +873,10 @@ Lines added: 70, lines removed: 169
 - 
 - &#96;&#96;&#96;python
 - # Process a user message
-- response = await agent.process_message(&quot;Tell me about the campaign world.&quot;)
+- response = await agent.process_message("Tell me about the campaign world.")
 - 
 - # Learn new information
-- success = await agent.learn(&quot;The world has a new magical artifact...&quot;)
+- success = await agent.learn("The world has a new magical artifact...")
 - 
 - # Trigger reflection
 - await agent.reflect()
@@ -888,27 +888,27 @@ Lines added: 70, lines removed: 169
 - 
 - &#96;&#96;&#96;python
 - # Initialize with campaign setting
-- await agent.learn(&quot;&quot;&quot;
+- await agent.learn("""
 - The world is a simple, flat world with a single continent...
 - [Campaign details from README]
-- &quot;&quot;&quot;)
+- """)
 - &#96;&#96;&#96;
 - 
 - ### Phase 2: Character Integration
 - 
 - &#96;&#96;&#96;python
 - # Add player characters
-- await agent.learn(&quot;&quot;&quot;
+- await agent.learn("""
 - The party consists of 4 players...
 - [Character details from README]
-- &quot;&quot;&quot;)
+- """)
 - &#96;&#96;&#96;
 - 
 - ### Phase 3: Campaign Execution
 - 
 - &#96;&#96;&#96;python
 - # Start an encounter
-- response = await agent.process_message(&quot;The party enters the mountain cave...&quot;)
+- response = await agent.process_message("The party enters the mountain cave...")
 - &#96;&#96;&#96;
 - 
 - ## LLM Prompts
@@ -952,8 +952,8 @@ Lines added: 70, lines removed: 169
 + # Async usage
 + import asyncio
 + async def main():
-+     await agent.learn(&quot;The world is a flat world with a single continent...&quot;)
-+     response = await agent.process_message(&quot;Tell me about the campaign world.&quot;)
++     await agent.learn("The world is a flat world with a single continent...")
++     response = await agent.process_message("Tell me about the campaign world.")
 +     print(response)
 + 
 + asyncio.run(main())
@@ -1080,7 +1080,7 @@ Here’s a plan for updating `src/ai/README-ai.md` to match the current architec
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/ai/README-ai.md</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/ai/README-ai.md</summary>
 
 </details>
 
@@ -1124,7 +1124,7 @@ _**Agent (mode Agent)**_
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/ai/README-ai.md</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/ai/README-ai.md</summary>
 
 **Chunk 1**
 Lines added: 6, lines removed: 9
@@ -1178,29 +1178,29 @@ Lines added: 61, lines removed: 136
 + from typing import Dict, Any, Optional, List
   
   class LLMService:
--     &quot;&quot;&quot;Base class for LLM service providers&quot;&quot;&quot;
+-     """Base class for LLM service providers"""
 -     
       def __init__(self, config: Optional[Dict[str, Any]] = None):
           self.config = config or {}
 -     
 -     def generate(self, prompt: str) -&gt; str:
--         &quot;&quot;&quot;Generate a response from the LLM&quot;&quot;&quot;
+-         """Generate a response from the LLM"""
 + 
-+     def generate(self, prompt: str, options: Optional[Dict[str, Any]] = None, debug_generate_scope: str = &quot;&quot;) -&gt; str:
-+         &quot;&quot;&quot;Generate a response from the LLM (supports per-call options).&quot;&quot;&quot;
++     def generate(self, prompt: str, options: Optional[Dict[str, Any]] = None, debug_generate_scope: str = "") -&gt; str:
++         """Generate a response from the LLM (supports per-call options)."""
           raise NotImplementedError
 -     
 -     def validate_response(self, response: str) -&gt; bool:
--         &quot;&quot;&quot;Validate LLM response format&quot;&quot;&quot;
+-         """Validate LLM response format"""
 + 
 +     def generate_embedding(self, text: str, options: Optional[Dict[str, Any]] = None) -&gt; List[float]:
-+         &quot;&quot;&quot;Generate an embedding vector for the given text.&quot;&quot;&quot;
++         """Generate an embedding vector for the given text."""
           raise NotImplementedError
   &#96;&#96;&#96;
   
 - ## OpenAI Implementation
 - 
-- The OpenAI implementation (&#96;llm_openai.py&#96;) provides integration with OpenAI&#39;s API:
+- The OpenAI implementation (&#96;llm_openai.py&#96;) provides integration with OpenAI's API:
 + ## Ollama Implementation Example
   
   &#96;&#96;&#96;python
@@ -1210,30 +1210,30 @@ Lines added: 61, lines removed: 136
 - class OpenAIService(LLMService):
 -     def __init__(self, config: Optional[Dict[str, Any]] = None):
 -         super().__init__(config)
--         self.api_key = config.get(&#39;api_key&#39;) or os.getenv(&#39;OPENAI_API_KEY&#39;)
--         self.model = config.get(&#39;model&#39;, &#39;gpt-4&#39;)
+-         self.api_key = config.get('api_key') or os.getenv('OPENAI_API_KEY')
+-         self.model = config.get('model', 'gpt-4')
 -         openai.api_key = self.api_key
 - 
 -     def generate(self, prompt: str) -&gt; str:
 -         try:
 -             response = openai.ChatCompletion.create(
 -                 model=self.model,
--                 messages=[{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: prompt}],
+-                 messages=[{"role": "user", "content": prompt}],
 -                 temperature=0.7
 -             )
 -             return response.choices[0].message.content
 -         except Exception as e:
--             raise LLMServiceError(f&quot;OpenAI API error: {str(e)}&quot;)
+-             raise LLMServiceError(f"OpenAI API error: {str(e)}")
 - &#96;&#96;&#96;
 - 
 - ### OpenAI Configuration
 - 
 - &#96;&#96;&#96;python
 - config = {
--     &quot;api_key&quot;: &quot;your-api-key&quot;,  # Optional if using env var
--     &quot;model&quot;: &quot;gpt-4&quot;,           # Or other OpenAI model
--     &quot;temperature&quot;: 0.7,
--     &quot;max_tokens&quot;: 1000
+-     "api_key": "your-api-key",  # Optional if using env var
+-     "model": "gpt-4",           # Or other OpenAI model
+-     "temperature": 0.7,
+-     "max_tokens": 1000
 - }
 - &#96;&#96;&#96;
 - 
@@ -1248,43 +1248,43 @@ Lines added: 61, lines removed: 136
 - class OllamaService(LLMService):
 -     def __init__(self, config: Optional[Dict[str, Any]] = None):
 -         super().__init__(config)
--         self.base_url = config.get(&#39;base_url&#39;, &#39;http://localhost:11434&#39;)
--         self.model = config.get(&#39;model&#39;, &#39;llama2&#39;)
+-         self.base_url = config.get('base_url', 'http://localhost:11434')
+-         self.model = config.get('model', 'llama2')
 - 
 -     def generate(self, prompt: str) -&gt; str:
 -         try:
 -             response = requests.post(
--                 f&quot;{self.base_url}/api/generate&quot;,
+-                 f"{self.base_url}/api/generate",
 -                 json={
--                     &quot;model&quot;: self.model,
--                     &quot;prompt&quot;: prompt
+-                     "model": self.model,
+-                     "prompt": prompt
 -                 }
 -             )
--             return response.json()[&#39;response&#39;]
+-             return response.json()['response']
 -         except Exception as e:
--             raise LLMServiceError(f&quot;Ollama API error: {str(e)}&quot;)
+-             raise LLMServiceError(f"Ollama API error: {str(e)}")
 - &#96;&#96;&#96;
 - 
 - ### Ollama Configuration
 - 
 - &#96;&#96;&#96;python
 - config = {
--     &quot;base_url&quot;: &quot;http://localhost:11434&quot;,  # Ollama API endpoint
--     &quot;model&quot;: &quot;llama2&quot;,                     # Or other installed model
+-     "base_url": "http://localhost:11434",  # Ollama API endpoint
+-     "model": "llama2",                     # Or other installed model
 + from src.ai.llm_ollama import OllamaService
 + 
 + llm = OllamaService({
-+     &quot;base_url&quot;: &quot;http://localhost:11434&quot;,
-+     &quot;model&quot;: &quot;gemma3&quot;,
-      &quot;temperature&quot;: 0.7
++     "base_url": "http://localhost:11434",
++     "model": "gemma3",
+      "temperature": 0.7
 - }
 + })
 + 
 + # Text generation
-+ response = llm.generate(&quot;Your prompt here&quot;, options={&quot;temperature&quot;: 0.5, &quot;stream&quot;: False})
++ response = llm.generate("Your prompt here", options={"temperature": 0.5, "stream": False})
 + 
 + # Embedding generation
-+ embedding = llm.generate_embedding(&quot;Text to embed&quot;, options={&quot;model&quot;: &quot;mxbai-embed-large&quot;})
++ embedding = llm.generate_embedding("Text to embed", options={"model": "mxbai-embed-large"})
   &#96;&#96;&#96;
   
 - ## Usage
@@ -1298,29 +1298,29 @@ Lines added: 61, lines removed: 136
 + from src.ai.llm_openai import OpenAIService
   
   llm = OpenAIService({
-+     &quot;api_key&quot;: &quot;your-api-key&quot;,
-      &quot;model&quot;: &quot;gpt-4&quot;,
-      &quot;temperature&quot;: 0.7
++     "api_key": "your-api-key",
+      "model": "gpt-4",
+      "temperature": 0.7
   })
   
-- response = llm.generate(&quot;Your prompt here&quot;)
+- response = llm.generate("Your prompt here")
 + # Text generation
-+ response = llm.generate(&quot;Your prompt here&quot;, options={&quot;temperature&quot;: 0.2, &quot;max_tokens&quot;: 500})
++ response = llm.generate("Your prompt here", options={"temperature": 0.2, "max_tokens": 500})
   
 - # Using Ollama
 - from ai.llm_ollama import OllamaService
 - 
 - llm = OllamaService({
--     &quot;model&quot;: &quot;llama2&quot;
+-     "model": "llama2"
 - })
 - 
-- response = llm.generate(&quot;Your prompt here&quot;)
+- response = llm.generate("Your prompt here")
 - &#96;&#96;&#96;
 - 
 - ### Error Handling
 - 
 + # Embedding generation
-+ embedding = llm.generate_embedding(&quot;Text to embed&quot;, options={&quot;model&quot;: &quot;text-embedding-ada-002&quot;})
++ embedding = llm.generate_embedding("Text to embed", options={"model": "text-embedding-ada-002"})
 + &#96;&#96;&#96;
 + 
 + ## Per-Call Options
@@ -1342,11 +1342,11 @@ Lines added: 61, lines removed: 136
 - from ai.exceptions import LLMServiceError
 - 
 - try:
--     response = llm.generate(&quot;Your prompt&quot;)
+-     response = llm.generate("Your prompt")
 - except LLMServiceError as e:
--     print(f&quot;LLM error: {str(e)}&quot;)
+-     print(f"LLM error: {str(e)}")
 + # Given a list of important segments:
-+ segments = [&quot;The party found a magical sword.&quot;, &quot;The dragon guards the mountain pass.&quot;]
++ segments = ["The party found a magical sword.", "The dragon guards the mountain pass."]
 + embeddings = [llm.generate_embedding(seg) for seg in segments]
 + # These embeddings are used for semantic search and context retrieval in RAG.
   &#96;&#96;&#96;
@@ -1507,7 +1507,7 @@ Here’s a plan for a comprehensive rewrite of `README-memory-manager.md` to ref
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/README-memory-manager.md</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/README-memory-manager.md</summary>
 
 **Chunk 1**
 Lines added: 101, lines removed: 249
@@ -1574,39 +1574,39 @@ Lines added: 101, lines removed: 249
 + Example (simplified):
   &#96;&#96;&#96;json
   {
--     &quot;structured_data&quot;: {
+-     "structured_data": {
 -         // LLM-defined structure for facts and details
 -     },
--     &quot;knowledge_graph&quot;: {
+-     "knowledge_graph": {
 -         // LLM-defined structure for relationships
 -     },
--     &quot;metadata&quot;: {
--         &quot;categories&quot;: [],
--         &quot;timestamp&quot;: &quot;&quot;,
--         &quot;version&quot;: &quot;1.0&quot;,
--         &quot;created_at&quot;: &quot;&quot;,
--         &quot;last_updated&quot;: &quot;&quot;
+-     "metadata": {
+-         "categories": [],
+-         "timestamp": "",
+-         "version": "1.0",
+-         "created_at": "",
+-         "last_updated": ""
 -     }
-+   &quot;static_memory&quot;: &quot;...markdown/text...&quot;,
-+   &quot;context&quot;: [
-+     {&quot;text&quot;: &quot;...compressed summary...&quot;, &quot;guids&quot;: [&quot;...&quot;]}
++   "static_memory": "...markdown/text...",
++   "context": [
++     {"text": "...compressed summary...", "guids": ["..."]}
 +   ],
-+   &quot;conversation_history&quot;: [
++   "conversation_history": [
 +     {
-+       &quot;guid&quot;: &quot;...&quot;,
-+       &quot;role&quot;: &quot;user&quot;,
-+       &quot;content&quot;: &quot;...&quot;,
-+       &quot;digest&quot;: {
-+         &quot;rated_segments&quot;: [
-+           {&quot;text&quot;: &quot;...&quot;, &quot;importance&quot;: 5, &quot;topics&quot;: [&quot;magic&quot;], &quot;type&quot;: &quot;information&quot;},
++       "guid": "...",
++       "role": "user",
++       "content": "...",
++       "digest": {
++         "rated_segments": [
++           {"text": "...", "importance": 5, "topics": ["magic"], "type": "information"},
 +           ...
 +         ]
 +       },
-+       &quot;timestamp&quot;: &quot;...&quot;
++       "timestamp": "..."
 +     },
 +     ...
 +   ],
-+   &quot;metadata&quot;: {&quot;created_at&quot;: &quot;...&quot;, &quot;updated_at&quot;: &quot;...&quot;, &quot;version&quot;: &quot;2.0.0&quot;, ...}
++   "metadata": {"created_at": "...", "updated_at": "...", "version": "2.0.0", ...}
   }
   &#96;&#96;&#96;
   
@@ -1639,9 +1639,9 @@ Lines added: 101, lines removed: 249
   
   &#96;&#96;&#96;python
 - # Provide initial data
-- initial_data = &quot;&quot;&quot;
+- initial_data = """
 - [Your campaign or domain data here]
-- &quot;&quot;&quot;
+- """
 - 
 - # LLM will structure this into appropriate memory format
 - memory_manager.create_initial_memory(initial_data)
@@ -1693,25 +1693,25 @@ Lines added: 101, lines removed: 249
 + 
 + # Initialize LLM and memory manager
 + llm_service = OllamaService({
-+     &quot;base_url&quot;: &quot;http://localhost:11434&quot;,
-+     &quot;model&quot;: &quot;gemma3&quot;,
-+     &quot;temperature&quot;: 0.7
++     "base_url": "http://localhost:11434",
++     "model": "gemma3",
++     "temperature": 0.7
 + })
 + memory_manager = MemoryManager(llm_service=llm_service)
 + 
 + # Create initial memory
-+ memory_manager.create_initial_memory(&quot;The world is a flat world with a single continent...&quot;)
++ memory_manager.create_initial_memory("The world is a flat world with a single continent...")
 + 
 + # Add a conversation entry (user message)
 + user_entry = {
-+     &quot;role&quot;: &quot;user&quot;,
-+     &quot;content&quot;: &quot;Tell me about the campaign world.&quot;
++     "role": "user",
++     "content": "Tell me about the campaign world."
 + }
 + memory_manager.add_conversation_entry(user_entry)
 + 
 + # Query memory (RAG context is used automatically)
-+ response = memory_manager.query_memory({&quot;query&quot;: &quot;What are the most important magical artifacts?&quot;})
-+ print(response[&quot;response&quot;])
++ response = memory_manager.query_memory({"query": "What are the most important magical artifacts?"})
++ print(response["response"])
   &#96;&#96;&#96;
   
 - ### Update Memory Prompt (Planned)
@@ -1793,26 +1793,26 @@ Lines added: 101, lines removed: 249
 - from datetime import datetime
 - 
 - class MemoryManager:
--     def __init__(self, llm_service, memory_file: str = &quot;memory.json&quot;):
+-     def __init__(self, llm_service, memory_file: str = "memory.json"):
 -         self.memory_file = memory_file
 -         self.llm = llm_service
 -         self.memory: Dict[str, Any] = {}
 -         self._load_memory()
 - 
 -     def _load_memory(self) -&gt; None:
--         &quot;&quot;&quot;Load memory from JSON file if it exists&quot;&quot;&quot;
+-         """Load memory from JSON file if it exists"""
 -         if os.path.exists(self.memory_file):
--             with open(self.memory_file, &#39;r&#39;) as f:
+-             with open(self.memory_file, 'r') as f:
 -                 self.memory = json.load(f)
 - 
 -     def save_memory(self) -&gt; None:
--         &quot;&quot;&quot;Save current memory state to JSON file&quot;&quot;&quot;
--         with open(self.memory_file, &#39;w&#39;) as f:
+-         """Save current memory state to JSON file"""
+-         with open(self.memory_file, 'w') as f:
 -             json.dump(self.memory, f, indent=2)
 - 
 -     def create_initial_memory(self, input_data: str) -&gt; None:
--         &quot;&quot;&quot;Use LLM to structure initial input data into memory format&quot;&quot;&quot;
--         create_memory_prompt = &quot;&quot;&quot;
+-         """Use LLM to structure initial input data into memory format"""
+-         create_memory_prompt = """
 - You are a memory management system. Your task is to analyze the provided campaign information and create two organized data structures:
 - 
 - 1. A structured_data JSON object to store key facts and details
@@ -1830,44 +1830,44 @@ Lines added: 101, lines removed: 249
 - 
 - Return only a valid JSON object with this structure:
 - {
--     &quot;structured_data&quot;: {
+-     "structured_data": {
 -         // Your structured organization of the facts and details
 -     },
--     &quot;knowledge_graph&quot;: {
+-     "knowledge_graph": {
 -         // Your graph of relationships between entities
 -     },
--     &quot;metadata&quot;: {
--         &quot;categories&quot;: [],
--         &quot;timestamp&quot;: &quot;&quot;,
--         &quot;version&quot;: &quot;1.0&quot;
+-     "metadata": {
+-         "categories": [],
+-         "timestamp": "",
+-         "version": "1.0"
 -     }
 - }
 - 
-- Important: Return ONLY the JSON object, with no additional explanation or text.&quot;&quot;&quot;
+- Important: Return ONLY the JSON object, with no additional explanation or text."""
 - 
 -         # Get structured memory from LLM
--         prompt = create_memory_prompt.replace(&quot;{INPUT_DATA}&quot;, input_data)
+-         prompt = create_memory_prompt.replace("{INPUT_DATA}", input_data)
 -         try:
 -             llm_response = self.llm.generate(prompt)
 -             memory_data = json.loads(llm_response)
 -             
 -             # Add system metadata
--             memory_data[&quot;metadata&quot;][&quot;created_at&quot;] = datetime.now().isoformat()
--             memory_data[&quot;metadata&quot;][&quot;last_updated&quot;] = datetime.now().isoformat()
+-             memory_data["metadata"]["created_at"] = datetime.now().isoformat()
+-             memory_data["metadata"]["last_updated"] = datetime.now().isoformat()
 -             
 -             self.memory = memory_data
 -             self.save_memory()
 -             return True
 -         except (json.JSONDecodeError, Exception) as e:
--             print(f&quot;Error creating memory structure: {str(e)}&quot;)
+-             print(f"Error creating memory structure: {str(e)}")
 -             return False
 - 
 -     def get_memory_context(self) -&gt; Dict[str, Any]:
--         &quot;&quot;&quot;Return the entire memory state&quot;&quot;&quot;
+-         """Return the entire memory state"""
 -         return self.memory
 - 
 -     def clear_memory(self) -&gt; None:
--         &quot;&quot;&quot;Clear all stored memory&quot;&quot;&quot;
+-         """Clear all stored memory"""
 -         self.memory = {}
 -         if os.path.exists(self.memory_file):
 -             os.remove(self.memory_file)

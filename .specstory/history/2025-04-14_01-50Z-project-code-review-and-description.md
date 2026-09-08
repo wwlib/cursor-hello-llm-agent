@@ -18,7 +18,7 @@ I'll examine the codebase to provide you with a detailed description of the proj
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed current directory • **28** results</summary>
+            <summary>Tool use: **list_dir** • Listed current directory, 28 results</summary>
         
 | Name |
 |-------|
@@ -62,7 +62,7 @@ Let me examine the source code directory to understand the project structure:
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed directory src • **5** results</summary>
+            <summary>Tool use: **list_dir** • Listed directory src, 5 results</summary>
         
 | Name |
 |-------|
@@ -83,7 +83,7 @@ Let's first look at the memory directory to find the MemoryManager:
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed directory src/memory • **7** results</summary>
+            <summary>Tool use: **list_dir** • Listed directory src/memory, 7 results</summary>
         
 | Name |
 |-------|
@@ -106,7 +106,7 @@ Now let's look for the agent usage examples:
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed directory examples • **7** results</summary>
+            <summary>Tool use: **list_dir** • Listed directory examples, 7 results</summary>
         
 | Name |
 |-------|
@@ -129,7 +129,7 @@ Let's examine the agent code:
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed directory src/agent • **3** results</summary>
+            <summary>Tool use: **list_dir** • Listed directory src/agent, 3 results</summary>
         
 | Name |
 |-------|
@@ -1239,7 +1239,7 @@ Let's start by creating the template files:
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed directory src/memory/templates • **4** results</summary>
+            <summary>Tool use: **list_dir** • Listed directory src/memory/templates, 4 results</summary>
         
 | Name |
 |-------|
@@ -1259,7 +1259,7 @@ Now, let's create the template files for the digest generator:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/templates/segment_conversation.prompt</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/templates/segment_conversation.prompt</summary>
 
 **Chunk 1**
 Lines added: 23, lines removed: 1
@@ -1276,17 +1276,17 @@ Lines added: 23, lines removed: 1
 + 1. Divide the content into distinct segments, each representing one coherent idea, fact, or piece of information
 + 2. Each segment should be a complete phrase or sentence
 + 3. Preserve the original meaning and context
-+ 4. Don&#39;t omit any significant information
++ 4. Don't omit any significant information
 + 5. Avoid creating segments that are too long or that contain multiple separate ideas
 + 
 + For example, given:
-+ &quot;Captain Sara patrols the eastern border with her squad of ten guards. She&#39;s concerned about recent monster sightings and has requested additional resources.&quot;
++ "Captain Sara patrols the eastern border with her squad of ten guards. She's concerned about recent monster sightings and has requested additional resources."
 + 
 + The segmentation would be:
 + [
-+   &quot;Captain Sara patrols the eastern border with her squad of ten guards.&quot;,
-+   &quot;She&#39;s concerned about recent monster sightings.&quot;,
-+   &quot;She has requested additional resources.&quot;
++   "Captain Sara patrols the eastern border with her squad of ten guards.",
++   "She's concerned about recent monster sightings.",
++   "She has requested additional resources."
 + ]
 + 
 + Return ONLY a JSON array of strings, with each string being a distinct segment. The response should be valid JSON that can be directly parsed. 
@@ -1300,7 +1300,7 @@ Lines added: 23, lines removed: 1
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/templates/extract_digest.prompt</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/templates/extract_digest.prompt</summary>
 
 **Chunk 1**
 Lines added: 44, lines removed: 1
@@ -1317,38 +1317,38 @@ Lines added: 44, lines removed: 1
 + 1. Analyze each segment for distinct information
 + 2. Extract specific facts and relationships
 + 3. Organize the extracted information according to the required JSON structure
-+ 4. Include segment indexes in the &quot;segmentIndexes&quot; field to trace facts back to source segments
++ 4. Include segment indexes in the "segmentIndexes" field to trace facts back to source segments
 + 5. Be selective - focus on extracting only meaningful, non-obvious information
 + 6. Assign importance levels (high/medium/low) based on the significance of the information
-+ 7. Provide a brief &quot;context&quot; field explaining the information
-+ 8. Specify the &quot;source&quot; as either &quot;user&quot;, &quot;assistant&quot;, or &quot;inferred&quot;
++ 7. Provide a brief "context" field explaining the information
++ 8. Specify the "source" as either "user", "assistant", or "inferred"
 + 9. Assign a relevant topic to each fact and relationship
 + 
 + Return ONLY a JSON object with the structure below. The response must be valid JSON that can be directly parsed.
 + 
 + {
-+   &quot;context&quot;: &quot;Brief description of what this conversation was about&quot;,
-+   &quot;new_facts&quot;: [
++   "context": "Brief description of what this conversation was about",
++   "new_facts": [
 +     {
-+       &quot;segmentIndexes&quot;: [0, 1],
-+       &quot;key&quot;: &quot;fact_key&quot;,
-+       &quot;value&quot;: &quot;fact_value&quot;,
-+       &quot;context&quot;: &quot;fact_context&quot;,
-+       &quot;source&quot;: &quot;user|assistant|inferred&quot;,
-+       &quot;importance&quot;: &quot;high|medium|low&quot;,
-+       &quot;topic&quot;: &quot;Brief topic description&quot;
++       "segmentIndexes": [0, 1],
++       "key": "fact_key",
++       "value": "fact_value",
++       "context": "fact_context",
++       "source": "user|assistant|inferred",
++       "importance": "high|medium|low",
++       "topic": "Brief topic description"
 +     }
 +   ],
-+   &quot;new_relationships&quot;: [
++   "new_relationships": [
 +     {
-+       &quot;segmentIndexes&quot;: [1, 2],
-+       &quot;subject&quot;: &quot;entity_id&quot;,
-+       &quot;predicate&quot;: &quot;RELATION_TYPE&quot;,
-+       &quot;object&quot;: &quot;other_entity_id&quot;,
-+       &quot;context&quot;: &quot;relationship_context&quot;,
-+       &quot;source&quot;: &quot;user|assistant|inferred&quot;,
-+       &quot;importance&quot;: &quot;high|medium|low&quot;,
-+       &quot;topic&quot;: &quot;Brief topic description&quot;
++       "segmentIndexes": [1, 2],
++       "subject": "entity_id",
++       "predicate": "RELATION_TYPE",
++       "object": "other_entity_id",
++       "context": "relationship_context",
++       "source": "user|assistant|inferred",
++       "importance": "high|medium|low",
++       "topic": "Brief topic description"
 +     }
 +   ]
 + } 
@@ -1366,7 +1366,7 @@ Now, let's implement the DigestGenerator class:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/digest_generator.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/digest_generator.py</summary>
 
 **Chunk 1**
 Lines added: 290, lines removed: 1
@@ -1381,7 +1381,7 @@ Lines added: 290, lines removed: 1
 + from datetime import datetime
 + 
 + class DigestGenerator:
-+     &quot;&quot;&quot;Handles the process of generating structured digests from conversation entries.
++     """Handles the process of generating structured digests from conversation entries.
 +     
 +     The DigestGenerator implements a two-step process:
 +     1. Segment the conversation content into meaningful chunks
@@ -1389,46 +1389,46 @@ Lines added: 290, lines removed: 1
 +     
 +     This allows for more precise information extraction and better traceability
 +     between digests and the conversation entries they were derived from.
-+     &quot;&quot;&quot;
++     """
 +     
 +     def __init__(self, llm_service):
-+         &quot;&quot;&quot;Initialize the DigestGenerator.
++         """Initialize the DigestGenerator.
 +         
 +         Args:
 +             llm_service: Service for LLM operations
-+         &quot;&quot;&quot;
++         """
 +         self.llm = llm_service
 +         self._load_templates()
 +     
 +     def _load_templates(self) -&gt; None:
-+         &quot;&quot;&quot;Load prompt templates for segmentation and extraction.&quot;&quot;&quot;
++         """Load prompt templates for segmentation and extraction."""
 +         import os
 +         
-+         template_dir = os.path.join(os.path.dirname(__file__), &quot;templates&quot;)
++         template_dir = os.path.join(os.path.dirname(__file__), "templates")
 +         self.templates = {}
 +         
 +         template_files = {
-+             &quot;segment&quot;: &quot;segment_conversation.prompt&quot;,
-+             &quot;extract&quot;: &quot;extract_digest.prompt&quot;
++             "segment": "segment_conversation.prompt",
++             "extract": "extract_digest.prompt"
 +         }
 +         
 +         for key, filename in template_files.items():
 +             path = os.path.join(template_dir, filename)
 +             try:
-+                 with open(path, &#39;r&#39;) as f:
++                 with open(path, 'r') as f:
 +                     self.templates[key] = f.read().strip()
-+                 print(f&quot;Loaded digest template: {filename}&quot;)
++                 print(f"Loaded digest template: {filename}")
 +             except Exception as e:
-+                 print(f&quot;Error loading digest template {filename}: {str(e)}&quot;)
-+                 # Create default templates if files don&#39;t exist
-+                 if key == &quot;segment&quot;:
++                 print(f"Error loading digest template {filename}: {str(e)}")
++                 # Create default templates if files don't exist
++                 if key == "segment":
 +                     self.templates[key] = self._get_default_segment_template()
-+                 elif key == &quot;extract&quot;:
++                 elif key == "extract":
 +                     self.templates[key] = self._get_default_extract_template()
 +     
 +     def _get_default_segment_template(self) -&gt; str:
-+         &quot;&quot;&quot;Get default segmentation template if file doesn&#39;t exist.&quot;&quot;&quot;
-+         return &quot;&quot;&quot;You are a text analysis system. Your task is to segment the provided content into meaningful phrases, each containing a single idea or piece of information.
++         """Get default segmentation template if file doesn't exist."""
++         return """You are a text analysis system. Your task is to segment the provided content into meaningful phrases, each containing a single idea or piece of information.
 + 
 + CONTENT:
 + {content}
@@ -1437,25 +1437,25 @@ Lines added: 290, lines removed: 1
 + 1. Divide the content into distinct segments, each representing one coherent idea, fact, or piece of information
 + 2. Each segment should be a complete phrase or sentence
 + 3. Preserve the original meaning and context
-+ 4. Don&#39;t omit any significant information
++ 4. Don't omit any significant information
 + 5. Avoid creating segments that are too long or that contain multiple separate ideas
 + 
 + For example, given:
-+ &quot;Captain Sara patrols the eastern border with her squad of ten guards. She&#39;s concerned about recent monster sightings and has requested additional resources.&quot;
++ "Captain Sara patrols the eastern border with her squad of ten guards. She's concerned about recent monster sightings and has requested additional resources."
 + 
 + The segmentation would be:
 + [
-+   &quot;Captain Sara patrols the eastern border with her squad of ten guards.&quot;,
-+   &quot;She&#39;s concerned about recent monster sightings.&quot;,
-+   &quot;She has requested additional resources.&quot;
++   "Captain Sara patrols the eastern border with her squad of ten guards.",
++   "She's concerned about recent monster sightings.",
++   "She has requested additional resources."
 + ]
 + 
 + Return ONLY a JSON array of strings, with each string being a distinct segment. The response should be valid JSON that can be directly parsed.
-+ &quot;&quot;&quot;
++ """
 +     
 +     def _get_default_extract_template(self) -&gt; str:
-+         &quot;&quot;&quot;Get default extraction template if file doesn&#39;t exist.&quot;&quot;&quot;
-+         return &quot;&quot;&quot;You are a knowledge extraction system. Your task is to analyze the segmented content and extract structured information into a digest.
++         """Get default extraction template if file doesn't exist."""
++         return """You are a knowledge extraction system. Your task is to analyze the segmented content and extract structured information into a digest.
 + 
 + SEGMENTED CONTENT:
 + {segments}
@@ -1464,62 +1464,62 @@ Lines added: 290, lines removed: 1
 + 1. Analyze each segment for distinct information
 + 2. Extract specific facts and relationships
 + 3. Organize the extracted information according to the required JSON structure
-+ 4. Include segment indexes in the &quot;segmentIndexes&quot; field to trace facts back to source segments
++ 4. Include segment indexes in the "segmentIndexes" field to trace facts back to source segments
 + 5. Be selective - focus on extracting only meaningful, non-obvious information
 + 6. Assign importance levels (high/medium/low) based on the significance of the information
-+ 7. Provide a brief &quot;context&quot; field explaining the information
-+ 8. Specify the &quot;source&quot; as either &quot;user&quot;, &quot;assistant&quot;, or &quot;inferred&quot;
++ 7. Provide a brief "context" field explaining the information
++ 8. Specify the "source" as either "user", "assistant", or "inferred"
 + 9. Assign a relevant topic to each fact and relationship
 + 
 + Return ONLY a JSON object with the structure below. The response must be valid JSON that can be directly parsed.
 + 
 + {
-+   &quot;context&quot;: &quot;Brief description of what this conversation was about&quot;,
-+   &quot;new_facts&quot;: [
++   "context": "Brief description of what this conversation was about",
++   "new_facts": [
 +     {
-+       &quot;segmentIndexes&quot;: [0, 1],
-+       &quot;key&quot;: &quot;fact_key&quot;,
-+       &quot;value&quot;: &quot;fact_value&quot;,
-+       &quot;context&quot;: &quot;fact_context&quot;,
-+       &quot;source&quot;: &quot;user|assistant|inferred&quot;,
-+       &quot;importance&quot;: &quot;high|medium|low&quot;,
-+       &quot;topic&quot;: &quot;Brief topic description&quot;
++       "segmentIndexes": [0, 1],
++       "key": "fact_key",
++       "value": "fact_value",
++       "context": "fact_context",
++       "source": "user|assistant|inferred",
++       "importance": "high|medium|low",
++       "topic": "Brief topic description"
 +     }
 +   ],
-+   &quot;new_relationships&quot;: [
++   "new_relationships": [
 +     {
-+       &quot;segmentIndexes&quot;: [1, 2],
-+       &quot;subject&quot;: &quot;entity_id&quot;,
-+       &quot;predicate&quot;: &quot;RELATION_TYPE&quot;,
-+       &quot;object&quot;: &quot;other_entity_id&quot;,
-+       &quot;context&quot;: &quot;relationship_context&quot;,
-+       &quot;source&quot;: &quot;user|assistant|inferred&quot;,
-+       &quot;importance&quot;: &quot;high|medium|low&quot;,
-+       &quot;topic&quot;: &quot;Brief topic description&quot;
++       "segmentIndexes": [1, 2],
++       "subject": "entity_id",
++       "predicate": "RELATION_TYPE",
++       "object": "other_entity_id",
++       "context": "relationship_context",
++       "source": "user|assistant|inferred",
++       "importance": "high|medium|low",
++       "topic": "Brief topic description"
 +     }
 +   ]
 + }
-+ &quot;&quot;&quot;
++ """
 +     
 +     def generate_digest(self, conversation_entry: Dict[str, Any]) -&gt; Dict[str, Any]:
-+         &quot;&quot;&quot;Generate a structured digest from a conversation entry using a two-step process.
++         """Generate a structured digest from a conversation entry using a two-step process.
 +         
 +         Args:
 +             conversation_entry: Dictionary containing the conversation entry with role, content, etc.
 +             
 +         Returns:
 +             dict: A digest containing segmented content and extracted information
-+         &quot;&quot;&quot;
++         """
 +         try:
-+             entry_guid = conversation_entry.get(&quot;guid&quot;)
++             entry_guid = conversation_entry.get("guid")
 +             if not entry_guid:
 +                 # Generate a GUID if not present
 +                 entry_guid = str(uuid.uuid4())
-+                 conversation_entry[&quot;guid&quot;] = entry_guid
++                 conversation_entry["guid"] = entry_guid
 +             
-+             content = conversation_entry.get(&quot;content&quot;, &quot;&quot;)
++             content = conversation_entry.get("content", "")
 +             if not content.strip():
-+                 print(&quot;Warning: Empty content in conversation entry&quot;)
++                 print("Warning: Empty content in conversation entry")
 +                 return self._create_empty_digest(entry_guid)
 +             
 +             # Step 1: Segment the content
@@ -1530,31 +1530,31 @@ Lines added: 290, lines removed: 1
 +             
 +             # Combine into final digest
 +             digest = {
-+                 &quot;conversationHistoryGuid&quot;: entry_guid,
-+                 &quot;segments&quot;: segments,
-+                 &quot;context&quot;: extracted_info.get(&quot;context&quot;, &quot;&quot;),
-+                 &quot;new_facts&quot;: extracted_info.get(&quot;new_facts&quot;, []),
-+                 &quot;new_relationships&quot;: extracted_info.get(&quot;new_relationships&quot;, [])
++                 "conversationHistoryGuid": entry_guid,
++                 "segments": segments,
++                 "context": extracted_info.get("context", ""),
++                 "new_facts": extracted_info.get("new_facts", []),
++                 "new_relationships": extracted_info.get("new_relationships", [])
 +             }
 +             
 +             return digest
 +             
 +         except Exception as e:
-+             print(f&quot;Error generating digest: {str(e)}&quot;)
++             print(f"Error generating digest: {str(e)}")
 +             return self._create_empty_digest(entry_guid if entry_guid else str(uuid.uuid4()))
 +     
 +     def _segment_content(self, content: str) -&gt; List[str]:
-+         &quot;&quot;&quot;Segment the content into meaningful phrases using LLM.
++         """Segment the content into meaningful phrases using LLM.
 +         
 +         Args:
 +             content: The text content to segment
 +             
 +         Returns:
 +             list: A list of segmented phrases
-+         &quot;&quot;&quot;
++         """
 +         try:
 +             # Format the prompt with the content
-+             prompt = self.templates[&quot;segment&quot;].format(content=content)
++             prompt = self.templates["segment"].format(content=content)
 +             
 +             # Call LLM to segment the content
 +             llm_response = self.llm.generate(prompt)
@@ -1563,12 +1563,12 @@ Lines added: 290, lines removed: 1
 +             try:
 +                 segments = json.loads(llm_response)
 +                 if not isinstance(segments, list):
-+                     print(&quot;Segmentation failed: Response is not a list&quot;)
++                     print("Segmentation failed: Response is not a list")
 +                     return [content]  # Fall back to using the entire content as a single segment
 +                 return segments
 +             except json.JSONDecodeError:
-+                 # Try to extract JSON array if it&#39;s embedded in markdown or other text
-+                 segments_match = re.search(r&#39;\[\s*&quot;.*&quot;\s*(?:,\s*&quot;.*&quot;\s*)*\]&#39;, llm_response, re.DOTALL)
++                 # Try to extract JSON array if it's embedded in markdown or other text
++                 segments_match = re.search(r'\[\s*".*"\s*(?:,\s*".*"\s*)*\]', llm_response, re.DOTALL)
 +                 if segments_match:
 +                     try:
 +                         segments = json.loads(segments_match.group(0))
@@ -1577,25 +1577,25 @@ Lines added: 290, lines removed: 1
 +                         pass
 +                 
 +                 # Fall back to using the entire content as a single segment
-+                 print(&quot;Failed to parse segments, using entire content&quot;)
++                 print("Failed to parse segments, using entire content")
 +                 return [content]
 +                 
 +         except Exception as e:
-+             print(f&quot;Error in content segmentation: {str(e)}&quot;)
++             print(f"Error in content segmentation: {str(e)}")
 +             return [content]  # Fall back to using the entire content as a single segment
 +     
 +     def _extract_information(self, segments: List[str]) -&gt; Dict[str, Any]:
-+         &quot;&quot;&quot;Extract structured information from segments using LLM.
++         """Extract structured information from segments using LLM.
 +         
 +         Args:
 +             segments: List of segmented phrases
 +             
 +         Returns:
 +             dict: Structured information extract from segments
-+         &quot;&quot;&quot;
++         """
 +         try:
 +             # Format the prompt with the segments
-+             prompt = self.templates[&quot;extract&quot;].format(segments=json.dumps(segments))
++             prompt = self.templates["extract"].format(segments=json.dumps(segments))
 +             
 +             # Call LLM to extract information
 +             llm_response = self.llm.generate(prompt)
@@ -1605,64 +1605,64 @@ Lines added: 290, lines removed: 1
 +                 extracted_info = json.loads(llm_response)
 +                 # Validate the structure
 +                 if not isinstance(extracted_info, dict):
-+                     print(&quot;Extraction failed: Response is not a dictionary&quot;)
++                     print("Extraction failed: Response is not a dictionary")
 +                     return self._create_empty_extracted_info()
 +                 
 +                 # Ensure required fields exist
-+                 if &quot;new_facts&quot; not in extracted_info:
-+                     extracted_info[&quot;new_facts&quot;] = []
-+                 if &quot;new_relationships&quot; not in extracted_info:
-+                     extracted_info[&quot;new_relationships&quot;] = []
-+                 if &quot;context&quot; not in extracted_info:
-+                     extracted_info[&quot;context&quot;] = &quot;&quot;
++                 if "new_facts" not in extracted_info:
++                     extracted_info["new_facts"] = []
++                 if "new_relationships" not in extracted_info:
++                     extracted_info["new_relationships"] = []
++                 if "context" not in extracted_info:
++                     extracted_info["context"] = ""
 +                 
 +                 return extracted_info
 +             except json.JSONDecodeError:
-+                 # Try to extract JSON if it&#39;s embedded in markdown or other text
-+                 json_match = re.search(r&#39;\{[\s\S]*\}&#39;, llm_response)
++                 # Try to extract JSON if it's embedded in markdown or other text
++                 json_match = re.search(r'\{[\s\S]*\}', llm_response)
 +                 if json_match:
 +                     try:
 +                         json_str = json_match.group(0)
 +                         # Remove any markdown code block markers
-+                         json_str = re.sub(r&#39;&#96;&#96;&#96;json\s*|\s*&#96;&#96;&#96;&#39;, &#39;&#39;, json_str)
++                         json_str = re.sub(r'&#96;&#96;&#96;json\s*|\s*&#96;&#96;&#96;', '', json_str)
 +                         extracted_info = json.loads(json_str)
 +                         
 +                         # Ensure required fields exist
-+                         if &quot;new_facts&quot; not in extracted_info:
-+                             extracted_info[&quot;new_facts&quot;] = []
-+                         if &quot;new_relationships&quot; not in extracted_info:
-+                             extracted_info[&quot;new_relationships&quot;] = []
-+                         if &quot;context&quot; not in extracted_info:
-+                             extracted_info[&quot;context&quot;] = &quot;&quot;
++                         if "new_facts" not in extracted_info:
++                             extracted_info["new_facts"] = []
++                         if "new_relationships" not in extracted_info:
++                             extracted_info["new_relationships"] = []
++                         if "context" not in extracted_info:
++                             extracted_info["context"] = ""
 +                         
 +                         return extracted_info
 +                     except json.JSONDecodeError:
 +                         pass
 +                 
 +                 # Fall back to empty response
-+                 print(&quot;Failed to parse extracted information&quot;)
++                 print("Failed to parse extracted information")
 +                 return self._create_empty_extracted_info()
 +                 
 +         except Exception as e:
-+             print(f&quot;Error in information extraction: {str(e)}&quot;)
++             print(f"Error in information extraction: {str(e)}")
 +             return self._create_empty_extracted_info()
 +     
 +     def _create_empty_digest(self, entry_guid: str) -&gt; Dict[str, Any]:
-+         &quot;&quot;&quot;Create an empty digest structure with the given entry GUID.&quot;&quot;&quot;
++         """Create an empty digest structure with the given entry GUID."""
 +         return {
-+             &quot;conversationHistoryGuid&quot;: entry_guid,
-+             &quot;segments&quot;: [],
-+             &quot;context&quot;: &quot;&quot;,
-+             &quot;new_facts&quot;: [],
-+             &quot;new_relationships&quot;: []
++             "conversationHistoryGuid": entry_guid,
++             "segments": [],
++             "context": "",
++             "new_facts": [],
++             "new_relationships": []
 +         }
 +     
 +     def _create_empty_extracted_info(self) -&gt; Dict[str, Any]:
-+         &quot;&quot;&quot;Create an empty extracted information structure.&quot;&quot;&quot;
++         """Create an empty extracted information structure."""
 +         return {
-+             &quot;context&quot;: &quot;&quot;,
-+             &quot;new_facts&quot;: [],
-+             &quot;new_relationships&quot;: []
++             "context": "",
++             "new_facts": [],
++             "new_relationships": []
 +         } 
 ```
 
@@ -1678,7 +1678,7 @@ Now, let's create a test file for the DigestGenerator class:
 
 <tool-use data-tool-type="generic" data-tool-name="list_dir">
 <details>
-            <summary>Tool use: **list_directory** • Listed directory tests • **3** results</summary>
+            <summary>Tool use: **list_dir** • Listed directory tests, 3 results</summary>
         
 | Name |
 |-------|
@@ -1693,7 +1693,7 @@ Now, let's create a test file for the DigestGenerator class:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: tests/memory_manager/test_digest_generator.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: tests/memory_manager/test_digest_generator.py</summary>
 
 **Chunk 1**
 Lines added: 223, lines removed: 1
@@ -1708,7 +1708,7 @@ Lines added: 223, lines removed: 1
 + from src.memory.digest_generator import DigestGenerator
 + 
 + class MockLLMService:
-+     &quot;&quot;&quot;Mock LLM service for testing the DigestGenerator.&quot;&quot;&quot;
++     """Mock LLM service for testing the DigestGenerator."""
 +     
 +     def __init__(self, segment_response=None, extract_response=None):
 +         self.segment_response = segment_response
@@ -1717,12 +1717,12 @@ Lines added: 223, lines removed: 1
 +         self.last_prompt = None
 +     
 +     def generate(self, prompt):
-+         &quot;&quot;&quot;Mock the generate method of the LLM service.&quot;&quot;&quot;
++         """Mock the generate method of the LLM service."""
 +         self.generate_call_count += 1
 +         self.last_prompt = prompt
 +         
 +         # Return different responses based on the prompt content
-+         if &quot;SEGMENTED CONTENT&quot; in prompt:
++         if "SEGMENTED CONTENT" in prompt:
 +             # This is an extract call
 +             return self.extract_response
 +         else:
@@ -1731,59 +1731,59 @@ Lines added: 223, lines removed: 1
 + 
 + 
 + class TestDigestGenerator(unittest.TestCase):
-+     &quot;&quot;&quot;Test cases for the DigestGenerator class.&quot;&quot;&quot;
++     """Test cases for the DigestGenerator class."""
 +     
 +     def setUp(self):
-+         &quot;&quot;&quot;Set up test fixtures.&quot;&quot;&quot;
++         """Set up test fixtures."""
 +         # Create sample test data
 +         self.sample_segments = [
-+             &quot;Captain Sara patrols the eastern border with her squad of ten guards.&quot;,
-+             &quot;She&#39;s concerned about recent monster sightings.&quot;,
-+             &quot;She has requested additional resources.&quot;
++             "Captain Sara patrols the eastern border with her squad of ten guards.",
++             "She's concerned about recent monster sightings.",
++             "She has requested additional resources."
 +         ]
 +         
 +         self.sample_extracted_info = {
-+             &quot;context&quot;: &quot;Discussing border patrol operations and resource needs&quot;,
-+             &quot;new_facts&quot;: [
++             "context": "Discussing border patrol operations and resource needs",
++             "new_facts": [
 +                 {
-+                     &quot;segmentIndexes&quot;: [0],
-+                     &quot;key&quot;: &quot;patrol_location&quot;,
-+                     &quot;value&quot;: &quot;eastern border&quot;,
-+                     &quot;context&quot;: &quot;Where Captain Sara conducts patrols&quot;,
-+                     &quot;source&quot;: &quot;assistant&quot;,
-+                     &quot;importance&quot;: &quot;high&quot;,
-+                     &quot;topic&quot;: &quot;Border Security&quot;
++                     "segmentIndexes": [0],
++                     "key": "patrol_location",
++                     "value": "eastern border",
++                     "context": "Where Captain Sara conducts patrols",
++                     "source": "assistant",
++                     "importance": "high",
++                     "topic": "Border Security"
 +                 },
 +                 {
-+                     &quot;segmentIndexes&quot;: [1],
-+                     &quot;key&quot;: &quot;security_concern&quot;,
-+                     &quot;value&quot;: &quot;monster sightings&quot;,
-+                     &quot;context&quot;: &quot;Current security concern in the region&quot;,
-+                     &quot;source&quot;: &quot;assistant&quot;,
-+                     &quot;importance&quot;: &quot;high&quot;,
-+                     &quot;topic&quot;: &quot;Threats&quot;
++                     "segmentIndexes": [1],
++                     "key": "security_concern",
++                     "value": "monster sightings",
++                     "context": "Current security concern in the region",
++                     "source": "assistant",
++                     "importance": "high",
++                     "topic": "Threats"
 +                 }
 +             ],
-+             &quot;new_relationships&quot;: [
++             "new_relationships": [
 +                 {
-+                     &quot;segmentIndexes&quot;: [0, 2],
-+                     &quot;subject&quot;: &quot;Captain Sara&quot;,
-+                     &quot;predicate&quot;: &quot;REQUESTED&quot;,
-+                     &quot;object&quot;: &quot;additional resources&quot;,
-+                     &quot;context&quot;: &quot;Sara needs more resources for patrol operations&quot;,
-+                     &quot;source&quot;: &quot;inferred&quot;,
-+                     &quot;importance&quot;: &quot;medium&quot;,
-+                     &quot;topic&quot;: &quot;Resource Management&quot;
++                     "segmentIndexes": [0, 2],
++                     "subject": "Captain Sara",
++                     "predicate": "REQUESTED",
++                     "object": "additional resources",
++                     "context": "Sara needs more resources for patrol operations",
++                     "source": "inferred",
++                     "importance": "medium",
++                     "topic": "Resource Management"
 +                 }
 +             ]
 +         }
 +         
 +         # Create a conversation entry for testing
 +         self.test_entry = {
-+             &quot;guid&quot;: str(uuid.uuid4()),
-+             &quot;role&quot;: &quot;assistant&quot;,
-+             &quot;content&quot;: &quot;Captain Sara patrols the eastern border with her squad of ten guards. She&#39;s concerned about recent monster sightings. She has requested additional resources.&quot;,
-+             &quot;timestamp&quot;: &quot;2025-04-15T10:30:00&quot;
++             "guid": str(uuid.uuid4()),
++             "role": "assistant",
++             "content": "Captain Sara patrols the eastern border with her squad of ten guards. She's concerned about recent monster sightings. She has requested additional resources.",
++             "timestamp": "2025-04-15T10:30:00"
 +         }
 +         
 +         # Set up mock responses
@@ -1800,86 +1800,86 @@ Lines added: 223, lines removed: 1
 +         self.digest_generator = DigestGenerator(self.mock_llm)
 +         
 +         # Patch the _load_templates method to use default templates
-+         with patch.object(DigestGenerator, &#39;_load_templates&#39;):
++         with patch.object(DigestGenerator, '_load_templates'):
 +             self.digest_generator._load_templates()
 +             self.digest_generator.templates = {
-+                 &quot;segment&quot;: self.digest_generator._get_default_segment_template(),
-+                 &quot;extract&quot;: self.digest_generator._get_default_extract_template()
++                 "segment": self.digest_generator._get_default_segment_template(),
++                 "extract": self.digest_generator._get_default_extract_template()
 +             }
 +     
 +     def test_segment_content(self):
-+         &quot;&quot;&quot;Test the _segment_content method.&quot;&quot;&quot;
-+         content = &quot;This is a test content. It should be segmented.&quot;
++         """Test the _segment_content method."""
++         content = "This is a test content. It should be segmented."
 +         
 +         # Configure mock LLM response
-+         self.mock_llm.segment_response = json.dumps([&quot;This is a test content.&quot;, &quot;It should be segmented.&quot;])
++         self.mock_llm.segment_response = json.dumps(["This is a test content.", "It should be segmented."])
 +         
 +         # Call the method
 +         segments = self.digest_generator._segment_content(content)
 +         
 +         # Verify the result
 +         self.assertEqual(2, len(segments))
-+         self.assertEqual(&quot;This is a test content.&quot;, segments[0])
-+         self.assertEqual(&quot;It should be segmented.&quot;, segments[1])
++         self.assertEqual("This is a test content.", segments[0])
++         self.assertEqual("It should be segmented.", segments[1])
 +         
 +         # Verify the LLM was called with the correct prompt
 +         self.assertIn(content, self.mock_llm.last_prompt)
 +     
 +     def test_extract_information(self):
-+         &quot;&quot;&quot;Test the _extract_information method.&quot;&quot;&quot;
++         """Test the _extract_information method."""
 +         # Call the method
 +         extracted_info = self.digest_generator._extract_information(self.sample_segments)
 +         
 +         # Verify the result
-+         self.assertEqual(&quot;Discussing border patrol operations and resource needs&quot;, extracted_info[&quot;context&quot;])
-+         self.assertEqual(2, len(extracted_info[&quot;new_facts&quot;]))
-+         self.assertEqual(1, len(extracted_info[&quot;new_relationships&quot;]))
++         self.assertEqual("Discussing border patrol operations and resource needs", extracted_info["context"])
++         self.assertEqual(2, len(extracted_info["new_facts"]))
++         self.assertEqual(1, len(extracted_info["new_relationships"]))
 +         
 +         # Verify a specific fact
-+         fact = extracted_info[&quot;new_facts&quot;][0]
-+         self.assertEqual(&quot;patrol_location&quot;, fact[&quot;key&quot;])
-+         self.assertEqual(&quot;eastern border&quot;, fact[&quot;value&quot;])
++         fact = extracted_info["new_facts"][0]
++         self.assertEqual("patrol_location", fact["key"])
++         self.assertEqual("eastern border", fact["value"])
 +         
 +         # Verify a relationship
-+         relationship = extracted_info[&quot;new_relationships&quot;][0]
-+         self.assertEqual(&quot;Captain Sara&quot;, relationship[&quot;subject&quot;])
-+         self.assertEqual(&quot;REQUESTED&quot;, relationship[&quot;predicate&quot;])
-+         self.assertEqual(&quot;additional resources&quot;, relationship[&quot;object&quot;])
++         relationship = extracted_info["new_relationships"][0]
++         self.assertEqual("Captain Sara", relationship["subject"])
++         self.assertEqual("REQUESTED", relationship["predicate"])
++         self.assertEqual("additional resources", relationship["object"])
 +     
 +     def test_generate_digest(self):
-+         &quot;&quot;&quot;Test the generate_digest method.&quot;&quot;&quot;
++         """Test the generate_digest method."""
 +         # Call the method
 +         digest = self.digest_generator.generate_digest(self.test_entry)
 +         
 +         # Verify the result
-+         self.assertEqual(self.test_entry[&quot;guid&quot;], digest[&quot;conversationHistoryGuid&quot;])
-+         self.assertEqual(3, len(digest[&quot;segments&quot;]))
-+         self.assertEqual(&quot;Discussing border patrol operations and resource needs&quot;, digest[&quot;context&quot;])
-+         self.assertEqual(2, len(digest[&quot;new_facts&quot;]))
-+         self.assertEqual(1, len(digest[&quot;new_relationships&quot;]))
++         self.assertEqual(self.test_entry["guid"], digest["conversationHistoryGuid"])
++         self.assertEqual(3, len(digest["segments"]))
++         self.assertEqual("Discussing border patrol operations and resource needs", digest["context"])
++         self.assertEqual(2, len(digest["new_facts"]))
++         self.assertEqual(1, len(digest["new_relationships"]))
 +     
 +     def test_generate_digest_with_no_guid(self):
-+         &quot;&quot;&quot;Test the generate_digest method with an entry that has no GUID.&quot;&quot;&quot;
++         """Test the generate_digest method with an entry that has no GUID."""
 +         # Create a test entry without a GUID
 +         test_entry_no_guid = {
-+             &quot;role&quot;: &quot;assistant&quot;, 
-+             &quot;content&quot;: &quot;Test content&quot;,
-+             &quot;timestamp&quot;: &quot;2025-04-15T10:30:00&quot;
++             "role": "assistant", 
++             "content": "Test content",
++             "timestamp": "2025-04-15T10:30:00"
 +         }
 +         
 +         # Call the method
 +         digest = self.digest_generator.generate_digest(test_entry_no_guid)
 +         
 +         # Verify a GUID was generated and added to the entry
-+         self.assertIsNotNone(test_entry_no_guid.get(&quot;guid&quot;))
-+         self.assertEqual(test_entry_no_guid[&quot;guid&quot;], digest[&quot;conversationHistoryGuid&quot;])
++         self.assertIsNotNone(test_entry_no_guid.get("guid"))
++         self.assertEqual(test_entry_no_guid["guid"], digest["conversationHistoryGuid"])
 +     
 +     def test_segment_content_json_error(self):
-+         &quot;&quot;&quot;Test the _segment_content method when JSON parsing fails.&quot;&quot;&quot;
-+         content = &quot;Test content&quot;
++         """Test the _segment_content method when JSON parsing fails."""
++         content = "Test content"
 +         
 +         # Configure mock to return invalid JSON
-+         self.mock_llm.segment_response = &quot;This is not JSON&quot;
++         self.mock_llm.segment_response = "This is not JSON"
 +         
 +         # Call the method
 +         segments = self.digest_generator._segment_content(content)
@@ -1889,40 +1889,40 @@ Lines added: 223, lines removed: 1
 +         self.assertEqual(content, segments[0])
 +     
 +     def test_extract_information_json_error(self):
-+         &quot;&quot;&quot;Test the _extract_information method when JSON parsing fails.&quot;&quot;&quot;
++         """Test the _extract_information method when JSON parsing fails."""
 +         # Configure mock to return invalid JSON
-+         self.mock_llm.extract_response = &quot;This is not JSON&quot;
++         self.mock_llm.extract_response = "This is not JSON"
 +         
 +         # Call the method
 +         extracted_info = self.digest_generator._extract_information(self.sample_segments)
 +         
 +         # Verify fallback to empty structure
-+         self.assertEqual(&quot;&quot;, extracted_info[&quot;context&quot;])
-+         self.assertEqual(0, len(extracted_info[&quot;new_facts&quot;]))
-+         self.assertEqual(0, len(extracted_info[&quot;new_relationships&quot;]))
++         self.assertEqual("", extracted_info["context"])
++         self.assertEqual(0, len(extracted_info["new_facts"]))
++         self.assertEqual(0, len(extracted_info["new_relationships"]))
 +     
 +     def test_generate_digest_with_empty_content(self):
-+         &quot;&quot;&quot;Test the generate_digest method with empty content.&quot;&quot;&quot;
++         """Test the generate_digest method with empty content."""
 +         # Create a test entry with empty content
 +         test_entry_empty = {
-+             &quot;guid&quot;: str(uuid.uuid4()),
-+             &quot;role&quot;: &quot;assistant&quot;,
-+             &quot;content&quot;: &quot;&quot;,
-+             &quot;timestamp&quot;: &quot;2025-04-15T10:30:00&quot;
++             "guid": str(uuid.uuid4()),
++             "role": "assistant",
++             "content": "",
++             "timestamp": "2025-04-15T10:30:00"
 +         }
 +         
 +         # Call the method
 +         digest = self.digest_generator.generate_digest(test_entry_empty)
 +         
 +         # Verify empty digest creation
-+         self.assertEqual(test_entry_empty[&quot;guid&quot;], digest[&quot;conversationHistoryGuid&quot;])
-+         self.assertEqual(0, len(digest[&quot;segments&quot;]))
-+         self.assertEqual(&quot;&quot;, digest[&quot;context&quot;])
-+         self.assertEqual(0, len(digest[&quot;new_facts&quot;]))
-+         self.assertEqual(0, len(digest[&quot;new_relationships&quot;]))
++         self.assertEqual(test_entry_empty["guid"], digest["conversationHistoryGuid"])
++         self.assertEqual(0, len(digest["segments"]))
++         self.assertEqual("", digest["context"])
++         self.assertEqual(0, len(digest["new_facts"]))
++         self.assertEqual(0, len(digest["new_relationships"]))
 + 
 + 
-+ if __name__ == &quot;__main__&quot;:
++ if __name__ == "__main__":
 +     unittest.main() 
 ```
 
@@ -1938,7 +1938,7 @@ Let's create an example script to demonstrate how to use the DigestGenerator in 
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/digest_generator_example.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: examples/digest_generator_example.py</summary>
 
 **Chunk 1**
 Lines added: 135, lines removed: 1
@@ -1963,123 +1963,123 @@ Lines added: 135, lines removed: 1
 + from src.memory.digest_generator import DigestGenerator
 + 
 + def print_section_header(title):
-+     &quot;&quot;&quot;Print a formatted section header&quot;&quot;&quot;
-+     print(f&quot;\n{&#39;=&#39;*80}&quot;)
-+     print(f&quot;  {title}&quot;)
-+     print(f&quot;{&#39;=&#39;*80}\n&quot;)
++     """Print a formatted section header"""
++     print(f"\n{'='*80}")
++     print(f"  {title}")
++     print(f"{'='*80}\n")
 + 
 + def print_json(data, indent=2):
-+     &quot;&quot;&quot;Print JSON in a readable format&quot;&quot;&quot;
++     """Print JSON in a readable format"""
 +     print(json.dumps(data, indent=indent))
 + 
 + def main():
-+     &quot;&quot;&quot;Demonstrate the DigestGenerator class&quot;&quot;&quot;
-+     print_section_header(&quot;DigestGenerator Example&quot;)
++     """Demonstrate the DigestGenerator class"""
++     print_section_header("DigestGenerator Example")
 +     
 +     # Initialize LLM service
-+     print(&quot;Initializing LLM service...&quot;)
++     print("Initializing LLM service...")
 +     llm_service = OllamaService({
-+         &quot;base_url&quot;: &quot;http://localhost:11434&quot;,
-+         &quot;model&quot;: &quot;llama3&quot;,
-+         &quot;temperature&quot;: 0.7,
-+         &quot;stream&quot;: False,
-+         &quot;debug&quot;: True,
-+         &quot;debug_file&quot;: &quot;digest_generator_example.log&quot;,
-+         &quot;debug_scope&quot;: &quot;digest_example&quot;,
-+         &quot;console_output&quot;: False
++         "base_url": "http://localhost:11434",
++         "model": "llama3",
++         "temperature": 0.7,
++         "stream": False,
++         "debug": True,
++         "debug_file": "digest_generator_example.log",
++         "debug_scope": "digest_example",
++         "console_output": False
 +     })
 +     
 +     # Initialize DigestGenerator
-+     print(&quot;Initializing DigestGenerator...&quot;)
++     print("Initializing DigestGenerator...")
 +     digest_generator = DigestGenerator(llm_service)
 +     
 +     # Sample conversation entries
-+     print_section_header(&quot;Sample Conversation Entries&quot;)
++     print_section_header("Sample Conversation Entries")
 +     
 +     conversation_entries = [
 +         {
-+             &quot;guid&quot;: str(uuid.uuid4()),
-+             &quot;role&quot;: &quot;assistant&quot;,
-+             &quot;content&quot;: &quot;The air hangs heavy with the scent of pine and damp earth as you recall the recent events. Just yesterday, Captain Silas, a grizzled veteran of the Merchant Guard, approached you with a proposition. He&#39;d detected unusual activity near the Blackwood Caves – whispers of monstrous spiders weaving webs of shadow and venom. He offered a reward of 50 gold pieces plus a share of any recovered goods, a considerable sum considering the dangers. You accepted, eager for adventure and a bit of coin. The task: track down these venomous spiders and eliminate the threat to the surrounding settlements. The caves themselves are known to be a labyrinthine network, riddled with traps and, as Silas ominously warned, the spiders themselves.&quot;,
-+             &quot;timestamp&quot;: datetime.now().isoformat()
++             "guid": str(uuid.uuid4()),
++             "role": "assistant",
++             "content": "The air hangs heavy with the scent of pine and damp earth as you recall the recent events. Just yesterday, Captain Silas, a grizzled veteran of the Merchant Guard, approached you with a proposition. He'd detected unusual activity near the Blackwood Caves – whispers of monstrous spiders weaving webs of shadow and venom. He offered a reward of 50 gold pieces plus a share of any recovered goods, a considerable sum considering the dangers. You accepted, eager for adventure and a bit of coin. The task: track down these venomous spiders and eliminate the threat to the surrounding settlements. The caves themselves are known to be a labyrinthine network, riddled with traps and, as Silas ominously warned, the spiders themselves.",
++             "timestamp": datetime.now().isoformat()
 +         },
 +         {
-+             &quot;guid&quot;: str(uuid.uuid4()),
-+             &quot;role&quot;: &quot;user&quot;,
-+             &quot;content&quot;: &quot;I need to get prepared for this adventure. What kind of equipment should I bring to deal with venomous spiders? Also, do I know anyone who might have knowledge about these caves?&quot;,
-+             &quot;timestamp&quot;: datetime.now().isoformat()
++             "guid": str(uuid.uuid4()),
++             "role": "user",
++             "content": "I need to get prepared for this adventure. What kind of equipment should I bring to deal with venomous spiders? Also, do I know anyone who might have knowledge about these caves?",
++             "timestamp": datetime.now().isoformat()
 +         },
 +         {
-+             &quot;guid&quot;: str(uuid.uuid4()),
-+             &quot;role&quot;: &quot;assistant&quot;,
-+             &quot;content&quot;: &quot;For tackling venomous spiders, you&#39;d be wise to bring antivenom potions if available from the local apothecary. Torches or lanterns are essential given the darkness of caves. A sturdy shield would help deflect any lunging attacks, while ranged weapons like a bow or crossbow could let you strike before entering their webbed domains. As for knowledge of the Blackwood Caves, you recall that Old Marta, the herbalist who lives at the edge of the village, once mentioned gathering rare fungi from those caves in her younger days. She might have valuable insights about the cave layout. There&#39;s also Durgan, a retired miner who frequents the Sleeping Dragon tavern - he&#39;s mapped many local cave systems and might have some information about Blackwood&#39;s tunnels for the price of a few ales.&quot;,
-+             &quot;timestamp&quot;: datetime.now().isoformat()
++             "guid": str(uuid.uuid4()),
++             "role": "assistant",
++             "content": "For tackling venomous spiders, you'd be wise to bring antivenom potions if available from the local apothecary. Torches or lanterns are essential given the darkness of caves. A sturdy shield would help deflect any lunging attacks, while ranged weapons like a bow or crossbow could let you strike before entering their webbed domains. As for knowledge of the Blackwood Caves, you recall that Old Marta, the herbalist who lives at the edge of the village, once mentioned gathering rare fungi from those caves in her younger days. She might have valuable insights about the cave layout. There's also Durgan, a retired miner who frequents the Sleeping Dragon tavern - he's mapped many local cave systems and might have some information about Blackwood's tunnels for the price of a few ales.",
++             "timestamp": datetime.now().isoformat()
 +         }
 +     ]
 +     
 +     # Process each conversation entry
 +     for i, entry in enumerate(conversation_entries):
-+         print(f&quot;\nEntry {i+1} - {entry[&#39;role&#39;]}:&quot;)
-+         print(&quot;-&quot; * 40)
-+         print(entry[&#39;content&#39;][:100] + &quot;...&quot;)  # Print just the first 100 chars to save space
++         print(f"\nEntry {i+1} - {entry['role']}:")
++         print("-" * 40)
++         print(entry['content'][:100] + "...")  # Print just the first 100 chars to save space
 +         
 +     # Generate digests for each entry
-+     print_section_header(&quot;Generated Digests&quot;)
++     print_section_header("Generated Digests")
 +     
 +     for i, entry in enumerate(conversation_entries):
-+         print(f&quot;\nGenerating digest for entry {i+1} - {entry[&#39;role&#39;]}...&quot;)
++         print(f"\nGenerating digest for entry {i+1} - {entry['role']}...")
 +         
 +         # Generate digest
 +         digest = digest_generator.generate_digest(entry)
 +         
 +         # Print the results
-+         print(f&quot;\nDigest for entry {i+1} - {entry[&#39;role&#39;]}:&quot;)
-+         print(&quot;-&quot; * 40)
++         print(f"\nDigest for entry {i+1} - {entry['role']}:")
++         print("-" * 40)
 +         
 +         # Print segment count
-+         print(f&quot;\nSegments: {len(digest[&#39;segments&#39;])}&quot;)
-+         if len(digest[&#39;segments&#39;]) &gt; 0:
-+             print(&quot;\nFirst 3 segments:&quot;)
-+             for j, segment in enumerate(digest[&#39;segments&#39;][:3]):
-+                 print(f&quot;  {j}: {segment}&quot;)
-+             if len(digest[&#39;segments&#39;]) &gt; 3:
-+                 print(f&quot;  ... ({len(digest[&#39;segments&#39;]) - 3} more segments)&quot;)
++         print(f"\nSegments: {len(digest['segments'])}")
++         if len(digest['segments']) &gt; 0:
++             print("\nFirst 3 segments:")
++             for j, segment in enumerate(digest['segments'][:3]):
++                 print(f"  {j}: {segment}")
++             if len(digest['segments']) &gt; 3:
++                 print(f"  ... ({len(digest['segments']) - 3} more segments)")
 +         
 +         # Print context
-+         print(f&quot;\nContext: {digest[&#39;context&#39;]}&quot;)
++         print(f"\nContext: {digest['context']}")
 +         
 +         # Print facts
-+         print(f&quot;\nExtracted Facts: {len(digest[&#39;new_facts&#39;])}&quot;)
-+         if len(digest[&#39;new_facts&#39;]) &gt; 0:
-+             print(&quot;\nSample facts:&quot;)
-+             for j, fact in enumerate(digest[&#39;new_facts&#39;][:2]):  # Print just first 2 facts
-+                 print(f&quot;  Fact {j}:&quot;)
-+                 print(f&quot;    Key: {fact.get(&#39;key&#39;)}&quot;)
-+                 print(f&quot;    Value: {fact.get(&#39;value&#39;)}&quot;)
-+                 print(f&quot;    Importance: {fact.get(&#39;importance&#39;, &#39;N/A&#39;)}&quot;)
-+                 print(f&quot;    Topic: {fact.get(&#39;topic&#39;, &#39;N/A&#39;)}&quot;)
-+                 print(f&quot;    Segments: {fact.get(&#39;segmentIndexes&#39;, [])}&quot;)
-+             if len(digest[&#39;new_facts&#39;]) &gt; 2:
-+                 print(f&quot;  ... ({len(digest[&#39;new_facts&#39;]) - 2} more facts)&quot;)
++         print(f"\nExtracted Facts: {len(digest['new_facts'])}")
++         if len(digest['new_facts']) &gt; 0:
++             print("\nSample facts:")
++             for j, fact in enumerate(digest['new_facts'][:2]):  # Print just first 2 facts
++                 print(f"  Fact {j}:")
++                 print(f"    Key: {fact.get('key')}")
++                 print(f"    Value: {fact.get('value')}")
++                 print(f"    Importance: {fact.get('importance', 'N/A')}")
++                 print(f"    Topic: {fact.get('topic', 'N/A')}")
++                 print(f"    Segments: {fact.get('segmentIndexes', [])}")
++             if len(digest['new_facts']) &gt; 2:
++                 print(f"  ... ({len(digest['new_facts']) - 2} more facts)")
 +         
 +         # Print relationships
-+         print(f&quot;\nExtracted Relationships: {len(digest[&#39;new_relationships&#39;])}&quot;)
-+         if len(digest[&#39;new_relationships&#39;]) &gt; 0:
-+             print(&quot;\nSample relationships:&quot;)
-+             for j, rel in enumerate(digest[&#39;new_relationships&#39;][:2]):  # Print just first 2 relationships
-+                 print(f&quot;  Relationship {j}:&quot;)
-+                 print(f&quot;    Subject: {rel.get(&#39;subject&#39;)}&quot;)
-+                 print(f&quot;    Predicate: {rel.get(&#39;predicate&#39;)}&quot;)
-+                 print(f&quot;    Object: {rel.get(&#39;object&#39;)}&quot;)
-+                 print(f&quot;    Importance: {rel.get(&#39;importance&#39;, &#39;N/A&#39;)}&quot;)
-+                 print(f&quot;    Topic: {rel.get(&#39;topic&#39;, &#39;N/A&#39;)}&quot;)
-+                 print(f&quot;    Segments: {rel.get(&#39;segmentIndexes&#39;, [])}&quot;)
-+             if len(digest[&#39;new_relationships&#39;]) &gt; 2:
-+                 print(f&quot;  ... ({len(digest[&#39;new_relationships&#39;]) - 2} more relationships)&quot;)
++         print(f"\nExtracted Relationships: {len(digest['new_relationships'])}")
++         if len(digest['new_relationships']) &gt; 0:
++             print("\nSample relationships:")
++             for j, rel in enumerate(digest['new_relationships'][:2]):  # Print just first 2 relationships
++                 print(f"  Relationship {j}:")
++                 print(f"    Subject: {rel.get('subject')}")
++                 print(f"    Predicate: {rel.get('predicate')}")
++                 print(f"    Object: {rel.get('object')}")
++                 print(f"    Importance: {rel.get('importance', 'N/A')}")
++                 print(f"    Topic: {rel.get('topic', 'N/A')}")
++                 print(f"    Segments: {rel.get('segmentIndexes', [])}")
++             if len(digest['new_relationships']) &gt; 2:
++                 print(f"  ... ({len(digest['new_relationships']) - 2} more relationships)")
 +     
-+     print_section_header(&quot;Example Complete&quot;)
++     print_section_header("Example Complete")
 + 
-+ if __name__ == &quot;__main__&quot;:
++ if __name__ == "__main__":
 +     main() 
 ```
 
@@ -2103,7 +2103,7 @@ Now, let's update the src/memory/__init__.py file to export the DigestGenerator 
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/__init__.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/__init__.py</summary>
 
 **Chunk 1**
 Lines added: 3, lines removed: 1
@@ -2115,8 +2115,8 @@ Lines added: 3, lines removed: 1
 + from .simple_memory_manager import SimpleMemoryManager
 + from .digest_generator import DigestGenerator
   
-- __all__ = [&#39;MemoryManager&#39;] 
-+ __all__ = [&#39;MemoryManager&#39;, &#39;SimpleMemoryManager&#39;, &#39;DigestGenerator&#39;] 
+- __all__ = ['MemoryManager'] 
++ __all__ = ['MemoryManager', 'SimpleMemoryManager', 'DigestGenerator'] 
 ```
 
 </details>
@@ -2168,7 +2168,7 @@ Let's check how we've written our templates for the DigestGenerator and fix them
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/templates/segment_conversation.prompt</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/templates/segment_conversation.prompt</summary>
 
 </details>
 
@@ -2178,7 +2178,7 @@ Let's check how we've written our templates for the DigestGenerator and fix them
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/templates/extract_digest.prompt</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/templates/extract_digest.prompt</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: 2
@@ -2189,12 +2189,12 @@ Lines added: 2, lines removed: 2
   
 - {
 + {{
-    &quot;context&quot;: &quot;Brief description of what this conversation was about&quot;,
-    &quot;new_facts&quot;: [
+    "context": "Brief description of what this conversation was about",
+    "new_facts": [
 -     {
 +     {{
-        &quot;segmentIndexes&quot;: [0, 1],
-        &quot;key&quot;: &quot;fact_key&quot;,
+        "segmentIndexes": [0, 1],
+        "key": "fact_key",
 ```
 
 **Chunk 2**
@@ -2202,16 +2202,16 @@ Lines added: 2, lines removed: 2
 
 ```diff
 @@ -28,8 +28,8 @@
-        &quot;importance&quot;: &quot;high|medium|low&quot;,
-        &quot;topic&quot;: &quot;Brief topic description&quot;
+        "importance": "high|medium|low",
+        "topic": "Brief topic description"
 -     }
 +     }}
     ],
-    &quot;new_relationships&quot;: [
+    "new_relationships": [
 -     {
 +     {{
-        &quot;segmentIndexes&quot;: [1, 2],
-        &quot;subject&quot;: &quot;entity_id&quot;,
+        "segmentIndexes": [1, 2],
+        "subject": "entity_id",
 ```
 
 **Chunk 3**
@@ -2219,8 +2219,8 @@ Lines added: 2, lines removed: 2
 
 ```diff
 @@ -40,5 +40,5 @@
-        &quot;importance&quot;: &quot;high|medium|low&quot;,
-        &quot;topic&quot;: &quot;Brief topic description&quot;
+        "importance": "high|medium|low",
+        "topic": "Brief topic description"
 -     }
 +     }}
     ]
@@ -2240,7 +2240,7 @@ Let's make the same changes in the DigestGenerator's default templates:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/digest_generator.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/digest_generator.py</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: 2
@@ -2251,12 +2251,12 @@ Lines added: 2, lines removed: 2
   
 - {
 + {{
-    &quot;context&quot;: &quot;Brief description of what this conversation was about&quot;,
-    &quot;new_facts&quot;: [
+    "context": "Brief description of what this conversation was about",
+    "new_facts": [
 -     {
 +     {{
-        &quot;segmentIndexes&quot;: [0, 1],
-        &quot;key&quot;: &quot;fact_key&quot;,
+        "segmentIndexes": [0, 1],
+        "key": "fact_key",
 ```
 
 **Chunk 2**
@@ -2264,16 +2264,16 @@ Lines added: 2, lines removed: 2
 
 ```diff
 @@ -109,8 +109,8 @@
-        &quot;importance&quot;: &quot;high|medium|low&quot;,
-        &quot;topic&quot;: &quot;Brief topic description&quot;
+        "importance": "high|medium|low",
+        "topic": "Brief topic description"
 -     }
 +     }}
     ],
-    &quot;new_relationships&quot;: [
+    "new_relationships": [
 -     {
 +     {{
-        &quot;segmentIndexes&quot;: [1, 2],
-        &quot;subject&quot;: &quot;entity_id&quot;,
+        "segmentIndexes": [1, 2],
+        "subject": "entity_id",
 ```
 
 **Chunk 3**
@@ -2281,14 +2281,14 @@ Lines added: 2, lines removed: 2
 
 ```diff
 @@ -121,7 +121,7 @@
-        &quot;importance&quot;: &quot;high|medium|low&quot;,
-        &quot;topic&quot;: &quot;Brief topic description&quot;
+        "importance": "high|medium|low",
+        "topic": "Brief topic description"
 -     }
 +     }}
     ]
 - }
 + }}
-  &quot;&quot;&quot;
+  """
       
 ```
 
@@ -2358,7 +2358,7 @@ You're right. It's better to follow the same pattern as the MemoryManager and al
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/digest_generator.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/digest_generator.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: undefined
@@ -2379,11 +2379,11 @@ Lines added: 1, lines removed: 3
 @@ -26,7 +27,5 @@
       
       def _load_templates(self) -&gt; None:
--         &quot;&quot;&quot;Load prompt templates for segmentation and extraction.&quot;&quot;&quot;
+-         """Load prompt templates for segmentation and extraction."""
 -         import os
 -         
-+         &quot;&quot;&quot;Load prompt templates from files&quot;&quot;&quot;
-          template_dir = os.path.join(os.path.dirname(__file__), &quot;templates&quot;)
++         """Load prompt templates from files"""
+          template_dir = os.path.join(os.path.dirname(__file__), "templates")
           self.templates = {}
 ```
 
@@ -2393,16 +2393,16 @@ Lines added: 2, lines removed: 80
 ```diff
 @@ -45,84 +44,6 @@
               except Exception as e:
-                  print(f&quot;Error loading digest template {filename}: {str(e)}&quot;)
--                 # Create default templates if files don&#39;t exist
--                 if key == &quot;segment&quot;:
+                  print(f"Error loading digest template {filename}: {str(e)}")
+-                 # Create default templates if files don't exist
+-                 if key == "segment":
 -                     self.templates[key] = self._get_default_segment_template()
--                 elif key == &quot;extract&quot;:
+-                 elif key == "extract":
 -                     self.templates[key] = self._get_default_extract_template()
 -     
 -     def _get_default_segment_template(self) -&gt; str:
--         &quot;&quot;&quot;Get default segmentation template if file doesn&#39;t exist.&quot;&quot;&quot;
--         return &quot;&quot;&quot;You are a text analysis system. Your task is to segment the provided content into meaningful phrases, each containing a single idea or piece of information.
+-         """Get default segmentation template if file doesn't exist."""
+-         return """You are a text analysis system. Your task is to segment the provided content into meaningful phrases, each containing a single idea or piece of information.
 - 
 - CONTENT:
 - {content}
@@ -2411,25 +2411,25 @@ Lines added: 2, lines removed: 80
 - 1. Divide the content into distinct segments, each representing one coherent idea, fact, or piece of information
 - 2. Each segment should be a complete phrase or sentence
 - 3. Preserve the original meaning and context
-- 4. Don&#39;t omit any significant information
+- 4. Don't omit any significant information
 - 5. Avoid creating segments that are too long or that contain multiple separate ideas
 - 
 - For example, given:
-- &quot;Captain Sara patrols the eastern border with her squad of ten guards. She&#39;s concerned about recent monster sightings and has requested additional resources.&quot;
+- "Captain Sara patrols the eastern border with her squad of ten guards. She's concerned about recent monster sightings and has requested additional resources."
 - 
 - The segmentation would be:
 - [
--   &quot;Captain Sara patrols the eastern border with her squad of ten guards.&quot;,
--   &quot;She&#39;s concerned about recent monster sightings.&quot;,
--   &quot;She has requested additional resources.&quot;
+-   "Captain Sara patrols the eastern border with her squad of ten guards.",
+-   "She's concerned about recent monster sightings.",
+-   "She has requested additional resources."
 - ]
 - 
 - Return ONLY a JSON array of strings, with each string being a distinct segment. The response should be valid JSON that can be directly parsed.
-- &quot;&quot;&quot;
+- """
 -     
 -     def _get_default_extract_template(self) -&gt; str:
--         &quot;&quot;&quot;Get default extraction template if file doesn&#39;t exist.&quot;&quot;&quot;
--         return &quot;&quot;&quot;You are a knowledge extraction system. Your task is to analyze the segmented content and extract structured information into a digest.
+-         """Get default extraction template if file doesn't exist."""
+-         return """You are a knowledge extraction system. Your task is to analyze the segmented content and extract structured information into a digest.
 - 
 - SEGMENTED CONTENT:
 - {segments}
@@ -2438,44 +2438,44 @@ Lines added: 2, lines removed: 80
 - 1. Analyze each segment for distinct information
 - 2. Extract specific facts and relationships
 - 3. Organize the extracted information according to the required JSON structure
-- 4. Include segment indexes in the &quot;segmentIndexes&quot; field to trace facts back to source segments
+- 4. Include segment indexes in the "segmentIndexes" field to trace facts back to source segments
 - 5. Be selective - focus on extracting only meaningful, non-obvious information
 - 6. Assign importance levels (high/medium/low) based on the significance of the information
-- 7. Provide a brief &quot;context&quot; field explaining the information
-- 8. Specify the &quot;source&quot; as either &quot;user&quot;, &quot;assistant&quot;, or &quot;inferred&quot;
+- 7. Provide a brief "context" field explaining the information
+- 8. Specify the "source" as either "user", "assistant", or "inferred"
 - 9. Assign a relevant topic to each fact and relationship
 - 
 - Return ONLY a JSON object with the structure below. The response must be valid JSON that can be directly parsed.
 - 
 - {{
--   &quot;context&quot;: &quot;Brief description of what this conversation was about&quot;,
--   &quot;new_facts&quot;: [
+-   "context": "Brief description of what this conversation was about",
+-   "new_facts": [
 -     {{
--       &quot;segmentIndexes&quot;: [0, 1],
--       &quot;key&quot;: &quot;fact_key&quot;,
--       &quot;value&quot;: &quot;fact_value&quot;,
--       &quot;context&quot;: &quot;fact_context&quot;,
--       &quot;source&quot;: &quot;user|assistant|inferred&quot;,
--       &quot;importance&quot;: &quot;high|medium|low&quot;,
--       &quot;topic&quot;: &quot;Brief topic description&quot;
+-       "segmentIndexes": [0, 1],
+-       "key": "fact_key",
+-       "value": "fact_value",
+-       "context": "fact_context",
+-       "source": "user|assistant|inferred",
+-       "importance": "high|medium|low",
+-       "topic": "Brief topic description"
 -     }}
 -   ],
--   &quot;new_relationships&quot;: [
+-   "new_relationships": [
 -     {{
--       &quot;segmentIndexes&quot;: [1, 2],
--       &quot;subject&quot;: &quot;entity_id&quot;,
--       &quot;predicate&quot;: &quot;RELATION_TYPE&quot;,
--       &quot;object&quot;: &quot;other_entity_id&quot;,
--       &quot;context&quot;: &quot;relationship_context&quot;,
--       &quot;source&quot;: &quot;user|assistant|inferred&quot;,
--       &quot;importance&quot;: &quot;high|medium|low&quot;,
--       &quot;topic&quot;: &quot;Brief topic description&quot;
+-       "segmentIndexes": [1, 2],
+-       "subject": "entity_id",
+-       "predicate": "RELATION_TYPE",
+-       "object": "other_entity_id",
+-       "context": "relationship_context",
+-       "source": "user|assistant|inferred",
+-       "importance": "high|medium|low",
+-       "topic": "Brief topic description"
 -     }}
 -   ]
 - }}
-- &quot;&quot;&quot;
+- """
 +                 # Raise an exception if the template cannot be loaded
-+                 raise Exception(f&quot;Failed to load template: {filename}&quot;)
++                 raise Exception(f"Failed to load template: {filename}")
       
       def generate_digest(self, conversation_entry: Dict[str, Any]) -&gt; Dict[str, Any]:
 ```
@@ -2492,7 +2492,7 @@ Now let's update the unit tests to account for the removal of the default templa
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: tests/memory_manager/test_digest_generator.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: tests/memory_manager/test_digest_generator.py</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: 1
@@ -2520,11 +2520,11 @@ Lines added: 17, lines removed: 8
 -         self.digest_generator = DigestGenerator(self.mock_llm)
 -         
 -         # Patch the _load_templates method to use default templates
--         with patch.object(DigestGenerator, &#39;_load_templates&#39;):
+-         with patch.object(DigestGenerator, '_load_templates'):
 -             self.digest_generator._load_templates()
 +         # Mock template content
-+         self.segment_template = &quot;You are a text analysis system. Your task is to segment the provided content into meaningful phrases.\n\nCONTENT:\n{content}\n\nINSTRUCTIONS:\n1. Divide the content into segments&quot;
-+         self.extract_template = &quot;You are a knowledge extraction system. Your task is to analyze the segmented content.\n\nSEGMENTED CONTENT:\n{segments}\n\nINSTRUCTIONS:\n1. Analyze each segment&quot;
++         self.segment_template = "You are a text analysis system. Your task is to segment the provided content into meaningful phrases.\n\nCONTENT:\n{content}\n\nINSTRUCTIONS:\n1. Divide the content into segments"
++         self.extract_template = "You are a knowledge extraction system. Your task is to analyze the segmented content.\n\nSEGMENTED CONTENT:\n{segments}\n\nINSTRUCTIONS:\n1. Analyze each segment"
 +         
 +         # Mock the open function to return our template content
 +         self.mock_open_impl = mock_open()
@@ -2534,14 +2534,14 @@ Lines added: 17, lines removed: 8
 +         ]
 +         
 +         # Create the DigestGenerator with the mock LLM service and mocked template files
-+         with patch(&#39;builtins.open&#39;, self.mock_open_impl):
++         with patch('builtins.open', self.mock_open_impl):
 +             self.digest_generator = DigestGenerator(self.mock_llm)
 +             # Set the templates manually
               self.digest_generator.templates = {
--                 &quot;segment&quot;: self.digest_generator._get_default_segment_template(),
--                 &quot;extract&quot;: self.digest_generator._get_default_extract_template()
-+                 &quot;segment&quot;: self.segment_template,
-+                 &quot;extract&quot;: self.extract_template
+-                 "segment": self.digest_generator._get_default_segment_template(),
+-                 "extract": self.digest_generator._get_default_extract_template()
++                 "segment": self.segment_template,
++                 "extract": self.extract_template
               }
       
 ```
@@ -2551,13 +2551,13 @@ Lines added: 20, lines removed: undefined
 
 ```diff
 @@ -218,4 +228,24 @@
-          self.assertEqual(0, len(digest[&quot;new_facts&quot;]))
-          self.assertEqual(0, len(digest[&quot;new_relationships&quot;]))
+          self.assertEqual(0, len(digest["new_facts"]))
+          self.assertEqual(0, len(digest["new_relationships"]))
 +     
-+     @patch(&#39;os.path.exists&#39;)
-+     @patch(&#39;builtins.open&#39;, new_callable=mock_open)
++     @patch('os.path.exists')
++     @patch('builtins.open', new_callable=mock_open)
 +     def test_load_templates(self, mock_file, mock_exists):
-+         &quot;&quot;&quot;Test template loading functionality.&quot;&quot;&quot;
++         """Test template loading functionality."""
 +         # Setup mock to simulate that template files exist
 +         mock_exists.return_value = True
 +         mock_file.return_value.__enter__.return_value.read.side_effect = [
@@ -2569,10 +2569,10 @@ Lines added: 20, lines removed: undefined
 +         digest_generator = DigestGenerator(self.mock_llm)
 +         
 +         # Verify that the templates were loaded
-+         self.assertIn(&quot;segment&quot;, digest_generator.templates)
-+         self.assertIn(&quot;extract&quot;, digest_generator.templates)
-+         self.assertEqual(self.segment_template, digest_generator.templates[&quot;segment&quot;])
-+         self.assertEqual(self.extract_template, digest_generator.templates[&quot;extract&quot;])
++         self.assertIn("segment", digest_generator.templates)
++         self.assertIn("extract", digest_generator.templates)
++         self.assertEqual(self.segment_template, digest_generator.templates["segment"])
++         self.assertEqual(self.extract_template, digest_generator.templates["extract"])
   
   
 ```
@@ -2589,7 +2589,7 @@ Now, let's update the example script to ensure it's compatible with our changes:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/digest_generator_example.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: examples/digest_generator_example.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: undefined
@@ -2608,21 +2608,21 @@ Lines added: 11, lines removed: undefined
 
 ```diff
 @@ -29,4 +30,15 @@
-      print_section_header(&quot;DigestGenerator Example&quot;)
+      print_section_header("DigestGenerator Example")
       
 +     # Verify that template files exist
-+     template_dir = os.path.join(project_root, &quot;src&quot;, &quot;memory&quot;, &quot;templates&quot;)
-+     segment_template_path = os.path.join(template_dir, &quot;segment_conversation.prompt&quot;) 
-+     extract_template_path = os.path.join(template_dir, &quot;extract_digest.prompt&quot;)
++     template_dir = os.path.join(project_root, "src", "memory", "templates")
++     segment_template_path = os.path.join(template_dir, "segment_conversation.prompt") 
++     extract_template_path = os.path.join(template_dir, "extract_digest.prompt")
 +     
 +     if not os.path.exists(segment_template_path) or not os.path.exists(extract_template_path):
-+         print(f&quot;Error: Template files not found. Please ensure they exist at:&quot;)
-+         print(f&quot;  - {segment_template_path}&quot;)
-+         print(f&quot;  - {extract_template_path}&quot;)
++         print(f"Error: Template files not found. Please ensure they exist at:")
++         print(f"  - {segment_template_path}")
++         print(f"  - {extract_template_path}")
 +         return
 +     
       # Initialize LLM service
-      print(&quot;Initializing LLM service...&quot;)
+      print("Initializing LLM service...")
 ```
 
 </details>
@@ -2666,7 +2666,7 @@ I'll run the DigestGenerator tests as requested.
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: cd /Users/andrewrapo/github/cursor/cursor-hello-llm-agent && python -m unittest tests/memory_manager/test_digest_generator.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: cd /Users/andrewrapo/github/cursor/cursor-hello-llm-agent && python -m unittest tests/memory_manager/test_digest_generator.py</summary>
 
 ```bash
 cd /Users/andrewrapo/github/cursor/cursor-hello-llm-agent && python -m unittest tests/memory_manager/test_digest_generator.py
@@ -2741,7 +2741,7 @@ I'll create an integration test for the DigestGenerator that calls the actual Ol
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: tests/memory_manager/test_digest_generator_integration.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: tests/memory_manager/test_digest_generator_integration.py</summary>
 
 **Chunk 1**
 Lines added: 224, lines removed: 1
@@ -2767,211 +2767,211 @@ Lines added: 224, lines removed: 1
 + 
 + 
 + class TestDigestGeneratorIntegration(unittest.TestCase):
-+     &quot;&quot;&quot;Integration tests for the DigestGenerator class using a real LLM.&quot;&quot;&quot;
++     """Integration tests for the DigestGenerator class using a real LLM."""
 +     
 +     @classmethod
 +     def setUpClass(cls):
-+         &quot;&quot;&quot;Set up shared test fixtures that run once for the entire test class.&quot;&quot;&quot;
-+         # Skip the tests if we&#39;re in CI or don&#39;t want to call real LLMs
-+         if os.environ.get(&quot;SKIP_LLM_TESTS&quot;) == &quot;1&quot;:
-+             raise unittest.SkipTest(&quot;Skipping integration tests that call real LLMs&quot;)
++         """Set up shared test fixtures that run once for the entire test class."""
++         # Skip the tests if we're in CI or don't want to call real LLMs
++         if os.environ.get("SKIP_LLM_TESTS") == "1":
++             raise unittest.SkipTest("Skipping integration tests that call real LLMs")
 +         
 +         try:
 +             # Initialize LLM service with gemma3 model
 +             cls.llm_service = OllamaService({
-+                 &quot;base_url&quot;: &quot;http://localhost:11434&quot;,
-+                 &quot;model&quot;: &quot;gemma3&quot;,
-+                 &quot;temperature&quot;: 0.2,  # Lower temperature for more consistent results
-+                 &quot;stream&quot;: False,
-+                 &quot;debug&quot;: True,
-+                 &quot;debug_file&quot;: &quot;test_digest_generator_integration.log&quot;,
-+                 &quot;debug_scope&quot;: &quot;digest_integration_test&quot;,
-+                 &quot;console_output&quot;: False
++                 "base_url": "http://localhost:11434",
++                 "model": "gemma3",
++                 "temperature": 0.2,  # Lower temperature for more consistent results
++                 "stream": False,
++                 "debug": True,
++                 "debug_file": "test_digest_generator_integration.log",
++                 "debug_scope": "digest_integration_test",
++                 "console_output": False
 +             })
 +             
 +             # Test connection to Ollama
 +             cls.ollama_available = True
 +             try:
 +                 # Simple test query to check if Ollama is available
-+                 cls.llm_service.generate(&quot;Hello, are you available?&quot;)
++                 cls.llm_service.generate("Hello, are you available?")
 +             except Exception as e:
-+                 print(f&quot;Error connecting to Ollama: {str(e)}&quot;)
++                 print(f"Error connecting to Ollama: {str(e)}")
 +                 cls.ollama_available = False
 +                 
 +         except Exception as e:
-+             print(f&quot;Error setting up LLM service: {str(e)}&quot;)
++             print(f"Error setting up LLM service: {str(e)}")
 +             cls.ollama_available = False
 +     
 +     def setUp(self):
-+         &quot;&quot;&quot;Set up test fixtures.&quot;&quot;&quot;
++         """Set up test fixtures."""
 +         # Skip individual tests if Ollama is not available
-+         if not getattr(self.__class__, &quot;ollama_available&quot;, False):
-+             self.skipTest(&quot;Ollama service is not available&quot;)
++         if not getattr(self.__class__, "ollama_available", False):
++             self.skipTest("Ollama service is not available")
 +         
 +         # Initialize DigestGenerator with the real LLM service
 +         self.digest_generator = DigestGenerator(self.__class__.llm_service)
 +         
 +         # Create sample test data
 +         self.test_entry = {
-+             &quot;guid&quot;: str(uuid.uuid4()),
-+             &quot;role&quot;: &quot;assistant&quot;,
-+             &quot;content&quot;: &quot;Captain Sara patrols the eastern border with her squad of ten guards. She&#39;s concerned about recent monster sightings and has requested additional resources. The village council is meeting tomorrow to discuss her requests.&quot;,
-+             &quot;timestamp&quot;: datetime.now().isoformat()
++             "guid": str(uuid.uuid4()),
++             "role": "assistant",
++             "content": "Captain Sara patrols the eastern border with her squad of ten guards. She's concerned about recent monster sightings and has requested additional resources. The village council is meeting tomorrow to discuss her requests.",
++             "timestamp": datetime.now().isoformat()
 +         }
 +         
 +         self.user_test_entry = {
-+             &quot;guid&quot;: str(uuid.uuid4()),
-+             &quot;role&quot;: &quot;user&quot;,
-+             &quot;content&quot;: &quot;I need to get prepared for this adventure. What kind of equipment should I bring to deal with venomous spiders? Also, do I know anyone who might have knowledge about these caves?&quot;,
-+             &quot;timestamp&quot;: datetime.now().isoformat()
++             "guid": str(uuid.uuid4()),
++             "role": "user",
++             "content": "I need to get prepared for this adventure. What kind of equipment should I bring to deal with venomous spiders? Also, do I know anyone who might have knowledge about these caves?",
++             "timestamp": datetime.now().isoformat()
 +         }
 +     
 +     def test_segment_content_integration(self):
-+         &quot;&quot;&quot;Integration test for segmenting content with a real LLM.&quot;&quot;&quot;
++         """Integration test for segmenting content with a real LLM."""
 +         # Call the segmentation method
-+         segments = self.digest_generator._segment_content(self.test_entry[&quot;content&quot;])
++         segments = self.digest_generator._segment_content(self.test_entry["content"])
 +         
 +         # Basic validation
-+         self.assertIsInstance(segments, list, &quot;Segments should be a list&quot;)
-+         self.assertGreater(len(segments), 1, &quot;Should produce multiple segments&quot;)
++         self.assertIsInstance(segments, list, "Segments should be a list")
++         self.assertGreater(len(segments), 1, "Should produce multiple segments")
 +         
 +         # Print the segments for inspection
-+         print(&quot;\nSegmentation Results:&quot;)
++         print("\nSegmentation Results:")
 +         for i, segment in enumerate(segments):
-+             print(f&quot;Segment {i}: {segment}&quot;)
++             print(f"Segment {i}: {segment}")
 +     
 +     def test_extract_information_integration(self):
-+         &quot;&quot;&quot;Integration test for extracting information from segments with a real LLM.&quot;&quot;&quot;
++         """Integration test for extracting information from segments with a real LLM."""
 +         # First segment the content
-+         segments = self.digest_generator._segment_content(self.test_entry[&quot;content&quot;])
++         segments = self.digest_generator._segment_content(self.test_entry["content"])
 +         
 +         # Then extract information
 +         extracted_info = self.digest_generator._extract_information(segments)
 +         
 +         # Basic validation
-+         self.assertIsInstance(extracted_info, dict, &quot;Extracted info should be a dictionary&quot;)
-+         self.assertIn(&quot;context&quot;, extracted_info, &quot;Should include a context field&quot;)
-+         self.assertIn(&quot;new_facts&quot;, extracted_info, &quot;Should include new_facts field&quot;)
-+         self.assertIn(&quot;new_relationships&quot;, extracted_info, &quot;Should include new_relationships field&quot;)
++         self.assertIsInstance(extracted_info, dict, "Extracted info should be a dictionary")
++         self.assertIn("context", extracted_info, "Should include a context field")
++         self.assertIn("new_facts", extracted_info, "Should include new_facts field")
++         self.assertIn("new_relationships", extracted_info, "Should include new_relationships field")
 +         
 +         # Print the extracted information for inspection
-+         print(&quot;\nExtracted Information:&quot;)
-+         print(f&quot;Context: {extracted_info[&#39;context&#39;]}&quot;)
-+         print(&quot;\nFacts:&quot;)
-+         for i, fact in enumerate(extracted_info.get(&quot;new_facts&quot;, [])):
-+             print(f&quot;Fact {i}:&quot;)
-+             print(f&quot;  Key: {fact.get(&#39;key&#39;)}&quot;)
-+             print(f&quot;  Value: {fact.get(&#39;value&#39;)}&quot;)
-+             print(f&quot;  Importance: {fact.get(&#39;importance&#39;, &#39;N/A&#39;)}&quot;)
-+             print(f&quot;  Segments: {fact.get(&#39;segmentIndexes&#39;, [])}&quot;)
++         print("\nExtracted Information:")
++         print(f"Context: {extracted_info['context']}")
++         print("\nFacts:")
++         for i, fact in enumerate(extracted_info.get("new_facts", [])):
++             print(f"Fact {i}:")
++             print(f"  Key: {fact.get('key')}")
++             print(f"  Value: {fact.get('value')}")
++             print(f"  Importance: {fact.get('importance', 'N/A')}")
++             print(f"  Segments: {fact.get('segmentIndexes', [])}")
 +             
-+         print(&quot;\nRelationships:&quot;)
-+         for i, rel in enumerate(extracted_info.get(&quot;new_relationships&quot;, [])):
-+             print(f&quot;Relationship {i}:&quot;)
-+             print(f&quot;  Subject: {rel.get(&#39;subject&#39;)}&quot;)
-+             print(f&quot;  Predicate: {rel.get(&#39;predicate&#39;)}&quot;)
-+             print(f&quot;  Object: {rel.get(&#39;object&#39;)}&quot;)
-+             print(f&quot;  Importance: {rel.get(&#39;importance&#39;, &#39;N/A&#39;)}&quot;)
++         print("\nRelationships:")
++         for i, rel in enumerate(extracted_info.get("new_relationships", [])):
++             print(f"Relationship {i}:")
++             print(f"  Subject: {rel.get('subject')}")
++             print(f"  Predicate: {rel.get('predicate')}")
++             print(f"  Object: {rel.get('object')}")
++             print(f"  Importance: {rel.get('importance', 'N/A')}")
 +     
 +     def test_generate_digest_integration(self):
-+         &quot;&quot;&quot;Integration test for generating a complete digest with a real LLM.&quot;&quot;&quot;
++         """Integration test for generating a complete digest with a real LLM."""
 +         # Generate digest for the assistant message
 +         digest = self.digest_generator.generate_digest(self.test_entry)
 +         
 +         # Basic validation
-+         self.assertIsInstance(digest, dict, &quot;Digest should be a dictionary&quot;)
-+         self.assertEqual(digest[&quot;conversationHistoryGuid&quot;], self.test_entry[&quot;guid&quot;], &quot;GUID should match&quot;)
-+         self.assertIn(&quot;segments&quot;, digest, &quot;Should include segments&quot;)
-+         self.assertIn(&quot;context&quot;, digest, &quot;Should include context&quot;)
-+         self.assertIn(&quot;new_facts&quot;, digest, &quot;Should include new_facts&quot;)
-+         self.assertIn(&quot;new_relationships&quot;, digest, &quot;Should include new_relationships&quot;)
++         self.assertIsInstance(digest, dict, "Digest should be a dictionary")
++         self.assertEqual(digest["conversationHistoryGuid"], self.test_entry["guid"], "GUID should match")
++         self.assertIn("segments", digest, "Should include segments")
++         self.assertIn("context", digest, "Should include context")
++         self.assertIn("new_facts", digest, "Should include new_facts")
++         self.assertIn("new_relationships", digest, "Should include new_relationships")
 +         
 +         # Print summary of the digest
-+         print(&quot;\nDigest Summary for Assistant Message:&quot;)
-+         print(f&quot;Segments: {len(digest[&#39;segments&#39;])}&quot;)
-+         print(f&quot;Context: {digest[&#39;context&#39;]}&quot;)
-+         print(f&quot;Facts: {len(digest[&#39;new_facts&#39;])}&quot;)
-+         print(f&quot;Relationships: {len(digest[&#39;new_relationships&#39;])}&quot;)
++         print("\nDigest Summary for Assistant Message:")
++         print(f"Segments: {len(digest['segments'])}")
++         print(f"Context: {digest['context']}")
++         print(f"Facts: {len(digest['new_facts'])}")
++         print(f"Relationships: {len(digest['new_relationships'])}")
 +         
 +         # Generate digest for the user message
 +         user_digest = self.digest_generator.generate_digest(self.user_test_entry)
 +         
 +         # Basic validation for user message
-+         self.assertIsInstance(user_digest, dict, &quot;User digest should be a dictionary&quot;)
-+         self.assertEqual(user_digest[&quot;conversationHistoryGuid&quot;], self.user_test_entry[&quot;guid&quot;], &quot;User GUID should match&quot;)
++         self.assertIsInstance(user_digest, dict, "User digest should be a dictionary")
++         self.assertEqual(user_digest["conversationHistoryGuid"], self.user_test_entry["guid"], "User GUID should match")
 +         
 +         # Print summary of the user digest
-+         print(&quot;\nDigest Summary for User Message:&quot;)
-+         print(f&quot;Segments: {len(user_digest[&#39;segments&#39;])}&quot;)
-+         print(f&quot;Context: {user_digest[&#39;context&#39;]}&quot;)
-+         print(f&quot;Facts: {len(user_digest[&#39;new_facts&#39;])}&quot;)
-+         print(f&quot;Relationships: {len(user_digest[&#39;new_relationships&#39;])}&quot;)
++         print("\nDigest Summary for User Message:")
++         print(f"Segments: {len(user_digest['segments'])}")
++         print(f"Context: {user_digest['context']}")
++         print(f"Facts: {len(user_digest['new_facts'])}")
++         print(f"Relationships: {len(user_digest['new_relationships'])}")
 +     
 +     def test_complex_content_integration(self):
-+         &quot;&quot;&quot;Integration test with more complex content to test robustness.&quot;&quot;&quot;
++         """Integration test with more complex content to test robustness."""
 +         # Create a more complex entry with multiple themes and details
 +         complex_entry = {
-+             &quot;guid&quot;: str(uuid.uuid4()),
-+             &quot;role&quot;: &quot;assistant&quot;,
-+             &quot;content&quot;: &quot;&quot;&quot;The Blackwood Caves are located approximately three miles northeast of Haven Village. 
++             "guid": str(uuid.uuid4()),
++             "role": "assistant",
++             "content": """The Blackwood Caves are located approximately three miles northeast of Haven Village. 
 +             According to local legends, they were once used as a temple by an ancient civilization that worshipped 
 +             spider deities. The entrance is marked by stone pillars carved with web-like patterns.
 +             
 +             The venomous spiders that have been spotted are unusual - they have a distinctive blue marking on their 
 +             abdomens and can grow up to the size of a dinner plate. Their venom causes paralysis within minutes, 
-+             though it&#39;s rarely fatal if treated quickly with the proper antidote.
++             though it's rarely fatal if treated quickly with the proper antidote.
 +             
 +             Captain Silas has already lost two scouts to these creatures. The first scout, Elara, returned with 
 +             severe bite wounds and died the next day. The second, Jormund, never returned at all. Silas believes 
 +             the spider population is growing rapidly and fears they may soon venture beyond the caves toward 
-+             populated areas.&quot;&quot;&quot;,
-+             &quot;timestamp&quot;: datetime.now().isoformat()
++             populated areas.""",
++             "timestamp": datetime.now().isoformat()
 +         }
 +         
 +         # Generate digest
 +         digest = self.digest_generator.generate_digest(complex_entry)
 +         
 +         # Basic validation
-+         self.assertIsInstance(digest, dict, &quot;Digest should be a dictionary&quot;)
-+         self.assertGreater(len(digest[&quot;segments&quot;]), 5, &quot;Complex content should produce many segments&quot;)
++         self.assertIsInstance(digest, dict, "Digest should be a dictionary")
++         self.assertGreater(len(digest["segments"]), 5, "Complex content should produce many segments")
 +         
 +         # Validate facts and relationships
-+         if digest[&quot;new_facts&quot;]:
-+             for fact in digest[&quot;new_facts&quot;]:
-+                 self.assertIn(&quot;key&quot;, fact, &quot;Each fact should have a key&quot;)
-+                 self.assertIn(&quot;value&quot;, fact, &quot;Each fact should have a value&quot;)
-+                 self.assertIn(&quot;segmentIndexes&quot;, fact, &quot;Each fact should reference source segments&quot;)
++         if digest["new_facts"]:
++             for fact in digest["new_facts"]:
++                 self.assertIn("key", fact, "Each fact should have a key")
++                 self.assertIn("value", fact, "Each fact should have a value")
++                 self.assertIn("segmentIndexes", fact, "Each fact should reference source segments")
 +         
-+         if digest[&quot;new_relationships&quot;]:
-+             for rel in digest[&quot;new_relationships&quot;]:
-+                 self.assertIn(&quot;subject&quot;, rel, &quot;Each relationship should have a subject&quot;)
-+                 self.assertIn(&quot;predicate&quot;, rel, &quot;Each relationship should have a predicate&quot;)
-+                 self.assertIn(&quot;object&quot;, rel, &quot;Each relationship should have an object&quot;)
-+                 self.assertIn(&quot;segmentIndexes&quot;, rel, &quot;Each relationship should reference source segments&quot;)
++         if digest["new_relationships"]:
++             for rel in digest["new_relationships"]:
++                 self.assertIn("subject", rel, "Each relationship should have a subject")
++                 self.assertIn("predicate", rel, "Each relationship should have a predicate")
++                 self.assertIn("object", rel, "Each relationship should have an object")
++                 self.assertIn("segmentIndexes", rel, "Each relationship should reference source segments")
 +         
 +         # Print summary
-+         print(&quot;\nComplex Content Digest Summary:&quot;)
-+         print(f&quot;Segments: {len(digest[&#39;segments&#39;])}&quot;)
-+         print(f&quot;Context: {digest[&#39;context&#39;]}&quot;)
-+         print(f&quot;Facts: {len(digest[&#39;new_facts&#39;])}&quot;)
-+         print(f&quot;Relationships: {len(digest[&#39;new_relationships&#39;])}&quot;)
++         print("\nComplex Content Digest Summary:")
++         print(f"Segments: {len(digest['segments'])}")
++         print(f"Context: {digest['context']}")
++         print(f"Facts: {len(digest['new_facts'])}")
++         print(f"Relationships: {len(digest['new_relationships'])}")
 +         
 +         # Print a few sample segments
-+         print(&quot;\nSample Segments:&quot;)
-+         for i, segment in enumerate(digest[&quot;segments&quot;][:3]):
-+             print(f&quot;Segment {i}: {segment}&quot;)
++         print("\nSample Segments:")
++         for i, segment in enumerate(digest["segments"][:3]):
++             print(f"Segment {i}: {segment}")
 +         
 +         # Print a few sample facts if available
-+         if digest[&quot;new_facts&quot;]:
-+             print(&quot;\nSample Facts:&quot;)
-+             for i, fact in enumerate(digest[&quot;new_facts&quot;][:3]):
-+                 print(f&quot;Fact {i}:&quot;)
-+                 print(f&quot;  Key: {fact.get(&#39;key&#39;)}&quot;)
-+                 print(f&quot;  Value: {fact.get(&#39;value&#39;)}&quot;)
-+                 print(f&quot;  Topic: {fact.get(&#39;topic&#39;, &#39;N/A&#39;)}&quot;)
++         if digest["new_facts"]:
++             print("\nSample Facts:")
++             for i, fact in enumerate(digest["new_facts"][:3]):
++                 print(f"Fact {i}:")
++                 print(f"  Key: {fact.get('key')}")
++                 print(f"  Value: {fact.get('value')}")
++                 print(f"  Topic: {fact.get('topic', 'N/A')}")
 + 
 + 
-+ if __name__ == &quot;__main__&quot;:
++ if __name__ == "__main__":
 +     unittest.main() 
 ```
 
@@ -2986,7 +2986,7 @@ Now let's run the integration test to see it in action:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: cd /Users/andrewrapo/github/cursor/cursor-hello-llm-agent && python -m unittest tests/memory_manager/test_digest_generator_integration.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: cd /Users/andrewrapo/github/cursor/cursor-hello-llm-agent && python -m unittest tests/memory_manager/test_digest_generator_integration.py</summary>
 
 ```bash
 cd /Users/andrewrapo/github/cursor/cursor-hello-llm-agent && python -m unittest tests/memory_manager/test_digest_generator_integration.py
@@ -3018,7 +3018,7 @@ Let's modify the integration test to make it more robust by allowing it to use e
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: tests/memory_manager/test_digest_generator_integration.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: tests/memory_manager/test_digest_generator_integration.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: undefined
@@ -3037,10 +3037,10 @@ Lines added: 10, lines removed: 2
 
 ```diff
 @@ -26,9 +27,17 @@
-              raise unittest.SkipTest(&quot;Skipping integration tests that call real LLMs&quot;)
+              raise unittest.SkipTest("Skipping integration tests that call real LLMs")
           
 +         # Models to try in order of preference
-+         models_to_try = [&quot;gemma3&quot;, &quot;llama3&quot;, &quot;llama2&quot;]
++         models_to_try = ["gemma3", "llama3", "llama2"]
 +         cls.ollama_available = False
 +         cls.model_used = None
 +         
@@ -3049,13 +3049,13 @@ Lines added: 10, lines removed: 2
 +             # Try to connect to Ollama with different models
 +             for model in models_to_try:
 +                 try:
-+                     print(f&quot;Attempting to connect to Ollama with model: {model}&quot;)
++                     print(f"Attempting to connect to Ollama with model: {model}")
                       cls.llm_service = OllamaService({
-                          &quot;base_url&quot;: &quot;http://localhost:11434&quot;,
--                 &quot;model&quot;: &quot;gemma3&quot;,
-+                         &quot;model&quot;: model,
-                          &quot;temperature&quot;: 0.2,  # Lower temperature for more consistent results
-                          &quot;stream&quot;: False,
+                          "base_url": "http://localhost:11434",
+-                 "model": "gemma3",
++                         "model": model,
+                          "temperature": 0.2,  # Lower temperature for more consistent results
+                          "stream": False,
 ```
 
 **Chunk 3**
@@ -3067,25 +3067,25 @@ Lines added: 13, lines removed: 6
                       
 -             # Test connection to Ollama
 +                     # Test connection with a simple query
-+                     cls.llm_service.generate(&quot;Hello, is this model available?&quot;)
++                     cls.llm_service.generate("Hello, is this model available?")
 +                     
 +                     # If we get here, the model is available
                       cls.ollama_available = True
 -             try:
 -                 # Simple test query to check if Ollama is available
--                 cls.llm_service.generate(&quot;Hello, are you available?&quot;)
+-                 cls.llm_service.generate("Hello, are you available?")
 +                     cls.model_used = model
-+                     print(f&quot;Successfully connected to Ollama using model: {model}&quot;)
++                     print(f"Successfully connected to Ollama using model: {model}")
 +                     break
                   except Exception as e:
--                 print(f&quot;Error connecting to Ollama: {str(e)}&quot;)
+-                 print(f"Error connecting to Ollama: {str(e)}")
 -                 cls.ollama_available = False
-+                     print(f&quot;Failed to use model {model}: {str(e)}&quot;)
++                     print(f"Failed to use model {model}: {str(e)}")
 +                     # Wait a bit before trying the next model
 +                     time.sleep(1)
 +                 
 +             if not cls.ollama_available:
-+                 print(&quot;Could not connect to Ollama with any of the available models&quot;)
++                 print("Could not connect to Ollama with any of the available models")
                   
           except Exception as e:
 ```
@@ -3095,9 +3095,9 @@ Lines added: 2, lines removed: undefined
 
 ```diff
 @@ -58,4 +74,6 @@
-              self.skipTest(&quot;Ollama service is not available&quot;)
+              self.skipTest("Ollama service is not available")
           
-+         print(f&quot;\nRunning test with Ollama model: {self.__class__.model_used}&quot;)
++         print(f"\nRunning test with Ollama model: {self.__class__.model_used}")
 +         
           # Initialize DigestGenerator with the real LLM service
           self.digest_generator = DigestGenerator(self.__class__.llm_service)
@@ -3133,19 +3133,19 @@ Let's update the integration test with the correct Ollama base URL:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: tests/memory_manager/test_digest_generator_integration.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: tests/memory_manager/test_digest_generator_integration.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
 
 ```diff
 @@ -38,5 +38,5 @@
-                      print(f&quot;Attempting to connect to Ollama with model: {model}&quot;)
+                      print(f"Attempting to connect to Ollama with model: {model}")
                       cls.llm_service = OllamaService({
--                         &quot;base_url&quot;: &quot;http://localhost:11434&quot;,
-+                         &quot;base_url&quot;: &quot;http://192.168.1.173:11434&quot;,
-                          &quot;model&quot;: model,
-                          &quot;temperature&quot;: 0.2,  # Lower temperature for more consistent results
+-                         "base_url": "http://localhost:11434",
++                         "base_url": "http://192.168.1.173:11434",
+                          "model": model,
+                          "temperature": 0.2,  # Lower temperature for more consistent results
 ```
 
 </details>
@@ -3160,19 +3160,19 @@ Now let's also update the example script with the correct Ollama base URL:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/digest_generator_example.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: examples/digest_generator_example.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
 
 ```diff
 @@ -44,5 +44,5 @@
-      print(&quot;Initializing LLM service...&quot;)
+      print("Initializing LLM service...")
       llm_service = OllamaService({
--         &quot;base_url&quot;: &quot;http://localhost:11434&quot;,
-+         &quot;base_url&quot;: &quot;http://192.168.1.173:11434&quot;,
-          &quot;model&quot;: &quot;llama3&quot;,
-          &quot;temperature&quot;: 0.7,
+-         "base_url": "http://localhost:11434",
++         "base_url": "http://192.168.1.173:11434",
+          "model": "llama3",
+          "temperature": 0.7,
 ```
 
 </details>
@@ -3186,7 +3186,7 @@ Now let's run the integration tests with the updated Ollama URL:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: cd /Users/andrewrapo/github/cursor/cursor-hello-llm-agent && python -m tests.memory_manager.test_digest_generator_integration</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: cd /Users/andrewrapo/github/cursor/cursor-hello-llm-agent && python -m tests.memory_manager.test_digest_generator_integration</summary>
 
 ```bash
 cd /Users/andrewrapo/github/cursor/cursor-hello-llm-agent && python -m tests.memory_manager.test_digest_generator_integration
@@ -3241,7 +3241,7 @@ e council meeting to discuss the situation.
 
 Facts:
 Fact 0:
-  Key: Captain&#39;s Patrol Location
+  Key: Captain's Patrol Location
   Value: Eastern border
   Importance: high
   Segments: [0, 1]
@@ -3297,7 +3297,7 @@ Loaded digest template: extract_digest.prompt
 
 Segmentation Results:
 Segment 0: Captain Sara patrols the eastern border with her squad of ten guards.
-Segment 1: She&#39;s concerned about recent monster sightings.
+Segment 1: She's concerned about recent monster sightings.
 Segment 2: She has requested additional resources.
 Segment 3: The village council is meeting tomorrow to discuss her requests.
 .
@@ -3317,7 +3317,7 @@ Great! The integration tests are now running successfully with the updated Ollam
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: cd /Users/andrewrapo/github/cursor/cursor-hello-llm-agent && python examples/digest_generator_example.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: cd /Users/andrewrapo/github/cursor/cursor-hello-llm-agent && python examples/digest_generator_example.py</summary>
 
 ```bash
 cd /Users/andrewrapo/github/cursor/cursor-hello-llm-agent && python examples/digest_generator_example.py
@@ -3352,7 +3352,7 @@ I need to get prepared for this adventure. What kind of equipment should I bring
 
 Entry 3 - assistant:
 ----------------------------------------
-For tackling venomous spiders, you&#39;d be wise to bring antivenom potions if available from the local ...
+For tackling venomous spiders, you'd be wise to bring antivenom potions if available from the local ...
 
 ================================================================================
   Generated Digests
@@ -3370,7 +3370,7 @@ First 3 segments:
   0: The air hangs heavy with the scent of pine and damp earth as you recall the recent events.
   1: Just yesterday, Captain Silas, a grizzled veteran of the Merchant Guard, approached you with a proposit
 ion.
-  2: He&#39;d detected unusual activity near the Blackwood Caves – whispers of monstrous spiders weaving webs of
+  2: He'd detected unusual activity near the Blackwood Caves – whispers of monstrous spiders weaving webs of
  shadow and venom.
   ... (4 more segments)
 
@@ -3462,13 +3462,13 @@ Digest for entry 3 - assistant:
 Segments: 1
 
 First 3 segments:
-  0: For tackling venomous spiders, you&#39;d be wise to bring antivenom potions if available from the local apo
+  0: For tackling venomous spiders, you'd be wise to bring antivenom potions if available from the local apo
 thecary. Torches or lanterns are essential given the darkness of caves. A sturdy shield would help deflect a
 ny lunging attacks, while ranged weapons like a bow or crossbow could let you strike before entering their w
 ebbed domains. As for knowledge of the Blackwood Caves, you recall that Old Marta, the herbalist who lives a
 t the edge of the village, once mentioned gathering rare fungi from those caves in her younger days. She mig
-ht have valuable insights about the cave layout. There&#39;s also Durgan, a retired miner who frequents the Slee
-ping Dragon tavern - he&#39;s mapped many local cave systems and might have some information about Blackwood&#39;s t
+ht have valuable insights about the cave layout. There's also Durgan, a retired miner who frequents the Slee
+ping Dragon tavern - he's mapped many local cave systems and might have some information about Blackwood's t
 unnels for the price of a few ales.
 
 Context: Tactics and knowledge for navigating venomous spiders in the Blackwood Caves.
@@ -3537,7 +3537,7 @@ I'll run the integration tests again for the DigestGenerator:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: cd /Users/andrewrapo/github/cursor/cursor-hello-llm-agent && python -m tests.memory_manager.test_digest_generator_integration</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: cd /Users/andrewrapo/github/cursor/cursor-hello-llm-agent && python -m tests.memory_manager.test_digest_generator_integration</summary>
 
 ```bash
 cd /Users/andrewrapo/github/cursor/cursor-hello-llm-agent && python -m tests.memory_manager.test_digest_generator_integration
@@ -3591,13 +3591,13 @@ Context: A captain is investigating monster sightings and requesting reinforceme
 
 Facts:
 Fact 0:
-  Key: Captain&#39;s Role
+  Key: Captain's Role
   Value: Captain Sara patrols the eastern border with her squad of ten guards.
   Importance: high
   Segments: [0, 1]
 Fact 1:
   Key: Monster Sightings
-  Value: She&#39;s concerned about recent monster sightings.
+  Value: She's concerned about recent monster sightings.
   Importance: high
   Segments: [1]
 Fact 2:
@@ -3637,7 +3637,7 @@ Loaded digest template: extract_digest.prompt
 
 Segmentation Results:
 Segment 0: Captain Sara patrols the eastern border with her squad of ten guards.
-Segment 1: She&#39;s concerned about recent monster sightings.
+Segment 1: She's concerned about recent monster sightings.
 Segment 2: She has requested additional resources.
 Segment 3: The village council is meeting tomorrow to discuss her requests.
 .
@@ -3684,7 +3684,7 @@ Here's an update for the Phase-2 README detailing the latest changes:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: README-phase-2.md</summary>
+<details><summary>Tool use: **edit_file** • Edit file: README-phase-2.md</summary>
 
 **Chunk 1**
 Lines added: 29, lines removed: undefined
@@ -3979,7 +3979,7 @@ Let's implement these changes:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/digest_generator.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/digest_generator.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -3987,9 +3987,9 @@ Lines added: 1, lines removed: 1
 ```diff
 @@ -66,5 +66,5 @@
               if not content.strip():
-                  print(&quot;Warning: Empty content in conversation entry&quot;)
+                  print("Warning: Empty content in conversation entry")
 -                 return self._create_empty_digest(entry_guid)
-+                 return self._create_empty_digest(entry_guid, conversation_entry.get(&quot;role&quot;, &quot;unknown&quot;))
++                 return self._create_empty_digest(entry_guid, conversation_entry.get("role", "unknown"))
               
               # Step 1: Segment the content
 ```
@@ -4001,11 +4001,11 @@ Lines added: 2, lines removed: 1
 @@ -76,5 +76,6 @@
               # Combine into final digest
               digest = {
--                 &quot;conversationHistoryGuid&quot;: entry_guid,
-+                 &quot;conversation_history_entry_guid&quot;: entry_guid,
-+                 &quot;role&quot;: conversation_entry.get(&quot;role&quot;, &quot;unknown&quot;),
-                  &quot;segments&quot;: segments,
-                  &quot;context&quot;: extracted_info.get(&quot;context&quot;, &quot;&quot;),
+-                 "conversationHistoryGuid": entry_guid,
++                 "conversation_history_entry_guid": entry_guid,
++                 "role": conversation_entry.get("role", "unknown"),
+                  "segments": segments,
+                  "context": extracted_info.get("context", ""),
 ```
 
 **Chunk 3**
@@ -4014,10 +4014,10 @@ Lines added: 2, lines removed: 1
 ```diff
 @@ -87,5 +88,6 @@
           except Exception as e:
-              print(f&quot;Error generating digest: {str(e)}&quot;)
+              print(f"Error generating digest: {str(e)}")
 -             return self._create_empty_digest(entry_guid if entry_guid else str(uuid.uuid4()))
 +             return self._create_empty_digest(entry_guid if entry_guid else str(uuid.uuid4()), 
-+                                             conversation_entry.get(&quot;role&quot;, &quot;unknown&quot;))
++                                             conversation_entry.get("role", "unknown"))
       
       def _segment_content(self, content: str) -&gt; List[str]:
 ```
@@ -4031,13 +4031,13 @@ Lines added: 3, lines removed: 2
       
 -     def _create_empty_digest(self, entry_guid: str) -&gt; Dict[str, Any]:
 +     def _create_empty_digest(self, entry_guid: str, role: str) -&gt; Dict[str, Any]:
-          &quot;&quot;&quot;Create an empty digest structure with the given entry GUID.&quot;&quot;&quot;
+          """Create an empty digest structure with the given entry GUID."""
           return {
--             &quot;conversationHistoryGuid&quot;: entry_guid,
-+             &quot;conversation_history_entry_guid&quot;: entry_guid,
-+             &quot;role&quot;: role,
-              &quot;segments&quot;: [],
-              &quot;context&quot;: &quot;&quot;,
+-             "conversationHistoryGuid": entry_guid,
++             "conversation_history_entry_guid": entry_guid,
++             "role": role,
+              "segments": [],
+              "context": "",
 ```
 
 </details>
@@ -4052,7 +4052,7 @@ Now, let's update the MemoryManager to use the DigestGenerator:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: undefined
@@ -4076,7 +4076,7 @@ Lines added: 4, lines removed: undefined
 +         
 +         # Initialize DigestGenerator
 +         self.digest_generator = DigestGenerator(llm_service)
-+         print(&quot;Initialized DigestGenerator&quot;)
++         print("Initialized DigestGenerator")
           
           # Ensure memory has a GUID
 ```
@@ -4086,27 +4086,27 @@ Lines added: 13, lines removed: 3
 
 ```diff
 @@ -307,10 +312,20 @@
-              user_message = query_context.get(&quot;user_message&quot;, &quot;&quot;)
+              user_message = query_context.get("user_message", "")
               if user_message:
--                 self.memory[&quot;conversation_history&quot;].append({
+-                 self.memory["conversation_history"].append({
 +                 # Create user message entry with GUID
 +                 user_entry = {
-+                     &quot;guid&quot;: str(uuid.uuid4()),
-                      &quot;role&quot;: &quot;user&quot;,
-                      &quot;content&quot;: user_message,
-                      &quot;timestamp&quot;: datetime.now().isoformat()
++                     "guid": str(uuid.uuid4()),
+                      "role": "user",
+                      "content": user_message,
+                      "timestamp": datetime.now().isoformat()
 -                 })
--                 print(f&quot;Added user message to history: {user_message}&quot;)
+-                 print(f"Added user message to history: {user_message}")
 +                 }
 +                 
 +                 # Generate digest for user message
-+                 print(&quot;Generating digest for user message...&quot;)
++                 print("Generating digest for user message...")
 +                 user_digest = self.digest_generator.generate_digest(user_entry)
-+                 user_entry[&quot;digest&quot;] = user_digest
++                 user_entry["digest"] = user_digest
 +                 
 +                 # Add to conversation history
-+                 self.memory[&quot;conversation_history&quot;].append(user_entry)
-+                 print(f&quot;Added user message to history with digest: {user_message}&quot;)
++                 self.memory["conversation_history"].append(user_entry)
++                 print(f"Added user message to history with digest: {user_message}")
               
               # Extract original data for the template
 ```
@@ -4116,29 +4116,29 @@ Lines added: 13, lines removed: 5
 
 ```diff
 @@ -351,12 +366,20 @@
-                  return {&quot;response&quot;: &quot;Error: Invalid response structure from LLM&quot;}
+                  return {"response": "Error: Invalid response structure from LLM"}
   
 -             # Add assistant response to history with digest information
--             self.memory[&quot;conversation_history&quot;].append({
+-             self.memory["conversation_history"].append({
 +             # Create assistant entry with GUID
 +             assistant_entry = {
-+                 &quot;guid&quot;: str(uuid.uuid4()),
-                  &quot;role&quot;: &quot;assistant&quot;,
-                  &quot;content&quot;: result[&quot;response&quot;],
--                 &quot;digest&quot;: result.get(&quot;digest&quot;, {}),  # Store the digest information
-                  &quot;timestamp&quot;: datetime.now().isoformat()
++                 "guid": str(uuid.uuid4()),
+                  "role": "assistant",
+                  "content": result["response"],
+-                 "digest": result.get("digest", {}),  # Store the digest information
+                  "timestamp": datetime.now().isoformat()
 -             })
--             print(&quot;Added assistant response to history&quot;)
+-             print("Added assistant response to history")
 +             }
 +             
 +             # Generate digest for assistant response
-+             print(&quot;Generating digest for assistant response...&quot;)
++             print("Generating digest for assistant response...")
 +             assistant_digest = self.digest_generator.generate_digest(assistant_entry)
-+             assistant_entry[&quot;digest&quot;] = assistant_digest
++             assistant_entry["digest"] = assistant_digest
 +             
 +             # Add to conversation history
-+             self.memory[&quot;conversation_history&quot;].append(assistant_entry)
-+             print(&quot;Added assistant response to history with digest&quot;)
++             self.memory["conversation_history"].append(assistant_entry)
++             print("Added assistant response to history with digest")
   
               # Save to persist conversation history
 ```
@@ -4155,7 +4155,7 @@ Now, let's create a simple test script to verify the integration works correctly
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/digest_integration_test.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: examples/digest_integration_test.py</summary>
 
 **Chunk 1**
 Lines added: 127, lines removed: 1
@@ -4164,9 +4164,9 @@ Lines added: 127, lines removed: 1
 @@ -1,1 +1,127 @@
 - 
 + #!/usr/bin/env python3
-+ &quot;&quot;&quot;
++ """
 + Test script to demonstrate DigestGenerator integration with MemoryManager.
-+ &quot;&quot;&quot;
++ """
 + 
 + import os
 + import sys
@@ -4174,64 +4174,64 @@ Lines added: 127, lines removed: 1
 + from datetime import datetime
 + 
 + # Add the src directory to the path
-+ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), &#39;..&#39;)))
++ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 + 
 + from src.memory.memory_manager import MemoryManager
 + from src.llm.ollama_service import OllamaService
 + 
 + def print_digest_summary(digest):
-+     &quot;&quot;&quot;Print a summary of the digest.&quot;&quot;&quot;
-+     print(f&quot;\nDigest Summary for {digest[&#39;role&#39;]} message with GUID: {digest[&#39;conversation_history_entry_guid&#39;]}&quot;)
-+     print(f&quot;Segments: {len(digest[&#39;segments&#39;])}&quot;)
++     """Print a summary of the digest."""
++     print(f"\nDigest Summary for {digest['role']} message with GUID: {digest['conversation_history_entry_guid']}")
++     print(f"Segments: {len(digest['segments'])}")
 +     
 +     # Print first 3 segments or all if less than 3
-+     print(&quot;\nFirst segments:&quot;)
-+     for i, segment in enumerate(digest[&#39;segments&#39;][:3]):
-+         print(f&quot;  {i}: {segment[:80]}...&quot;)
++     print("\nFirst segments:")
++     for i, segment in enumerate(digest['segments'][:3]):
++         print(f"  {i}: {segment[:80]}...")
 +     
-+     print(f&quot;\nContext: {digest[&#39;context&#39;][:100]}...&quot;)
++     print(f"\nContext: {digest['context'][:100]}...")
 +     
-+     print(f&quot;\nFacts: {len(digest[&#39;new_facts&#39;])}&quot;)
-+     if digest[&#39;new_facts&#39;]:
-+         print(&quot;\nSample facts:&quot;)
-+         for i, fact in enumerate(digest[&#39;new_facts&#39;][:2]):
-+             print(f&quot;  Fact {i}:&quot;)
-+             print(f&quot;    Key: {fact.get(&#39;key&#39;, &#39;N/A&#39;)}&quot;)
-+             print(f&quot;    Value: {fact.get(&#39;value&#39;, &#39;N/A&#39;)[:80]}...&quot;)
-+             print(f&quot;    Topic: {fact.get(&#39;topic&#39;, &#39;N/A&#39;)}&quot;)
-+             if &#39;segmentIndexes&#39; in fact:
-+                 print(f&quot;    Segments: {fact.get(&#39;segmentIndexes&#39;, [])}&quot;)
++     print(f"\nFacts: {len(digest['new_facts'])}")
++     if digest['new_facts']:
++         print("\nSample facts:")
++         for i, fact in enumerate(digest['new_facts'][:2]):
++             print(f"  Fact {i}:")
++             print(f"    Key: {fact.get('key', 'N/A')}")
++             print(f"    Value: {fact.get('value', 'N/A')[:80]}...")
++             print(f"    Topic: {fact.get('topic', 'N/A')}")
++             if 'segmentIndexes' in fact:
++                 print(f"    Segments: {fact.get('segmentIndexes', [])}")
 +     
-+     print(f&quot;\nRelationships: {len(digest[&#39;new_relationships&#39;])}&quot;)
-+     if digest[&#39;new_relationships&#39;]:
-+         print(&quot;\nSample relationships:&quot;)
-+         for i, rel in enumerate(digest[&#39;new_relationships&#39;][:2]):
-+             print(f&quot;  Relationship {i}:&quot;)
-+             print(f&quot;    Subject: {rel.get(&#39;subject&#39;, &#39;N/A&#39;)}&quot;)
-+             print(f&quot;    Predicate: {rel.get(&#39;predicate&#39;, &#39;N/A&#39;)}&quot;)
-+             print(f&quot;    Object: {rel.get(&#39;object&#39;, &#39;N/A&#39;)}&quot;)
-+             print(f&quot;    Topic: {rel.get(&#39;topic&#39;, &#39;N/A&#39;)}&quot;)
-+             if &#39;segmentIndexes&#39; in rel:
-+                 print(f&quot;    Segments: {rel.get(&#39;segmentIndexes&#39;, [])}&quot;)
++     print(f"\nRelationships: {len(digest['new_relationships'])}")
++     if digest['new_relationships']:
++         print("\nSample relationships:")
++         for i, rel in enumerate(digest['new_relationships'][:2]):
++             print(f"  Relationship {i}:")
++             print(f"    Subject: {rel.get('subject', 'N/A')}")
++             print(f"    Predicate: {rel.get('predicate', 'N/A')}")
++             print(f"    Object: {rel.get('object', 'N/A')}")
++             print(f"    Topic: {rel.get('topic', 'N/A')}")
++             if 'segmentIndexes' in rel:
++                 print(f"    Segments: {rel.get('segmentIndexes', [])}")
 + 
 + def main():
 +     # Create LLM service
-+     print(&quot;Initializing LLM service...&quot;)
-+     llm_service = OllamaService(model_name=&quot;gemma3&quot;)
++     print("Initializing LLM service...")
++     llm_service = OllamaService(model_name="gemma3")
 +     
 +     # Create memory file path
-+     memory_file = os.path.join(os.path.dirname(__file__), &quot;test_digest_integration.json&quot;)
++     memory_file = os.path.join(os.path.dirname(__file__), "test_digest_integration.json")
 +     
 +     # Create memory manager
-+     print(f&quot;Initializing MemoryManager with file: {memory_file}&quot;)
++     print(f"Initializing MemoryManager with file: {memory_file}")
 +     memory_manager = MemoryManager(
 +         memory_file=memory_file,
 +         llm_service=llm_service
 +     )
 +     
 +     # Create initial memory
-+     print(&quot;Creating initial memory...&quot;)
-+     initial_data = &quot;&quot;&quot;
++     print("Creating initial memory...")
++     initial_data = """
 +     The kingdom of Eldoria is a magical realm with four major regions:
 +     1. The Northern Mountains, home to the dwarves who mine precious metals
 +     2. The Western Forests, where elves maintain ancient groves and magical creatures roam
@@ -4240,55 +4240,55 @@ Lines added: 127, lines removed: 1
 +     
 +     King Alaric rules from the central city of Luminara, supported by his council of advisors.
 +     A dark force has recently emerged from beneath the mountains, threatening the peace.
-+     &quot;&quot;&quot;
++     """
 +     memory_manager.create_initial_memory(initial_data)
 +     
 +     # Simulate a conversation
-+     print(&quot;\nSimulating a conversation with DigestGenerator integration...&quot;)
++     print("\nSimulating a conversation with DigestGenerator integration...")
 +     
 +     # First user message
 +     response = memory_manager.query_memory({
-+         &quot;user_message&quot;: &quot;Tell me about the threat emerging from the mountains. What do we know about it?&quot;
++         "user_message": "Tell me about the threat emerging from the mountains. What do we know about it?"
 +     })
-+     print(f&quot;\nAssistant response: {response[&#39;response&#39;]}&quot;)
++     print(f"\nAssistant response: {response['response']}")
 +     
 +     # Check the generated digests
-+     conversation_history = memory_manager.memory[&quot;conversation_history&quot;]
++     conversation_history = memory_manager.memory["conversation_history"]
 +     if len(conversation_history) &gt;= 2:
-+         user_digest = conversation_history[0][&quot;digest&quot;]
-+         assistant_digest = conversation_history[1][&quot;digest&quot;]
++         user_digest = conversation_history[0]["digest"]
++         assistant_digest = conversation_history[1]["digest"]
 +         
-+         print(&quot;\n&quot; + &quot;=&quot;*80)
-+         print(&quot;Generated Digests&quot;)
-+         print(&quot;=&quot;*80)
++         print("\n" + "="*80)
++         print("Generated Digests")
++         print("="*80)
 +         
 +         print_digest_summary(user_digest)
 +         print_digest_summary(assistant_digest)
 +     
 +     # Second user message
 +     response = memory_manager.query_memory({
-+         &quot;user_message&quot;: &quot;How is King Alaric planning to respond to this threat? Can the dwarves help since they live in the mountains?&quot;
++         "user_message": "How is King Alaric planning to respond to this threat? Can the dwarves help since they live in the mountains?"
 +     })
-+     print(f&quot;\nAssistant response: {response[&#39;response&#39;]}&quot;)
++     print(f"\nAssistant response: {response['response']}")
 +     
 +     # Check the latest digests
-+     conversation_history = memory_manager.memory[&quot;conversation_history&quot;]
++     conversation_history = memory_manager.memory["conversation_history"]
 +     if len(conversation_history) &gt;= 4:
-+         user_digest = conversation_history[2][&quot;digest&quot;]
-+         assistant_digest = conversation_history[3][&quot;digest&quot;]
++         user_digest = conversation_history[2]["digest"]
++         assistant_digest = conversation_history[3]["digest"]
 +         
-+         print(&quot;\n&quot; + &quot;=&quot;*80)
-+         print(&quot;Latest Generated Digests&quot;)
-+         print(&quot;=&quot;*80)
++         print("\n" + "="*80)
++         print("Latest Generated Digests")
++         print("="*80)
 +         
 +         print_digest_summary(user_digest)
 +         print_digest_summary(assistant_digest)
 +     
-+     print(&quot;\n&quot; + &quot;=&quot;*80)
-+     print(&quot;Test Complete&quot;)
-+     print(&quot;=&quot;*80)
++     print("\n" + "="*80)
++     print("Test Complete")
++     print("="*80)
 + 
-+ if __name__ == &quot;__main__&quot;:
++ if __name__ == "__main__":
 +     main() 
 ```
 
@@ -4303,7 +4303,7 @@ Let's run the test to make sure our integration works:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: cd /Users/andrewrapo/github/cursor/cursor-hello-llm-agent && python examples/digest_integration_test.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: cd /Users/andrewrapo/github/cursor/cursor-hello-llm-agent && python examples/digest_integration_test.py</summary>
 
 ```bash
 cd /Users/andrewrapo/github/cursor/cursor-hello-llm-agent && python examples/digest_integration_test.py
@@ -4312,9 +4312,9 @@ cd /Users/andrewrapo/github/cursor/cursor-hello-llm-agent && python examples/dig
 ```
 &lt;-agent &amp;&amp; python examples/digest_integration_test.py
 Traceback (most recent call last):
-  File &quot;examples/digest_integration_test.py&quot;, line 15, in &lt;module&gt;
+  File "examples/digest_integration_test.py", line 15, in &lt;module&gt;
     from src.llm.ollama_service import OllamaService
-ModuleNotFoundError: No module named &#39;src.llm&#39;
+ModuleNotFoundError: No module named 'src.llm'
 (base) andrewrapo@MacBookPro cursor-hello-llm-agent %
 ```
 </details>
@@ -4445,7 +4445,7 @@ Let's check where the OllamaService is located:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: cd /Users/andrewrapo/github/cursor/cursor-hello-llm-agent && find src -name llm_ollama.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: cd /Users/andrewrapo/github/cursor/cursor-hello-llm-agent && find src -name llm_ollama.py</summary>
 
 ```bash
 cd /Users/andrewrapo/github/cursor/cursor-hello-llm-agent && find src -name llm_ollama.py
@@ -4469,7 +4469,7 @@ Now let's update our integration test script with the correct import path:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/digest_integration_test.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: examples/digest_integration_test.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -4495,7 +4495,7 @@ Let's now run the test:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: cd /Users/andrewrapo/github/cursor/cursor-hello-llm-agent && python examples/digest_integration_test.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: cd /Users/andrewrapo/github/cursor/cursor-hello-llm-agent && python examples/digest_integration_test.py</summary>
 
 ```bash
 cd /Users/andrewrapo/github/cursor/cursor-hello-llm-agent && python examples/digest_integration_test.py
@@ -4507,11 +4507,11 @@ ent &amp;&amp; python examples/digest_integration_test.py     cd /Users/andrewra
 ent &amp;&amp; python examples/digest_integration_test.py
 Initializing LLM service...
 Traceback (most recent call last):
-  File &quot;examples/digest_integration_test.py&quot;, line 127, in &lt;module&gt;
+  File "examples/digest_integration_test.py", line 127, in &lt;module&gt;
     main() 
-  File &quot;examples/digest_integration_test.py&quot;, line 55, in main
-    llm_service = OllamaService(model_name=&quot;gemma3&quot;)
-TypeError: __init__() got an unexpected keyword argument &#39;model_name&#39;
+  File "examples/digest_integration_test.py", line 55, in main
+    llm_service = OllamaService(model_name="gemma3")
+TypeError: __init__() got an unexpected keyword argument 'model_name'
 (base) andrewrapo@MacBookPro cursor-hello-llm-agent %
 ```
 </details>
@@ -4537,7 +4537,7 @@ Now we need to update our test script to match the OllamaService constructor par
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/digest_integration_test.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: examples/digest_integration_test.py</summary>
 
 **Chunk 1**
 Lines added: 4, lines removed: 1
@@ -4545,11 +4545,11 @@ Lines added: 4, lines removed: 1
 ```diff
 @@ -53,5 +53,8 @@
       # Create LLM service
-      print(&quot;Initializing LLM service...&quot;)
--     llm_service = OllamaService(model_name=&quot;gemma3&quot;)
+      print("Initializing LLM service...")
+-     llm_service = OllamaService(model_name="gemma3")
 +     llm_service = OllamaService({
-+         &quot;base_url&quot;: &quot;http://localhost:11434&quot;,
-+         &quot;model&quot;: &quot;gemma3&quot;
++         "base_url": "http://localhost:11434",
++         "model": "gemma3"
 +     })
       
       # Create memory file path
@@ -4625,21 +4625,21 @@ Looking at agent_usage_example.py, I can see how OllamaService should be properl
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/digest_integration_test.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: examples/digest_integration_test.py</summary>
 
 **Chunk 1**
 Lines added: 4, lines removed: 2
 
 ```diff
 @@ -54,6 +54,8 @@
-      print(&quot;Initializing LLM service...&quot;)
+      print("Initializing LLM service...")
       llm_service = OllamaService({
--         &quot;base_url&quot;: &quot;http://localhost:11434&quot;,
--         &quot;model&quot;: &quot;gemma3&quot;
-+         &quot;base_url&quot;: &quot;http://192.168.1.173:11434&quot;,
-+         &quot;model&quot;: &quot;gemma3&quot;,
-+         &quot;temperature&quot;: 0.7,
-+         &quot;stream&quot;: False
+-         "base_url": "http://localhost:11434",
+-         "model": "gemma3"
++         "base_url": "http://192.168.1.173:11434",
++         "model": "gemma3",
++         "temperature": 0.7,
++         "stream": False
       })
       
 ```
@@ -4656,7 +4656,7 @@ Now let's update our script to add more robust error handling similar to agent_u
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/digest_integration_test.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: examples/digest_integration_test.py</summary>
 
 **Chunk 1**
 Lines added: 6, lines removed: undefined
@@ -4666,13 +4666,13 @@ Lines added: 6, lines removed: undefined
   from src.ai.llm_ollama import OllamaService
   
 + def print_section_header(title):
-+     &quot;&quot;&quot;Print a formatted section header&quot;&quot;&quot;
-+     print(f&quot;\n{&#39;=&#39;*80}&quot;)
-+     print(f&quot;  {title}&quot;)
-+     print(f&quot;{&#39;=&#39;*80}\n&quot;)
++     """Print a formatted section header"""
++     print(f"\n{'='*80}")
++     print(f"  {title}")
++     print(f"{'='*80}\n")
 + 
   def print_digest_summary(digest):
-      &quot;&quot;&quot;Print a summary of the digest.&quot;&quot;&quot;
+      """Print a summary of the digest."""
 ```
 
 **Chunk 2**
@@ -4682,11 +4682,11 @@ Lines added: 3, lines removed: undefined
 @@ -51,4 +57,7 @@
   
   def main():
-+     print_section_header(&quot;DigestGenerator Integration Test&quot;)
++     print_section_header("DigestGenerator Integration Test")
 +     
 +     try:
           # Create LLM service
-          print(&quot;Initializing LLM service...&quot;)
+          print("Initializing LLM service...")
 ```
 
 **Chunk 3**
@@ -4696,14 +4696,14 @@ Lines added: 3, lines removed: 1
 @@ -85,7 +94,9 @@
           
           # Simulate a conversation
--     print(&quot;\nSimulating a conversation with DigestGenerator integration...&quot;)
-+         print_section_header(&quot;Simulating a conversation with DigestGenerator integration&quot;)
+-     print("\nSimulating a conversation with DigestGenerator integration...")
++         print_section_header("Simulating a conversation with DigestGenerator integration")
           
 +         try:
               # First user message
-+             print(&quot;Sending first user message...&quot;)
++             print("Sending first user message...")
               response = memory_manager.query_memory({
-                  &quot;user_message&quot;: &quot;Tell me about the threat emerging from the mountains. What do we know about it?&quot;
+                  "user_message": "Tell me about the threat emerging from the mountains. What do we know about it?"
 ```
 
 **Chunk 4**
@@ -4711,20 +4711,20 @@ Lines added: 2, lines removed: 3
 
 ```diff
 @@ -99,12 +110,11 @@
-                  assistant_digest = conversation_history[1][&quot;digest&quot;]
+                  assistant_digest = conversation_history[1]["digest"]
                   
--         print(&quot;\n&quot; + &quot;=&quot;*80)
--         print(&quot;Generated Digests&quot;)
--         print(&quot;=&quot;*80)
-+                 print_section_header(&quot;Generated Digests&quot;)
+-         print("\n" + "="*80)
+-         print("Generated Digests")
+-         print("="*80)
++                 print_section_header("Generated Digests")
                   
                   print_digest_summary(user_digest)
                   print_digest_summary(assistant_digest)
               
               # Second user message
-+             print(&quot;\nSending second user message...&quot;)
++             print("\nSending second user message...")
               response = memory_manager.query_memory({
-                  &quot;user_message&quot;: &quot;How is King Alaric planning to respond to this threat? Can the dwarves help since they live in the mountains?&quot;
+                  "user_message": "How is King Alaric planning to respond to this threat? Can the dwarves help since they live in the mountains?"
 ```
 
 **Chunk 5**
@@ -4732,32 +4732,32 @@ Lines added: 11, lines removed: 6
 
 ```diff
 @@ -118,15 +128,20 @@
-                  assistant_digest = conversation_history[3][&quot;digest&quot;]
+                  assistant_digest = conversation_history[3]["digest"]
                   
--         print(&quot;\n&quot; + &quot;=&quot;*80)
--         print(&quot;Latest Generated Digests&quot;)
--         print(&quot;=&quot;*80)
-+                 print_section_header(&quot;Latest Generated Digests&quot;)
+-         print("\n" + "="*80)
+-         print("Latest Generated Digests")
+-         print("="*80)
++                 print_section_header("Latest Generated Digests")
                   
                   print_digest_summary(user_digest)
                   print_digest_summary(assistant_digest)
                   
--     print(&quot;\n&quot; + &quot;=&quot;*80)
--     print(&quot;Test Complete&quot;)
--     print(&quot;=&quot;*80)
+-     print("\n" + "="*80)
+-     print("Test Complete")
+-     print("="*80)
 +         except Exception as e:
-+             print(f&quot;Error during conversation: {str(e)}&quot;)
++             print(f"Error during conversation: {str(e)}")
 +         
-+         print_section_header(&quot;Test Complete&quot;)
++         print_section_header("Test Complete")
 +         
 +     except Exception as e:
-+         print(f&quot;Error during test: {str(e)}&quot;)
++         print(f"Error during test: {str(e)}")
   
-  if __name__ == &quot;__main__&quot;:
+  if __name__ == "__main__":
 +     try:
           main()
 +     except KeyboardInterrupt:
-+         print(&quot;\nTest interrupted by user.&quot;) 
++         print("\nTest interrupted by user.") 
 ```
 
 </details>
@@ -4843,7 +4843,7 @@ I'll add debug parameters to the OllamaService configuration to generate a log f
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: examples/digest_integration_test.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: examples/digest_integration_test.py</summary>
 
 **Chunk 1**
 Lines added: 10, lines removed: 1
@@ -4853,22 +4853,22 @@ Lines added: 10, lines removed: 1
       
       try:
 +         # Create debug log filename with timestamp
-+         timestamp = datetime.now().strftime(&quot;%Y%m%d_%H%M%S&quot;)
-+         debug_file = f&quot;digest_integration_debug_{timestamp}.log&quot;
++         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
++         debug_file = f"digest_integration_debug_{timestamp}.log"
 +         
           # Create LLM service
-          print(&quot;Initializing LLM service...&quot;)
-+         print(f&quot;Debug log file: {debug_file}&quot;)
+          print("Initializing LLM service...")
++         print(f"Debug log file: {debug_file}")
           llm_service = OllamaService({
-              &quot;base_url&quot;: &quot;http://192.168.1.173:11434&quot;,
-              &quot;model&quot;: &quot;gemma3&quot;,
-              &quot;temperature&quot;: 0.7,
--             &quot;stream&quot;: False
-+             &quot;stream&quot;: False,
-+             &quot;debug&quot;: True,
-+             &quot;debug_file&quot;: debug_file,
-+             &quot;debug_scope&quot;: &quot;digest_integration&quot;,
-+             &quot;console_output&quot;: False
+              "base_url": "http://192.168.1.173:11434",
+              "model": "gemma3",
+              "temperature": 0.7,
+-             "stream": False
++             "stream": False,
++             "debug": True,
++             "debug_file": debug_file,
++             "debug_scope": "digest_integration",
++             "console_output": False
           })
           
 ```
@@ -4912,7 +4912,7 @@ I'll run the digest integration test example now:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: cd /Users/andrewrapo/github/cursor/cursor-hello-llm-agent && python examples/digest_integration_test.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: cd /Users/andrewrapo/github/cursor/cursor-hello-llm-agent && python examples/digest_integration_test.py</summary>
 
 ```bash
 cd /Users/andrewrapo/github/cursor/cursor-hello-llm-agent && python examples/digest_integration_test.py
@@ -4952,26 +4952,26 @@ e in JSON protocol mode and only respond in strict, parsable JSON including the 
 DEBUG - LLM RESPONSE (first 200 chars):
 &#96;&#96;&#96;json
 {
-  &quot;static_memory&quot;: {
-    &quot;structured_data&quot;: {
-      &quot;regions&quot;: [
+  "static_memory": {
+    "structured_data": {
+      "regions": [
         {
-          &quot;name&quot;: &quot;Northern Mountains&quot;,
-          &quot;inhabitants&quot;: &quot;Dwarves&quot;,
-          &quot;activities&quot;: &quot;Mining preciou...
+          "name": "Northern Mountains",
+          "inhabitants": "Dwarves",
+          "activities": "Mining preciou...
 DEBUG - LLM RESPONSE (last 200 chars):
-ub&quot;
+ub"
         }
       ]
     }
   },
-  &quot;working_memory&quot;: {
-    &quot;structured_data&quot;: {
-      &quot;entities&quot;: []
+  "working_memory": {
+    "structured_data": {
+      "entities": []
     },
-    &quot;knowledge_graph&quot;: {
-      &quot;simple_facts&quot;: [],
-      &quot;relationships&quot;: []
+    "knowledge_graph": {
+      "simple_facts": [],
+      "relationships": []
     }
   }
 }
@@ -4991,7 +4991,7 @@ Initial memory created with GUID: 7511e0ab-f521-40f4-8055-6d29ab1f10c9 and type:
 Sending first user message...
 
 Querying memory...
-{&#39;user_message&#39;: &#39;Tell me about the threat emerging from the mountains. What do we know about it?&#39;}
+{'user_message': 'Tell me about the threat emerging from the mountains. What do we know about it?'}
 Generating digest for user message...
 Added user message to history with digest: Tell me about the threat emerging from the mountains. What do we 
 know about it?
@@ -5068,8 +5068,8 @@ Relationships: 0
 Sending second user message...
 
 Querying memory...
-{&#39;user_message&#39;: &#39;How is King Alaric planning to respond to this threat? Can the dwarves help since they liv
-e in the mountains?&#39;}
+{'user_message': 'How is King Alaric planning to respond to this threat? Can the dwarves help since they liv
+e in the mountains?'}
 Generating digest for user message...
 Added user message to history with digest: How is King Alaric planning to respond to this threat? Can the dw
 arves help since they live in the mountains?
@@ -5089,8 +5089,8 @@ ettlement, and assembling a reconnaissance team to investigate the nexus’s ori
  have reached the court regarding the dwarves of the Ironpeak Mountains. Historically, they possess unparall
 eled knowledge of earth magic and subterranean passages – vital assets considering the nexus’s likely subter
 ranean roots. Initial communications with the dwarven clans are underway, exploring the possibility of utili
-zing their expertise to locate and, if possible, neutralize the source of the disturbance. It&#39;s a race again
-st time, as the threat&#39;s influence spreads, causing localized magical anomalies and unsettling the surroundi
+zing their expertise to locate and, if possible, neutralize the source of the disturbance. It's a race again
+st time, as the threat's influence spreads, causing localized magical anomalies and unsettling the surroundi
 ng populace.
 
 ================================================================================
@@ -5113,7 +5113,7 @@ Facts: 2
 
 Sample facts:
   Fact 0:
-    Key: King Alaric&#39;s Response
+    Key: King Alaric's Response
     Value: King Alaric is planning to respond to the threat....
     Topic: Military Strategy
     Segments: [0, 2]
@@ -5251,7 +5251,7 @@ Here's how I'd implement this:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: tests/memory_manager/test_memory_manager_digest_integration.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: tests/memory_manager/test_memory_manager_digest_integration.py</summary>
 
 **Chunk 1**
 Lines added: 215, lines removed: 1
@@ -5260,9 +5260,9 @@ Lines added: 215, lines removed: 1
 @@ -1,1 +1,215 @@
 - 
 + #!/usr/bin/env python3
-+ &quot;&quot;&quot;
++ """
 + Integration test to verify the DigestGenerator integration with MemoryManager.
-+ &quot;&quot;&quot;
++ """
 + 
 + import os
 + import sys
@@ -5273,7 +5273,7 @@ Lines added: 215, lines removed: 1
 + from pathlib import Path
 + 
 + # Add the project root to the Python path
-+ project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), &#39;../..&#39;))
++ project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
 + if project_root not in sys.path:
 +     sys.path.append(project_root)
 + 
@@ -5281,32 +5281,32 @@ Lines added: 215, lines removed: 1
 + from src.ai.llm_ollama import OllamaService
 + 
 + class TestMemoryManagerDigestIntegration(unittest.TestCase):
-+     &quot;&quot;&quot;Test the integration between MemoryManager and DigestGenerator.&quot;&quot;&quot;
++     """Test the integration between MemoryManager and DigestGenerator."""
 + 
 +     @classmethod
 +     def setUpClass(cls):
-+         &quot;&quot;&quot;Set up resources once before all tests.&quot;&quot;&quot;
++         """Set up resources once before all tests."""
 +         # Create unique filename for this test run
 +         cls.test_id = str(uuid.uuid4())[:8]
-+         cls.memory_file = os.path.join(project_root, f&quot;tests/test_files/test_digest_integration_{cls.test_id}.json&quot;)
++         cls.memory_file = os.path.join(project_root, f"tests/test_files/test_digest_integration_{cls.test_id}.json")
 +         
-+         # Create parent directory if it doesn&#39;t exist
++         # Create parent directory if it doesn't exist
 +         os.makedirs(os.path.dirname(cls.memory_file), exist_ok=True)
 +         
 +         # Set up debug log
-+         timestamp = datetime.now().strftime(&quot;%Y%m%d_%H%M%S&quot;)
-+         cls.debug_file = os.path.join(project_root, f&quot;tests/test_files/digest_integration_debug_{timestamp}.log&quot;)
++         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
++         cls.debug_file = os.path.join(project_root, f"tests/test_files/digest_integration_debug_{timestamp}.log")
 +         
 +         # Initialize LLM service
 +         cls.llm_service = OllamaService({
-+             &quot;base_url&quot;: &quot;http://192.168.1.173:11434&quot;,
-+             &quot;model&quot;: &quot;gemma3&quot;,
-+             &quot;temperature&quot;: 0.7,
-+             &quot;stream&quot;: False,
-+             &quot;debug&quot;: True,
-+             &quot;debug_file&quot;: cls.debug_file,
-+             &quot;debug_scope&quot;: &quot;test_digest_integration&quot;,
-+             &quot;console_output&quot;: False
++             "base_url": "http://192.168.1.173:11434",
++             "model": "gemma3",
++             "temperature": 0.7,
++             "stream": False,
++             "debug": True,
++             "debug_file": cls.debug_file,
++             "debug_scope": "test_digest_integration",
++             "console_output": False
 +         })
 +         
 +         # Create memory manager
@@ -5316,7 +5316,7 @@ Lines added: 215, lines removed: 1
 +         )
 +         
 +         # Initial data for memory
-+         cls.initial_data = &quot;&quot;&quot;
++         cls.initial_data = """
 +         The kingdom of Eldoria is a magical realm with four major regions:
 +         1. The Northern Mountains, home to the dwarves who mine precious metals
 +         2. The Western Forests, where elves maintain ancient groves and magical creatures roam
@@ -5325,154 +5325,154 @@ Lines added: 215, lines removed: 1
 +         
 +         King Alaric rules from the central city of Luminara, supported by his council of advisors.
 +         A dark force has recently emerged from beneath the mountains, threatening the peace.
-+         &quot;&quot;&quot;
++         """
 +         
 +         # Initialize memory
 +         cls.memory_manager.create_initial_memory(cls.initial_data)
 +     
 +     @classmethod
 +     def tearDownClass(cls):
-+         &quot;&quot;&quot;Clean up resources after all tests.&quot;&quot;&quot;
++         """Clean up resources after all tests."""
 +         # Clean up memory file
 +         if os.path.exists(cls.memory_file):
 +             os.remove(cls.memory_file)
 +         
 +         # Clean up backup files
-+         for backup_file in Path(os.path.dirname(cls.memory_file)).glob(f&quot;*{cls.test_id}*_bak_*.json&quot;):
++         for backup_file in Path(os.path.dirname(cls.memory_file)).glob(f"*{cls.test_id}*_bak_*.json"):
 +             backup_file.unlink()
 +     
 +     def test_01_memory_initialization(self):
-+         &quot;&quot;&quot;Test that memory was initialized with proper structure.&quot;&quot;&quot;
++         """Test that memory was initialized with proper structure."""
 +         # Verify memory contains expected sections
-+         self.assertIn(&quot;guid&quot;, self.memory_manager.memory)
-+         self.assertIn(&quot;static_memory&quot;, self.memory_manager.memory)
-+         self.assertIn(&quot;working_memory&quot;, self.memory_manager.memory)
-+         self.assertIn(&quot;conversation_history&quot;, self.memory_manager.memory)
++         self.assertIn("guid", self.memory_manager.memory)
++         self.assertIn("static_memory", self.memory_manager.memory)
++         self.assertIn("working_memory", self.memory_manager.memory)
++         self.assertIn("conversation_history", self.memory_manager.memory)
 +         
 +         # Verify conversation history starts empty
-+         self.assertEqual(len(self.memory_manager.memory[&quot;conversation_history&quot;]), 0)
++         self.assertEqual(len(self.memory_manager.memory["conversation_history"]), 0)
 +         
 +         # Verify GUID was generated
 +         self.assertIsNotNone(self.memory_manager.memory_guid)
 +     
 +     def test_02_user_message_digest_generation(self):
-+         &quot;&quot;&quot;Test that user message digests are generated correctly.&quot;&quot;&quot;
++         """Test that user message digests are generated correctly."""
 +         # Send a user message
 +         response = self.memory_manager.query_memory({
-+             &quot;user_message&quot;: &quot;Tell me about the threat emerging from the mountains. What do we know about it?&quot;
++             "user_message": "Tell me about the threat emerging from the mountains. What do we know about it?"
 +         })
 +         
 +         # Verify response
-+         self.assertIn(&quot;response&quot;, response)
-+         self.assertIsInstance(response[&quot;response&quot;], str)
++         self.assertIn("response", response)
++         self.assertIsInstance(response["response"], str)
 +         
 +         # Verify conversation history has been updated
-+         conversation_history = self.memory_manager.memory[&quot;conversation_history&quot;]
++         conversation_history = self.memory_manager.memory["conversation_history"]
 +         self.assertEqual(len(conversation_history), 2)  # User message + assistant response
 +         
 +         # Verify user message has a digest
 +         user_message = conversation_history[0]
-+         self.assertEqual(user_message[&quot;role&quot;], &quot;user&quot;)
-+         self.assertIn(&quot;digest&quot;, user_message)
++         self.assertEqual(user_message["role"], "user")
++         self.assertIn("digest", user_message)
 +         
 +         # Validate user digest structure
-+         user_digest = user_message[&quot;digest&quot;]
++         user_digest = user_message["digest"]
 +         self._validate_digest_structure(user_digest)
 +         
-+         # Verify digest contains the user&#39;s GUID
-+         self.assertEqual(user_digest[&quot;conversation_history_entry_guid&quot;], user_message[&quot;guid&quot;])
-+         self.assertEqual(user_digest[&quot;role&quot;], &quot;user&quot;)
++         # Verify digest contains the user's GUID
++         self.assertEqual(user_digest["conversation_history_entry_guid"], user_message["guid"])
++         self.assertEqual(user_digest["role"], "user")
 +     
 +     def test_03_assistant_message_digest_generation(self):
-+         &quot;&quot;&quot;Test that assistant message digests are generated correctly.&quot;&quot;&quot;
++         """Test that assistant message digests are generated correctly."""
 +         # Get conversation history after previous test
-+         conversation_history = self.memory_manager.memory[&quot;conversation_history&quot;]
++         conversation_history = self.memory_manager.memory["conversation_history"]
 +         
 +         # There should be at least 2 messages by now (user + assistant)
 +         self.assertGreaterEqual(len(conversation_history), 2)
 +         
 +         # Get the assistant message (should be the second message)
 +         assistant_message = conversation_history[1]
-+         self.assertEqual(assistant_message[&quot;role&quot;], &quot;assistant&quot;)
-+         self.assertIn(&quot;digest&quot;, assistant_message)
++         self.assertEqual(assistant_message["role"], "assistant")
++         self.assertIn("digest", assistant_message)
 +         
 +         # Validate assistant digest structure
-+         assistant_digest = assistant_message[&quot;digest&quot;]
++         assistant_digest = assistant_message["digest"]
 +         self._validate_digest_structure(assistant_digest)
 +         
-+         # Verify digest contains the assistant&#39;s GUID
-+         self.assertEqual(assistant_digest[&quot;conversation_history_entry_guid&quot;], assistant_message[&quot;guid&quot;])
-+         self.assertEqual(assistant_digest[&quot;role&quot;], &quot;assistant&quot;)
++         # Verify digest contains the assistant's GUID
++         self.assertEqual(assistant_digest["conversation_history_entry_guid"], assistant_message["guid"])
++         self.assertEqual(assistant_digest["role"], "assistant")
 +         
 +         # Assistant digest should typically have more segments and facts
-+         self.assertGreaterEqual(len(assistant_digest[&quot;segments&quot;]), 1)
++         self.assertGreaterEqual(len(assistant_digest["segments"]), 1)
 +     
 +     def test_04_multi_turn_conversation(self):
-+         &quot;&quot;&quot;Test digest generation in a multi-turn conversation.&quot;&quot;&quot;
++         """Test digest generation in a multi-turn conversation."""
 +         # Send another user message
 +         response = self.memory_manager.query_memory({
-+             &quot;user_message&quot;: &quot;How is King Alaric planning to respond to this threat? Can the dwarves help since they live in the mountains?&quot;
++             "user_message": "How is King Alaric planning to respond to this threat? Can the dwarves help since they live in the mountains?"
 +         })
 +         
 +         # Verify response
-+         self.assertIn(&quot;response&quot;, response)
++         self.assertIn("response", response)
 +         
 +         # Verify conversation history has been updated
-+         conversation_history = self.memory_manager.memory[&quot;conversation_history&quot;]
++         conversation_history = self.memory_manager.memory["conversation_history"]
 +         self.assertEqual(len(conversation_history), 4)  # 2 user messages + 2 assistant responses
 +         
 +         # Check the latest user message
 +         latest_user = conversation_history[2]
-+         self.assertEqual(latest_user[&quot;role&quot;], &quot;user&quot;)
-+         self.assertIn(&quot;digest&quot;, latest_user)
++         self.assertEqual(latest_user["role"], "user")
++         self.assertIn("digest", latest_user)
 +         
 +         # Check the latest assistant message
 +         latest_assistant = conversation_history[3]
-+         self.assertEqual(latest_assistant[&quot;role&quot;], &quot;assistant&quot;)
-+         self.assertIn(&quot;digest&quot;, latest_assistant)
++         self.assertEqual(latest_assistant["role"], "assistant")
++         self.assertIn("digest", latest_assistant)
 +         
 +         # Validate both digests
-+         self._validate_digest_structure(latest_user[&quot;digest&quot;])
-+         self._validate_digest_structure(latest_assistant[&quot;digest&quot;])
++         self._validate_digest_structure(latest_user["digest"])
++         self._validate_digest_structure(latest_assistant["digest"])
 +         
 +         # Verify GUIDs are linked correctly
-+         self.assertEqual(latest_user[&quot;digest&quot;][&quot;conversation_history_entry_guid&quot;], latest_user[&quot;guid&quot;])
-+         self.assertEqual(latest_assistant[&quot;digest&quot;][&quot;conversation_history_entry_guid&quot;], latest_assistant[&quot;guid&quot;])
++         self.assertEqual(latest_user["digest"]["conversation_history_entry_guid"], latest_user["guid"])
++         self.assertEqual(latest_assistant["digest"]["conversation_history_entry_guid"], latest_assistant["guid"])
 +     
 +     def _validate_digest_structure(self, digest):
-+         &quot;&quot;&quot;Helper to validate the structure of a digest.&quot;&quot;&quot;
++         """Helper to validate the structure of a digest."""
 +         # Check required fields
-+         self.assertIn(&quot;conversation_history_entry_guid&quot;, digest)
-+         self.assertIn(&quot;role&quot;, digest)
-+         self.assertIn(&quot;segments&quot;, digest)
-+         self.assertIn(&quot;context&quot;, digest)
-+         self.assertIn(&quot;new_facts&quot;, digest)
-+         self.assertIn(&quot;new_relationships&quot;, digest)
++         self.assertIn("conversation_history_entry_guid", digest)
++         self.assertIn("role", digest)
++         self.assertIn("segments", digest)
++         self.assertIn("context", digest)
++         self.assertIn("new_facts", digest)
++         self.assertIn("new_relationships", digest)
 +         
 +         # Check types
-+         self.assertIsInstance(digest[&quot;conversation_history_entry_guid&quot;], str)
-+         self.assertIsInstance(digest[&quot;role&quot;], str)
-+         self.assertIsInstance(digest[&quot;segments&quot;], list)
-+         self.assertIsInstance(digest[&quot;context&quot;], str)
-+         self.assertIsInstance(digest[&quot;new_facts&quot;], list)
-+         self.assertIsInstance(digest[&quot;new_relationships&quot;], list)
++         self.assertIsInstance(digest["conversation_history_entry_guid"], str)
++         self.assertIsInstance(digest["role"], str)
++         self.assertIsInstance(digest["segments"], list)
++         self.assertIsInstance(digest["context"], str)
++         self.assertIsInstance(digest["new_facts"], list)
++         self.assertIsInstance(digest["new_relationships"], list)
 +         
 +         # Check deeper structure if facts exist
-+         if digest[&quot;new_facts&quot;]:
-+             fact = digest[&quot;new_facts&quot;][0]
-+             self.assertIn(&quot;key&quot;, fact)
-+             self.assertIn(&quot;value&quot;, fact)
-+             self.assertIn(&quot;topic&quot;, fact)
++         if digest["new_facts"]:
++             fact = digest["new_facts"][0]
++             self.assertIn("key", fact)
++             self.assertIn("value", fact)
++             self.assertIn("topic", fact)
 +         
 +         # Check deeper structure if relationships exist
-+         if digest[&quot;new_relationships&quot;]:
-+             rel = digest[&quot;new_relationships&quot;][0]
-+             self.assertIn(&quot;subject&quot;, rel)
-+             self.assertIn(&quot;predicate&quot;, rel)
-+             self.assertIn(&quot;object&quot;, rel)
-+             self.assertIn(&quot;topic&quot;, rel)
++         if digest["new_relationships"]:
++             rel = digest["new_relationships"][0]
++             self.assertIn("subject", rel)
++             self.assertIn("predicate", rel)
++             self.assertIn("object", rel)
++             self.assertIn("topic", rel)
 + 
-+ if __name__ == &quot;__main__&quot;:
++ if __name__ == "__main__":
 +     unittest.main() 
 ```
 
@@ -5543,7 +5543,7 @@ You're right. Let's update the test to ensure the test_files directory is create
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: tests/memory_manager/test_memory_manager_digest_integration.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: tests/memory_manager/test_memory_manager_digest_integration.py</summary>
 
 **Chunk 1**
 Lines added: 6, lines removed: 4
@@ -5552,20 +5552,20 @@ Lines added: 6, lines removed: 4
 @@ -28,12 +28,14 @@
           # Create unique filename for this test run
           cls.test_id = str(uuid.uuid4())[:8]
--         cls.memory_file = os.path.join(project_root, f&quot;tests/test_files/test_digest_integration_{cls.test_id}.json&quot;)
+-         cls.memory_file = os.path.join(project_root, f"tests/test_files/test_digest_integration_{cls.test_id}.json")
 +         
 +         # Ensure test_files directory exists
-+         cls.test_files_dir = os.path.join(project_root, &quot;tests/test_files&quot;)
++         cls.test_files_dir = os.path.join(project_root, "tests/test_files")
 +         os.makedirs(cls.test_files_dir, exist_ok=True)
           
--         # Create parent directory if it doesn&#39;t exist
+-         # Create parent directory if it doesn't exist
 -         os.makedirs(os.path.dirname(cls.memory_file), exist_ok=True)
-+         cls.memory_file = os.path.join(cls.test_files_dir, f&quot;test_digest_integration_{cls.test_id}.json&quot;)
++         cls.memory_file = os.path.join(cls.test_files_dir, f"test_digest_integration_{cls.test_id}.json")
           
           # Set up debug log
-          timestamp = datetime.now().strftime(&quot;%Y%m%d_%H%M%S&quot;)
--         cls.debug_file = os.path.join(project_root, f&quot;tests/test_files/digest_integration_debug_{timestamp}.log&quot;)
-+         cls.debug_file = os.path.join(cls.test_files_dir, f&quot;digest_integration_debug_{timestamp}.log&quot;)
+          timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+-         cls.debug_file = os.path.join(project_root, f"tests/test_files/digest_integration_debug_{timestamp}.log")
++         cls.debug_file = os.path.join(cls.test_files_dir, f"digest_integration_debug_{timestamp}.log")
           
           # Initialize LLM service
 ```
@@ -5582,7 +5582,7 @@ Let's also update the tearDownClass method to use the test_files_dir variable fo
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: tests/memory_manager/test_memory_manager_digest_integration.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: tests/memory_manager/test_memory_manager_digest_integration.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -5591,8 +5591,8 @@ Lines added: 1, lines removed: 1
 @@ -80,5 +80,5 @@
           
           # Clean up backup files
--         for backup_file in Path(os.path.dirname(cls.memory_file)).glob(f&quot;*{cls.test_id}*_bak_*.json&quot;):
-+         for backup_file in Path(cls.test_files_dir).glob(f&quot;*{cls.test_id}*_bak_*.json&quot;):
+-         for backup_file in Path(os.path.dirname(cls.memory_file)).glob(f"*{cls.test_id}*_bak_*.json"):
++         for backup_file in Path(cls.test_files_dir).glob(f"*{cls.test_id}*_bak_*.json"):
               backup_file.unlink()
       
 ```
@@ -5633,7 +5633,7 @@ I'll run the integration test to verify it works correctly:
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: cd /Users/andrewrapo/github/cursor/cursor-hello-llm-agent && python -m unittest tests/memory_manager/test_memory_manager_digest_integration.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: cd /Users/andrewrapo/github/cursor/cursor-hello-llm-agent && python -m unittest tests/memory_manager/test_memory_manager_digest_integration.py</summary>
 
 ```bash
 cd /Users/andrewrapo/github/cursor/cursor-hello-llm-agent && python -m unittest tests/memory_manager/test_memory_manager_digest_integration.py
@@ -5666,26 +5666,26 @@ e in JSON protocol mode and only respond in strict, parsable JSON including the 
 DEBUG - LLM RESPONSE (first 200 chars):
 &#96;&#96;&#96;json
 {
-  &quot;static_memory&quot;: {
-    &quot;structured_data&quot;: {
-      &quot;regions&quot;: [
+  "static_memory": {
+    "structured_data": {
+      "regions": [
         {
-          &quot;name&quot;: &quot;Northern Mountains&quot;,
-          &quot;inhabitants&quot;: &quot;Dwarves&quot;,
-          &quot;activities&quot;: &quot;Mining preciou...
+          "name": "Northern Mountains",
+          "inhabitants": "Dwarves",
+          "activities": "Mining preciou...
 DEBUG - LLM RESPONSE (last 200 chars):
-ns&quot;
+ns"
         }
       ]
     }
   },
-  &quot;working_memory&quot;: {
-    &quot;structured_data&quot;: {
-      &quot;entities&quot;: []
+  "working_memory": {
+    "structured_data": {
+      "entities": []
     },
-    &quot;knowledge_graph&quot;: {
-      &quot;simple_facts&quot;: [],
-      &quot;relationships&quot;: []
+    "knowledge_graph": {
+      "simple_facts": [],
+      "relationships": []
     }
   }
 }
@@ -5701,7 +5701,7 @@ es/test_digest_integration_8c3e45ee_bak_1.json
 Initial memory created with GUID: 8524b209-9989-41f7-b983-370f52213e77 and type: standard
 .
 Querying memory...
-{&#39;user_message&#39;: &#39;Tell me about the threat emerging from the mountains. What do we know about it?&#39;}
+{'user_message': 'Tell me about the threat emerging from the mountains. What do we know about it?'}
 Generating digest for user message...
 Added user message to history with digest: Tell me about the threat emerging from the mountains. What do we 
 know about it?
@@ -5717,8 +5717,8 @@ Memory saved successfully with backup: /Users/andrewrapo/github/cursor/cursor-he
 es/test_digest_integration_8c3e45ee_bak_2.json
 ..
 Querying memory...
-{&#39;user_message&#39;: &#39;How is King Alaric planning to respond to this threat? Can the dwarves help since they liv
-e in the mountains?&#39;}
+{'user_message': 'How is King Alaric planning to respond to this threat? Can the dwarves help since they liv
+e in the mountains?'}
 Generating digest for user message...
 Added user message to history with digest: How is King Alaric planning to respond to this threat? Can the dw
 arves help since they live in the mountains?
@@ -5782,7 +5782,7 @@ You're absolutely right! Since we now have the DigestGenerator to handle creatin
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/templates/query_memory.prompt</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/templates/query_memory.prompt</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -5802,28 +5802,28 @@ Lines added: 3, lines removed: 33
 @@ -21,38 +21,8 @@
   Required JSON Structure:
   {{
--     &quot;response&quot;: &quot;Your natural language RESPONSE to the query - make this engaging, creative and rich while remaining factually accurate&quot;,
--     &quot;digest&quot;: {{
--         &quot;context&quot;: &quot;Brief context of the interaction&quot;,
--         &quot;new_facts&quot;: [
+-     "response": "Your natural language RESPONSE to the query - make this engaging, creative and rich while remaining factually accurate",
+-     "digest": {{
+-         "context": "Brief context of the interaction",
+-         "new_facts": [
 -             {{
--                 &quot;key&quot;: &quot;fact_key&quot;,
--                 &quot;value&quot;: &quot;fact_value&quot;,
--                 &quot;context&quot;: &quot;fact_context&quot;,
--                 &quot;source&quot;: &quot;user|assistant|inferred&quot;,
--                 &quot;importance&quot;: &quot;high|medium|low&quot;,
--                 &quot;topic&quot;: &quot;Brief topic description&quot;
+-                 "key": "fact_key",
+-                 "value": "fact_value",
+-                 "context": "fact_context",
+-                 "source": "user|assistant|inferred",
+-                 "importance": "high|medium|low",
+-                 "topic": "Brief topic description"
 -             }}
 -         ],
--         &quot;new_relationships&quot;: [
+-         "new_relationships": [
 -             {{
--                 &quot;subject&quot;: &quot;entity_id&quot;,
--                 &quot;predicate&quot;: &quot;RELATION_TYPE&quot;,
--                 &quot;object&quot;: &quot;other_entity_id&quot;,
--                 &quot;context&quot;: &quot;relationship_context&quot;,
--                 &quot;source&quot;: &quot;user|assistant|inferred&quot;,
--                 &quot;importance&quot;: &quot;high|medium|low&quot;,
--                 &quot;topic&quot;: &quot;Brief topic description&quot;
+-                 "subject": "entity_id",
+-                 "predicate": "RELATION_TYPE",
+-                 "object": "other_entity_id",
+-                 "context": "relationship_context",
+-                 "source": "user|assistant|inferred",
+-                 "importance": "high|medium|low",
+-                 "topic": "Brief topic description"
 -             }}
 -         ]
 -     }}
@@ -5834,7 +5834,7 @@ Lines added: 3, lines removed: 33
 - In the new_facts and new_relationship sections of the DIGEST, only include information that is NOT already captured in the CURRENT_MEMORY_STATE.
 - It is OK to leave the new_facts and new_relationship sections empty if there is nothing NEW to include.
 - At the same time, make sure to include all NEW facts and relationships.
-+     &quot;response&quot;: &quot;Your natural language response to the query - make this engaging, creative and rich while remaining factually accurate&quot;
++     "response": "Your natural language response to the query - make this engaging, creative and rich while remaining factually accurate"
 + }}
   
   REMEMBER: Assume you are in JSON protocol mode and only respond in strict, parsable JSON including the response to this interaction. If there is anything in the response that is not parsable JSON, the interaction will fail.
@@ -5855,7 +5855,7 @@ Excellent! Now we need to update the `MemoryManager` class to match this simplif
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: 2
@@ -5863,15 +5863,15 @@ Lines added: 2, lines removed: 2
 ```diff
 @@ -357,8 +357,8 @@
                       except json.JSONDecodeError as e:
-                          print(f&quot;Error parsing extracted JSON structure: {str(e)}&quot;)
+                          print(f"Error parsing extracted JSON structure: {str(e)}")
 -                         return False
-+                         return {&quot;response&quot;: f&quot;Error parsing LLM response: {str(e)}&quot;}
++                         return {"response": f"Error parsing LLM response: {str(e)}"}
                   else:
-                      print(&quot;Could not find JSON structure in LLM response&quot;)
+                      print("Could not find JSON structure in LLM response")
 -                     return False
-+                     return {&quot;response&quot;: &quot;Error: Invalid response format from LLM&quot;}
++                     return {"response": "Error: Invalid response format from LLM"}
   
-              if not isinstance(result, dict) or &quot;response&quot; not in result:
+              if not isinstance(result, dict) or "response" not in result:
 ```
 
 </details>
@@ -5897,7 +5897,7 @@ The code looks good - it's already creating the digest from the DigestGenerator 
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: cd /Users/andrewrapo/github/cursor/cursor-hello-llm-agent && python -m unittest tests/memory_manager/test_memory_manager_digest_integration.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: cd /Users/andrewrapo/github/cursor/cursor-hello-llm-agent && python -m unittest tests/memory_manager/test_memory_manager_digest_integration.py</summary>
 
 ```bash
 cd /Users/andrewrapo/github/cursor/cursor-hello-llm-agent && python -m unittest tests/memory_manager/test_memory_manager_digest_integration.py
@@ -5932,26 +5932,26 @@ e in JSON protocol mode and only respond in strict, parsable JSON including the 
 DEBUG - LLM RESPONSE (first 200 chars):
 &#96;&#96;&#96;json
 {
-  &quot;static_memory&quot;: {
-    &quot;structured_data&quot;: {
-      &quot;regions&quot;: [
+  "static_memory": {
+    "structured_data": {
+      "regions": [
         {
-          &quot;name&quot;: &quot;Northern Mountains&quot;,
-          &quot;inhabitants&quot;: &quot;Dwarves&quot;,
-          &quot;primary_activity&quot;: &quot;Mining p...
+          "name": "Northern Mountains",
+          "inhabitants": "Dwarves",
+          "primary_activity": "Mining p...
 DEBUG - LLM RESPONSE (last 200 chars):
-ce&quot;
+ce"
         }
       ]
     }
   },
-  &quot;working_memory&quot;: {
-    &quot;structured_data&quot;: {
-      &quot;entities&quot;: []
+  "working_memory": {
+    "structured_data": {
+      "entities": []
     },
-    &quot;knowledge_graph&quot;: {
-      &quot;simple_facts&quot;: [],
-      &quot;relationships&quot;: []
+    "knowledge_graph": {
+      "simple_facts": [],
+      "relationships": []
     }
   }
 }
@@ -5967,7 +5967,7 @@ es/test_digest_integration_66c25df4_bak_1.json
 Initial memory created with GUID: b6247d69-1667-460a-a55e-e7ee74c436e9 and type: standard
 .
 Querying memory...
-{&#39;user_message&#39;: &#39;Tell me about the threat emerging from the mountains. What do we know about it?&#39;}
+{'user_message': 'Tell me about the threat emerging from the mountains. What do we know about it?'}
 Generating digest for user message...
 Added user message to history with digest: Tell me about the threat emerging from the mountains. What do we 
 know about it?
@@ -5983,8 +5983,8 @@ Memory saved successfully with backup: /Users/andrewrapo/github/cursor/cursor-he
 es/test_digest_integration_66c25df4_bak_2.json
 ..
 Querying memory...
-{&#39;user_message&#39;: &#39;How is King Alaric planning to respond to this threat? Can the dwarves help since they liv
-e in the mountains?&#39;}
+{'user_message': 'How is King Alaric planning to respond to this threat? Can the dwarves help since they liv
+e in the mountains?'}
 Generating digest for user message...
 Added user message to history with digest: How is King Alaric planning to respond to this threat? Can the dw
 arves help since they live in the mountains?
@@ -6048,7 +6048,7 @@ You're absolutely right! The extract_digest.prompt should include the current me
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/templates/extract_digest.prompt</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/templates/extract_digest.prompt</summary>
 
 **Chunk 1**
 Lines added: 3, lines removed: undefined
@@ -6069,7 +6069,7 @@ Lines added: 1, lines removed: undefined
 
 ```diff
 @@ -14,4 +17,5 @@
-  8. Specify the &quot;source&quot; as either &quot;user&quot;, &quot;assistant&quot;, or &quot;inferred&quot;
+  8. Specify the "source" as either "user", "assistant", or "inferred"
   9. Assign a relevant topic to each fact and relationship
 + 10. ONLY include information that is NEW or not already present in the current memory state
   
@@ -6100,18 +6100,18 @@ Let's modify the DigestGenerator to include the memory state:
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/digest_generator.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/digest_generator.py</summary>
 
 **Chunk 1**
 Lines added: 2, lines removed: 1
 
 ```diff
 @@ -47,9 +47,10 @@
-                  raise Exception(f&quot;Failed to load template: {filename}&quot;)
+                  raise Exception(f"Failed to load template: {filename}")
       
 -     def generate_digest(self, conversation_entry: Dict[str, Any]) -&gt; Dict[str, Any]:
 +     def generate_digest(self, conversation_entry: Dict[str, Any], memory_state: Optional[Dict[str, Any]] = None) -&gt; Dict[str, Any]:
-          &quot;&quot;&quot;Generate a structured digest from a conversation entry using a two-step process.
+          """Generate a structured digest from a conversation entry using a two-step process.
           
           Args:
               conversation_entry: Dictionary containing the conversation entry with role, content, etc.
@@ -6142,7 +6142,7 @@ Lines added: 8, lines removed: 3
       
 -     def _extract_information(self, segments: List[str]) -&gt; Dict[str, Any]:
 +     def _extract_information(self, segments: List[str], memory_state: Optional[Dict[str, Any]] = None) -&gt; Dict[str, Any]:
-          &quot;&quot;&quot;Extract structured information from segments using LLM.
+          """Extract structured information from segments using LLM.
           
           Args:
               segments: List of segmented phrases
@@ -6150,13 +6150,13 @@ Lines added: 8, lines removed: 3
               
           Returns:
               dict: Structured information extract from segments
-          &quot;&quot;&quot;
+          """
           try:
 -             # Format the prompt with the segments
--             prompt = self.templates[&quot;extract&quot;].format(segments=json.dumps(segments))
+-             prompt = self.templates["extract"].format(segments=json.dumps(segments))
 +             # Format the prompt with the segments and memory state
 +             memory_state_json = json.dumps({}) if memory_state is None else json.dumps(memory_state)
-+             prompt = self.templates[&quot;extract&quot;].format(
++             prompt = self.templates["extract"].format(
 +                 segments=json.dumps(segments),
 +                 memory_state=memory_state_json
 +             )
@@ -6176,7 +6176,7 @@ Now we need to update the MemoryManager to pass the memory state when calling th
 
 <tool-use data-tool-type="write" data-tool-name="edit_file">
 
-<details><summary>Tool use: **code_edit** • Edit file: src/memory/memory_manager.py</summary>
+<details><summary>Tool use: **edit_file** • Edit file: src/memory/memory_manager.py</summary>
 
 **Chunk 1**
 Lines added: 1, lines removed: 1
@@ -6184,10 +6184,10 @@ Lines added: 1, lines removed: 1
 ```diff
 @@ -322,5 +322,5 @@
                   # Generate digest for user message
-                  print(&quot;Generating digest for user message...&quot;)
+                  print("Generating digest for user message...")
 -                 user_digest = self.digest_generator.generate_digest(user_entry)
 +                 user_digest = self.digest_generator.generate_digest(user_entry, self.memory)
-                  user_entry[&quot;digest&quot;] = user_digest
+                  user_entry["digest"] = user_digest
                   
 ```
 
@@ -6197,10 +6197,10 @@ Lines added: 1, lines removed: 1
 ```diff
 @@ -376,5 +376,5 @@
               # Generate digest for assistant response
-              print(&quot;Generating digest for assistant response...&quot;)
+              print("Generating digest for assistant response...")
 -             assistant_digest = self.digest_generator.generate_digest(assistant_entry)
 +             assistant_digest = self.digest_generator.generate_digest(assistant_entry, self.memory)
-              assistant_entry[&quot;digest&quot;] = assistant_digest
+              assistant_entry["digest"] = assistant_digest
               
 ```
 
@@ -6215,7 +6215,7 @@ Perfect! Let's run the test again to verify everything works with our updated co
 ---
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
-<details><summary>Tool use: **command** • Run command: cd /Users/andrewrapo/github/cursor/cursor-hello-llm-agent && python -m unittest tests/memory_manager/test_memory_manager_digest_integration.py</summary>
+<details><summary>Tool use: **run_terminal_cmd** • Run command: cd /Users/andrewrapo/github/cursor/cursor-hello-llm-agent && python -m unittest tests/memory_manager/test_memory_manager_digest_integration.py</summary>
 
 ```bash
 cd /Users/andrewrapo/github/cursor/cursor-hello-llm-agent && python -m unittest tests/memory_manager/test_memory_manager_digest_integration.py
@@ -6250,26 +6250,26 @@ e in JSON protocol mode and only respond in strict, parsable JSON including the 
 DEBUG - LLM RESPONSE (first 200 chars):
 &#96;&#96;&#96;json
 {
-  &quot;static_memory&quot;: {
-    &quot;structured_data&quot;: {
-      &quot;regions&quot;: [
+  "static_memory": {
+    "structured_data": {
+      "regions": [
         {
-          &quot;name&quot;: &quot;Northern Mountains&quot;,
-          &quot;inhabitants&quot;: &quot;Dwarves&quot;,
-          &quot;activity&quot;: &quot;Mining precious ...
+          "name": "Northern Mountains",
+          "inhabitants": "Dwarves",
+          "activity": "Mining precious ...
 DEBUG - LLM RESPONSE (last 200 chars):
-on&quot;
+on"
         }
       ]
     }
   },
-  &quot;working_memory&quot;: {
-    &quot;structured_data&quot;: {
-      &quot;entities&quot;: []
+  "working_memory": {
+    "structured_data": {
+      "entities": []
     },
-    &quot;knowledge_graph&quot;: {
-      &quot;simple_facts&quot;: [],
-      &quot;relationships&quot;: []
+    "knowledge_graph": {
+      "simple_facts": [],
+      "relationships": []
     }
   }
 }
@@ -6285,7 +6285,7 @@ es/test_digest_integration_769232cb_bak_1.json
 Initial memory created with GUID: 72f4b9be-ce6e-4f05-b6be-196f683a88af and type: standard
 .
 Querying memory...
-{&#39;user_message&#39;: &#39;Tell me about the threat emerging from the mountains. What do we know about it?&#39;}
+{'user_message': 'Tell me about the threat emerging from the mountains. What do we know about it?'}
 Generating digest for user message...
 Added user message to history with digest: Tell me about the threat emerging from the mountains. What do we 
 know about it?
@@ -6301,8 +6301,8 @@ Memory saved successfully with backup: /Users/andrewrapo/github/cursor/cursor-he
 es/test_digest_integration_769232cb_bak_2.json
 ..
 Querying memory...
-{&#39;user_message&#39;: &#39;How is King Alaric planning to respond to this threat? Can the dwarves help since they liv
-e in the mountains?&#39;}
+{'user_message': 'How is King Alaric planning to respond to this threat? Can the dwarves help since they liv
+e in the mountains?'}
 Generating digest for user message...
 Added user message to history with digest: How is King Alaric planning to respond to this threat? Can the dw
 arves help since they live in the mountains?
