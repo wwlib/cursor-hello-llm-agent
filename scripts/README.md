@@ -4,6 +4,19 @@ This directory contains utility scripts for the LLM Agent Framework project.
 
 ## Available Scripts
 
+### `eval_rag_graph_loop.py`
+
+Three-gate memory quality loop (digest / RAG / graph). Primary development compass for graph-RAG work.
+
+**Usage:**
+```bash
+python scripts/eval_rag_graph_loop.py --validate-only
+python scripts/eval_rag_graph_loop.py --verbose
+python scripts/eval_rag_graph_loop.py --gates rag,graph
+```
+
+**See also:** [`src/memory/eval/README.md`](../src/memory/eval/README.md)
+
 ### `copy_graph_to_viewer.sh`
 
 Copies graph memory files from agent conversations to the graph-viewer for visualization.

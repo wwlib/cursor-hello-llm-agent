@@ -1,0 +1,201 @@
+{
+  "id": "lost_valley_dnd",
+  "description": "Fixed Lost Valley D&D fixture for digest / RAG / graph quality gates. Self-contained for future memory-package extraction.",
+  "domain_name": "dnd_campaign",
+  "thresholds": {
+    "digest_overall_min": 6.0,
+    "digest_topic_relevance_min": 6.0,
+    "digest_topic_consistency_min": 6.0,
+    "rag_min_matching_queries": 4,
+    "graph_max_duplicate_groups": 0,
+    "graph_max_nodes_named_haven": 1
+  },
+  "domain_config": {
+    "domain_name": "dnd_campaign",
+    "domain_specific_prompt_instructions": {
+      "query": "You are a DM for a D&D campaign.",
+      "update": "You are analyzing input and extracting important information into conversation history."
+    },
+    "topic_taxonomy": {
+      "world": ["setting", "geography", "location", "environment", "terrain"],
+      "characters": ["npc", "player", "personality", "motivation", "background"],
+      "narrative": ["story", "plot", "quest", "adventure", "campaign"],
+      "mechanics": ["rules", "dice", "combat", "magic", "spells"],
+      "objects": ["items", "equipment", "artifacts", "treasure", "inventory"],
+      "history": ["lore", "ruins", "archaeology", "ancient", "past"],
+      "society": ["politics", "trade", "settlements", "culture", "religion"],
+      "threats": ["monsters", "enemies", "dangers", "conflict", "war"],
+      "exploration": ["discovery", "investigation", "research", "mystery"],
+      "events": ["happenings", "situations", "incidents", "occurrences"]
+    },
+    "topic_normalizations": {
+      "locations": "location",
+      "geography": "location",
+      "character": "characters",
+      "ruins": "archaeology",
+      "artifacts": "archaeology",
+      "monsters": "threats",
+      "magical": "magic",
+      "anomalies": "magic"
+    },
+    "graph_memory_config": {
+      "enabled": true,
+      "entity_types": ["character", "location", "object", "event", "concept", "organization"],
+      "relationship_types": [
+        "located_in", "owns", "member_of", "allies_with", "enemies_with",
+        "uses", "created_by", "leads_to", "participates_in", "related_to"
+      ],
+      "entity_extraction_prompt": "Extract entities from this D&D campaign text. Focus on characters, locations, objects, events, concepts, and organizations that are important to the campaign world and story.",
+      "relationship_extraction_prompt": "Identify relationships between entities in this D&D campaign text. Look for spatial relationships (located_in), ownership (owns), social relationships (allies_with, enemies_with), and story connections.",
+      "similarity_threshold": 0.8
+    }
+  },
+  "digest_cases": [
+    {
+      "id": "campaign_setting",
+      "role": "system",
+      "content": "Campaign Setting: The Lost Valley\n\nWorld Details:\n- Hidden valley surrounded by impassable mountains\n- Ancient ruins scattered throughout\n- Mysterious magical anomalies\n- Three main settlements: Haven (central), Riverwatch (east), Mountainkeep (west)\n\nKey NPCs:\n1. Elena\n   - Role: Mayor of Haven\n   - Motivation: Protect the valley's inhabitants\n   - Current Quest: Investigate strange occurrences in Haven\n\n2. Theron\n   - Role: Master Scholar\n   - Expertise: Ancient ruins and artifacts\n   - Current Research: Decoding ruin inscriptions\n\n3. Sara\n   - Role: Captain of Riverwatch\n   - Responsibility: Valley's defense\n   - Current Concern: Increased monster activity\n\nCurrent Situations:\n1. Trade Routes\n   - Main road between settlements disrupted\n   - Merchants seeking protection\n   - Alternative routes needed\n\n2. Ancient Ruins\n   - New chambers discovered\n   - Strange energy emanations\n   - Valuable artifacts found\n\n3. Magical Anomalies\n   - Random magical effects\n   - Affecting local wildlife\n   - Possible connection to ruins"
+    }
+  ],
+  "seed_conversations": {
+    "memory_file_guid": "eval_lost_valley_dnd",
+    "entries": [
+      {
+        "guid": "8fc34427-13db-4a88-a703-12446fe33ed4",
+        "role": "system",
+        "content": "Campaign Setting: The Lost Valley\n\nWorld Details:\n- Hidden valley surrounded by impassable mountains\n- Ancient ruins scattered throughout\n- Mysterious magical anomalies\n- Three main settlements: Haven (central), Riverwatch (east), Mountainkeep (west)\n\nKey NPCs:\n1. Elena - Mayor of Haven\n2. Theron - Master Scholar\n3. Sara - Captain of Riverwatch",
+        "timestamp": "2025-06-08T06:36:45.786651",
+        "digest": {
+          "conversation_history_entry_guid": "8fc34427-13db-4a88-a703-12446fe33ed4",
+          "role": "system",
+          "rated_segments": [
+            {
+              "text": "The Lost Valley is a campaign setting defined by a hidden valley, completely surrounded by impassable mountains. Scattered throughout the valley are ancient ruins, and the area is punctuated by mysterious magical anomalies.",
+              "importance": 4,
+              "topics": ["setting", "location", "magic"],
+              "type": "information",
+              "memory_worthy": true
+            },
+            {
+              "text": "There are three main settlements: Haven, located at the valley's center; Riverwatch, situated to the east; and Mountainkeep, located to the west.",
+              "importance": 3,
+              "topics": ["location", "society"],
+              "type": "information",
+              "memory_worthy": true
+            },
+            {
+              "text": "Key non-player characters include Elena, who serves as the Mayor of Haven and is motivated by a desire to protect the valley's inhabitants. She is currently investigating strange occurrences within Haven.",
+              "importance": 4,
+              "topics": ["characters", "location", "investigation"],
+              "type": "information",
+              "memory_worthy": true
+            },
+            {
+              "text": "Theron is a Master Scholar with expertise in ancient ruins and artifacts, and he is presently focused on decoding inscriptions found within the ruins.",
+              "importance": 4,
+              "topics": ["characters", "archaeology", "magic"],
+              "type": "information",
+              "memory_worthy": true
+            },
+            {
+              "text": "Sara is the Captain of Riverwatch, responsible for the valley's defense, and she is concerned by an increase in monster activity.",
+              "importance": 4,
+              "topics": ["characters", "location", "threats"],
+              "type": "information",
+              "memory_worthy": true
+            },
+            {
+              "text": "Currently, trade routes between the settlements have been disrupted, and merchants are seeking protection.",
+              "importance": 3,
+              "topics": ["trade", "threats"],
+              "type": "information",
+              "memory_worthy": true
+            },
+            {
+              "text": "Explorers have recently discovered new chambers within the ancient ruins, accompanied by strange energy emanations, and valuable artifacts have been found.",
+              "importance": 5,
+              "topics": ["archaeology", "magic", "investigation"],
+              "type": "information",
+              "memory_worthy": true
+            },
+            {
+              "text": "Furthermore, random magical effects are occurring, impacting the local wildlife, and there is a suspected connection between these anomalies and the ruins.",
+              "importance": 5,
+              "topics": ["magic", "threats", "environment"],
+              "type": "information",
+              "memory_worthy": true
+            }
+          ],
+          "timestamp": "2025-06-08T06:36:52.170719"
+        }
+      },
+      {
+        "guid": "821918f0-a237-46ec-ab05-40f4ba022337",
+        "role": "agent",
+        "content": "Scattered throughout the Lost Valley are ancient ruins, punctuated by mysterious magical anomalies. Explorers have recently discovered new chambers within them, accompanied by strange energy emanations and valuable artifacts have been found.",
+        "timestamp": "2025-06-08T06:37:15.199178",
+        "digest": {
+          "conversation_history_entry_guid": "821918f0-a237-46ec-ab05-40f4ba022337",
+          "role": "agent",
+          "rated_segments": [
+            {
+              "text": "Scattered throughout the Lost Valley are ancient ruins, punctuated by mysterious magical anomalies.",
+              "importance": 3,
+              "topics": ["archaeology", "environment", "magic"],
+              "type": "information",
+              "memory_worthy": true
+            },
+            {
+              "text": "Explorers have recently discovered new chambers within them, accompanied by strange energy emanations and valuable artifacts have been found.",
+              "importance": 4,
+              "topics": ["archaeology", "magic", "investigation"],
+              "type": "information",
+              "memory_worthy": true
+            }
+          ],
+          "timestamp": "2025-06-08T06:37:18.528099"
+        }
+      }
+    ]
+  },
+  "rag_queries": [
+    {
+      "id": "mayor_of_haven",
+      "query": "Who is the mayor of Haven?",
+      "expected_substrings": ["Elena"],
+      "limit": 5
+    },
+    {
+      "id": "settlements",
+      "query": "What settlements are in the Lost Valley?",
+      "expected_substrings": ["Haven"],
+      "limit": 5
+    },
+    {
+      "id": "ruins_discoveries",
+      "query": "What did explorers find in the ancient ruins?",
+      "expected_substrings": ["artifacts"],
+      "limit": 5
+    },
+    {
+      "id": "monster_activity",
+      "query": "Who is concerned about monster activity?",
+      "expected_substrings": ["Sara"],
+      "limit": 5
+    },
+    {
+      "id": "theron_research",
+      "query": "What is Theron researching?",
+      "expected_substrings": ["Theron"],
+      "limit": 5
+    }
+  ],
+  "required_entities": [
+    {"name": "Haven"},
+    {"name": "Elena"},
+    {"name": "Theron"},
+    {"name": "Sara"},
+    {"name": "Riverwatch"},
+    {"name": "Mountainkeep"}
+  ]
+}
